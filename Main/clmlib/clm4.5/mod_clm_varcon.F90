@@ -6,7 +6,7 @@ module mod_clm_varcon
   use mod_intkinds
   use mod_constants, only : cpd, pdbratio, secpd, earthrad, tzero, &
     rgasmol, rhoice, rhoh2o, wlhf, wlhs, wlhv, spcpice, spcpfw,  &
-    egrav, rwat, vonkar, sigm, mathpi, regrav, rdry
+    egrav, rwat, vonkar, sigm, mathpi_r8, regrav, rdry
   use mod_clm_varpar, only : numrad, nlevgrnd, nlevlak, &
      nlevdecomp_full, ngases
 #if (defined VICHYDRO)
@@ -23,7 +23,7 @@ module mod_clm_varcon
   ! Initialize mathmatical constants
   !------------------------------------------------------------------
 
-  real(rk8), public, parameter :: rpi    = mathpi
+  real(rk8), public, parameter :: rpi    = mathpi_r8
 
   !------------------------------------------------------------------
   ! Initialize physical constants

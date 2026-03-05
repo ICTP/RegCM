@@ -278,8 +278,8 @@ module mod_sun
     ! If we are fixing the solar constant, then fix the declination
     ! angle and eccentricity factor to constant values
     if ( irceideal == 1 ) then
-      declin = 0.0_rkx
-      eccf = 1.0_rkx
+      declin = 0.0_rk8
+      eccf = 1.0_rk8
     end if
     decdeg = declin/degrad
     if ( myid == italk .and. alarm_day%act( ) ) then
@@ -331,8 +331,8 @@ module mod_sun
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         coszrs(j,i) = cos(degrad*42.05_rkx)
       end do
-      eccf = 1.0_rkx
-      declin = 0.0_rkx
+      eccf = 1.0_rk8
+      declin = 0.0_rk8
       if ( rcmtimer%start( ) .or. alarm_day%act( ) .or. doing_restart ) then
         if ( myid == italk .and. alarm_day%act( ) ) then
           write (stdout, *) 'At ',rcmtimer%str( )
@@ -349,7 +349,7 @@ module mod_sun
 #endif
     else
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        coszrs(j,i) = orb_cosz(calday,xlat(j,i)*degrad,xlon(j,i)*degrad,declin)
+        coszrs(j,i) = orb_cosz(calday,xlat(j,i),xlon(j,i),declin)
         coszrs(j,i) = max(0.0_rkx,coszrs(j,i))
         coszrs(j,i) = min(1.0_rkx,coszrs(j,i))
       end do

@@ -167,13 +167,13 @@ module mod_savefile
 
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: fcc_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: gasabsnxt_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: gasabstot_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: gasemstot_io => null( )
+  real(rk8), public, pointer, contiguous, dimension(:,:,:,:) :: gasabsnxt_io => null( )
+  real(rk8), public, pointer, contiguous, dimension(:,:,:,:) :: gasabstot_io => null( )
+  real(rk8), public, pointer, contiguous, dimension(:,:,:) :: gasemstot_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: cldfra_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: heatrt_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: o3prof_io => null( )
+  real(rk8), public, pointer, contiguous, dimension(:,:,:) :: o3prof_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: dstor_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: hstor_io => null( )
@@ -201,8 +201,10 @@ module mod_savefile
   interface myputvar
     module procedure myputvar2dd
     module procedure myputvar2ddf
-    module procedure myputvar3dd
-    module procedure myputvar4dd
+    module procedure myputvar3dd4
+    module procedure myputvar3dd8
+    module procedure myputvar4dd4
+    module procedure myputvar4dd8
     module procedure myputvar1dif
     module procedure myputvar2di
     module procedure myputvar3di
@@ -211,8 +213,10 @@ module mod_savefile
   interface mygetvar
     module procedure mygetvar2dd
     module procedure mygetvar2ddf
-    module procedure mygetvar3dd
-    module procedure mygetvar4dd
+    module procedure mygetvar3dd4
+    module procedure mygetvar3dd8
+    module procedure mygetvar4dd4
+    module procedure mygetvar4dd8
     module procedure mygetvar1dif
     module procedure mygetvar2di
     module procedure mygetvar3di
@@ -1490,7 +1494,7 @@ module mod_savefile
     call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
   end subroutine mygetvar2ddf
 
-  subroutine myputvar3dd(ncid,str,var,ivar,iivar)
+  subroutine myputvar3dd4(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
     use mpi, only : mpi_offset_kind
     use pnetcdf
@@ -1500,7 +1504,7 @@ module mod_savefile
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: var
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: var
     integer(ik4), dimension(:), intent(in) :: ivar
     integer(ik4), intent(inout) :: iivar
 #ifdef PNETCDF
@@ -1522,9 +1526,9 @@ module mod_savefile
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
-  end subroutine myputvar3dd
+  end subroutine myputvar3dd4
 
-  subroutine mygetvar3dd(ncid,str,var)
+  subroutine myputvar3dd8(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
     use mpi, only : mpi_offset_kind
     use pnetcdf
@@ -1534,7 +1538,41 @@ module mod_savefile
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: var
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: var
+    integer(ik4), dimension(:), intent(in) :: ivar
+    integer(ik4), intent(inout) :: iivar
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind), dimension(3) :: istart, icount
+#else
+    integer(ik4), dimension(3) :: istart, icount
+#endif
+    iivar = iivar + 1
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
+#ifdef PNETCDF
+    ncstatus = nf90mpi_iput_var(ncid,ivar(iivar),var, &
+              ireq(iivar),istart,icount)
+#else
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar3dd8
+
+  subroutine mygetvar3dd4(ncid,str,var)
+#ifdef PNETCDF
+    use mpi, only : mpi_offset_kind
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: var
 #ifdef PNETCDF
     integer(kind=mpi_offset_kind), dimension(3) :: istart, icount
 #else
@@ -1552,9 +1590,9 @@ module mod_savefile
     ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
-  end subroutine mygetvar3dd
+  end subroutine mygetvar3dd4
 
-  subroutine myputvar4dd(ncid,str,var,ivar,iivar)
+  subroutine mygetvar3dd8(ncid,str,var)
 #ifdef PNETCDF
     use mpi, only : mpi_offset_kind
     use pnetcdf
@@ -1564,7 +1602,37 @@ module mod_savefile
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
-    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: var
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind), dimension(3) :: istart, icount
+#else
+    integer(ik4), dimension(3) :: istart, icount
+#endif
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_var_all(ncid,get_varid(ncid,str),var,istart,icount)
+#else
+    ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+  end subroutine mygetvar3dd8
+
+  subroutine myputvar4dd8(ncid,str,var,ivar,iivar)
+#ifdef PNETCDF
+    use mpi, only : mpi_offset_kind
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var
     integer(ik4), dimension(:), intent(in) :: ivar
     integer(ik4), intent(inout) :: iivar
 #ifdef PNETCDF
@@ -1587,9 +1655,9 @@ module mod_savefile
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
-  end subroutine myputvar4dd
+  end subroutine myputvar4dd8
 
-  subroutine mygetvar4dd(ncid,str,var)
+  subroutine myputvar4dd4(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
     use mpi, only : mpi_offset_kind
     use pnetcdf
@@ -1599,7 +1667,42 @@ module mod_savefile
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: str
-    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: var
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: var
+    integer(ik4), dimension(:), intent(in) :: ivar
+    integer(ik4), intent(inout) :: iivar
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind), dimension(4) :: istart, icount
+#else
+    integer(ik4), dimension(4) :: istart, icount
+#endif
+    iivar = iivar + 1
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    istart(4) = lbound(var,4)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
+    icount(4) = ubound(var,4)-istart(4)+1
+#ifdef PNETCDF
+    ncstatus = nf90mpi_iput_var(ncid,ivar(iivar),var,ireq(iivar),istart,icount)
+#else
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar4dd4
+
+  subroutine mygetvar4dd8(ncid,str,var)
+#ifdef PNETCDF
+    use mpi, only : mpi_offset_kind
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: var
 #ifdef PNETCDF
     integer(kind=mpi_offset_kind), dimension(4) :: istart, icount
 #else
@@ -1619,7 +1722,39 @@ module mod_savefile
     ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
-  end subroutine mygetvar4dd
+  end subroutine mygetvar4dd8
+
+  subroutine mygetvar4dd4(ncid,str,var)
+#ifdef PNETCDF
+    use mpi, only : mpi_offset_kind
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: str
+    real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: var
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind), dimension(4) :: istart, icount
+#else
+    integer(ik4), dimension(4) :: istart, icount
+#endif
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    istart(4) = lbound(var,4)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
+    icount(4) = ubound(var,4)-istart(4)+1
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_var_all(ncid,get_varid(ncid,str),var,istart,icount)
+#else
+    ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+  end subroutine mygetvar4dd4
 
   subroutine myputvar1dif(ncid,str,var,nx,ivar,iivar)
 #ifdef PNETCDF

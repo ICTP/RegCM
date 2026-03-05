@@ -77,24 +77,25 @@ module mod_rad_outrad
     ! solsd  - Downward solar rad onto surface (sw diffuse)
     !
     logical, intent(in) :: lout ! Preapre data for outfile
-    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: clrls, clrlt,  &
+    real(rk8), pointer, contiguous, dimension(:), &
+      intent(inout) :: clrls, clrlt,  &
            clrss, clrst, lwout, frla, frsa, solout, slwd, solin,   &
            soll, solld, sols, solsd, totcf, totcl, totci, totwv,   &
            abv, sol, aeradfo, aeradfos, aerlwfo, aerlwfos
-    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: cld, clwp,   &
-           qrl, qrs, deltaz, o3
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: outtaucl,  &
-           outtauci, tauxar3d, tauasc3d, gtota3d
-    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: asaeradfo, &
-           asaeradfos, asaerlwfo, asaerlwfos
+    real(rk8), pointer, contiguous, dimension(:,:), &
+      intent(inout) :: cld, clwp, qrl, qrs, deltaz, o3
+    real(rk8), pointer, contiguous, dimension(:,:,:), &
+      intent(inout) :: outtaucl, outtauci, tauxar3d, tauasc3d, gtota3d
+    real(rk8), pointer, contiguous, dimension(:), &
+      intent(inout) :: asaeradfo, asaeradfos, asaerlwfo, asaerlwfos
     type(mod_2_rad), intent(in) :: m2r
     type(rad_2_mod), intent(inout) :: r2m
 
     integer(ik4) :: i, j, k, n
     integer(ik4) :: kh1, kh2, km1, km2, kl1, kl2
     integer(ik4) :: visband
-    real(rkx) :: hif, mif, lof
-    real(rkx), parameter :: sm1 = 1.0001_rkx
+    real(rk8) :: hif, mif, lof
+    real(rk8), parameter :: sm1 = 1.0001_rk8
     !
     ! total heating rate in deg/s
     !
@@ -138,10 +139,10 @@ module mod_rad_outrad
     end do
 
     if ( ifrad ) then
-      rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
+      rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rk8
     end if
     if ( ifopt ) then
-      rnrad_for_optfrq = rnrad_for_optfrq + 1.0_rkx
+      rnrad_for_optfrq = rnrad_for_optfrq + 1.0_rk8
     end if
 
     if ( ifrad .and. associated(rad_higcl_out) .and. &
@@ -158,11 +159,11 @@ module mod_rad_outrad
         km2 = 2
         kl1 = 2
         do k = 2, kzm1
-          if ( m2r%phatms(j,i,k) <= 44000.0_rkx ) then
+          if ( m2r%phatms(j,i,k) <= 44000.0_rk8 ) then
             kh2 = k
             km1 = k+1
-          else if ( m2r%phatms(j,i,k) > 44000.0_rkx .and. &
-                    m2r%phatms(j,i,k) <= 68000.0_rkx ) then
+          else if ( m2r%phatms(j,i,k) > 44000.0_rk8 .and. &
+                    m2r%phatms(j,i,k) <= 68000.0_rk8 ) then
             km2 = k
             kl1 = k+1
           end if
@@ -230,7 +231,7 @@ module mod_rad_outrad
         call copy3d(cld,rad_cld_out)
         call copy3d(clwp,rad_clwp_out)
         if ( associated(rad_clwp_out) ) then
-          rad_clwp_out = 1.0e-3_rkx * rad_clwp_out * rad_cld_out
+          rad_clwp_out = 1.0e-3_rk8 * rad_clwp_out * rad_cld_out
         end if
         call copy3d(qrs,rad_qrs_out)
         call copy3d(qrl,rad_qrl_out)
@@ -260,7 +261,7 @@ module mod_rad_outrad
 
   subroutine copy2d(a,b)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4) :: i, j, n
     if ( associated(b) ) then
@@ -273,7 +274,7 @@ module mod_rad_outrad
 
   subroutine copy2d_integrate_from3(a,b,l,ki,kl)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4), intent(in) :: l, kl, ki
     integer(ik4) :: i, j, k, n
@@ -295,14 +296,14 @@ module mod_rad_outrad
 
   subroutine copy3d(a,b)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     call copy3d1(a,b,1,kz)
   end subroutine copy3d
 
   subroutine copy3d1(a,b,k1,k2)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4), intent(in) :: k1, k2
     integer(ik4) :: i, j, k, n
@@ -323,7 +324,7 @@ module mod_rad_outrad
 
   subroutine copy4d(a,b,l,ki,kl)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4), intent(in) :: l, ki, kl
     integer(ik4) :: i, j, k, n, kk
@@ -346,7 +347,7 @@ module mod_rad_outrad
 
   subroutine copy4d1(a,b,nl)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: b
     integer(ik4), intent(in) :: nl
     integer(ik4) :: i, j, l, k, n
@@ -367,7 +368,7 @@ module mod_rad_outrad
 
   subroutine copy4d2(a,b)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
@@ -387,8 +388,8 @@ module mod_rad_outrad
 
   subroutine copy4d_mult(a,b,l,c)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: c
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: c
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4), intent(in) :: l
     integer(ik4) :: i, j, k, n
@@ -409,8 +410,8 @@ module mod_rad_outrad
 
   subroutine copy4d_div(a,b,l,c,ki,kl)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: c
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: c
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4), intent(in) :: l, ki, kl
     integer(ik4) :: i, j, k, n, kk
@@ -433,8 +434,8 @@ module mod_rad_outrad
 
   subroutine copy4d_div2(a,b,l,c,ki,kl)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: c
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:,:) :: c
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4), intent(in) :: l, ki, kl
     integer(ik4) :: i, j, k, n, kk
@@ -465,7 +466,7 @@ module mod_rad_outrad
 
   subroutine copy2d_add(a,b)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4) :: i, j, n
     if ( associated(b) ) then
@@ -478,7 +479,7 @@ module mod_rad_outrad
 
   subroutine copy3d_add(a,b)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
@@ -498,7 +499,7 @@ module mod_rad_outrad
 
   subroutine copy4d_add(a,b,l)
     implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: a
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:,:) :: a
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     integer(ik4), intent(in) :: l
     integer(ik4) :: i, j, k, n

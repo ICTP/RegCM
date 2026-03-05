@@ -661,8 +661,8 @@ if eval "test x$DEBUG = x1"; then
             -Wunused-parameter -Wno-align-commons $FCFLAGS \
             -fno-range-check -fcheck=bounds -Wimplicit-interface \
             -Wimplicit-procedure -Wintrinsic-shadow \
-            -fcheck=array-temps,bounds,do,mem,recursion,pointer"
-            # -ffpe-trap=zero,invalid,overflow,underflow
+            -fcheck=array-temps,bounds,do,mem,recursion,pointer \
+            -ffpe-trap=zero,invalid,overflow,underflow"
     else
       # Newver Macos versions have a missing library problem for -pg
       FCFLAGS="-O0 -g -fbacktrace \

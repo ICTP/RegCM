@@ -42,13 +42,24 @@ module mod_kdinterp
     module procedure interp_create_ll_ll_1d
   end interface h_interpolator_create
 
+  interface smtdsmt
+    module procedure smtdsmt_r4
+    module procedure smtdsmt_r8
+  end interface smtdsmt
+
   interface h_interpolate_cont
-    module procedure interp_1d
-    module procedure interp_2d
-    module procedure interp_3d
-    module procedure interp_3d_new
-    module procedure interp_4d
-    module procedure interp_5d
+    module procedure interp_1d_r4
+    module procedure interp_1d_r8
+    module procedure interp_2d_r4
+    module procedure interp_2d_r8
+    module procedure interp_3d_r4
+    module procedure interp_3d_r8
+    module procedure interp_3d_new_r4
+    module procedure interp_3d_new_r8
+    module procedure interp_4d_r4
+    module procedure interp_4d_r8
+    module procedure interp_5d_r4
+    module procedure interp_5d_r8
   end interface h_interpolate_cont
 
   interface h_interpolate_nn
@@ -113,13 +124,13 @@ module mod_kdinterp
 
   contains
 
-  real(rk8) function maxedis1(lat,lon) result(maxdis)
+  real(rkx) function maxedis1(lat,lon) result(maxdis)
     implicit none
-    real(rk8), dimension(:), intent(in) :: lat
-    real(rk8), dimension(:), intent(in) :: lon
+    real(rkx), dimension(:), intent(in) :: lat
+    real(rkx), dimension(:), intent(in) :: lon
     integer(ik4) :: i, j
-    real(rk8) :: r1, r2
-    maxdis = 0.1_rk8
+    real(rkx) :: r1, r2
+    maxdis = 0.1_rkx
     do i = 2, size(lat)
       do j = 2, size(lon)
         r1 = gcdist_simple(lat(i-1),lon(j-1),lat(i),lon(j))
@@ -130,21 +141,21 @@ module mod_kdinterp
     end do
   end function maxedis1
 
-  real(rk8) function maxedis2(lat,lon) result(maxdis)
+  real(rkx) function maxedis2(lat,lon) result(maxdis)
     implicit none
-    real(rk8), dimension(:,:), intent(in) :: lat
-    real(rk8), dimension(:,:), intent(in) :: lon
+    real(rkx), dimension(:,:), intent(in) :: lat
+    real(rkx), dimension(:,:), intent(in) :: lon
     integer(ik4) :: i, j
     integer(ik4), dimension(2) :: nij
     real(rk8) :: r1, r2
-    maxdis = 0.1_rk8
+    maxdis = 0.1_rkx
     nij = shape(lat)
     do i = 2, nij(2)
       do j = 2, nij(1)
         r1 = gcdist_simple(lat(j-1,i-1),lon(j-1,i-1),lat(j,i),lon(j,i))
         r2 = gcdist_simple(lat(j,i-1),lon(j,i-1),lat(j-1,i),lon(j-1,i))
-        if ( r1 > maxdis ) maxdis = r1
-        if ( r2 > maxdis ) maxdis = r2
+        if ( r1 > maxdis ) maxdis = real(r1,rk4)
+        if ( r2 > maxdis ) maxdis = real(r2,rk4)
       end do
     end do
   end function maxedis2
@@ -595,13 +606,13 @@ module mod_kdinterp
     end do
   end subroutine interp_1d_nn
 
-  subroutine interp_1d(h_i,g,f)
+  subroutine interp_1d_r8(h_i,g,f)
     implicit none
     type(h_interpolator), intent(in) :: h_i
-    real(rkx), dimension(:), intent(in) :: g
-    real(rkx), dimension(:), intent(out) :: f
+    real(rk8), dimension(:), intent(in) :: g
+    real(rk8), dimension(:), intent(out) :: f
     integer(ik4) :: i, ni, n, si, gni
-    real(rkx) :: gmax, gmin
+    real(rk8) :: gmax, gmin
     real(rk8) :: gsum, gwgt
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
@@ -613,8 +624,8 @@ module mod_kdinterp
     end if
     ni = size(f)
     gni = size(g)
-    gmax = -1e20_rkx
-    gmin = 1e20_rkx
+    gmax = -1e20_rk8
+    gmin = 1e20_rk8
     do i = 1, gni
       if ( g(i) > missc ) then
         if ( gmax < g(i) ) gmax = g(i)
@@ -622,8 +633,8 @@ module mod_kdinterp
       end if
     end do
     do i = 1, ni
-      gsum = d_zero
-      gwgt = d_zero
+      gsum = 0.0_rk8
+      gwgt = 0.0_rk8
       do n = 1, h_i%tg%ft(i,1)%np
         si = h_i%tg%ft(i,1)%wgt(n)%i
         if ( g(si) > missc ) then
@@ -638,16 +649,64 @@ module mod_kdinterp
       end if
     end do
     f = max(gmin,min(gmax,f))
-  end subroutine interp_1d
+  end subroutine interp_1d_r8
 
-  subroutine interp_2d(h_i,g,f)
+  subroutine interp_1d_r4(h_i,g,f)
     implicit none
     type(h_interpolator), intent(in) :: h_i
-    real(rkx), dimension(:,:), intent(in) :: g
-    real(rkx), dimension(:,:), intent(out) :: f
+    real(rk4), dimension(:), intent(in) :: g
+    real(rk4), dimension(:), intent(out) :: f
+    integer(ik4) :: i, ni, n, si, gni
+    real(rk8) :: gmax, gmin, gtmp
+    real(rk8) :: gsum, gwgt
+    if ( size(g) /= h_i%sshape(1) ) then
+      write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
+      call die('interp_1d','Non conforming shape for source',1)
+    end if
+    if ( size(f) /= h_i%tg%tshape(1) ) then
+      write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape(1),' /= ',size(f)
+      call die('interp_1d','Non conforming shape for target',1)
+    end if
+    ni = size(f)
+    gni = size(g)
+    gmax = -1e20_rk8
+    gmin = 1e20_rk8
+    do i = 1, gni
+      if ( g(i) > missc ) then
+        if ( gmax < g(i) ) gmax = g(i)
+        if ( gmin > g(i) ) gmin = g(i)
+      end if
+    end do
+    do i = 1, ni
+      gsum = 0.0_rk8
+      gwgt = 0.0_rk8
+      do n = 1, h_i%tg%ft(i,1)%np
+        si = h_i%tg%ft(i,1)%wgt(n)%i
+        if ( g(si) > missc ) then
+          gsum = gsum + g(si) * h_i%tg%ft(i,1)%wgt(n)%wgt
+          gwgt = gwgt + h_i%tg%ft(i,1)%wgt(n)%wgt
+        end if
+      end do
+      if ( gwgt > d_zero ) then
+        f(i) = real(gsum / gwgt,rkx)
+      else
+        f(i) = missl
+      end if
+    end do
+    do i = 1, ni
+      gtmp = f(i)
+      f(i) = real(max(gmin,min(gmax,gtmp)),rk4)
+    end do
+  end subroutine interp_1d_r4
+
+  subroutine interp_2d_r8(h_i,g,f)
+    implicit none
+    type(h_interpolator), intent(in) :: h_i
+    real(rk8), dimension(:,:), intent(in) :: g
+    real(rk8), dimension(:,:), intent(out) :: f
     integer(ik4) :: i, j, ni, nj, n, si, sj, gni, gnj
     real(rk8) :: gsum, gwgt
-    real(rkx) :: gmax, gmin
+    real(rk8) :: gmax, gmin
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_2d','Non conforming shape for source',1)
@@ -660,8 +719,8 @@ module mod_kdinterp
     ni = size(f,2)
     gnj = size(g,1)
     gni = size(g,2)
-    gmax = -1e20_rkx
-    gmin = 1e20_rkx
+    gmax = -1e20_rk8
+    gmin = 1e20_rk8
     do i = 1, gni
       do j = 1, gnj
         if ( g(j,i) > missc ) then
@@ -672,8 +731,8 @@ module mod_kdinterp
     end do
     do i = 1, ni
       do j = 1, nj
-        gsum = d_zero
-        gwgt = d_zero
+        gsum = 0.0_rk8
+        gwgt = 0.0_rk8
         do n = 1, h_i%tg%ft(j,i)%np
           si = h_i%tg%ft(j,i)%wgt(n)%i
           sj = h_i%tg%ft(j,i)%wgt(n)%j
@@ -682,8 +741,8 @@ module mod_kdinterp
             gwgt = gwgt + h_i%tg%ft(j,i)%wgt(n)%wgt
           end if
         end do
-        if ( gwgt > d_zero ) then
-          f(j,i) = real(gsum / gwgt,rkx)
+        if ( gwgt > 0.0_rk8 ) then
+          f(j,i) = real(gsum / gwgt,rk8)
         else
           f(j,i) = missl
         end if
@@ -697,7 +756,67 @@ module mod_kdinterp
         end if
       end do
     end do
-  end subroutine interp_2d
+  end subroutine interp_2d_r8
+
+  subroutine interp_2d_r4(h_i,g,f)
+    implicit none
+    type(h_interpolator), intent(in) :: h_i
+    real(rk4), dimension(:,:), intent(in) :: g
+    real(rk4), dimension(:,:), intent(out) :: f
+    integer(ik4) :: i, j, ni, nj, n, si, sj, gni, gnj
+    real(rk8) :: gsum, gwgt, gtmp
+    real(rk8) :: gmax, gmin
+    if ( any(shape(g) /= h_i%sshape) ) then
+      write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
+      call die('interp_2d','Non conforming shape for source',1)
+    end if
+    if ( any(shape(f) /= h_i%tg%tshape) ) then
+      write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
+      call die('interp_2d','Non conforming shape for target',1)
+    end if
+    nj = size(f,1)
+    ni = size(f,2)
+    gnj = size(g,1)
+    gni = size(g,2)
+    gmax = -1e20_rk8
+    gmin = 1e20_rk8
+    do i = 1, gni
+      do j = 1, gnj
+        if ( g(j,i) > missc ) then
+          if ( gmax < g(j,i) ) gmax = g(j,i)
+          if ( gmin > g(j,i) ) gmin = g(j,i)
+        end if
+      end do
+    end do
+    do i = 1, ni
+      do j = 1, nj
+        gsum = 0.0_rk8
+        gwgt = 0.0_rk8
+        do n = 1, h_i%tg%ft(j,i)%np
+          si = h_i%tg%ft(j,i)%wgt(n)%i
+          sj = h_i%tg%ft(j,i)%wgt(n)%j
+          if ( g(sj,si) > missc ) then
+            gsum = gsum + g(sj,si) * h_i%tg%ft(j,i)%wgt(n)%wgt
+            gwgt = gwgt + h_i%tg%ft(j,i)%wgt(n)%wgt
+          end if
+        end do
+        if ( gwgt > 0.0_rk8 ) then
+          f(j,i) = real(gsum / gwgt,rk4)
+        else
+          f(j,i) = missl
+        end if
+      end do
+    end do
+    call smtdsmt(f)
+    do i = 1, ni
+      do j = 1, nj
+        if ( f(j,i) > missc ) then
+          gtmp = f(j,i)
+          f(j,i) = real(max(gmin,min(gmax,gtmp)),rk4)
+        end if
+      end do
+    end do
+  end subroutine interp_2d_r4
 
   subroutine interp_2d_nn(h_i,g,f)
     implicit none
@@ -718,7 +837,7 @@ module mod_kdinterp
     ni = size(f,2)
     do i = 1, ni
       do j = 1, nj
-        gmax = -1.0_rkx
+        gmax = -1.0_rk8
         f(j,i) = missl
         do n = 1, h_i%tg%ft(j,i)%np
           si = h_i%tg%ft(j,i)%wgt(n)%i
@@ -732,11 +851,11 @@ module mod_kdinterp
     end do
   end subroutine interp_2d_nn
 
-  subroutine interp_3d(h_i,g,f)
+  subroutine interp_3d_r8(h_i,g,f)
     implicit none
     type(h_interpolator), intent(in) :: h_i
-    real(rkx), dimension(:,:,:), intent(in) :: g
-    real(rkx), dimension(:,:,:), intent(out) :: f
+    real(rk8), dimension(:,:,:), intent(in) :: g
+    real(rk8), dimension(:,:,:), intent(out) :: f
     integer(ik4) :: n3, n
     n3 = size(g,3)
     if ( n3 /= size(f,3) ) then
@@ -746,23 +865,42 @@ module mod_kdinterp
     end if
 !$OMP PARALLEL DO
     do n = 1, n3
-      call interp_2d(h_i,g(:,:,n),f(:,:,n))
+      call interp_2d_r8(h_i,g(:,:,n),f(:,:,n))
     end do
 !$OMP END PARALLEL DO
-  end subroutine interp_3d
+  end subroutine interp_3d_r8
 
-  subroutine interp_3d_new(h_i,g,f,f_temp,gnj,gni,nj,ni,n3)
+  subroutine interp_3d_r4(h_i,g,f)
+    implicit none
+    type(h_interpolator), intent(in) :: h_i
+    real(rk4), dimension(:,:,:), intent(in) :: g
+    real(rk4), dimension(:,:,:), intent(out) :: f
+    integer(ik4) :: n3, n
+    n3 = size(g,3)
+    if ( n3 /= size(f,3) ) then
+      write(stderr,*) 'DIMENSION 3 g = ',size(g,3)
+      write(stderr,*) 'DIMENSION 3 f = ',size(f,3)
+      call die('interp_3d','Non conforming shapes',1)
+    end if
+!$OMP PARALLEL DO
+    do n = 1, n3
+      call interp_2d_r4(h_i,g(:,:,n),f(:,:,n))
+    end do
+!$OMP END PARALLEL DO
+  end subroutine interp_3d_r4
+
+  subroutine interp_3d_new_r8(h_i,g,f,f_temp,gnj,gni,nj,ni,n3)
     implicit none
     type(h_interpolator), intent(in) :: h_i
     integer(ik4), intent(in) :: gnj, gni, nj, ni, n3
-    real(rkx), intent(in) :: g(gnj,gni,n3)
-    real(rkx), intent(out) :: f(nj,ni,n3)
-    real(rkx), intent(out) :: f_temp(nj,ni,n3)
+    real(rk8), intent(in) :: g(gnj,gni,n3)
+    real(rk8), intent(out) :: f(nj,ni,n3)
+    real(rk8), intent(out) :: f_temp(nj,ni,n3)
     integer(ik4) :: i, j, n, m, si, sj, np
-    real(rkx) :: gsum, gwgt
-    real(rkx) :: gmax(n3), gmin(n3)
-    real(rkx) :: aplus, asv, cell, fout
-    real(rkx) :: xnu1, xnu2
+    real(rk8) :: gsum, gwgt
+    real(rk8) :: gmax(n3), gmin(n3)
+    real(rk8) :: aplus, asv, cell, fout
+    real(rk8) :: xnu1, xnu2
     integer(ik4), parameter :: npass = 4
     if ( size(g,3) /= size(f,3) ) then
       write(stderr,*) 'DIMENSION 3 g = ',size(g,3)
@@ -770,8 +908,8 @@ module mod_kdinterp
       call die('interp_3d','Non conforming shapes',1)
     end if
     !$acc kernels
-    gmax(:) = -1e20_rkx
-    gmin(:) = 1e20_rkx
+    gmax(:) = -1e20_rk8
+    gmin(:) = 1e20_rk8
     !$acc end kernels
     !$acc parallel loop collapse(3) gang vector
     do n = 1, n3
@@ -790,8 +928,8 @@ module mod_kdinterp
     do n = 1, n3
     do i = 1, ni
     do j = 1, nj
-      gsum = d_zero
-      gwgt = d_zero
+      gsum = 0.0_rk8
+      gwgt = 0.0_rk8
       !$acc loop seq
       do m = 1, h_i%tg%ft(j,i)%np
         si = h_i%tg%ft(j,i)%wgt(m)%i
@@ -801,16 +939,16 @@ module mod_kdinterp
           gwgt = gwgt +              h_i%tg%ft(j,i)%wgt(m)%wgt
         end if
       end do
-      if ( gwgt > d_zero ) then
-        f(j,i,n) = real(gsum / gwgt,rkx)
+      if ( gwgt > 0.0_rk8 ) then
+        f(j,i,n) = real(gsum / gwgt,rk8)
       else
         f(j,i,n) = missl
       end if
     end do
     end do
     end do
-    xnu1 =  0.50_rkx
-    xnu2 = -0.52_rkx
+    xnu1 =  0.50_rk8
+    xnu2 = -0.52_rk8
     do np = 1, npass
       !smooth in j direction (kp=1)
       do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
@@ -820,7 +958,7 @@ module mod_kdinterp
           asv   = f(j-1,i,n)
           aplus = f(j+1,i,n)
           if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-            fout = cell + xnu1*( (asv+aplus)/d_two - cell)
+            fout = cell + xnu1*( (asv+aplus)*0.5_rk8 - cell)
           end if
         end if
         f_temp(j,i,n) = fout
@@ -833,7 +971,7 @@ module mod_kdinterp
           asv   = f_temp(j,i-1,n)
           aplus = f_temp(j,i+1,n)
           if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-            fout = cell + xnu1*((asv+aplus)/d_two - cell)
+            fout = cell + xnu1*((asv+aplus)*0.5_rk8 - cell)
           end if
         end if
         f(j,i,n) = fout
@@ -846,7 +984,7 @@ module mod_kdinterp
           asv   = f(j-1,i,n)
           aplus = f(j+1,i,n)
           if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-            fout = cell + xnu2*( (asv+aplus)/d_two - cell)
+            fout = cell + xnu2*( (asv+aplus)*0.5_rk8 - cell)
           end if
         end if
         f_temp(j,i,n) = fout
@@ -859,7 +997,7 @@ module mod_kdinterp
           asv   = f_temp(j,i-1,n)
           aplus = f_temp(j,i+1,n)
           if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-            fout = cell + xnu2*((asv+aplus)/d_two - cell)
+            fout = cell + xnu2*((asv+aplus)*0.5_rk8 - cell)
           end if
         end if
         f(j,i,n) = fout
@@ -870,13 +1008,136 @@ module mod_kdinterp
         f(j,i,n) = max(gmin(n),min(gmax(n),f(j,i,n)))
       end if
     end do
-  end subroutine interp_3d_new
+  end subroutine interp_3d_new_r8
 
-  subroutine interp_4d(h_i,g,f)
+  subroutine interp_3d_new_r4(h_i,g,f,f_temp,gnj,gni,nj,ni,n3)
     implicit none
     type(h_interpolator), intent(in) :: h_i
-    real(rkx), dimension(:,:,:,:), intent(in) :: g
-    real(rkx), dimension(:,:,:,:), intent(out) :: f
+    integer(ik4), intent(in) :: gnj, gni, nj, ni, n3
+    real(rk4), intent(in) :: g(gnj,gni,n3)
+    real(rk4), intent(out) :: f(nj,ni,n3)
+    real(rk4), intent(out) :: f_temp(nj,ni,n3)
+    integer(ik4) :: i, j, n, m, si, sj, np
+    real(rk8) :: gsum, gwgt, gtmp
+    real(rk8) :: gmax(n3), gmin(n3)
+    real(rk8) :: aplus, asv, cell, fout
+    real(rk8) :: xnu1, xnu2
+    integer(ik4), parameter :: npass = 4
+    if ( size(g,3) /= size(f,3) ) then
+      write(stderr,*) 'DIMENSION 3 g = ',size(g,3)
+      write(stderr,*) 'DIMENSION 3 f = ',size(f,3)
+      call die('interp_3d','Non conforming shapes',1)
+    end if
+    !$acc kernels
+    gmax(:) = -1e20_rk8
+    gmin(:) = 1e20_rk8
+    !$acc end kernels
+    !$acc parallel loop collapse(3) gang vector
+    do n = 1, n3
+    do i = 1, gni
+    do j = 1, gnj
+      if ( g(j,i,n) > missc ) then
+        gtmp = g(j,i,n)
+        !$acc atomic
+        gmax(n) = max(gmax(n),gtmp)
+        !$acc atomic
+        gmin(n) = min(gmin(n),gtmp)
+      end if
+    end do
+    end do
+    end do
+    !$acc parallel loop collapse(3) gang vector
+    do n = 1, n3
+    do i = 1, ni
+    do j = 1, nj
+      gsum = 0.0_rk8
+      gwgt = 0.0_rk8
+      !$acc loop seq
+      do m = 1, h_i%tg%ft(j,i)%np
+        si = h_i%tg%ft(j,i)%wgt(m)%i
+        sj = h_i%tg%ft(j,i)%wgt(m)%j
+        if ( g(sj,si,n) > missc ) then
+          gsum = gsum + g(sj,si,n) * h_i%tg%ft(j,i)%wgt(m)%wgt
+          gwgt = gwgt +              h_i%tg%ft(j,i)%wgt(m)%wgt
+        end if
+      end do
+      if ( gwgt > 0.0_rk8 ) then
+        f(j,i,n) = real(gsum / gwgt,rk4)
+      else
+        f(j,i,n) = missl
+      end if
+    end do
+    end do
+    end do
+    xnu1 =  0.50_rk8
+    xnu2 = -0.52_rk8
+    do np = 1, npass
+      !smooth in j direction (kp=1)
+      do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+        cell = f(j,i,n)
+        fout = cell
+        if ( j > 1 .and. j < nj ) then
+          asv   = f(j-1,i,n)
+          aplus = f(j+1,i,n)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            fout = cell + xnu1*( (asv+aplus)*0.5_rk8 - cell)
+          end if
+        end if
+        f_temp(j,i,n) = real(fout,rk4)
+      end do
+      !smooth in i direction (kp=1)
+      do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+        cell = f_temp(j,i,n)
+        fout = cell
+        if ( i > 1 .and. i < ni ) then
+          asv   = f_temp(j,i-1,n)
+          aplus = f_temp(j,i+1,n)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            fout = cell + xnu1*((asv+aplus)*0.5_rk8 - cell)
+          end if
+        end if
+        f(j,i,n) = real(fout,rk4)
+      end do
+      !smooth in j direction (kp=2)
+      do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+        cell = f(j,i,n)
+        fout = cell
+        if ( j > 1 .and. j < nj ) then
+          asv   = f(j-1,i,n)
+          aplus = f(j+1,i,n)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            fout = cell + xnu2*( (asv+aplus)*0.5_rk8 - cell)
+          end if
+        end if
+        f_temp(j,i,n) = real(fout,rk4)
+      end do
+      !smooth in i direction (kp=2)
+      do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+        cell = f_temp(j,i,n)
+        fout = cell
+        if ( i > 1 .and. i < ni ) then
+          asv   = f_temp(j,i-1,n)
+          aplus = f_temp(j,i+1,n)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            fout = cell + xnu2*((asv+aplus)*0.5_rk8 - cell)
+          end if
+        end if
+        f(j,i,n) = real(fout,rk4)
+      end do
+    end do
+    do concurrent ( j = 1:nj, i = 1:ni, n = 1:n3 )
+      if ( f(j,i,n) > missc ) then
+        gtmp = f(j,i,n)
+        f(j,i,n) = real(max(gmin(n),min(gmax(n),gtmp)),rk4)
+      end if
+    end do
+  end subroutine interp_3d_new_r4
+
+  subroutine interp_4d_r4(h_i,g,f)
+    implicit none
+    type(h_interpolator), intent(in) :: h_i
+    real(rk4), dimension(:,:,:,:), intent(in) :: g
+    real(rk4), dimension(:,:,:,:), intent(out) :: f
     integer(ik4) :: n4, n
     n4 = size(g,4)
     if ( n4 /= size(f,4) ) then
@@ -885,15 +1146,32 @@ module mod_kdinterp
       call die('interp_4d','Non conforming shapes',1)
     end if
     do n = 1, n4
-      call interp_3d(h_i,g(:,:,:,n),f(:,:,:,n))
+      call interp_3d_r4(h_i,g(:,:,:,n),f(:,:,:,n))
     end do
-  end subroutine interp_4d
+  end subroutine interp_4d_r4
 
-  subroutine interp_5d(h_i,g,f)
+  subroutine interp_4d_r8(h_i,g,f)
     implicit none
     type(h_interpolator), intent(in) :: h_i
-    real(rkx), dimension(:,:,:,:,:), intent(in) :: g
-    real(rkx), dimension(:,:,:,:,:), intent(out) :: f
+    real(rk8), dimension(:,:,:,:), intent(in) :: g
+    real(rk8), dimension(:,:,:,:), intent(out) :: f
+    integer(ik4) :: n4, n
+    n4 = size(g,4)
+    if ( n4 /= size(f,4) ) then
+      write(stderr,*) 'DIMENSION 4 g = ',size(g,4)
+      write(stderr,*) 'DIMENSION 4 f = ',size(f,4)
+      call die('interp_4d','Non conforming shapes',1)
+    end if
+    do n = 1, n4
+      call interp_3d_r8(h_i,g(:,:,:,n),f(:,:,:,n))
+    end do
+  end subroutine interp_4d_r8
+
+  subroutine interp_5d_r4(h_i,g,f)
+    implicit none
+    type(h_interpolator), intent(in) :: h_i
+    real(rk4), dimension(:,:,:,:,:), intent(in) :: g
+    real(rk4), dimension(:,:,:,:,:), intent(out) :: f
     integer(ik4) :: n5, n
     n5 = size(g,5)
     if ( n5 /= size(f,5) ) then
@@ -902,9 +1180,26 @@ module mod_kdinterp
       call die('interp_5d','Non conforming shapes',1)
     end if
     do n = 1, n5
-      call interp_4d(h_i,g(:,:,:,:,n),f(:,:,:,:,n))
+      call interp_4d_r4(h_i,g(:,:,:,:,n),f(:,:,:,:,n))
     end do
-  end subroutine interp_5d
+  end subroutine interp_5d_r4
+
+  subroutine interp_5d_r8(h_i,g,f)
+    implicit none
+    type(h_interpolator), intent(in) :: h_i
+    real(rk8), dimension(:,:,:,:,:), intent(in) :: g
+    real(rk8), dimension(:,:,:,:,:), intent(out) :: f
+    integer(ik4) :: n5, n
+    n5 = size(g,5)
+    if ( n5 /= size(f,5) ) then
+      write(stderr,*) 'DIMENSION 5 g = ',size(g,5)
+      write(stderr,*) 'DIMENSION 5 f = ',size(f,5)
+      call die('interp_5d','Non conforming shapes',1)
+    end if
+    do n = 1, n5
+      call interp_4d_r8(h_i,g(:,:,:,:,n),f(:,:,:,:,n))
+    end do
+  end subroutine interp_5d_r8
 
   subroutine interp_class_2dr(h_i,g,f)
     implicit none
@@ -1204,13 +1499,13 @@ module mod_kdinterp
     deallocate(tmp)
   end subroutine smther
 
-  subroutine smtdsmt(f)
+  subroutine smtdsmt_r8(f)
     implicit none
-    real(rkx), intent(inout), dimension(:,:) :: f
-    real(rkx) :: aplus, asv, cell
+    real(rk8), intent(inout), dimension(:,:) :: f
+    real(rk8) :: aplus, asv, cell
     integer(ik4) :: i1, i2, j1, j2
     integer(ik4) :: i, is, ie, j, js, je, kp, np
-    real(rkx), dimension(2) :: xnu
+    real(rk8), dimension(2) :: xnu
     integer(ik4), parameter :: npass = 4
     !
     ! purpose: spatially smooth data in f to dampen short
@@ -1224,8 +1519,8 @@ module mod_kdinterp
     je = j2-1
     is = i1+1
     js = j1+1
-    xnu(1) =  0.50_rkx
-    xnu(2) = -0.52_rkx
+    xnu(1) =  0.50_rk8
+    xnu(2) = -0.52_rk8
     do np = 1, npass
       do kp = 1, 2
         ! first smooth in the ni direction
@@ -1235,7 +1530,7 @@ module mod_kdinterp
             cell = f(j,i)
             aplus = f(j+1,i)
             if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-              f(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+              f(j,i) = cell + xnu(kp)*( (asv+aplus)*0.5_rk8 - cell)
             end if
             asv = cell
           end do
@@ -1247,14 +1542,66 @@ module mod_kdinterp
             cell = f(j,i)
             aplus = f(j,i+1)
             if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-              f(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+              f(j,i) = cell + xnu(kp)*((asv+aplus)*0.5_rk8 - cell)
             end if
             asv = cell
           end do
         end do
       end do
     end do
-  end subroutine smtdsmt
+  end subroutine smtdsmt_r8
+
+  subroutine smtdsmt_r4(f)
+    implicit none
+    real(rk4), intent(inout), dimension(:,:) :: f
+    real(rk8) :: aplus, asv, cell
+    integer(ik4) :: i1, i2, j1, j2
+    integer(ik4) :: i, is, ie, j, js, je, kp, np
+    real(rk8), dimension(2) :: xnu
+    integer(ik4), parameter :: npass = 4
+    !
+    ! purpose: spatially smooth data in f to dampen short
+    ! wavelength components
+    !
+    i1 = lbound(f,2)
+    i2 = ubound(f,2)
+    j1 = lbound(f,1)
+    j2 = ubound(f,1)
+    ie = i2-1
+    je = j2-1
+    is = i1+1
+    js = j1+1
+    xnu(1) =  0.50_rk8
+    xnu(2) = -0.52_rk8
+    do np = 1, npass
+      do kp = 1, 2
+        ! first smooth in the ni direction
+        do i = i1, i2
+          asv = f(j1,i)
+          do j = js, je
+            cell = f(j,i)
+            aplus = f(j+1,i)
+            if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+              f(j,i) = real(cell + xnu(kp)*( (asv+aplus)*0.5_rk8 - cell),rk4)
+            end if
+            asv = cell
+          end do
+        end do
+        ! smooth in the nj direction
+        do j = j1, j2
+          asv = f(j,i1)
+          do i = is, ie
+            cell = f(j,i)
+            aplus = f(j,i+1)
+            if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+              f(j,i) = real(cell + xnu(kp)*((asv+aplus)*0.5_rk8 - cell),rk4)
+            end if
+            asv = cell
+          end do
+        end do
+      end do
+    end do
+  end subroutine smtdsmt_r4
 
   subroutine compwgt_distwei(np,n2,r,w)
     implicit none

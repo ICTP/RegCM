@@ -120,8 +120,6 @@ module mod_micro_nogtom
   !real(rkx), parameter :: rtaumel = 1.1880e4_rkx
   ! temperature homogeneous freezing
   real(rkx), parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
-  ! initial mass of ice particle
-  real(rkx), parameter :: iceinit = 1.e-12_rkx
   real(rkx), parameter :: rkoop1 = 2.583_rkx
   real(rkx), parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
   !------------------------------------------------
@@ -220,8 +218,17 @@ module mod_micro_nogtom
   real(rkx), parameter :: zerocf = 0.01_rkx
   real(rkx), parameter :: onecf  = 0.99_rkx
 
-  real(rkx), parameter :: activqx = 1.0e-12_rkx
+#ifdef SINGLE_PRECISION_REAL
+  real(rkx), parameter :: verylowqx = 1.0e-10_rkx
+  real(rkx), parameter :: activqx = 1.0e-7_rkx
+  ! initial mass of ice particle
+  real(rkx), parameter :: iceinit = 1.e-9_rkx
+#else
   real(rkx), parameter :: verylowqx = 1.0e-20_rkx
+  real(rkx), parameter :: activqx = 1.0e-12_rkx
+  ! initial mass of ice particle
+  real(rkx), parameter :: iceinit = 1.e-12_rkx
+#endif
   real(rkx), parameter :: activcf = 2.0_rkx*zerocf
   real(rkx), parameter :: maxsat  = 0.5_rkx
 

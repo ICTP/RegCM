@@ -163,7 +163,7 @@ module mod_clm_cnnitrifdenitrif
 #ifdef LCH4
     pH                       => clm3%g%l%c%cps%pH
 #else
-    pH(lbc:ubc) = 6.5_rkx !!! set all soils with the same pH
+    pH(lbc:ubc) = 6.5_rk8 !!! set all soils with the same pH
 #endif
     phr_vr                   => clm3%g%l%c%ccf%phr_vr
     w_scalar                 => clm3%g%l%c%ccf%w_scalar

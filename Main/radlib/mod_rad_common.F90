@@ -28,37 +28,37 @@ module mod_rad_common
   ! emstot  - Total emissivity
 
   ! Those need to be saved in output file
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: o3prof => null( )
-  real(rkx), pointer, contiguous, dimension(:,:,:,:)  :: gasabsnxt => null( )
-  real(rkx), pointer, contiguous, dimension(:,:,:,:)  :: gasabstot => null( )
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: gasemstot => null( )
+  real(rk8), pointer, contiguous, dimension(:,:,:) :: o3prof => null( )
+  real(rk8), pointer, contiguous, dimension(:,:,:,:)  :: gasabsnxt => null( )
+  real(rk8), pointer, contiguous, dimension(:,:,:,:)  :: gasabstot => null( )
+  real(rk8), pointer, contiguous, dimension(:,:,:) :: gasemstot => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: taucldsp => null( )
   logical, save :: doabsems, dolw, dosw
   integer(ik4), save :: ichso4, ichbc, ichoc
   integer(ik4), save :: kclimh, kth, ktf, ksf, kclimf
-  real(rkx) :: chfrovrradfr ! chfrq/rafrq
+  real(rk8) :: chfrovrradfr ! chfrq/rafrq
 
-  real(rkx), dimension(nspi), parameter :: wavmin = &
-    [ 0.200_rkx, 0.245_rkx, 0.265_rkx, 0.275_rkx, 0.285_rkx ,&
-      0.295_rkx, 0.305_rkx, 0.350_rkx, 0.640_rkx, 0.700_rkx ,&
-      0.701_rkx, 0.701_rkx, 0.701_rkx, 0.701_rkx, 0.702_rkx ,&
-      0.702_rkx, 2.630_rkx, 4.160_rkx, 4.160_rkx ]
+  real(rk8), dimension(nspi), parameter :: wavmin = &
+    [ 0.200_rk8, 0.245_rk8, 0.265_rk8, 0.275_rk8, 0.285_rk8 ,&
+      0.295_rk8, 0.305_rk8, 0.350_rk8, 0.640_rk8, 0.700_rk8 ,&
+      0.701_rk8, 0.701_rk8, 0.701_rk8, 0.701_rk8, 0.702_rk8 ,&
+      0.702_rk8, 2.630_rk8, 4.160_rk8, 4.160_rk8 ]
 
-  real(rkx), dimension(nspi), parameter :: wavmax = &
-    [ 0.245_rkx, 0.265_rkx, 0.275_rkx, 0.285_rkx, 0.295_rkx ,&
-      0.305_rkx, 0.350_rkx, 0.640_rkx, 0.700_rkx, 5.000_rkx ,&
-      5.000_rkx, 5.000_rkx, 5.000_rkx, 5.000_rkx, 5.000_rkx ,&
-      5.000_rkx, 2.860_rkx, 4.550_rkx, 4.550_rkx ]
+  real(rk8), dimension(nspi), parameter :: wavmax = &
+    [ 0.245_rk8, 0.265_rk8, 0.275_rk8, 0.285_rk8, 0.295_rk8 ,&
+      0.305_rk8, 0.350_rk8, 0.640_rk8, 0.700_rk8, 5.000_rk8 ,&
+      5.000_rk8, 5.000_rk8, 5.000_rk8, 5.000_rk8, 5.000_rk8 ,&
+      5.000_rk8, 2.860_rk8, 4.550_rk8, 4.550_rk8 ]
 
-  real(rkx), dimension(14), parameter :: wavnm1 = &
-    [ 2600.0_rkx, 3250.0_rkx, 4000.0_rkx, 4650.0_rkx, 5150.0_rkx, &
-      6150.0_rkx, 7700.0_rkx, 8050.0_rkx,12850.0_rkx,16000.0_rkx, &
-     22650.0_rkx,29000.0_rkx,38000.0_rkx,  820.0_rkx ]
+  real(rk8), dimension(14), parameter :: wavnm1 = &
+    [ 2600.0_rk8, 3250.0_rk8, 4000.0_rk8, 4650.0_rk8, 5150.0_rk8, &
+      6150.0_rk8, 7700.0_rk8, 8050.0_rk8,12850.0_rk8,16000.0_rk8, &
+     22650.0_rk8,29000.0_rk8,38000.0_rk8,  820.0_rk8 ]
 
-  real(rkx), dimension(14), parameter :: wavnm2 = &
-    [  3250.0_rkx, 4000.0_rkx, 4650.0_rkx, 5150.0_rkx, 6150.0_rkx, &
-       7700.0_rkx, 8050.0_rkx,12850.0_rkx,16000.0_rkx,22650.0_rkx, &
-      29000.0_rkx,38000.0_rkx,50000.0_rkx, 2600.0_rkx ]
+  real(rk8), dimension(14), parameter :: wavnm2 = &
+    [  3250.0_rk8, 4000.0_rk8, 4650.0_rk8, 5150.0_rk8, 6150.0_rk8, &
+       7700.0_rk8, 8050.0_rk8,12850.0_rk8,16000.0_rk8,22650.0_rk8, &
+      29000.0_rk8,38000.0_rk8,50000.0_rk8, 2600.0_rk8 ]
 
 end module mod_rad_common
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

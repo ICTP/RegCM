@@ -34,8 +34,10 @@ module mod_nhinterp
   real(rkx) :: st0 = 288.15        ! K
 
   interface nhinterp
-    module procedure nhinterp3d
-    module procedure nhinterp4d
+    module procedure nhinterp3d_r4
+    module procedure nhinterp3d_r8
+    module procedure nhinterp4d_r4
+    module procedure nhinterp4d_r8
   end interface nhinterp
 
   contains
@@ -99,7 +101,7 @@ module mod_nhinterp
     !
     ! Interpolate the hydrostatic input to nonhydrostatic coordinate.
     !
-    subroutine nhinterp3d(i1,i2,j1,j2,kxs,sigmah,sigma,f,tv,ps,ps0,intmeth)
+    subroutine nhinterp3d_r8(i1,i2,j1,j2,kxs,sigmah,sigma,f,tv,ps,ps0,intmeth)
       implicit none
       integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, intmeth
       real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigmah
@@ -107,13 +109,14 @@ module mod_nhinterp
       real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: tv
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps0
-      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
+      real(rk8), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
       integer(ik4) :: i, j, k, l, ll
-      real(rkx) :: fl, fu, pr0, alnqvn, alnp
-      real(rkx) :: zl, zu, wu, wl
-      real(rkx), dimension(1:kxs) :: fn
-      real(rkx), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
-      real(rkx), dimension(1:kxs+1) :: zq
+      real(rk8) :: fl, fu, pr0, alnqvn, alnp
+      real(rk8) :: zl, zu, wu, wl
+      real(rk8), dimension(1:kxs) :: fn
+      real(rk8), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
+      real(rk8), dimension(1:kxs+1) :: zq
+      real(rk8), parameter :: minqq8 = minqq
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
@@ -187,14 +190,15 @@ module mod_nhinterp
 #endif
           !$acc loop seq
           do k = 1, kxs
+            l = 1
             do ll = 1, kxs - 1
               l = ll
               if (z(j,i,l+1) < z0(j,i,k)) exit
             end do
             zu = z(j,i,l)
             zl = z(j,i,l+1)
-            f(j,i,l) = max(f(j,i,l), minqq)
-            f(j,i,l+1) = max(f(j,i,l+1), minqq)
+            f(j,i,l) = max(f(j,i,l), minqq8)
+            f(j,i,l+1) = max(f(j,i,l+1), minqq8)
             if ( z0(j,i,k) > zu ) then
               fn(k) = f(j,i,l)
             else
@@ -205,7 +209,7 @@ module mod_nhinterp
               alnqvn = fu * wu + fl * wl
               fn(k) = exp(alnqvn)
             end if
-            if ( fn(k) < minqq ) fn(k) = minqq
+            if ( fn(k) < minqq8 ) fn(k) = minqq8
           end do
           !$acc loop seq
           do k = 1, kxs
@@ -216,9 +220,131 @@ module mod_nhinterp
 #endif
         end do
       end if
-    end subroutine nhinterp3d
+    end subroutine nhinterp3d_r8
 
-    subroutine nhinterp4d(i1,i2,j1,j2,kxs,nn,sigmah,sigma,f,tv,ps,ps0)
+    subroutine nhinterp3d_r4(i1,i2,j1,j2,kxs,sigmah,sigma,f,tv,ps,ps0,intmeth)
+      implicit none
+      integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, intmeth
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigmah
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: tv
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps0
+      real(rk4), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
+      integer(ik4) :: i, j, k, l, ll
+      real(rk8) :: fl, fu, pr0, alnqvn, alnp
+      real(rk8) :: zl, zu, wu, wl
+      real(rk8), dimension(1:kxs) :: fn
+      real(rk8), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
+      real(rk8), dimension(1:kxs+1) :: zq
+      real(rk4), parameter :: minqq4 = minqq
+      real(rk8), parameter :: minqq8 = minqq
+      !
+      ! We expect ps and ps0 to be already interpolated on dot points
+      !
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kxs )
+        pr0 = ps0(j,i) * sigmah(k) + ptoppa
+        alnp = log(pr0/(ps0(j,i)+ptoppa))
+        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+      end do
+      !
+      !  Calculate heights of input temperature sounding for interpolation
+      !  to nonhydrostatic model levels.
+      !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2 ) local(zq)
+#else
+      !$acc parallel loop collapse(2) gang vector private(zq)
+      do i = i1, i2
+      do j = j1, j2
+#endif
+        zq(kxs+1) = d_zero
+        !$acc loop seq
+        do k = kxs, 1, -1
+          zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
+            log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
+          z(j,i,k) = d_half * (zq(k) + zq(k+1))
+        end do
+#ifndef STDPAR
+      end do
+#endif
+      end do
+      !
+      ! Interpolate from z to z0 levels.
+      !
+      if ( intmeth == 1 ) then
+#ifdef STDPAR
+        do concurrent ( j = j1:j2, i = i1:i2 ) local(fn)
+#else
+        !$acc parallel loop collapse(2) gang vector private(fn)
+        do i = i1, i2
+        do j = j1, j2
+#endif
+          do k = 1, kxs
+            l = 1
+            !$acc loop seq
+            do ll = 1, kxs - 1
+              l = ll
+              if (z(j,i,l+1) < z0(j,i,k)) exit
+            end do
+            zu = z(j,i,l)
+            zl = z(j,i,l+1)
+            fu = f(j,i,l)
+            fl = f(j,i,l+1)
+            fn(k) = (fu * (z0(j,i,k) - zl ) + &
+                     fl * (zu - z0(j,i,k))) / (zu - zl)
+          end do
+          !$acc loop seq
+          do k = 1, kxs
+            f(j,i,k) = real(fn(k),rk4)
+          end do
+#ifndef STDPAR
+        end do
+#endif
+        end do
+      else
+#ifdef STDPAR
+        do concurrent ( j = j1:j2, i = i1:i2 ) local(fn)
+#else
+        !$acc parallel loop collapse(2) gang vector private(fn)
+        do i = i1, i2
+        do j = j1, j2
+#endif
+          !$acc loop seq
+          do k = 1, kxs
+            l = 1
+            do ll = 1, kxs - 1
+              l = ll
+              if (z(j,i,l+1) < z0(j,i,k)) exit
+            end do
+            zu = z(j,i,l)
+            zl = z(j,i,l+1)
+            f(j,i,l) = max(f(j,i,l), minqq4)
+            f(j,i,l+1) = max(f(j,i,l+1), minqq4)
+            if ( z0(j,i,k) > zu ) then
+              fn(k) = f(j,i,l)
+            else
+              fu = log(f(j,i,l  ))
+              fl = log(f(j,i,l+1))
+              wu = (z0(j,i,k) - zl) / (zu - zl)
+              wl = d_one - wu
+              alnqvn = fu * wu + fl * wl
+              fn(k) = exp(alnqvn)
+            end if
+            if ( fn(k) < minqq ) fn(k) = minqq8
+          end do
+          !$acc loop seq
+          do k = 1, kxs
+            f(j,i,k) = real(fn(k),rk4)
+          end do
+#ifndef STDPAR
+        end do
+#endif
+        end do
+      end if
+    end subroutine nhinterp3d_r4
+
+    subroutine nhinterp4d_r8(i1,i2,j1,j2,kxs,nn,sigmah,sigma,f,tv,ps,ps0)
       implicit none
       integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, nn
       real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigmah
@@ -226,13 +352,14 @@ module mod_nhinterp
       real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: tv
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps0
-      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+      real(rk8), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
       integer(ik4) :: i, j, k, n, l, ll
-      real(rkx) :: fl, fu, pr0, alnqvn, alnp
-      real(rkx) :: zl, zu, wl, wu
-      real(rkx), dimension(1:kxs) :: fn
-      real(rkx), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
-      real(rkx), dimension(1:kxs+1) :: zq
+      real(rk8) :: fl, fu, pr0, alnqvn, alnp
+      real(rk8) :: zl, zu, wl, wu
+      real(rk8), dimension(1:kxs) :: fn
+      real(rk8), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
+      real(rk8), dimension(1:kxs+1) :: zq
+      real(rk8), parameter :: mintr8 = mintr
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
@@ -283,8 +410,8 @@ module mod_nhinterp
             end do
             zu = z(j,i,l)
             zl = z(j,i,l+1)
-            f(j,i,l,  n) = max(f(j,i,l,  n),mintr)
-            f(j,i,l+1,n) = max(f(j,i,l+1,n),mintr)
+            f(j,i,l,  n) = max(f(j,i,l,  n),mintr8)
+            f(j,i,l+1,n) = max(f(j,i,l+1,n),mintr8)
             if ( z0(j,i,k) > zu ) then
               fn(k) = f(j,i,l,n)
             else
@@ -295,7 +422,7 @@ module mod_nhinterp
               alnqvn = fu * wu + fl * wl
               fn(k) = exp(alnqvn)
             end if
-            if ( fn(k) < dlowval ) fn(k) = mintr
+            if ( fn(k) < dlowval ) fn(k) = mintr8
           end do
           !$acc loop seq
           do k = 1, kxs
@@ -306,7 +433,98 @@ module mod_nhinterp
 #endif
         end do
       end do
-    end subroutine nhinterp4d
+    end subroutine nhinterp4d_r8
+
+    subroutine nhinterp4d_r4(i1,i2,j1,j2,kxs,nn,sigmah,sigma,f,tv,ps,ps0)
+      implicit none
+      integer(ik4), intent(in) :: i1, i2, j1, j2, kxs, nn
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigmah
+      real(rkx), pointer, contiguous, intent(in), dimension(:) :: sigma
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: tv
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: ps0
+      real(rk4), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+      integer(ik4) :: i, j, k, n, l, ll
+      real(rk8) :: fl, fu, pr0, alnqvn, alnp
+      real(rk8) :: zl, zu, wl, wu
+      real(rk8), dimension(1:kxs) :: fn
+      real(rk8), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
+      real(rk8), dimension(1:kxs+1) :: zq
+      real(rk4), parameter :: mintr4 = real(mintr,rk4)
+      !
+      ! We expect ps and ps0 to be already interpolated on dot points
+      !
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kxs )
+        pr0 = ps0(j,i) * sigmah(k) + ptoppa
+        alnp = log(pr0/(ps0(j,i)+ptoppa))
+        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+      end do
+      !
+      !  Calculate heights of input temperature sounding for interpolation
+      !  to nonhydrostatic model levels.
+      !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2 ) local(zq)
+#else
+      !$acc parallel loop collapse(2) gang vector private(zq)
+      do i = i1, i2
+      do j = j1, j2
+#endif
+        zq(kxs+1) = d_zero
+        !$acc loop seq
+        do k = kxs, 1, -1
+          zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
+            log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
+          z(j,i,k) = d_half * (zq(k) + zq(k+1))
+        end do
+#ifndef STDPAR
+      end do
+#endif
+      end do
+      !
+      ! Interpolate from z to z0 levels.
+      !
+      do n = 1, nn
+#ifdef STDPAR
+        do concurrent( j = j1:j2, i = i1:i2 ) local(fn)
+#else
+        !$acc parallel loop collapse(2) gang vector private(fn)
+        do i = i1, i2
+        do j = j1, j2
+#endif
+          !$acc loop seq
+          do k = 1, kxs
+            l = 1
+            do ll = 1, kxs - 1
+              l = ll
+              if (z(j,i,ll+1) < z0(j,i,k)) exit
+            end do
+            zu = z(j,i,l)
+            zl = z(j,i,l+1)
+            f(j,i,l,  n) = max(f(j,i,l,  n),mintr4)
+            f(j,i,l+1,n) = max(f(j,i,l+1,n),mintr4)
+            if ( z0(j,i,k) > zu ) then
+              fn(k) = f(j,i,l,n)
+            else
+              fu = log(f(j,i,l  ,n))
+              fl = log(f(j,i,l+1,n))
+              wu = (z0(j,i,k) - zl) / (zu - zl)
+              wl = d_one - wu
+              alnqvn = fu * wu + fl * wl
+              fn(k) = exp(alnqvn)
+            end if
+            if ( fn(k) < dlowval ) fn(k) = mintr4
+          end do
+          !$acc loop seq
+          do k = 1, kxs
+            f(j,i,k,n) = real(fn(k),rk4)
+          end do
+#ifndef STDPAR
+        end do
+#endif
+        end do
+      end do
+    end subroutine nhinterp4d_r4
     !
     ! Compute the pressure perturbation pp.
     !

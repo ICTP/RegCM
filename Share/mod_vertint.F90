@@ -34,6 +34,16 @@ module mod_vertint
   real(rkx), parameter :: rglrog = rgas*lrate*regrav
   real(rkx), parameter :: b1 = -egrav/lrate
 
+  interface find_from_top
+    module procedure find_from_top_r8
+    module procedure find_from_top_r4
+  end interface find_from_top
+
+  interface find_from_btm
+    module procedure find_from_btm_r8
+    module procedure find_from_btm_r4
+  end interface find_from_btm
+
   interface intlin
     module procedure intlin_double
     module procedure intlin_single
@@ -54,8 +64,12 @@ module mod_vertint
   end interface intlog
 
   interface intlinreg
-    module procedure intlinreg_p
-    module procedure intlinreg_z
+    module procedure intlinreg_p_r8
+    module procedure intlinreg_p_r4
+    module procedure intlinreg_p_r48
+    module procedure intlinreg_z_r8
+    module procedure intlinreg_z_r4
+    module procedure intlinreg_z_r48
   end interface intlinreg
 
   interface intzps
@@ -64,8 +78,10 @@ module mod_vertint
   end interface intzps
 
   interface intp1
-    module procedure intp1_fixed
-    module procedure intp1_pointer
+    module procedure intp1_fixed_r8
+    module procedure intp1_pointer_r8
+    module procedure intp1_fixed_r4
+    module procedure intp1_pointer_r4
   end interface intp1
 
   public :: intlin, intgtb, intlog, intlinz
@@ -86,17 +102,17 @@ module mod_vertint
   ! Output:
   !   fp(im,jm,km)  - the field interpolate on target pressure grid p3d
   !
-  subroutine intlinreg_p(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
+  subroutine intlinreg_p_r8(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
     implicit none
     integer(ik4), intent(in) :: im1, im2, jm1, jm2, km, kp
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f
-    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps
-    real(rkx), pointer, contiguous, dimension(:), intent(in) :: p
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p3d
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
-    real(rkx) :: sig(im1:im2,jm1:jm2,1:kp)
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: f
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: ps
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: p
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: p3d
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
+    real(rk8) :: sig(im1:im2,jm1:jm2,1:kp)
     integer(ik4) :: i, j, k, kx, knx, n
-    real(rkx) :: sigp, w1, w2
+    real(rk8) :: sigp, w1, w2
     do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
       fp(i,j,k) = missl
     end do
@@ -105,7 +121,7 @@ module mod_vertint
         sig(i,j,k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
       end do
       do concurrent ( i = im1:im2, j = jm1:jm2 )
-        if ( ps(i,j) < 1.0_rkx ) cycle
+        if ( ps(i,j) < 1.0_rk8 ) cycle
         !$acc loop seq
         do n = 1, km
           sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
@@ -117,7 +133,7 @@ module mod_vertint
             kx = find_from_top(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
             knx = kx - 1
             w2 = (sigp-sig(i,j,kx))/(sig(i,j,knx)-sig(i,j,kx))
-            w1 = d_one - w2
+            w1 = 1.0_rk8 - w2
             fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
           end if
         end do
@@ -135,16 +151,136 @@ module mod_vertint
           else if ( sigp >= sig(i,j,kp) ) then
             fp(i,j,n) = f(i,j,kp)
           else
-            kx = find_from_bottom(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
+            kx = find_from_btm(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
             knx = kx - 1
             w2 = (sig(i,j,kx)-sigp)/(sig(i,j,kx)-sig(i,j,knx))
-            w1 = d_one - w2
+            w1 = 1.0_rk8 - w2
             fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
           end if
         end do
       end do
     end if
-  end subroutine intlinreg_p
+  end subroutine intlinreg_p_r8
+
+  subroutine intlinreg_p_r4(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
+    implicit none
+    integer(ik4), intent(in) :: im1, im2, jm1, jm2, km, kp
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: f
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ps
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: p
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: p3d
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
+    real(rk8) :: sig(im1:im2,jm1:jm2,1:kp)
+    integer(ik4) :: i, j, k, kx, knx, n
+    real(rk8) :: sigp, w1, w2
+    do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
+      fp(i,j,k) = missl
+    end do
+    if ( p(1) > p(kp) ) then
+      do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:kp )
+        sig(i,j,k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
+      end do
+      do concurrent ( i = im1:im2, j = jm1:jm2 )
+        if ( ps(i,j) < 1.0_rk4 ) cycle
+        !$acc loop seq
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
+          if ( sigp <= sig(i,j,kp) ) then
+            fp(i,j,n) = f(i,j,kp)
+          else if ( sigp >= sig(i,j,1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else
+            kx = find_from_top(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
+            knx = kx - 1
+            w2 = (sigp-sig(i,j,kx))/(sig(i,j,knx)-sig(i,j,kx))
+            w1 = 1.0_rk4 - w2
+            fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+          end if
+        end do
+      end do
+    else
+      do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:kp )
+        sig(i,j,k) = (p(k)-p(1))/(ps(i,j)-p(1))
+      end do
+      do concurrent ( i = im1:im2, j = jm1:jm2 )
+        !$acc loop seq
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
+          if ( sigp <= sig(i,j,1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( sigp >= sig(i,j,kp) ) then
+            fp(i,j,n) = f(i,j,kp)
+          else
+            kx = find_from_btm(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
+            knx = kx - 1
+            w2 = (sig(i,j,kx)-sigp)/(sig(i,j,kx)-sig(i,j,knx))
+            w1 = 1.0_rk4 - w2
+            fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+          end if
+        end do
+      end do
+    end if
+  end subroutine intlinreg_p_r4
+
+  subroutine intlinreg_p_r48(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
+    implicit none
+    integer(ik4), intent(in) :: im1, im2, jm1, jm2, km, kp
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: f
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ps
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: p3d
+    real(rk8), pointer, contiguous, dimension(:), intent(in) :: p
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
+    real(rk8) :: sig(im1:im2,jm1:jm2,1:kp)
+    integer(ik4) :: i, j, k, kx, knx, n
+    real(rk8) :: sigp, w1, w2
+    do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
+      fp(i,j,k) = missl
+    end do
+    if ( p(1) > p(kp) ) then
+      do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:kp )
+        sig(i,j,k) = (p(k)-p(kp))/(ps(i,j)-p(kp))
+      end do
+      do concurrent ( i = im1:im2, j = jm1:jm2 )
+        if ( ps(i,j) < 1.0_rk8 ) cycle
+        !$acc loop seq
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(kp))/(ps(i,j)-p(kp))
+          if ( sigp <= sig(i,j,kp) ) then
+            fp(i,j,n) = f(i,j,kp)
+          else if ( sigp >= sig(i,j,1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else
+            kx = find_from_top(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
+            knx = kx - 1
+            w2 = (sigp-sig(i,j,kx))/(sig(i,j,knx)-sig(i,j,kx))
+            w1 = 1.0_rk8 - w2
+            fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+          end if
+        end do
+      end do
+    else
+      do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:kp )
+        sig(i,j,k) = (p(k)-p(1))/(ps(i,j)-p(1))
+      end do
+      do concurrent ( i = im1:im2, j = jm1:jm2 )
+        !$acc loop seq
+        do n = 1, km
+          sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
+          if ( sigp <= sig(i,j,1) ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( sigp >= sig(i,j,kp) ) then
+            fp(i,j,n) = f(i,j,kp)
+          else
+            kx = find_from_btm(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
+            knx = kx - 1
+            w2 = (sig(i,j,kx)-sigp)/(sig(i,j,kx)-sig(i,j,knx))
+            w1 = 1.0_rk8 - w2
+            fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+          end if
+        end do
+      end do
+    end if
+  end subroutine intlinreg_p_r48
 
   ! The subroutine vertically interpolates from regular grid of height
   ! levels z to a non regular height levels grid hz.
@@ -155,15 +291,15 @@ module mod_vertint
   ! Output:
   !   fz(kz,jm,im)  - the field interpolate on regular pressure grid p
   !
-  subroutine intlinreg_z(fz,f,z,i1,i2,j1,j2,km,hz,kz)
+  subroutine intlinreg_z_r8(fz,f,z,i1,i2,j1,j2,km,hz,kz)
     implicit none
     integer(ik4), intent(in) :: i1, i2, j1, j2, km, kz
-    real(rkx), dimension(i1:i2,j1:j2,km), intent(in) ::  f
-    real(rkx), dimension(i1:i2,j1:j2,kz), intent(in) ::  hz
-    real(rkx), dimension(km), intent(in) :: z
-    real(rkx), dimension(i1:i2,j1:j2,kz), intent(out) :: fz
+    real(rk8), dimension(i1:i2,j1:j2,km), intent(in) ::  f
+    real(rk8), dimension(i1:i2,j1:j2,kz), intent(in) ::  hz
+    real(rk8), dimension(km), intent(in) :: z
+    real(rk8), dimension(i1:i2,j1:j2,kz), intent(out) :: fz
     integer(ik4) :: i, j, k, kx, knx, n
-    real(rkx) :: w1, w2
+    real(rk8) :: w1, w2
     if ( z(1) < z(km) ) then
       do j = j1, j2
         do i = i1, i2
@@ -180,7 +316,7 @@ module mod_vertint
               end do
               knx = kx - 1
               w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
-              w2 = 1.0 - w1
+              w2 = 1.0_rk8 - w1
               fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
@@ -202,14 +338,126 @@ module mod_vertint
               end do
               knx = kx + 1
               w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
-              w2 = 1.0 - w1
+              w2 = 1.0_rk8 - w1
               fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
           end do
         end do
       end do
     end if
-  end subroutine intlinreg_z
+  end subroutine intlinreg_z_r8
+
+  subroutine intlinreg_z_r48(fz,f,z,i1,i2,j1,j2,km,hz,kz)
+    implicit none
+    integer(ik4), intent(in) :: i1, i2, j1, j2, km, kz
+    real(rk8), dimension(i1:i2,j1:j2,km), intent(in) ::  f
+    real(rk8), dimension(i1:i2,j1:j2,kz), intent(in) ::  hz
+    real(rk4), dimension(km), intent(in) :: z
+    real(rk8), dimension(i1:i2,j1:j2,kz), intent(out) :: fz
+    integer(ik4) :: i, j, k, kx, knx, n
+    real(rk8) :: w1, w2
+    if ( z(1) < z(km) ) then
+      do j = j1, j2
+        do i = i1, i2
+          do n = 1, kz
+            if ( z(km) >= hz(i,j,n) ) then
+              fz(i,j,n) = f(i,j,km)
+            else if ( z(1) <= hz(i,j,n) ) then
+              fz(i,j,n) = f(i,j,1)
+            else
+              kx = 1
+              do k = 1, km
+                if ( hz(i,j,n) > z(k) ) exit
+                kx = kx+1
+              end do
+              knx = kx - 1
+              w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
+              w2 = 1.0_rk8 - w1
+              fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+            end if
+          end do
+        end do
+      end do
+    else
+      do j = j1, j2
+        do i = i1, i2
+          do n = 1, kz
+            if ( z(1) >= hz(i,j,n) ) then
+              fz(i,j,n) = f(i,j,1)
+            else if ( z(km) <= hz(i,j,km) ) then
+              fz(i,j,n) = f(i,j,km)
+            else
+              kx = km
+              do k = km, 1, -1
+                if ( hz(i,j,n) > z(k) ) exit
+                kx = kx-1
+              end do
+              knx = kx + 1
+              w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
+              w2 = 1.0_rk8 - w1
+              fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+            end if
+          end do
+        end do
+      end do
+    end if
+  end subroutine intlinreg_z_r48
+
+  subroutine intlinreg_z_r4(fz,f,z,i1,i2,j1,j2,km,hz,kz)
+    implicit none
+    integer(ik4), intent(in) :: i1, i2, j1, j2, km, kz
+    real(rk4), dimension(i1:i2,j1:j2,km), intent(in) ::  f
+    real(rk4), dimension(i1:i2,j1:j2,kz), intent(in) ::  hz
+    real(rk4), dimension(km), intent(in) :: z
+    real(rk4), dimension(i1:i2,j1:j2,kz), intent(out) :: fz
+    integer(ik4) :: i, j, k, kx, knx, n
+    real(rk8) :: w1, w2
+    if ( z(1) < z(km) ) then
+      do j = j1, j2
+        do i = i1, i2
+          do n = 1, kz
+            if ( z(km) >= hz(i,j,n) ) then
+              fz(i,j,n) = f(i,j,km)
+            else if ( z(1) <= hz(i,j,n) ) then
+              fz(i,j,n) = f(i,j,1)
+            else
+              kx = 1
+              do k = 1, km
+                if ( hz(i,j,n) > z(k) ) exit
+                kx = kx+1
+              end do
+              knx = kx - 1
+              w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
+              w2 = 1.0_rk4 - w1
+              fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+            end if
+          end do
+        end do
+      end do
+    else
+      do j = j1, j2
+        do i = i1, i2
+          do n = 1, kz
+            if ( z(1) >= hz(i,j,n) ) then
+              fz(i,j,n) = f(i,j,1)
+            else if ( z(km) <= hz(i,j,km) ) then
+              fz(i,j,n) = f(i,j,km)
+            else
+              kx = km
+              do k = km, 1, -1
+                if ( hz(i,j,n) > z(k) ) exit
+                kx = kx-1
+              end do
+              knx = kx + 1
+              w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
+              w2 = 1.0_rk4 - w1
+              fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+            end if
+          end do
+        end do
+      end do
+    end if
+  end subroutine intlinreg_z_r4
 
   ! The subroutine vertically interpolates a vertical profile f on p
   ! levels onto a grid with pressure levels p3d. Surface pressure
@@ -225,14 +473,14 @@ module mod_vertint
   subroutine intlinprof(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
     implicit none
     integer(ik4), intent(in) :: im1, im2, jm1, jm2, km, kp
-    real(rkx), pointer, contiguous, dimension(:), intent(in) :: f
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: f
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: ps
-    real(rkx), pointer, contiguous, dimension(:), intent(in) :: p
+    real(rk4), pointer, contiguous, dimension(:), intent(in) :: p
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p3d
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: fp
     integer(ik4) :: i, j, k, kx, knx, n
-    real(rkx), dimension(im1:im2,jm1:jm2,kp) :: sig
-    real(rkx) :: sigp, w1, w2
+    real(rk8), dimension(im1:im2,jm1:jm2,kp) :: sig
+    real(rk8) :: sigp, w1, w2
 
     do concurrent ( i = im1:im2, j = jm1:jm2, k = 1:km )
       fp(i,j,k) = missl
@@ -269,7 +517,7 @@ module mod_vertint
         sig(i,j,k) = (p(k)-p(1))/(ps(i,j)-p(1))
       end do
       do concurrent ( i = im1:im2, j = jm1:jm2 )
-        if ( ps(i,j) < 1.0_rkx ) cycle
+        if ( ps(i,j) < 1.0_rk8 ) cycle
         !$acc loop seq
         do n = 1, km
           sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
@@ -723,7 +971,7 @@ module mod_vertint
     real(rkx), dimension(ni,nj,nk), intent(in) :: tp, zp
     real(rkx), dimension(ni,nj), intent(out) :: tlayer, pa, za
     integer(ik4) :: i, j, k, kb, kt
-    real(rkx) :: wu, wl
+    real(rk8) :: wu, wl
 
     if ( any(zrcm > zp(:,:,nk)) ) then
       write(stderr,*) '################ WARNING!!! ################'
@@ -1183,15 +1431,15 @@ module mod_vertint
 
   ! Vertical interpolation to P levels.
   !
-  subroutine intp1_fixed(frcm,fccm,prcm,pccm,ni,nj,krcm,kccm,a,e1,e2)
+  subroutine intp1_fixed_r8(frcm,fccm,prcm,pccm,ni,nj,krcm,kccm,a,e1,e2)
     implicit none
     integer(ik4), intent(in) :: kccm, krcm, ni, nj
-    real(rkx), intent(in) :: a, e1, e2
-    real(rkx), dimension(ni,nj,kccm), intent(in) :: fccm, pccm
-    real(rkx), dimension(ni,nj,krcm), intent(in) :: prcm
-    real(rkx), dimension(ni,nj,krcm), intent(out) :: frcm
-    real(rkx), dimension(kccm) :: xc, fc
-    real(rkx), dimension(krcm) :: xr, fr
+    real(rk8), intent(in) :: a, e1, e2
+    real(rk8), dimension(ni,nj,kccm), intent(in) :: fccm, pccm
+    real(rk8), dimension(ni,nj,krcm), intent(in) :: prcm
+    real(rk8), dimension(ni,nj,krcm), intent(out) :: frcm
+    real(rk8), dimension(kccm) :: xc, fc
+    real(rk8), dimension(krcm) :: xr, fr
     integer(ik4) :: i, j, k, kt, kb
     if ( pccm(1,1,1) > pccm(1,1,kccm) ) then
       kt = kccm
@@ -1215,17 +1463,51 @@ module mod_vertint
         end do
       end do
     end do
-  end subroutine intp1_fixed
+  end subroutine intp1_fixed_r8
 
-  subroutine intp1_pointer(frcm,fccm,prcm,pccm,i1,i2,j1,j2,krcm,kccm,a,e1,e2)
+  subroutine intp1_fixed_r4(frcm,fccm,prcm,pccm,ni,nj,krcm,kccm,a,e1,e2)
+    implicit none
+    integer(ik4), intent(in) :: kccm, krcm, ni, nj
+    real(rk4), intent(in) :: a, e1, e2
+    real(rk4), dimension(ni,nj,kccm), intent(in) :: fccm, pccm
+    real(rk4), dimension(ni,nj,krcm), intent(in) :: prcm
+    real(rk4), dimension(ni,nj,krcm), intent(out) :: frcm
+    real(rk4), dimension(kccm) :: xc, fc
+    real(rk4), dimension(krcm) :: xr, fr
+    integer(ik4) :: i, j, k, kt, kb
+    if ( pccm(1,1,1) > pccm(1,1,kccm) ) then
+      kt = kccm
+      kb = 1
+    else
+      kt = 1
+      kb = kccm
+    end if
+    do j = 1, nj
+      do i = 1, ni
+        do k = 1 , kccm
+          xc(k) = (pccm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+          fc(k) = fccm(i,j,k)
+        end do
+        do k = 1 , krcm
+          xr(k) = (prcm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+        end do
+        call interp1d(xc,fc,xr,fr,a,e1,e2)
+        do k = 1 , krcm
+          frcm(i,j,k) = fr(k)
+        end do
+      end do
+    end do
+  end subroutine intp1_fixed_r4
+
+  subroutine intp1_pointer_r8(frcm,fccm,prcm,pccm,i1,i2,j1,j2,krcm,kccm,a,e1,e2)
     implicit none
     integer(ik4), intent(in) :: kccm, krcm, i1, i2, j1, j2
-    real(rkx), intent(in) :: a, e1, e2
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: fccm, pccm
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: prcm
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: frcm
-    real(rkx), dimension(kccm) :: xc, fc, zi, zg
-    real(rkx), dimension(krcm) :: xr, fr
+    real(rk8), intent(in) :: a, e1, e2
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: fccm, pccm
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: prcm
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: frcm
+    real(rk8), dimension(kccm) :: xc, fc, zi, zg
+    real(rk8), dimension(krcm) :: xr, fr
     integer(ik4) :: i, j, k, kt, kb
 #ifndef OPENACC
     if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
@@ -1264,7 +1546,56 @@ module mod_vertint
         end do
       end do
     end do
-  end subroutine intp1_pointer
+  end subroutine intp1_pointer_r8
+
+  subroutine intp1_pointer_r4(frcm,fccm,prcm,pccm,i1,i2,j1,j2,krcm,kccm,a,e1,e2)
+    implicit none
+    integer(ik4), intent(in) :: kccm, krcm, i1, i2, j1, j2
+    real(rk4), intent(in) :: a, e1, e2
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: fccm, pccm
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: prcm
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: frcm
+    real(rk4), dimension(kccm) :: xc, fc, zi, zg
+    real(rk4), dimension(krcm) :: xr, fr
+    integer(ik4) :: i, j, k, kt, kb
+#ifndef OPENACC
+    if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
+      kt = kccm
+      kb = 1
+    else
+      kt = 1
+      kb = kccm
+    end if
+#endif
+    !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr,zi,zg)
+    do j = j1, j2
+      do i = i1, i2
+#ifdef OPENACC
+        if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
+          kt = kccm
+          kb = 1
+        else
+          kt = 1
+          kb = kccm
+        end if
+#endif
+        !$acc loop seq
+        do k = 1 , kccm
+          xc(k) = (pccm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+          fc(k) = fccm(i,j,k)
+        end do
+        !$acc loop seq
+        do k = 1 , krcm
+          xr(k) = (prcm(i,j,k)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+        end do
+        call interp1d(xc,fc,xr,fr,a,e1,e2,zi,zg,kccm,krcm)
+        !$acc loop seq
+        do k = 1 , krcm
+          frcm(i,j,k) = fr(k)
+        end do
+      end do
+    end do
+  end subroutine intp1_pointer_r4
 
   !
   ! INTV1 is for vertical interpolation of U, V, and RH
@@ -1491,7 +1822,7 @@ module mod_vertint
     real(rkx), contiguous, pointer, dimension(:), intent(in) :: sccm
     real(rkx), contiguous, pointer, dimension(:,:,:), intent(in) :: tp, zp
     integer(ik4) :: i, j, k, kb, kt
-    real(rkx) :: wu, wl, tlayer, tva, tvb, pa, pb, za, zb, dz, lrt
+    real(rk8) :: wu, wl, tlayer, tva, tvb, pa, pb, za, zb, dz, lrt
 
     if ( zp(1,1,1) < zp(1,1,nk) ) then
       if ( any(zrcm > zp(:,:,nk)) ) then
@@ -1510,13 +1841,13 @@ module mod_vertint
             dz = zb - zrcm(i,j)
             lrt = (tva-tvb)/(za-zb)
             if ( .false. ) then
-              lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(i,j))
+              lrt = 0.65_rk8*lrt + 0.35_rk8*stdlrate(jday,dayspy,lat(i,j))
             else
-              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+              lrt = 0.65_rk8*lrt - 0.35_rk8*lrate
             end if
             tlayer = tvb - dz*lrt
-            tlayer = (tvb + tlayer) * 0.5_rkx
-            psrcm(i,j) = pb * exp(govr*dz/tlayer)
+            tlayer = (tvb + tlayer) * 0.5_rk8
+            psrcm(i,j) = real(pb * exp(govr*dz/tlayer),rkx)
           else if ( zp(i,j,nk) < zrcm(i,j) ) then
             psrcm(i,j) = missl
           else
@@ -1534,10 +1865,10 @@ module mod_vertint
             zb = zp(i,j,kb)
             dz = za - zrcm(i,j)
             wu = (zrcm(i,j)-zb)/(za-zb)
-            wl = 1.0_rkx - wu
+            wl = 1.0_rk8 - wu
             tlayer = tva * wu + tvb * wl
-            tlayer = (tva + tlayer) * 0.5_rkx
-            psrcm(i,j) = pa * exp(govr*dz/tlayer)
+            tlayer = (tva + tlayer) * 0.8_rkx
+            psrcm(i,j) = real(pa * exp(govr*dz/tlayer),rkx)
           end if
         end do
       end do
@@ -1558,13 +1889,13 @@ module mod_vertint
             dz = za - zrcm(i,j)
             lrt = (tva-tvb)/(za-zb)
             if ( .false. ) then
-              lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(i,j))
+              lrt = 0.65_rk8*lrt + 0.35_rk8*stdlrate(jday,dayspy,lat(i,j))
             else
-              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+              lrt = 0.65_rk8*lrt - 0.35_rk8*lrate
             end if
             tlayer = tvb - dz*lrt
-            tlayer = (tvb + tlayer) * 0.5_rkx
-            psrcm(i,j) = pb * exp(govr*dz/tlayer)
+            tlayer = (tvb + tlayer) * 0.5_rk8
+            psrcm(i,j) = real(pb * exp(govr*dz/tlayer),rkx)
           else if ( zp(i,j,1) < zrcm(i,j) ) then
             psrcm(i,j) = missl
           else
@@ -1582,10 +1913,10 @@ module mod_vertint
             tvb = tp(i,j,kb)
             dz = za - zrcm(i,j)
             wu = (zrcm(i,j)-zb)/(za-zb)
-            wl = 1.0_rkx - wu
+            wl = 1.0_rk8 - wu
             tlayer = tva * wu + tvb * wl
-            tlayer = (tva + tlayer) * 0.5_rkx
-            psrcm(i,j) = pa * exp(govr*dz/tlayer)
+            tlayer = (tva + tlayer) * 0.5_rk8
+            psrcm(i,j) = real(pa * exp(govr*dz/tlayer),rkx)
           end if
         end do
       end do
@@ -1600,7 +1931,7 @@ module mod_vertint
     real(rkx), dimension(ni,nj), intent(out) :: psrcm
     real(rkx), dimension(ni,nj,nk), intent(in) :: tp, zp, pp
     integer(ik4) :: i, j, k, kb, kt
-    real(rkx) :: wu, wl, tlayer, pa, za, dz, lrt
+    real(rk8) :: wu, wl, tlayer, pa, za, dz, lrt
 
     if ( zp(1,1,1) < zp(1,1,nk) ) then
       do j = 1, nj
@@ -1626,13 +1957,13 @@ module mod_vertint
             dz = zrcm(i,j)-za
             lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
             if ( .false. ) then
-              lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(i,j))
+              lrt = 0.65_rk8*lrt + 0.35_rk8*stdlrate(jday,dayspy,lat(i,j))
             else
-              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+              lrt = 0.65_rk8*lrt - 0.35_rk8*lrate
             end if
             tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
           end if
-          psrcm(i,j) = pa * exp(-govr*dz/tlayer)
+          psrcm(i,j) = real(pa * exp(-govr*dz/tlayer),rkx)
         end do
       end do
     else
@@ -1665,37 +1996,63 @@ module mod_vertint
             end if
             tlayer = tp(i,j,nk) - 0.5_rkx*dz*lrt
           end if
-          psrcm(i,j) = pa * exp(-govr*dz/tlayer)
+          psrcm(i,j) = real(pa * exp(-govr*dz/tlayer),rkx)
         end do
       end do
     end if
   end subroutine intzps2
 
-  pure integer function find_from_top(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
+  pure integer function find_from_top_r8(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
     implicit none
     integer, intent(in) :: i, im1, im2, j, jm1, jm2, nx
-    real(rkx), intent(in) :: v
-    real(rkx), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv
+    real(rk8), intent(in) :: v
+    real(rk8), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv
     do n = 2, nx-1
       if ( vv(i,j,n) < v ) then
         return
       end if
     end do
     return
-  end function find_from_top
+  end function find_from_top_r8
 
-  pure integer function find_from_bottom(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
+  pure integer function find_from_btm_r8(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
     implicit none
     integer, intent(in) :: i, im1, im2, j, jm1, jm2, nx
-    real(rkx), intent(in) :: v
-    real(rkx), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv
+    real(rk8), intent(in) :: v
+    real(rk8), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv
     do n = 2, nx-1
       if ( vv(i,j,n) > v ) then
         return
       end if
     end do
     return
-  end function find_from_bottom
+  end function find_from_btm_r8
+
+  pure integer function find_from_top_r4(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
+    implicit none
+    integer, intent(in) :: i, im1, im2, j, jm1, jm2, nx
+    real(rk8), intent(in) :: v
+    real(rk4), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv
+    do n = 2, nx-1
+      if ( vv(i,j,n) < v ) then
+        return
+      end if
+    end do
+    return
+  end function find_from_top_r4
+
+  pure integer function find_from_btm_r4(v,vv,i,im1,im2,j,jm1,jm2,nx) result(n)
+    implicit none
+    integer, intent(in) :: i, im1, im2, j, jm1, jm2, nx
+    real(rk8), intent(in) :: v
+    real(rk4), intent(in), dimension(im1:im2,jm1:jm2,1:nx) :: vv
+    do n = 2, nx-1
+      if ( vv(i,j,n) > v ) then
+        return
+      end if
+    end do
+    return
+  end function find_from_btm_r4
 
 end module mod_vertint
 

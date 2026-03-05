@@ -458,7 +458,8 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange), intent(inout) :: lm
     integer(ik4) :: begg, endg, i, j, n
-    real(rkx) :: satq, lat
+    real(rkx) :: satq
+    real(rk8) :: lat
 
     call get_proc_bounds(begg,endg)
 
@@ -532,7 +533,7 @@ module mod_clm_regcm
 
     if ( ichem /= 1 ) then
       do i = begg, endg
-        lat = real(adomain%xlat(i),rkx)
+        lat = real(adomain%xlat(i),rk8)
         clm_a2l%forc_pco2(i) = &
           ghgval(igh_co2,rcmtimer%year,rcmtimer%month,lat) * &
           clm_a2l%forc_psrf(i)

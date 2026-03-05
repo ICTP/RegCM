@@ -154,7 +154,7 @@ module mod_clm_cnmresp
       end if
 
       ! Set this to expected range
-      q10m(p) = max(1.0_rkx,min(3.0_rkx,q10m(p)))
+      q10m(p) = max(1.0_rk8,min(3.0_rk8,q10m(p)))
 
       tc = q10m(p)**((t_ref2m(p)-tfrz - 20.0_rk8)/10.0_rk8)
       if ( frac_veg_nosno(p) == 1 ) then

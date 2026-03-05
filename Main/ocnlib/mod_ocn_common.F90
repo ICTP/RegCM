@@ -387,24 +387,25 @@ module mod_ocn_common
   ! International Journal of Remote Sensing
   ! Vol. 30, No. 6, 20 March 2009, 1603–1619
   !
-  pure elemental real(rk8) function ocean_emissivity(speed)
+  pure elemental real(rkx) function ocean_emissivity(speed)
     implicit none
-    real(rk8), intent(in) :: speed
+    real(rkx), intent(in) :: speed
     real(rk8), parameter :: em0 = 0.99176_rk8    ! Seviri Channel 9
     real(rk8), parameter :: cpaper = -0.037_rk8
     real(rk8), parameter :: dpaper = 2.36_rk8
     real(rk8), parameter :: bipaper = 0.0347_rk8 ! Seviri Channel 9
-    real(rk8) :: angle, xspeed
+    real(rk8) :: angle, xspeed, emis
     integer(ik4) :: i
     xspeed = max(0.1_rk8,min(20.0_rk8,speed))
-    ocean_emissivity = 0.01_rk8 !  Baseline
+    emis = 0.01_rk8 !  Baseline
     ! Integrate
     do i = 1, 10
       angle = 0.44_rk8 + 0.08_rk8 * (i-1)
-      ocean_emissivity = ocean_emissivity + &
+      emis = emis + &
             0.080_rk8 * em0 * cos(angle**(cpaper*xspeed+dpaper))**bipaper
     end do
-    ocean_emissivity = ocean_emissivity/0.80_rk8
+    emis = emis/0.80_rk8
+    ocean_emissivity = real(emis, rkx)
   end function ocean_emissivity
 
 end module mod_ocn_common

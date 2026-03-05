@@ -955,8 +955,6 @@ module mod_rdldtr
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
     allocate(vread(nlon,nlat))
-    if ( .false. ) vread(:,:) = rdef
-
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
 

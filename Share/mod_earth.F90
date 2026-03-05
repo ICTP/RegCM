@@ -41,6 +41,11 @@ module mod_earth
     module procedure ll2xyz_grid
   end interface
 
+  interface gcdist_simple
+    module procedure gcdist_simple_r4
+    module procedure gcdist_simple_r8
+  end interface gcdist_simple
+
   type global_domain
     integer(ik4) :: global_ni
     integer(ik4) :: global_nj
@@ -55,10 +60,10 @@ module mod_earth
 
   contains
 
-  pure real(rkx) function gcdist_simple(lat1,lon1,lat2,lon2)
+  pure real(rk8) function gcdist_simple_r8(lat1,lon1,lat2,lon2)
     !$acc routine seq
     implicit none
-    real(rkx), intent(in) :: lat1, lon1, lat2, lon2
+    real(rk8), intent(in) :: lat1, lon1, lat2, lon2
     real(rk8) :: clat1, slat1, clat2, slat2, cdlon, crd
     clat1 = cos(lat1*degrad)
     slat1 = sin(lat1*degrad)
@@ -67,8 +72,23 @@ module mod_earth
     cdlon = cos((lon1-lon2)*degrad)
     crd   = slat1*slat2+clat1*clat2*cdlon
     ! Have it in km to avoid numerical problems :)
-    gcdist_simple = real(erkm*acos(crd), rkx)
-  end function gcdist_simple
+    gcdist_simple_r8 = real(erkm*acos(crd), rk8)
+  end function gcdist_simple_r8
+
+  pure real(rk4) function gcdist_simple_r4(lat1,lon1,lat2,lon2)
+    !$acc routine seq
+    implicit none
+    real(rk4), intent(in) :: lat1, lon1, lat2, lon2
+    real(rk8) :: clat1, slat1, clat2, slat2, cdlon, crd
+    clat1 = cos(lat1*degrad)
+    slat1 = sin(lat1*degrad)
+    clat2 = cos(lat2*degrad)
+    slat2 = sin(lat2*degrad)
+    cdlon = cos((lon1-lon2)*degrad)
+    crd   = slat1*slat2+clat1*clat2*cdlon
+    ! Have it in km to avoid numerical problems :)
+    gcdist_simple_r4 = real(erkm*acos(crd), rk4)
+  end function gcdist_simple_r4
 
   pure real(rkx) function gcdist(ds,lat1,lon1,lat2,lon2)
     !$acc routine seq

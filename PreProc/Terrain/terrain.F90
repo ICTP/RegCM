@@ -258,7 +258,7 @@ program terrain
       call corpar(dlat_s,coriol_s)
     end if
 
-    xcone = pjx%conefac( )
+    xcone = real(pjx%conefac( ),rkx)
     write(stdout,*) 'Subgrid Geo mapping done'
 
     !
@@ -461,7 +461,7 @@ program terrain
     call corpar(dlat,coriol)
   end if
 
-  xcone = pjx%conefac( )
+  xcone = real(pjx%conefac( ),rkx)
   write(stdout,*) 'Geo mapping done'
 
   !

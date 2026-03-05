@@ -659,7 +659,7 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
 !FAB for resistance perform conductance linear average
       !$acc kernels
-      tmp(:) = 1._rkx/pptr%pps%ram1
+      tmp(:) = 1._rk8/pptr%pps%ram1
       !$acc end kernels
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%ram1,              &
@@ -667,8 +667,8 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
       !$acc kernels
-      clm_l2a%ram1 = 1._rkx/clm_l2a%ram1
-      tmp(:) = 1._rkx/pptr%pps%rah1
+      clm_l2a%ram1 = 1._rk8/clm_l2a%ram1
+      tmp(:) = 1._rk8/pptr%pps%rah1
       !$acc end kernels
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%rah1,              &
@@ -676,7 +676,7 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
       !$acc kernels
-      clm_l2a%rah1 = 1._rkx/clm_l2a%rah1
+      clm_l2a%rah1 = 1._rk8/clm_l2a%rah1
       !$acc end kernels
 !
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
