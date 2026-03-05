@@ -5042,8 +5042,8 @@ module mod_mppparam
     exchange : block
 
     integer(ik4), dimension(4) :: counts, displs
-    real(rk8), dimension(ndy) :: sdata
-    real(rk8), dimension(ndy), volatile :: rdata
+    real(rk4), dimension(ndy) :: sdata
+    real(rk4), dimension(ndy), volatile :: rdata
     integer(ik4) :: ib1, ib2, iex
 
     ib2 = 0
@@ -5113,8 +5113,8 @@ module mod_mppparam
     exchange : block
 
     integer(ik4), dimension(4) :: counts, displs
-    real(rk8), dimension(ndy) :: sdata
-    real(rk8), dimension(ndy), volatile :: rdata
+    real(rk4), dimension(ndy) :: sdata
+    real(rk4), dimension(ndy), volatile :: rdata
     integer(ik4) :: id, iex, j, k
 
     !$acc data copy(ml) create(sdata,rdata)

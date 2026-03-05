@@ -113,7 +113,7 @@ module mod_moloch
   public :: allocate_moloch, init_moloch, moloch
 
 #ifdef SINGLE_PRECISION_REAL
-  real(rk4), parameter :: minden = 1.0e-16_rkx
+  real(rk4), parameter :: minden = 1.0e-15_rkx
 #else
   real(rk8), parameter :: minden = 1.0e-30_rkx
 #endif
