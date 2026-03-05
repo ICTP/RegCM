@@ -89,7 +89,7 @@ program sst
        ssttyp == 'OI_NC' .or. ssttyp == 'OI2ST' .or.       &
        ssttyp == 'OI_WK' .or. ssttyp == 'OI2WK' ) then
     call sst_1deg
-  else if ( ssttyp == 'TMIST' ) then
+  else if ( ssttyp == 'TMIST' .or. ssttyp == 'ECDAY' ) then
     call sst_gndnc
   else if ( ssttyp == 'ERSST' .or. ssttyp == 'ERSKT' ) then
     call sst_ersst
