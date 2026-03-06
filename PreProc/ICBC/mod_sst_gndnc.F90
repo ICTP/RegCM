@@ -82,6 +82,12 @@ module mod_sst_gndnc
     if ( ssttyp(1:3) == 'NO_' ) then
       call find_noresm_sst(inpfile,globidate1)
       varname(2) = 'tos'
+    else if ( ssttyp == 'ECDAY' ) then
+      write (inpfile,'(a,i0.4,a)') &
+         trim(inpglob)//pthsep//'ECDAY'//pthsep//'tos'//pthsep// &
+            'tos_', year, '.nc'
+      varname(1) = 'time'
+      varname(2) = 'tos'
     else if ( ssttyp == 'TMIST' ) then
       write (inpfile,'(a,i0.4,a)') &
          trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
@@ -197,7 +203,7 @@ module mod_sst_gndnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var '//varname(2))
 
-    if ( ssttyp(1:3) == 'NO_' ) then
+    if ( ssttyp(1:3) == 'NO_' .or. ssttyp == 'ECDAY' ) then
       call getmem(glat,1,ilon,1,jlat,'mod_gndnc_sst:glat')
       call getmem(glon,1,ilon,1,jlat,'mod_gndnc_sst:glon')
       istatus = nf90_get_var(inet1,latid,glat)
@@ -298,13 +304,14 @@ module mod_sst_gndnc
 
     data isteps /1,32,60,91,121,151,182,213,244,274,305,335/
 
-    istart(3) = 1
-
     if ( ssttyp == 'ERAXX' ) then
       call split_idate(idate, year, month, day, hour)
       it = isteps(month) + (day-1)
     else
       tdif = idate-fidate1
+      if ( ssttyp == 'ECDAY' ) then
+        tdif = tdif+rcm_time_interval(12,uhrs)
+      end if
       it = int(tohours(tdif))/24 + 1
       if ( it > timlen ) then
         ! Try switching to next file
@@ -322,6 +329,10 @@ module mod_sst_gndnc
           write (inpfile,'(a,i0.4,a,i0.2,a)') &
             trim(inpglob)//pthsep//ssttyp(1:4)//pthsep//'SSTD'//pthsep// &
              'sst_',year,'_',month,'.nc'
+        else if ( ssttyp == 'ECDAY' ) then
+          write (inpfile,'(a,i0.4,a)') &
+             trim(inpglob)//pthsep//'ECDAY'//pthsep//'tos'//pthsep// &
+                'tos_', year, '.nc'
         else if ( ssttyp == 'TMIST' ) then
           write (inpfile,'(a,i0.4,a)') &
              trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
@@ -376,27 +387,30 @@ module mod_sst_gndnc
             write(stdout,*) 'Scale factor = ',scale_factor
           end if
         end if
+        istart(1) = 1
+        icount(1) = timlen
+        istatus = nf90_get_var(inet1,ivar2(1),work,istart(1:1),icount(1:1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                       'Error read var '//varname(1))
+        istatus = nf90_myget_att_text(inet1,ivar2(1),'units',cunit)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read attribute units of '//varname(1))
+        istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+        if ( istatus /= nf90_noerr ) ccal = 'gregorian'
+        fidate1 = timeval2date(work(1),cunit,ccal)
+        tdif = idate-fidate1
+        if ( ssttyp == 'ECDAY' ) then
+          tdif = tdif+rcm_time_interval(12,uhrs)
+        end if
+        it = int(tohours(tdif))/24 + 1
       end if
-      istart(1) = 1
-      icount(1) = timlen
-      istatus = nf90_get_var(inet1,ivar2(1),work,istart(1:1),icount(1:1))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(1))
-      istatus = nf90_myget_att_text(inet1,ivar2(1),'units',cunit)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read attribute units of '//varname(1))
-      istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-      if ( istatus /= nf90_noerr ) ccal = 'gregorian'
-      fidate1 = timeval2date(work(1),cunit,ccal)
-      tdif = idate-fidate1
-      it = int(tohours(tdif))/24 + 1
     end if
     istart(1) = 1
     icount(1) = ilon
     istart(2) = 1
     icount(2) = jlat
-    icount(3) = 1
     istart(3) = it
+    icount(3) = 1
     if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
       if ( cds_beta ) then
         call getworkf(2,workf)

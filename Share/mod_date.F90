@@ -115,6 +115,7 @@ module mod_date
 
   interface operator(+)
     module procedure add_interval
+    module procedure sum_interval
   end interface operator(+)
 
   interface operator(-)
@@ -180,7 +181,7 @@ module mod_date
   public :: hourdiff, nextmon, prevmon, yrfirst, nextwk, prevwk
   public :: lsameweek, iwkdiff, idayofweek, ifdoweek, ildoweek
   public :: timeval2date, lfdomonth, lfdoyear, lmidnight, yeardayfrac
-  public :: split_idate, julianday, dayofyear
+  public :: split_idate, julianday, dayofyear, toseconds
   public :: getyear, getmonth, getday
   public :: gethour, getminute, getsecond
   public :: date_is, time_is
@@ -931,6 +932,19 @@ module mod_date
       d = d - tmp
     end if
   end subroutine sub_days_noleap
+
+  function sum_interval(x,y) result (z)
+    type (rcm_time_interval), intent(in) :: x
+    type (rcm_time_interval), intent(in) :: y
+    type (rcm_time_interval) :: z
+    z = x
+    if ( z%iunit == y%iunit ) then
+      z%ival = z%ival + y%ival
+    else
+      z%ival = toseconds(z) + toseconds(y)
+      z%iunit = usec
+    end if
+  end function sum_interval
 
   function add_interval(x, y) result (z)
     implicit none
@@ -1950,6 +1964,24 @@ module mod_date
         call die('mod_date','Interval unit conversion depend on calendar')
     end select
   end function tohours
+
+  integer(ik8) function toseconds(x) result(hs)
+    implicit none
+    type (rcm_time_interval), intent(in) :: x
+    select case (x%iunit)
+      case (usec)
+        hs = x%ival
+      case (umin)
+        hs = x%ival*60.0_ik8
+      case (uhrs)
+        hs = x%ival*3600_ik8
+      case (uday)
+        hs = x%ival*64600_ik8
+      case default
+        hs = 0.0_ik8
+        call die('mod_date','Interval unit conversion depend on calendar')
+    end select
+  end function toseconds
 
   real(rk8) function yearpoint(x)
     implicit none
