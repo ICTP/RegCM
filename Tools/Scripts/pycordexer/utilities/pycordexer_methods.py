@@ -438,9 +438,7 @@ class AddDephtVariable(Filter):
                     dimensions=list(zip(f.variables['soil_bounds'].dimensions,
                                     np.shape(f.variables['soil_bounds']))),
                     attributes={
-                        'standard_name': 'depth',
-                        'long_name': 'Soil layer depth',
-                        'units': 'm',
+                        'positive': 'down',
                     }
                 )
                 LOGGER.debug('soil_bounds variable found in regcm file')
@@ -460,9 +458,7 @@ class AddDephtVariable(Filter):
                     data=MemoryData(soil_bounds),
                     dimensions=(('soil_layer',10),('bnds', 2)),
                     attributes={
-                        'standard_name': 'depth',
-                        'long_name': 'Soil layer depth',
-                        'units': 'm',
+                        'positive': 'down',
                     }
                 )
 

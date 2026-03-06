@@ -236,7 +236,7 @@ module mod_micro_nogtom
   logical, parameter :: vfqr_rd = .true.
   real(rkx), parameter :: dens0 = 1.225_rkx ! kg m-3
 
-  logical, parameter :: newsolver = .false.
+  logical, parameter :: newsolver = .true.
 
   contains
 

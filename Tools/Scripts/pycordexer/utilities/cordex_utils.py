@@ -733,6 +733,7 @@ class CordexDataset(Dataset):
             'source_id': ICTP_Model,
             'source_type': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['source_type'],
             'tracking_id': CORDEX_CMIP6_DEFINITIONS['CV']['tracking_id'][0][:-2]+str(uuid.uuid1()),
+            'activity_id': 'DD',
             'version_realization': ICTP_Model_Version,
             'version_realization_info': 'none', }
         )
@@ -1140,7 +1141,7 @@ class CordexDataset(Dataset):
 
         LOGGER.debug('Setting parameter "frequency" for the netCDF file')
         self.setncattr('frequency', cordex_var.frequency)
-        self.setncattr('table_id', 'Table '+cordex_var.frequency)
+        self.setncattr('table_id', cordex_var.frequency)
         self.setncattr('variable_id', cordex_var.name)
 
         if 'coordinates' in attributes:
