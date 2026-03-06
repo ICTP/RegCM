@@ -961,10 +961,10 @@ module mod_ncstream
         call add_attribute(stream,attc,stvar%levsoil_var%id, &
                            stvar%levsoil_var%vname)
         stvar%levsoilbound_var%vname = 'soil_bounds'
-        stvar%levsoilbound_var%vunit = 'm'
         stvar%levsoilbound_var%axis = 'bs'
-        stvar%levsoilbound_var%long_name = 'Soil layer level bounds'
-        stvar%levsoilbound_var%standard_name = 'depth'
+        stvar%levsoilbound_var%standard_name = ''
+        stvar%levsoilbound_var%long_name = ''
+        stvar%levsoilbound_var%vunit = ''
         stvar%levsoilbound_var%lrecords = .false.
         call outstream_addvar(ncout,stvar%levsoilbound_var)
       end if
