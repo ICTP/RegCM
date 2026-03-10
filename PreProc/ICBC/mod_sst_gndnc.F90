@@ -443,6 +443,16 @@ module mod_sst_gndnc
           end if
         end do
       end do
+    else if ( ssttyp == 'ECDAY' ) then
+      do j = 1, jlat
+        do i = 1, ilon
+          if (workf(i,j) < 0.9E+20_rkx ) then
+            sst(i,j) = workf(i,j)+273.15_rkx
+          else
+            sst(i,j) = -9999.0_rkx
+          end if
+        end do
+      end do
     else
       do j = 1, jlat
         do i = 1, ilon

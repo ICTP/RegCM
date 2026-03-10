@@ -99,6 +99,7 @@ program icbc
   use mod_era5
   use mod_era5rda
   use mod_ncep
+  use mod_ecday
   use mod_nest
   use mod_gn6hnc
   use mod_cmip6
@@ -233,6 +234,8 @@ program icbc
     call init_nest
   else if ( dattyp == 'IFSXX' ) then
     call init_ifs
+  else if ( dattyp == 'ECDAY' ) then
+    call init_ecday
   else
     if ( dattyp(4:5) == 'RF' ) then
       write(stderr,*) 'THIS CODE IS NOT SUPPORTED.'
@@ -264,6 +267,8 @@ program icbc
       call get_nest(idate)
     else if ( dattyp == 'IFSXX' ) then
       call get_ifs(idate)
+    else if ( dattyp == 'ECDAY' ) then
+      call get_ecday(idate)
     else
       call get_gn6hnc(idate)
     end if
@@ -288,6 +293,8 @@ program icbc
     call conclude_ein
   else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
     call conclude_ncep
+  else if ( dattyp == 'ECDAY' ) then
+    call conclude_ecday
   else if ( dattyp == 'FNEST' ) then
     call conclude_nest
   else

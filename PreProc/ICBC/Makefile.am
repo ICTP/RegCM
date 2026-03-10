@@ -52,7 +52,7 @@ sst_SOURCES = mod_sst_ersst.F90 \
               mod_lgm_helper.F90 mod_sst_cmip6.F90 sst.F90
 icbc_SOURCES = mod_vectutil.F90 mod_ein.F90 mod_grid.F90  \
                mod_ncep.F90 mod_nest.F90 mod_write.F90 mod_header.F90 \
-               mod_mksst.F90 mod_gn6hnc.F90 mod_ifs.F90 \
+               mod_mksst.F90 mod_gn6hnc.F90 mod_ifs.F90 mod_ecday.F90 \
                mod_ccsm3_helper.F90 mod_hadgem_helper.F90 mod_csiro_helper.F90 \
                mod_canesm_helper.F90 mod_miroc_helper.F90 mod_ipsl_helper.F90 \
                mod_gfdl_helper.F90 mod_cnrm_helper.F90 mod_mpiesm_helper.F90 \
@@ -87,7 +87,7 @@ pgw_icbc.o : pgw_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mess
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 pgwbc.o : pgwbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_grid.o mod_date.o mod_pgw.o mod_write.o mod_projections.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
-icbc.o : icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_mksst.o mod_date.o mod_grid.o mod_date.o mod_ein.o mod_ifs.o mod_era5.o mod_era5RDA.o mod_ncep.o mod_nest.o mod_gn6hnc.o mod_write.o mod_projections.o $(CMIP6LIB)
+icbc.o : icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_mksst.o mod_date.o mod_grid.o mod_date.o mod_ein.o mod_ifs.o mod_era5.o mod_era5RDA.o mod_ncep.o mod_ecday.o mod_nest.o mod_gn6hnc.o mod_write.o mod_projections.o $(CMIP6LIB)
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_ch_icbc.o : mod_ch_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_memutil.o mod_message.o mod_nchelper.o mod_ch_param.o mod_constants.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
@@ -135,6 +135,8 @@ mod_grid.o : mod_grid.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_mem
 mod_header.o : mod_header.F90 mod_intkinds.o mod_stdio.o mod_posix.o $(REGCM_ROOT)/version
 mod_mksst.o : mod_mksst.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_grid.o mod_memutil.o mod_constants.o mod_dynparam.o mod_message.o mod_nchelper.o mod_earth.o mod_stdio.o mod_date.o
 mod_ncep.o : mod_ncep.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_grid.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_projections.o mod_vectutil.o mod_message.o mod_memutil.o mod_nchelper.o mod_grid.o mod_date.o mod_constants.o
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
+mod_ecday.o : mod_ecday.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_grid.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_projections.o mod_vectutil.o mod_message.o mod_memutil.o mod_nchelper.o mod_grid.o mod_date.o mod_constants.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_nest.o : mod_nest.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_constants.o mod_date.o mod_grid.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_projections.o mod_vectutil.o mod_message.o mod_memutil.o mod_nchelper.o mod_stdatm.o mod_mksst.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
