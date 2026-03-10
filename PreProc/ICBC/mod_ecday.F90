@@ -43,7 +43,6 @@ module mod_ecday
 
   real(rkx), pointer, contiguous, dimension(:) :: glat
   real(rkx), pointer, contiguous, dimension(:) :: glon
-  real(rkx), pointer, contiguous, dimension(:,:) :: psvar
   real(rkx), pointer, contiguous, dimension(:) :: sigmar, plevs
   real(rkx) :: pss, pst
 
@@ -161,7 +160,6 @@ module mod_ecday
       call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
-    call getmem(psvar,1,ilon,1,jlat,'mod_ecday:psvar')
     call getmem(b2,1,ilon,1,jlat,1,klev*3,'mod_ecday:b3')
     call getmem(d2,1,ilon,1,jlat,1,klev*2,'mod_ecday:d3')
     call getmem(b3,1,jx,1,iy,1,klev*3,'mod_ecday:b3')
@@ -283,11 +281,11 @@ module mod_ecday
     type(rcm_time_and_date), intent (in) :: idate
     integer(ik4) :: i, ilev, inet, it, j, kkrec, k, istatus
     character(len=256), save :: pathaddname
-    character(len=5), dimension(6) :: varname
+    character(len=5), dimension(5) :: varname
     integer(ik4), dimension(4) :: icount, istart
-    integer(ik4), dimension(6), save :: inet5, ivar5
-    data varname/'ta', 'zg', 'hus', 'ua', 'va', 'psl'/
-    do kkrec = 1, 6
+    integer(ik4), dimension(5), save :: inet5, ivar5
+    data varname/'ta', 'zg', 'hus', 'ua', 'va'/
+    do kkrec = 1, 5
       if ( idate == globidate1 .or. lfdoyear(idate) ) then
         write (pathaddname,'(a,i0.4,a)') trim(inpglob)//pthsep// &
            dattyp//pthsep//trim(varname(kkrec))//pthsep// &
@@ -320,10 +318,6 @@ module mod_ecday
         istatus = nf90_get_var(inet,ivar5(kkrec),uvar,istart,icount)
       else if ( kkrec == 5 ) then
         istatus = nf90_get_var(inet,ivar5(kkrec),vvar,istart,icount)
-      else if ( kkrec == 6 ) then
-        istart(3) = it
-        icount(3) = 1
-        istatus = nf90_get_var(inet,ivar5(kkrec),psvar,istart(1:3),icount(1:3))
       end if
       call checkncerr(istatus,__FILE__,__LINE__, &
                   'Variable '//varname(kkrec)// &
