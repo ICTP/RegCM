@@ -304,8 +304,6 @@ module mod_clm_histfile
   type(clm_filetype) :: nfid(max_tapes)
   ! file ids for history restart files
   type(clm_filetype) :: ncid_hist(max_tapes)
-  ! string dimension id
-  integer(ik4) :: strlen_dimid
 
   contains
   !

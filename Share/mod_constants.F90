@@ -305,7 +305,7 @@ module mod_constants
   real(rk8), parameter :: raddeg_r8 = 180.0_rk8/mathpi_r8
 
   real(rk4), parameter :: mathpi_r4 = 3.14159265359_rk4
-  real(rk4), parameter :: invpi_r4 = d_one/mathpi_r4
+  real(rk4), parameter :: invpi_r4 = 1.0_rk4/mathpi_r4
   real(rk4), parameter :: halfpi_r4 = mathpi_r4*0.5_rk4
   real(rk4), parameter :: quartpi_r4 = halfpi_r4*0.5_rk4
   real(rk4), parameter :: twopi_r4 = mathpi_r4*2.0_rk4

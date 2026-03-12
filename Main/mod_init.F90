@@ -787,7 +787,7 @@ module mod_init
       end if
 
       if ( myid == italk ) then
-        ozprnt = o3prof(jci1,ici1,:)
+        ozprnt = real(o3prof(jci1,ici1,:),rkx)
         call vprntv(ozprnt,kzp1,'Ozone profiles restart')
       end if
 

@@ -42,7 +42,9 @@ module mod_clm_surfaceradiation
     use mod_clm_varcon     , only : istcrop
     use mod_clm_varctl     , only : subgridflag, nextdate
     use mod_clm_varpar     , only : nlevsno
+#if (defined SNICAR_FRC)
     use mod_clm_snicar     , only : DO_SNO_OC
+#endif
     implicit none
     integer(ik4), intent(in) :: lbp, ubp   ! pft upper and lower bounds
     ! number of pfts in non-urban points in pft filter
@@ -408,8 +410,8 @@ module mod_clm_surfaceradiation
 
     ! Determine seconds off current time step
 
-    dtime = int(dtsrf)
-    secs = nextdate%second_of_day
+    dtime = int(dtsrf,ik4)
+    secs = int(nextdate%second_of_day,ik4)
 
     ! Initialize fluxes
 

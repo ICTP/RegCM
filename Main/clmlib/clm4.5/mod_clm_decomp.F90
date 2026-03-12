@@ -163,6 +163,7 @@ module mod_clm_decomp
         case(namep)
           get_clmlevel_gsize = nump
         case default
+          get_clmlevel_gsize = 0
           write(stderr,*) &
             'get_clmlevel_gsize does not match clmlevel type: ', trim(clmlevel)
           call fatal(__FILE__,__LINE__,'clm will now stop')

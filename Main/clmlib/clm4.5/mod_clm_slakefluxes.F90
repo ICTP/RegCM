@@ -26,9 +26,8 @@ module mod_clm_slakefluxes
   subroutine SLakeFluxes(lbc, ubc, lbp, ubp, num_lakep, filter_lakep)
     use mod_clm_type
     use mod_clm_atmlnd, only : clm_a2l
-    use mod_clm_varpar, only : nlevlak
-    use mod_clm_varcon, only : hvap, hsub, hfus, cpair, cpliq, tkwat, &
-       tkice, tkair, sb, vkc, grav, denh2o, tfrz, spval, zsno
+    use mod_clm_varcon, only : hvap, hsub, cpair, tkice, tkair
+    use mod_clm_varcon, only : sb, vkc, grav, tfrz, zsno
     use mod_clm_slakecon, only : betavis, z0frzlake, tdmax, emg_lake, &
                                minz0lake, cur0, cus, curm, fcrit
     use mod_clm_qsat, only : QSat

@@ -396,7 +396,7 @@ module mod_ocn_common
     real(rk8), parameter :: bipaper = 0.0347_rk8 ! Seviri Channel 9
     real(rk8) :: angle, xspeed, emis
     integer(ik4) :: i
-    xspeed = max(0.1_rk8,min(20.0_rk8,speed))
+    xspeed = max(0.1_rkx,min(20.0_rkx,speed))
     emis = 0.01_rk8 !  Baseline
     ! Integrate
     do i = 1, 10

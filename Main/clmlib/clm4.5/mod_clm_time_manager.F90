@@ -51,7 +51,7 @@ module mod_clm_time_manager
     integer(ik4) :: ih
 
     call split_idate(idate0,yr,mon,day,ih)
-    tod = idate0%second_of_day
+    tod = int(idate0%second_of_day,ik4)
   end subroutine get_start_date
 
   integer(ik4) function get_driver_start_ymd( tod )
@@ -68,7 +68,7 @@ module mod_clm_time_manager
 
     get_driver_start_ymd = yr*10000+mon*100+day
 
-    if ( present(tod) ) tod = idate0%second_of_day
+    if ( present(tod) ) tod = int(idate0%second_of_day,ik4)
   end function get_driver_start_ymd
 
   real(rk8) function get_curr_calday( )

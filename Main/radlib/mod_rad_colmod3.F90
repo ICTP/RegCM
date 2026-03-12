@@ -722,7 +722,7 @@ module mod_rad_colmod3
     if ( ichem == 1 .or. iclimaaer == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 0:kz, m = 1:nspi )
         n = (j-jci1)+(i-ici1)*nj+1
-        taucldsp(j,i,k,m)  = rt%tauxcl(k,n,m) + rt%tauxci(k,n,m)
+        taucldsp(j,i,k,m)  = real(rt%tauxcl(k,n,m)+rt%tauxci(k,n,m),rkx)
       end do
     end if
     !

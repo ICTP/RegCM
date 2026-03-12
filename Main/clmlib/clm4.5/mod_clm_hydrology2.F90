@@ -40,7 +40,7 @@ module mod_clm_hydrology2
     use mod_clm_atmlnd, only : clm_a2l
     use mod_clm_varcon, only : denh2o, denice, istice, istwet, istsoil, &
             isturb, spval, icol_roof, icol_road_imperv, icol_road_perv,  &
-            icol_sunwall, icol_shadewall, istdlak, tfrz, hfus, grav
+            icol_sunwall, icol_shadewall
     use mod_clm_varcon, only : istcrop
     use mod_clm_varpar, only : nlevgrnd, nlevsno, nlevsoi, nlevurb
     use mod_clm_snowhydrology, only : SnowCompaction, CombineSnowLayers, &

@@ -427,7 +427,7 @@ module mod_clm_soilhydrology
 #endif
     real(rk8), pointer, contiguous :: qflx_infl(:)  !infiltration (mm H2O /s)
 
-    integer(ik4) :: c,j,l,f,fc  ! indices
+    integer(ik4) :: c,j,l,fc  ! indices
     real(rk8) :: qinmax       ! maximum infiltration capacity (mm/s)
     ! partial volume of ice lens in layer
     real(rk8) :: vol_ice(lbc:ubc,1:nlevsoi)

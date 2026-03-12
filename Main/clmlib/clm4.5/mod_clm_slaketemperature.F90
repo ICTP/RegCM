@@ -103,7 +103,7 @@ module mod_clm_slaketemperature
     use mod_stdio
     use mod_clm_type
     use mod_clm_varcon, only : hfus, cpliq, cpice, tkwat, tkice, denice, &
-                                vkc, grav, denh2o, tfrz, spval, cnfac
+                                vkc, grav, denh2o, tfrz, cnfac
     use mod_clm_slakecon, only : betavis, za_lake, n2min, tdmax
     use mod_clm_slakecon, only : pudz
     use mod_clm_slakecon, only : depthcrit, mixfact
@@ -1202,8 +1202,8 @@ module mod_clm_slaketemperature
                   tk, cv, tktopsoillay)
     use mod_realkinds
     use mod_clm_type
-    use mod_clm_varcon , only : denh2o, denice, tfrz, tkwat, tkice, tkair, &
-                             cpice,  cpliq, thk_bedrock
+    use mod_clm_varcon , only : denh2o, denice, tfrz, tkice, tkair
+    use mod_clm_varcon , only : cpice, cpliq, thk_bedrock
     use mod_clm_varpar , only : nlevsno, nlevsoi, nlevgrnd
     implicit none
     integer(ik4), intent(in)  :: lbc, ubc  ! column bounds
@@ -1400,7 +1400,7 @@ module mod_clm_slaketemperature
                   cv, cv_lake, lhabs)
     use mod_realkinds
     use mod_clm_type
-    use mod_clm_varcon , only : tfrz, hfus, denh2o, denice, cpliq, cpice
+    use mod_clm_varcon , only : tfrz, hfus, denh2o, cpliq, cpice
     use mod_clm_varpar , only : nlevsno, nlevgrnd, nlevlak
     implicit none
     integer(ik4), intent(in) :: lbc, ubc    ! column bounds

@@ -971,8 +971,8 @@ module mod_clm_urban
               lwup_perroad, lwup_sunwall, lwup_shadewall, lwup_canyon)
     end if
 
-    dtime = int(dtsrf)
-    secs = nextdate%second_of_day
+    dtime = int(dtsrf,ik4)
+    secs = int(nextdate%second_of_day,ik4)
 
     ! Determine clmtype variables needed for history output and
     ! communication with atm
@@ -3276,8 +3276,8 @@ module mod_clm_urban
     !$acc end kernels
 
     ! Get current date
-    dtime = int(dtsrf)
-    secs = nextdate%second_of_day
+    dtime = int(dtsrf,ik4)
+    secs = int(nextdate%second_of_day,ik4)
 
     ! Compute canyontop wind using Masson (2000)
 

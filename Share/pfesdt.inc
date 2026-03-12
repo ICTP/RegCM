@@ -32,7 +32,7 @@
     real(rk8), parameter :: d7 =  0.394116744e-11_rk8
     real(rk8), parameter :: d8 =  0.498070196e-14_rk8
 
-    td = min(max(t - tzero,-75.0_rk8),100.0_rk8)
+    td = min(max(t - tzero,-75.0_rkx),100.0_rkx)
     if ( td >= 0.0_rk8 ) then
       esatdt = b0 + td*(b1 + td*(b2 + td*(b3 + td*(b4 &
            + td*(b5 + td*(b6 + td*(b7 + td*b8)))))))

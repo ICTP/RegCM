@@ -102,12 +102,12 @@ module mod_rad_outrad
     if ( irrtm == 1 ) then
       do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz )
         n = (j-jci1)+(i-ici1)*nj+1
-        r2m%heatrt(j,i,k) = qrs(n,k) + qrl(n,k)
+        r2m%heatrt(j,i,k) = real(qrs(n,k) + qrl(n,k),rkx)
       end do
     else
       do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz )
         n = (j-jci1)+(i-ici1)*nj+1
-        r2m%heatrt(j,i,k) = qrs(k,n) + qrl(k,n)
+        r2m%heatrt(j,i,k) = real(qrs(k,n) + qrl(k,n),rkx)
       end do
     end if
 
@@ -117,11 +117,11 @@ module mod_rad_outrad
       ! surface absorbed solar flux in watts/m2
       ! net up longwave flux at the surface
       !
-      r2m%totcf(j,i) = totcf(n)
-      r2m%solis(j,i) = sol(n)
-      r2m%fsw(j,i)   = frsa(n)
-      r2m%flw(j,i)   = frla(n)
-      r2m%flwd(j,i)  = slwd(n)
+      r2m%totcf(j,i) = real(totcf(n),rkx)
+      r2m%solis(j,i) = real(sol(n),rkx)
+      r2m%fsw(j,i)   = real(frsa(n),rkx)
+      r2m%flw(j,i)   = real(frla(n),rkx)
+      r2m%flwd(j,i)  = real(slwd(n),rkx)
       !
       ! for coupling with bats
       !
@@ -130,19 +130,19 @@ module mod_rad_outrad
       ! over sparsely vegetated areas in which vegetation and ground
       ! albedo are significantly different
       !
-      r2m%sabveg(j,i) = abv(n)
-      r2m%solvs(j,i)  = sols(n)
-      r2m%solvsd(j,i) = solsd(n)
-      r2m%solvl(j,i)  = soll(n)
-      r2m%solvld(j,i) = solld(n)
-      r2m%sinc(j,i)   = soll(n) + sols(n) + solsd(n) + solld(n)
+      r2m%sabveg(j,i) = real(abv(n),rkx)
+      r2m%solvs(j,i)  = real(sols(n),rkx)
+      r2m%solvsd(j,i) = real(solsd(n),rkx)
+      r2m%solvl(j,i)  = real(soll(n),rkx)
+      r2m%solvld(j,i) = real(solld(n),rkx)
+      r2m%sinc(j,i)   = real(soll(n) + sols(n) + solsd(n) + solld(n),rkx)
     end do
 
     if ( ifrad ) then
-      rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rk8
+      rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
     end if
     if ( ifopt ) then
-      rnrad_for_optfrq = rnrad_for_optfrq + 1.0_rk8
+      rnrad_for_optfrq = rnrad_for_optfrq + 1.0_rkx
     end if
 
     if ( ifrad .and. associated(rad_higcl_out) .and. &
@@ -181,9 +181,9 @@ module mod_rad_outrad
           lof = lof*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
                           (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
         end do
-        rad_higcl_out(j,i) = rad_higcl_out(j,i) + d_one - hif
-        rad_midcl_out(j,i) = rad_midcl_out(j,i) + d_one - mif
-        rad_lowcl_out(j,i) = rad_lowcl_out(j,i) + d_one - lof
+        rad_higcl_out(j,i) = real(rad_higcl_out(j,i) + d_one - hif,rkx)
+        rad_midcl_out(j,i) = real(rad_midcl_out(j,i) + d_one - mif,rkx)
+        rad_lowcl_out(j,i) = real(rad_lowcl_out(j,i) + d_one - lof,rkx)
       end do
     end if
 
@@ -231,7 +231,7 @@ module mod_rad_outrad
         call copy3d(cld,rad_cld_out)
         call copy3d(clwp,rad_clwp_out)
         if ( associated(rad_clwp_out) ) then
-          rad_clwp_out = 1.0e-3_rk8 * rad_clwp_out * rad_cld_out
+          rad_clwp_out = 1.0e-3_rkx * rad_clwp_out * rad_cld_out
         end if
         call copy3d(qrs,rad_qrs_out)
         call copy3d(qrl,rad_qrl_out)
@@ -267,7 +267,7 @@ module mod_rad_outrad
     if ( associated(b) ) then
       do concurrent ( j=jci1:jci2, i=ici1:ici2)
         n = (j-jci1)+(i-ici1)*nj+1
-        b(j,i) = a(n)
+        b(j,i) = real(a(n),rkx)
       end do
     end if
   end subroutine copy2d
@@ -283,12 +283,12 @@ module mod_rad_outrad
       if ( irrtm == 1 ) then
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i) = b(j,i) + a(n,k,l)
+          b(j,i) = real(b(j,i) + a(n,k,l),rkx)
         end do
       else
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i) = b(j,i) + a(k,n,l)
+          b(j,i) = real(b(j,i) + a(k,n,l),rkx)
         end do
       end if
     end if
@@ -311,12 +311,12 @@ module mod_rad_outrad
       if ( irrtm == 1 ) then
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = a(n,k)
+          b(j,i,k) = real(a(n,k),rkx)
         end do
       else
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = a(k,n)
+          b(j,i,k) = real(a(k,n),rkx)
         end do
       end if
     end if
@@ -333,13 +333,13 @@ module mod_rad_outrad
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,kk) = a(n,k,l)
+          b(j,i,kk) = real(a(n,k,l),rkx)
         end do
       else
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,kk) = a(n,k,l)
+          b(j,i,kk) = real(a(n,k,l),rkx)
         end do
       end if
     end if
@@ -355,12 +355,12 @@ module mod_rad_outrad
       if ( irrtm == 1 ) then
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz, l = 1:nl)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k,l) = a(n,k,l)
+          b(j,i,k,l) = real(a(n,k,l),rkx)
         end do
       else
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz, l = 1:nl)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k,l) = a(k,l,n)
+          b(j,i,k,l) = real(a(k,l,n),rkx)
         end do
       end if
     end if
@@ -375,12 +375,12 @@ module mod_rad_outrad
       if ( irrtm == 1 ) then
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = a(n,k)
+          b(j,i,k) = real(a(n,k),rkx)
         end do
       else
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = a(k,n)
+          b(j,i,k) = real(a(k,n),rkx)
         end do
       end if
     end if
@@ -397,12 +397,12 @@ module mod_rad_outrad
       if ( irrtm == 1 ) then
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = a(n,k,l) * c(n,k)
+          b(j,i,k) = real(a(n,k,l) * c(n,k),rkx)
         end do
       else
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = a(k,l,n) * c(k,n)
+          b(j,i,k) = real(a(k,l,n) * c(k,n),rkx)
         end do
       end if
     end if
@@ -420,13 +420,13 @@ module mod_rad_outrad
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,kk) = a(n,k,l) / c(n,kk)
+          b(j,i,kk) = real(a(n,k,l) / c(n,kk),rkx)
         end do
       else
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,kk) = a(k,n,l) / c(kk,n)
+          b(j,i,kk) = real(a(k,n,l) / c(kk,n),rkx)
         end do
       end if
     end if
@@ -444,8 +444,8 @@ module mod_rad_outrad
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
-          if ( abs(c(n,k,l)) > dlowval ) then
-            b(j,i,kk) = a(n,k,l) / c(n,k,l)
+          if ( abs(c(n,k,l)) > dlowval_r8 ) then
+            b(j,i,kk) = real(a(n,k,l) / c(n,k,l),rkx)
           else
             b(j,i,kk) = smissval
           end if
@@ -454,8 +454,8 @@ module mod_rad_outrad
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
-          if ( abs(c(k,n,l)) > dlowval ) then
-            b(j,i,kk) = a(k,n,l) / c(k,n,l)
+          if ( abs(c(k,n,l)) > dlowval_r8 ) then
+            b(j,i,kk) = real(a(k,n,l) / c(k,n,l),rkx)
           else
             b(j,i,kk) = smissval
           end if
@@ -472,7 +472,7 @@ module mod_rad_outrad
     if ( associated(b) ) then
       do concurrent ( j=jci1:jci2, i=ici1:ici2)
         n = (j-jci1)+(i-ici1)*nj+1
-        b(j,i) = b(j,i) + a(n)
+        b(j,i) = real(b(j,i) + a(n),rkx)
       end do
     end if
   end subroutine copy2d_add
@@ -486,12 +486,12 @@ module mod_rad_outrad
       if ( irrtm == 1 ) then
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = b(j,i,k) + a(n,k)
+          b(j,i,k) = real(b(j,i,k) + a(n,k),rkx)
         end do
       else
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = b(j,i,k) + a(k,n)
+          b(j,i,k) = real(b(j,i,k) + a(k,n),rkx)
         end do
       end if
     end if
@@ -507,12 +507,12 @@ module mod_rad_outrad
       if ( irrtm == 1 ) then
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = b(j,i,k) + a(n,k,l)
+          b(j,i,k) = real(b(j,i,k) + a(n,k,l),rkx)
         end do
       else
         do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = b(j,i,k) + a(k,l,n)
+          b(j,i,k) = real(b(j,i,k) + a(k,l,n),rkx)
         end do
       end if
     end if

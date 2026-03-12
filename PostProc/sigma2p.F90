@@ -540,14 +540,14 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable b.')
     do k = 1, kz
       ! height above the surface here
-      zeta(:,:,k) = ak(k) + (bk(k) - d_one) * topo(:,:)
+      zeta(:,:,k) = real(ak(k) + (bk(k) - 1.0_rkx) * topo(:,:),rk4)
     end do
     if ( is_icbc ) then
       do k = 1, kz+1
         do i = 1, iy
           do j = 1, jx
             htg = topo(j,i)
-            fm(j,i,k) = md_fmz_h(zita(k),htg,ztop,zh,a0)
+            fm(j,i,k) = real(md_fmz_h(zita(k),htg,ztop,zh,a0),rk4)
           end do
         end do
       end do
@@ -555,7 +555,7 @@ program sigma2p
         do i = 1, iy
           do j = 1, jx
             htg = topo(j,i)
-            z0(j,i,k) = md_zeta_h(zitah(k),htg,ztop,zh,a0)
+            z0(j,i,k) = real(md_zeta_h(zitah(k),htg,ztop,zh,a0),rk4)
           end do
         end do
       end do
@@ -646,7 +646,7 @@ program sigma2p
     istatus = nf90_get_att(ncid, ipsvarid, 'units', psunit)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
     if ( psunit == 'hPa' .or. psunit == 'mb' ) then
-      ps(:,:) = ps(:,:) * d_100
+      ps(:,:) = ps(:,:) * 100.0_rk4
     end if
     if ( iodyn == 2 .and. ppvarid >= 0 ) then
       istart(1) = 1
@@ -689,7 +689,7 @@ program sigma2p
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
         call paicompute(ps,z0,tvar,qvvar,pai,fm,dzita,jx,iy,kz)
       end if
-      press(:,:,:) = p00 * (pai(:,:,:)**cpovr)
+      press(:,:,:) = real(p00 * (pai(:,:,:)**cpovr),rk4)
     end if
     do i = 1, nvars
       if (.not. ltvarflag(i)) cycle
@@ -1011,29 +1011,29 @@ program sigma2p
     real(rk4), dimension(nx,ny,nz), intent(in) :: z, t, q
     real(rk4), dimension(nx,ny,nz+1), intent(in) :: fm
     real(rk4), dimension(nx,ny,nz), intent(inout) :: pai
-    real(rk4) :: tv, tv1, tv2, p, zb, zdelta, zz, lrt
+    real(rk8) :: tv, tv1, tv2, p, zb, zdelta, zz, lrt
     integer(ik4) :: i, j, k
     ! Hydrostatic initialization of pai
     do i = 1, ny
       do j = 1, nx
         zdelta = z(j,i,nz)*egrav
-        tv1 = t(j,i,nz) * (d_one + ep1*q(j,i,nz))
-        tv2 = t(j,i,nz-1) * (d_one + ep1*q(j,i,nz-1))
+        tv1 = t(j,i,nz) * (1.0_rk8 + ep1*q(j,i,nz))
+        tv2 = t(j,i,nz-1) * (1.0_rk8 + ep1*q(j,i,nz-1))
         lrt = (tv1-tv2)/(z(j,i,nz-1)-z(j,i,nz))
-        tv = tv1 + 0.5_rk4*z(j,i,nz)*lrt
-        zz = d_one/(rgas*tv)
+        tv = tv1 + 0.5_rk8*z(j,i,nz)*lrt
+        zz = 1.0_rk8/(rgas*tv)
         p = ps(j,i) * exp(-zdelta*zz)
-        pai(j,i,nz) = (p/p00)**rovcp
+        pai(j,i,nz) = real((p/p00)**rovcp,rk4)
       end do
     end do
     do k = nz-1, 1, -1
       do i = 1, ny
         do j = 1, nx
-          tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
-          tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
-          zb = d_two*egrav*dzita/(fm(j,i,k+1)*cpd) + tv1 - tv2
-          zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
-          pai(j,i,k) = -pai(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
+          tv1 = t(j,i,k) * (1.0_rk8 + ep1*q(j,i,k))
+          tv2 = t(j,i,k+1) * (1.0_rk8 + ep1*q(j,i,k+1))
+          zb = 2.0_rk8*egrav*dzita/(fm(j,i,k+1)*cpd) + tv1 - tv2
+          zdelta = sqrt(zb**2 + 4.0_rk8 * tv2 * tv1)
+          pai(j,i,k) = -real(pai(j,i,k+1)/(2.0_rk8*tv2)*(zb-zdelta),rk4)
         end do
       end do
     end do

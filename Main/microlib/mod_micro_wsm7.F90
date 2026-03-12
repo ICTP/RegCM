@@ -2132,6 +2132,8 @@ module mod_micro_wsm7
         !
         if ( id == 1 ) then
           call slope_rain(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
+        else if ( id == 2 ) then
+          call slope_hail(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
         else
           call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
         end if

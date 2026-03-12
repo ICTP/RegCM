@@ -1972,7 +1972,7 @@ module mod_date
       case (usec)
         hs = x%ival
       case (umin)
-        hs = x%ival*60.0_ik8
+        hs = x%ival*60_ik8
       case (uhrs)
         hs = x%ival*3600_ik8
       case (uday)

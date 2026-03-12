@@ -193,8 +193,8 @@ module mod_vertint
             kx = find_from_top(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
             knx = kx - 1
             w2 = (sigp-sig(i,j,kx))/(sig(i,j,knx)-sig(i,j,kx))
-            w1 = 1.0_rk4 - w2
-            fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+            w1 = 1.0_rk8 - w2
+            fp(i,j,n) = real(w1*f(i,j,kx) + w2*f(i,j,knx),rk4)
           end if
         end do
       end do
@@ -214,8 +214,8 @@ module mod_vertint
             kx = find_from_btm(sigp,sig,i,im1,im2,j,jm1,jm2,kp)
             knx = kx - 1
             w2 = (sig(i,j,kx)-sigp)/(sig(i,j,kx)-sig(i,j,knx))
-            w1 = 1.0_rk4 - w2
-            fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+            w1 = 1.0_rk8 - w2
+            fp(i,j,n) = real(w1*f(i,j,kx) + w2*f(i,j,knx),rk4)
           end if
         end do
       end do
@@ -428,8 +428,8 @@ module mod_vertint
               end do
               knx = kx - 1
               w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
-              w2 = 1.0_rk4 - w1
-              fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+              w2 = 1.0_rk8 - w1
+              fz(i,j,n) = real(w1*f(i,j,kx) + w2*f(i,j,knx),rk4)
             end if
           end do
         end do
@@ -450,8 +450,8 @@ module mod_vertint
               end do
               knx = kx + 1
               w1 = (hz(i,j,n)-z(knx))/(z(kx)-z(knx))
-              w2 = 1.0_rk4 - w1
-              fz(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+              w2 = 1.0_rk8 - w1
+              fz(i,j,n) = real(w1*f(i,j,kx) + w2*f(i,j,knx),rk4)
             end if
           end do
         end do
@@ -998,7 +998,7 @@ module mod_vertint
           kt = kb + 1
           wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
           wl = d_one - wu
-          tlayer(i,j) = tp(i,j,kt) * wl + tp(i,j,kb) * wu
+          tlayer(i,j) = real(tp(i,j,kt) * wl + tp(i,j,kb) * wu,rkx)
           tlayer(i,j) = (tp(i,j,kt) + tlayer(i,j))/d_two
           za(i,j) = zp(i,j,kt)
           pa(i,j) = pss*sccm(kt) + pst

@@ -61,7 +61,6 @@ module mod_ecday
   real(rkx), pointer, contiguous, dimension(:,:,:) :: hvar, qvar, tvar
 
   integer(ik4) :: year, month, day, hour
-  integer(ik4) :: itcfs = 0
 
   public :: get_ecday, init_ecday, conclude_ecday
 
@@ -279,7 +278,7 @@ module mod_ecday
     use netcdf
     implicit none
     type(rcm_time_and_date), intent (in) :: idate
-    integer(ik4) :: i, ilev, inet, it, j, kkrec, k, istatus
+    integer(ik4) :: inet, it, kkrec, istatus
     character(len=256), save :: pathaddname
     character(len=5), dimension(5) :: varname
     integer(ik4), dimension(4) :: icount, istart

@@ -898,7 +898,7 @@ module mod_clm_canopyfluxes
    ! n_irrig_steps_left(p) > 0 is ok even if irrig_rate(p) ends up = 0
    ! in this case, we'll irrigate by 0 for the given number of time steps
    ! get time as of beginning of time step
-   time = nextdate%second_of_day
+   time = int(nextdate%second_of_day,ik4)
    do concurrent ( f = 1:fn )
      p = filterp(f)
      c = pcolumn(p)
@@ -1592,6 +1592,8 @@ module mod_clm_canopyfluxes
         par_z       => clm3%g%l%c%p%pef%parsha_z
         alphapsn    => clm3%g%l%c%p%pps%alphapsnsha
       else
+        nullify(par_z)
+        nullify(alphapsn)
         write(stderr,*) 'ERRORR! phase not in [sha,sun]'
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
@@ -1850,6 +1852,7 @@ module mod_clm_canopyfluxes
     tgcm      => clm3%g%l%c%p%pes%thm
     nrad      => clm3%g%l%c%p%pps%nrad
     tlai_z    => clm3%g%l%c%p%pps%tlai_z
+    alphapsn  => null( )
     if (phase == 'sun') then
       lai_z  => clm3%g%l%c%p%pps%laisun_z
       par_z  => clm3%g%l%c%p%pef%parsun_z
@@ -1867,7 +1870,7 @@ module mod_clm_canopyfluxes
       if ( use_c13 ) then
         alphapsn  => clm3%g%l%c%p%pps%alphapsnsun
       end if
-    else if (phase == 'sha') then
+    else ! (phase == 'sha')
       lai_z  => clm3%g%l%c%p%pps%laisha_z
       par_z  => clm3%g%l%c%p%pef%parsha_z
       psn_z  => clm3%g%l%c%p%pcf%psnsha_z
@@ -2846,6 +2849,7 @@ module mod_clm_canopyfluxes
     fa = f1
     fb = f2
     c = b
+    e = 0._rk8
     fc = fb
     iter = 0
     do

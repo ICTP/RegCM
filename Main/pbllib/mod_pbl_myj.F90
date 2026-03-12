@@ -818,7 +818,7 @@ module mod_pbl_myj
 
     esqhf = d_half*esq
 
-    do k = 1, kz-2
+    do k = 1, kzm2
       dtoz(k) = (dtdif+dtdif)/(z(k)-z(k+2))
       akq(k)  = sqrt((q2(k)+q2(k+1))*d_half)*(el(k)+el(k+1))* &
                 esqhf/(z(k+1)-z(k+2))

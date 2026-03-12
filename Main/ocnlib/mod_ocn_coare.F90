@@ -152,6 +152,7 @@ module mod_ocn_coare
         else
           dter = 0.3_rkx
         end if
+        dqer = wetc*dter
         !
         !-----------------------
         ! Neutral coefficients

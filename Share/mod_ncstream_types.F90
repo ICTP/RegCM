@@ -285,7 +285,7 @@ module mod_ncstream_types
     logical :: lgridded = .false.
     logical :: laddmethod = .true.
     logical :: lfillvalue = .false.
-    real(rk4) :: rmissval = smissval
+    real(rk4) :: rmissval = smissval_r4
     integer(ik4) :: imissval = -9999
     integer(ik4) :: ndims = 0
     integer(ik4), dimension(5) :: idims = -1

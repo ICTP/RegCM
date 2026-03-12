@@ -804,7 +804,7 @@ module mod_clm_initgridcells
   ! Initialize urban landunits
   !
   subroutine set_landunit_urban (ltype,udenstype,nw,gi,li,ci,pi,setdata)
-    use mod_clm_varcon, only : isturb, icol_roof, icol_sunwall, &
+    use mod_clm_varcon, only : icol_roof, icol_sunwall, &
             icol_shadewall, icol_road_perv, icol_road_imperv,    &
             udens_base
     use mod_clm_varpar, only : numurbl, npatch_urban_class, maxpatch_urb

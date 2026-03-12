@@ -75,9 +75,8 @@ module mod_clm_hydrology1
                         num_nolakep, filter_nolakep)
     use mod_clm_type
     use mod_clm_atmlnd, only : clm_a2l
-    use mod_clm_varcon, only : tfrz, istice, istwet, istsoil, isturb,    &
-           istcrop, icol_roof, icol_sunwall, icol_shadewall, hfus,denice, &
-           zlnd,rpi,spval
+    use mod_clm_varcon, only : tfrz, istice, istwet, istsoil, isturb, &
+           istcrop, icol_sunwall, icol_shadewall, zlnd, rpi
     use mod_clm_varctl, only : subgridflag
     use mod_clm_varpar, only : nlevsno
     use mod_clm_h2osfc, only : FracH2oSfc

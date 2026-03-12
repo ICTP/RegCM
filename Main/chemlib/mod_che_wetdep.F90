@@ -984,7 +984,7 @@ module mod_che_wetdep
     !real(rkx), parameter :: aa1r = 1.249_rkx
     !real(rkx), parameter :: aa2r = 0.42_rkx
     !real(rkx), parameter :: aa3r = 0.87_rkx
-    real(rkx), parameter :: rhorain = 1000.0_rkx
+    !real(rkx), parameter :: rhorain = 1000.0_rkx
     real(rkx), parameter :: amuw = 1.002e-3_rkx ! at 20*c [kg/m/sec]
 
     colef(:,:,:) = d_zero
@@ -1044,7 +1044,6 @@ module mod_che_wetdep
               ! vpr = priiv*rrm**2*cfac
               ! try with a mean rainfall velcoity of 3 m/s
               vpr = 3._rkx
-            end if
             !----------------------------------------------------c
             ! snow scavenging                                    c
             ! data from slinn (1984) in atmospheric science &    c
@@ -1055,19 +1054,19 @@ module mod_che_wetdep
             ! rrm = characteristic capture length                c
             !----------------------------------------------------c
             ! needle-snow scavenging:
-            if ( t(j,k) <= tzero .and. t(j,k)>= tzero-8.0_rkx ) then
+            else if ( t(j,k) <= tzero .and. &
+                      t(j,k)>= tzero-8.0_rkx ) then
               vpr = 50.0e-2_rkx
               rrm = 10.e-6_rkx
               alpha = 1.0_rkx
-            end if
             ! . . . steller-snow scavenging:
-            if ( t(j,k) < tzero-8.0_rkx .and. t(j,k) >= tzero-25.0_rkx) then
+            else if ( t(j,k) < tzero-8.0_rkx .and. &
+                      t(j,k) >= tzero-25.0_rkx) then
               vpr = 57.0e-2_rkx
               rrm = 100.e-6_rkx
               alpha = 0.5_rkx
-            end if
             ! . . . graupel scavenging:
-            if ( t(j,k) < tzero-25.0_rkx ) then
+            else ! t(j,k) < tzero-25.0_rkx
               vpr = 180.0e-2_rkx
               rrm = 1000.e-6_rkx
               alpha = 2.0_rkx/3.0_rkx

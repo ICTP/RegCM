@@ -591,7 +591,7 @@ program sigma2z
       icount(4) = 1
       istatus = nf90_get_var(ncid, paivarid, pai, istart(1:4), icount(1:4))
       call checkncerr(istatus,__FILE__,__LINE__,'Error reading pai.')
-      press(:,:,:) = p00 * (pai(:,:,:)**cpovr)
+      press(:,:,:) = real(p00 * (pai(:,:,:)**cpovr),rk4)
     end if
     if ( iodyn /= 3 ) then
       istart(1) = 1

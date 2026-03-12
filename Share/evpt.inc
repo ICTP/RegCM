@@ -13,23 +13,22 @@
     real(rkx) , intent(in) :: sw  ! Surface Solar net Shortwave
     real(rkx) , intent(in) :: lw  ! Surface net Longwave
 
-    real(rkx) :: mkpa , pkpa , xgamma , rn , des , lath , lambd
+    real(rk8) :: mkpa , pkpa , xgamma , rn , des , lath , lambd
 
     lath = wlh(t)
-    lambd = lath * 1.0e-6
+    lambd = lath * 1.0e-6_rk8
     ! Port to kPa
-    pkpa = p * 1.0e-3
-    mkpa = m * 1.0e-3
-    des = max(((es-e) * 1.0e-3),d_zero)
-    rn = max(sw-lw,0.0_rk8) * 1.e-6_rk8      ! Mj s-1
+    pkpa = p * 1.0e-3_rk8
+    mkpa = m * 1.0e-3_rk8
+    des = max(((es-e) * 1.0e-3_rk8),0.0_rk8)
+    rn = max(sw-lw,0.0_rkx) * 1.e-6_rk8      ! Mj s-1
     ! Units kg m-2 day-1
-    rn = (rn/lath)*86400.0_rkx
+    rn = (rn/lath)*86400.0_rk8
     ! Compute psychrometric constant (kPa K-1)
-    xgamma = (0.0016286_rkx*pkpa)/lambd
+    xgamma = (0.0016286_rk8*pkpa)/lambd
     ! Potential evapotranspiration in kg m-2 day-1
-    evpt = ( (xgamma * 6.43_rkx * (1.0_rkx + 0.536_rkx*u) * des)/lambd + &
-             mkpa*rn ) / (mkpa+xgamma)
-    evpt = evpt / 86400.0_rkx
+    evpt = real((((xgamma * 6.43_rk8 * (1.0_rk8 + 0.536_rk8*u) * des)/lambd + &
+             mkpa*rn ) / (mkpa+xgamma)/86400.0_rk8),rkx)
   end function evpt
 
   ! ASCE-EWRI for Reference Evapotranspiration
@@ -46,8 +45,7 @@
     real(rkx) , intent(in) :: sw  ! Surface Solar net Shortwave
     real(rkx) , intent(in) :: lw  ! Surface net Longwave
 
-    real(rk8) :: pkpa , rn , u2 , delta , xgamma , ut , dt , pt , tt
-    real(rk8) :: de , etr , etw
+    real(rk8) :: pkpa , rn , u2 , delta , xgamma , de
 
     rn = (sw-lw) * 0.00360_rk8         ! MJ m-2 h-1
     pkpa = p * 0.001_rk8               ! kPa
@@ -55,8 +53,8 @@
     delta = m * 0.001_rk8              ! kPa K-1
     xgamma = 0.000665_rk8 * pkpa       ! Psychrometric constant kPa K-1
     u2 = max(u10 * 0.7342_rk8,0.1_rk8) ! 4.87/ln(67.8*h-5.42) m s-1
-    evpt_fao = ((0.408_rk8*delta*rn+xgamma*(37.0_rk8/t2)*u2*de) / &
-                (delta + xgamma*(1.0_rkx+0.34_rk8*u2)))/3600.0_rkx
+    evpt_fao = real(((0.408_rk8*delta*rn+xgamma*(37.0_rk8/t2)*u2*de) / &
+                (delta + xgamma*(1.0_rkx+0.34_rk8*u2)))/3600.0_rk8,rkx)
   end function evpt_fao
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

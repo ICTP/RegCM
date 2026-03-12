@@ -1534,6 +1534,7 @@ module physics_msis
       integer(ik4), parameter :: ltest = 12
 !
       pl = log10(press)
+      z = 0.0_rkx
 !
 !     Initial altitude estimate
       if ( pl >= -5.0_rkx ) then

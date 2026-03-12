@@ -17958,7 +17958,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
               else
-                var2(jj,ii) = smissval
+                var2(jj,ii) = smissval_r4
               end if
             end do
           end do
@@ -18032,7 +18032,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
               else
-                var2(jj,ii) = smissval
+                var2(jj,ii) = smissval_r4
               end if
             end do
           end do
@@ -18148,7 +18148,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
               else
-                var2_3(jj,ii,ll) = smissval
+                var2_3(jj,ii,ll) = smissval_r4
               end if
             end do
           end do
@@ -18228,7 +18228,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
               else
-                var2_3(jj,ii,ll) = smissval
+                var2_3(jj,ii,ll) = smissval_r4
               end if
             end do
           end do
@@ -18304,7 +18304,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
               else
-                var2(jj,ii) = smissval
+                var2(jj,ii) = smissval_r4
               end if
             end do
           end do
@@ -18380,7 +18380,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
               else
-                var2(jj,ii) = smissval
+                var2(jj,ii) = smissval_r4
               end if
             end do
           end do
@@ -18459,7 +18459,7 @@ module mod_mppparam
                 if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                   var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
                 else
-                  var3(jj,ii,l) = smissval
+                  var3(jj,ii,l) = smissval_r4
                 end if
               end do
             end do

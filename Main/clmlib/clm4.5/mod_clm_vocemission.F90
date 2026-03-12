@@ -574,7 +574,6 @@ module mod_clm_vocemission
   ! Guenther et al., 2006 eq 3
   !
   function get_gamma_L(fsun240_in,elai_in)
-    use mod_clm_varcon, only : denice
     implicit none
     real(rk8), intent(in) :: fsun240_in
     real(rk8), intent(in) :: elai_in

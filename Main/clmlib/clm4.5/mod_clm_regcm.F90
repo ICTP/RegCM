@@ -1071,7 +1071,7 @@ module mod_clm_regcm
         end if
         call h_interpolate_nn(hint,crupre,rcp)
         ndm = ndaypm(iym1,imm1,nextdate%calendar)
-        rcp = rcp / real(ndm,rk8)
+        rcp = rcp / real(ndm,rkx)
         call grid_distribute(rcp,acp0,jci1,jci2,ici1,ici2)
         istart(3) = im
         istatus = nf90_get_var(ncid,ivar,crupre,istart,icount)
@@ -1081,7 +1081,7 @@ module mod_clm_regcm
         end if
         call h_interpolate_nn(hint,crupre,rcp)
         ndm = ndaypm(iy,im,nextdate%calendar)
-        rcp = rcp / real(ndm,rk8)
+        rcp = rcp / real(ndm,rkx)
         call grid_distribute(rcp,acp1,jci1,jci2,ici1,ici2)
         iyp1 = iy
         imp1 = im + 1
@@ -1097,7 +1097,7 @@ module mod_clm_regcm
         end if
         call h_interpolate_nn(hint,crupre,rcp)
         ndm = ndaypm(iyp1,imp1,nextdate%calendar)
-        rcp = rcp / real(ndm,rk8)
+        rcp = rcp / real(ndm,rkx)
         call grid_distribute(rcp,acp2,jci1,jci2,ici1,ici2)
         imon = im
       end if
@@ -1119,7 +1119,7 @@ module mod_clm_regcm
         end if
         call h_interpolate_nn(hint,crupre,rcp)
         ndm = ndaypm(iyp1,imp1,nextdate%calendar)
-        rcp = rcp / real(ndm,rk8)
+        rcp = rcp / real(ndm,rkx)
         call grid_distribute(rcp,acp2,jci1,jci2,ici1,ici2)
         imon = im
       end if
@@ -1161,15 +1161,15 @@ module mod_clm_regcm
     end if
     ndm = ndaypm(iy,im,nextdate%calendar)
     pm = real(id,rk8)/real(ndm,rk8)
-    f1 = max(0.5_rk8 - pm,0.0_rkx)
-    f2 = max(pm - 0.5_rk8,0.0_rkx)
+    f1 = max(0.5_rk8 - pm,0.0_rk8)
+    f2 = max(pm - 0.5_rk8,0.0_rk8)
     if ( lcru_rand ) then
       do i = ici1, ici2
         do j = jci1, jci2
           if ( acp0(j,i) > 0.0_rk8 .and. acp0(j,i) < 10000.0_rk8 ) then
             m1 = acp0(j,i) * f1 + acp1(j,i) * (1.0_rk8-f1)
             m2 = acp1(j,i) * (1.0_rk8-f2) + acp2(j,i) * f2
-            temps(j,i) = (m1+m2) / (2.0_rk8*secpd) * ihfac(ih+1)
+            temps(j,i) = real((m1+m2) / (2.0_rk8*secpd) * ihfac(ih+1),rkx)
           end if
         end do
       end do
@@ -1179,7 +1179,7 @@ module mod_clm_regcm
           if ( acp0(j,i) > 0.0_rk8 .and. acp0(j,i) < 10000.0_rk8 ) then
             m1 = acp0(j,i) * f1 + acp1(j,i) * (1.0_rk8-f1)
             m2 = acp1(j,i) * (1.0_rk8-f2) + acp2(j,i) * f2
-            temps(j,i) = (m1+m2) / (2.0_rk8*secpd)
+            temps(j,i) = real((m1+m2) / (2.0_rk8*secpd),rkx)
           end if
         end do
       end do

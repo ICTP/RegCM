@@ -688,7 +688,7 @@ module mod_kdinterp
         end if
       end do
       if ( gwgt > d_zero ) then
-        f(i) = real(gsum / gwgt,rkx)
+        f(i) = real(gsum / gwgt,rk4)
       else
         f(i) = missl
       end if

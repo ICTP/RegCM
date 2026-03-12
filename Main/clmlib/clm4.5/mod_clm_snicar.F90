@@ -536,18 +536,9 @@ module mod_clm_snicar
             h2osno_ice_lcl(:) =  h2osno_ice(c_idx,:)
             snw_rds_lcl(:)    =  snw_rds(c_idx,:)
           end if
-
+          ! Set variables specific to CSIM
           snl_btm   = 0
           snl_top   = snl_lcl+1
-
-          ! for debugging only
-          l_idx     = clandunit(c_idx)
-          g_idx     = cgridcell(c_idx)
-          sfctype   = ltype(l_idx)
-          lat_coord = latdeg(g_idx)
-          lon_coord = londeg(g_idx)
-
-          ! Set variables specific to CSIM
         else
           flg_nosnl         = 0
           snl_lcl           = -1
@@ -556,10 +547,14 @@ module mod_clm_snicar
           snw_rds_lcl(:)    = snw_rds(c_idx,:)
           snl_btm           = 0
           snl_top           = 0
-          sfctype           = -1
-          lat_coord         = -90
-          lon_coord         = 0
         end if
+
+        ! for debugging only
+        l_idx     = clandunit(c_idx)
+        g_idx     = cgridcell(c_idx)
+        sfctype   = ltype(l_idx)
+        lat_coord = latdeg(g_idx)
+        lon_coord = londeg(g_idx)
 
         ! Set local aerosol array
         !$acc loop seq
@@ -1287,7 +1282,6 @@ module mod_clm_snicar
                   num_nosnowc, filter_nosnowc)
     use mod_clm_type
     use mod_clm_varpar      , only : nlevsno
-    use mod_clm_varcon      , only : spval
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of column snow points in column filter

@@ -237,8 +237,8 @@ module mod_nhinterp
       real(rk8), dimension(1:kxs) :: fn
       real(rk8), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
       real(rk8), dimension(1:kxs+1) :: zq
-      real(rk4), parameter :: minqq4 = minqq
-      real(rk8), parameter :: minqq8 = minqq
+      real(rk4), parameter :: minqq4 = real(minqq,rk4)
+      real(rk8), parameter :: minqq8 = real(minqq,rk8)
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !

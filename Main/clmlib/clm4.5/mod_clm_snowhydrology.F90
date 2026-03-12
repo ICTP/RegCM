@@ -46,8 +46,7 @@ module mod_clm_snowhydrology
   subroutine SnowWater(lbc, ubc, num_snowc, filter_snowc, &
                        num_nosnowc, filter_nosnowc)
     use mod_clm_type
-    use mod_clm_varcon, only : denh2o, denice, wimp, ssi, isturb, &
-            istsoil, istdlak
+    use mod_clm_varcon, only : denh2o, denice, wimp, ssi
     use mod_clm_atmlnd, only : clm_a2l
     use mod_clm_snicar, only : scvng_fct_mlt_bcphi, scvng_fct_mlt_bcpho, &
                                 scvng_fct_mlt_ocphi, scvng_fct_mlt_ocpho, &
@@ -557,7 +556,7 @@ module mod_clm_snowhydrology
   subroutine SnowCompaction(lbc, ubc, num_snowc, filter_snowc)
     use mod_clm_type
     use mod_clm_varcon     , only : denice, denh2o, tfrz
-    use mod_clm_varcon     , only : rpi, isturb, istdlak, istsoil, istcrop
+    use mod_clm_varcon     , only : rpi, istsoil, istcrop
     use mod_clm_varctl     , only : subgridflag
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
@@ -732,10 +731,9 @@ module mod_clm_snowhydrology
   !
   subroutine CombineSnowLayers(lbc, ubc, num_snowc, filter_snowc)
     use mod_clm_type
-    use mod_clm_varcon, only : istsoil, isturb, istdlak
+    use mod_clm_varcon, only : isturb, istdlak, istwet
+    use mod_clm_varcon, only : istsoil, istice, istcrop
     use mod_clm_slakecon , only : lsadz
-    use mod_clm_varcon, only : istsoil, isturb,istwet,istice
-    use mod_clm_varcon, only : istcrop
     implicit none
     integer(ik4), intent(in)    :: lbc, ubc  ! column bounds
     ! number of column snow points in column filter
@@ -859,7 +857,7 @@ module mod_clm_snowhydrology
         ! use 0.01 to avoid runaway ice buildup
         if (h2osoi_ice(c,j) <= .01_rk8) then
           if (ltype(l) == istsoil .or. &
-              ltype(l)==isturb .or. &
+              ltype(l) == isturb .or. &
               ltype(l) == istcrop) then
             h2osoi_liq(c,j+1) = h2osoi_liq(c,j+1) + h2osoi_liq(c,j)
             h2osoi_ice(c,j+1) = h2osoi_ice(c,j+1) + h2osoi_ice(c,j)

@@ -168,7 +168,7 @@ module mod_che_emission
     real(rk8), intent(in) :: declin
 
     integer(ik4)  :: j, itr
-    real(rkx) :: daylen, fact, maxelev, amp, dayhr
+    real(rk8) :: daylen, fact, maxelev, amp, dayhr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
     integer(ik4), save :: idindx = 0
@@ -190,20 +190,22 @@ module mod_che_emission
         end do
       else
         do j = jci1, jci2
-          dayhr = -tan(declin)*tan(cxlat(j,i)*degrad)
+          dayhr = -tan(declin)*tan(cxlat(j,i)*degrad_r8)
           if ( dayhr < -1 .or. dayhr > 1 ) then
             tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
-            chemsrc(j,i,iisop) = 0.0
+            chemsrc(j,i,iisop) = 0.0_rkx
           else
-            daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
-            daylen = d_two*acos(dayhr)*raddeg
-            daylen = daylen*24.0_rkx/360.0_rkx
+            daylen = 2.0_rk8*acos(-tan(declin) * &
+                       tan(cxlat(j,i)*degrad_r8))*raddeg_r8
+            daylen = 2.0_rk8*acos(dayhr)*raddeg_r8
+            daylen = daylen*24.0_rk8/360.0_rk8
             ! Maximum sun elevation
-            maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
-            fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
-            amp = 12.0_rkx*mathpi/daylen
+            maxelev = halfpi_r8 - ((cxlat(j,i)*degrad)-declin)
+            fact = (halfpi_r8-acos(czen(j,i)))/(2.0_rk8*maxelev)
+            amp = 12.0_rk8*mathpi_r8/daylen
             tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
-            chemsrc(j,i,iisop) = amp*chemsrc(j,i,iisop) * sin(mathpi*fact)
+            chemsrc(j,i,iisop) = real( &
+                    amp*chemsrc(j,i,iisop) * sin(mathpi*fact),rkx)
           end if
         end do
       end if
