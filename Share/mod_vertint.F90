@@ -629,6 +629,7 @@ module mod_vertint
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk4), dimension(km) :: sig
     real(rk4) :: sigp, w1, w2, tp, bp
+    real(rk8) :: interp
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
       do j = 1, jm
         do i = 1, im
@@ -652,7 +653,13 @@ module mod_vertint
               knx = kx - 1
               w2 = (sigp-sig(kx))/(sig(knx)-sig(kx))
               w1 = 1.0 - w2
-              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+              interp = real(w1,rk8) * real(f(i,j,kx),rk8) + &
+                       real(w2,rk8) * real(f(i,j,knx),rk8)
+              if ( abs(interp) < real(tiny(1.0_rk4),rk8) ) then
+                fp(i,j,n) = 0.0_rk4
+              else
+                fp(i,j,n) = real(interp,rk4)
+              end if
             end if
           end do
         end do
@@ -680,7 +687,16 @@ module mod_vertint
               knx = kx - 1
               w2 = (sig(kx)-sigp)/(sig(kx)-sig(knx))
               w1 = 1.0 - w2
-              fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
+              ! TAO: temporarily promote to rk8 to avoid possible SIGFPE underflow issues
+              interp = real(w1,rk8) * real(f(i,j,kx),rk8) + &
+                       real(w2,rk8) * real(f(i,j,knx),rk8)
+              ! TAO: check for small values before assigning; use zero instead if tiny
+              ! to avoid SIGFPE underflow
+              if ( abs(interp) < real(tiny(1.0_rk4),rk8) ) then
+                fp(i,j,n) = 0.0_rk4
+              else
+                fp(i,j,n) = real(interp,rk4)
+              end if
             end if
           end do
         end do
@@ -1071,6 +1087,8 @@ module mod_vertint
             sigp = (p(n)-tp)/bp
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
+            else if ( sigp == sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
             else if ( sigp > sig(km) ) then
               fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
                         exp(rglrog*log(sigp/sig(km)))
@@ -1142,6 +1160,8 @@ module mod_vertint
             sigp = (p(n)-tp)/bp
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
+            else if ( sigp == sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
             else if ( sigp > sig(km) ) then
               fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
                         exp(real(rglrog,rk4)*log(sigp/sig(km)))
@@ -1219,6 +1239,8 @@ module mod_vertint
             sigp = (p(n)-ptop)/(ps(i,j)-ptop)
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
+            else if ( sigp == sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
             else if ( sigp > sig(km) ) then
               fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
                         exp(rglrog*log(sigp/sig(km)))
@@ -1283,6 +1305,8 @@ module mod_vertint
             sigp = (p(n)-pt)/(ps(i,j)-pt)
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
+            else if ( sigp == sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
             else if ( sigp > sig(km) ) then
               fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
                         exp(real(rglrog,rk4)*log(sigp/sig(km)))
