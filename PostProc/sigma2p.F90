@@ -258,8 +258,6 @@ program sigma2p
     call checkalloc(istatus,__FILE__,__LINE__,'pai')
     allocate(press(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'press')
-    allocate(pai(jx,iy,kz), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'pai')
   end if
 
   ppvarid = -1
@@ -439,7 +437,7 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding long name')
     istatus = nf90_put_att(ncout, ihgvar, 'units', 'm')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
-    istatus = nf90_put_att(ncout, ihgvar, '_FillValue', smissval)
+    istatus = nf90_put_att(ncout, ihgvar, '_FillValue', smissval_r4)
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding missval')
     istatus = nf90_put_att(ncout, ihgvar, 'coordinates', 'xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding coordinates')
@@ -748,7 +746,7 @@ program sigma2p
 !$OMP END PARALLEL DO
           if ( i == tvarid ) then
             tmpvar(:,:,:) = xvar(:,:,:)
-          else if ( i == qvarid .and. ( make_rh .or. iodyn == 3 ) ) then
+          else if ( i == qvarid .and. make_rh ) then
             qvar(:,:,:) = xvar(:,:,:)
             if ( has_sph ) then
               call sph2mxr(qvar,jx,iy,kz)
