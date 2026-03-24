@@ -687,7 +687,6 @@ module mod_clm_urban
     ! diffuse beam radiation (vis=forc_sols, nir=forc_soll ) (W/m**2)
     real(rk8), pointer, contiguous :: forc_solai(:,:)
     ! incident solar radiation (W/m**2)
-    real(rk8), pointer, contiguous :: forc_solar(:)
     real(rk8), pointer, contiguous :: albd(:,:)    ! surface albedo (direct)
     real(rk8), pointer, contiguous :: albi(:,:)    ! surface albedo (diffuse)
     real(rk8), pointer, contiguous :: t_grnd(:)    ! ground temperature (K)
@@ -834,7 +833,6 @@ module mod_clm_urban
     londeg        => clm3%g%londeg
     forc_solad    => clm_a2l%forc_solad
     forc_solai    => clm_a2l%forc_solai
-    forc_solar    => clm_a2l%forc_solar
     forc_lwrad    => clm_a2l%forc_lwrad
 
     ! Assign local pointers to derived type members (landunit level)
