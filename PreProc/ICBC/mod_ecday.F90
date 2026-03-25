@@ -57,8 +57,10 @@ module mod_ecday
   real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3
   real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u
   real(rkx), pointer, contiguous, dimension(:,:,:) :: h3, q3, t3
+  real(rkx), pointer, contiguous, dimension(:,:) :: ps3
   real(rkx), pointer, contiguous, dimension(:,:,:) :: uvar, vvar
   real(rkx), pointer, contiguous, dimension(:,:,:) :: hvar, qvar, tvar
+  real(rkx), pointer, contiguous, dimension(:,:) :: psvar
 
   integer(ik4) :: year, month, day, hour
 
@@ -149,8 +151,6 @@ module mod_ecday
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Cannot close file')
 
-    write(stdout,*) 'Read static data'
-
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
     if ( idynamic == 3 ) then
       call h_interpolator_create(udot_hint,glat,glon,ulat,ulon)
@@ -159,9 +159,9 @@ module mod_ecday
       call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
-    call getmem(b2,1,ilon,1,jlat,1,klev*3,'mod_ecday:b3')
-    call getmem(d2,1,ilon,1,jlat,1,klev*2,'mod_ecday:d3')
-    call getmem(b3,1,jx,1,iy,1,klev*3,'mod_ecday:b3')
+    call getmem(b2,1,ilon,1,jlat,1,klev*3+1,'mod_ecday:b2')
+    call getmem(d2,1,ilon,1,jlat,1,klev*2,'mod_ecday:d2')
+    call getmem(b3,1,jx,1,iy,1,klev*3+1,'mod_ecday:b3')
     if ( idynamic == 3 ) then
       call getmem(d3u,1,jx,1,iy,1,klev*2,'mod_ecday:d3u')
       call getmem(d3v,1,jx,1,iy,1,klev*2,'mod_ecday:d3v')
@@ -187,17 +187,21 @@ module mod_ecday
     t3 => b3(:,:,1:klev)
     h3 => b3(:,:,klev+1:2*klev)
     q3 => b3(:,:,2*klev+1:3*klev)
+    ps3 => b3(:,:,3*klev+1)
     uvar => d2(:,:,1:klev)
     vvar => d2(:,:,klev+1:2*klev)
     tvar => b2(:,:,1:klev)
     hvar => b2(:,:,klev+1:2*klev)
     qvar => b2(:,:,2*klev+1:3*klev)
+    psvar => b2(:,:,3*klev+1)
     if ( idynamic == 3 ) then
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
       call ucrs2dot(topou,topogm,jx,iy,i_band)
       call vcrs2dot(topov,topogm,jx,iy,i_crm)
     end if
+
+    write(stdout,*) 'Read static data'
   end subroutine init_ecday
 
   subroutine get_ecday(idate)
@@ -232,15 +236,12 @@ module mod_ecday
     !
     ! New calculation of P* on rcm topography.
     !
+    ps4(:,:) = ps3(:,:) * 0.001_rkx ! Transform in cb
     if ( idynamic == 3 ) then
       call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
       call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,pst, &
-                  xlat,yeardayfrac(idate),dayspy,jx,iy,klev)
       call intz3(ts4,t3,h3,topogm,0.6_rkx,0.5_rkx,0.85_rkx,jx,iy,klev)
     else
-      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,pst,jx,iy,klev)
-      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call intv3(ts4,t3,ps4,pss,sigmar,ptop,pst,jx,iy,klev)
     end if
@@ -280,22 +281,22 @@ module mod_ecday
     type(rcm_time_and_date), intent (in) :: idate
     integer(ik4) :: inet, it, kkrec, istatus
     character(len=256), save :: pathaddname
-    character(len=5), dimension(5) :: varname
+    character(len=5), dimension(6) :: varname
     integer(ik4), dimension(4) :: icount, istart
-    integer(ik4), dimension(5), save :: inet5, ivar5
-    data varname/'ta', 'zg', 'hus', 'ua', 'va'/
-    do kkrec = 1, 5
+    integer(ik4), dimension(6), save :: inet6, ivar6
+    data varname/'ta', 'zg', 'hus', 'ua', 'va', 'ps'/
+    do kkrec = 1, 6
       if ( idate == globidate1 .or. lfdoyear(idate) ) then
         write (pathaddname,'(a,i0.4,a)') trim(inpglob)//pthsep// &
            dattyp//pthsep//trim(varname(kkrec))//pthsep// &
            trim(varname(kkrec))//'_',year,'.nc'
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error opening '//trim(pathaddname))
-        istatus = nf90_inq_varid(inet5(kkrec),varname(kkrec),ivar5(kkrec))
+        istatus = nf90_inq_varid(inet6(kkrec),varname(kkrec),ivar6(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
              'Variable '//varname(kkrec)//' error in file'//trim(pathaddname))
-        write (stdout,*) inet5(kkrec), trim(pathaddname)
+        write (stdout,*) inet6(kkrec), trim(pathaddname)
       end if
       it = dayofyear(idate)
       istart(1) = 1
@@ -306,17 +307,25 @@ module mod_ecday
       icount(3) = klev
       istart(4) = it
       icount(4) = 1
-      inet = inet5(kkrec)
+      inet = inet6(kkrec)
       if ( kkrec == 1 ) then
-        istatus = nf90_get_var(inet,ivar5(kkrec),tvar,istart,icount)
+        istatus = nf90_get_var(inet,ivar6(kkrec),tvar,istart,icount)
       else if ( kkrec == 2 ) then
-        istatus = nf90_get_var(inet,ivar5(kkrec),hvar,istart,icount)
+        istatus = nf90_get_var(inet,ivar6(kkrec),hvar,istart,icount)
       else if ( kkrec == 3 ) then
-        istatus = nf90_get_var(inet,ivar5(kkrec),qvar,istart,icount)
+        istatus = nf90_get_var(inet,ivar6(kkrec),qvar,istart,icount)
       else if ( kkrec == 3 ) then
-        istatus = nf90_get_var(inet,ivar5(kkrec),uvar,istart,icount)
+        istatus = nf90_get_var(inet,ivar6(kkrec),uvar,istart,icount)
       else if ( kkrec == 5 ) then
-        istatus = nf90_get_var(inet,ivar5(kkrec),vvar,istart,icount)
+        istatus = nf90_get_var(inet,ivar6(kkrec),vvar,istart,icount)
+      else if ( kkrec == 6 ) then
+        istart(1) = 1
+        icount(1) = ilon
+        istart(2) = 1
+        icount(2) = jlat
+        istart(3) = it
+        icount(3) = 1
+        istatus = nf90_get_var(inet,ivar6(kkrec),psvar,istart(1:3),icount(1:3))
       end if
       call checkncerr(istatus,__FILE__,__LINE__, &
                   'Variable '//varname(kkrec)// &

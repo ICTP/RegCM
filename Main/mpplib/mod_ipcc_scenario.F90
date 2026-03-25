@@ -2196,20 +2196,25 @@ module mod_ipcc_scenario
     implicit none
     integer(ik4), intent(in) :: igas, year, month
     real(rk8), intent(in) :: lat
-    integer(ik4) :: ilat
+    integer(ik4) :: ilat, isely
+    if ( lconst2050 ) then
+      isely = 2050
+    else
+      isely = year
+    end if
     if ( lcmip6 ) then
-      if ( local_ghgc%year /= year .or. local_ghgc%month /= month ) then
-        call load_scenario(local_ghgc%sname,year,month,local_ghgc)
+      if ( local_ghgc%year /= isely .or. local_ghgc%month /= month ) then
+        call load_scenario(local_ghgc%sname,isely,month,local_ghgc)
       end if
       ilat = int((lat+89.75_rkx)/0.5_rkx) + 1
       ghgval = local_ghgc%gmf(ilat,igas) * cgunit(igas)
     else
-      if ( year < 1850 ) then
+      if ( isely < 1850 ) then
         ghgval = cgas(igas+1,1850) * cgunit(igas)
-      else if ( year > 2100 ) then
+      else if ( isely > 2100 ) then
         ghgval = cgas(igas+1,2100) * cgunit(igas)
       else
-        ghgval = cgas(igas+1,year) * cgunit(igas)
+        ghgval = cgas(igas+1,isely) * cgunit(igas)
       end if
     end if
     if ( itweak == 1 ) then

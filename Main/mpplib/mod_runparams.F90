@@ -173,6 +173,7 @@ module mod_runparams
 
   character(len=8), public :: scenario
   integer(ik4), public :: ghg_year_const
+  logical, public :: lconst2050
 
   ! Moloch
   logical, parameter, public :: moloch_do_test_1 = .false.

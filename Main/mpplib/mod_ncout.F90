@@ -3472,6 +3472,10 @@ module mod_ncout
           ncattribute_integer('chemical_aerosol_scheme_activated',ichem))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_string('ipcc_scenario_code',scenario))
+        if ( lconst2050 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('ghg_fixed_at_2050',lconst2050))
+        end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('diurnal_cycle_sst_scheme',idcsst))
         call outstream_addatt(outstream(i)%ncout(j), &

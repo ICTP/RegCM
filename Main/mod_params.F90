@@ -100,14 +100,14 @@ module mod_params
       lsync, idiag, icosp, ifcordex, chechgact,                      &
       do_parallel_netcdf_in, do_parallel_netcdf_out
 
-    namelist /physicsparam/ ibltyp, iboudy, isladvec, iqmsl,         &
-      icup_lnd, icup_ocn, ipgf, iemiss, lakemod, ipptls, idiffu,  &
+    namelist /physicsparam/ ibltyp, iboudy, isladvec, iqmsl,       &
+      icup_lnd, icup_ocn, ipgf, iemiss, lakemod, ipptls, idiffu,   &
       iocnflx, iocncpl, iwavcpl, icopcpl, iocnrough, iocnzoq,      &
-      ichem,  scenario,  idcsst, iwhitecap, iseaice, iconvlwp,     &
+      ichem, scenario, idcsst, iwhitecap, iseaice, iconvlwp,       &
       icldmstrat, icldfrac, irrtm, iclimao3, iclimaaer, isolconst, &
-      icumcloud, islab_ocean, itweak, temp_tend_maxval,              &
-      wind_tend_maxval, ghg_year_const, ifixsolar, fixedsolarval,    &
-      irceideal, year_offset, radclimpath, ioasiscpl
+      icumcloud, islab_ocean, itweak, temp_tend_maxval,            &
+      wind_tend_maxval, ghg_year_const, ifixsolar, fixedsolarval,  &
+      irceideal, year_offset, radclimpath, ioasiscpl, lconst2050
 
     namelist /dynparam/ gnu1, gnu2, diffu_hgtf, ckh, adyndif, &
       upstream_mode, uoffc, stability_enhance, t_extrema,      &
@@ -307,6 +307,7 @@ module mod_params
     ichem = 0
     scenario = 'RCP4.5'
     ghg_year_const = 1950
+    lconst2050 = .false.
     idcsst = 0
     iwhitecap = 0
     iseaice = 0
@@ -1407,29 +1408,80 @@ module mod_params
     ! Force the correct scenario from dattyp in CMIP5
     !
     if ( myid == iocpu ) then
-      if ( dattyp(4:5) == '26' ) then
-        if ( scenario /= 'RCP3PD' .or. &
-             scenario /= 'RCP2.6' .or. &
-             scenario /= 'RCP26' ) then
-          write(stderr,*) 'Forcing scenario from dattyp to RCP2.6'
-          scenario = 'RCP2.6'
+      if ( scenario(1:3) == 'RCP' ) then
+        if ( dattyp(4:5) == '26' ) then
+          if ( scenario /= 'RCP3PD' .or. &
+               scenario /= 'RCP2.6' .or. &
+               scenario /= 'RCP26' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to RCP2.6'
+            scenario = 'RCP2.6'
+          end if
+        else if ( dattyp(4:5) == '45' ) then
+          if ( scenario /= 'RCP4.5' .or. scenario /= 'RCP45' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to RCP4.5'
+            scenario = 'RCP4.5'
+          end if
+        else if ( dattyp(4:5) == '60' ) then
+          if ( scenario /= 'RCP6' .or.  &
+               scenario /= 'RCP60' .or. &
+               scenario /= 'RCP6.0' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to RCP6.0'
+            scenario = 'RCP6.0'
+          end if
+        else if ( dattyp(4:5) == '85' ) then
+          if ( scenario /= 'RCP8.5' .or. scenario /= 'RCP85' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to RCP8.5'
+            scenario = 'RCP8.5'
+          end if
         end if
-      else if ( dattyp(4:5) == '45' ) then
-        if ( scenario /= 'RCP4.5' .or. scenario /= 'RCP45' ) then
-          write(stderr,*) 'Forcing scenario from dattyp to RCP4.5'
-          scenario = 'RCP4.5'
+      else if ( dattyp == 'CMIP6' ) then
+        if ( cmip6_experiment == 'ssp119' ) then
+          if ( scenario /= 'SSP119' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to SSP119'
+            scenario = 'SSP119'
+          end if
         end if
-      else if ( dattyp(4:5) == '60' ) then
-        if ( scenario /= 'RCP6' .or.  &
-             scenario /= 'RCP60' .or. &
-             scenario /= 'RCP6.0' ) then
-          write(stderr,*) 'Forcing scenario from dattyp to RCP6.0'
-          scenario = 'RCP6.0'
+        if ( cmip6_experiment == 'ssp126' ) then
+          if ( scenario /= 'SSP126' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to SSP126'
+            scenario = 'SSP126'
+          end if
         end if
-      else if ( dattyp(4:5) == '85' ) then
-        if ( scenario /= 'RCP8.5' .or. scenario /= 'RCP85' ) then
-          write(stderr,*) 'Forcing scenario from dattyp to RCP8.5'
-          scenario = 'RCP8.5'
+        if ( cmip6_experiment == 'ssp245' ) then
+          if ( scenario /= 'SSP245' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to SSP245'
+            scenario = 'SSP245'
+          end if
+        end if
+        if ( cmip6_experiment == 'ssp370' ) then
+          if ( scenario /= 'SSP370' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to SSP370'
+            scenario = 'SSP370'
+          end if
+        end if
+        if ( cmip6_experiment == 'ssp460' ) then
+          if ( scenario /= 'SSP460' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to SSP460'
+            scenario = 'SSP460'
+          end if
+        end if
+        if ( cmip6_experiment == 'ssp434' ) then
+          if ( scenario /= 'SSP434' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to SSP434'
+            scenario = 'SSP434'
+          end if
+        end if
+        if ( cmip6_experiment == 'ssp585' ) then
+          if ( scenario /= 'SSP585' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to SSP585'
+            scenario = 'SSP585'
+          end if
+        end if
+        if ( cmip6_experiment == 'ssp534' ) then
+          if ( scenario /= 'SSP534' ) then
+            write(stderr,*) 'Forcing scenario from dattyp to SSP534'
+            scenario = 'SSP534'
+          end if
         end if
       end if
     end if
@@ -1480,6 +1532,7 @@ module mod_params
 
     call bcast(scenario,8)
     call bcast(ghg_year_const)
+    call bcast(lconst2050)
     call bcast(idcsst)
     call bcast(iwhitecap)
     call bcast(iseaice)
@@ -2094,6 +2147,9 @@ module mod_params
       write(stdout,*) 'Setting IPCC scenario to ', scenario
       if ( scenario == 'CONST' ) then
         write(stdout,*) 'Selected value at year ', ghg_year_const
+      end if
+      if ( lconst2050 ) then
+        write(stdout,*) 'Selected value at year 2050'
       end if
     end if
 
