@@ -18,7 +18,7 @@ module mod_clm_canopyfluxes
                     isecspday, degpsec, tfrz, c14ratio
   use mod_clm_qsat, only : QSat
   use mod_clm_initimeconst, only : daylength
-  use mod_clm_frictionvelocity, only : FrictionVelocity, MoninObukIni
+  use mod_clm_frictionvelocity, only : FrictionVelocity_async, MoninObukIni
   use mod_clm_pftvarcon, only : nbrdlf_dcd_tmp_shrub, irrigated
   use mod_clm_pftvarcon, only : nsoybean, nsoybeanirrig, npcropmin, &
     nbrdlf_evr_trp_tree, nbrdlf_dcd_trp_tree
@@ -1072,16 +1072,26 @@ module mod_clm_canopyfluxes
      ! Determine friction velocity, and potential temperature and humidity
      ! profiles of the surface boundary layer
 
-     call FrictionVelocity (lbp, ubp, fn, filterp, &
+     call FrictionVelocity_async (lbp, ubp, fn, filterp, &
                             displa_loc, z0mv_loc, z0hv_loc, z0qv_loc, &
                             obu, itlef+1, ur, um, ustar, &
                             temp1, temp2, temp12m, temp22m, fm)
 
+#ifdef OPENACC
+     !$acc parallel loop gang vector async
+     do p = lbp, ubp
+#else
      do concurrent ( p = lbp:ubp )
+#endif
        err(p) = 0.0_rk8
      end do
 
+#ifdef OPENACC
+     !$acc parallel loop gang vector async
+     do f = 1, fn
+#else
      do concurrent ( f = 1:fn )
+#endif
        p = filterp(f)
        c = pcolumn(p)
        g = pgridcell(p)
@@ -1169,7 +1179,12 @@ module mod_clm_canopyfluxes
        call Fractionation(lbp, ubp, fn, filterp, phase='sha')
      end if
 
+#ifdef OPENACC
+     !$acc parallel loop gang vector async
+     do f = 1, fn
+#else
      do concurrent ( f = 1:fn )
+#endif
        p = filterp(f)
        c = pcolumn(p)
        g = pgridcell(p)
@@ -1369,7 +1384,12 @@ module mod_clm_canopyfluxes
 
      itlef = itlef+1
      if (itlef > itmin) then
+#ifdef OPENACC
+       !$acc parallel loop gang vector async
+       do f = 1, fn
+#else
        do concurrent ( f = 1:fn )
+#endif
          p = filterp(f)
          dele(p) = abs(efe(p)-efeb(p))
          efeb(p) = efe(p)
@@ -1377,10 +1397,10 @@ module mod_clm_canopyfluxes
        end do
        fnold = fn
        fn = 0
-       !$acc kernels
+       !$acc kernels async
        filterp_temp(1:fnold) = filterp(1:fnold)
        !$acc end kernels
-       !$acc parallel loop copy(fn)
+       !$acc parallel loop gang vector copy(fn) async
        do f = 1, fnold
          p = filterp_temp(f)
          if (.not. (det(p) < dtmin .and. dele(p) < dlemin)) then
@@ -1391,6 +1411,7 @@ module mod_clm_canopyfluxes
            filterp(myfn) = p
          end if
        end do
+       !$acc wait
      end if
    end do ITERATION     ! End stability iteration
 
@@ -1598,7 +1619,12 @@ module mod_clm_canopyfluxes
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do f = 1, fn
+#else
       do concurrent ( f = 1:fn )
+#endif
         p = filterp(f)
         g= pgridcell(p)
         co2(p) = forc_pco2(g)
@@ -1965,7 +1991,12 @@ module mod_clm_canopyfluxes
     theta_psii = 0.7_rk8
     theta_ip = 0.95_rk8
 
+#ifdef OPENACC
+    !$acc parallel loop gang vector async
+    do f = 1, fn
+#else
     do concurrent ( f = 1:fn )
+#endif
       p = filterp(f)
       g = pgridcell(p)
 
@@ -2051,7 +2082,12 @@ module mod_clm_canopyfluxes
     ! Loop through each canopy layer to calculate nitrogen profile using
     ! cumulative lai at the midpoint of the layer
 
+#ifdef OPENACC
+    !$acc parallel loop gang vector async
+    do f = 1, fn
+#else
     do concurrent ( f = 1:fn )
+#endif
       p = filterp(f)
 
       ! Leaf nitrogen concentration at the top of the canopy
@@ -2225,11 +2261,11 @@ module mod_clm_canopyfluxes
     !====================================================
 
     rsmax0 = 2.e4_rk8
-#ifdef STDPAR_FIXED
-    do concurrent ( f = 1:fn )
-#else
-    !$acc parallel loop
+#ifdef OPENACC
+    !$acc parallel loop gang vector async
     do f = 1, fn
+#else
+    do concurrent ( f = 1:fn )
 #endif
       p = filterp(f)
       g = pgridcell(p)
@@ -2331,7 +2367,6 @@ module mod_clm_canopyfluxes
           if (gs_mol(p,iv) < 0._rk8) then
             write (stderr,*) 'Negative stomatal conductance:'
             write (stderr,*) gs_mol(p,iv)
-            call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
 #endif
           ! Compare with Ball-Berry model: gs_mol = m * an * hs/cs p + b
@@ -2360,7 +2395,12 @@ module mod_clm_canopyfluxes
     ! unit leaf area), which are used in other parts of the model. Here, laican
     ! sums to either laisun or laisha.
 
+#ifdef OPENACC
+    !$acc parallel loop gang vector async
+    do f = 1, fn
+#else
     do concurrent ( f = 1:fn )
+#endif
       p = filterp(f)
       psncan = 0._rk8
       psncan_wc = 0._rk8
