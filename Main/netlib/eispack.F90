@@ -115,7 +115,7 @@ module eispack
 
 contains
 
-function pythag ( a, b )
+  function pythag(a, b)
 
 !*****************************************************************************80
 !
@@ -172,46 +172,46 @@ function pythag ( a, b )
 !
 !    Output, real ( kind = rkx ) PYTHAG, the length of the hypotenuse.
 !
-  implicit none
+    implicit none
 
-  real    ( kind = rkx ) :: a
-  real    ( kind = rkx ) :: b
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: pythag
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: t
-  real    ( kind = rkx ) :: u
+    real (kind=rkx) :: a
+    real (kind=rkx) :: b
+    real (kind=rkx) :: p
+    real (kind=rkx) :: pythag
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: t
+    real (kind=rkx) :: u
 
-  p = max ( abs ( a ), abs ( b ) )
+    p = max(abs(a), abs(b))
 
-  if ( p /= 0.0_rkx ) then
+    if (p/=0.0_rkx) then
 
-    r = ( min ( abs ( a ), abs ( b ) ) / p )**2
+      r = (min(abs(a),abs(b))/p)**2
 
-    do
+      do
 
-      t = 4.0_rkx + r
+        t = 4.0_rkx + r
 
-      if ( t == 4.0_rkx ) then
-        exit
-      end if
+        if (t==4.0_rkx) then
+          exit
+        end if
 
-      s = r / t
-      u = 1.0_rkx + 2.0_rkx * s
-      p = u * p
-      r = ( s / u )**2 * r
+        s = r/t
+        u = 1.0_rkx + 2.0_rkx*s
+        p = u*p
+        r = (s/u)**2*r
 
-    end do
+      end do
 
-  end if
+    end if
 
-  pythag = p
+    pythag = p
 
-  return
-end function pythag
+    return
+  end function pythag
 
-subroutine bakvec ( n, t, e, m, z, ierr )
+  subroutine bakvec(n, t, e, m, z, ierr)
 
 !*****************************************************************************80
 !
@@ -281,49 +281,49 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !    to the original matrix, and the eigenvectors
 !    cannot be found by this program.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: e(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: j
-  real    ( kind = rkx ) :: t(n,3)
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: e(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: j
+    real (kind=rkx) :: t(n, 3)
+    real (kind=rkx) :: z(n, m)
 
-  ierr = 0
+    ierr = 0
 
-  if ( m == 0 ) then
-    return
-  end if
-
-  e(1) = 1.0_rkx
-  if ( n == 1 ) then
-    return
-  end if
-
-  do i = 2, n
-    if ( e(i) == 0.0_rkx ) then
-      if ( t(i,1) /= 0.0_rkx .or. t(i-1,3) /= 0.0_rkx ) then
-        ierr = 2 * n + i
-        return
-      end if
-      e(i) = 1.0_rkx
-    else
-      e(i) = e(i-1) * e(i) / t(i-1,3)
+    if (m==0) then
+      return
     end if
-  end do
 
-  do j = 1, m
-    z(2:n,j) = z(2:n,j) * e(2:n)
-  end do
+    e(1) = 1.0_rkx
+    if (n==1) then
+      return
+    end if
 
-  return
-end subroutine bakvec
+    do i = 2, n
+      if (e(i)==0.0_rkx) then
+        if (t(i,1)/=0.0_rkx .or. t(i-1,3)/=0.0_rkx) then
+          ierr = 2*n + i
+          return
+        end if
+        e(i) = 1.0_rkx
+      else
+        e(i) = e(i-1)*e(i)/t(i-1, 3)
+      end if
+    end do
 
-subroutine balanc ( n, a, low, igh, xscale )
+    do j = 1, m
+      z(2:n, j) = z(2:n, j)*e(2:n)
+    end do
+
+    return
+  end subroutine bakvec
+
+  subroutine balanc(n, a, low, igh, xscale)
 
 !*****************************************************************************80
 !
@@ -394,188 +394,188 @@ subroutine balanc ( n, a, low, igh, xscale )
 !    Output, real ( kind = rkx ) SCALE(N), contains information determining the
 !    permutations and scaling factors used.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: b2
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: iexc
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  logical              :: noconv
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: rdx
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: xscale(n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: b2
+    real (kind=rkx) :: c
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: iexc
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    logical :: noconv
+    real (kind=rkx) :: r
+    real (kind=rkx) :: rdx
+    real (kind=rkx) :: s
+    real (kind=rkx) :: xscale(n)
 
-  rdx = 16.0_rkx
+    rdx = 16.0_rkx
 
-  iexc = 0
-  j = 0
-  m = 0
+    iexc = 0
+    j = 0
+    m = 0
 
-  b2 = rdx**2
-  k = 1
-  l = n
-  go to 100
-
-20 continue
-
-  xscale(m) = real(j,rkx)
-
-  if ( j /= m ) then
-
-    do i = 1, l
-      call r8_swap ( a(i,j), a(i,m) )
-    end do
-
-    do i = k, n
-      call r8_swap ( a(j,i), a(m,i) )
-    end do
-
-  end if
-
-  if ( iexc == 2 ) then
-    go to 130
-  end if
-!
-!  Search for rows isolating an eigenvalue and push them down.
-!
-  if ( l == 1 ) then
-    low = k
-    igh = l
-    return
-  end if
-
-  l = l - 1
+    b2 = rdx**2
+    k = 1
+    l = n
+    go to 110
 
 100 continue
 
-  do j = l, 1, -1
+    xscale(m) = real(j, rkx)
 
-     do i = 1, l
-       if ( i /= j ) then
-         if ( a(j,i) /= 0.0_rkx ) then
-           go to 120
-         end if
-       end if
-     end do
+    if (j/=m) then
 
-     m = l
-     iexc = 1
-     go to 20
+      do i = 1, l
+        call r8_swap(a(i,j), a(i,m))
+      end do
 
-120  continue
+      do i = k, n
+        call r8_swap(a(j,i), a(m,i))
+      end do
 
-  end do
+    end if
 
-  go to 140
+    if (iexc==2) then
+      go to 130
+    end if
+!
+!  Search for rows isolating an eigenvalue and push them down.
+!
+    if (l==1) then
+      low = k
+      igh = l
+      return
+    end if
+
+    l = l - 1
+
+110 continue
+
+    do j = l, 1, -1
+
+      do i = 1, l
+        if (i/=j) then
+          if (a(j,i)/=0.0_rkx) then
+            go to 120
+          end if
+        end if
+      end do
+
+      m = l
+      iexc = 1
+      go to 100
+
+120   continue
+
+    end do
+
+    go to 140
 !
 !  Search for columns isolating an eigenvalue and push them left.
 !
 130 continue
 
-  k = k + 1
+    k = k + 1
 
 140 continue
 
-  do j = k, l
+    do j = k, l
 
-    do i = k, l
-      if ( i /= j ) then
-        if ( a(i,j) /= 0.0_rkx ) then
-          go to 170
+      do i = k, l
+        if (i/=j) then
+          if (a(i,j)/=0.0_rkx) then
+            go to 150
+          end if
         end if
-      end if
+      end do
+
+      m = k
+      iexc = 2
+      go to 100
+
+150   continue
+
     end do
-
-    m = k
-    iexc = 2
-    go to 20
-
-170 continue
-
-  end do
 !
 !  Balance the submatrix in rows K to L.
 !
-  xscale(k:l) = 1.0_rkx
+    xscale(k:l) = 1.0_rkx
 !
 !  Iterative loop for norm reduction.
 !
-  noconv = .true.
+    noconv = .true.
 
-  do while ( noconv )
+    do while (noconv)
 
-    noconv = .false.
+      noconv = .false.
 
-    do i = k, l
+      do i = k, l
 
-      c = 0.0_rkx
-      r = 0.0_rkx
+        c = 0.0_rkx
+        r = 0.0_rkx
 
-      do j = k, l
-        if ( j /= i ) then
-          c = c + abs ( a(j,i) )
-          r = r + abs ( a(i,j) )
-        end if
-      end do
+        do j = k, l
+          if (j/=i) then
+            c = c + abs(a(j,i))
+            r = r + abs(a(i,j))
+          end if
+        end do
 !
 !  Guard against zero C or R due to underflow.
 !
-      if ( c /= 0.0_rkx .and. r /= 0.0_rkx ) then
+        if (c/=0.0_rkx .and. r/=0.0_rkx) then
 
-        g = r / rdx
-        f = 1.0_rkx
-        s = c + r
+          g = r/rdx
+          f = 1.0_rkx
+          s = c + r
 
-        do while ( c < g )
-          f = f * rdx
-          c = c * b2
-        end do
+          do while (c<g)
+            f = f*rdx
+            c = c*b2
+          end do
 
-        g = r * rdx
+          g = r*rdx
 
-        do while ( g <= c )
-          f = f / rdx
-          c = c / b2
-        end do
+          do while (g<=c)
+            f = f/rdx
+            c = c/b2
+          end do
 !
 !  Balance.
 !
-        if ( ( c + r ) / f < 0.95_rkx * s ) then
+          if ((c+r)/f<0.95_rkx*s) then
 
-          g = 1.0_rkx / f
-          xscale(i) = xscale(i) * f
-          noconv = .true.
+            g = 1.0_rkx/f
+            xscale(i) = xscale(i)*f
+            noconv = .true.
 
-          a(i,k:n) = a(i,k:n) * g
-          a(1:l,i) = a(1:l,i) * f
+            a(i, k:n) = a(i, k:n)*g
+            a(1:l, i) = a(1:l, i)*f
+
+          end if
 
         end if
 
-      end if
+      end do
 
     end do
 
-  end do
+    low = k
+    igh = l
 
-  low = k
-  igh = l
+    return
+  end subroutine balanc
 
-  return
-end subroutine balanc
-
-subroutine balbak ( n, low, igh, xscale, m, z )
+  subroutine balbak(n, low, igh, xscale, m, z)
 
 !*****************************************************************************80
 !
@@ -637,58 +637,58 @@ subroutine balbak ( n, low, igh, xscale, m, z )
 !    Input/output, real ( kind = rkx ) Z(N,M), contains the real and imaginary parts
 !    of the eigenvectors, which, on return, have been back-transformed.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: low
-  real    ( kind = rkx ) :: xscale(n)
-  real    ( kind = rkx ) :: z(n,m)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: low
+    real (kind=rkx) :: xscale(n)
+    real (kind=rkx) :: z(n, m)
 
-  if ( m <= 0 ) then
-    return
-  end if
+    if (m<=0) then
+      return
+    end if
 
-  if ( igh /= low ) then
-    do i = low, igh
-      z(i,1:m) = z(i,1:m) * xscale(i)
-    end do
-  end if
+    if (igh/=low) then
+      do i = low, igh
+        z(i, 1:m) = z(i, 1:m)*xscale(i)
+      end do
+    end if
 
-   do ii = 1, n
+    do ii = 1, n
 
-     i = ii
+      i = ii
 
-     if ( i < low .or. igh < i ) then
+      if (i<low .or. igh<i) then
 
-       if ( i < low ) then
-         i = low - ii
-       end if
+        if (i<low) then
+          i = low - ii
+        end if
 
-       k = int ( xscale(i) )
+        k = int(xscale(i))
 
-       if ( k /= i ) then
+        if (k/=i) then
 
-         do j = 1, m
-           call r8_swap ( z(i,j), z(k,j) )
-         end do
+          do j = 1, m
+            call r8_swap(z(i,j), z(k,j))
+          end do
 
         end if
 
       end if
 
-  end do
+    end do
 
-  return
-end subroutine balbak
+    return
+  end subroutine balbak
 
-subroutine bandr ( n, mb, a, d, e, e2, matz, z )
+  subroutine bandr(n, mb, a, d, e, e2, matz, z)
 
 !*****************************************************************************80
 !
@@ -764,286 +764,286 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !    the reduction if MATZ has been set to TRUE.  Otherwise, Z is not
 !    referenced.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: mb
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: mb
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,mb)
-  real    ( kind = rkx ) :: b1
-  real    ( kind = rkx ) :: b2
-  real    ( kind = rkx ) :: c2
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: dmin
-  real    ( kind = rkx ) :: dminrt
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: f1
-  real    ( kind = rkx ) :: f2
-  real    ( kind = rkx ) :: g
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: i1
-  integer ( kind = ik4 ) :: i2
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: j1
-  integer ( kind = ik4 ) :: j2
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: kr
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: m1
-  logical              :: matz
-  integer ( kind = ik4 ) :: maxl
-  integer ( kind = ik4 ) :: maxr
-  integer ( kind = ik4 ) :: mr
-  integer ( kind = ik4 ) :: r
-  integer ( kind = ik4 ) :: r1
-  real    ( kind = rkx ) :: s2
-  real    ( kind = rkx ) :: u
-  integer ( kind = ik4 ) :: ugl
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, mb)
+    real (kind=rkx) :: b1
+    real (kind=rkx) :: b2
+    real (kind=rkx) :: c2
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: dmin
+    real (kind=rkx) :: dminrt
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: f1
+    real (kind=rkx) :: f2
+    real (kind=rkx) :: g
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: i1
+    integer (kind=ik4) :: i2
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: j1
+    integer (kind=ik4) :: j2
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: kr
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: m1
+    logical :: matz
+    integer (kind=ik4) :: maxl
+    integer (kind=ik4) :: maxr
+    integer (kind=ik4) :: mr
+    integer (kind=ik4) :: r
+    integer (kind=ik4) :: r1
+    real (kind=rkx) :: s2
+    real (kind=rkx) :: u
+    integer (kind=ik4) :: ugl
+    real (kind=rkx) :: z(n, n)
 
-  dmin = epsilon ( dmin )
-  dminrt = sqrt ( dmin )
+    dmin = epsilon(dmin)
+    dminrt = sqrt(dmin)
 !
 !  Initialize the diagonal scaling matrix.
 !
-  d(1:n) = 1.0_rkx
+    d(1:n) = 1.0_rkx
 
-  if ( matz ) then
+    if (matz) then
 
-    a(1:n,1:n) = 0.0_rkx
+      a(1:n, 1:n) = 0.0_rkx
 
-    do i = 1, n
-      z(i,i) = 1.0_rkx
-    end do
-
-  end if
-
-  m1 = mb - 1
-
-  if ( m1 < 1 ) then
-    d(1:n) = a(1:n,mb)
-    e(1:n) = 0.0_rkx
-    e2(1:n) = 0.0_rkx
-    return
-  end if
-
-  if ( m1 == 1 ) then
-    go to 800
-  end if
-
-  do k = 1, n - 2
-
-    maxr = min ( m1, n-k )
-
-    do r1 = 2, maxr
-
-      r = maxr + 2 - r1
-      kr = k + r
-      mr = mb - r
-      g = a(kr,mr)
-      a(kr-1,1) = a(kr-1,mr+1)
-      ugl = k
-
-      do j = kr, n, m1
-
-        j1 = j - 1
-        j2 = j1 - 1
-
-        if ( g == 0.0_rkx ) then
-          go to 600
-        end if
-
-        b1 = a(j1,1) / g
-        b2 = b1 * d(j1) / d(j)
-        s2 = 1.0_rkx / ( 1.0_rkx + b1 * b2 )
-
-        if ( s2 < 0.5_rkx ) then
-
-          b1 = g / a(j1,1)
-          b2 = b1 * d(j) / d(j1)
-          c2 = 1.0_rkx - s2
-          d(j1) = c2 * d(j1)
-          d(j) = c2 * d(j)
-          f1 = 2.0_rkx * a(j,m1)
-          f2 = b1 * a(j1,mb)
-          a(j,m1) = -b2 * ( b1 * a(j,m1) - a(j,mb) ) - f2 + a(j,m1)
-          a(j1,mb) = b2 * ( b2 * a(j,mb) + f1 ) + a(j1,mb)
-          a(j,mb) = b1 * ( f2 - f1 ) + a(j,mb)
-
-          do l = ugl, j2
-            i2 = mb - j + l
-            u = a(j1,i2+1) + b2 * a(j,i2)
-            a(j,i2) = -b1 * a(j1,i2+1) + a(j,i2)
-            a(j1,i2+1) = u
-          end do
-
-          ugl = j
-          a(j1,1) = a(j1,1) + b2 * g
-
-          if ( j /= n ) then
-
-            maxl = min ( m1, n-j1 )
-
-            do l = 2, maxl
-              i1 = j1 + l
-              i2 = mb - l
-              u = a(i1,i2) + b2 * a(i1,i2+1)
-              a(i1,i2+1) = -b1 * a(i1,i2) + a(i1,i2+1)
-              a(i1,i2) = u
-            end do
-
-            i1 = j + m1
-
-            if ( i1 <= n ) then
-              g = b2 * a(i1,1)
-            end if
-
-          end if
-
-          if ( matz ) then
-
-            do l = 1, n
-              u = z(l,j1) + b2 * z(l,j)
-              z(l,j) = -b1 * z(l,j1) + z(l,j)
-              z(l,j1) = u
-            end do
-
-          end if
-
-        else
-
-          u = d(j1)
-          d(j1) = s2 * d(j)
-          d(j) = s2 * u
-          f1 = 2.0_rkx * a(j,m1)
-          f2 = b1 * a(j,mb)
-          u = b1 * ( f2 - f1 ) + a(j1,mb)
-          a(j,m1) = b2 * ( b1 * a(j,m1) - a(j1,mb) ) + f2 - a(j,m1)
-          a(j1,mb) = b2 * ( b2 * a(j1,mb) + f1 ) + a(j,mb)
-          a(j,mb) = u
-
-          do l = ugl, j2
-            i2 = mb - j + l
-            u = b2 * a(j1,i2+1) + a(j,i2)
-            a(j,i2) = -a(j1,i2+1) + b1 * a(j,i2)
-            a(j1,i2+1) = u
-          end do
-
-          ugl = j
-          a(j1,1) = b2 * a(j1,1) + g
-
-          if ( j /= n ) then
-
-            maxl = min ( m1, n-j1 )
-
-            do l = 2, maxl
-              i1 = j1 + l
-              i2 = mb - l
-              u = b2 * a(i1,i2) + a(i1,i2+1)
-              a(i1,i2+1) = -a(i1,i2) + b1 * a(i1,i2+1)
-              a(i1,i2) = u
-            end do
-
-            i1 = j + m1
-
-            if ( i1 <= n ) then
-              g = a(i1,1)
-              a(i1,1) = b1 * a(i1,1)
-            end if
-
-          end if
-
-          if ( matz ) then
-
-            do l = 1, n
-              u = b2 * z(l,j1) + z(l,j)
-              z(l,j) = -z(l,j1) + b1 * z(l,j)
-              z(l,j1) = u
-            end do
-
-          end if
-
-        end if
-
-      end do
-
-600   continue
-
-    end do
-!
-!  Rescale to avoid underflow or overflow.
-!
-    if ( mod ( k, 64 ) == 0 ) then
-
-      do j = k, n
-
-        if ( d(j) < dmin ) then
-
-          maxl = max ( 1, mb+1-j )
-
-          a(j,maxl:m1) = dminrt * a(j,maxl:m1)
-
-          if ( j /= n ) then
-
-            maxl = min ( m1, n-j )
-
-            do l = 1, maxl
-              i1 = j + l
-              i2 = mb - l
-              a(i1,i2) = dminrt * a(i1,i2)
-            end do
-
-          end if
-
-          if ( matz ) then
-            z(1:n,j) = dminrt * z(1:n,j)
-          end if
-
-          a(j,mb) = dmin * a(j,mb)
-          d(j) = d(j) / dmin
-
-        end if
-
+      do i = 1, n
+        z(i, i) = 1.0_rkx
       end do
 
     end if
 
-  end do
+    m1 = mb - 1
+
+    if (m1<1) then
+      d(1:n) = a(1:n, mb)
+      e(1:n) = 0.0_rkx
+      e2(1:n) = 0.0_rkx
+      return
+    end if
+
+    if (m1==1) then
+      go to 110
+    end if
+
+    do k = 1, n - 2
+
+      maxr = min(m1, n-k)
+
+      do r1 = 2, maxr
+
+        r = maxr + 2 - r1
+        kr = k + r
+        mr = mb - r
+        g = a(kr, mr)
+        a(kr-1, 1) = a(kr-1, mr+1)
+        ugl = k
+
+        do j = kr, n, m1
+
+          j1 = j - 1
+          j2 = j1 - 1
+
+          if (g==0.0_rkx) then
+            go to 100
+          end if
+
+          b1 = a(j1, 1)/g
+          b2 = b1*d(j1)/d(j)
+          s2 = 1.0_rkx/(1.0_rkx+b1*b2)
+
+          if (s2<0.5_rkx) then
+
+            b1 = g/a(j1, 1)
+            b2 = b1*d(j)/d(j1)
+            c2 = 1.0_rkx - s2
+            d(j1) = c2*d(j1)
+            d(j) = c2*d(j)
+            f1 = 2.0_rkx*a(j, m1)
+            f2 = b1*a(j1, mb)
+            a(j, m1) = -b2*(b1*a(j,m1)-a(j,mb)) - f2 + a(j, m1)
+            a(j1, mb) = b2*(b2*a(j,mb)+f1) + a(j1, mb)
+            a(j, mb) = b1*(f2-f1) + a(j, mb)
+
+            do l = ugl, j2
+              i2 = mb - j + l
+              u = a(j1, i2+1) + b2*a(j, i2)
+              a(j, i2) = -b1*a(j1, i2+1) + a(j, i2)
+              a(j1, i2+1) = u
+            end do
+
+            ugl = j
+            a(j1, 1) = a(j1, 1) + b2*g
+
+            if (j/=n) then
+
+              maxl = min(m1, n-j1)
+
+              do l = 2, maxl
+                i1 = j1 + l
+                i2 = mb - l
+                u = a(i1, i2) + b2*a(i1, i2+1)
+                a(i1, i2+1) = -b1*a(i1, i2) + a(i1, i2+1)
+                a(i1, i2) = u
+              end do
+
+              i1 = j + m1
+
+              if (i1<=n) then
+                g = b2*a(i1, 1)
+              end if
+
+            end if
+
+            if (matz) then
+
+              do l = 1, n
+                u = z(l, j1) + b2*z(l, j)
+                z(l, j) = -b1*z(l, j1) + z(l, j)
+                z(l, j1) = u
+              end do
+
+            end if
+
+          else
+
+            u = d(j1)
+            d(j1) = s2*d(j)
+            d(j) = s2*u
+            f1 = 2.0_rkx*a(j, m1)
+            f2 = b1*a(j, mb)
+            u = b1*(f2-f1) + a(j1, mb)
+            a(j, m1) = b2*(b1*a(j,m1)-a(j1,mb)) + f2 - a(j, m1)
+            a(j1, mb) = b2*(b2*a(j1,mb)+f1) + a(j, mb)
+            a(j, mb) = u
+
+            do l = ugl, j2
+              i2 = mb - j + l
+              u = b2*a(j1, i2+1) + a(j, i2)
+              a(j, i2) = -a(j1, i2+1) + b1*a(j, i2)
+              a(j1, i2+1) = u
+            end do
+
+            ugl = j
+            a(j1, 1) = b2*a(j1, 1) + g
+
+            if (j/=n) then
+
+              maxl = min(m1, n-j1)
+
+              do l = 2, maxl
+                i1 = j1 + l
+                i2 = mb - l
+                u = b2*a(i1, i2) + a(i1, i2+1)
+                a(i1, i2+1) = -a(i1, i2) + b1*a(i1, i2+1)
+                a(i1, i2) = u
+              end do
+
+              i1 = j + m1
+
+              if (i1<=n) then
+                g = a(i1, 1)
+                a(i1, 1) = b1*a(i1, 1)
+              end if
+
+            end if
+
+            if (matz) then
+
+              do l = 1, n
+                u = b2*z(l, j1) + z(l, j)
+                z(l, j) = -z(l, j1) + b1*z(l, j)
+                z(l, j1) = u
+              end do
+
+            end if
+
+          end if
+
+        end do
+
+100     continue
+
+      end do
+!
+!  Rescale to avoid underflow or overflow.
+!
+      if (mod(k,64)==0) then
+
+        do j = k, n
+
+          if (d(j)<dmin) then
+
+            maxl = max(1, mb+1-j)
+
+            a(j, maxl:m1) = dminrt*a(j, maxl:m1)
+
+            if (j/=n) then
+
+              maxl = min(m1, n-j)
+
+              do l = 1, maxl
+                i1 = j + l
+                i2 = mb - l
+                a(i1, i2) = dminrt*a(i1, i2)
+              end do
+
+            end if
+
+            if (matz) then
+              z(1:n, j) = dminrt*z(1:n, j)
+            end if
+
+            a(j, mb) = dmin*a(j, mb)
+            d(j) = d(j)/dmin
+
+          end if
+
+        end do
+
+      end if
+
+    end do
 !
 !   Form square root of scaling matrix.
 !
-800 continue
+110 continue
 
-  e(2:n) = sqrt ( d(2:n) )
+    e(2:n) = sqrt(d(2:n))
 
-  if ( matz ) then
+    if (matz) then
 
-    do k = 2, n
-      z(1:n,k) = z(1:n,k) * e(k)
+      do k = 2, n
+        z(1:n, k) = z(1:n, k)*e(k)
+      end do
+
+    end if
+
+    u = 1.0_rkx
+
+    do j = 2, n
+      a(j, m1) = u*e(j)*a(j, m1)
+      u = e(j)
+      e2(j) = a(j, m1)**2
+      a(j, mb) = d(j)*a(j, mb)
+      d(j) = a(j, mb)
+      e(j) = a(j, m1)
     end do
 
-  end if
+    d(1) = a(1, mb)
+    e(1) = 0.0_rkx
+    e2(1) = 0.0_rkx
 
-  u = 1.0_rkx
+    return
+  end subroutine bandr
 
-  do j = 2, n
-    a(j,m1) = u * e(j) * a(j,m1)
-    u = e(j)
-    e2(j) = a(j,m1)**2
-    a(j,mb) = d(j) * a(j,mb)
-    d(j) = a(j,mb)
-    e(j) = a(j,m1)
-  end do
-
-  d(1) = a(1,mb)
-  e(1) = 0.0_rkx
-  e2(1) = 0.0_rkx
-
-  return
-end subroutine bandr
-
-subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
+  subroutine bandv(n, mbw, a, e21, m, w, z, ierr)
 
 !*****************************************************************************80
 !
@@ -1143,79 +1143,79 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !    -R, if the eigenvector corresponding to the R-th eigenvalue fails to
 !    converge, or if the R-th system of linear equations is nearly singular.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: mbw
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: mbw
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,mbw)
-  real    ( kind = rkx ) :: e21
-  real    ( kind = rkx ) :: eps2
-  real    ( kind = rkx ) :: eps3
-  real    ( kind = rkx ) :: eps4
-  integer ( kind = ik4 ) :: group
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: ij
-  integer ( kind = ik4 ) :: ij1
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: kj
-  integer ( kind = ik4 ) :: kj1
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: m1
-  integer ( kind = ik4 ) :: m21
-  integer ( kind = ik4 ) :: maxj
-  integer ( kind = ik4 ) :: maxk
-  integer ( kind = ik4 ) :: mb
-  real    ( kind = rkx ) :: norm
-  real    ( kind = rkx ) :: order
-  integer ( kind = ik4 ) :: r
-  real    ( kind = rkx ) :: rv(n*(2*mbw-1))
-  real    ( kind = rkx ) :: rv6(n)
-  real    ( kind = rkx ) :: u
-  real    ( kind = rkx ) :: uk
-  real    ( kind = rkx ) :: v
-  real    ( kind = rkx ) :: w(m)
-  real    ( kind = rkx ) :: x0
-  real    ( kind = rkx ) :: x1
-  real    ( kind = rkx ) :: xu
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: a(n, mbw)
+    real (kind=rkx) :: e21
+    real (kind=rkx) :: eps2
+    real (kind=rkx) :: eps3
+    real (kind=rkx) :: eps4
+    integer (kind=ik4) :: group
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: ij
+    integer (kind=ik4) :: ij1
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: kj
+    integer (kind=ik4) :: kj1
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: m1
+    integer (kind=ik4) :: m21
+    integer (kind=ik4) :: maxj
+    integer (kind=ik4) :: maxk
+    integer (kind=ik4) :: mb
+    real (kind=rkx) :: norm
+    real (kind=rkx) :: order
+    integer (kind=ik4) :: r
+    real (kind=rkx) :: rv(n*(2*mbw-1))
+    real (kind=rkx) :: rv6(n)
+    real (kind=rkx) :: u
+    real (kind=rkx) :: uk
+    real (kind=rkx) :: v
+    real (kind=rkx) :: w(m)
+    real (kind=rkx) :: x0
+    real (kind=rkx) :: x1
+    real (kind=rkx) :: xu
+    real (kind=rkx) :: z(n, m)
 
-  ierr = 0
+    ierr = 0
 
-  if ( m == 0 ) then
-    return
-  end if
+    if (m==0) then
+      return
+    end if
 
-  x0 = 0.0_rkx
+    x0 = 0.0_rkx
 
-  if ( e21 < 0.0_rkx ) then
-    mb = ( mbw + 1 ) / 2
-  else
-    mb = mbw
-  end if
+    if (e21<0.0_rkx) then
+      mb = (mbw+1)/2
+    else
+      mb = mbw
+    end if
 
-  m1 = mb - 1
-  m21 = m1 + mb
-  order = 1.0_rkx - abs ( e21 )
+    m1 = mb - 1
+    m21 = m1 + mb
+    order = 1.0_rkx - abs(e21)
 !
 !  Find vectors by inverse iteration.
 !
-  do r = 1, m
+    do r = 1, m
 
-     its = 1
-     x1 = w(r)
-     if ( r /= 1 ) go to 100
+      its = 1
+      x1 = w(r)
+      if (r/=1) go to 110
 !
 !  Compute norm of matrix.
 !
-     norm = 0.0_rkx
+      norm = 0.0_rkx
 
-     do j = 1, mb
+      do j = 1, mb
 
         jj = mb + 1 - j
         kj = jj + m1
@@ -1224,208 +1224,208 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
         do i = jj, n
 
-          v = v + abs ( a(i,j) )
+          v = v + abs(a(i,j))
 
-          if ( e21 < 0.0_rkx ) then
-            v = v + abs ( a(ij,kj) )
+          if (e21<0.0_rkx) then
+            v = v + abs(a(ij,kj))
             ij = ij + 1
           end if
 
         end do
 
-        norm = max ( norm, v )
+        norm = max(norm, v)
 
-     end do
+      end do
 
-     if ( e21 < 0.0_rkx ) then
-       norm = 0.5_rkx * norm
-     end if
+      if (e21<0.0_rkx) then
+        norm = 0.5_rkx*norm
+      end if
 !
 !  EPS2 is the criterion for grouping,
 !  EPS3 replaces zero pivots and equal roots are modified by eps3,
 !  EPS4 is taken very small to avoid overflow.
 !
-     if ( norm == 0.0_rkx ) then
-       norm = 1.0_rkx
-     end if
+      if (norm==0.0_rkx) then
+        norm = 1.0_rkx
+      end if
 
-     eps2 = 0.001_rkx * norm * abs ( order)
-     eps3 = abs ( norm ) * epsilon ( norm )
-     uk = real(n,rkx)
-     uk = sqrt ( uk )
-     eps4 = uk * eps3
+      eps2 = 0.001_rkx*norm*abs(order)
+      eps3 = abs(norm)*epsilon(norm)
+      uk = real(n, rkx)
+      uk = sqrt(uk)
+      eps4 = uk*eps3
 
-80   continue
+100   continue
 
-     group = 0
-     go to 120
+      group = 0
+      go to 120
 !
 !  Look for close or coincident roots.
 !
-100  continue
+110   continue
 
-     if ( eps2 <= abs ( x1 - x0 ) ) then
-       go to 80
-     end if
+      if (eps2<=abs(x1-x0)) then
+        go to 100
+      end if
 
-     group = group + 1
+      group = group + 1
 
-     if ( order * ( x1 - x0 ) <= 0.0_rkx ) then
-       x1 = x0 + order * eps3
-     end if
+      if (order*(x1-x0)<=0.0_rkx) then
+        x1 = x0 + order*eps3
+      end if
 !
 !  Expand matrix, subtract eigenvalue, and initialize vector.
 !
-120  continue
+120   continue
 
-     do i = 1, n
+      do i = 1, n
 
-        ij = i + min ( 0, i-m1 ) * n
-        kj = ij + mb * n
-        ij1 = kj + m1 * n
+        ij = i + min(0, i-m1)*n
+        kj = ij + mb*n
+        ij1 = kj + m1*n
 
-        if ( m1 == 0 ) go to 180
+        if (m1==0) go to 130
 
         do j = 1, m1
 
-          if ( ij <= m1 ) then
-            if ( ij <= 0 ) then
+          if (ij<=m1) then
+            if (ij<=0) then
               rv(ij1) = 0.0_rkx
               ij1 = ij1 + n
             end if
           else
-            rv(ij) = a(i,j)
+            rv(ij) = a(i, j)
           end if
 
           ij = ij + n
           ii = i + j
 
-          if ( ii <= n ) then
+          if (ii<=n) then
 
             jj = mb - j
 
-            if ( e21 < 0.0_rkx ) then
+            if (e21<0.0_rkx) then
               ii = i
               jj = mb + j
             end if
 
-            rv(kj) = a(ii,jj)
+            rv(kj) = a(ii, jj)
             kj = kj + n
 
           end if
 
         end do
 
-  180   continue
+130     continue
 
-        rv(ij) = a(i,mb) - x1
+        rv(ij) = a(i, mb) - x1
         rv6(i) = eps4
-        if ( order == 0.0_rkx ) then
-          rv6(i) = z(i,r)
+        if (order==0.0_rkx) then
+          rv6(i) = z(i, r)
         end if
-
-     end do
-
-     if ( m1 /= 0 ) then
-!
-!  Elimination with interchanges.
-!
-     do i = 1, n
-
-        ii = i + 1
-        maxk = min ( i+m1-1, n )
-        maxj = min ( n-i, m21-2 ) * n
-
-        do k = i, maxk
-
-           kj1 = k
-           j = kj1 + n
-           jj = j + maxj
-
-           do kj = j, jj, n
-             rv(kj1) = rv(kj)
-             kj1 = kj
-           end do
-
-           rv(kj1) = 0.0_rkx
-
-        end do
-
-        if ( i /= n ) then
-
-        u = 0.0_rkx
-        maxk = min ( i+m1, n )
-        maxj = min ( n-ii, m21-2 ) * n
-
-        do j = i, maxk
-          if ( abs ( u ) <= abs ( rv(j) ) ) then
-            u = rv(j)
-            k = j
-          end if
-        end do
-
-        j = i + n
-        jj = j + maxj
-
-        if ( k /= i ) then
-
-          kj = k
-
-          do ij = i, jj, n
-            call r8_swap ( rv(ij), rv(kj) )
-            kj = kj + n
-          end do
-
-          if ( order == 0.0_rkx ) then
-            call r8_swap ( rv6(i), rv6(k) )
-          end if
-
-        end if
-
-        if ( u /= 0.0_rkx ) then
-
-        do k = ii, maxk
-
-           v = rv(k) / u
-           kj = k
-
-           do ij = j, jj, n
-             kj = kj + n
-             rv(kj) = rv(kj) - v * rv(ij)
-           end do
-
-           if ( order == 0.0_rkx ) then
-             rv6(k) = rv6(k) - v * rv6(i)
-           end if
-
-        end do
-
-       end if
-
-      end if
 
       end do
 
-     end if
+      if (m1/=0) then
+!
+!  Elimination with interchanges.
+!
+        do i = 1, n
+
+          ii = i + 1
+          maxk = min(i+m1-1, n)
+          maxj = min(n-i, m21-2)*n
+
+          do k = i, maxk
+
+            kj1 = k
+            j = kj1 + n
+            jj = j + maxj
+
+            do kj = j, jj, n
+              rv(kj1) = rv(kj)
+              kj1 = kj
+            end do
+
+            rv(kj1) = 0.0_rkx
+
+          end do
+
+          if (i/=n) then
+
+            u = 0.0_rkx
+            maxk = min(i+m1, n)
+            maxj = min(n-ii, m21-2)*n
+
+            do j = i, maxk
+              if (abs(u)<=abs(rv(j))) then
+                u = rv(j)
+                k = j
+              end if
+            end do
+
+            j = i + n
+            jj = j + maxj
+
+            if (k/=i) then
+
+              kj = k
+
+              do ij = i, jj, n
+                call r8_swap(rv(ij), rv(kj))
+                kj = kj + n
+              end do
+
+              if (order==0.0_rkx) then
+                call r8_swap(rv6(i), rv6(k))
+              end if
+
+            end if
+
+            if (u/=0.0_rkx) then
+
+              do k = ii, maxk
+
+                v = rv(k)/u
+                kj = k
+
+                do ij = j, jj, n
+                  kj = kj + n
+                  rv(kj) = rv(kj) - v*rv(ij)
+                end do
+
+                if (order==0.0_rkx) then
+                  rv6(k) = rv6(k) - v*rv6(i)
+                end if
+
+              end do
+
+            end if
+
+          end if
+
+        end do
+
+      end if
 !
 !  Back substitution.
 !
-600  continue
+140   continue
 
-     do ii = 1, n
+      do ii = 1, n
 
         i = n + 1 - ii
-        maxj = min ( ii, m21 )
+        maxj = min(ii, m21)
 
-        if ( maxj /= 1 ) then
+        if (maxj/=1) then
 
           ij1 = i
           j = ij1 + n
-          jj = j + (maxj - 2) * n
+          jj = j + (maxj-2)*n
 
           do ij = j, jj, n
             ij1 = ij1 + 1
-            rv6(i) = rv6(i) - rv(ij) * rv6(ij1)
+            rv6(i) = rv6(i) - rv(ij)*rv6(ij1)
           end do
 
         end if
@@ -1434,75 +1434,75 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !
 !  Error: nearly singular linear system.
 !
-        if ( abs ( v ) < eps3) then
-          if ( order == 0.0_rkx ) then
+        if (abs(v)<eps3) then
+          if (order==0.0_rkx) then
             ierr = -r
           end if
-          v = sign ( eps3, v )
+          v = sign(eps3, v)
         end if
 
-        rv6(i) = rv6(i) / v
+        rv6(i) = rv6(i)/v
 
-     end do
+      end do
 
-     xu = 1.0_rkx
+      xu = 1.0_rkx
 
-     if ( order == 0.0_rkx ) go to 870
+      if (order==0.0_rkx) go to 150
 !
 !  Orthogonalize with respect to previous members of group.
 !
-     do jj = 1, group
+      do jj = 1, group
 
         j = r - group - 1 + jj
 
-        xu = dot_product ( rv6(1:n), z(1:n,j) )
+        xu = dot_product(rv6(1:n), z(1:n,j))
 
-        rv6(1:n) = rv6(1:n) - xu * z(1:n,j)
+        rv6(1:n) = rv6(1:n) - xu*z(1:n, j)
 
-     end do
+      end do
 
-     norm = sum ( abs ( rv6(1:n) ) )
+      norm = sum(abs(rv6(1:n)))
 !
 !  Choose a new starting vector.
 !
-     if ( norm < 0.1_rkx ) then
+      if (norm<0.1_rkx) then
 
-       if ( its < n ) then
-         its = its + 1
-         xu = eps4 / ( uk + 1.0_rkx )
-         rv6(1) = eps4
-         rv6(2:n) = xu
-         rv6(its) = rv6(its) - eps4 * uk
-         go to 600
-       else
-         ierr = -r
-         xu = 0.0_rkx
-         go to 870
-       end if
+        if (its<n) then
+          its = its + 1
+          xu = eps4/(uk+1.0_rkx)
+          rv6(1) = eps4
+          rv6(2:n) = xu
+          rv6(its) = rv6(its) - eps4*uk
+          go to 140
+        else
+          ierr = -r
+          xu = 0.0_rkx
+          go to 150
+        end if
 
-     end if
+      end if
 !
 !   Normalize so that sum of squares is 1 and expand to full order.
 !
-     u = 0.0_rkx
-     do i = 1, n
-       u = pythag ( u, rv6(i) )
-     end do
+      u = 0.0_rkx
+      do i = 1, n
+        u = pythag(u, rv6(i))
+      end do
 
-     xu = 1.0_rkx / u
+      xu = 1.0_rkx/u
 
- 870 continue
+150   continue
 
-     z(1:n,r) = rv6(1:n) * xu
+      z(1:n, r) = rv6(1:n)*xu
 
-     x0 = x1
+      x0 = x1
 
-  end do
+    end do
 
-  return
-end subroutine bandv
+    return
+  end subroutine bandv
 
-subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
+  subroutine bisect(n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr)
 
 !*****************************************************************************80
 !
@@ -1585,335 +1585,335 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !    0, for normal return,
 !    3*N+1, if M exceeds MM.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: eps1
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: ind(mm)
-  integer ( kind = ik4 ) :: isturm
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: lb
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: m1
-  integer ( kind = ik4 ) :: m2
-  integer ( kind = ik4 ) :: p
-  integer ( kind = ik4 ) :: q
-  integer ( kind = ik4 ) :: r
-  real    ( kind = rkx ) :: rv4(n)
-  real    ( kind = rkx ) :: rv5(n)
-  integer ( kind = ik4 ) :: s
-  real    ( kind = rkx ) :: t1
-  real    ( kind = rkx ) :: t2
-  integer ( kind = ik4 ) :: tag
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: u
-  real    ( kind = rkx ) :: ub
-  real    ( kind = rkx ) :: v
-  real    ( kind = rkx ) :: w(mm)
-  real    ( kind = rkx ) :: x0
-  real    ( kind = rkx ) :: x1
-  real    ( kind = rkx ) :: xu
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: eps1
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: ind(mm)
+    integer (kind=ik4) :: isturm
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: lb
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: m1
+    integer (kind=ik4) :: m2
+    integer (kind=ik4) :: p
+    integer (kind=ik4) :: q
+    integer (kind=ik4) :: r
+    real (kind=rkx) :: rv4(n)
+    real (kind=rkx) :: rv5(n)
+    integer (kind=ik4) :: s
+    real (kind=rkx) :: t1
+    real (kind=rkx) :: t2
+    integer (kind=ik4) :: tag
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: u
+    real (kind=rkx) :: ub
+    real (kind=rkx) :: v
+    real (kind=rkx) :: w(mm)
+    real (kind=rkx) :: x0
+    real (kind=rkx) :: x1
+    real (kind=rkx) :: xu
 
-  ierr = 0
-  s = 0
-  tag = 0
-  t1 = lb
-  t2 = ub
+    ierr = 0
+    s = 0
+    tag = 0
+    t1 = lb
+    t2 = ub
 !
 !  Look for small sub-diagonal entries.
 !
-  e2(1) = 0.0_rkx
+    e2(1) = 0.0_rkx
 
-  do i = 2, n
+    do i = 2, n
 
-    tst1 = abs ( d(i) ) + abs ( d(i-1) )
-    tst2 = tst1 + abs ( e(i) )
+      tst1 = abs(d(i)) + abs(d(i-1))
+      tst2 = tst1 + abs(e(i))
 
-    if ( tst2 <= tst1 ) then
-      e2(i) = 0.0_rkx
-    end if
+      if (tst2<=tst1) then
+        e2(i) = 0.0_rkx
+      end if
 
-  end do
+    end do
 !
 !  Determine the number of eigenvalues in the interval.
 !
-  p = 1
-  q = n
-  x1 = ub
-  isturm = 1
-  go to 320
+    p = 1
+    q = n
+    x1 = ub
+    isturm = 1
+    go to 190
 
-60 continue
+100 continue
 
-  m = s
-  x1 = lb
-  isturm = 2
-  go to 320
+    m = s
+    x1 = lb
+    isturm = 2
+    go to 190
 
-80 continue
+110 continue
 
-  m = m - s
+    m = m - s
 
-  if ( mm < m ) then
-    go to 980
-  end if
+    if (mm<m) then
+      go to 250
+    end if
 
-  q = 0
-  r = 0
+    q = 0
+    r = 0
 !
 !  Establish and process next submatrix, refining
 !  interval by the Gerschgorin bounds.
 !
-100 continue
+120 continue
 
-  if ( r == m ) go to 1001
+    if (r==m) go to 260
 
-  tag = tag + 1
-  p = q + 1
-  xu = d(p)
-  x0 = d(p)
-  u = 0.0_rkx
-
-  do q = p, n
-
-    x1 = u
+    tag = tag + 1
+    p = q + 1
+    xu = d(p)
+    x0 = d(p)
     u = 0.0_rkx
-    v = 0.0_rkx
 
-    if ( q /= n ) then
-      u = abs ( e(q+1) )
-      v = e2(q+1)
-    end if
+    do q = p, n
 
-    xu = min ( d(q) - ( x1 + u ), xu )
-    x0 = max ( d(q) + ( x1 + u ), x0 )
+      x1 = u
+      u = 0.0_rkx
+      v = 0.0_rkx
 
-    if ( v == 0.0_rkx ) then
-      exit
-    end if
+      if (q/=n) then
+        u = abs(e(q+1))
+        v = e2(q+1)
+      end if
 
-  end do
+      xu = min(d(q)-(x1+u), xu)
+      x0 = max(d(q)+(x1+u), x0)
 
-  x1 = max ( abs ( xu ), abs ( x0 ) ) * epsilon ( x1 )
-  if ( eps1 <= 0.0_rkx ) then
-    eps1 = -x1
-  end if
-
-  if ( p /= q ) go to 180
-!
-!  Check for an isolated root within interval.
-!
-  if ( d(p) < t1 .or. t2 <= d(p) ) then
-    go to 940
-  end if
-
-  m1 = p
-  m2 = p
-  rv5(p) = d(p)
-  go to 900
-
-  180 continue
-
-  x1 = x1 * ( q - p + 1 )
-  lb = max ( t1, xu - x1 )
-  ub = min ( t2, x0 + x1 )
-  x1 = lb
-  isturm = 3
-  go to 320
-
-  200 continue
-
-  m1 = s + 1
-  x1 = ub
-  isturm = 4
-  go to 320
-
-  220 continue
-
-  m2 = s
-  if ( m2 < m1 ) then
-    go to 940
-  end if
-!
-!  Find roots by bisection.
-!
-  x0 = ub
-  isturm = 5
-  rv5(m1:m2) = ub
-  rv4(m1:m2) = lb
-!
-!  Loop for the K-th eigenvalue.
-!
-  k = m2
-
-250 continue
-
-     xu = lb
-
-     do ii = m1, k
-       i = m1 + k - ii
-       if ( xu < rv4(i) ) then
-         xu = rv4(i)
-         go to 280
-       end if
-     end do
-
-  280 continue
-
-   x0 = min ( x0, rv5(k) )
-!
-!  Next bisection step.
-!
-  300    continue
-
-     x1 = ( xu + x0 ) * 0.5_rkx
-
-     if ( (x0 - xu) <= abs ( eps1 ) ) go to 420
-
-     tst1 = 2.0_rkx * ( abs ( xu ) + abs ( x0 ) )
-     tst2 = tst1 + ( x0 - xu )
-     if ( tst2 == tst1 ) go to 420
-!
-!  Sturm sequence.
-!
-320  continue
-
-     s = p - 1
-     u = 1.0_rkx
-
-     do i = p, q
-
-        if ( u == 0.0_rkx ) then
-          v = abs ( e(i) ) / epsilon ( v )
-          if ( e2(i) == 0.0_rkx ) v = 0.0_rkx
-        else
-          v = e2(i) / u
-        end if
-
-        u = d(i) - x1 - v
-        if ( u < 0.0_rkx ) then
-          s = s + 1
-        end if
-
-     end do
-
-     select case (isturm)
-       case (1)
-         go to 60
-       case (2)
-         go to 80
-       case (3)
-         go to 200
-       case (4)
-         go to 220
-       case(5)
-         go to 360
-     end select
-!
-!  Refine intervals.
-!
-  360 continue
-
-     if ( k <= s ) then
-       go to 400
-     end if
-
-     xu = x1
-
-     if ( s < m1 ) then
-       rv4(m1) = x1
-       go to 300
-     end if
-
-     rv4(s+1) = x1
-
-     if ( x1 < rv5(s) ) then
-       rv5(s) = x1
-     end if
-
-     go to 300
-400  continue
-     x0 = x1
-     go to 300
-!
-!  K-th eigenvalue found.
-!
-420 continue
-
-  rv5(k) = x1
-  k = k - 1
-  if ( k >= m1 ) go to 250
-!
-!  Order eigenvalues tagged with their submatrix associations.
-!
-900 continue
-
-  s = r
-  r = r + m2 - m1 + 1
-  j = 1
-  k = m1
-
-  do l = 1, r
-
-    if ( j <= s ) then
-
-      if ( k > m2 ) then
+      if (v==0.0_rkx) then
         exit
       end if
 
-      if ( rv5(k) >= w(l) ) then
-        j = j + 1
-        cycle
-      end if
+    end do
 
-      do ii = j, s
-        i = l + s - ii
-        w(i+1) = w(i)
-        ind(i+1) = ind(i)
-      end do
-
+    x1 = max(abs(xu), abs(x0))*epsilon(x1)
+    if (eps1<=0.0_rkx) then
+      eps1 = -x1
     end if
 
-    w(l) = rv5(k)
-    ind(l) = tag
-    k = k + 1
+    if (p/=q) go to 130
+!
+!  Check for an isolated root within interval.
+!
+    if (d(p)<t1 .or. t2<=d(p)) then
+      go to 240
+    end if
 
-  end do
+    m1 = p
+    m2 = p
+    rv5(p) = d(p)
+    go to 230
 
-940 continue
+130 continue
 
-  if ( q < n ) then
-    go to 100
-  end if
+    x1 = x1*(q-p+1)
+    lb = max(t1, xu-x1)
+    ub = min(t2, x0+x1)
+    x1 = lb
+    isturm = 3
+    go to 190
 
-  go to 1001
+140 continue
+
+    m1 = s + 1
+    x1 = ub
+    isturm = 4
+    go to 190
+
+150 continue
+
+    m2 = s
+    if (m2<m1) then
+      go to 240
+    end if
+!
+!  Find roots by bisection.
+!
+    x0 = ub
+    isturm = 5
+    rv5(m1:m2) = ub
+    rv4(m1:m2) = lb
+!
+!  Loop for the K-th eigenvalue.
+!
+    k = m2
+
+160 continue
+
+    xu = lb
+
+    do ii = m1, k
+      i = m1 + k - ii
+      if (xu<rv4(i)) then
+        xu = rv4(i)
+        go to 170
+      end if
+    end do
+
+170 continue
+
+    x0 = min(x0, rv5(k))
+!
+!  Next bisection step.
+!
+180 continue
+
+    x1 = (xu+x0)*0.5_rkx
+
+    if ((x0-xu)<=abs(eps1)) go to 220
+
+    tst1 = 2.0_rkx*(abs(xu)+abs(x0))
+    tst2 = tst1 + (x0-xu)
+    if (tst2==tst1) go to 220
+!
+!  Sturm sequence.
+!
+190 continue
+
+    s = p - 1
+    u = 1.0_rkx
+
+    do i = p, q
+
+      if (u==0.0_rkx) then
+        v = abs(e(i))/epsilon(v)
+        if (e2(i)==0.0_rkx) v = 0.0_rkx
+      else
+        v = e2(i)/u
+      end if
+
+      u = d(i) - x1 - v
+      if (u<0.0_rkx) then
+        s = s + 1
+      end if
+
+    end do
+
+    select case (isturm)
+    case (1)
+      go to 100
+    case (2)
+      go to 110
+    case (3)
+      go to 140
+    case (4)
+      go to 150
+    case (5)
+      go to 200
+    end select
+!
+!  Refine intervals.
+!
+200 continue
+
+    if (k<=s) then
+      go to 210
+    end if
+
+    xu = x1
+
+    if (s<m1) then
+      rv4(m1) = x1
+      go to 180
+    end if
+
+    rv4(s+1) = x1
+
+    if (x1<rv5(s)) then
+      rv5(s) = x1
+    end if
+
+    go to 180
+210 continue
+    x0 = x1
+    go to 180
+!
+!  K-th eigenvalue found.
+!
+220 continue
+
+    rv5(k) = x1
+    k = k - 1
+    if (k>=m1) go to 160
+!
+!  Order eigenvalues tagged with their submatrix associations.
+!
+230 continue
+
+    s = r
+    r = r + m2 - m1 + 1
+    j = 1
+    k = m1
+
+    do l = 1, r
+
+      if (j<=s) then
+
+        if (k>m2) then
+          exit
+        end if
+
+        if (rv5(k)>=w(l)) then
+          j = j + 1
+          cycle
+        end if
+
+        do ii = j, s
+          i = l + s - ii
+          w(i+1) = w(i)
+          ind(i+1) = ind(i)
+        end do
+
+      end if
+
+      w(l) = rv5(k)
+      ind(l) = tag
+      k = k + 1
+
+    end do
+
+240 continue
+
+    if (q<n) then
+      go to 120
+    end if
+
+    go to 260
 !
 !  Set error: underestimate of number of eigenvalues in interval.
 !
-980 continue
+250 continue
 
-  ierr = 3 * n + 1
+    ierr = 3*n + 1
 
- 1001 continue
+260 continue
 
-  lb = t1
-  ub = t2
+    lb = t1
+    ub = t2
 
-  return
-end subroutine bisect
+    return
+  end subroutine bisect
 
-subroutine bqr ( n, mb, a, t, r, ierr )
+  subroutine bqr(n, mb, a, t, r, ierr)
 
 !*****************************************************************************80
 !
@@ -1999,299 +1999,299 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !    0, normal return.
 !    N, if the eigenvalue has not been determined after 30 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: mb
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: mb
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,mb)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: ik
-  integer ( kind = ik4 ) :: imult
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jk
-  integer ( kind = ik4 ) :: jm
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: kj
-  integer ( kind = ik4 ) :: kj1
-  integer ( kind = ik4 ) :: kk
-  integer ( kind = ik4 ) :: km
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: m1
-  integer ( kind = ik4 ) :: m2
-  integer ( kind = ik4 ) :: m21
-  integer ( kind = ik4 ) :: m3
-  integer ( kind = ik4 ) :: m31
-  integer ( kind = ik4 ) :: m4
-  integer ( kind = ik4 ) :: mk
-  integer ( kind = ik4 ) :: mn
-  integer ( kind = ik4 ) :: mz
-  integer ( kind = ik4 ) :: ni
-  real    ( kind = rkx ) :: q
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: rv(2*mb*mb+4*mb-3)
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: xscale
-  real    ( kind = rkx ) :: t
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
+    real (kind=rkx) :: a(n, mb)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: ik
+    integer (kind=ik4) :: imult
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jk
+    integer (kind=ik4) :: jm
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: kj
+    integer (kind=ik4) :: kj1
+    integer (kind=ik4) :: kk
+    integer (kind=ik4) :: km
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: m1
+    integer (kind=ik4) :: m2
+    integer (kind=ik4) :: m21
+    integer (kind=ik4) :: m3
+    integer (kind=ik4) :: m31
+    integer (kind=ik4) :: m4
+    integer (kind=ik4) :: mk
+    integer (kind=ik4) :: mn
+    integer (kind=ik4) :: mz
+    integer (kind=ik4) :: ni
+    real (kind=rkx) :: q
+    real (kind=rkx) :: r
+    real (kind=rkx) :: rv(2*mb*mb+4*mb-3)
+    real (kind=rkx) :: s
+    real (kind=rkx) :: xscale
+    real (kind=rkx) :: t
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
 
-  ierr = 0
-  m1 = min ( mb, n )
-  m = m1 - 1
-  m2 = m + m
-  m21 = m2 + 1
-  m3 = m21 + m
-  m31 = m3 + 1
-  m4 = m31 + m2
-  mn = m + n
-  mz = mb - m1
-  its = 0
+    ierr = 0
+    m1 = min(mb, n)
+    m = m1 - 1
+    m2 = m + m
+    m21 = m2 + 1
+    m3 = m21 + m
+    m31 = m3 + 1
+    m4 = m31 + m2
+    mn = m + n
+    mz = mb - m1
+    its = 0
 !
 !  Test for convergence.
 !
-40 continue
+100 continue
 
-  g = a(n,mb)
+    g = a(n, mb)
 
-  if ( m == 0 ) go to 360
+    if (m==0) go to 160
 
-  f = 0.0_rkx
-  do k = 1, m
-    mk = k + mz
-    f = f + abs ( a(n,mk) )
-  end do
+    f = 0.0_rkx
+    do k = 1, m
+      mk = k + mz
+      f = f + abs(a(n,mk))
+    end do
 
-  if ( its == 0 .and. r < f ) then
-    r = f
-  end if
+    if (its==0 .and. r<f) then
+      r = f
+    end if
 
-  tst1 = r
-  tst2 = tst1 + f
+    tst1 = r
+    tst2 = tst1 + f
 
-  if ( tst2 <= tst1 ) go to 360
+    if (tst2<=tst1) go to 160
 
-  if ( 30 <= its ) then
-    ierr = n
-    return
-  end if
+    if (30<=its) then
+      ierr = n
+      return
+    end if
 
-  its = its + 1
+    its = its + 1
 !
 !  Form shift from bottom 2 by 2 minor.
 !
-  if ( f <= 0.25_rkx * r .or. its >= 5 ) then
+    if (f<=0.25_rkx*r .or. its>=5) then
 
-    f = a(n,mb-1)
+      f = a(n, mb-1)
 
-    if ( f /= 0.0_rkx ) then
-      q = ( a(n-1,mb) - g ) / ( 2.0_rkx * f )
-      s = pythag ( q, 1.0_rkx )
-      g = g - f / ( q + sign ( s, q ) )
+      if (f/=0.0_rkx) then
+        q = (a(n-1,mb)-g)/(2.0_rkx*f)
+        s = pythag(q, 1.0_rkx)
+        g = g - f/(q+sign(s,q))
+      end if
+
+      t = t + g
+
+      a(1:n, mb) = a(1:n, mb) - g
+
     end if
 
-    t = t + g
+    rv(m31:m4) = 0.0_rkx
 
-    a(1:n,mb) = a(1:n,mb) - g
+    do ii = 1, mn
 
-  end if
+      i = ii - m
+      ni = n - ii
 
-  rv(m31:m4) = 0.0_rkx
-
-  do ii = 1, mn
-
-     i = ii - m
-     ni = n - ii
-
-     if ( ni < 0 ) go to 230
+      if (ni<0) go to 130
 !
 !  Form column of shifted matrix A-G*I.
 !
-     l = max ( 1, 2-i )
+      l = max(1, 2-i)
 
-     rv(1:m3) = 0.0_rkx
+      rv(1:m3) = 0.0_rkx
 
-     do k = l, m1
-       km = k + m
-       mk = k + mz
-       rv(km) = a(ii,mk)
-     end do
+      do k = l, m1
+        km = k + m
+        mk = k + mz
+        rv(km) = a(ii, mk)
+      end do
 
-     ll = min ( m, ni )
+      ll = min(m, ni)
 
-     do k = 1, ll
-       km = k + m21
-       ik = ii + k
-       mk = mb - k
-       rv(km) = a(ik,mk)
-     end do
+      do k = 1, ll
+        km = k + m21
+        ik = ii + k
+        mk = mb - k
+        rv(km) = a(ik, mk)
+      end do
 !
 !  Pre-multiply with Householder reflections.
 !
-     ll = m2
-     imult = 0
+      ll = m2
+      imult = 0
 !
 !  Multiplication procedure.
 !
-140  continue
+110   continue
 
-     kj = m4 - m1
+      kj = m4 - m1
 
-     do j = 1, ll
+      do j = 1, ll
 
         kj = kj + m1
         jm = j + m3
 
-        if ( rv(jm) /= 0.0_rkx ) then
+        if (rv(jm)/=0.0_rkx) then
 
           f = 0.0_rkx
 
           do k = 1, m1
             kj = kj + 1
             jk = j + k - 1
-            f = f + rv(kj) * rv(jk)
+            f = f + rv(kj)*rv(jk)
           end do
 
-          f = f / rv(jm)
+          f = f/rv(jm)
           kj = kj - m1
 
           do k = 1, m1
             kj = kj + 1
             jk = j + k - 1
-            rv(jk) = rv(jk) - rv(kj) * f
+            rv(jk) = rv(jk) - rv(kj)*f
           end do
 
           kj = kj - m1
 
         end if
 
-     end do
+      end do
 
-     if ( imult /= 0 ) go to 280
+      if (imult/=0) go to 140
 !
 !  Householder reflection.
 !
-     f = rv(m21)
-     s = 0.0_rkx
-     rv(m4) = 0.0_rkx
-     xscale = sum ( abs ( rv(m21:m3) ) )
+      f = rv(m21)
+      s = 0.0_rkx
+      rv(m4) = 0.0_rkx
+      xscale = sum(abs(rv(m21:m3)))
 
-     if ( xscale == 0.0_rkx ) then
-       go to 210
-     end if
+      if (xscale==0.0_rkx) then
+        go to 120
+      end if
 
-     do k = m21, m3
-       s = s + ( rv(k) / xscale )**2
-     end do
+      do k = m21, m3
+        s = s + (rv(k)/xscale)**2
+      end do
 
-     s = xscale * xscale * s
-     g = - sign ( sqrt ( s ), f )
-     rv(m21) = g
-     rv(m4) = s - f * g
-     kj = m4 + m2 * m1 + 1
-     rv(kj) = f - g
+      s = xscale*xscale*s
+      g = -sign(sqrt(s), f)
+      rv(m21) = g
+      rv(m4) = s - f*g
+      kj = m4 + m2*m1 + 1
+      rv(kj) = f - g
 
-     do k = 2, m1
-       kj = kj + 1
-       km = k + m2
-       rv(kj) = rv(km)
-     end do
+      do k = 2, m1
+        kj = kj + 1
+        km = k + m2
+        rv(kj) = rv(km)
+      end do
 !
 !  Save column of triangular factor R.
 !
-210  continue
+120   continue
 
-     do k = l, m1
-       km = k + m
-       mk = k + mz
-       a(ii,mk) = rv(km)
-     end do
+      do k = l, m1
+        km = k + m
+        mk = k + mz
+        a(ii, mk) = rv(km)
+      end do
 
-230  continue
+130   continue
 
-     l = max ( 1, m1+1-i )
-     if ( i <= 0 ) go to 300
+      l = max(1, m1+1-i)
+      if (i<=0) go to 150
 !
 !  Perform additional steps.
 !
-     rv(1:m21) = 0.0_rkx
-     ll = min ( m1, ni+m1 )
+      rv(1:m21) = 0.0_rkx
+      ll = min(m1, ni+m1)
 !
 !  Get row of triangular factor R.
 !
-     do kk = 1, ll
-       k = kk - 1
-       km = k + m1
-       ik = i + k
-       mk = mb - k
-       rv(km) = a(ik,mk)
-     end do
+      do kk = 1, ll
+        k = kk - 1
+        km = k + m1
+        ik = i + k
+        mk = mb - k
+        rv(km) = a(ik, mk)
+      end do
 !
 !  Post-multiply with Householder reflections.
 !
-     ll = m1
-     imult = 1
-     go to 140
+      ll = m1
+      imult = 1
+      go to 110
 !
 !  Store column of new a matrix.
 !
-280  continue
+140   continue
 
-     do k = l, m1
-       mk = k + mz
-       a(i,mk) = rv(k)
-     end do
+      do k = l, m1
+        mk = k + mz
+        a(i, mk) = rv(k)
+      end do
 !
 !  Update Householder reflections.
 !
-300  continue
+150   continue
 
-     if ( 1 < l ) then
-       l = l - 1
-     end if
+      if (1<l) then
+        l = l - 1
+      end if
 
-     kj1 = m4 + l * m1
+      kj1 = m4 + l*m1
 
-     do j = l, m2
+      do j = l, m2
 
-       jm = j + m3
-       rv(jm) = rv(jm+1)
+        jm = j + m3
+        rv(jm) = rv(jm+1)
 
-       do k = 1, m1
-         kj1 = kj1 + 1
-         kj = kj1 - m1
-         rv(kj) = rv(kj1)
-       end do
+        do k = 1, m1
+          kj1 = kj1 + 1
+          kj = kj1 - m1
+          rv(kj) = rv(kj1)
+        end do
 
-     end do
+      end do
 
-  end do
+    end do
 
-  go to 40
+    go to 100
 !
 !  Convergence.
 !
-360 continue
+160 continue
 
-  t = t + g
-  a(1:n,mb) = a(1:n,mb) - g
+    t = t + g
+    a(1:n, mb) = a(1:n, mb) - g
 
-  do k = 1, m1
-    mk = k + mz
-    a(n,mk) = 0.0_rkx
-  end do
+    do k = 1, m1
+      mk = k + mz
+      a(n, mk) = 0.0_rkx
+    end do
 
-  return
-end subroutine bqr
+    return
+  end subroutine bqr
 
-subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
+  subroutine cbabk2(n, low, igh, xscale, m, zr, zi)
 
 !*****************************************************************************80
 !
@@ -2349,68 +2349,68 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
 !    parts, respectively, of the eigenvectors to be back transformed in
 !    their first M columns.  On output, the transformed eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: low
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: xscale(n)
-  real    ( kind = rkx ) :: zi(n,m)
-  real    ( kind = rkx ) :: zr(n,m)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: low
+    real (kind=rkx) :: s
+    real (kind=rkx) :: xscale(n)
+    real (kind=rkx) :: zi(n, m)
+    real (kind=rkx) :: zr(n, m)
 
-  if ( m == 0 ) then
-    return
-  end if
+    if (m==0) then
+      return
+    end if
 
-  if ( igh /= low ) then
+    if (igh/=low) then
 
-    do i = low, igh
+      do i = low, igh
 
-      s = xscale(i)
+        s = xscale(i)
 
-      zr(i,1:m) = zr(i,1:m) * s
-      zi(i,1:m) = zi(i,1:m) * s
+        zr(i, 1:m) = zr(i, 1:m)*s
+        zi(i, 1:m) = zi(i, 1:m)*s
 
-    end do
-
-  end if
-
-  do ii = 1, n
-
-    i = ii
-
-    if ( i < low .or. i > igh ) then
-
-      if ( i < low ) then
-        i = low - ii
-      end if
-
-      k = int(xscale(i))
-
-      if ( k /= i ) then
-
-        do j = 1, m
-          call r8_swap ( zr(i,j), zr(k,j) )
-          call r8_swap ( zi(i,j), zi(k,j) )
-        end do
-
-      end if
+      end do
 
     end if
 
-  end do
+    do ii = 1, n
 
-  return
-end subroutine cbabk2
+      i = ii
 
-subroutine cbal ( n, ar, ai, low, igh, xscale )
+      if (i<low .or. i>igh) then
+
+        if (i<low) then
+          i = low - ii
+        end if
+
+        k = int(xscale(i))
+
+        if (k/=i) then
+
+          do j = 1, m
+            call r8_swap(zr(i,j), zr(k,j))
+            call r8_swap(zi(i,j), zi(k,j))
+          end do
+
+        end if
+
+      end if
+
+    end do
+
+    return
+  end subroutine cbabk2
+
+  subroutine cbal(n, ar, ai, low, igh, xscale)
 
 !*****************************************************************************80
 !
@@ -2479,190 +2479,190 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !    Output, real ( kind = rkx ) SCALE(N), information determining the
 !    permutations and scaling factors used.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,n)
-  real    ( kind = rkx ) :: ar(n,n)
-  real    ( kind = rkx ) :: b2
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: iexc
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  logical              :: noconv
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: rdx
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: xscale(n)
+    real (kind=rkx) :: ai(n, n)
+    real (kind=rkx) :: ar(n, n)
+    real (kind=rkx) :: b2
+    real (kind=rkx) :: c
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: iexc
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    logical :: noconv
+    real (kind=rkx) :: r
+    real (kind=rkx) :: rdx
+    real (kind=rkx) :: s
+    real (kind=rkx) :: xscale(n)
 
-  rdx = 16.0_rkx
+    rdx = 16.0_rkx
 
-  iexc = 0
-  j = 0
-  m = 0
+    iexc = 0
+    j = 0
+    m = 0
 
-  b2 = rdx * rdx
-  k = 1
-  l = n
-  go to 100
-
-20 continue
-
-  xscale(m) = real(j,rkx)
-
-  if ( j /= m ) then
-
-    do i = 1, l
-      call r8_swap ( ar(i,j), ar(i,m) )
-      call r8_swap ( ai(i,j), ai(i,m) )
-    end do
-
-    do i = k, n
-      call r8_swap ( ar(j,i), ar(m,i) )
-      call r8_swap ( ai(j,i), ai(m,i) )
-    end do
-
-  end if
-
-  if ( iexc == 2 ) then
-    go to 130
-  end if
-!
-!  Search for rows isolating an eigenvalue and push them down.
-!
-  if ( l == 1 ) then
-    go to 280
-  end if
-
-  l = l - 1
+    b2 = rdx*rdx
+    k = 1
+    l = n
+    go to 110
 
 100 continue
 
-  do jj = 1, l
+    xscale(m) = real(j, rkx)
 
-     j = l + 1 - jj
+    if (j/=m) then
 
-     do i = 1, l
-       if ( i /= j ) then
-         if ( ar(j,i) /= 0.0_rkx .or. ai(j,i) /= 0.0_rkx ) go to 120
-       end if
-     end do
+      do i = 1, l
+        call r8_swap(ar(i,j), ar(i,m))
+        call r8_swap(ai(i,j), ai(i,m))
+      end do
 
-     m = l
-     iexc = 1
-     go to 20
+      do i = k, n
+        call r8_swap(ar(j,i), ar(m,i))
+        call r8_swap(ai(j,i), ai(m,i))
+      end do
 
-120  continue
+    end if
 
-  end do
+    if (iexc==2) then
+      go to 130
+    end if
+!
+!  Search for rows isolating an eigenvalue and push them down.
+!
+    if (l==1) then
+      go to 180
+    end if
 
-  go to 140
+    l = l - 1
+
+110 continue
+
+    do jj = 1, l
+
+      j = l + 1 - jj
+
+      do i = 1, l
+        if (i/=j) then
+          if (ar(j,i)/=0.0_rkx .or. ai(j,i)/=0.0_rkx) go to 120
+        end if
+      end do
+
+      m = l
+      iexc = 1
+      go to 100
+
+120   continue
+
+    end do
+
+    go to 140
 !
 !  Search for columns isolating an eigenvalue and push them left.
 !
 130 continue
 
-  k = k + 1
+    k = k + 1
 
 140 continue
 
-   do j = k, l
+    do j = k, l
 
-     do i = k, l
-       if ( i /= j ) then
-         if ( ar(i,j) /= 0.0_rkx .or. ai(i,j) /= 0.0_rkx ) go to 170
-       end if
-     end do
+      do i = k, l
+        if (i/=j) then
+          if (ar(i,j)/=0.0_rkx .or. ai(i,j)/=0.0_rkx) go to 150
+        end if
+      end do
 
-     m = k
-     iexc = 2
-     go to 20
-170  continue
+      m = k
+      iexc = 2
+      go to 100
+150   continue
 
-  end do
+    end do
 !
 !  Now balance the submatrix in rows k to l.
 !
-  xscale(k:l) = 1.0_rkx
+    xscale(k:l) = 1.0_rkx
 !
 !  Iterative loop for norm reduction.
 !
-190 continue
+160 continue
 
-  noconv = .false.
+    noconv = .false.
 
-  do i = k, l
+    do i = k, l
 
-    c = 0.0_rkx
-    r = 0.0_rkx
+      c = 0.0_rkx
+      r = 0.0_rkx
 
-    do j = k, l
-      if ( j /= i ) then
-        c = c + abs ( ar(j,i) ) + abs ( ai(j,i) )
-        r = r + abs ( ar(i,j) ) + abs ( ai(i,j) )
-      end if
-    end do
+      do j = k, l
+        if (j/=i) then
+          c = c + abs(ar(j,i)) + abs(ai(j,i))
+          r = r + abs(ar(i,j)) + abs(ai(i,j))
+        end if
+      end do
 !
 !  Guard against zero C or R due to underflow.
 !
-     if ( c == 0.0_rkx .or. r == 0.0_rkx ) go to 270
+      if (c==0.0_rkx .or. r==0.0_rkx) go to 170
 
-     g = r / rdx
-     f = 1.0_rkx
-     s = c + r
+      g = r/rdx
+      f = 1.0_rkx
+      s = c + r
 
-     do while ( c < g )
-       f = f * rdx
-       c = c * b2
-     end do
+      do while (c<g)
+        f = f*rdx
+        c = c*b2
+      end do
 
-     g = r * rdx
+      g = r*rdx
 
-     do while  ( c >= g )
-       f = f / rdx
-       c = c / b2
-     end do
+      do while (c>=g)
+        f = f/rdx
+        c = c/b2
+      end do
 !
 !  Now balance.
 !
-     if ( ( c + r ) / f < 0.95_rkx * s ) then
+      if ((c+r)/f<0.95_rkx*s) then
 
-       g = 1.0_rkx / f
-       xscale(i) = xscale(i) * f
-       noconv = .true.
+        g = 1.0_rkx/f
+        xscale(i) = xscale(i)*f
+        noconv = .true.
 
-       ar(i,k:n) = ar(i,k:n) * g
-       ai(i,k:n) = ai(i,k:n) * g
+        ar(i, k:n) = ar(i, k:n)*g
+        ai(i, k:n) = ai(i, k:n)*g
 
-       ar(1:l,i) = ar(1:l,i) * f
-       ai(1:l,i) = ai(1:l,i) * f
+        ar(1:l, i) = ar(1:l, i)*f
+        ai(1:l, i) = ai(1:l, i)*f
 
-     end if
+      end if
 
-270  continue
+170   continue
 
-  end do
+    end do
 
-  if ( noconv ) go to 190
+    if (noconv) go to 160
 
-  280 continue
+180 continue
 
-  low = k
-  igh = l
+    low = k
+    igh = l
 
-  return
-end subroutine cbal
+    return
+  end subroutine cbal
 
-subroutine cdiv ( ar, ai, br, bi, cr, ci )
+  subroutine cdiv(ar, ai, br, bi, cr, ci)
 
 !*****************************************************************************80
 !
@@ -2713,35 +2713,35 @@ subroutine cdiv ( ar, ai, br, bi, cr, ci )
 !
 !    Output, real ( kind = rkx ) CR, CI, the real and imaginary parts of the result.
 !
-  implicit none
+    implicit none
 
-  real    ( kind = rkx ) :: ai
-  real    ( kind = rkx ) :: ais
-  real    ( kind = rkx ) :: ar
-  real    ( kind = rkx ) :: ars
-  real    ( kind = rkx ) :: bi
-  real    ( kind = rkx ) :: bis
-  real    ( kind = rkx ) :: br
-  real    ( kind = rkx ) :: brs
-  real    ( kind = rkx ) :: ci
-  real    ( kind = rkx ) :: cr
-  real    ( kind = rkx ) :: s
+    real (kind=rkx) :: ai
+    real (kind=rkx) :: ais
+    real (kind=rkx) :: ar
+    real (kind=rkx) :: ars
+    real (kind=rkx) :: bi
+    real (kind=rkx) :: bis
+    real (kind=rkx) :: br
+    real (kind=rkx) :: brs
+    real (kind=rkx) :: ci
+    real (kind=rkx) :: cr
+    real (kind=rkx) :: s
 
-  s = abs ( br ) + abs ( bi )
+    s = abs(br) + abs(bi)
 
-  ars = ar / s
-  ais = ai / s
-  brs = br / s
-  bis = bi / s
+    ars = ar/s
+    ais = ai/s
+    brs = br/s
+    bis = bi/s
 
-  s = brs**2 + bis**2
-  cr = ( ars * brs + ais * bis ) / s
-  ci = ( ais * brs - ars * bis ) / s
+    s = brs**2 + bis**2
+    cr = (ars*brs+ais*bis)/s
+    ci = (ais*brs-ars*bis)/s
 
-  return
-end subroutine cdiv
+    return
+  end subroutine cdiv
 
-subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
+  subroutine cg(n, ar, ai, wr, wi, matz, zr, zi, ierr)
 
 !*****************************************************************************80
 !
@@ -2804,55 +2804,55 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !    Output, integer ( kind = ik4 ) IERR, an error completion code described in the
 !    documentation for COMQR and COMQR2.  The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,n)
-  real    ( kind = rkx ) :: ar(n,n)
-  real    ( kind = rkx ) :: fv1(n)
-  real    ( kind = rkx ) :: fv2(n)
-  real    ( kind = rkx ) :: fv3(n)
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: is1
-  integer ( kind = ik4 ) :: is2
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: zi(n,n)
-  real    ( kind = rkx ) :: zr(n,n)
+    real (kind=rkx) :: ai(n, n)
+    real (kind=rkx) :: ar(n, n)
+    real (kind=rkx) :: fv1(n)
+    real (kind=rkx) :: fv2(n)
+    real (kind=rkx) :: fv3(n)
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: is1
+    integer (kind=ik4) :: is2
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: zi(n, n)
+    real (kind=rkx) :: zr(n, n)
 
-  call cbal ( n, ar, ai, is1, is2, fv1 )
+    call cbal(n, ar, ai, is1, is2, fv1)
 
-  call corth ( n, is1, is2, ar, ai, fv2, fv3 )
+    call corth(n, is1, is2, ar, ai, fv2, fv3)
 
-  if ( matz == 0 ) then
+    if (matz==0) then
 
-    call comqr ( n, is1, is2, ar, ai, wr, wi, ierr )
+      call comqr(n, is1, is2, ar, ai, wr, wi, ierr)
 
-    if ( ierr /= 0 ) then
-      return
+      if (ierr/=0) then
+        return
+      end if
+
+    else
+
+      call comqr2(n, is1, is2, fv2, fv3, ar, ai, wr, wi, zr, zi, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'CG - Fatal error!'
+        write (*, '(a)') '  Nonzero error return from COMQR2.'
+        return
+      end if
+
+      call cbabk2(n, is1, is2, fv1, n, zr, zi)
+
     end if
 
-  else
+    return
+  end subroutine cg
 
-    call comqr2 ( n, is1, is2, fv2, fv3, ar, ai, wr, wi, zr, zi, ierr )
-
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'CG - Fatal error!'
-      write ( *, '(a)' ) '  Nonzero error return from COMQR2.'
-      return
-    end if
-
-    call cbabk2 ( n, is1, is2, fv1, n, zr, zi )
-
-  end if
-
-  return
-end subroutine cg
-
-subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
+  subroutine ch(n, ar, ai, w, matz, zr, zi, ierr)
 
 !*****************************************************************************80
 !
@@ -2914,50 +2914,50 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !    Output, integer ( kind = ik4 ) IERR, an error completion code described in the
 !    documentation for TQLRAT and TQL2.  The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,n)
-  real    ( kind = rkx ) :: ar(n,n)
-  real    ( kind = rkx ) :: fm1(2,n)
-  real    ( kind = rkx ) :: fv1(n)
-  real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: zi(n,n)
-  real    ( kind = rkx ) :: zr(n,n)
+    real (kind=rkx) :: ai(n, n)
+    real (kind=rkx) :: ar(n, n)
+    real (kind=rkx) :: fm1(2, n)
+    real (kind=rkx) :: fv1(n)
+    real (kind=rkx) :: fv2(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: zi(n, n)
+    real (kind=rkx) :: zr(n, n)
 
-  call htridi ( n, ar, ai, w, fv1, fv2, fm1 )
+    call htridi(n, ar, ai, w, fv1, fv2, fm1)
 
-  if ( matz == 0 ) then
+    if (matz==0) then
 
-    call tqlrat ( n, w, fv2, ierr )
+      call tqlrat(n, w, fv2, ierr)
 
-  else
+    else
 
-    zr(1:n,1:n) = 0.0_rkx
+      zr(1:n, 1:n) = 0.0_rkx
 
-    do i = 1, n
-      zr(i,i) = 1.0_rkx
-    end do
+      do i = 1, n
+        zr(i, i) = 1.0_rkx
+      end do
 
-    call tql2 ( n, w, fv1, zr, ierr )
+      call tql2(n, w, fv1, zr, ierr)
 
-    if ( ierr /= 0 ) then
-      return
+      if (ierr/=0) then
+        return
+      end if
+
+      call htribk(n, ar, ai, fm1, n, zr, zi)
+
     end if
 
-    call htribk ( n, ar, ai, fm1, n, zr, zi )
+    return
+  end subroutine ch
 
-  end if
-
-  return
-end subroutine ch
-
-subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
+  subroutine cinvit(n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr)
 
 !*****************************************************************************80
 !
@@ -3034,283 +3034,282 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !    -K, if the iteration corresponding to the K-th value fails,
 !    -(N+K), if both error situations occur.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,n)
-  real    ( kind = rkx ) :: ar(n,n)
-  real    ( kind = rkx ) :: eps3
-  real    ( kind = rkx ) :: growto
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  real    ( kind = rkx ) :: ilambd
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: km1
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mp
-  real    ( kind = rkx ) :: norm
-  real    ( kind = rkx ) :: normv
-  real    ( kind = rkx ) :: rlambd
-  real    ( kind = rkx ) :: rm1(n,n)
-  real    ( kind = rkx ) :: rm2(n,n)
-  real    ( kind = rkx ) :: rv1(n)
-  real    ( kind = rkx ) :: rv2(n)
-  integer ( kind = ik4 ) :: s
-  logical              :: select(n)
-  integer ( kind = ik4 ) :: uk
-  real    ( kind = rkx ) :: ukroot
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
-  real    ( kind = rkx ) :: zi(n,mm)
-  real    ( kind = rkx ) :: zr(n,mm)
+    real (kind=rkx) :: ai(n, n)
+    real (kind=rkx) :: ar(n, n)
+    real (kind=rkx) :: eps3
+    real (kind=rkx) :: growto
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    real (kind=rkx) :: ilambd
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: km1
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mp
+    real (kind=rkx) :: norm
+    real (kind=rkx) :: normv
+    real (kind=rkx) :: rlambd
+    real (kind=rkx) :: rm1(n, n)
+    real (kind=rkx) :: rm2(n, n)
+    real (kind=rkx) :: rv1(n)
+    real (kind=rkx) :: rv2(n)
+    integer (kind=ik4) :: s
+    logical :: select(n)
+    integer (kind=ik4) :: uk
+    real (kind=rkx) :: ukroot
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
+    real (kind=rkx) :: zi(n, mm)
+    real (kind=rkx) :: zr(n, mm)
 
-  ierr = 0
-  uk = 0
-  s = 1
+    ierr = 0
+    uk = 0
+    s = 1
 
-  do k = 1, n
+    do k = 1, n
 
-    if ( .not. select(k) ) then
-      cycle
-    end if
+      if (.not. select(k)) then
+        cycle
+      end if
 
-    if ( s > mm ) go to 1000
+      if (s>mm) go to 180
 
-    if ( uk >= k ) go to 200
+      if (uk>=k) go to 100
 !
 !  Check for possible splitting.
 !
-     do uk = k, n - 1
+      do uk = k, n - 1
 
-       if ( ar(uk+1,uk) == 0.0_rkx .and. ai(uk+1,uk) == 0.0_rkx ) then
-         exit
-       end if
+        if (ar(uk+1,uk)==0.0_rkx .and. ai(uk+1,uk)==0.0_rkx) then
+          exit
+        end if
 
-     end do
+      end do
 !
 !  Compute infinity norm of leading UK by UK (Hessenberg) matrix.
 !
-     norm = 0.0_rkx
-     mp = 1
+      norm = 0.0_rkx
+      mp = 1
 
-     do i = 1, uk
+      do i = 1, uk
 
-       x = 0.0_rkx
-       do j = mp, uk
-         x = x + pythag ( ar(i,j), ai(i,j) )
-       end do
+        x = 0.0_rkx
+        do j = mp, uk
+          x = x + pythag(ar(i,j), ai(i,j))
+        end do
 
-       norm = max ( norm, x )
-       mp = i
+        norm = max(norm, x)
+        mp = i
 
-     end do
+      end do
 !
 !  EPS3 replaces zero pivot in decomposition
 !  and close roots are modified by EPS3.
 !
-     if ( norm == 0.0_rkx ) norm = 1.0_rkx
-     eps3 = abs ( norm ) * epsilon ( eps3 )
+      if (norm==0.0_rkx) norm = 1.0_rkx
+      eps3 = abs(norm)*epsilon(eps3)
 !
 !  GROWTO is the criterion for growth.
 !
-     ukroot = real(uk,rkx)
-     ukroot = sqrt ( ukroot )
-     growto = 0.1_rkx / ukroot
+      ukroot = real(uk, rkx)
+      ukroot = sqrt(ukroot)
+      growto = 0.1_rkx/ukroot
 
-200  continue
+100   continue
 
-     rlambd = wr(k)
-     ilambd = wi(k)
-     if ( k == 1 ) go to 280
-     km1 = k - 1
-     go to 240
+      rlambd = wr(k)
+      ilambd = wi(k)
+      if (k==1) go to 130
+      km1 = k - 1
+      go to 120
 !
 !  Perturb eigenvalue if it is close to any previous eigenvalue.
 !
-220  continue
+110   continue
 
-     rlambd = rlambd + eps3
+      rlambd = rlambd + eps3
 
-240  continue
+120   continue
 
-     do ii = 1, km1
+      do ii = 1, km1
         i = k - ii
-        if ( select(i) .and. abs ( wr(i)-rlambd) < eps3 .and. &
-            abs ( wi(i)-ilambd) < eps3 ) then
-          go to 220
+        if (select(i) .and. abs(wr(i)-rlambd)<eps3 .and. abs(wi( &
+          i)-ilambd)<eps3) then
+          go to 110
         end if
-     end do
+      end do
 
-     wr(k) = rlambd
+      wr(k) = rlambd
 !
 !  Form upper Hessenberg (ar,ai)-(rlambd,ilambd) * I
 !  and initial complex vector.
 !
-280  continue
+130   continue
 
-     mp = 1
+      mp = 1
 
-     do i = 1, uk
+      do i = 1, uk
 
         do j = mp, uk
-          rm1(i,j) = ar(i,j)
-          rm2(i,j) = ai(i,j)
+          rm1(i, j) = ar(i, j)
+          rm2(i, j) = ai(i, j)
         end do
 
-        rm1(i,i) = rm1(i,i) - rlambd
-        rm2(i,i) = rm2(i,i) - ilambd
+        rm1(i, i) = rm1(i, i) - rlambd
+        rm2(i, i) = rm2(i, i) - ilambd
         mp = i
         rv1(i) = eps3
 
-     end do
+      end do
 !
 !  Triangular decomposition with interchanges, replacing zero pivots by eps3.
 !
-     do i = 2, uk
+      do i = 2, uk
 
         mp = i - 1
 
-        if ( pythag ( rm1(i,mp), rm2(i,mp) ) > &
-             pythag ( rm1(mp,mp),rm2(mp,mp) ) ) then
+        if (pythag(rm1(i,mp),rm2(i,mp))>pythag(rm1(mp,mp),rm2(mp,mp))) then
 
           do j = mp, uk
-            call r8_swap ( rm1(i,j), rm1(mp,j) )
-            call r8_swap ( rm2(i,j), rm2(mp,j) )
+            call r8_swap(rm1(i,j), rm1(mp,j))
+            call r8_swap(rm2(i,j), rm2(mp,j))
           end do
 
         end if
 
-        if ( rm1(mp,mp) == 0.0_rkx .and. rm2(mp,mp) == 0.0_rkx ) then
-          rm1(mp,mp) = eps3
+        if (rm1(mp,mp)==0.0_rkx .and. rm2(mp,mp)==0.0_rkx) then
+          rm1(mp, mp) = eps3
         end if
 
-        call cdiv ( rm1(i,mp), rm2(i,mp), rm1(mp,mp), rm2(mp,mp), x, y )
+        call cdiv(rm1(i,mp), rm2(i,mp), rm1(mp,mp), rm2(mp,mp), x, y)
 
-        if ( x /= 0.0_rkx .or. y /= 0.0_rkx ) then
+        if (x/=0.0_rkx .or. y/=0.0_rkx) then
 
           do j = i, uk
-            rm1(i,j) = rm1(i,j) - x * rm1(mp,j) + y * rm2(mp,j)
-            rm2(i,j) = rm2(i,j) - x * rm2(mp,j) - y * rm1(mp,j)
+            rm1(i, j) = rm1(i, j) - x*rm1(mp, j) + y*rm2(mp, j)
+            rm2(i, j) = rm2(i, j) - x*rm2(mp, j) - y*rm1(mp, j)
           end do
 
         end if
 
-     end do
+      end do
 
-     if ( rm1(uk,uk) == 0.0_rkx .and. rm2(uk,uk) == 0.0_rkx ) then
-       rm1(uk,uk) = eps3
-     end if
+      if (rm1(uk,uk)==0.0_rkx .and. rm2(uk,uk)==0.0_rkx) then
+        rm1(uk, uk) = eps3
+      end if
 
-     its = 0
+      its = 0
 !
 !  Back substitution.
 !
-  660   continue
+140   continue
 
-    do ii = 1, uk
+      do ii = 1, uk
 
         i = uk + 1 - ii
         x = rv1(i)
         y = 0.0_rkx
 
-        do j = i+1, uk
-          x = x - rm1(i,j) * rv1(j) + rm2(i,j) * rv2(j)
-          y = y - rm1(i,j) * rv2(j) - rm2(i,j) * rv1(j)
+        do j = i + 1, uk
+          x = x - rm1(i, j)*rv1(j) + rm2(i, j)*rv2(j)
+          y = y - rm1(i, j)*rv2(j) - rm2(i, j)*rv1(j)
         end do
 
-        call cdiv ( x, y, rm1(i,i), rm2(i,i), rv1(i), rv2(i) )
+        call cdiv(x, y, rm1(i,i), rm2(i,i), rv1(i), rv2(i))
 
-     end do
+      end do
 !
 !  Acceptance test for eigenvector and normalization.
 !
-     its = its + 1
-     norm = 0.0_rkx
-     normv = 0.0_rkx
+      its = its + 1
+      norm = 0.0_rkx
+      normv = 0.0_rkx
 
-     do i = 1, uk
-        x = pythag ( rv1(i), rv2(i) )
-        if ( normv < x ) then
+      do i = 1, uk
+        x = pythag(rv1(i), rv2(i))
+        if (normv<x) then
           normv = x
           j = i
         end if
         norm = norm + x
-     end do
+      end do
 
-     if ( norm < growto ) go to 840
+      if (norm<growto) go to 150
 !
 !  Accept vector.
 !
-     x = rv1(j)
-     y = rv2(j)
+      x = rv1(j)
+      y = rv2(j)
 
-     do i = 1, uk
-       call cdiv ( rv1(i), rv2(i), x, y, zr(i,s), zi(i,s) )
-     end do
+      do i = 1, uk
+        call cdiv(rv1(i), rv2(i), x, y, zr(i,s), zi(i,s))
+      end do
 
-     if ( uk == n ) then
-       go to 940
-     end if
+      if (uk==n) then
+        go to 170
+      end if
 
-     j = uk + 1
-     go to 900
+      j = uk + 1
+      go to 160
 !
 !  Choose a new starting vector.
 !
-  840    continue
+150   continue
 
-     if ( its < uk ) then
+      if (its<uk) then
 
-       x = ukroot
-       y = eps3 / ( x + 1.0_rkx )
+        x = ukroot
+        y = eps3/(x+1.0_rkx)
 
-       rv1(1) = eps3
-       rv1(2:uk) = y
+        rv1(1) = eps3
+        rv1(2:uk) = y
 
-       j = uk - its + 1
-       rv1(j) = rv1(j) - eps3 * x
-       go to 660
+        j = uk - its + 1
+        rv1(j) = rv1(j) - eps3*x
+        go to 140
 
-     end if
+      end if
 !
 !  Error: unaccepted eigenvector.
 !
-     j = 1
-     ierr = -k
+      j = 1
+      ierr = -k
 !
 !  Set remaining vector components to zero.
 !
-900    continue
+160   continue
 
-       zr(j:n,s) = 0.0_rkx
-       zi(j:n,s) = 0.0_rkx
+      zr(j:n, s) = 0.0_rkx
+      zi(j:n, s) = 0.0_rkx
 
-940    continue
+170   continue
 
-       s = s + 1
+      s = s + 1
 
-  end do
+    end do
 
-  go to 1001
+    go to 190
 !
 !  Set error: underestimate of eigenvector space required.
 !
- 1000 continue
-  if ( ierr /= 0 ) ierr = ierr - n
-  if ( ierr == 0 ) ierr = -(2 * n + 1)
- 1001 continue
-  m = s - 1
-  return
-end subroutine cinvit
+180 continue
+    if (ierr/=0) ierr = ierr - n
+    if (ierr==0) ierr = -(2*n+1)
+190 continue
+    m = s - 1
+    return
+  end subroutine cinvit
 
-subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
+  subroutine combak(n, low, igh, ar, ai, ia, m, zr, zi)
 
 !*****************************************************************************80
 !
@@ -3372,69 +3371,69 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 !    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,igh)
-  real    ( kind = rkx ) :: ar(n,igh)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ia(igh)
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: la
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: mp
-  real    ( kind = rkx ) :: xi
-  real    ( kind = rkx ) :: xr
-  real    ( kind = rkx ) :: zi(n,m)
-  real    ( kind = rkx ) :: zr(n,m)
+    real (kind=rkx) :: ai(n, igh)
+    real (kind=rkx) :: ar(n, igh)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ia(igh)
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: la
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: mp
+    real (kind=rkx) :: xi
+    real (kind=rkx) :: xr
+    real (kind=rkx) :: zi(n, m)
+    real (kind=rkx) :: zr(n, m)
 
-  if ( m == 0 ) then
+    if (m==0) then
+      return
+    end if
+
+    la = igh - 1
+
+    if (igh-1<low+1) then
+      return
+    end if
+
+    do mm = low + 1, la
+
+      mp = low + igh - mm
+
+      do i = mp + 1, igh
+
+        xr = ar(i, mp-1)
+        xi = ai(i, mp-1)
+
+        if (xr/=0.0_rkx .or. xi/=0.0_rkx) then
+          zr(i, 1:m) = zr(i, 1:m) + xr*zr(mp, 1:m) - xi*zi(mp, 1:m)
+          zi(i, 1:m) = zi(i, 1:m) + xr*zi(mp, 1:m) + xi*zr(mp, 1:m)
+        end if
+
+      end do
+
+      i = ia(mp)
+
+      if (i/=mp) then
+
+        do j = 1, m
+          call r8_swap(zr(i,j), zr(mp,j))
+          call r8_swap(zi(i,j), zi(mp,j))
+        end do
+
+      end if
+
+    end do
+
     return
-  end if
+  end subroutine combak
 
-  la = igh - 1
-
-  if ( igh - 1 < low + 1 ) then
-    return
-  end if
-
-  do mm = low + 1, la
-
-     mp = low + igh - mm
-
-     do i = mp+1, igh
-
-        xr = ar(i,mp-1)
-        xi = ai(i,mp-1)
-
-        if ( xr /= 0.0_rkx .or. xi /= 0.0_rkx ) then
-          zr(i,1:m) = zr(i,1:m) + xr * zr(mp,1:m) - xi * zi(mp,1:m)
-          zi(i,1:m) = zi(i,1:m) + xr * zi(mp,1:m) + xi * zr(mp,1:m)
-       end if
-
-     end do
-
-     i = ia(mp)
-
-     if ( i /= mp ) then
-
-       do j = 1, m
-         call r8_swap ( zr(i,j), zr(mp,j) )
-         call r8_swap ( zi(i,j), zi(mp,j) )
-       end do
-
-     end if
-
-  end do
-
-  return
-end subroutine combak
-
-subroutine comhes ( n, low, igh, ar, ai, ia )
+  subroutine comhes(n, low, igh, ar, ai, ia)
 
 !*****************************************************************************80
 !
@@ -3494,94 +3493,93 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
 !    Output, integer ( kind = ik4 ) INT(IGH), information on the rows and columns
 !    interchanged in the reduction.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,n)
-  real    ( kind = rkx ) :: ar(n,n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ia(igh)
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: la
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  real    ( kind = rkx ) :: xi
-  real    ( kind = rkx ) :: xr
-  real    ( kind = rkx ) :: yi
-  real    ( kind = rkx ) :: yr
+    real (kind=rkx) :: ai(n, n)
+    real (kind=rkx) :: ar(n, n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ia(igh)
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: la
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    real (kind=rkx) :: xi
+    real (kind=rkx) :: xr
+    real (kind=rkx) :: yi
+    real (kind=rkx) :: yr
 
-  la = igh - 1
+    la = igh - 1
 
-  do m = low + 1, la
+    do m = low + 1, la
 
-     xr = 0.0_rkx
-     xi = 0.0_rkx
-     i = m
+      xr = 0.0_rkx
+      xi = 0.0_rkx
+      i = m
 
-     do j = m, igh
+      do j = m, igh
 
-       if ( abs ( ar(j,m-1) ) + abs ( ai(j,m-1) ) > &
-         abs ( xr ) + abs ( xi ) ) then
-         xr = ar(j,m-1)
-         xi = ai(j,m-1)
-         i = j
-       end if
-
-     end do
-
-     ia(m) = i
-!
-!  Interchange rows and columns of AR and AI.
-!
-     if ( i /= m ) then
-
-       do j = m-1, n
-         call r8_swap ( ar(i,j), ar(m,j) )
-         call r8_swap ( ai(i,j), ai(m,j) )
-       end do
-
-       do j = 1, igh
-         call r8_swap ( ar(j,i), ar(j,m) )
-         call r8_swap ( ai(j,i), ai(j,m) )
-       end do
-
-     end if
-
-    if ( xr /= 0.0_rkx .or. xi /= 0.0_rkx ) then
-
-      do i = m+1, igh
-
-        yr = ar(i,m-1)
-        yi = ai(i,m-1)
-
-        if ( yr /= 0.0_rkx .or. yi /= 0.0_rkx ) then
-
-          call cdiv ( yr, yi, xr, xi, yr, yi )
-          ar(i,m-1) = yr
-          ai(i,m-1) = yi
-
-          do j = m, n
-            ar(i,j) = ar(i,j) - yr * ar(m,j) + yi * ai(m,j)
-            ai(i,j) = ai(i,j) - yr * ai(m,j) - yi * ar(m,j)
-          end do
-
-          ar(1:igh,m) = ar(1:igh,m) + yr * ar(1:igh,i) - yi * ai(1:igh,i)
-          ai(1:igh,m) = ai(1:igh,m) + yr * ai(1:igh,i) + yi * ar(1:igh,i)
-
+        if (abs(ar(j,m-1))+abs(ai(j,m-1))>abs(xr)+abs(xi)) then
+          xr = ar(j, m-1)
+          xi = ai(j, m-1)
+          i = j
         end if
 
       end do
 
-    end if
+      ia(m) = i
+!
+!  Interchange rows and columns of AR and AI.
+!
+      if (i/=m) then
 
-  end do
+        do j = m - 1, n
+          call r8_swap(ar(i,j), ar(m,j))
+          call r8_swap(ai(i,j), ai(m,j))
+        end do
 
-  return
-end subroutine comhes
+        do j = 1, igh
+          call r8_swap(ar(j,i), ar(j,m))
+          call r8_swap(ai(j,i), ai(j,m))
+        end do
 
-subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
+      end if
+
+      if (xr/=0.0_rkx .or. xi/=0.0_rkx) then
+
+        do i = m + 1, igh
+
+          yr = ar(i, m-1)
+          yi = ai(i, m-1)
+
+          if (yr/=0.0_rkx .or. yi/=0.0_rkx) then
+
+            call cdiv(yr, yi, xr, xi, yr, yi)
+            ar(i, m-1) = yr
+            ai(i, m-1) = yi
+
+            do j = m, n
+              ar(i, j) = ar(i, j) - yr*ar(m, j) + yi*ai(m, j)
+              ai(i, j) = ai(i, j) - yr*ai(m, j) - yi*ar(m, j)
+            end do
+
+            ar(1:igh, m) = ar(1:igh, m) + yr*ar(1:igh, i) - yi*ai(1:igh, i)
+            ai(1:igh, m) = ai(1:igh, m) + yr*ai(1:igh, i) + yi*ar(1:igh, i)
+
+          end if
+
+        end do
+
+      end if
+
+    end do
+
+    return
+  end subroutine comhes
+
+  subroutine comlr(n, low, igh, hr, hi, wr, wi, ierr)
 
 !*****************************************************************************80
 !
@@ -3647,233 +3645,232 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  integer ( kind = ik4 ) :: en
-  integer ( kind = ik4 ) :: enm1
-  real    ( kind = rkx ) :: hi(n,n)
-  real    ( kind = rkx ) :: hr(n,n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: itn
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mm
-  real    ( kind = rkx ) :: si
-  real    ( kind = rkx ) :: sr
-  real    ( kind = rkx ) :: ti
-  real    ( kind = rkx ) :: tr
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: xi
-  real    ( kind = rkx ) :: xr
-  real    ( kind = rkx ) :: yi
-  real    ( kind = rkx ) :: yr
-  real    ( kind = rkx ) :: zzi
-  real    ( kind = rkx ) :: zzr
+    integer (kind=ik4) :: en
+    integer (kind=ik4) :: enm1
+    real (kind=rkx) :: hi(n, n)
+    real (kind=rkx) :: hr(n, n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: itn
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mm
+    real (kind=rkx) :: si
+    real (kind=rkx) :: sr
+    real (kind=rkx) :: ti
+    real (kind=rkx) :: tr
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: xi
+    real (kind=rkx) :: xr
+    real (kind=rkx) :: yi
+    real (kind=rkx) :: yr
+    real (kind=rkx) :: zzi
+    real (kind=rkx) :: zzr
 
-  ierr = 0
+    ierr = 0
 !
 !  Store roots isolated by CBAL.
 !
-  do i = 1, n
-    if ( i < low .or. i > igh ) then
-      wr(i) = hr(i,i)
-      wi(i) = hi(i,i)
-    end if
-  end do
+    do i = 1, n
+      if (i<low .or. i>igh) then
+        wr(i) = hr(i, i)
+        wi(i) = hi(i, i)
+      end if
+    end do
 
-  en = igh
-  tr = 0.0_rkx
-  ti = 0.0_rkx
-  itn = 30 * n
+    en = igh
+    tr = 0.0_rkx
+    ti = 0.0_rkx
+    itn = 30*n
 !
 !  Search for next eigenvalue.
 !
-  220 continue
+100 continue
 
-  if ( en < low ) then
-    return
-  end if
+    if (en<low) then
+      return
+    end if
 
-  its = 0
-  enm1 = en - 1
+    its = 0
+    enm1 = en - 1
 !
 !  Look for single small sub-diagonal element.
 !
-  240 continue
+110 continue
 
-  do ll = low, en
-     l = en + low - ll
-     if ( l == low ) go to 300
-     tst1 = abs ( hr(l-1,l-1) ) + abs ( hi(l-1,l-1) ) + abs ( hr(l,l) ) &
-       + abs ( hi(l,l) )
-     tst2 = tst1 + abs ( hr(l,l-1) ) + abs ( hi(l,l-1) )
-     if ( tst2 == tst1) go to 300
-  end do
+    do ll = low, en
+      l = en + low - ll
+      if (l==low) go to 120
+      tst1 = abs(hr(l-1,l-1)) + abs(hi(l-1,l-1)) + abs(hr(l,l)) + abs(hi(l,l))
+      tst2 = tst1 + abs(hr(l,l-1)) + abs(hi(l,l-1))
+      if (tst2==tst1) go to 120
+    end do
 !
 !  Form shift.
 !
-300 continue
+120 continue
 
-  if ( l == en ) then
-    go to 660
-  end if
+    if (l==en) then
+      go to 170
+    end if
 
-  if ( itn == 0 ) then
-    ierr = en
-    return
-  end if
+    if (itn==0) then
+      ierr = en
+      return
+    end if
 
-  if ( its == 10 .or. its == 20 ) go to 320
-  sr = hr(en,en)
-  si = hi(en,en)
-  xr = hr(enm1,en) * hr(en,enm1) - hi(enm1,en) * hi(en,enm1)
-  xi = hr(enm1,en) * hi(en,enm1) + hi(enm1,en) * hr(en,enm1)
-  if ( xr == 0.0_rkx .and. xi == 0.0_rkx ) go to 340
-  yr = ( hr(enm1,enm1) - sr) / 2.0_rkx
-  yi = ( hi(enm1,enm1) - si) / 2.0_rkx
-  call csroot ( yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi )
+    if (its==10 .or. its==20) go to 130
+    sr = hr(en, en)
+    si = hi(en, en)
+    xr = hr(enm1, en)*hr(en, enm1) - hi(enm1, en)*hi(en, enm1)
+    xi = hr(enm1, en)*hi(en, enm1) + hi(enm1, en)*hr(en, enm1)
+    if (xr==0.0_rkx .and. xi==0.0_rkx) go to 140
+    yr = (hr(enm1,enm1)-sr)/2.0_rkx
+    yi = (hi(enm1,enm1)-si)/2.0_rkx
+    call csroot(yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi)
 
-  if ( yr * zzr + yi * zzi < 0.0_rkx ) then
-    zzr = -zzr
-    zzi = -zzi
-  end if
+    if (yr*zzr+yi*zzi<0.0_rkx) then
+      zzr = -zzr
+      zzi = -zzi
+    end if
 
-  call cdiv ( xr, xi, yr+zzr, yi+zzi, xr, xi )
-  sr = sr - xr
-  si = si - xi
-  go to 340
+    call cdiv(xr, xi, yr+zzr, yi+zzi, xr, xi)
+    sr = sr - xr
+    si = si - xi
+    go to 140
 !
 !  Form exceptional shift.
 !
-  320 continue
+130 continue
 
-  sr = abs ( hr(en,enm1) ) + abs ( hr(enm1,en-2) )
-  si = abs ( hi(en,enm1) ) + abs ( hi(enm1,en-2) )
+    sr = abs(hr(en,enm1)) + abs(hr(enm1,en-2))
+    si = abs(hi(en,enm1)) + abs(hi(enm1,en-2))
 
-  340 continue
+140 continue
 
-  do i = low, en
-    hr(i,i) = hr(i,i) - sr
-    hi(i,i) = hi(i,i) - si
-  end do
+    do i = low, en
+      hr(i, i) = hr(i, i) - sr
+      hi(i, i) = hi(i, i) - si
+    end do
 
-  tr = tr + sr
-  ti = ti + si
-  its = its + 1
-  itn = itn - 1
+    tr = tr + sr
+    ti = ti + si
+    its = its + 1
+    itn = itn - 1
 !
 !  Look for two consecutive small sub-diagonal elements.
 !
-  xr = abs ( hr(enm1,enm1) ) + abs ( hi(enm1,enm1) )
-  yr = abs ( hr(en,enm1) ) + abs ( hi(en,enm1) )
-  zzr = abs ( hr(en,en) ) + abs ( hi(en,en) )
+    xr = abs(hr(enm1,enm1)) + abs(hi(enm1,enm1))
+    yr = abs(hr(en,enm1)) + abs(hi(en,enm1))
+    zzr = abs(hr(en,en)) + abs(hi(en,en))
 
-  do mm = l, enm1
-    m = enm1 + l - mm
-    if ( m == l ) then
-      exit
-    end if
-    yi = yr
-    yr = abs ( hr(m,m-1) ) + abs ( hi(m,m-1) )
-    xi = zzr
-    zzr = xr
-    xr = abs ( hr(m-1,m-1) ) + abs ( hi(m-1,m-1) )
-    tst1 = zzr / yi * (zzr + xr + xi)
-    tst2 = tst1 + yr
-    if ( tst2 == tst1 ) then
-      exit
-    end if
-  end do
+    do mm = l, enm1
+      m = enm1 + l - mm
+      if (m==l) then
+        exit
+      end if
+      yi = yr
+      yr = abs(hr(m,m-1)) + abs(hi(m,m-1))
+      xi = zzr
+      zzr = xr
+      xr = abs(hr(m-1,m-1)) + abs(hi(m-1,m-1))
+      tst1 = zzr/yi*(zzr+xr+xi)
+      tst2 = tst1 + yr
+      if (tst2==tst1) then
+        exit
+      end if
+    end do
 !
 !  Triangular decomposition H=L*R.
 !
-  do i = m+1, en
+    do i = m + 1, en
 
-     xr = hr(i-1,i-1)
-     xi = hi(i-1,i-1)
-     yr = hr(i,i-1)
-     yi = hi(i,i-1)
-     if ( abs ( xr ) + abs ( xi ) >= abs ( yr ) + abs ( yi ) ) go to 460
+      xr = hr(i-1, i-1)
+      xi = hi(i-1, i-1)
+      yr = hr(i, i-1)
+      yi = hi(i, i-1)
+      if (abs(xr)+abs(xi)>=abs(yr)+abs(yi)) go to 150
 !
 !  Interchange rows of HR and HI.
 !
-     do j = i-1, en
-       call r8_swap ( hr(i-1,j), hr(i,j) )
-       call r8_swap ( hi(i-1,j), hi(i,j) )
-     end do
+      do j = i - 1, en
+        call r8_swap(hr(i-1,j), hr(i,j))
+        call r8_swap(hi(i-1,j), hi(i,j))
+      end do
 
-     call cdiv ( xr, xi, yr, yi, zzr, zzi )
-     wr(i) = 1.0_rkx
-     go to 480
+      call cdiv(xr, xi, yr, yi, zzr, zzi)
+      wr(i) = 1.0_rkx
+      go to 160
 
-460 continue
+150   continue
 
-     call cdiv ( yr, yi, xr, xi, zzr, zzi )
-     wr(i) = -1.0_rkx
+      call cdiv(yr, yi, xr, xi, zzr, zzi)
+      wr(i) = -1.0_rkx
 
-480  continue
+160   continue
 
-     hr(i,i-1) = zzr
-     hi(i,i-1) = zzi
+      hr(i, i-1) = zzr
+      hi(i, i-1) = zzi
 
-     do j = i, en
-        hr(i,j) = hr(i,j) - zzr * hr(i-1,j) + zzi * hi(i-1,j)
-        hi(i,j) = hi(i,j) - zzr * hi(i-1,j) - zzi * hr(i-1,j)
-     end do
+      do j = i, en
+        hr(i, j) = hr(i, j) - zzr*hr(i-1, j) + zzi*hi(i-1, j)
+        hi(i, j) = hi(i, j) - zzr*hi(i-1, j) - zzi*hr(i-1, j)
+      end do
 
-  end do
+    end do
 !
 !  Composition R*L=H.
 !
-  do j = m+1, en
+    do j = m + 1, en
 
-    xr = hr(j,j-1)
-    xi = hi(j,j-1)
-    hr(j,j-1) = 0.0_rkx
-    hi(j,j-1) = 0.0_rkx
+      xr = hr(j, j-1)
+      xi = hi(j, j-1)
+      hr(j, j-1) = 0.0_rkx
+      hi(j, j-1) = 0.0_rkx
 !
 !  Interchange columns of HR and HI, if necessary.
 !
-    if ( wr(j) > 0.0_rkx ) then
+      if (wr(j)>0.0_rkx) then
+
+        do i = l, j
+          call r8_swap(hr(i,j-1), hr(i,j))
+          call r8_swap(hi(i,j-1), hi(i,j))
+        end do
+
+      end if
 
       do i = l, j
-        call r8_swap ( hr(i,j-1), hr(i,j) )
-        call r8_swap ( hi(i,j-1), hi(i,j) )
+        hr(i, j-1) = hr(i, j-1) + xr*hr(i, j) - xi*hi(i, j)
+        hi(i, j-1) = hi(i, j-1) + xr*hi(i, j) + xi*hr(i, j)
       end do
 
-    end if
-
-    do i = l, j
-      hr(i,j-1) = hr(i,j-1) + xr * hr(i,j) - xi * hi(i,j)
-      hi(i,j-1) = hi(i,j-1) + xr * hi(i,j) + xi * hr(i,j)
     end do
 
-  end do
-
-  go to 240
+    go to 110
 !
 !  A root found.
 !
-  660 continue
+170 continue
 
-  wr(en) = hr(en,en) + tr
-  wi(en) = hi(en,en) + ti
-  en = enm1
-  go to 220
-end subroutine comlr
+    wr(en) = hr(en, en) + tr
+    wi(en) = hi(en, en) + ti
+    en = enm1
+    go to 100
+  end subroutine comlr
 
-subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
+  subroutine comlr2(n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr)
 
 !*****************************************************************************80
 !
@@ -3949,370 +3946,369 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  integer ( kind = ik4 ) :: en
-  integer ( kind = ik4 ) :: enm1
-  real    ( kind = rkx ) :: hi(n,n)
-  real    ( kind = rkx ) :: hr(n,n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: iend
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: ia(igh)
-  integer ( kind = ik4 ) :: itn
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: nn
-  real    ( kind = rkx ) :: norm
-  real    ( kind = rkx ) :: si
-  real    ( kind = rkx ) :: sr
-  real    ( kind = rkx ) :: ti
-  real    ( kind = rkx ) :: tr
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: xi
-  real    ( kind = rkx ) :: xr
-  real    ( kind = rkx ) :: yi
-  real    ( kind = rkx ) :: yr
-  real    ( kind = rkx ) :: zi(n,n)
-  real    ( kind = rkx ) :: zr(n,n)
-  real    ( kind = rkx ) :: zzi
-  real    ( kind = rkx ) :: zzr
+    integer (kind=ik4) :: en
+    integer (kind=ik4) :: enm1
+    real (kind=rkx) :: hi(n, n)
+    real (kind=rkx) :: hr(n, n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: iend
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: ia(igh)
+    integer (kind=ik4) :: itn
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: nn
+    real (kind=rkx) :: norm
+    real (kind=rkx) :: si
+    real (kind=rkx) :: sr
+    real (kind=rkx) :: ti
+    real (kind=rkx) :: tr
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: xi
+    real (kind=rkx) :: xr
+    real (kind=rkx) :: yi
+    real (kind=rkx) :: yr
+    real (kind=rkx) :: zi(n, n)
+    real (kind=rkx) :: zr(n, n)
+    real (kind=rkx) :: zzi
+    real (kind=rkx) :: zzr
 
-  ierr = 0
+    ierr = 0
 !
 !  Initialize the eigenvector matrix.
 !
-  zr(1:n,1:n) = 0.0_rkx
+    zr(1:n, 1:n) = 0.0_rkx
 
-  do i = 1, n
-    zr(i,i) = 1.0_rkx
-  end do
+    do i = 1, n
+      zr(i, i) = 1.0_rkx
+    end do
 
-  zi(1:n,1:n) = 0.0_rkx
+    zi(1:n, 1:n) = 0.0_rkx
 !
 !  Form the matrix of accumulated transformations from the information left
 !  by COMHES.
 !
-  iend = igh - low - 1
+    iend = igh - low - 1
 
-  do ii = 1, iend
+    do ii = 1, iend
 
-    i = igh - ii
+      i = igh - ii
 
-    do k = i+1, igh
-      zr(k,i) = hr(k,i-1)
-      zi(k,i) = hi(k,i-1)
-    end do
-
-    j = ia(i)
-
-    if ( i /= j ) then
-
-      do k = i, igh
-        zr(i,k) = zr(j,k)
-        zi(i,k) = zi(j,k)
-        zr(j,k) = 0.0_rkx
-        zi(j,k) = 0.0_rkx
+      do k = i + 1, igh
+        zr(k, i) = hr(k, i-1)
+        zi(k, i) = hi(k, i-1)
       end do
 
-      zr(j,i) = 1.0_rkx
+      j = ia(i)
 
-    end if
+      if (i/=j) then
 
-  end do
+        do k = i, igh
+          zr(i, k) = zr(j, k)
+          zi(i, k) = zi(j, k)
+          zr(j, k) = 0.0_rkx
+          zi(j, k) = 0.0_rkx
+        end do
+
+        zr(j, i) = 1.0_rkx
+
+      end if
+
+    end do
 !
 !  Store roots isolated by CBAL.
 !
-  do i = 1, n
-    if ( i < low .or. i > igh ) then
-      wr(i) = hr(i,i)
-      wi(i) = hi(i,i)
-    end if
-  end do
+    do i = 1, n
+      if (i<low .or. i>igh) then
+        wr(i) = hr(i, i)
+        wi(i) = hi(i, i)
+      end if
+    end do
 
-  en = igh
-  tr = 0.0_rkx
-  ti = 0.0_rkx
-  itn = 30 * n
+    en = igh
+    tr = 0.0_rkx
+    ti = 0.0_rkx
+    itn = 30*n
 !
 !  Search for next eigenvalue.
 !
-220 continue
+100 continue
 
-  if ( en < low ) then
-    go to 680
-  end if
+    if (en<low) then
+      go to 170
+    end if
 
-  its = 0
-  enm1 = en - 1
+    its = 0
+    enm1 = en - 1
 !
 !  Look for single small sub-diagonal element.
 !
-  240 continue
+110 continue
 
-  do ll = low, en
+    do ll = low, en
 
-     l = en + low - ll
+      l = en + low - ll
 
-     if ( l == low ) then
-       exit
-     end if
+      if (l==low) then
+        exit
+      end if
 
-     tst1 = abs ( hr(l-1,l-1) ) + abs ( hi(l-1,l-1) ) + abs ( hr(l,l) ) &
-       + abs ( hi(l,l) )
-     tst2 = tst1 + abs ( hr(l,l-1) ) + abs ( hi(l,l-1) )
+      tst1 = abs(hr(l-1,l-1)) + abs(hi(l-1,l-1)) + abs(hr(l,l)) + abs(hi(l,l))
+      tst2 = tst1 + abs(hr(l,l-1)) + abs(hi(l,l-1))
 
-     if ( tst2 == tst1 ) then
-       exit
-     end if
+      if (tst2==tst1) then
+        exit
+      end if
 
-  end do
+    end do
 !
 !  Form shift.
 !
-  if ( l == en ) go to 660
-  if ( itn == 0 ) go to 1000
-  if ( its == 10 .or. its == 20 ) go to 320
-  sr = hr(en,en)
-  si = hi(en,en)
-  xr = hr(enm1,en) * hr(en,enm1) - hi(enm1,en) * hi(en,enm1)
-  xi = hr(enm1,en) * hi(en,enm1) + hi(enm1,en) * hr(en,enm1)
-  if ( xr == 0.0_rkx .and. xi == 0.0_rkx ) go to 340
-  yr = (hr(enm1,enm1) - sr) / 2.0_rkx
-  yi = (hi(enm1,enm1) - si) / 2.0_rkx
-  call csroot ( yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi )
+    if (l==en) go to 160
+    if (itn==0) go to 180
+    if (its==10 .or. its==20) go to 120
+    sr = hr(en, en)
+    si = hi(en, en)
+    xr = hr(enm1, en)*hr(en, enm1) - hi(enm1, en)*hi(en, enm1)
+    xi = hr(enm1, en)*hi(en, enm1) + hi(enm1, en)*hr(en, enm1)
+    if (xr==0.0_rkx .and. xi==0.0_rkx) go to 130
+    yr = (hr(enm1,enm1)-sr)/2.0_rkx
+    yi = (hi(enm1,enm1)-si)/2.0_rkx
+    call csroot(yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi)
 
-  if ( yr * zzr + yi * zzi < 0.0_rkx ) then
-    zzr = -zzr
-    zzi = -zzi
-  end if
+    if (yr*zzr+yi*zzi<0.0_rkx) then
+      zzr = -zzr
+      zzi = -zzi
+    end if
 
-  call cdiv ( xr, xi, yr+zzr, yi+zzi, xr, xi )
-  sr = sr - xr
-  si = si - xi
-  go to 340
+    call cdiv(xr, xi, yr+zzr, yi+zzi, xr, xi)
+    sr = sr - xr
+    si = si - xi
+    go to 130
 !
 !  Form exceptional shift.
 !
-  320 continue
+120 continue
 
-  sr = abs ( hr(en,enm1) ) + abs ( hr(enm1,en-2) )
-  si = abs ( hi(en,enm1) ) + abs ( hi(enm1,en-2) )
+    sr = abs(hr(en,enm1)) + abs(hr(enm1,en-2))
+    si = abs(hi(en,enm1)) + abs(hi(enm1,en-2))
 
-  340 continue
+130 continue
 
-  do i = low, en
-    hr(i,i) = hr(i,i) - sr
-    hi(i,i) = hi(i,i) - si
-  end do
+    do i = low, en
+      hr(i, i) = hr(i, i) - sr
+      hi(i, i) = hi(i, i) - si
+    end do
 
-  tr = tr + sr
-  ti = ti + si
-  its = its + 1
-  itn = itn - 1
+    tr = tr + sr
+    ti = ti + si
+    its = its + 1
+    itn = itn - 1
 !
 !  Look for two consecutive small sub-diagonal elements.
 !
-  xr = abs ( hr(enm1,enm1) ) + abs ( hi(enm1,enm1) )
-  yr = abs ( hr(en,enm1) ) + abs ( hi(en,enm1) )
-  zzr = abs ( hr(en,en) ) + abs ( hi(en,en) )
+    xr = abs(hr(enm1,enm1)) + abs(hi(enm1,enm1))
+    yr = abs(hr(en,enm1)) + abs(hi(en,enm1))
+    zzr = abs(hr(en,en)) + abs(hi(en,en))
 
-  do mm = l, enm1
-     m = enm1 + l - mm
-     if ( m == l ) then
-       exit
-     end if
-     yi = yr
-     yr = abs ( hr(m,m-1) ) + abs ( hi(m,m-1) )
-     xi = zzr
-     zzr = xr
-     xr = abs ( hr(m-1,m-1) ) + abs ( hi(m-1,m-1) )
-     tst1 = zzr / yi * (zzr + xr + xi)
-     tst2 = tst1 + yr
-     if ( tst2 == tst1 ) then
-       exit
-     end if
-  end do
+    do mm = l, enm1
+      m = enm1 + l - mm
+      if (m==l) then
+        exit
+      end if
+      yi = yr
+      yr = abs(hr(m,m-1)) + abs(hi(m,m-1))
+      xi = zzr
+      zzr = xr
+      xr = abs(hr(m-1,m-1)) + abs(hi(m-1,m-1))
+      tst1 = zzr/yi*(zzr+xr+xi)
+      tst2 = tst1 + yr
+      if (tst2==tst1) then
+        exit
+      end if
+    end do
 !
 !  Triangular decomposition H=L*R.
 !
-  do i = m+1, en
+    do i = m + 1, en
 
-     xr = hr(i-1,i-1)
-     xi = hi(i-1,i-1)
-     yr = hr(i,i-1)
-     yi = hi(i,i-1)
-     if ( abs ( xr ) + abs ( xi) >= abs ( yr ) + abs ( yi ) ) go to 460
+      xr = hr(i-1, i-1)
+      xi = hi(i-1, i-1)
+      yr = hr(i, i-1)
+      yi = hi(i, i-1)
+      if (abs(xr)+abs(xi)>=abs(yr)+abs(yi)) go to 140
 !
 !  Interchange rows of HR and HI.
 !
-     do j = i-1, n
-       call r8_swap ( hr(i-1,j), hr(i,j) )
-       call r8_swap ( hi(i-1,j), hi(i,j) )
+      do j = i - 1, n
+        call r8_swap(hr(i-1,j), hr(i,j))
+        call r8_swap(hi(i-1,j), hi(i,j))
+      end do
+
+      call cdiv(xr, xi, yr, yi, zzr, zzi)
+      wr(i) = 1.0_rkx
+      go to 150
+140   continue
+
+      call cdiv(yr, yi, xr, xi, zzr, zzi)
+      wr(i) = -1.0_rkx
+
+150   continue
+
+      hr(i, i-1) = zzr
+      hi(i, i-1) = zzi
+
+      do j = i, n
+        hr(i, j) = hr(i, j) - zzr*hr(i-1, j) + zzi*hi(i-1, j)
+        hi(i, j) = hi(i, j) - zzr*hi(i-1, j) - zzi*hr(i-1, j)
+      end do
+
     end do
-
-     call cdiv ( xr, xi, yr, yi, zzr, zzi )
-     wr(i) = 1.0_rkx
-     go to 480
-460  continue
-
-     call cdiv ( yr, yi, xr, xi, zzr, zzi )
-     wr(i) = -1.0_rkx
-
-480  continue
-
-     hr(i,i-1) = zzr
-     hi(i,i-1) = zzi
-
-     do j = i, n
-       hr(i,j) = hr(i,j) - zzr * hr(i-1,j) + zzi * hi(i-1,j)
-       hi(i,j) = hi(i,j) - zzr * hi(i-1,j) - zzi * hr(i-1,j)
-     end do
-
-  end do
 !
 !  Composition R*L=H.
 !
-  do j = m+1, en
+    do j = m + 1, en
 
-     xr = hr(j,j-1)
-     xi = hi(j,j-1)
-     hr(j,j-1) = 0.0_rkx
-     hi(j,j-1) = 0.0_rkx
+      xr = hr(j, j-1)
+      xi = hi(j, j-1)
+      hr(j, j-1) = 0.0_rkx
+      hi(j, j-1) = 0.0_rkx
 !
 !  Interchange columns of HR, HI, ZR, and ZI.
 !
-     if ( wr(j) > 0.0_rkx ) then
+      if (wr(j)>0.0_rkx) then
 
-       do i = 1, j
-         call r8_swap ( hr(i,j-1), hr(i,j) )
-         call r8_swap ( hi(i,j-1), hi(i,j) )
-       end do
+        do i = 1, j
+          call r8_swap(hr(i,j-1), hr(i,j))
+          call r8_swap(hi(i,j-1), hi(i,j))
+        end do
 
-       do i = low, igh
-         call r8_swap ( zr(i,j-1), zr(i,j) )
-         call r8_swap ( zi(i,j-1), zi(i,j) )
-       end do
+        do i = low, igh
+          call r8_swap(zr(i,j-1), zr(i,j))
+          call r8_swap(zi(i,j-1), zi(i,j))
+        end do
 
-    end if
+      end if
 
-    do i = 1, j
-      hr(i,j-1) = hr(i,j-1) + xr * hr(i,j) - xi * hi(i,j)
-      hi(i,j-1) = hi(i,j-1) + xr * hi(i,j) + xi * hr(i,j)
-    end do
+      do i = 1, j
+        hr(i, j-1) = hr(i, j-1) + xr*hr(i, j) - xi*hi(i, j)
+        hi(i, j-1) = hi(i, j-1) + xr*hi(i, j) + xi*hr(i, j)
+      end do
 !
 !  Accumulate transformations.
 !
-    do i = low, igh
-      zr(i,j-1) = zr(i,j-1) + xr * zr(i,j) - xi * zi(i,j)
-      zi(i,j-1) = zi(i,j-1) + xr * zi(i,j) + xi * zr(i,j)
+      do i = low, igh
+        zr(i, j-1) = zr(i, j-1) + xr*zr(i, j) - xi*zi(i, j)
+        zi(i, j-1) = zi(i, j-1) + xr*zi(i, j) + xi*zr(i, j)
+      end do
+
     end do
 
-  end do
-
-  go to 240
+    go to 110
 !
 !  A root found.
 !
-  660 continue
+160 continue
 
-  hr(en,en) = hr(en,en) + tr
-  wr(en) = hr(en,en)
-  hi(en,en) = hi(en,en) + ti
-  wi(en) = hi(en,en)
-  en = enm1
-  go to 220
+    hr(en, en) = hr(en, en) + tr
+    wr(en) = hr(en, en)
+    hi(en, en) = hi(en, en) + ti
+    wi(en) = hi(en, en)
+    en = enm1
+    go to 100
 !
 !  All roots found.
 !  Backsubstitute to find vectors of upper triangular form.
 !
-  680 continue
+170 continue
 
-  norm = 0.0_rkx
+    norm = 0.0_rkx
 
-  do i = 1, n
-    do j = i, n
-      tr = abs ( hr(i,j) ) + abs ( hi(i,j) )
-      if ( tr > norm ) norm = tr
+    do i = 1, n
+      do j = i, n
+        tr = abs(hr(i,j)) + abs(hi(i,j))
+        if (tr>norm) norm = tr
+      end do
     end do
-  end do
 
-  hr(1,1) = norm
-  if ( n == 1 ) then
-    return
-  end if
+    hr(1, 1) = norm
+    if (n==1) then
+      return
+    end if
 
-  if ( norm == 0.0_rkx ) then
-    return
-  end if
+    if (norm==0.0_rkx) then
+      return
+    end if
 
-  do nn = 2, n
+    do nn = 2, n
 
-     en = n + 2 - nn
-     xr = wr(en)
-     xi = wi(en)
-     hr(en,en) = 1.0_rkx
-     hi(en,en) = 0.0_rkx
-     enm1 = en - 1
+      en = n + 2 - nn
+      xr = wr(en)
+      xi = wi(en)
+      hr(en, en) = 1.0_rkx
+      hi(en, en) = 0.0_rkx
+      enm1 = en - 1
 
-     do ii = 1, enm1
+      do ii = 1, enm1
 
         i = en - ii
         zzr = 0.0_rkx
         zzi = 0.0_rkx
 
-        do j = i+1, en
-          zzr = zzr + hr(i,j) * hr(j,en) - hi(i,j) * hi(j,en)
-          zzi = zzi + hr(i,j) * hi(j,en) + hi(i,j) * hr(j,en)
+        do j = i + 1, en
+          zzr = zzr + hr(i, j)*hr(j, en) - hi(i, j)*hi(j, en)
+          zzi = zzi + hr(i, j)*hi(j, en) + hi(i, j)*hr(j, en)
         end do
 
         yr = xr - wr(i)
         yi = xi - wi(i)
 
-        if ( yr == 0.0_rkx .and. yi == 0.0_rkx ) then
+        if (yr==0.0_rkx .and. yi==0.0_rkx) then
 
           tst1 = norm
           yr = tst1
 
           do
-            yr = 0.01_rkx * yr
+            yr = 0.01_rkx*yr
             tst2 = norm + yr
-            if ( tst2 <=  tst1 ) then
+            if (tst2<=tst1) then
               exit
             end if
           end do
 
         end if
 
-        call cdiv ( zzr, zzi, yr, yi, hr(i,en), hi(i,en) )
+        call cdiv(zzr, zzi, yr, yi, hr(i,en), hi(i,en))
 !
 !  Overflow control.
 !
-        tr = abs ( hr(i,en) ) + abs ( hi(i,en) )
+        tr = abs(hr(i,en)) + abs(hi(i,en))
 
-        if ( tr /= 0.0_rkx ) then
+        if (tr/=0.0_rkx) then
 
           tst1 = tr
-          tst2 = tst1 + 1.0_rkx / tst1
+          tst2 = tst1 + 1.0_rkx/tst1
 
-          if ( tst2 <= tst1 ) then
+          if (tst2<=tst1) then
 
-            hr(i:en,en) = hr(i:en,en) / tr
-            hi(i:en,en) = hi(i:en,en) / tr
+            hr(i:en, en) = hr(i:en, en)/tr
+            hi(i:en, en) = hi(i:en, en)/tr
 
           end if
 
@@ -4320,56 +4316,56 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 
       end do
 
-  end do
+    end do
 !
 !  End backsubstitution.
 !
-  enm1 = n - 1
+    enm1 = n - 1
 !
 !  Vectors of isolated roots.
 !
-  do i = 1, n - 1
+    do i = 1, n - 1
 
-    if ( i < low .or. i > igh ) then
+      if (i<low .or. i>igh) then
 
-      zr(i,i+1:n) = hr(i,i+1:n)
-      zi(i,i+1:n) = hi(i,i+1:n)
+        zr(i, i+1:n) = hr(i, i+1:n)
+        zi(i, i+1:n) = hi(i, i+1:n)
 
-    end if
+      end if
 
-  end do
+    end do
 !
 !  Multiply by transformation matrix to give vectors of original full matrix.
 !
-  do jj = low, n - 1
+    do jj = low, n - 1
 
-    j = n + low - jj
-    m = min ( j, igh )
+      j = n + low - jj
+      m = min(j, igh)
 
-    do i = low, igh
-      zzr = 0.0_rkx
-      zzi = 0.0_rkx
-      do k = low, m
-        zzr = zzr + zr(i,k) * hr(k,j) - zi(i,k) * hi(k,j)
-        zzi = zzi + zr(i,k) * hi(k,j) + zi(i,k) * hr(k,j)
+      do i = low, igh
+        zzr = 0.0_rkx
+        zzi = 0.0_rkx
+        do k = low, m
+          zzr = zzr + zr(i, k)*hr(k, j) - zi(i, k)*hi(k, j)
+          zzi = zzi + zr(i, k)*hi(k, j) + zi(i, k)*hr(k, j)
+        end do
+        zr(i, j) = zzr
+        zi(i, j) = zzi
       end do
-      zr(i,j) = zzr
-      zi(i,j) = zzi
+
     end do
 
-  end do
-
-  return
+    return
 !
 !  Set error: all eigenvalues have not converged after 30*N iterations.
 !
- 1000 continue
+180 continue
 
-  ierr = en
-  return
-end subroutine comlr2
+    ierr = en
+    return
+  end subroutine comlr2
 
-subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
+  subroutine comqr(n, low, igh, hr, hi, wr, wi, ierr)
 
 !*****************************************************************************80
 !
@@ -4435,257 +4431,256 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !       eigenvalue is being sought.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  integer ( kind = ik4 ) :: en
-  integer ( kind = ik4 ) :: enm1
-  real    ( kind = rkx ) :: hi(n,n)
-  real    ( kind = rkx ) :: hr(n,n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: itn
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: low
-  real    ( kind = rkx ) :: norm
-  real    ( kind = rkx ) :: si
-  real    ( kind = rkx ) :: sr
-  real    ( kind = rkx ) :: ti
-  real    ( kind = rkx ) :: tr
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: xi
-  real    ( kind = rkx ) :: xr
-  real    ( kind = rkx ) :: yi
-  real    ( kind = rkx ) :: yr
-  real    ( kind = rkx ) :: zzi
-  real    ( kind = rkx ) :: zzr
+    integer (kind=ik4) :: en
+    integer (kind=ik4) :: enm1
+    real (kind=rkx) :: hi(n, n)
+    real (kind=rkx) :: hr(n, n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: itn
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: low
+    real (kind=rkx) :: norm
+    real (kind=rkx) :: si
+    real (kind=rkx) :: sr
+    real (kind=rkx) :: ti
+    real (kind=rkx) :: tr
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: xi
+    real (kind=rkx) :: xr
+    real (kind=rkx) :: yi
+    real (kind=rkx) :: yr
+    real (kind=rkx) :: zzi
+    real (kind=rkx) :: zzr
 
-  ierr = 0
+    ierr = 0
 !
 !  Create real subdiagonal elements.
 !
-  l = low + 1
+    l = low + 1
 
-  do i = l, igh
+    do i = l, igh
 
-     ll = min ( i+1, igh )
+      ll = min(i+1, igh)
 
-     if ( hi(i,i-1) /= 0.0_rkx ) then
+      if (hi(i,i-1)/=0.0_rkx) then
 
-     norm = pythag ( hr(i,i-1), hi(i,i-1) )
-     yr = hr(i,i-1) / norm
-     yi = hi(i,i-1) / norm
-     hr(i,i-1) = norm
-     hi(i,i-1) = 0.0_rkx
+        norm = pythag(hr(i,i-1), hi(i,i-1))
+        yr = hr(i, i-1)/norm
+        yi = hi(i, i-1)/norm
+        hr(i, i-1) = norm
+        hi(i, i-1) = 0.0_rkx
 
-     do j = i, igh
-       si = yr * hi(i,j) - yi * hr(i,j)
-       hr(i,j) = yr * hr(i,j) + yi * hi(i,j)
-       hi(i,j) = si
-     end do
+        do j = i, igh
+          si = yr*hi(i, j) - yi*hr(i, j)
+          hr(i, j) = yr*hr(i, j) + yi*hi(i, j)
+          hi(i, j) = si
+        end do
 
-     do j = low, ll
-       si = yr * hi(j,i) + yi * hr(j,i)
-       hr(j,i) = yr * hr(j,i) - yi * hi(j,i)
-       hi(j,i) = si
-     end do
+        do j = low, ll
+          si = yr*hi(j, i) + yi*hr(j, i)
+          hr(j, i) = yr*hr(j, i) - yi*hi(j, i)
+          hi(j, i) = si
+        end do
 
-    end if
+      end if
 
-  end do
+    end do
 !
 !  Store roots isolated by CBAL.
 !
-  do i = 1, n
-    if ( i < low .or. i > igh ) then
-      wr(i) = hr(i,i)
-      wi(i) = hi(i,i)
-    end if
-  end do
+    do i = 1, n
+      if (i<low .or. i>igh) then
+        wr(i) = hr(i, i)
+        wi(i) = hi(i, i)
+      end if
+    end do
 
-  en = igh
-  tr = 0.0_rkx
-  ti = 0.0_rkx
-  itn = 30 * n
+    en = igh
+    tr = 0.0_rkx
+    ti = 0.0_rkx
+    itn = 30*n
 !
 !  Search for next eigenvalue.
 !
-  220 continue
+100 continue
 
-  if ( en < low ) then
-    return
-  end if
+    if (en<low) then
+      return
+    end if
 
-  its = 0
-  enm1 = en - 1
+    its = 0
+    enm1 = en - 1
 !
 !  Look for single small sub-diagonal element.
 !
-  240 continue
+110 continue
 
-  do ll = low, en
-    l = en + low - ll
-    if ( l == low ) then
-      exit
-    end if
-    tst1 = abs ( hr(l-1,l-1) ) + abs ( hi(l-1,l-1) ) + abs ( hr(l,l) ) &
-      + abs ( hi(l,l) )
-    tst2 = tst1 + abs ( hr(l,l-1) )
-    if ( tst2 == tst1 ) then
-      exit
-    end if
-  end do
+    do ll = low, en
+      l = en + low - ll
+      if (l==low) then
+        exit
+      end if
+      tst1 = abs(hr(l-1,l-1)) + abs(hi(l-1,l-1)) + abs(hr(l,l)) + abs(hi(l,l))
+      tst2 = tst1 + abs(hr(l,l-1))
+      if (tst2==tst1) then
+        exit
+      end if
+    end do
 !
 !  Form shift.
 !
-  if ( l == en ) then
-    go to 660
-  end if
+    if (l==en) then
+      go to 140
+    end if
 
-  if ( itn == 0 ) go to 1000
+    if (itn==0) go to 150
 
-  if ( its == 10 .or. its == 20 ) go to 320
-  sr = hr(en,en)
-  si = hi(en,en)
-  xr = hr(enm1,en) * hr(en,enm1)
-  xi = hi(enm1,en) * hr(en,enm1)
-  if ( xr == 0.0_rkx .and. xi == 0.0_rkx ) go to 340
-  yr = (hr(enm1,enm1) - sr) / 2.0_rkx
-  yi = (hi(enm1,enm1) - si) / 2.0_rkx
+    if (its==10 .or. its==20) go to 120
+    sr = hr(en, en)
+    si = hi(en, en)
+    xr = hr(enm1, en)*hr(en, enm1)
+    xi = hi(enm1, en)*hr(en, enm1)
+    if (xr==0.0_rkx .and. xi==0.0_rkx) go to 130
+    yr = (hr(enm1,enm1)-sr)/2.0_rkx
+    yi = (hi(enm1,enm1)-si)/2.0_rkx
 
-  call csroot ( yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi )
+    call csroot(yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi)
 
-  if ( yr * zzr + yi * zzi < 0.0_rkx ) then
-    zzr = -zzr
-    zzi = -zzi
-  end if
+    if (yr*zzr+yi*zzi<0.0_rkx) then
+      zzr = -zzr
+      zzi = -zzi
+    end if
 
-  call cdiv ( xr, xi, yr+zzr, yi+zzi, xr, xi )
-  sr = sr - xr
-  si = si - xi
-  go to 340
+    call cdiv(xr, xi, yr+zzr, yi+zzi, xr, xi)
+    sr = sr - xr
+    si = si - xi
+    go to 130
 !
 !  Form exceptional shift.
 !
-320 continue
+120 continue
 
-  sr = abs ( hr(en,enm1) ) + abs ( hr(enm1,en-2) )
-  si = 0.0_rkx
+    sr = abs(hr(en,enm1)) + abs(hr(enm1,en-2))
+    si = 0.0_rkx
 
-340 continue
+130 continue
 
-  do i = low, en
-    hr(i,i) = hr(i,i) - sr
-    hi(i,i) = hi(i,i) - si
-  end do
+    do i = low, en
+      hr(i, i) = hr(i, i) - sr
+      hi(i, i) = hi(i, i) - si
+    end do
 
-  tr = tr + sr
-  ti = ti + si
-  its = its + 1
-  itn = itn - 1
+    tr = tr + sr
+    ti = ti + si
+    its = its + 1
+    itn = itn - 1
 !
 !  Reduce to triangle (rows).
 !
-  do i = l+1, en
+    do i = l + 1, en
 
-     sr = hr(i,i-1)
-     hr(i,i-1) = 0.0_rkx
-     norm = pythag ( pythag ( hr(i-1,i-1), hi(i-1,i-1) ), sr )
-     xr = hr(i-1,i-1) / norm
-     wr(i-1) = xr
-     xi = hi(i-1,i-1) / norm
-     wi(i-1) = xi
-     hr(i-1,i-1) = norm
-     hi(i-1,i-1) = 0.0_rkx
-     hi(i,i-1) = sr / norm
+      sr = hr(i, i-1)
+      hr(i, i-1) = 0.0_rkx
+      norm = pythag(pythag(hr(i-1,i-1),hi(i-1,i-1)), sr)
+      xr = hr(i-1, i-1)/norm
+      wr(i-1) = xr
+      xi = hi(i-1, i-1)/norm
+      wi(i-1) = xi
+      hr(i-1, i-1) = norm
+      hi(i-1, i-1) = 0.0_rkx
+      hi(i, i-1) = sr/norm
 
-     do j = i, en
-        yr = hr(i-1,j)
-        yi = hi(i-1,j)
-        zzr = hr(i,j)
-        zzi = hi(i,j)
-        hr(i-1,j) = xr * yr + xi * yi + hi(i,i-1) * zzr
-        hi(i-1,j) = xr * yi - xi * yr + hi(i,i-1) * zzi
-        hr(i,j) = xr * zzr - xi * zzi - hi(i,i-1) * yr
-        hi(i,j) = xr * zzi + xi * zzr - hi(i,i-1) * yi
+      do j = i, en
+        yr = hr(i-1, j)
+        yi = hi(i-1, j)
+        zzr = hr(i, j)
+        zzi = hi(i, j)
+        hr(i-1, j) = xr*yr + xi*yi + hi(i, i-1)*zzr
+        hi(i-1, j) = xr*yi - xi*yr + hi(i, i-1)*zzi
+        hr(i, j) = xr*zzr - xi*zzi - hi(i, i-1)*yr
+        hi(i, j) = xr*zzi + xi*zzr - hi(i, i-1)*yi
+      end do
+
     end do
 
-  end do
+    si = hi(en, en)
 
-  si = hi(en,en)
-
-  if ( si /= 0.0_rkx ) then
-    norm = pythag ( hr(en,en), si )
-    sr = hr(en,en) / norm
-    si = si / norm
-    hr(en,en) = norm
-    hi(en,en) = 0.0_rkx
-  end if
+    if (si/=0.0_rkx) then
+      norm = pythag(hr(en,en), si)
+      sr = hr(en, en)/norm
+      si = si/norm
+      hr(en, en) = norm
+      hi(en, en) = 0.0_rkx
+    end if
 !
 !  Inverse operation (columns).
 !
-  do j = l+1, en
+    do j = l + 1, en
 
-     xr = wr(j-1)
-     xi = wi(j-1)
+      xr = wr(j-1)
+      xi = wi(j-1)
 
-     do i = l, j
+      do i = l, j
 
-        yr = hr(i,j-1)
+        yr = hr(i, j-1)
         yi = 0.0_rkx
-        zzr = hr(i,j)
-        zzi = hi(i,j)
-        if ( i /= j ) then
-          yi = hi(i,j-1)
-          hi(i,j-1) = xr * yi + xi * yr + hi(j,j-1) * zzi
+        zzr = hr(i, j)
+        zzi = hi(i, j)
+        if (i/=j) then
+          yi = hi(i, j-1)
+          hi(i, j-1) = xr*yi + xi*yr + hi(j, j-1)*zzi
         end if
-        hr(i,j-1) = xr * yr - xi * yi + hi(j,j-1) * zzr
-        hr(i,j) = xr * zzr + xi * zzi - hi(j,j-1) * yr
-        hi(i,j) = xr * zzi - xi * zzr - hi(j,j-1) * yi
+        hr(i, j-1) = xr*yr - xi*yi + hi(j, j-1)*zzr
+        hr(i, j) = xr*zzr + xi*zzi - hi(j, j-1)*yr
+        hi(i, j) = xr*zzi - xi*zzr - hi(j, j-1)*yi
 
-     end do
+      end do
 
-  end do
-
-  if ( si /= 0.0_rkx ) then
-
-    do i = l, en
-      yr = hr(i,en)
-      yi = hi(i,en)
-      hr(i,en) = sr * yr - si * yi
-      hi(i,en) = sr * yi + si * yr
     end do
 
-  end if
+    if (si/=0.0_rkx) then
 
-  go to 240
+      do i = l, en
+        yr = hr(i, en)
+        yi = hi(i, en)
+        hr(i, en) = sr*yr - si*yi
+        hi(i, en) = sr*yi + si*yr
+      end do
+
+    end if
+
+    go to 110
 !
 !  A root found.
 !
-660 continue
+140 continue
 
-  wr(en) = hr(en,en) + tr
-  wi(en) = hi(en,en) + ti
-  en = enm1
-  go to 220
+    wr(en) = hr(en, en) + tr
+    wi(en) = hi(en, en) + ti
+    en = enm1
+    go to 100
 !
 !  Set error: all eigenvalues have not converged after 30*n iterations.
 !
-1000 continue
+150 continue
 
-  ierr = en
-  return
-end subroutine comqr
+    ierr = en
+    return
+  end subroutine comqr
 
-subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
+  subroutine comqr2(n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr)
 
 !*****************************************************************************80
 !
@@ -4763,495 +4758,494 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: n
 
-  integer ( kind = ik4 ) :: en
-  integer ( kind = ik4 ) :: enm1
-  real    ( kind = rkx ) :: hi(n,n)
-  real    ( kind = rkx ) :: hr(n,n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: iend
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: itn
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: nn
-  real    ( kind = rkx ) :: norm
-  real    ( kind = rkx ) :: orti(igh)
-  real    ( kind = rkx ) :: ortr(igh)
-  real    ( kind = rkx ) :: si
-  real    ( kind = rkx ) :: sr
-  real    ( kind = rkx ) :: ti
-  real    ( kind = rkx ) :: tr
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: xi
-  real    ( kind = rkx ) :: xr
-  real    ( kind = rkx ) :: yi
-  real    ( kind = rkx ) :: yr
-  real    ( kind = rkx ) :: zi(n,n)
-  real    ( kind = rkx ) :: zr(n,n)
-  real    ( kind = rkx ) :: zzi
-  real    ( kind = rkx ) :: zzr
+    integer (kind=ik4) :: en
+    integer (kind=ik4) :: enm1
+    real (kind=rkx) :: hi(n, n)
+    real (kind=rkx) :: hr(n, n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: iend
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: itn
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: nn
+    real (kind=rkx) :: norm
+    real (kind=rkx) :: orti(igh)
+    real (kind=rkx) :: ortr(igh)
+    real (kind=rkx) :: si
+    real (kind=rkx) :: sr
+    real (kind=rkx) :: ti
+    real (kind=rkx) :: tr
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: xi
+    real (kind=rkx) :: xr
+    real (kind=rkx) :: yi
+    real (kind=rkx) :: yr
+    real (kind=rkx) :: zi(n, n)
+    real (kind=rkx) :: zr(n, n)
+    real (kind=rkx) :: zzi
+    real (kind=rkx) :: zzr
 
-  ierr = 0
+    ierr = 0
 !
 !  Initialize eigenvector matrix.
 !
-  zr(1:n,1:n) = 0.0_rkx
+    zr(1:n, 1:n) = 0.0_rkx
 
-  do i = 1, n
-    zr(i,i) = 1.0_rkx
-  end do
+    do i = 1, n
+      zr(i, i) = 1.0_rkx
+    end do
 
-  zi(1:n,1:n) = 0.0_rkx
+    zi(1:n, 1:n) = 0.0_rkx
 !
 !  Form the matrix of accumulated transformations from the information
 !  left by CORTH.
 !
-  iend = igh - low - 1
-  if ( iend < 0 ) then
-    go to 180
-  else if ( iend == 0 ) then
-    go to 150
-  else
-    go to 105
-  end if
+    iend = igh - low - 1
+    if (iend<0) then
+      go to 140
+    else if (iend==0) then
+      go to 120
+    else
+      go to 100
+    end if
 
-105 continue
+100 continue
 
-  do ii = 1, iend
+    do ii = 1, iend
 
-     i = igh - ii
-     if ( ortr(i) == 0.0_rkx .and. orti(i) == 0.0_rkx ) go to 140
-     if ( hr(i,i-1) == 0.0_rkx .and. hi(i,i-1) == 0.0_rkx ) go to 140
+      i = igh - ii
+      if (ortr(i)==0.0_rkx .and. orti(i)==0.0_rkx) go to 110
+      if (hr(i,i-1)==0.0_rkx .and. hi(i,i-1)==0.0_rkx) go to 110
 !
 !  Norm below is negative of H formed in CORTH.
 !
-     norm = hr(i,i-1) * ortr(i) + hi(i,i-1) * orti(i)
+      norm = hr(i, i-1)*ortr(i) + hi(i, i-1)*orti(i)
 
-     do k = i+1, igh
-       ortr(k) = hr(k,i-1)
-       orti(k) = hi(k,i-1)
-     end do
+      do k = i + 1, igh
+        ortr(k) = hr(k, i-1)
+        orti(k) = hi(k, i-1)
+      end do
 
-     do j = i, igh
+      do j = i, igh
 
         sr = 0.0_rkx
         si = 0.0_rkx
 
         do k = i, igh
-          sr = sr + ortr(k) * zr(k,j) + orti(k) * zi(k,j)
-          si = si + ortr(k) * zi(k,j) - orti(k) * zr(k,j)
+          sr = sr + ortr(k)*zr(k, j) + orti(k)*zi(k, j)
+          si = si + ortr(k)*zi(k, j) - orti(k)*zr(k, j)
         end do
 
-        sr = sr / norm
-        si = si / norm
+        sr = sr/norm
+        si = si/norm
 
         do k = i, igh
-          zr(k,j) = zr(k,j) + sr * ortr(k) - si * orti(k)
-          zi(k,j) = zi(k,j) + sr * orti(k) + si * ortr(k)
+          zr(k, j) = zr(k, j) + sr*ortr(k) - si*orti(k)
+          zi(k, j) = zi(k, j) + sr*orti(k) + si*ortr(k)
         end do
 
       end do
 
-140 continue
+110   continue
 
-  end do
+    end do
 !
 !  Create real subdiagonal elements.
 !
-150 continue
+120 continue
 
-  l = low + 1
+    l = low + 1
 
-  do i = l, igh
+    do i = l, igh
 
-     ll = min ( i+1, igh )
+      ll = min(i+1, igh)
 
-     if ( hi(i,i-1) == 0.0_rkx ) then
-       go to 170
-     end if
+      if (hi(i,i-1)==0.0_rkx) then
+        go to 130
+      end if
 
-     norm = pythag ( hr(i,i-1), hi(i,i-1) )
-     yr = hr(i,i-1) / norm
-     yi = hi(i,i-1) / norm
-     hr(i,i-1) = norm
-     hi(i,i-1) = 0.0_rkx
+      norm = pythag(hr(i,i-1), hi(i,i-1))
+      yr = hr(i, i-1)/norm
+      yi = hi(i, i-1)/norm
+      hr(i, i-1) = norm
+      hi(i, i-1) = 0.0_rkx
 
-     do j = i, n
-       si = yr * hi(i,j) - yi * hr(i,j)
-       hr(i,j) = yr * hr(i,j) + yi * hi(i,j)
-       hi(i,j) = si
-     end do
+      do j = i, n
+        si = yr*hi(i, j) - yi*hr(i, j)
+        hr(i, j) = yr*hr(i, j) + yi*hi(i, j)
+        hi(i, j) = si
+      end do
 
-     do j = 1, ll
-       si = yr * hi(j,i) + yi * hr(j,i)
-       hr(j,i) = yr * hr(j,i) - yi * hi(j,i)
-       hi(j,i) = si
-     end do
+      do j = 1, ll
+        si = yr*hi(j, i) + yi*hr(j, i)
+        hr(j, i) = yr*hr(j, i) - yi*hi(j, i)
+        hi(j, i) = si
+      end do
 
-     do j = low, igh
-       si = yr * zi(j,i) + yi * zr(j,i)
-       zr(j,i) = yr * zr(j,i) - yi * zi(j,i)
-       zi(j,i) = si
-     end do
+      do j = low, igh
+        si = yr*zi(j, i) + yi*zr(j, i)
+        zr(j, i) = yr*zr(j, i) - yi*zi(j, i)
+        zi(j, i) = si
+      end do
 
-170 continue
+130   continue
 
-  end do
+    end do
 !
 !  Store roots isolated by CBAL.
 !
-180 continue
+140 continue
 
-  do i = 1, n
-    if ( i < low .or. i > igh) then
-      wr(i) = hr(i,i)
-      wi(i) = hi(i,i)
-    end if
-  end do
+    do i = 1, n
+      if (i<low .or. i>igh) then
+        wr(i) = hr(i, i)
+        wi(i) = hi(i, i)
+      end if
+    end do
 
-  en = igh
-  tr = 0.0_rkx
-  ti = 0.0_rkx
-  itn = 30 * n
+    en = igh
+    tr = 0.0_rkx
+    ti = 0.0_rkx
+    itn = 30*n
 !
 !  Search for next eigenvalue.
 !
-220 continue
+150 continue
 
-  if ( en < low ) go to 680
-  its = 0
-  enm1 = en - 1
+    if (en<low) go to 200
+    its = 0
+    enm1 = en - 1
 !
 !  Look for single small sub-diagonal element.
 !
-240 continue
+160 continue
 
-  do ll = low, en
-    l = en + low - ll
-    if ( l == low ) then
-      exit
-    end if
-    tst1 = abs ( hr(l-1,l-1) ) + abs ( hi(l-1,l-1) ) + abs ( hr(l,l) ) &
-      + abs ( hi(l,l) )
-    tst2 = tst1 + abs ( hr(l,l-1) )
-    if ( tst2 == tst1 ) then
-      exit
-    end if
-  end do
+    do ll = low, en
+      l = en + low - ll
+      if (l==low) then
+        exit
+      end if
+      tst1 = abs(hr(l-1,l-1)) + abs(hi(l-1,l-1)) + abs(hr(l,l)) + abs(hi(l,l))
+      tst2 = tst1 + abs(hr(l,l-1))
+      if (tst2==tst1) then
+        exit
+      end if
+    end do
 !
 !  Form shift.
 !
-  if ( l == en ) go to 660
-  if ( itn == 0 ) go to 1000
-  if ( its == 10 .or. its == 20 ) go to 320
-  sr = hr(en,en)
-  si = hi(en,en)
-  xr = hr(enm1,en) * hr(en,enm1)
-  xi = hi(enm1,en) * hr(en,enm1)
-  if ( xr == 0.0_rkx .and. xi == 0.0_rkx ) go to 340
-  yr = ( hr(enm1,enm1) - sr ) / 2.0_rkx
-  yi = ( hi(enm1,enm1) - si ) / 2.0_rkx
+    if (l==en) go to 190
+    if (itn==0) go to 210
+    if (its==10 .or. its==20) go to 170
+    sr = hr(en, en)
+    si = hi(en, en)
+    xr = hr(enm1, en)*hr(en, enm1)
+    xi = hi(enm1, en)*hr(en, enm1)
+    if (xr==0.0_rkx .and. xi==0.0_rkx) go to 180
+    yr = (hr(enm1,enm1)-sr)/2.0_rkx
+    yi = (hi(enm1,enm1)-si)/2.0_rkx
 
-  call csroot ( yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi )
+    call csroot(yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi)
 
-  if ( yr * zzr + yi * zzi < 0.0_rkx ) then
-    zzr = -zzr
-    zzi = -zzi
-  end if
+    if (yr*zzr+yi*zzi<0.0_rkx) then
+      zzr = -zzr
+      zzi = -zzi
+    end if
 
-  call cdiv ( xr, xi, yr+zzr, yi+zzi, xr, xi )
-  sr = sr - xr
-  si = si - xi
-  go to 340
+    call cdiv(xr, xi, yr+zzr, yi+zzi, xr, xi)
+    sr = sr - xr
+    si = si - xi
+    go to 180
 !
 !  Form exceptional shift.
 !
-320 continue
+170 continue
 
-  sr = abs ( hr(en,enm1) ) + abs ( hr(enm1,en-2) )
-  si = 0.0_rkx
+    sr = abs(hr(en,enm1)) + abs(hr(enm1,en-2))
+    si = 0.0_rkx
 
-340 continue
+180 continue
 
-  do i = low, en
-    hr(i,i) = hr(i,i) - sr
-    hi(i,i) = hi(i,i) - si
-  end do
+    do i = low, en
+      hr(i, i) = hr(i, i) - sr
+      hi(i, i) = hi(i, i) - si
+    end do
 
-  tr = tr + sr
-  ti = ti + si
-  its = its + 1
-  itn = itn - 1
+    tr = tr + sr
+    ti = ti + si
+    its = its + 1
+    itn = itn - 1
 !
 !  Reduce to triangle (rows).
 !
-  do i = l+1, en
+    do i = l + 1, en
 
-     sr = hr(i,i-1)
-     hr(i,i-1) = 0.0_rkx
-     norm = pythag ( pythag ( hr(i-1,i-1), hi(i-1,i-1) ), sr )
-     xr = hr(i-1,i-1) / norm
-     wr(i-1) = xr
-     xi = hi(i-1,i-1) / norm
-     wi(i-1) = xi
-     hr(i-1,i-1) = norm
-     hi(i-1,i-1) = 0.0_rkx
-     hi(i,i-1) = sr / norm
+      sr = hr(i, i-1)
+      hr(i, i-1) = 0.0_rkx
+      norm = pythag(pythag(hr(i-1,i-1),hi(i-1,i-1)), sr)
+      xr = hr(i-1, i-1)/norm
+      wr(i-1) = xr
+      xi = hi(i-1, i-1)/norm
+      wi(i-1) = xi
+      hr(i-1, i-1) = norm
+      hi(i-1, i-1) = 0.0_rkx
+      hi(i, i-1) = sr/norm
 
-     do j = i, n
-        yr = hr(i-1,j)
-        yi = hi(i-1,j)
-        zzr = hr(i,j)
-        zzi = hi(i,j)
-        hr(i-1,j) = xr * yr + xi * yi + hi(i,i-1) * zzr
-        hi(i-1,j) = xr * yi - xi * yr + hi(i,i-1) * zzi
-        hr(i,j) = xr * zzr - xi * zzi - hi(i,i-1) * yr
-        hi(i,j) = xr * zzi + xi * zzr - hi(i,i-1) * yi
-     end do
+      do j = i, n
+        yr = hr(i-1, j)
+        yi = hi(i-1, j)
+        zzr = hr(i, j)
+        zzi = hi(i, j)
+        hr(i-1, j) = xr*yr + xi*yi + hi(i, i-1)*zzr
+        hi(i-1, j) = xr*yi - xi*yr + hi(i, i-1)*zzi
+        hr(i, j) = xr*zzr - xi*zzi - hi(i, i-1)*yr
+        hi(i, j) = xr*zzi + xi*zzr - hi(i, i-1)*yi
+      end do
 
-  end do
-
-  si = hi(en,en)
-
-  if ( si /= 0.0_rkx ) then
-
-    norm = pythag ( hr(en,en), si )
-    sr = hr(en,en) / norm
-    si = si / norm
-    hr(en,en) = norm
-    hi(en,en) = 0.0_rkx
-
-    do j = en+1, n
-      yr = hr(en,j)
-      yi = hi(en,j)
-      hr(en,j) = sr * yr + si * yi
-      hi(en,j) = sr * yi - si * yr
     end do
 
-  end if
+    si = hi(en, en)
+
+    if (si/=0.0_rkx) then
+
+      norm = pythag(hr(en,en), si)
+      sr = hr(en, en)/norm
+      si = si/norm
+      hr(en, en) = norm
+      hi(en, en) = 0.0_rkx
+
+      do j = en + 1, n
+        yr = hr(en, j)
+        yi = hi(en, j)
+        hr(en, j) = sr*yr + si*yi
+        hi(en, j) = sr*yi - si*yr
+      end do
+
+    end if
 !
 !  Inverse operation (columns).
 !
-  do j = l+1, en
+    do j = l + 1, en
 
-     xr = wr(j-1)
-     xi = wi(j-1)
+      xr = wr(j-1)
+      xi = wi(j-1)
 
-     do i = 1, j
+      do i = 1, j
 
-       yr = hr(i,j-1)
-       yi = 0.0_rkx
-       zzr = hr(i,j)
-       zzi = hi(i,j)
+        yr = hr(i, j-1)
+        yi = 0.0_rkx
+        zzr = hr(i, j)
+        zzi = hi(i, j)
 
-       if ( i /= j ) then
-         yi = hi(i,j-1)
-         hi(i,j-1) = xr * yi + xi * yr + hi(j,j-1) * zzi
-       end if
+        if (i/=j) then
+          yi = hi(i, j-1)
+          hi(i, j-1) = xr*yi + xi*yr + hi(j, j-1)*zzi
+        end if
 
-       hr(i,j-1) = xr * yr - xi * yi + hi(j,j-1) * zzr
-       hr(i,j) = xr * zzr + xi * zzi - hi(j,j-1) * yr
-       hi(i,j) = xr * zzi - xi * zzr - hi(j,j-1) * yi
+        hr(i, j-1) = xr*yr - xi*yi + hi(j, j-1)*zzr
+        hr(i, j) = xr*zzr + xi*zzi - hi(j, j-1)*yr
+        hi(i, j) = xr*zzi - xi*zzr - hi(j, j-1)*yi
 
-     end do
+      end do
 
-     do i = low, igh
-       yr = zr(i,j-1)
-       yi = zi(i,j-1)
-       zzr = zr(i,j)
-       zzi = zi(i,j)
-       zr(i,j-1) = xr * yr - xi * yi + hi(j,j-1) * zzr
-       zi(i,j-1) = xr * yi + xi * yr + hi(j,j-1) * zzi
-       zr(i,j) = xr * zzr + xi * zzi - hi(j,j-1) * yr
-       zi(i,j) = xr * zzi - xi * zzr - hi(j,j-1) * yi
-     end do
+      do i = low, igh
+        yr = zr(i, j-1)
+        yi = zi(i, j-1)
+        zzr = zr(i, j)
+        zzi = zi(i, j)
+        zr(i, j-1) = xr*yr - xi*yi + hi(j, j-1)*zzr
+        zi(i, j-1) = xr*yi + xi*yr + hi(j, j-1)*zzi
+        zr(i, j) = xr*zzr + xi*zzi - hi(j, j-1)*yr
+        zi(i, j) = xr*zzi - xi*zzr - hi(j, j-1)*yi
+      end do
 
-  end do
-
-  if ( si /= 0.0_rkx ) then
-
-    do i = 1, en
-      yr = hr(i,en)
-      yi = hi(i,en)
-      hr(i,en) = sr * yr - si * yi
-      hi(i,en) = sr * yi + si * yr
     end do
 
-    do i = low, igh
-      yr = zr(i,en)
-      yi = zi(i,en)
-      zr(i,en) = sr * yr - si * yi
-      zi(i,en) = sr * yi + si * yr
-    end do
+    if (si/=0.0_rkx) then
 
-  end if
+      do i = 1, en
+        yr = hr(i, en)
+        yi = hi(i, en)
+        hr(i, en) = sr*yr - si*yi
+        hi(i, en) = sr*yi + si*yr
+      end do
 
-  go to 240
+      do i = low, igh
+        yr = zr(i, en)
+        yi = zi(i, en)
+        zr(i, en) = sr*yr - si*yi
+        zi(i, en) = sr*yi + si*yr
+      end do
+
+    end if
+
+    go to 160
 !
 !  A root found.
 !
-660 continue
+190 continue
 
-  hr(en,en) = hr(en,en) + tr
-  wr(en) = hr(en,en)
-  hi(en,en) = hi(en,en) + ti
-  wi(en) = hi(en,en)
-  en = enm1
-  go to 220
+    hr(en, en) = hr(en, en) + tr
+    wr(en) = hr(en, en)
+    hi(en, en) = hi(en, en) + ti
+    wi(en) = hi(en, en)
+    en = enm1
+    go to 150
 !
 !  All roots found.
 !  Backsubstitute to find vectors of upper triangular form.
 !
-680 continue
+200 continue
 
-  norm = 0.0_rkx
+    norm = 0.0_rkx
 
-  do i = 1, n
-    do j = i, n
-      tr = abs ( hr(i,j) ) + abs ( hi(i,j) )
-      norm = max ( norm, tr )
+    do i = 1, n
+      do j = i, n
+        tr = abs(hr(i,j)) + abs(hi(i,j))
+        norm = max(norm, tr)
+      end do
     end do
-  end do
 
-  if ( n == 1 ) then
-    return
-  end if
+    if (n==1) then
+      return
+    end if
 
-  if ( norm == 0.0_rkx ) then
-    return
-  end if
+    if (norm==0.0_rkx) then
+      return
+    end if
 
-  do nn = 2, n
+    do nn = 2, n
 
-     en = n + 2 - nn
-     xr = wr(en)
-     xi = wi(en)
-     hr(en,en) = 1.0_rkx
-     hi(en,en) = 0.0_rkx
-     enm1 = en - 1
+      en = n + 2 - nn
+      xr = wr(en)
+      xi = wi(en)
+      hr(en, en) = 1.0_rkx
+      hi(en, en) = 0.0_rkx
+      enm1 = en - 1
 
-     do ii = 1, enm1
+      do ii = 1, enm1
 
         i = en - ii
         zzr = 0.0_rkx
         zzi = 0.0_rkx
 
-        do j = i+1, en
-          zzr = zzr + hr(i,j) * hr(j,en) - hi(i,j) * hi(j,en)
-          zzi = zzi + hr(i,j) * hi(j,en) + hi(i,j) * hr(j,en)
+        do j = i + 1, en
+          zzr = zzr + hr(i, j)*hr(j, en) - hi(i, j)*hi(j, en)
+          zzi = zzi + hr(i, j)*hi(j, en) + hi(i, j)*hr(j, en)
         end do
 
         yr = xr - wr(i)
         yi = xi - wi(i)
 
-        if ( yr == 0.0_rkx .and. yi == 0.0_rkx ) then
+        if (yr==0.0_rkx .and. yi==0.0_rkx) then
 
-           tst1 = norm
-           yr = tst1
-           do
-             yr = 0.01_rkx * yr
-             tst2 = norm + yr
-             if ( tst2 <= tst1 ) then
-               exit
-             end if
-           end do
+          tst1 = norm
+          yr = tst1
+          do
+            yr = 0.01_rkx*yr
+            tst2 = norm + yr
+            if (tst2<=tst1) then
+              exit
+            end if
+          end do
 
         end if
 
-        call cdiv ( zzr, zzi, yr, yi, hr(i,en), hi(i,en) )
+        call cdiv(zzr, zzi, yr, yi, hr(i,en), hi(i,en))
 !
 !  Overflow control.
 !
-        tr = abs ( hr(i,en) ) + abs ( hi(i,en) )
+        tr = abs(hr(i,en)) + abs(hi(i,en))
 
-        if ( tr /= 0.0_rkx ) then
+        if (tr/=0.0_rkx) then
 
           tst1 = tr
-          tst2 = tst1 + 1.0_rkx / tst1
+          tst2 = tst1 + 1.0_rkx/tst1
 
-          if ( tst2 <= tst1 ) then
+          if (tst2<=tst1) then
 
             do j = i, en
-              hr(j,en) = hr(j,en)/tr
-              hi(j,en) = hi(j,en)/tr
+              hr(j, en) = hr(j, en)/tr
+              hi(j, en) = hi(j, en)/tr
             end do
 
           end if
 
-       end if
+        end if
 
-     end do
+      end do
 
-  end do
+    end do
 !
 !  End backsubstitution.
 !
-  enm1 = n - 1
+    enm1 = n - 1
 !
 !  Vectors of isolated roots.
 !
-  do i = 1, n - 1
+    do i = 1, n - 1
 
-    if ( i < low .or. i > igh ) then
+      if (i<low .or. i>igh) then
 
-      do j = i+1, n
-        zr(i,j) = hr(i,j)
-        zi(i,j) = hi(i,j)
-      end do
+        do j = i + 1, n
+          zr(i, j) = hr(i, j)
+          zi(i, j) = hi(i, j)
+        end do
 
-    end if
+      end if
 
-  end do
+    end do
 !
 !  Multiply by transformation matrix to give vectors of original full matrix.
 !
-  do jj = low, n - 1
+    do jj = low, n - 1
 
-     j = n + low - jj
-     m = min ( j, igh )
+      j = n + low - jj
+      m = min(j, igh)
 
-     do i = low, igh
+      do i = low, igh
 
         zzr = 0.0_rkx
         zzi = 0.0_rkx
         do k = low, m
-          zzr = zzr + zr(i,k) * hr(k,j) - zi(i,k) * hi(k,j)
-          zzi = zzi + zr(i,k) * hi(k,j) + zi(i,k) * hr(k,j)
+          zzr = zzr + zr(i, k)*hr(k, j) - zi(i, k)*hi(k, j)
+          zzi = zzi + zr(i, k)*hi(k, j) + zi(i, k)*hr(k, j)
         end do
 
-        zr(i,j) = zzr
-        zi(i,j) = zzi
+        zr(i, j) = zzr
+        zi(i, j) = zzi
 
       end do
 
-  end do
+    end do
 
-  return
+    return
 !
 !  Set error: all eigenvalues have not converged after 30*n iterations.
 !
-1000 continue
+210 continue
 
-  ierr = en
-  return
-end subroutine comqr2
+    ierr = en
+    return
+  end subroutine comqr2
 
-subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
+  subroutine cortb(n, low, igh, ar, ai, ortr, orti, m, zr, zi)
 
 !*****************************************************************************80
 !
@@ -5316,72 +5310,72 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 !    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,igh)
-  real    ( kind = rkx ) :: ar(n,igh)
-  real    ( kind = rkx ) :: gi
-  real    ( kind = rkx ) :: gr
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: la
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: mp
-  real    ( kind = rkx ) :: orti(igh)
-  real    ( kind = rkx ) :: ortr(igh)
-  real    ( kind = rkx ) :: zi(n,m)
-  real    ( kind = rkx ) :: zr(n,m)
+    real (kind=rkx) :: ai(n, igh)
+    real (kind=rkx) :: ar(n, igh)
+    real (kind=rkx) :: gi
+    real (kind=rkx) :: gr
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: la
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: mp
+    real (kind=rkx) :: orti(igh)
+    real (kind=rkx) :: ortr(igh)
+    real (kind=rkx) :: zi(n, m)
+    real (kind=rkx) :: zr(n, m)
 
-  if ( m == 0 ) then
-    return
-  end if
-
-  la = igh - 1
-
-  if ( igh - 1 < low + 1 ) then
-    return
-  end if
-
-  do mm = low + 1, la
-
-    mp = low + igh - mm
-
-    if ( ar(mp,mp-1) /= 0.0_rkx .or. ai(mp,mp-1) /= 0.0_rkx ) then
-
-      h = ar(mp,mp-1) * ortr(mp) + ai(mp,mp-1) * orti(mp)
-
-      ortr(mp+1:igh) = ar(mp+1:igh,mp-1)
-      orti(mp+1:igh) = ai(mp+1:igh,mp-1)
-
-      do j = 1, m
-
-        gr = ( dot_product ( ortr(mp:igh), zr(mp:igh,j) ) &
-             + dot_product ( orti(mp:igh), zi(mp:igh,j) ) ) / h
-
-        gi = ( dot_product ( ortr(mp:igh), zi(mp:igh,j) ) &
-             - dot_product ( orti(mp:igh), zr(mp:igh,j) ) ) / h
-
-        do i = mp, igh
-          zr(i,j) = zr(i,j) + gr * ortr(i) - gi * orti(i)
-          zi(i,j) = zi(i,j) + gr * orti(i) + gi * ortr(i)
-        end do
-
-      end do
-
+    if (m==0) then
+      return
     end if
 
-  end do
+    la = igh - 1
 
-  return
-end subroutine cortb
+    if (igh-1<low+1) then
+      return
+    end if
 
-subroutine corth ( n, low, igh, ar, ai, ortr, orti )
+    do mm = low + 1, la
+
+      mp = low + igh - mm
+
+      if (ar(mp,mp-1)/=0.0_rkx .or. ai(mp,mp-1)/=0.0_rkx) then
+
+        h = ar(mp, mp-1)*ortr(mp) + ai(mp, mp-1)*orti(mp)
+
+        ortr(mp+1:igh) = ar(mp+1:igh, mp-1)
+        orti(mp+1:igh) = ai(mp+1:igh, mp-1)
+
+        do j = 1, m
+
+          gr = (dot_product(ortr(mp:igh),zr(mp:igh,j))+dot_product(orti(mp:igh &
+            ),zi(mp:igh,j)))/h
+
+          gi = (dot_product(ortr(mp:igh),zi(mp:igh,j))-dot_product(orti(mp:igh &
+            ),zr(mp:igh,j)))/h
+
+          do i = mp, igh
+            zr(i, j) = zr(i, j) + gr*ortr(i) - gi*orti(i)
+            zi(i, j) = zi(i, j) + gr*orti(i) + gi*ortr(i)
+          end do
+
+        end do
+
+      end if
+
+    end do
+
+    return
+  end subroutine cortb
+
+  subroutine corth(n, low, igh, ar, ai, ortr, orti)
 
 !*****************************************************************************80
 !
@@ -5441,126 +5435,126 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !    Output, real ( kind = rkx ) ORTR(IGH), ORTI(IGH), further information about the
 !    transformations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,n)
-  real    ( kind = rkx ) :: ar(n,n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: fi
-  real    ( kind = rkx ) :: fr
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: la
-  integer ( kind = ik4 ) :: m,mp,low
-  real    ( kind = rkx ) :: orti(igh)
-  real    ( kind = rkx ) :: ortr(igh)
-  real    ( kind = rkx ) :: xscale
+    real (kind=rkx) :: ai(n, n)
+    real (kind=rkx) :: ar(n, n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: fi
+    real (kind=rkx) :: fr
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: la
+    integer (kind=ik4) :: m, mp, low
+    real (kind=rkx) :: orti(igh)
+    real (kind=rkx) :: ortr(igh)
+    real (kind=rkx) :: xscale
 
-  la = igh - 1
+    la = igh - 1
 
-  if ( igh - 1 < low + 1 ) then
-    return
-  end if
+    if (igh-1<low+1) then
+      return
+    end if
 
-  do m = low + 1, la
+    do m = low + 1, la
 
-    h = 0.0_rkx
-    ortr(m) = 0.0_rkx
-    orti(m) = 0.0_rkx
-    xscale = 0.0_rkx
+      h = 0.0_rkx
+      ortr(m) = 0.0_rkx
+      orti(m) = 0.0_rkx
+      xscale = 0.0_rkx
 !
 !  Scale column.
 !
-    do i = m, igh
-      xscale = xscale + abs ( ar(i,m-1) ) + abs ( ai(i,m-1) )
-    end do
+      do i = m, igh
+        xscale = xscale + abs(ar(i,m-1)) + abs(ai(i,m-1))
+      end do
 
-    if ( xscale == 0.0_rkx ) then
-      cycle
-    end if
+      if (xscale==0.0_rkx) then
+        cycle
+      end if
 
-    mp = m + igh
-
-    do ii = m, igh
-      i = mp - ii
-      ortr(i) = ar(i,m-1) / xscale
-      orti(i) = ai(i,m-1) / xscale
-      h = h + ortr(i) * ortr(i) + orti(i) * orti(i)
-    end do
-
-    g = sqrt ( h )
-    f = pythag ( ortr(m), orti(m) )
-
-    if ( f /= 0.0_rkx ) then
-      h = h + f * g
-      g = g / f
-      ortr(m) = ( 1.0_rkx + g ) * ortr(m)
-      orti(m) = ( 1.0_rkx + g ) * orti(m)
-    else
-      ortr(m) = g
-      ar(m,m-1) = xscale
-    end if
-!
-!  Form (I-(U*Ut)/h) * A.
-!
-    do j = m, n
-
-      fr = 0.0_rkx
-      fi = 0.0_rkx
+      mp = m + igh
 
       do ii = m, igh
         i = mp - ii
-        fr = fr + ortr(i) * ar(i,j) + orti(i) * ai(i,j)
-        fi = fi + ortr(i) * ai(i,j) - orti(i) * ar(i,j)
+        ortr(i) = ar(i, m-1)/xscale
+        orti(i) = ai(i, m-1)/xscale
+        h = h + ortr(i)*ortr(i) + orti(i)*orti(i)
       end do
 
-      fr = fr / h
-      fi = fi / h
+      g = sqrt(h)
+      f = pythag(ortr(m), orti(m))
 
-      ar(m:igh,j) = ar(m:igh,j) - fr * ortr(m:igh) + fi * orti(m:igh)
-      ai(m:igh,j) = ai(m:igh,j) - fr * orti(m:igh) - fi * ortr(m:igh)
+      if (f/=0.0_rkx) then
+        h = h + f*g
+        g = g/f
+        ortr(m) = (1.0_rkx+g)*ortr(m)
+        orti(m) = (1.0_rkx+g)*orti(m)
+      else
+        ortr(m) = g
+        ar(m, m-1) = xscale
+      end if
+!
+!  Form (I-(U*Ut)/h) * A.
+!
+      do j = m, n
 
-    end do
+        fr = 0.0_rkx
+        fi = 0.0_rkx
+
+        do ii = m, igh
+          i = mp - ii
+          fr = fr + ortr(i)*ar(i, j) + orti(i)*ai(i, j)
+          fi = fi + ortr(i)*ai(i, j) - orti(i)*ar(i, j)
+        end do
+
+        fr = fr/h
+        fi = fi/h
+
+        ar(m:igh, j) = ar(m:igh, j) - fr*ortr(m:igh) + fi*orti(m:igh)
+        ai(m:igh, j) = ai(m:igh, j) - fr*orti(m:igh) - fi*ortr(m:igh)
+
+      end do
 !
 !  Form (I-(U*Ut)/h) * A * (I-(U*Ut)/h)
 !
-    do i = 1, igh
+      do i = 1, igh
 
-      fr = 0.0_rkx
-      fi = 0.0_rkx
+        fr = 0.0_rkx
+        fi = 0.0_rkx
 
-      do jj = m, igh
-        j = mp - jj
-        fr = fr + ortr(j) * ar(i,j) - orti(j) * ai(i,j)
-        fi = fi + ortr(j) * ai(i,j) + orti(j) * ar(i,j)
+        do jj = m, igh
+          j = mp - jj
+          fr = fr + ortr(j)*ar(i, j) - orti(j)*ai(i, j)
+          fi = fi + ortr(j)*ai(i, j) + orti(j)*ar(i, j)
+        end do
+
+        fr = fr/h
+        fi = fi/h
+
+        ar(i, m:igh) = ar(i, m:igh) - fr*ortr(m:igh) - fi*orti(m:igh)
+        ai(i, m:igh) = ai(i, m:igh) + fr*orti(m:igh) - fi*ortr(m:igh)
+
       end do
 
-      fr = fr / h
-      fi = fi / h
-
-      ar(i,m:igh) = ar(i,m:igh) - fr * ortr(m:igh) - fi * orti(m:igh)
-      ai(i,m:igh) = ai(i,m:igh) + fr * orti(m:igh) - fi * ortr(m:igh)
+      ortr(m) = xscale*ortr(m)
+      orti(m) = xscale*orti(m)
+      ar(m, m-1) = -g*ar(m, m-1)
+      ai(m, m-1) = -g*ai(m, m-1)
 
     end do
 
-    ortr(m) = xscale * ortr(m)
-    orti(m) = xscale * orti(m)
-    ar(m,m-1) = - g * ar(m,m-1)
-    ai(m,m-1) = - g * ai(m,m-1)
+    return
+  end subroutine corth
 
-  end do
-
-  return
-end subroutine corth
-
-subroutine csroot ( xr, xi, yr, yi )
+  subroutine csroot(xr, xi, yr, yi)
 
 !*****************************************************************************80
 !
@@ -5611,34 +5605,34 @@ subroutine csroot ( xr, xi, yr, yi )
 !
 !    Output, real ( kind = rkx ) YR, YI, the real and imaginary parts of the square root.
 !
-  implicit none
+    implicit none
 
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: ti
-  real    ( kind = rkx ) :: tr
-  real    ( kind = rkx ) :: xi
-  real    ( kind = rkx ) :: xr
-  real    ( kind = rkx ) :: yi
-  real    ( kind = rkx ) :: yr
+    real (kind=rkx) :: s
+    real (kind=rkx) :: ti
+    real (kind=rkx) :: tr
+    real (kind=rkx) :: xi
+    real (kind=rkx) :: xr
+    real (kind=rkx) :: yi
+    real (kind=rkx) :: yr
 
-  tr = xr
-  ti = xi
-  s = sqrt ( 0.5_rkx * ( pythag ( tr, ti ) + abs ( tr ) ) )
+    tr = xr
+    ti = xi
+    s = sqrt(0.5_rkx*(pythag(tr,ti)+abs(tr)))
 
-  if ( tr >= 0.0_rkx ) yr = s
-  if ( ti < 0.0_rkx ) s = -s
-  if ( tr <= 0.0_rkx ) yi = s
+    if (tr>=0.0_rkx) yr = s
+    if (ti<0.0_rkx) s = -s
+    if (tr<=0.0_rkx) yi = s
 
-  if ( tr < 0.0_rkx ) then
-    yr = 0.5_rkx * ( ti / yi )
-  else if ( tr > 0.0_rkx ) then
-    yi = 0.5_rkx * ( ti / yr )
-  end if
+    if (tr<0.0_rkx) then
+      yr = 0.5_rkx*(ti/yi)
+    else if (tr>0.0_rkx) then
+      yi = 0.5_rkx*(ti/yr)
+    end if
 
-  return
-end subroutine csroot
+    return
+  end subroutine csroot
 
-subroutine elmbak ( n, low, igh, a, ind, m, z )
+  subroutine elmbak(n, low, igh, a, ind, m, z)
 
 !*****************************************************************************80
 !
@@ -5701,64 +5695,64 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !    of the eigenvectors to be back transformed.  On output, the real and
 !    imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,igh)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ind(igh)
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: la
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: mp
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: a(n, igh)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ind(igh)
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: la
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: mp
+    real (kind=rkx) :: x
+    real (kind=rkx) :: z(n, m)
 
-  if ( m == 0 ) then
+    if (m==0) then
+      return
+    end if
+
+    la = igh - 1
+
+    if (la<low+1) then
+      return
+    end if
+
+    do mm = low + 1, la
+
+      mp = low + igh - mm
+
+      do i = mp + 1, igh
+
+        x = a(i, mp-1)
+        if (x/=0.0_rkx) then
+          do j = 1, m
+            z(i, j) = z(i, j) + x*z(mp, j)
+          end do
+        end if
+
+      end do
+
+      i = ind(mp)
+
+      if (i/=mp) then
+
+        do j = 1, m
+          call r8_swap(z(i,j), z(mp,j))
+        end do
+
+      end if
+
+    end do
+
     return
-  end if
+  end subroutine elmbak
 
-  la = igh - 1
-
-  if ( la < low + 1 ) then
-    return
-  end if
-
-  do mm = low + 1, la
-
-     mp = low + igh - mm
-
-     do i = mp+1, igh
-
-       x = a(i,mp-1)
-       if ( x /= 0.0_rkx ) then
-         do j = 1, m
-           z(i,j) = z(i,j) + x * z(mp,j)
-         end do
-       end if
-
-     end do
-
-     i = ind(mp)
-
-     if ( i /= mp ) then
-
-       do j = 1, m
-         call r8_swap ( z(i,j), z(mp,j) )
-       end do
-
-     end if
-
-  end do
-
-  return
-end subroutine elmbak
-
-subroutine elmhes ( n, low, igh, a, ind )
+  subroutine elmhes(n, low, igh, a, ind)
 
 !*****************************************************************************80
 !
@@ -5821,80 +5815,80 @@ subroutine elmhes ( n, low, igh, a, ind )
 !    Output, integer ( kind = ik4 ) IND(N), contains information on the rows and columns
 !    interchanged in the reduction.  Only elements LOW through IGH are used.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ind(igh)
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: la
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
+    real (kind=rkx) :: a(n, n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ind(igh)
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: la
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
 
-  la = igh - 1
+    la = igh - 1
 
-  do m = low + 1, la
+    do m = low + 1, la
 
-    x = 0.0_rkx
-    i = m
+      x = 0.0_rkx
+      i = m
 
-    do j = m, igh
-      if ( abs ( a(j,m-1) ) > abs ( x ) ) then
-        x = a(j,m-1)
-        i = j
-      end if
-    end do
+      do j = m, igh
+        if (abs(a(j,m-1))>abs(x)) then
+          x = a(j, m-1)
+          i = j
+        end if
+      end do
 
-    ind(m) = i
+      ind(m) = i
 !
 !  Interchange rows and columns of the matrix.
 !
-    if ( i /= m ) then
+      if (i/=m) then
 
-      do j = m-1, n
-        call r8_swap ( a(i,j), a(m,j) )
-      end do
+        do j = m - 1, n
+          call r8_swap(a(i,j), a(m,j))
+        end do
 
-      do j = 1, igh
-        call r8_swap ( a(j,i), a(j,m) )
-      end do
+        do j = 1, igh
+          call r8_swap(a(j,i), a(j,m))
+        end do
 
-    end if
+      end if
 
-    if ( x /= 0.0_rkx ) then
+      if (x/=0.0_rkx) then
 
-      do i = m+1, igh
+        do i = m + 1, igh
 
-        y = a(i,m-1)
+          y = a(i, m-1)
 
-        if ( y /= 0.0_rkx ) then
+          if (y/=0.0_rkx) then
 
-          y = y / x
-          a(i,m-1) = y
+            y = y/x
+            a(i, m-1) = y
 
-          do j = m, n
-            a(i,j) = a(i,j) - y * a(m,j)
-          end do
+            do j = m, n
+              a(i, j) = a(i, j) - y*a(m, j)
+            end do
 
-          a(1:igh,m) = a(1:igh,m) + y * a(1:igh,i)
+            a(1:igh, m) = a(1:igh, m) + y*a(1:igh, i)
 
-        end if
+          end if
 
-      end do
+        end do
 
-    end if
+      end if
 
-  end do
+    end do
 
-  return
-end subroutine elmhes
+    return
+  end subroutine elmhes
 
-subroutine eltran ( n, low, igh, a, ind, z )
+  subroutine eltran(n, low, igh, a, ind, z)
 
 !*****************************************************************************80
 !
@@ -5958,59 +5952,59 @@ subroutine eltran ( n, low, igh, a, ind, z )
 !    Output, real ( kind = rkx ) Z(N,N), the transformation matrix produced in the
 !    reduction by ELMHES.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,igh)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ind(igh)
-  integer ( kind = ik4 ) :: kl
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: mp
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, igh)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ind(igh)
+    integer (kind=ik4) :: kl
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: mp
+    real (kind=rkx) :: z(n, n)
 !
 !  Initialize Z to the identity matrix.
 !
-  z(1:n,1:n) = 0.0_rkx
+    z(1:n, 1:n) = 0.0_rkx
 
-  do i = 1, n
-    z(i,i) = 1.0_rkx
-  end do
+    do i = 1, n
+      z(i, i) = 1.0_rkx
+    end do
 
-  kl = igh - low - 1
+    kl = igh - low - 1
 
-  if ( kl < 1 ) then
+    if (kl<1) then
+      return
+    end if
+
+    do mm = 1, kl
+
+      mp = igh - mm
+
+      do i = mp + 1, igh
+        z(i, mp) = a(i, mp-1)
+      end do
+
+      i = ind(mp)
+
+      if (i/=mp) then
+
+        z(mp, mp:igh) = z(i, mp:igh)
+
+        z(i, mp) = 1.0_rkx
+        z(i, mp+1:igh) = 0.0_rkx
+
+      end if
+
+    end do
+
     return
-  end if
+  end subroutine eltran
 
-  do mm = 1, kl
-
-     mp = igh - mm
-
-     do i = mp+1, igh
-       z(i,mp) = a(i,mp-1)
-     end do
-
-     i = ind(mp)
-
-     if ( i /= mp ) then
-
-       z(mp,mp:igh) = z(i,mp:igh)
-
-       z(i,mp) = 1.0_rkx
-       z(i,mp+1:igh) = 0.0_rkx
-
-     end if
-
-  end do
-
-  return
-end subroutine eltran
-
-subroutine figi ( n, t, d, e, e2, ierr )
+  subroutine figi(n, t, d, e, e2, ierr)
 
 !*****************************************************************************80
 !
@@ -6080,55 +6074,55 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !      this case, the eigenvectors of the symmetric matrix are not simply
 !      related to those of T and should not be sought.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  real    ( kind = rkx ) :: t(n,3)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    real (kind=rkx) :: t(n, 3)
 
-  ierr = 0
+    ierr = 0
 
-  do i = 1, n
+    do i = 1, n
 
-    if ( i >= 1 ) then
+      if (i>=1) then
 
-      e2(i) = t(i,1) * t(i-1,3)
+        e2(i) = t(i, 1)*t(i-1, 3)
 
-      if ( e2(i) < 0.0_rkx ) then
+        if (e2(i)<0.0_rkx) then
 
-        ierr = n + i
-        return
-
-      else if ( e2(i) == 0.0_rkx ) then
-
-        if ( t(i,1) /= 0.0_rkx .or. t(i-1,3) /= 0.0_rkx ) then
-          ierr = - 3 * n - i
+          ierr = n + i
           return
+
+        else if (e2(i)==0.0_rkx) then
+
+          if (t(i,1)/=0.0_rkx .or. t(i-1,3)/=0.0_rkx) then
+            ierr = -3*n - i
+            return
+          end if
+
+          e(i) = 0.0_rkx
+
+        else
+
+          e(i) = sqrt(e2(i))
+
         end if
-
-        e(i) = 0.0_rkx
-
-      else
-
-        e(i) = sqrt ( e2(i) )
 
       end if
 
-    end if
+      d(i) = t(i, 2)
 
-    d(i) = t(i,2)
+    end do
 
-  end do
+    return
+  end subroutine figi
 
-  return
-end subroutine figi
-
-subroutine figi2 ( n, t, d, e, z, ierr )
+  subroutine figi2(n, t, d, e, z, ierr)
 
 !*****************************************************************************80
 !
@@ -6195,64 +6189,64 @@ subroutine figi2 ( n, t, d, e, z, ierr )
 !    N+I, if T(I,1) * T(I-1,3) is negative,
 !    2*N+I, if T(I,1) * T(I-1,3) is zero with one factor non-zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  real    ( kind = rkx ) :: t(n,3)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    real (kind=rkx) :: t(n, 3)
+    real (kind=rkx) :: z(n, n)
 
-  ierr = 0
+    ierr = 0
 
-  do i = 1, n
+    do i = 1, n
 
-    z(i,1:n) = 0.0_rkx
+      z(i, 1:n) = 0.0_rkx
 
-    if ( i == 1 ) then
+      if (i==1) then
 
-      z(i,i) = 1.0_rkx
-
-    else
-
-      h = t(i,1) * t(i-1,3)
-
-      if ( h < 0.0_rkx ) then
-
-        ierr = n + i
-        return
-
-      else if ( h == 0 ) then
-
-        if ( t(i,1) /= 0.0_rkx .or. t(i-1,3) /= 0.0_rkx ) then
-          ierr = 2 * n + i
-          return
-        end if
-
-        e(i) = 0.0_rkx
-        z(i,i) = 1.0_rkx
+        z(i, i) = 1.0_rkx
 
       else
 
-        e(i) = sqrt ( h )
-        z(i,i) = z(i-1,i-1) * e(i) / t(i-1,3)
+        h = t(i, 1)*t(i-1, 3)
+
+        if (h<0.0_rkx) then
+
+          ierr = n + i
+          return
+
+        else if (h==0) then
+
+          if (t(i,1)/=0.0_rkx .or. t(i-1,3)/=0.0_rkx) then
+            ierr = 2*n + i
+            return
+          end if
+
+          e(i) = 0.0_rkx
+          z(i, i) = 1.0_rkx
+
+        else
+
+          e(i) = sqrt(h)
+          z(i, i) = z(i-1, i-1)*e(i)/t(i-1, 3)
+
+        end if
 
       end if
 
-    end if
+      d(i) = t(i, 2)
 
-    d(i) = t(i,2)
+    end do
 
-  end do
+    return
+  end subroutine figi2
 
-  return
-end subroutine figi2
-
-subroutine hqr ( n, low, igh, h, wr, wi, ierr )
+  subroutine hqr(n, low, igh, h, wr, wi, ierr)
 
 !*****************************************************************************80
 !
@@ -6324,311 +6318,311 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 !    J, the limit of 30*N iterations was reached while searching for
 !      the J-th eigenvalue.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  integer ( kind = ik4 ) :: en
-  integer ( kind = ik4 ) :: enm2
-  real    ( kind = rkx ) :: h(n,n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: itn
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: na
-  real    ( kind = rkx ) :: norm
-  logical              :: notlas
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: q
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: t
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: w
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
-  real    ( kind = rkx ) :: zz
+    integer (kind=ik4) :: en
+    integer (kind=ik4) :: enm2
+    real (kind=rkx) :: h(n, n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: itn
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: na
+    real (kind=rkx) :: norm
+    logical :: notlas
+    real (kind=rkx) :: p
+    real (kind=rkx) :: q
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: t
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: w
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
+    real (kind=rkx) :: zz
 
-  ierr = 0
-  norm = 0.0_rkx
-  k = 1
+    ierr = 0
+    norm = 0.0_rkx
+    k = 1
 !
 !  Store roots isolated by BALANC and compute matrix norm.
 !
-  do i = 1, n
+    do i = 1, n
 
-    do j = k, n
-      norm = norm + abs ( h(i,j) )
+      do j = k, n
+        norm = norm + abs(h(i,j))
+      end do
+
+      k = i
+      if (i<low .or. i>igh) then
+        wr(i) = h(i, i)
+        wi(i) = 0.0_rkx
+      end if
+
     end do
 
-    k = i
-    if ( i < low .or. i > igh ) then
-      wr(i) = h(i,i)
-      wi(i) = 0.0_rkx
-    end if
-
-  end do
-
-  en = igh
-  t = 0.0_rkx
-  itn = 30 * n
+    en = igh
+    t = 0.0_rkx
+    itn = 30*n
 !
 !  Search for next eigenvalues.
 !
-60 continue
+100 continue
 
-  if ( en < low ) then
-    return
-  end if
+    if (en<low) then
+      return
+    end if
 
-  its = 0
-  na = en - 1
-  enm2 = na - 1
+    its = 0
+    na = en - 1
+    enm2 = na - 1
 !
 !  Look for a single small sub-diagonal element.
 !
-70 continue
+110 continue
 
-  do ll = low, en
-    l = en + low - ll
-    if ( l == low ) then
-      exit
-    end if
-    s = abs ( h(l-1,l-1) ) + abs ( h(l,l) )
-    if ( s == 0.0_rkx ) then
-      s = norm
-    end if
-    tst1 = s
-    tst2 = tst1 + abs ( h(l,l-1) )
-    if ( tst2 == tst1 ) then
-      exit
-    end if
-  end do
+    do ll = low, en
+      l = en + low - ll
+      if (l==low) then
+        exit
+      end if
+      s = abs(h(l-1,l-1)) + abs(h(l,l))
+      if (s==0.0_rkx) then
+        s = norm
+      end if
+      tst1 = s
+      tst2 = tst1 + abs(h(l,l-1))
+      if (tst2==tst1) then
+        exit
+      end if
+    end do
 !
 !  Form shift.
 !
-  x = h(en,en)
-  if ( l == en ) then
-    go to 270
-  end if
+    x = h(en, en)
+    if (l==en) then
+      go to 120
+    end if
 
-  y = h(na,na)
-  w = h(en,na) * h(na,en)
+    y = h(na, na)
+    w = h(en, na)*h(na, en)
 
-  if ( l == na ) then
-    go to 280
-  end if
+    if (l==na) then
+      go to 130
+    end if
 
-  if ( itn == 0 ) then
-    ierr = en
-    return
-  end if
+    if (itn==0) then
+      ierr = en
+      return
+    end if
 !
 !  Form an exceptional shift.
 !
-  if ( its == 10 .or. its == 20 ) then
+    if (its==10 .or. its==20) then
 
-    t = t + x
+      t = t + x
 
-    do i = low, en
-      h(i,i) = h(i,i) - x
-    end do
+      do i = low, en
+        h(i, i) = h(i, i) - x
+      end do
 
-    s = abs ( h(en,na) ) + abs ( h(na,enm2) )
-    x = 0.75_rkx * s
-    y = x
-    w = -0.4375_rkx * s * s
+      s = abs(h(en,na)) + abs(h(na,enm2))
+      x = 0.75_rkx*s
+      y = x
+      w = -0.4375_rkx*s*s
 
-  end if
+    end if
 
-  its = its + 1
-  itn = itn - 1
+    its = its + 1
+    itn = itn - 1
 !
 !  Look for two consecutive small sub-diagonal elements.
 !
-  do mm = l, enm2
+    do mm = l, enm2
 
-    m = enm2 + l - mm
-    zz = h(m,m)
-    r = x - zz
-    s = y - zz
-    p = ( r * s - w ) / h(m+1,m) + h(m,m+1)
-    q = h(m+1,m+1) - zz - r - s
-    r = h(m+2,m+1)
-    s = abs ( p ) + abs ( q ) + abs ( r )
-    p = p / s
-    q = q / s
-    r = r / s
+      m = enm2 + l - mm
+      zz = h(m, m)
+      r = x - zz
+      s = y - zz
+      p = (r*s-w)/h(m+1, m) + h(m, m+1)
+      q = h(m+1, m+1) - zz - r - s
+      r = h(m+2, m+1)
+      s = abs(p) + abs(q) + abs(r)
+      p = p/s
+      q = q/s
+      r = r/s
 
-    if ( m == l ) then
-      exit
-    end if
+      if (m==l) then
+        exit
+      end if
 
-    tst1 = abs ( p ) * ( abs ( h(m-1,m-1) ) + abs ( zz ) + abs ( h(m+1,m+1) ) )
-    tst2 = tst1 + abs ( h(m,m-1) ) * ( abs ( q ) + abs ( r ) )
+      tst1 = abs(p)*(abs(h(m-1,m-1))+abs(zz)+abs(h(m+1,m+1)))
+      tst2 = tst1 + abs(h(m,m-1))*(abs(q)+abs(r))
 
-    if ( tst2 == tst1 ) then
-      exit
-    end if
+      if (tst2==tst1) then
+        exit
+      end if
 
-  end do
+    end do
 
-  do i = m+2, en
-    h(i,i-2) = 0.0_rkx
-    if ( i /= m+2 ) then
-      h(i,i-3) = 0.0_rkx
-    end if
-  end do
+    do i = m + 2, en
+      h(i, i-2) = 0.0_rkx
+      if (i/=m+2) then
+        h(i, i-3) = 0.0_rkx
+      end if
+    end do
 !
 !  Double QR step involving rows l to EN and columns M to EN.
 !
-  do k = m, na
+    do k = m, na
 
-    notlas = k /= na
+      notlas = k /= na
 
-    if ( k /= m ) then
+      if (k/=m) then
 
-      p = h(k,k-1)
-      q = h(k+1,k-1)
+        p = h(k, k-1)
+        q = h(k+1, k-1)
 
-      if ( notlas ) then
-        r = h(k+2,k-1)
+        if (notlas) then
+          r = h(k+2, k-1)
+        else
+          r = 0.0_rkx
+        end if
+
+        x = abs(p) + abs(q) + abs(r)
+
+        if (x==0.0_rkx) then
+          cycle
+        end if
+
+        p = p/x
+        q = q/x
+        r = r/x
+
+      end if
+
+      s = sign(sqrt(p**2+q**2+r**2), p)
+
+      if (k/=m) then
+        h(k, k-1) = -s*x
+      else if (l/=m) then
+        h(k, k-1) = -h(k, k-1)
+      end if
+
+      p = p + s
+      x = p/s
+      y = q/s
+      zz = r/s
+      q = q/p
+      r = r/p
+
+      if (.not. notlas) then
+!
+!  Row modification.
+!
+        do j = k, n
+          p = h(k, j) + q*h(k+1, j)
+          h(k, j) = h(k, j) - p*x
+          h(k+1, j) = h(k+1, j) - p*y
+        end do
+
+        j = min(en, k+3)
+!
+!  Column modification.
+!
+        do i = 1, j
+          p = x*h(i, k) + y*h(i, k+1)
+          h(i, k) = h(i, k) - p
+          h(i, k+1) = h(i, k+1) - p*q
+        end do
+
       else
-        r = 0.0_rkx
-      end if
-
-      x = abs ( p ) + abs ( q ) + abs ( r )
-
-      if ( x == 0.0_rkx ) then
-        cycle
-      end if
-
-      p = p / x
-      q = q / x
-      r = r / x
-
-    end if
-
-    s = sign ( sqrt ( p**2 + q**2 + r**2 ), p )
-
-    if ( k /= m ) then
-      h(k,k-1) = - s * x
-    else if ( l /= m ) then
-      h(k,k-1) = - h(k,k-1)
-    end if
-
-    p = p + s
-    x = p / s
-    y = q / s
-    zz = r / s
-    q = q / p
-    r = r / p
-
-    if ( .not. notlas ) then
 !
 !  Row modification.
 !
-      do j = k, n
-        p = h(k,j) + q * h(k+1,j)
-        h(k,j) = h(k,j) - p * x
-        h(k+1,j) = h(k+1,j) - p * y
-      end do
+        do j = k, n
+          p = h(k, j) + q*h(k+1, j) + r*h(k+2, j)
+          h(k, j) = h(k, j) - p*x
+          h(k+1, j) = h(k+1, j) - p*y
+          h(k+2, j) = h(k+2, j) - p*zz
+        end do
 
-      j = min ( en, k+3 )
+        j = min(en, k+3)
 !
 !  Column modification.
 !
-      do i = 1, j
-        p = x * h(i,k) + y * h(i,k+1)
-        h(i,k) = h(i,k) - p
-        h(i,k+1) = h(i,k+1) - p * q
-      end do
+        do i = 1, j
+          p = x*h(i, k) + y*h(i, k+1) + zz*h(i, k+2)
+          h(i, k) = h(i, k) - p
+          h(i, k+1) = h(i, k+1) - p*q
+          h(i, k+2) = h(i, k+2) - p*r
+        end do
 
-    else
-!
-!  Row modification.
-!
-      do j = k, n
-        p = h(k,j) + q * h(k+1,j) + r * h(k+2,j)
-        h(k,j) = h(k,j) - p * x
-        h(k+1,j) = h(k+1,j) - p * y
-        h(k+2,j) = h(k+2,j) - p * zz
-      end do
+      end if
 
-      j = min ( en, k+3 )
-!
-!  Column modification.
-!
-      do i = 1, j
-        p = x * h(i,k) + y * h(i,k+1) + zz * h(i,k+2)
-        h(i,k) = h(i,k) - p
-        h(i,k+1) = h(i,k+1) - p * q
-        h(i,k+2) = h(i,k+2) - p * r
-      end do
+    end do
 
-    end if
-
-  end do
-
-  go to 70
+    go to 110
 !
 !  One root found.
 !
-270 continue
+120 continue
 
-  wr(en) = x + t
-  wi(en) = 0.0_rkx
-  en = na
-  go to 60
+    wr(en) = x + t
+    wi(en) = 0.0_rkx
+    en = na
+    go to 100
 !
 !  Two roots found.
 !
-280 continue
+130 continue
 
-  p = ( y - x ) / 2.0_rkx
-  q = p * p + w
-  zz = sqrt ( abs ( q ) )
-  x = x + t
+    p = (y-x)/2.0_rkx
+    q = p*p + w
+    zz = sqrt(abs(q))
+    x = x + t
 !
 !  Real root, or complex pair.
 !
-  if ( q >= 0.0_rkx ) then
+    if (q>=0.0_rkx) then
 
-    zz = p + sign ( zz, p )
-    wr(na) = x + zz
-    if ( zz == 0.0_rkx ) then
-      wr(en) = wr(na)
+      zz = p + sign(zz, p)
+      wr(na) = x + zz
+      if (zz==0.0_rkx) then
+        wr(en) = wr(na)
+      else
+        wr(en) = x - w/zz
+      end if
+      wi(na) = 0.0_rkx
+      wi(en) = 0.0_rkx
+
     else
-      wr(en) = x - w / zz
+
+      wr(na) = x + p
+      wr(en) = x + p
+      wi(na) = zz
+      wi(en) = -zz
+
     end if
-    wi(na) = 0.0_rkx
-    wi(en) = 0.0_rkx
 
-  else
+    en = enm2
+    go to 100
+  end subroutine hqr
 
-    wr(na) = x + p
-    wr(en) = x + p
-    wi(na) = zz
-    wi(en) = -zz
-
-  end if
-
-  en = enm2
-  go to 60
-end subroutine hqr
-
-subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
+  subroutine hqr2(n, low, igh, h, wr, wi, z, ierr)
 
 !*****************************************************************************80
 !
@@ -6707,571 +6701,570 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  integer ( kind = ik4 ) :: en
-  integer ( kind = ik4 ) :: enm2
-  real    ( kind = rkx ) :: h(n,n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: itn
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: na
-  integer ( kind = ik4 ) :: nn
-  real    ( kind = rkx ) :: norm
-  logical              :: notlas
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: q
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: ra
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: sa
-  real    ( kind = rkx ) :: t
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: vi
-  real    ( kind = rkx ) :: vr
-  real    ( kind = rkx ) :: w
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
-  real    ( kind = rkx ) :: z(n,n)
-  real    ( kind = rkx ) :: zz
+    integer (kind=ik4) :: en
+    integer (kind=ik4) :: enm2
+    real (kind=rkx) :: h(n, n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: itn
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: na
+    integer (kind=ik4) :: nn
+    real (kind=rkx) :: norm
+    logical :: notlas
+    real (kind=rkx) :: p
+    real (kind=rkx) :: q
+    real (kind=rkx) :: r
+    real (kind=rkx) :: ra
+    real (kind=rkx) :: s
+    real (kind=rkx) :: sa
+    real (kind=rkx) :: t
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: vi
+    real (kind=rkx) :: vr
+    real (kind=rkx) :: w
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
+    real (kind=rkx) :: z(n, n)
+    real (kind=rkx) :: zz
 
-  ierr = 0
-  norm = 0.0_rkx
-  k = 1
+    ierr = 0
+    norm = 0.0_rkx
+    k = 1
 !
 !  Store roots isolated by BALANC and compute the matrix norm.
 !
-  do i = 1, n
+    do i = 1, n
 
-    do j = k, n
-      norm = norm + abs ( h(i,j) )
+      do j = k, n
+        norm = norm + abs(h(i,j))
+      end do
+
+      k = i
+      if (i<low .or. i>igh) then
+        wr(i) = h(i, i)
+        wi(i) = 0.0_rkx
+      end if
+
     end do
 
-    k = i
-    if ( i < low .or. i > igh ) then
-      wr(i) = h(i,i)
-      wi(i) = 0.0_rkx
-    end if
-
-  end do
-
-  en = igh
-  t = 0.0_rkx
-  itn = 30 * n
+    en = igh
+    t = 0.0_rkx
+    itn = 30*n
 !
 !  Search for next eigenvalues.
 !
-60 continue
+100 continue
 
-  if ( en < low ) then
-    go to 340
-  end if
+    if (en<low) then
+      go to 180
+    end if
 
-  its = 0
-  na = en - 1
-  enm2 = na - 1
+    its = 0
+    na = en - 1
+    enm2 = na - 1
 !
 !  Look for single small sub-diagonal element.
 !
-70 continue
+110 continue
 
-  do ll = low, en
+    do ll = low, en
 
-    l = en + low - ll
+      l = en + low - ll
 
-    if ( l == low ) then
-      exit
-    end if
+      if (l==low) then
+        exit
+      end if
 
-    s = abs ( h(l-1,l-1) ) + abs ( h(l,l) )
-    if ( s == 0.0_rkx ) then
-      s = norm
-    end if
+      s = abs(h(l-1,l-1)) + abs(h(l,l))
+      if (s==0.0_rkx) then
+        s = norm
+      end if
 
-    tst1 = s
-    tst2 = tst1 + abs ( h(l,l-1) )
+      tst1 = s
+      tst2 = tst1 + abs(h(l,l-1))
 
-    if ( tst2 == tst1 ) then
-      exit
-    end if
+      if (tst2==tst1) then
+        exit
+      end if
 
-  end do
+    end do
 !
 !  Form shift.
 !
-  x = h(en,en)
-  if ( l == en ) then
-    go to 270
-  end if
+    x = h(en, en)
+    if (l==en) then
+      go to 140
+    end if
 
-  y = h(na,na)
-  w = h(en,na) * h(na,en)
+    y = h(na, na)
+    w = h(en, na)*h(na, en)
 
-  if ( l == na ) then
-    go to 280
-  end if
+    if (l==na) then
+      go to 150
+    end if
 
-  if ( itn == 0 ) then
-    ierr = en
-    return
-  end if
+    if (itn==0) then
+      ierr = en
+      return
+    end if
 !
 !  Form exceptional shift.
 !
-  if ( its == 10 .or. its == 20 ) then
+    if (its==10 .or. its==20) then
 
-    t = t + x
+      t = t + x
 
-    do i = low, en
-      h(i,i) = h(i,i) - x
-    end do
+      do i = low, en
+        h(i, i) = h(i, i) - x
+      end do
 
-    s = abs ( h(en,na) ) + abs ( h(na,enm2) )
-    x = 0.75_rkx * s
-    y = x
-    w = -0.4375_rkx * s * s
+      s = abs(h(en,na)) + abs(h(na,enm2))
+      x = 0.75_rkx*s
+      y = x
+      w = -0.4375_rkx*s*s
 
-  end if
+    end if
 
-  its = its + 1
-  itn = itn - 1
+    its = its + 1
+    itn = itn - 1
 !
 !  Look for two consecutive small sub-diagonal elements.
 !
-  do mm = l, enm2
-     m = enm2 + l - mm
-     zz = h(m,m)
-     r = x - zz
-     s = y - zz
-     p = ( r * s - w ) / h(m+1,m) + h(m,m+1)
-     q = h(m+1,m+1) - zz - r - s
-     r = h(m+2,m+1)
-     s = abs ( p ) + abs ( q ) + abs ( r )
-     p = p / s
-     q = q / s
-     r = r / s
-     if ( m == l ) then
-       exit
-     end if
+    do mm = l, enm2
+      m = enm2 + l - mm
+      zz = h(m, m)
+      r = x - zz
+      s = y - zz
+      p = (r*s-w)/h(m+1, m) + h(m, m+1)
+      q = h(m+1, m+1) - zz - r - s
+      r = h(m+2, m+1)
+      s = abs(p) + abs(q) + abs(r)
+      p = p/s
+      q = q/s
+      r = r/s
+      if (m==l) then
+        exit
+      end if
 
-     tst1 = abs ( p ) * ( abs ( h(m-1,m-1) ) + abs ( zz ) + abs ( h(m+1,m+1) ) )
-     tst2 = tst1 + abs ( h(m,m-1) ) * ( abs ( q ) + abs ( r ) )
-     if ( tst2 == tst1 ) then
-       exit
-     end if
+      tst1 = abs(p)*(abs(h(m-1,m-1))+abs(zz)+abs(h(m+1,m+1)))
+      tst2 = tst1 + abs(h(m,m-1))*(abs(q)+abs(r))
+      if (tst2==tst1) then
+        exit
+      end if
 
-  end do
+    end do
 
-  do i = m+2, en
-    h(i,i-2) = 0.0_rkx
-    if ( i /= m+2 ) then
-      h(i,i-3) = 0.0_rkx
-    end if
-  end do
+    do i = m + 2, en
+      h(i, i-2) = 0.0_rkx
+      if (i/=m+2) then
+        h(i, i-3) = 0.0_rkx
+      end if
+    end do
 !
 !  Double QR step involving rows L to EN and columns M to EN.
 !
-  do k = m, na
+    do k = m, na
 
-     notlas = k /= na
+      notlas = k /= na
 
-     if ( k /= m ) then
+      if (k/=m) then
 
-       p = h(k,k-1)
-       q = h(k+1,k-1)
-       r = 0.0_rkx
-       if ( notlas ) then
-         r = h(k+2,k-1)
-       end if
+        p = h(k, k-1)
+        q = h(k+1, k-1)
+        r = 0.0_rkx
+        if (notlas) then
+          r = h(k+2, k-1)
+        end if
 
-       x = abs ( p ) + abs ( q ) + abs ( r )
-       if ( x == 0.0_rkx ) then
-         cycle
-       end if
+        x = abs(p) + abs(q) + abs(r)
+        if (x==0.0_rkx) then
+          cycle
+        end if
 
-       p = p / x
-       q = q / x
-       r = r / x
+        p = p/x
+        q = q/x
+        r = r/x
 
-     end if
+      end if
 
-     s = sign ( sqrt ( p**2 + q**2 + r**2 ), p )
+      s = sign(sqrt(p**2+q**2+r**2), p)
 
-     if ( k /= m ) then
-       h(k,k-1) = - s * x
-     else if ( l /= m ) then
-       h(k,k-1) = -h(k,k-1)
-     end if
+      if (k/=m) then
+        h(k, k-1) = -s*x
+      else if (l/=m) then
+        h(k, k-1) = -h(k, k-1)
+      end if
 
-     p = p + s
-     x = p / s
-     y = q / s
-     zz = r / s
-     q = q / p
-     r = r / p
-     if ( notlas ) go to 225
+      p = p + s
+      x = p/s
+      y = q/s
+      zz = r/s
+      q = q/p
+      r = r/p
+      if (notlas) go to 120
 !
 !  Row modification.
 !
-     do j = k, n
-       p = h(k,j) + q * h(k+1,j)
-       h(k,j) = h(k,j) - p * x
-       h(k+1,j) = h(k+1,j) - p * y
-     end do
+      do j = k, n
+        p = h(k, j) + q*h(k+1, j)
+        h(k, j) = h(k, j) - p*x
+        h(k+1, j) = h(k+1, j) - p*y
+      end do
 
-     j = min ( en, k+3 )
+      j = min(en, k+3)
 !
 !  Column modification.
 !
-     do i = 1, j
-       p = x * h(i,k) + y * h(i,k+1)
-       h(i,k) = h(i,k) - p
-       h(i,k+1) = h(i,k+1) - p * q
-     end do
+      do i = 1, j
+        p = x*h(i, k) + y*h(i, k+1)
+        h(i, k) = h(i, k) - p
+        h(i, k+1) = h(i, k+1) - p*q
+      end do
 !
 !  Accumulate transformations.
 !
-     do i = low, igh
-       p = x * z(i,k) + y * z(i,k+1)
-       z(i,k) = z(i,k) - p
-       z(i,k+1) = z(i,k+1) - p * q
-     end do
+      do i = low, igh
+        p = x*z(i, k) + y*z(i, k+1)
+        z(i, k) = z(i, k) - p
+        z(i, k+1) = z(i, k+1) - p*q
+      end do
 
-     go to 255
+      go to 130
 
-225  continue
+120   continue
 !
 !  Row modification.
 !
-     do j = k, n
-       p = h(k,j) + q * h(k+1,j) + r * h(k+2,j)
-       h(k,j) = h(k,j) - p * x
-       h(k+1,j) = h(k+1,j) - p * y
-       h(k+2,j) = h(k+2,j) - p * zz
-     end do
+      do j = k, n
+        p = h(k, j) + q*h(k+1, j) + r*h(k+2, j)
+        h(k, j) = h(k, j) - p*x
+        h(k+1, j) = h(k+1, j) - p*y
+        h(k+2, j) = h(k+2, j) - p*zz
+      end do
 
-     j = min ( en, k+3 )
+      j = min(en, k+3)
 !
 !  Column modification.
 !
-     do i = 1, j
-       p = x * h(i,k) + y * h(i,k+1) + zz * h(i,k+2)
-       h(i,k) = h(i,k) - p
-       h(i,k+1) = h(i,k+1) - p * q
-       h(i,k+2) = h(i,k+2) - p * r
-     end do
+      do i = 1, j
+        p = x*h(i, k) + y*h(i, k+1) + zz*h(i, k+2)
+        h(i, k) = h(i, k) - p
+        h(i, k+1) = h(i, k+1) - p*q
+        h(i, k+2) = h(i, k+2) - p*r
+      end do
 !
 !  Accumulate transformations.
 !
-     do i = low, igh
-        p = x * z(i,k) + y * z(i,k+1) + zz * z(i,k+2)
-        z(i,k) = z(i,k) - p
-        z(i,k+1) = z(i,k+1) - p * q
-        z(i,k+2) = z(i,k+2) - p * r
-     end do
+      do i = low, igh
+        p = x*z(i, k) + y*z(i, k+1) + zz*z(i, k+2)
+        z(i, k) = z(i, k) - p
+        z(i, k+1) = z(i, k+1) - p*q
+        z(i, k+2) = z(i, k+2) - p*r
+      end do
 
-255 continue
+130   continue
 
-  end do
+    end do
 
-  go to 70
+    go to 110
 !
 !  One root found.
 !
-270 continue
+140 continue
 
-  h(en,en) = x + t
-  wr(en) = h(en,en)
-  wi(en) = 0.0_rkx
-  en = na
-  go to 60
+    h(en, en) = x + t
+    wr(en) = h(en, en)
+    wi(en) = 0.0_rkx
+    en = na
+    go to 100
 !
 !  Two roots found.
 !
-280 continue
+150 continue
 
-  p = ( y - x ) / 2.0_rkx
-  q = p * p + w
-  zz = sqrt ( abs ( q ) )
-  h(en,en) = x + t
-  x = h(en,en)
-  h(na,na) = y + t
+    p = (y-x)/2.0_rkx
+    q = p*p + w
+    zz = sqrt(abs(q))
+    h(en, en) = x + t
+    x = h(en, en)
+    h(na, na) = y + t
 
-  if ( q < 0.0_rkx ) go to 320
+    if (q<0.0_rkx) go to 160
 !
 !  Real pair.
 !
-  zz = p + sign ( zz, p )
-  wr(na) = x + zz
-  wr(en) = wr(na)
+    zz = p + sign(zz, p)
+    wr(na) = x + zz
+    wr(en) = wr(na)
 
-  if ( zz /= 0.0_rkx ) then
-    wr(en) = x - w / zz
-  end if
+    if (zz/=0.0_rkx) then
+      wr(en) = x - w/zz
+    end if
 
-  wi(na) = 0.0_rkx
-  wi(en) = 0.0_rkx
-  x = h(en,na)
-  s = abs ( x ) + abs ( zz )
-  p = x / s
-  q = zz / s
-  r = sqrt ( p**2 + q**2 )
-  p = p / r
-  q = q / r
+    wi(na) = 0.0_rkx
+    wi(en) = 0.0_rkx
+    x = h(en, na)
+    s = abs(x) + abs(zz)
+    p = x/s
+    q = zz/s
+    r = sqrt(p**2+q**2)
+    p = p/r
+    q = q/r
 !
 !  Row modification.
 !
-  do j = na, n
-    zz = h(na,j)
-    h(na,j) = q * zz + p * h(en,j)
-    h(en,j) = q * h(en,j) - p * zz
-  end do
+    do j = na, n
+      zz = h(na, j)
+      h(na, j) = q*zz + p*h(en, j)
+      h(en, j) = q*h(en, j) - p*zz
+    end do
 !
 !  Column modification.
 !
-  do i = 1, en
-    zz = h(i,na)
-    h(i,na) = q * zz + p * h(i,en)
-    h(i,en) = q * h(i,en) - p * zz
-  end do
+    do i = 1, en
+      zz = h(i, na)
+      h(i, na) = q*zz + p*h(i, en)
+      h(i, en) = q*h(i, en) - p*zz
+    end do
 !
 !  Accumulate transformations.
 !
-  do i = low, igh
-    zz = z(i,na)
-    z(i,na) = q * zz + p * z(i,en)
-    z(i,en) = q * z(i,en) - p * zz
-  end do
+    do i = low, igh
+      zz = z(i, na)
+      z(i, na) = q*zz + p*z(i, en)
+      z(i, en) = q*z(i, en) - p*zz
+    end do
 
-  go to 330
+    go to 170
 !
 !  Complex pair
 !
-320 continue
+160 continue
 
-  wr(na) = x + p
-  wr(en) = x + p
-  wi(na) = zz
-  wi(en) = -zz
+    wr(na) = x + p
+    wr(en) = x + p
+    wi(na) = zz
+    wi(en) = -zz
 
-330 continue
+170 continue
 
-  en = enm2
-  go to 60
+    en = enm2
+    go to 100
 !
 !  All roots found.
 !  Backsubstitute to find vectors of upper triangular form.
 !
-340 continue
+180 continue
 
-  if ( norm == 0.0_rkx ) then
-    return
-  end if
+    if (norm==0.0_rkx) then
+      return
+    end if
 
-  do nn = 1, n
+    do nn = 1, n
 
-     en = n + 1 - nn
-     p = wr(en)
-     q = wi(en)
-     na = en - 1
+      en = n + 1 - nn
+      p = wr(en)
+      q = wi(en)
+      na = en - 1
 
-     if ( q < 0 ) then
-        go to 710
-     else if ( q == 0 ) then
-        go to 600
-     else
-        go to 800
-     end if
+      if (q<0) then
+        go to 230
+      else if (q==0) then
+        go to 190
+      else
+        go to 250
+      end if
 
 !
 !  Real vector
 !
-600  continue
+190   continue
 
-     m = en
-     h(en,en) = 1.0_rkx
+      m = en
+      h(en, en) = 1.0_rkx
 
-     if ( na == 0 ) go to 800
+      if (na==0) go to 250
 
-     do ii = 1, na
+      do ii = 1, na
 
         i = en - ii
-        w = h(i,i) - p
-        r = dot_product ( h(i,m:en), h(m:en,en) )
+        w = h(i, i) - p
+        r = dot_product(h(i,m:en), h(m:en,en))
 
-        if ( wi(i) < 0.0_rkx ) then
+        if (wi(i)<0.0_rkx) then
           zz = w
           s = r
-          go to 700
+          go to 220
         end if
 
         m = i
-        if ( wi(i) /= 0.0_rkx ) go to 640
+        if (wi(i)/=0.0_rkx) go to 200
         t = w
 
-        if ( t == 0.0_rkx ) then
+        if (t==0.0_rkx) then
 
           tst1 = norm
           t = tst1
 
           do
-            t = 0.01_rkx * t
+            t = 0.01_rkx*t
             tst2 = norm + t
-            if ( tst2 <= tst1 ) then
+            if (tst2<=tst1) then
               exit
             end if
           end do
 
         end if
 
-        h(i,en) = -r / t
-        go to 680
+        h(i, en) = -r/t
+        go to 210
 !
 !  Solve real equations.
 !
-640     continue
+200     continue
 
-        x = h(i,i+1)
-        y = h(i+1,i)
-        q = ( wr(i) - p ) * ( wr(i) - p) + wi(i) * wi(i)
-        t = ( x * s - zz * r ) / q
-        h(i,en) = t
+        x = h(i, i+1)
+        y = h(i+1, i)
+        q = (wr(i)-p)*(wr(i)-p) + wi(i)*wi(i)
+        t = (x*s-zz*r)/q
+        h(i, en) = t
 
-        if ( abs ( x ) > abs ( zz ) ) then
-          h(i+1,en) = (-r - w * t) / x
+        if (abs(x)>abs(zz)) then
+          h(i+1, en) = (-r-w*t)/x
         else
-          h(i+1,en) = (-s - y * t) / zz
+          h(i+1, en) = (-s-y*t)/zz
         end if
 !
 !  Overflow control.
 !
-680     continue
+210     continue
 
-        t = abs ( h(i,en) )
+        t = abs(h(i,en))
 
-        if ( t /= 0.0_rkx ) then
+        if (t/=0.0_rkx) then
 
           tst1 = t
-          tst2 = tst1 + 1.0_rkx / tst1
+          tst2 = tst1 + 1.0_rkx/tst1
 
-          if ( tst2 <= tst1 ) then
-            h(i:en,en) = h(i:en,en) / t
+          if (tst2<=tst1) then
+            h(i:en, en) = h(i:en, en)/t
           end if
 
         end if
 
-700   continue
+220     continue
 
-    end do
+      end do
 !
 !  End real vector
 !
-     go to 800
+      go to 250
 !
 !  Complex vector
 !
-710  continue
+230   continue
 
-     m = na
+      m = na
 !
 !  Last vector component chosen imaginary, so that the eigenvector
 !  matrix is triangular.
 !
-     if ( abs ( h(en,na) ) > abs ( h(na,en) ) ) then
+      if (abs(h(en,na))>abs(h(na,en))) then
 
-       h(na,na) = q / h(en,na)
-       h(na,en) = -(h(en,en) - p) / h(en,na)
+        h(na, na) = q/h(en, na)
+        h(na, en) = -(h(en,en)-p)/h(en, na)
 
-     else
+      else
 
-       call cdiv ( 0.0_rkx, -h(na,en), h(na,na)-p, q, h(na,na), h(na,en) )
+        call cdiv(0.0_rkx, -h(na,en), h(na,na)-p, q, h(na,na), h(na,en))
 
-     end if
+      end if
 
-     h(en,na) = 0.0_rkx
-     h(en,en) = 1.0_rkx
-     enm2 = na - 1
+      h(en, na) = 0.0_rkx
+      h(en, en) = 1.0_rkx
+      enm2 = na - 1
 
-     do ii = 1, enm2
+      do ii = 1, enm2
 
         i = na - ii
-        w = h(i,i) - p
-        ra = dot_product ( h(i,m:en), h(m:en,na) )
-        sa = dot_product ( h(i,m:en), h(m:en,en) )
+        w = h(i, i) - p
+        ra = dot_product(h(i,m:en), h(m:en,na))
+        sa = dot_product(h(i,m:en), h(m:en,en))
 
-        if ( wi(i) < 0.0_rkx ) then
+        if (wi(i)<0.0_rkx) then
           zz = w
           r = ra
           s = sa
         end if
 
-         m = i
+        m = i
 
-        if ( wi(i) == 0.0_rkx ) then
-          call cdiv ( -ra, -sa, w, q, h(i,na), h(i,en) )
-          go to 790
+        if (wi(i)==0.0_rkx) then
+          call cdiv(-ra, -sa, w, q, h(i,na), h(i,en))
+          go to 240
         end if
 !
 !  Solve complex equations.
 !
-        x = h(i,i+1)
-        y = h(i+1,i)
-        vr = ( wr(i) - p ) * ( wr(i) - p ) + wi(i) * wi(i) - q * q
-        vi = ( wr(i) - p ) * 2.0_rkx * q
+        x = h(i, i+1)
+        y = h(i+1, i)
+        vr = (wr(i)-p)*(wr(i)-p) + wi(i)*wi(i) - q*q
+        vi = (wr(i)-p)*2.0_rkx*q
 
-        if ( vr == 0.0_rkx .and. vi == 0.0_rkx ) then
+        if (vr==0.0_rkx .and. vi==0.0_rkx) then
 
-          tst1 = norm * ( abs ( w ) + abs ( q ) + abs ( x ) &
-            + abs ( y ) + abs ( zz ) )
+          tst1 = norm*(abs(w)+abs(q)+abs(x)+abs(y)+abs(zz))
           vr = tst1
 
           do
-            vr = 0.01_rkx * vr
+            vr = 0.01_rkx*vr
             tst2 = tst1 + vr
-            if ( tst2 <= tst1 ) then
+            if (tst2<=tst1) then
               exit
             end if
           end do
 
         end if
 
-        call cdiv ( x*r-zz*ra+q*sa, x*s-zz*sa-q*ra, vr, vi, h(i,na), h(i,en) )
+        call cdiv(x*r-zz*ra+q*sa, x*s-zz*sa-q*ra, vr, vi, h(i,na), h(i,en))
 
-        if ( abs ( x ) > abs ( zz ) + abs ( q ) ) then
-          h(i+1,na) = ( -ra - w * h(i,na) + q * h(i,en) ) / x
-          h(i+1,en) = ( -sa - w * h(i,en) - q * h(i,na) ) / x
+        if (abs(x)>abs(zz)+abs(q)) then
+          h(i+1, na) = (-ra-w*h(i,na)+q*h(i,en))/x
+          h(i+1, en) = (-sa-w*h(i,en)-q*h(i,na))/x
         else
-          call cdiv ( -r-y*h(i,na), -s-y*h(i,en), zz, q, h(i+1,na), h(i+1,en) )
+          call cdiv(-r-y*h(i,na), -s-y*h(i,en), zz, q, h(i+1,na), h(i+1,en))
         end if
 !
 !  Overflow control.
 !
-790     continue
+240     continue
 
-        t = max ( abs ( h(i,na) ), abs ( h(i,en) ) )
+        t = max(abs(h(i,na)), abs(h(i,en)))
 
-        if ( t /= 0.0_rkx ) then
+        if (t/=0.0_rkx) then
           tst1 = t
-          tst2 = tst1 + 1.0_rkx / tst1
-          if ( tst2 <= tst1 ) then
-            h(i:en,na) = h(i:en,na) / t
-            h(i:en,en) = h(i:en,en) / t
+          tst2 = tst1 + 1.0_rkx/tst1
+          if (tst2<=tst1) then
+            h(i:en, na) = h(i:en, na)/t
+            h(i:en, en) = h(i:en, en)/t
           end if
         end if
 
@@ -7279,39 +7272,39 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !
 !  End complex vector.
 !
-800 continue
+250   continue
 
-  end do
+    end do
 !
 !  End back substitution.
 !
 !  Vectors of isolated roots.
 !
-  do i = 1, n
+    do i = 1, n
 
-    if ( i < low .or. i > igh ) then
-      z(i,i:n) = h(i,i:n)
-    end if
+      if (i<low .or. i>igh) then
+        z(i, i:n) = h(i, i:n)
+      end if
 
-  end do
+    end do
 !
 !  Multiply by transformation matrix to give vectors of original full matrix.
 !
-  do jj = low, n
+    do jj = low, n
 
-     j = n + low - jj
-     m = min ( j, igh )
+      j = n + low - jj
+      m = min(j, igh)
 
-     do i = low, igh
-       z(i,j) = dot_product ( z(i,low:m), h(low:m,j) )
-     end do
+      do i = low, igh
+        z(i, j) = dot_product(z(i,low:m), h(low:m,j))
+      end do
 
-  end do
+    end do
 
-  return
-end subroutine hqr2
+    return
+  end subroutine hqr2
 
-subroutine htrib3 ( n, a, tau, m, zr, zi )
+  subroutine htrib3(n, a, tau, m, zr, zi)
 
 !*****************************************************************************80
 !
@@ -7370,72 +7363,72 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
 !    the real and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: si
-  real    ( kind = rkx ) :: tau(2,n)
-  real    ( kind = rkx ) :: zi(n,m)
-  real    ( kind = rkx ) :: zr(n,m)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: s
+    real (kind=rkx) :: si
+    real (kind=rkx) :: tau(2, n)
+    real (kind=rkx) :: zi(n, m)
+    real (kind=rkx) :: zr(n, m)
 
-  if ( m == 0 ) then
-    return
-  end if
+    if (m==0) then
+      return
+    end if
 !
 !  Transform the eigenvectors of the real symmetric tridiagonal matrix
 !  to those of the hermitian tridiagonal matrix.
 !
-  do k = 1, n
-    do j = 1, m
-      zi(k,j) = -zr(k,j) * tau(2,k)
-      zr(k,j) = zr(k,j) * tau(1,k)
+    do k = 1, n
+      do j = 1, m
+        zi(k, j) = -zr(k, j)*tau(2, k)
+        zr(k, j) = zr(k, j)*tau(1, k)
+      end do
     end do
-  end do
 !
 !  Recover and apply the Householder matrices.
 !
-  do i = 2, n
+    do i = 2, n
 
-    l = i - 1
-    h = a(i,i)
+      l = i - 1
+      h = a(i, i)
 
-    if ( h /= 0.0_rkx ) then
+      if (h/=0.0_rkx) then
 
-      do j = 1, m
+        do j = 1, m
 
-        s = 0.0_rkx
-        si = 0.0_rkx
+          s = 0.0_rkx
+          si = 0.0_rkx
 
-        do k = 1, l
-          s = s + a(i,k) * zr(k,j) - a(k,i) * zi(k,j)
-          si = si + a(i,k) * zi(k,j) + a(k,i) * zr(k,j)
+          do k = 1, l
+            s = s + a(i, k)*zr(k, j) - a(k, i)*zi(k, j)
+            si = si + a(i, k)*zi(k, j) + a(k, i)*zr(k, j)
+          end do
+
+          s = (s/h)/h
+          si = (si/h)/h
+
+          zr(1:l, j) = zr(1:l, j) - s*a(i, 1:l) - si*a(1:l, i)
+          zi(1:l, j) = zi(1:l, j) - si*a(i, 1:l) + s*a(1:l, i)
+
         end do
 
-        s = ( s / h ) / h
-        si = ( si / h ) / h
+      end if
 
-        zr(1:l,j) = zr(1:l,j) - s * a(i,1:l) - si * a(1:l,i)
-        zi(1:l,j) = zi(1:l,j) - si * a(i,1:l) + s * a(1:l,i)
+    end do
 
-      end do
+    return
+  end subroutine htrib3
 
-    end if
-
-  end do
-
-  return
-end subroutine htrib3
-
-subroutine htribk ( n, ar, ai, tau, m, zr, zi )
+  subroutine htribk(n, ar, ai, tau, m, zr, zi)
 
 !*****************************************************************************80
 !
@@ -7495,72 +7488,72 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
 !    the real and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,n)
-  real    ( kind = rkx ) :: ar(n,n)
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: si
-  real    ( kind = rkx ) :: tau(2,n)
-  real    ( kind = rkx ) :: zi(n,m)
-  real    ( kind = rkx ) :: zr(n,m)
+    real (kind=rkx) :: ai(n, n)
+    real (kind=rkx) :: ar(n, n)
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: s
+    real (kind=rkx) :: si
+    real (kind=rkx) :: tau(2, n)
+    real (kind=rkx) :: zi(n, m)
+    real (kind=rkx) :: zr(n, m)
 
-  if ( m == 0 ) then
-    return
-  end if
+    if (m==0) then
+      return
+    end if
 !
 !  Transform the eigenvectors of the real symmetric tridiagonal matrix to
 !  those of the hermitian tridiagonal matrix.
 !
-  do k = 1, n
-    do j = 1, m
-      zi(k,j) = -zr(k,j) * tau(2,k)
-      zr(k,j) = zr(k,j) * tau(1,k)
+    do k = 1, n
+      do j = 1, m
+        zi(k, j) = -zr(k, j)*tau(2, k)
+        zr(k, j) = zr(k, j)*tau(1, k)
+      end do
     end do
-  end do
 !
 !  Recover and apply the Householder matrices.
 !
-  do i = 2, n
+    do i = 2, n
 
-    l = i - 1
-    h = ai(i,i)
+      l = i - 1
+      h = ai(i, i)
 
-    if ( h /= 0.0_rkx ) then
+      if (h/=0.0_rkx) then
 
-      do j = 1, m
+        do j = 1, m
 
-        s = 0.0_rkx
-        si = 0.0_rkx
-        do k = 1, l
-          s = s + ar(i,k) * zr(k,j) - ai(i,k) * zi(k,j)
-          si = si + ar(i,k) * zi(k,j) + ai(i,k) * zr(k,j)
+          s = 0.0_rkx
+          si = 0.0_rkx
+          do k = 1, l
+            s = s + ar(i, k)*zr(k, j) - ai(i, k)*zi(k, j)
+            si = si + ar(i, k)*zi(k, j) + ai(i, k)*zr(k, j)
+          end do
+
+          s = (s/h)/h
+          si = (si/h)/h
+
+          zr(1:l, j) = zr(1:l, j) - s*ar(i, 1:l) - si*ai(i, 1:l)
+          zi(1:l, j) = zi(1:l, j) - si*ar(i, 1:l) + s*ai(i, 1:l)
+
         end do
 
-        s = ( s / h ) / h
-        si = ( si / h ) / h
+      end if
 
-        zr(1:l,j) = zr(1:l,j) - s * ar(i,1:l) - si * ai(i,1:l)
-        zi(1:l,j) = zi(1:l,j) - si * ar(i,1:l) + s * ai(i,1:l)
+    end do
 
-      end do
+    return
+  end subroutine htribk
 
-    end if
-
-  end do
-
-  return
-end subroutine htribk
-
-subroutine htrid3 ( n, a, d, e, e2, tau )
+  subroutine htrid3(n, a, d, e, e2, tau)
 
 !*****************************************************************************80
 !
@@ -7626,159 +7619,159 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !    Output, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: fi
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: gi
-  real    ( kind = rkx ) :: h
-  real    ( kind = rkx ) :: hh
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: xscale
-  real    ( kind = rkx ) :: si
-  real    ( kind = rkx ) :: tau(2,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: fi
+    real (kind=rkx) :: g
+    real (kind=rkx) :: gi
+    real (kind=rkx) :: h
+    real (kind=rkx) :: hh
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: xscale
+    real (kind=rkx) :: si
+    real (kind=rkx) :: tau(2, n)
 
-  tau(1,n) = 1.0_rkx
-  tau(2,n) = 0.0_rkx
+    tau(1, n) = 1.0_rkx
+    tau(2, n) = 0.0_rkx
 
-  do ii = 1, n
+    do ii = 1, n
 
-    i = n + 1 - ii
-    l = i - 1
-    h = 0.0_rkx
-    xscale = 0.0_rkx
+      i = n + 1 - ii
+      l = i - 1
+      h = 0.0_rkx
+      xscale = 0.0_rkx
 
-    if ( l < 1 ) then
-      e(i) = 0.0_rkx
-      e2(i) = 0.0_rkx
-      go to 290
-    end if
+      if (l<1) then
+        e(i) = 0.0_rkx
+        e2(i) = 0.0_rkx
+        go to 110
+      end if
 !
 !  Scale row.
 !
-     do k = 1, l
-       xscale = xscale + abs ( a(i,k) ) + abs ( a(k,i) )
-     end do
+      do k = 1, l
+        xscale = xscale + abs(a(i,k)) + abs(a(k,i))
+      end do
 
-     if ( xscale == 0.0_rkx ) then
-       tau(1,l) = 1.0_rkx
-       tau(2,l) = 0.0_rkx
-       e(i) = 0.0_rkx
-       e2(i) = 0.0_rkx
-       go to 290
-     end if
+      if (xscale==0.0_rkx) then
+        tau(1, l) = 1.0_rkx
+        tau(2, l) = 0.0_rkx
+        e(i) = 0.0_rkx
+        e2(i) = 0.0_rkx
+        go to 110
+      end if
 
       do k = 1, l
-        a(i,k) = a(i,k) / xscale
-        a(k,i) = a(k,i) / xscale
-        h = h + a(i,k) * a(i,k) + a(k,i) * a(k,i)
-     end do
+        a(i, k) = a(i, k)/xscale
+        a(k, i) = a(k, i)/xscale
+        h = h + a(i, k)*a(i, k) + a(k, i)*a(k, i)
+      end do
 
-     e2(i) = xscale * xscale * h
-     g = sqrt ( h )
-     e(i) = xscale * g
-     f = pythag ( a(i,l), a(l,i) )
+      e2(i) = xscale*xscale*h
+      g = sqrt(h)
+      e(i) = xscale*g
+      f = pythag(a(i,l), a(l,i))
 !
 !  Form next diagonal element of matrix T.
 !
-     if ( f /= 0.0_rkx ) then
+      if (f/=0.0_rkx) then
 
-       tau(1,l) = ( a(l,i) * tau(2,i) - a(i,l) * tau(1,i) ) / f
-       si = ( a(i,l) * tau(2,i) + a(l,i) * tau(1,i) ) / f
-       h = h + f * g
-       g = 1.0_rkx + g / f
-       a(i,l) = g * a(i,l)
-       a(l,i) = g * a(l,i)
+        tau(1, l) = (a(l,i)*tau(2,i)-a(i,l)*tau(1,i))/f
+        si = (a(i,l)*tau(2,i)+a(l,i)*tau(1,i))/f
+        h = h + f*g
+        g = 1.0_rkx + g/f
+        a(i, l) = g*a(i, l)
+        a(l, i) = g*a(l, i)
 
-       if ( l == 1 ) go to 270
+        if (l==1) go to 100
 
-     else
+      else
 
-       tau(1,l) = -tau(1,i)
-       si = tau(2,i)
-       a(i,l) = g
+        tau(1, l) = -tau(1, i)
+        si = tau(2, i)
+        a(i, l) = g
 
-     end if
+      end if
 
-     f = 0.0_rkx
+      f = 0.0_rkx
 
-     do j = 1, l
+      do j = 1, l
 
         g = 0.0_rkx
         gi = 0.0_rkx
 !
 !  Form element of A*U.
 !
-        do k = 1, j-1
-          g = g + a(j,k) * a(i,k) + a(k,j) * a(k,i)
-          gi = gi - a(j,k) * a(k,i) + a(k,j) * a(i,k)
+        do k = 1, j - 1
+          g = g + a(j, k)*a(i, k) + a(k, j)*a(k, i)
+          gi = gi - a(j, k)*a(k, i) + a(k, j)*a(i, k)
         end do
 
-        g = g + a(j,j) * a(i,j)
-        gi = gi - a(j,j) * a(j,i)
+        g = g + a(j, j)*a(i, j)
+        gi = gi - a(j, j)*a(j, i)
 
-        do k = j+1, l
-          g = g + a(k,j) * a(i,k) - a(j,k) * a(k,i)
-          gi = gi - a(k,j) * a(k,i) - a(j,k) * a(i,k)
+        do k = j + 1, l
+          g = g + a(k, j)*a(i, k) - a(j, k)*a(k, i)
+          gi = gi - a(k, j)*a(k, i) - a(j, k)*a(i, k)
         end do
 !
 !  Form element of P.
 !
-        e(j) = g / h
-        tau(2,j) = gi / h
-        f = f + e(j) * a(i,j) - tau(2,j) * a(j,i)
+        e(j) = g/h
+        tau(2, j) = gi/h
+        f = f + e(j)*a(i, j) - tau(2, j)*a(j, i)
 
-     end do
+      end do
 
-     hh = f / ( h + h )
+      hh = f/(h+h)
 !
 !  Form reduced A.
 !
-     do j = 1, l
+      do j = 1, l
 
-        f = a(i,j)
-        g = e(j) - hh * f
+        f = a(i, j)
+        g = e(j) - hh*f
         e(j) = g
-        fi = -a(j,i)
-        gi = tau(2,j) - hh * fi
-        tau(2,j) = -gi
-        a(j,j) = a(j,j) - 2.0_rkx * ( f * g + fi * gi )
+        fi = -a(j, i)
+        gi = tau(2, j) - hh*fi
+        tau(2, j) = -gi
+        a(j, j) = a(j, j) - 2.0_rkx*(f*g+fi*gi)
 
-        do k = 1, j-1
-          a(j,k) = a(j,k) - f * e(k) - g * a(i,k) + fi * tau(2,k) + gi * a(k,i)
-          a(k,j) = a(k,j) - f * tau(2,k) - g * a(k,i) - fi * e(k) - gi * a(i,k)
+        do k = 1, j - 1
+          a(j, k) = a(j, k) - f*e(k) - g*a(i, k) + fi*tau(2, k) + gi*a(k, i)
+          a(k, j) = a(k, j) - f*tau(2, k) - g*a(k, i) - fi*e(k) - gi*a(i, k)
         end do
 
-     end do
+      end do
 
-270  continue
+100   continue
 
-     a(i,1:l) = xscale * a(i,1:l)
-     a(1:l,i) = xscale * a(1:l,i)
-     tau(2,l) = -si
+      a(i, 1:l) = xscale*a(i, 1:l)
+      a(1:l, i) = xscale*a(1:l, i)
+      tau(2, l) = -si
 
-290  continue
+110   continue
 
-     d(i) = a(i,i)
-     a(i,i) = xscale * sqrt ( h )
+      d(i) = a(i, i)
+      a(i, i) = xscale*sqrt(h)
 
-  end do
+    end do
 
-  return
-end subroutine htrid3
+    return
+  end subroutine htrid3
 
-subroutine htridi ( n, ar, ai, d, e, e2, tau )
+  subroutine htridi(n, ar, ai, d, e, e2, tau)
 
 !*****************************************************************************80
 !
@@ -7842,160 +7835,160 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !    Output, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: ai(n,n)
-  real    ( kind = rkx ) :: ar(n,n)
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: fi
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: gi
-  real    ( kind = rkx ) :: h
-  real    ( kind = rkx ) :: hh
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: xscale
-  real    ( kind = rkx ) :: si
-  real    ( kind = rkx ) :: tau(2,n)
+    real (kind=rkx) :: ai(n, n)
+    real (kind=rkx) :: ar(n, n)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: fi
+    real (kind=rkx) :: g
+    real (kind=rkx) :: gi
+    real (kind=rkx) :: h
+    real (kind=rkx) :: hh
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: xscale
+    real (kind=rkx) :: si
+    real (kind=rkx) :: tau(2, n)
 
-  tau(1,n) = 1.0_rkx
-  tau(2,n) = 0.0_rkx
+    tau(1, n) = 1.0_rkx
+    tau(2, n) = 0.0_rkx
 
-  do i = 1, n
-    d(i) = ar(i,i)
-  end do
+    do i = 1, n
+      d(i) = ar(i, i)
+    end do
 
-  do ii = 1, n
+    do ii = 1, n
 
-    i = n + 1 - ii
-    l = i - 1
-    h = 0.0_rkx
-    xscale = 0.0_rkx
+      i = n + 1 - ii
+      l = i - 1
+      h = 0.0_rkx
+      xscale = 0.0_rkx
 
-    if ( l < 1 ) then
-      e(i) = 0.0_rkx
-      e2(i) = 0.0_rkx
-      go to 290
-    end if
+      if (l<1) then
+        e(i) = 0.0_rkx
+        e2(i) = 0.0_rkx
+        go to 110
+      end if
 !
 !  Scale row.
 !
-    do k = 1, l
-      xscale = xscale + abs ( ar(i,k) ) + abs ( ai(i,k) )
-    end do
+      do k = 1, l
+        xscale = xscale + abs(ar(i,k)) + abs(ai(i,k))
+      end do
 
-    if ( xscale == 0.0_rkx ) then
-      tau(1,l) = 1.0_rkx
-      tau(2,l) = 0.0_rkx
-      e(i) = 0.0_rkx
-      e2(i) = 0.0_rkx
-      go to 290
-    end if
+      if (xscale==0.0_rkx) then
+        tau(1, l) = 1.0_rkx
+        tau(2, l) = 0.0_rkx
+        e(i) = 0.0_rkx
+        e2(i) = 0.0_rkx
+        go to 110
+      end if
 
-    ar(i,1:l) = ar(i,1:l) / xscale
-    ai(i,1:l) = ai(i,1:l) / xscale
+      ar(i, 1:l) = ar(i, 1:l)/xscale
+      ai(i, 1:l) = ai(i, 1:l)/xscale
 
-    do k = 1, l
-      h = h + ar(i,k) * ar(i,k) + ai(i,k) * ai(i,k)
-    end do
+      do k = 1, l
+        h = h + ar(i, k)*ar(i, k) + ai(i, k)*ai(i, k)
+      end do
 
-    e2(i) = xscale * xscale * h
-    g = sqrt ( h )
-    e(i) = xscale * g
-    f = pythag ( ar(i,l), ai(i,l) )
+      e2(i) = xscale*xscale*h
+      g = sqrt(h)
+      e(i) = xscale*g
+      f = pythag(ar(i,l), ai(i,l))
 !
 !  Form next diagonal element of matrix T.
 !
-    if ( f /= 0.0_rkx ) then
-      tau(1,l) = ( ai(i,l) * tau(2,i) - ar(i,l) * tau(1,i) ) / f
-      si = ( ar(i,l) * tau(2,i) + ai(i,l) * tau(1,i) ) / f
-      h = h + f * g
-      g = 1.0_rkx + g / f
-      ar(i,l) = g * ar(i,l)
-      ai(i,l) = g * ai(i,l)
-      if ( l == 1 ) go to 270
-    else
-      tau(1,l) = -tau(1,i)
-      si = tau(2,i)
-      ar(i,l) = g
-    end if
+      if (f/=0.0_rkx) then
+        tau(1, l) = (ai(i,l)*tau(2,i)-ar(i,l)*tau(1,i))/f
+        si = (ar(i,l)*tau(2,i)+ai(i,l)*tau(1,i))/f
+        h = h + f*g
+        g = 1.0_rkx + g/f
+        ar(i, l) = g*ar(i, l)
+        ai(i, l) = g*ai(i, l)
+        if (l==1) go to 100
+      else
+        tau(1, l) = -tau(1, i)
+        si = tau(2, i)
+        ar(i, l) = g
+      end if
 
-    f = 0.0_rkx
+      f = 0.0_rkx
 
-    do j = 1, l
+      do j = 1, l
 
-      g = 0.0_rkx
-      gi = 0.0_rkx
+        g = 0.0_rkx
+        gi = 0.0_rkx
 !
 !  Form element of A*U.
 !
-      do k = 1, j
-        g = g + ar(j,k) * ar(i,k) + ai(j,k) * ai(i,k)
-        gi = gi - ar(j,k) * ai(i,k) + ai(j,k) * ar(i,k)
-      end do
+        do k = 1, j
+          g = g + ar(j, k)*ar(i, k) + ai(j, k)*ai(i, k)
+          gi = gi - ar(j, k)*ai(i, k) + ai(j, k)*ar(i, k)
+        end do
 
-      do k = j+1, l
-        g = g + ar(k,j) * ar(i,k) - ai(k,j) * ai(i,k)
-        gi = gi - ar(k,j) * ai(i,k) - ai(k,j) * ar(i,k)
-      end do
+        do k = j + 1, l
+          g = g + ar(k, j)*ar(i, k) - ai(k, j)*ai(i, k)
+          gi = gi - ar(k, j)*ai(i, k) - ai(k, j)*ar(i, k)
+        end do
 !
 !  Form element of P.
 !
-      e(j) = g / h
-      tau(2,j) = gi / h
-      f = f + e(j) * ar(i,j) - tau(2,j) * ai(i,j)
+        e(j) = g/h
+        tau(2, j) = gi/h
+        f = f + e(j)*ar(i, j) - tau(2, j)*ai(i, j)
 
-    end do
+      end do
 
-    hh = f / ( h + h )
+      hh = f/(h+h)
 !
 !  Form the reduced A.
 !
-    do j = 1, l
+      do j = 1, l
 
-      f = ar(i,j)
-      g = e(j) - hh * f
-      e(j) = g
-      fi = - ai(i,j)
-      gi = tau(2,j) - hh * fi
-      tau(2,j) = -gi
+        f = ar(i, j)
+        g = e(j) - hh*f
+        e(j) = g
+        fi = -ai(i, j)
+        gi = tau(2, j) - hh*fi
+        tau(2, j) = -gi
 
-      do k = 1, j
-        ar(j,k) = ar(j,k) - f * e(k) - g * ar(i,k) + fi * tau(2,k) &
-          + gi * ai(i,k)
-        ai(j,k) = ai(j,k) - f * tau(2,k) - g * ai(i,k) - fi * e(k) &
-          - gi * ar(i,k)
+        do k = 1, j
+          ar(j, k) = ar(j, k) - f*e(k) - g*ar(i, k) + fi*tau(2, k) + &
+            gi*ai(i, k)
+          ai(j, k) = ai(j, k) - f*tau(2, k) - g*ai(i, k) - fi*e(k) - &
+            gi*ar(i, k)
+        end do
+
       end do
+
+100   continue
+
+      ar(i, 1:l) = xscale*ar(i, 1:l)
+      ai(i, 1:l) = xscale*ai(i, 1:l)
+      tau(2, l) = -si
+
+110   continue
+
+      hh = d(i)
+      d(i) = ar(i, i)
+      ar(i, i) = hh
+      ai(i, i) = xscale*sqrt(h)
 
     end do
 
-270 continue
+    return
+  end subroutine htridi
 
-    ar(i,1:l) = xscale * ar(i,1:l)
-    ai(i,1:l) = xscale * ai(i,1:l)
-    tau(2,l) = -si
-
-290 continue
-
-    hh = d(i)
-    d(i) = ar(i,i)
-    ar(i,i) = hh
-    ai(i,i) = xscale * sqrt ( h )
-
-  end do
-
-  return
-end subroutine htridi
-
-subroutine imtql1 ( n, d, e, ierr )
+  subroutine imtql1(n, d, e, ierr)
 
 !*****************************************************************************80
 !
@@ -8054,141 +8047,141 @@ subroutine imtql1 ( n, d, e, ierr )
 !    0, normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: b
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mml
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
+    real (kind=rkx) :: b
+    real (kind=rkx) :: c
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mml
+    real (kind=rkx) :: p
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
 
-  ierr = 0
+    ierr = 0
 
-  if ( n == 1 ) then
-    return
-  end if
-
-  do i = 2, n
-    e(i-1) = e(i)
-  end do
-  e(n) = 0.0_rkx
-
-  do l = 1, n
-
-    j = 0
-!
-!  Look for a small sub-diagonal element.
-!
-105 continue
-
-    do m = l, n
-
-      if ( m == n ) then
-        exit
-      end if
-
-      tst1 = abs ( d(m) ) + abs ( d(m+1) )
-      tst2 = tst1 + abs ( e(m) )
-
-      if ( tst2 == tst1 ) then
-        exit
-      end if
-
-    end do
-
-    p = d(l)
-
-    if ( m == l ) then
-      go to 215
-    end if
-
-    if ( 30 <= j ) then
-      ierr = l
+    if (n==1) then
       return
     end if
 
-    j = j + 1
+    do i = 2, n
+      e(i-1) = e(i)
+    end do
+    e(n) = 0.0_rkx
+
+    do l = 1, n
+
+      j = 0
+!
+!  Look for a small sub-diagonal element.
+!
+100   continue
+
+      do m = l, n
+
+        if (m==n) then
+          exit
+        end if
+
+        tst1 = abs(d(m)) + abs(d(m+1))
+        tst2 = tst1 + abs(e(m))
+
+        if (tst2==tst1) then
+          exit
+        end if
+
+      end do
+
+      p = d(l)
+
+      if (m==l) then
+        go to 110
+      end if
+
+      if (30<=j) then
+        ierr = l
+        return
+      end if
+
+      j = j + 1
 !
 !  Form shift.
 !
-    g = ( d(l+1) - p ) / ( 2.0_rkx * e(l) )
-    r = pythag ( g, 1.0_rkx )
-    g = d(m) - p + e(l) / ( g + sign ( r, g ) )
-    s = 1.0_rkx
-    c = 1.0_rkx
-    p = 0.0_rkx
-    mml = m - l
+      g = (d(l+1)-p)/(2.0_rkx*e(l))
+      r = pythag(g, 1.0_rkx)
+      g = d(m) - p + e(l)/(g+sign(r,g))
+      s = 1.0_rkx
+      c = 1.0_rkx
+      p = 0.0_rkx
+      mml = m - l
 
-    do ii = 1, mml
+      do ii = 1, mml
 
-      i = m - ii
-      f = s * e(i)
-      b = c * e(i)
-      r = pythag ( f, g )
-      e(i+1) = r
+        i = m - ii
+        f = s*e(i)
+        b = c*e(i)
+        r = pythag(f, g)
+        e(i+1) = r
 !
 !  Recover from underflow.
 !
-      if ( r == 0.0_rkx ) then
-        d(i+1) = d(i+1) - p
-        e(m) = 0.0_rkx
-        go to 105
-      end if
+        if (r==0.0_rkx) then
+          d(i+1) = d(i+1) - p
+          e(m) = 0.0_rkx
+          go to 100
+        end if
 
-      s = f / r
-      c = g / r
-      g = d(i+1) - p
-      r = ( d(i) - g ) * s + 2.0_rkx * c * b
-      p = s * r
-      d(i+1) = g + p
-      g = c * r - b
+        s = f/r
+        c = g/r
+        g = d(i+1) - p
+        r = (d(i)-g)*s + 2.0_rkx*c*b
+        p = s*r
+        d(i+1) = g + p
+        g = c*r - b
 
-    end do
+      end do
 
-    d(l) = d(l) - p
-    e(l) = g
-    e(m) = 0.0_rkx
-    go to 105
+      d(l) = d(l) - p
+      e(l) = g
+      e(m) = 0.0_rkx
+      go to 100
 !
 !  Order the eigenvalues.
 !
-215 continue
+110   continue
 
-    do ii = 2, l
-      i = l + 2 - ii
-      if ( d(i-1) <= p ) then
-        go to 270
-      end if
-      d(i) = d(i-1)
+      do ii = 2, l
+        i = l + 2 - ii
+        if (d(i-1)<=p) then
+          go to 120
+        end if
+        d(i) = d(i-1)
+      end do
+
+      i = 1
+
+120   continue
+
+      d(i) = p
+
     end do
 
-    i = 1
+    return
+  end subroutine imtql1
 
-270 continue
-
-    d(i) = p
-
-  end do
-
-  return
-end subroutine imtql1
-
-subroutine imtql2 ( n, d, e, z, ierr )
+  subroutine imtql2(n, d, e, z, ierr)
 
 !*****************************************************************************80
 !
@@ -8257,162 +8250,162 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !    0, for normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: b
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mml
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: t(n)
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: b
+    real (kind=rkx) :: c
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mml
+    real (kind=rkx) :: p
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: t(n)
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: z(n, n)
 
-  ierr = 0
+    ierr = 0
 
-  if ( n == 1 ) then
-    return
-  end if
-
-  do i = 2, n
-    e(i-1) = e(i)
-  end do
-  e(n) = 0.0_rkx
-
-  do l = 1, n
-
-    j = 0
-!
-!  Look for a small sub-diagonal element.
-!
-105 continue
-
-    do m = l, n
-
-      if ( m == n ) then
-        exit
-      end if
-
-      tst1 = abs ( d(m) ) + abs ( d(m+1) )
-      tst2 = tst1 + abs ( e(m) )
-
-      if ( tst2 == tst1 ) then
-        exit
-      end if
-
-    end do
-
-    p = d(l)
-
-    if ( m == l ) then
-      cycle
-    end if
-
-    if ( 30 <= j ) then
-      ierr = l
+    if (n==1) then
       return
     end if
 
-    j = j + 1
+    do i = 2, n
+      e(i-1) = e(i)
+    end do
+    e(n) = 0.0_rkx
+
+    do l = 1, n
+
+      j = 0
+!
+!  Look for a small sub-diagonal element.
+!
+100   continue
+
+      do m = l, n
+
+        if (m==n) then
+          exit
+        end if
+
+        tst1 = abs(d(m)) + abs(d(m+1))
+        tst2 = tst1 + abs(e(m))
+
+        if (tst2==tst1) then
+          exit
+        end if
+
+      end do
+
+      p = d(l)
+
+      if (m==l) then
+        cycle
+      end if
+
+      if (30<=j) then
+        ierr = l
+        return
+      end if
+
+      j = j + 1
 !
 !  Form shift.
 !
-    g = ( d(l+1) - p ) / ( 2.0_rkx * e(l) )
-    r = pythag ( g, 1.0_rkx )
-    g = d(m) - p + e(l) / ( g + sign ( r, g ) )
-    s = 1.0_rkx
-    c = 1.0_rkx
-    p = 0.0_rkx
-    mml = m - l
+      g = (d(l+1)-p)/(2.0_rkx*e(l))
+      r = pythag(g, 1.0_rkx)
+      g = d(m) - p + e(l)/(g+sign(r,g))
+      s = 1.0_rkx
+      c = 1.0_rkx
+      p = 0.0_rkx
+      mml = m - l
 
-    do ii = 1, mml
+      do ii = 1, mml
 
-      i = m - ii
-      f = s * e(i)
-      b = c * e(i)
-      r = pythag ( f, g )
-      e(i+1) = r
+        i = m - ii
+        f = s*e(i)
+        b = c*e(i)
+        r = pythag(f, g)
+        e(i+1) = r
 !
 !  Recover from underflow.
 !
-      if ( r == 0.0_rkx ) then
-        d(i+1) = d(i+1) - p
-        e(m) = 0.0_rkx
-        go to 105
-      end if
+        if (r==0.0_rkx) then
+          d(i+1) = d(i+1) - p
+          e(m) = 0.0_rkx
+          go to 100
+        end if
 
-      s = f / r
-      c = g / r
-      g = d(i+1) - p
-      r = ( d(i) - g ) * s + 2.0_rkx * c * b
-      p = s * r
-      d(i+1) = g + p
-      g = c * r - b
+        s = f/r
+        c = g/r
+        g = d(i+1) - p
+        r = (d(i)-g)*s + 2.0_rkx*c*b
+        p = s*r
+        d(i+1) = g + p
+        g = c*r - b
 !
 !  Form vector.
 !
-      do k = 1, n
-        f = z(k,i+1)
-        z(k,i+1) = s * z(k,i) + c * f
-        z(k,i) = c * z(k,i) - s * f
+        do k = 1, n
+          f = z(k, i+1)
+          z(k, i+1) = s*z(k, i) + c*f
+          z(k, i) = c*z(k, i) - s*f
+        end do
+
       end do
 
+      d(l) = d(l) - p
+      e(l) = g
+      e(m) = 0.0_rkx
+      go to 100
+
     end do
-
-    d(l) = d(l) - p
-    e(l) = g
-    e(m) = 0.0_rkx
-    go to 105
-
-  end do
 !
 !  Order eigenvalues and eigenvectors.
 !
-  do ii = 2, n
+    do ii = 2, n
 
-    i = ii - 1
-    k = i
-    p = d(i)
+      i = ii - 1
+      k = i
+      p = d(i)
 
-    do j = ii, n
-      if ( d(j) < p ) then
-        k = j
-        p = d(j)
+      do j = ii, n
+        if (d(j)<p) then
+          k = j
+          p = d(j)
+        end if
+      end do
+
+      if (k/=i) then
+
+        d(k) = d(i)
+        d(i) = p
+
+        t(1:n) = z(1:n, i)
+        z(1:n, i) = z(1:n, k)
+        z(1:n, k) = t(1:n)
+
       end if
+
     end do
 
-    if ( k /= i ) then
+    return
+  end subroutine imtql2
 
-      d(k) = d(i)
-      d(i) = p
-
-      t(1:n)   = z(1:n,i)
-      z(1:n,i) = z(1:n,k)
-      z(1:n,k) = t(1:n)
-
-    end if
-
-  end do
-
-  return
-end subroutine imtql2
-
-subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
+  subroutine imtqlv(n, d, e, e2, w, ind, ierr)
 
 !*****************************************************************************80
 !
@@ -8483,157 +8476,157 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !    0, for normal return,
 !    J, if the J-th eigenvalue has not been determined after 30 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: b
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: ind(n)
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mml
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: rv1(n)
-  real    ( kind = rkx ) :: s
-  integer ( kind = ik4 ) :: tag
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: w(n)
+    real (kind=rkx) :: b
+    real (kind=rkx) :: c
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: ind(n)
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mml
+    real (kind=rkx) :: p
+    real (kind=rkx) :: r
+    real (kind=rkx) :: rv1(n)
+    real (kind=rkx) :: s
+    integer (kind=ik4) :: tag
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: w(n)
 
-  ierr = 0
-  k = 0
-  tag = 0
-  w(1:n) = d(1:n)
-  e2(1) = 0.0_rkx
-  rv1(1:n-1) = e(2:n)
-  rv1(n) = 0.0_rkx
+    ierr = 0
+    k = 0
+    tag = 0
+    w(1:n) = d(1:n)
+    e2(1) = 0.0_rkx
+    rv1(1:n-1) = e(2:n)
+    rv1(n) = 0.0_rkx
 
-  do l = 1, n
+    do l = 1, n
 
-    j = 0
+      j = 0
 !
 !  Look for a small sub-diagonal element.
 !
-105 continue
+100   continue
 
-     do m = l, n
+      do m = l, n
 
-       if ( m == n ) then
-         exit
-       end if
+        if (m==n) then
+          exit
+        end if
 
-       tst1 = abs ( w(m) ) + abs ( w(m+1) )
-       tst2 = tst1 + abs ( rv1(m) )
+        tst1 = abs(w(m)) + abs(w(m+1))
+        tst2 = tst1 + abs(rv1(m))
 
-       if ( tst2 == tst1 ) then
-         exit
-       end if
+        if (tst2==tst1) then
+          exit
+        end if
 !
 !  Guard against underflowed element of E2.
 !
-       if ( e2(m+1) == 0.0_rkx ) go to 125
+        if (e2(m+1)==0.0_rkx) go to 110
 
-     end do
+      end do
 
-     if ( m <= k ) go to 130
+      if (m<=k) go to 120
 
-     if ( m /= n ) e2(m+1) = 0.0_rkx
+      if (m/=n) e2(m+1) = 0.0_rkx
 
-125  continue
+110   continue
 
-     k = m
-     tag = tag + 1
+      k = m
+      tag = tag + 1
 
-130  continue
+120   continue
 
-     p = w(l)
+      p = w(l)
 
-     if ( m == l ) go to 215
+      if (m==l) go to 140
 
-     if ( j >= 30 ) then
-       ierr = l
-       return
-     end if
+      if (j>=30) then
+        ierr = l
+        return
+      end if
 
-     j = j + 1
+      j = j + 1
 !
 !  Form shift.
 !
-     g = ( w(l+1) - p ) / ( 2.0_rkx * rv1(l) )
-     r = pythag ( g, 1.0_rkx )
-     g = w(m) - p + rv1(l) / (g + sign ( r, g ) )
-     s = 1.0_rkx
-     c = 1.0_rkx
-     p = 0.0_rkx
-     mml = m - l
+      g = (w(l+1)-p)/(2.0_rkx*rv1(l))
+      r = pythag(g, 1.0_rkx)
+      g = w(m) - p + rv1(l)/(g+sign(r,g))
+      s = 1.0_rkx
+      c = 1.0_rkx
+      p = 0.0_rkx
+      mml = m - l
 
-     do ii = 1, mml
-       i = m - ii
-       f = s * rv1(i)
-       b = c * rv1(i)
-       r = pythag ( f, g )
-       rv1(i+1) = r
+      do ii = 1, mml
+        i = m - ii
+        f = s*rv1(i)
+        b = c*rv1(i)
+        r = pythag(f, g)
+        rv1(i+1) = r
 
-       if ( r == 0.0_rkx ) go to 210
+        if (r==0.0_rkx) go to 130
 
-       s = f / r
-       c = g / r
-       g = w(i+1) - p
-       r = ( w(i) - g ) * s + 2.0_rkx * c * b
-       p = s * r
-       w(i+1) = g + p
-       g = c * r - b
-     end do
+        s = f/r
+        c = g/r
+        g = w(i+1) - p
+        r = (w(i)-g)*s + 2.0_rkx*c*b
+        p = s*r
+        w(i+1) = g + p
+        g = c*r - b
+      end do
 
-     w(l) = w(l) - p
-     rv1(l) = g
-     rv1(m) = 0.0_rkx
-     go to 105
+      w(l) = w(l) - p
+      rv1(l) = g
+      rv1(m) = 0.0_rkx
+      go to 100
 !
 !  Recover from underflow.
 !
-210  continue
+130   continue
 
-     w(i+1) = w(i+1) - p
-     rv1(m) = 0.0_rkx
-     go to 105
+      w(i+1) = w(i+1) - p
+      rv1(m) = 0.0_rkx
+      go to 100
 !
 !  Order the eigenvalues.
 !
-215  continue
+140   continue
 
-     do ii = 2, l
+      do ii = 2, l
         i = l + 2 - ii
-        if ( p >= w(i-1) ) go to 270
+        if (p>=w(i-1)) go to 150
         w(i) = w(i-1)
         ind(i) = ind(i-1)
-     end do
+      end do
 
-     i = 1
+      i = 1
 
-  270   continue
+150   continue
 
-     w(i) = p
-     ind(i) = tag
+      w(i) = p
+      ind(i) = tag
 
-  end do
+    end do
 
-  return
-end subroutine imtqlv
+    return
+  end subroutine imtqlv
 
-subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
+  subroutine invit(n, a, wr, wi, select, mm, m, z, ierr)
 
 !*****************************************************************************80
 !
@@ -8716,49 +8709,49 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !    -K, if the iteration corresponding to the K-th value fails,
 !    -(N+K), if both error situations occur.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: eps3
-  real    ( kind = rkx ) :: growto
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  real    ( kind = rkx ) :: ilambd
-  integer ( kind = ik4 ) :: ip
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: km1
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: mp
-  integer ( kind = ik4 ) :: n1
-  real    ( kind = rkx ) :: norm
-  real    ( kind = rkx ) :: normv
-  integer ( kind = ik4 ) :: ns
-  real    ( kind = rkx ) :: rlambd
-  real    ( kind = rkx ) :: rm1(n,n)
-  real    ( kind = rkx ) :: rv1(n)
-  real    ( kind = rkx ) :: rv2(n)
-  integer ( kind = ik4 ) :: s
-  logical              :: select(n)
-  real    ( kind = rkx ) :: t
-  integer ( kind = ik4 ) :: uk
-  real    ( kind = rkx ) :: ukroot
-  real    ( kind = rkx ) :: w
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
-  real    ( kind = rkx ) :: z(n,mm)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: eps3
+    real (kind=rkx) :: growto
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    real (kind=rkx) :: ilambd
+    integer (kind=ik4) :: ip
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: km1
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: mp
+    integer (kind=ik4) :: n1
+    real (kind=rkx) :: norm
+    real (kind=rkx) :: normv
+    integer (kind=ik4) :: ns
+    real (kind=rkx) :: rlambd
+    real (kind=rkx) :: rm1(n, n)
+    real (kind=rkx) :: rv1(n)
+    real (kind=rkx) :: rv2(n)
+    integer (kind=ik4) :: s
+    logical :: select(n)
+    real (kind=rkx) :: t
+    integer (kind=ik4) :: uk
+    real (kind=rkx) :: ukroot
+    real (kind=rkx) :: w
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
+    real (kind=rkx) :: z(n, mm)
 
-  ierr = 0
-  uk = 0
-  s = 1
+    ierr = 0
+    uk = 0
+    s = 1
 !
 !  The value of IP is:
 !
@@ -8766,165 +8759,165 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !   1, first of conjugate complex pair;
 !  -1, second of conjugate complex pair.
 !
-  ip = 0
-  n1 = n - 1
+    ip = 0
+    n1 = n - 1
 
-  do k = 1, n
+    do k = 1, n
 
-     if ( wi(k) /= 0.0_rkx .and. ip >= 0 ) then
-       ip = 1
-       if ( select(k) .and. select(k+1) ) select(k+1) = .false.
-     end if
+      if (wi(k)/=0.0_rkx .and. ip>=0) then
+        ip = 1
+        if (select(k) .and. select(k+1)) select(k+1) = .false.
+      end if
 
-     if ( .not. select(k) ) go to 960
+      if (.not. select(k)) go to 240
 
-     if ( wi(k) /= 0.0_rkx ) then
-       s = s + 1
-     end if
+      if (wi(k)/=0.0_rkx) then
+        s = s + 1
+      end if
 
-     if ( s > mm ) go to 1000
+      if (s>mm) go to 250
 
-     if ( uk >= k ) go to 200
+      if (uk>=k) go to 100
 !
 !  Check for possible splitting.
 !
-     do uk = k, n
-       if ( uk == n ) then
-         exit
-       end if
-       if ( a(uk+1,uk) == 0.0_rkx ) then
-         exit
-       end if
-     end do
+      do uk = k, n
+        if (uk==n) then
+          exit
+        end if
+        if (a(uk+1,uk)==0.0_rkx) then
+          exit
+        end if
+      end do
 !
 !  Compute infinity norm of leading UK by UK (Hessenberg) matrix.
 !
-     norm = 0.0_rkx
-     mp = 1
+      norm = 0.0_rkx
+      mp = 1
 
-     do i = 1, uk
+      do i = 1, uk
 
-       x = sum ( abs ( a(i,mp:uk) ) )
-       norm = max ( norm, x )
-       mp = i
+        x = sum(abs(a(i,mp:uk)))
+        norm = max(norm, x)
+        mp = i
 
-     end do
+      end do
 !
 !  EPS3 replaces zero pivot in decomposition and close roots are modified
 !  by EPS3.
 !
-     if ( norm == 0.0_rkx ) then
-       norm = 1.0_rkx
-     end if
+      if (norm==0.0_rkx) then
+        norm = 1.0_rkx
+      end if
 
-     eps3 = abs ( norm ) * epsilon ( eps3 )
+      eps3 = abs(norm)*epsilon(eps3)
 !
 !  GROWTO is the criterion for the growth.
 !
-     ukroot = real(uk,rkx)
-     ukroot = sqrt ( ukroot )
-     growto = 0.1_rkx / ukroot
+      ukroot = real(uk, rkx)
+      ukroot = sqrt(ukroot)
+      growto = 0.1_rkx/ukroot
 
-200  continue
+100   continue
 
-     rlambd = wr(k)
-     ilambd = wi(k)
-     if ( k == 1 ) go to 280
-     km1 = k - 1
-     go to 240
+      rlambd = wr(k)
+      ilambd = wi(k)
+      if (k==1) go to 130
+      km1 = k - 1
+      go to 120
 !
 !  Perturb eigenvalue if it is close to any previous eigenvalue.
 !
-220 continue
+110   continue
 
-     rlambd = rlambd + eps3
+      rlambd = rlambd + eps3
 
-240  continue
+120   continue
 
-     do ii = 1, km1
-       i = k - ii
-       if ( select(i) .and. abs ( wr(i) - rlambd ) < eps3 .and. &
-          abs ( wi(i) - ilambd ) < eps3 ) then
-        go to 220
-       end if
-     end do
+      do ii = 1, km1
+        i = k - ii
+        if (select(i) .and. abs(wr(i)-rlambd)<eps3 .and. abs(wi( &
+          i)-ilambd)<eps3) then
+          go to 110
+        end if
+      end do
 
-     wr(k) = rlambd
+      wr(k) = rlambd
 !
 !  Perturb conjugate eigenvalue to match.
 !
-     wr(k+ip) = rlambd
+      wr(k+ip) = rlambd
 !
 !  Form upper Hessenberg A - rlambd*I (transposed) and initial real vector.
 !
-280  continue
+130   continue
 
-     mp = 1
+      mp = 1
 
-     do i = 1, uk
+      do i = 1, uk
 
-        rm1(mp:uk,i) = a(i,mp:uk)
+        rm1(mp:uk, i) = a(i, mp:uk)
 
-        rm1(i,i) = rm1(i,i) - rlambd
+        rm1(i, i) = rm1(i, i) - rlambd
         mp = i
         rv1(i) = eps3
 
-     end do
+      end do
 
-     its = 0
+      its = 0
 
-     if ( ilambd /= 0.0_rkx ) go to 520
+      if (ilambd/=0.0_rkx) go to 150
 !
 !  Real eigenvalue.
 !
 !  Triangular decomposition with interchanges, replacing zero pivots by eps3.
 !
-     do i = 2, uk
+      do i = 2, uk
 
         mp = i - 1
 
-        if ( abs ( rm1(mp,i) ) > abs ( rm1(mp,mp) ) ) then
+        if (abs(rm1(mp,i))>abs(rm1(mp,mp))) then
 
           do j = mp, uk
-            call r8_swap ( rm1(j,i), rm1(j,mp) )
+            call r8_swap(rm1(j,i), rm1(j,mp))
           end do
 
         end if
 
-        if ( rm1(mp,mp) == 0.0_rkx ) then
-          rm1(mp,mp) = eps3
+        if (rm1(mp,mp)==0.0_rkx) then
+          rm1(mp, mp) = eps3
         end if
 
-        x = rm1(mp,i) / rm1(mp,mp)
+        x = rm1(mp, i)/rm1(mp, mp)
 
-        if ( x /= 0.0_rkx ) then
-          rm1(i:uk,i) = rm1(i:uk,i) - x * rm1(i:uk,mp)
+        if (x/=0.0_rkx) then
+          rm1(i:uk, i) = rm1(i:uk, i) - x*rm1(i:uk, mp)
         end if
 
       end do
 
-      if ( rm1(uk,uk) == 0.0_rkx ) then
-        rm1(uk,uk) = eps3
+      if (rm1(uk,uk)==0.0_rkx) then
+        rm1(uk, uk) = eps3
       end if
 !
 !  Back substitution for real vector.
 !
-440   continue
+140   continue
 
       do ii = 1, uk
 
         i = uk + 1 - ii
         y = rv1(i)
 
-        do j = i+1, uk
-          y = y - rm1(j,i) * rv1(j)
+        do j = i + 1, uk
+          y = y - rm1(j, i)*rv1(j)
         end do
 
-        rv1(i) = y / rm1(i,i)
+        rv1(i) = y/rm1(i, i)
 
-     end do
+      end do
 
-     go to 740
+      go to 190
 !
 !  Complex eigenvalue.
 !
@@ -8932,272 +8925,272 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !  replacing zero pivots by EPS3.
 !  Store imaginary parts in upper triangle starting at (1,3)
 !
-520  continue
+150   continue
 
-     ns = n - s
-     z(1,s-1) = -ilambd
-     z(1,s) = 0.0_rkx
+      ns = n - s
+      z(1, s-1) = -ilambd
+      z(1, s) = 0.0_rkx
 
-     if ( n /= 2 ) then
-       rm1(1,3) = -ilambd
-       z(1,s-1) = 0.0_rkx
-       rm1(1,4:n) = 0.0_rkx
-     end if
+      if (n/=2) then
+        rm1(1, 3) = -ilambd
+        z(1, s-1) = 0.0_rkx
+        rm1(1, 4:n) = 0.0_rkx
+      end if
 
-     do i = 2, uk
+      do i = 2, uk
 
         mp = i - 1
-        w = rm1(mp,i)
+        w = rm1(mp, i)
 
-        if ( i < n ) then
-          t = rm1(mp,i+1)
-        else if ( i == n ) then
-          t = z(mp,s-1)
+        if (i<n) then
+          t = rm1(mp, i+1)
+        else if (i==n) then
+          t = z(mp, s-1)
         end if
 
-        x = rm1(mp,mp) * rm1(mp,mp) + t * t
+        x = rm1(mp, mp)*rm1(mp, mp) + t*t
 
-        if ( w * w <= x ) go to 580
+        if (w*w<=x) go to 160
 
-        x = rm1(mp,mp) / w
-        y = t / w
-        rm1(mp,mp) = w
+        x = rm1(mp, mp)/w
+        y = t/w
+        rm1(mp, mp) = w
 
-        if ( i < n ) then
-          rm1(mp,i+1) = 0.0_rkx
-        else if ( i == n ) then
-          z(mp,s-1) = 0.0_rkx
+        if (i<n) then
+          rm1(mp, i+1) = 0.0_rkx
+        else if (i==n) then
+          z(mp, s-1) = 0.0_rkx
         end if
 
         do j = i, uk
 
-          w = rm1(j,i)
-          rm1(j,i) = rm1(j,mp) - x * w
-          rm1(j,mp) = w
+          w = rm1(j, i)
+          rm1(j, i) = rm1(j, mp) - x*w
+          rm1(j, mp) = w
 
-          if ( j >= n1 ) then
+          if (j>=n1) then
             l = j - ns
-            z(i,l) = z(mp,l) - y * w
-            z(mp,l) = 0.0_rkx
+            z(i, l) = z(mp, l) - y*w
+            z(mp, l) = 0.0_rkx
           else
-            rm1(i,j+2) = rm1(mp,j+2) - y * w
-            rm1(mp,j+2) = 0.0_rkx
+            rm1(i, j+2) = rm1(mp, j+2) - y*w
+            rm1(mp, j+2) = 0.0_rkx
           end if
 
         end do
 
-        rm1(i,i) = rm1(i,i) - y * ilambd
+        rm1(i, i) = rm1(i, i) - y*ilambd
 
-        if ( i >= n1 ) then
+        if (i>=n1) then
           l = i - ns
-          z(mp,l) = -ilambd
-          z(i,l) = z(i,l) + x * ilambd
+          z(mp, l) = -ilambd
+          z(i, l) = z(i, l) + x*ilambd
         else
-          rm1(mp,i+2) = -ilambd
-          rm1(i,i+2) = rm1(i,i+2) + x * ilambd
+          rm1(mp, i+2) = -ilambd
+          rm1(i, i+2) = rm1(i, i+2) + x*ilambd
         end if
 
-        go to 640
+        go to 170
 
-580     continue
+160     continue
 
-        if ( x == 0.0_rkx ) then
-          rm1(mp,mp) = eps3
-          if ( i < n ) then
-            rm1(mp,i+1) = 0.0_rkx
-          else if ( i == n ) then
-            z(mp,s-1) = 0.0_rkx
+        if (x==0.0_rkx) then
+          rm1(mp, mp) = eps3
+          if (i<n) then
+            rm1(mp, i+1) = 0.0_rkx
+          else if (i==n) then
+            z(mp, s-1) = 0.0_rkx
           end if
           t = 0.0_rkx
           x = eps3**2
         end if
 
-        w = w / x
-        x = rm1(mp,mp) * w
-        y = -t * w
+        w = w/x
+        x = rm1(mp, mp)*w
+        y = -t*w
 
         do j = i, uk
-          if ( j >= n1 ) then
+          if (j>=n1) then
             l = j - ns
-            t = z(mp,l)
-            z(i,l) = -x * t - y * rm1(j,mp)
+            t = z(mp, l)
+            z(i, l) = -x*t - y*rm1(j, mp)
           else
-            t = rm1(mp,j+2)
-            rm1(i,j+2) = -x * t - y * rm1(j,mp)
+            t = rm1(mp, j+2)
+            rm1(i, j+2) = -x*t - y*rm1(j, mp)
           end if
-          rm1(j,i) = rm1(j,i) - x * rm1(j,mp) + y * t
+          rm1(j, i) = rm1(j, i) - x*rm1(j, mp) + y*t
         end do
 
-        if ( i >= n1 ) then
+        if (i>=n1) then
           l = i - ns
-          z(i,l) = z(i,l) - ilambd
+          z(i, l) = z(i, l) - ilambd
         else
-          rm1(i,i+2) = rm1(i,i+2) - ilambd
+          rm1(i, i+2) = rm1(i, i+2) - ilambd
         end if
 
-640    continue
+170     continue
 
-     end do
+      end do
 
-     if ( uk >= n1 ) then
-       l = uk - ns
-       t = z(uk,l)
-     else
-       t = rm1(uk,uk+2)
-     end if
+      if (uk>=n1) then
+        l = uk - ns
+        t = z(uk, l)
+      else
+        t = rm1(uk, uk+2)
+      end if
 
-     if ( rm1(uk,uk) == 0.0_rkx .and. t == 0.0_rkx ) then
-       rm1(uk,uk) = eps3
-     end if
+      if (rm1(uk,uk)==0.0_rkx .and. t==0.0_rkx) then
+        rm1(uk, uk) = eps3
+      end if
 !
 !  Back substitution for complex vector.
 !
-660  continue
+180   continue
 
-     do ii = 1, uk
+      do ii = 1, uk
 
         i = uk + 1 - ii
         x = rv1(i)
         y = 0.0_rkx
 
-        do j = i+1, uk
+        do j = i + 1, uk
 
-          if ( j >= n1 ) then
-            t = z(i,j-ns)
+          if (j>=n1) then
+            t = z(i, j-ns)
           else
-            t = rm1(i,j+2)
+            t = rm1(i, j+2)
           end if
 
-          x = x - rm1(j,i) * rv1(j) + t * rv2(j)
-          y = y - rm1(j,i) * rv2(j) - t * rv1(j)
+          x = x - rm1(j, i)*rv1(j) + t*rv2(j)
+          y = y - rm1(j, i)*rv2(j) - t*rv1(j)
 
         end do
 
-        if ( i >= n1 ) then
-          t = z(i,i-ns)
+        if (i>=n1) then
+          t = z(i, i-ns)
         else
-          t = rm1(i,i+2)
+          t = rm1(i, i+2)
         end if
 
-       call cdiv ( x, y, rm1(i,i), t, rv1(i), rv2(i) )
+        call cdiv(x, y, rm1(i,i), t, rv1(i), rv2(i))
 
-     end do
+      end do
 !
 !  Acceptance test for real or complex eigenvector and normalization.
 !
-740  continue
+190   continue
 
-     its = its + 1
-     norm = 0.0_rkx
-     normv = 0.0_rkx
+      its = its + 1
+      norm = 0.0_rkx
+      normv = 0.0_rkx
 
-     do i = 1, uk
-       if ( ilambd == 0.0_rkx ) then
-         x = abs ( rv1(i) )
-       else
-         x = pythag ( rv1(i), rv2(i) )
-       end if
-       if ( normv < x )  then
-         normv = x
-         j = i
-       end if
-       norm = norm + x
-     end do
+      do i = 1, uk
+        if (ilambd==0.0_rkx) then
+          x = abs(rv1(i))
+        else
+          x = pythag(rv1(i), rv2(i))
+        end if
+        if (normv<x) then
+          normv = x
+          j = i
+        end if
+        norm = norm + x
+      end do
 
-     if ( norm < growto ) go to 840
+      if (norm<growto) go to 200
 !
 !  Accept vector.
 !
-     x = rv1(j)
-     if ( ilambd == 0.0_rkx ) then
-       x = 1.0_rkx / x
-     else
-       y = rv2(j)
-     end if
+      x = rv1(j)
+      if (ilambd==0.0_rkx) then
+        x = 1.0_rkx/x
+      else
+        y = rv2(j)
+      end if
 
-     do i = 1, uk
-       if ( ilambd == 0.0_rkx ) then
-         z(i,s) = rv1(i) * x
-       else
-         call cdiv ( rv1(i), rv2(i), x, y, z(i,s-1), z(i,s) )
-       end if
-     end do
+      do i = 1, uk
+        if (ilambd==0.0_rkx) then
+          z(i, s) = rv1(i)*x
+        else
+          call cdiv(rv1(i), rv2(i), x, y, z(i,s-1), z(i,s))
+        end if
+      end do
 
-     if ( uk == n ) go to 940
-     j = uk + 1
-     go to 900
+      if (uk==n) go to 230
+      j = uk + 1
+      go to 220
 !
 !  Choose a new starting vector.
 !
-840  continue
+200   continue
 
-     if ( its >= uk ) go to 880
+      if (its>=uk) go to 210
 
-     x = ukroot
-     y = eps3 / ( x + 1.0_rkx )
+      x = ukroot
+      y = eps3/(x+1.0_rkx)
 
-     rv1(1) = eps3
-     rv1(2:uk) = y
+      rv1(1) = eps3
+      rv1(2:uk) = y
 
-     j = uk - its + 1
-     rv1(j) = rv1(j) - eps3 * x
-     if ( ilambd == 0.0_rkx ) go to 440
-     go to 660
+      j = uk - its + 1
+      rv1(j) = rv1(j) - eps3*x
+      if (ilambd==0.0_rkx) go to 140
+      go to 180
 !
 !  Set error: unaccepted eigenvector.
 !
-880  continue
+210   continue
 
-     j = 1
-     ierr = -k
+      j = 1
+      ierr = -k
 !
 !  Set remaining vector components to zero.
 !
-900  continue
+220   continue
 
-     do i = j, n
-       z(i,s) = 0.0_rkx
-       if ( ilambd /= 0.0_rkx ) z(i,s-1) = 0.0_rkx
-     end do
+      do i = j, n
+        z(i, s) = 0.0_rkx
+        if (ilambd/=0.0_rkx) z(i, s-1) = 0.0_rkx
+      end do
 
-940  continue
+230   continue
 
-     s = s + 1
+      s = s + 1
 
-960  continue
+240   continue
 
-     if ( ip == (-1) ) then
-       ip = 0
-     end if
+      if (ip==(-1)) then
+        ip = 0
+      end if
 
-     if ( ip == 1 ) then
-       ip = -1
-     end if
+      if (ip==1) then
+        ip = -1
+      end if
 
-  end do
+    end do
 
-  go to 1001
+    go to 260
 !
 !  Set error: underestimate of eigenvector space required.
 !
-1000 continue
+250 continue
 
-  if ( ierr /= 0 ) then
-    ierr = ierr - n
-  end if
+    if (ierr/=0) then
+      ierr = ierr - n
+    end if
 
-  if ( ierr == 0 ) then
-    ierr = -(2 * n + 1)
-  end if
+    if (ierr==0) then
+      ierr = -(2*n+1)
+    end if
 
-1001 continue
+260 continue
 
-  m = s - 1 - abs ( ip )
+    m = s - 1 - abs(ip)
 
-  return
-end subroutine invit
+    return
+  end subroutine invit
 
-subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
+  subroutine minfit(nm, m, n, a, w, ip, b, ierr)
 
 !*****************************************************************************80
 !
@@ -9275,327 +9268,327 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !    0, for normal return,
 !    K, if the K-th singular value has not been determined after 30 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: ip
-  integer ( kind = ik4 ) :: n
-  integer ( kind = ik4 ) :: nm
+    integer (kind=ik4) :: ip
+    integer (kind=ik4) :: n
+    integer (kind=ik4) :: nm
 
-  real    ( kind = rkx ) :: a(nm,n)
-  real    ( kind = rkx ) :: b(nm,ip)
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: i1
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: k1
-  integer ( kind = ik4 ) :: kk
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: l1
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: m
-  real    ( kind = rkx ) :: rv1(n)
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: xscale
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
-  real    ( kind = rkx ) :: z
+    real (kind=rkx) :: a(nm, n)
+    real (kind=rkx) :: b(nm, ip)
+    real (kind=rkx) :: c
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: i1
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: k1
+    integer (kind=ik4) :: kk
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: l1
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: m
+    real (kind=rkx) :: rv1(n)
+    real (kind=rkx) :: s
+    real (kind=rkx) :: xscale
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
+    real (kind=rkx) :: z
 
-  ierr = 0
+    ierr = 0
 !
 !  Householder reduction to bidiagonal form.
 !
-  g = 0.0_rkx
-  xscale = 0.0_rkx
-  x = 0.0_rkx
-
-  do i = 1, n
-
-    l = i + 1
-    rv1(i) = xscale * g
     g = 0.0_rkx
-    s = 0.0_rkx
     xscale = 0.0_rkx
+    x = 0.0_rkx
 
-    if ( i <= m ) then
+    do i = 1, n
 
-      xscale = sum ( abs ( a(i:m,i) ) )
+      l = i + 1
+      rv1(i) = xscale*g
+      g = 0.0_rkx
+      s = 0.0_rkx
+      xscale = 0.0_rkx
 
-      if ( xscale /= 0.0_rkx ) then
+      if (i<=m) then
 
-        a(i:m,i) = a(i:m,i) / xscale
+        xscale = sum(abs(a(i:m,i)))
 
-        s = s + sum ( a(i:m,i)**2 )
+        if (xscale/=0.0_rkx) then
 
-        f = a(i,i)
-        g = - sign ( sqrt ( s ), f )
-        h = f * g - s
-        a(i,i) = f - g
+          a(i:m, i) = a(i:m, i)/xscale
 
-        do j = l, n
+          s = s + sum(a(i:m,i)**2)
 
-          s = dot_product ( a(i:m,i), a(i:m,j) )
+          f = a(i, i)
+          g = -sign(sqrt(s), f)
+          h = f*g - s
+          a(i, i) = f - g
 
-          f = s / h
-          a(i:m,j) = a(i:m,j) + f * a(i:m,i)
+          do j = l, n
 
-        end do
+            s = dot_product(a(i:m,i), a(i:m,j))
 
-        do j = 1, ip
+            f = s/h
+            a(i:m, j) = a(i:m, j) + f*a(i:m, i)
 
-          s = dot_product ( a(i:m,i), b(i:m,j) )
+          end do
 
-          b(i:m,j) = b(i:m,j) + s * a(i:m,i) / h
+          do j = 1, ip
 
-        end do
+            s = dot_product(a(i:m,i), b(i:m,j))
 
-        a(i:m,i) = xscale * a(i:m,i)
+            b(i:m, j) = b(i:m, j) + s*a(i:m, i)/h
+
+          end do
+
+          a(i:m, i) = xscale*a(i:m, i)
+
+        end if
 
       end if
 
-    end if
+      w(i) = xscale*g
+      g = 0.0_rkx
+      s = 0.0_rkx
+      xscale = 0.0_rkx
 
-    w(i) = xscale * g
-    g = 0.0_rkx
-    s = 0.0_rkx
-    xscale = 0.0_rkx
+      if (i<=m .and. i/=n) then
 
-    if ( i <= m .and. i /= n ) then
-
-      do k = l, n
-        xscale = xscale + abs ( a(i,k) )
-      end do
-
-      if ( xscale /= 0.0_rkx ) then
-
-        a(i,l:n) = a(i,l:n) / xscale
-
-        s = s + sum ( a(i,l:n)**2 )
-
-        f = a(i,l)
-        g = - sign ( sqrt ( s ), f )
-        h = f * g - s
-        a(i,l) = f - g
-        rv1(l:n) = a(i,l:n) / h
-
-        do j = l, m
-
-          s = dot_product ( a(j,l:n), a(i,l:n) )
-
-          a(j,l:n) = a(j,l:n) + s * rv1(l:n)
-
+        do k = l, n
+          xscale = xscale + abs(a(i,k))
         end do
 
-        a(i,l:n) = xscale * a(i,l:n)
+        if (xscale/=0.0_rkx) then
+
+          a(i, l:n) = a(i, l:n)/xscale
+
+          s = s + sum(a(i,l:n)**2)
+
+          f = a(i, l)
+          g = -sign(sqrt(s), f)
+          h = f*g - s
+          a(i, l) = f - g
+          rv1(l:n) = a(i, l:n)/h
+
+          do j = l, m
+
+            s = dot_product(a(j,l:n), a(i,l:n))
+
+            a(j, l:n) = a(j, l:n) + s*rv1(l:n)
+
+          end do
+
+          a(i, l:n) = xscale*a(i, l:n)
+
+        end if
 
       end if
 
-    end if
+      x = max(x, abs(w(i))+abs(rv1(i)))
 
-    x = max ( x, abs ( w(i) ) + abs ( rv1(i) ) )
-
-  end do
+    end do
 !
 !  Accumulation of right-hand transformations.
 !
-  do ii = 1, n
+    do ii = 1, n
 
-    i = n + 1 - ii
+      i = n + 1 - ii
 
-    if ( i /= n ) then
+      if (i/=n) then
 
-      if ( g /= 0.0_rkx ) then
+        if (g/=0.0_rkx) then
 
-        a(l:n,i) = ( a(i,l:n) / a(i,l) ) / g
+          a(l:n, i) = (a(i,l:n)/a(i,l))/g
 
-        do j = l, n
+          do j = l, n
 
-          s = dot_product ( a(i,l:n), a(l:n,j) )
+            s = dot_product(a(i,l:n), a(l:n,j))
 
-          a(l:n,j) = a(l:n,j) + s * a(l:n,i)
+            a(l:n, j) = a(l:n, j) + s*a(l:n, i)
 
-        end do
+          end do
+
+        end if
+
+        a(i, l:n) = 0.0_rkx
+        a(l:n, i) = 0.0_rkx
 
       end if
 
-      a(i,l:n) = 0.0_rkx
-      a(l:n,i) = 0.0_rkx
+      a(i, i) = 1.0_rkx
+      g = rv1(i)
+      l = i
 
+    end do
+
+    if (m<n .and. ip/=0) then
+      b(m+1:n, 1:ip) = 0.0_rkx
     end if
-
-    a(i,i) = 1.0_rkx
-    g = rv1(i)
-    l = i
-
-  end do
-
-  if ( m < n .and. ip /= 0 ) then
-    b(m+1:n,1:ip) = 0.0_rkx
-  end if
 !
 !  Diagonalization of the bidiagonal form.
 !
-  tst1 = x
+    tst1 = x
 
-  do kk = 1, n
+    do kk = 1, n
 
-    k1 = n - kk
-    k = k1 + 1
-    its = 0
+      k1 = n - kk
+      k = k1 + 1
+      its = 0
 !
 !  Test for splitting.
 !
-520 continue
+100   continue
 
-    do ll = 1, k
+      do ll = 1, k
 
-      l1 = k - ll
-      l = l1 + 1
-      tst2 = tst1 + abs ( rv1(l) )
+        l1 = k - ll
+        l = l1 + 1
+        tst2 = tst1 + abs(rv1(l))
 
-      if ( tst2 == tst1 ) then
-        go to 565
-      end if
+        if (tst2==tst1) then
+          go to 110
+        end if
 
-      tst2 = tst1 + abs ( w(k-ll) )
+        tst2 = tst1 + abs(w(k-ll))
 
-      if ( tst2 == tst1 ) then
-        exit
-      end if
+        if (tst2==tst1) then
+          exit
+        end if
 
-    end do
+      end do
 !
 !  Cancellation of RV1(l) if l greater than 1.
 !
-    c = 0.0_rkx
-    s = 1.0_rkx
+      c = 0.0_rkx
+      s = 1.0_rkx
 
-    do i = l, k
+      do i = l, k
 
-      f = s * rv1(i)
-      rv1(i) = c * rv1(i)
-      tst2 = tst1 + abs ( f)
+        f = s*rv1(i)
+        rv1(i) = c*rv1(i)
+        tst2 = tst1 + abs(f)
 
-      if ( tst2 == tst1 ) then
-        exit
-      end if
+        if (tst2==tst1) then
+          exit
+        end if
 
-      g = w(i)
-      h = pythag ( f, g )
-      w(i) = h
-      c = g / h
-      s = -f / h
+        g = w(i)
+        h = pythag(f, g)
+        w(i) = h
+        c = g/h
+        s = -f/h
 
-      do j = 1, ip
-        y = b(l1,j)
-        z = b(i,j)
-        b(l1,j) = y * c + z * s
-        b(i,j) = -y * s + z * c
+        do j = 1, ip
+          y = b(l1, j)
+          z = b(i, j)
+          b(l1, j) = y*c + z*s
+          b(i, j) = -y*s + z*c
+        end do
+
       end do
-
-    end do
 !
 !  Test for convergence.
 !
-565 continue
+110   continue
 
-    z = w(k)
+      z = w(k)
 
-    if ( l == k ) go to 650
+      if (l==k) go to 120
 !
 !  Shift from bottom 2 by 2 minor.
 !
-     if ( its >= 30 ) then
-       ierr = k
-       return
-     end if
+      if (its>=30) then
+        ierr = k
+        return
+      end if
 
-     its = its + 1
-     x = w(l)
-     y = w(k1)
-     g = rv1(k1)
-     h = rv1(k)
-     f = 0.5_rkx * ( ( ( g + z ) / h ) * ( ( g - z ) / y ) + y / h - h / y )
-     g = pythag ( f, 1.0_rkx )
-     f = x - ( z / x ) * z + ( h / x ) * ( y / ( f + sign ( g, f ) ) - h )
+      its = its + 1
+      x = w(l)
+      y = w(k1)
+      g = rv1(k1)
+      h = rv1(k)
+      f = 0.5_rkx*(((g+z)/h)*((g-z)/y)+y/h-h/y)
+      g = pythag(f, 1.0_rkx)
+      f = x - (z/x)*z + (h/x)*(y/(f+sign(g,f))-h)
 !
 !  Next QR transformation.
 !
-     c = 1.0_rkx
-     s = 1.0_rkx
+      c = 1.0_rkx
+      s = 1.0_rkx
 
-     do i1 = l, k1
+      do i1 = l, k1
 
         i = i1 + 1
         g = rv1(i)
         y = w(i)
-        h = s * g
-        g = c * g
-        z = pythag ( f, h )
+        h = s*g
+        g = c*g
+        z = pythag(f, h)
         rv1(i1) = z
-        c = f / z
-        s = h / z
-        f = x * c + g * s
-        g = -x * s + g * c
-        h = y * s
-        y = y * c
+        c = f/z
+        s = h/z
+        f = x*c + g*s
+        g = -x*s + g*c
+        h = y*s
+        y = y*c
 
         do j = 1, n
-          x = a(j,i1)
-          z = a(j,i)
-          a(j,i1) = x * c + z * s
-          a(j,i) = -x * s + z * c
+          x = a(j, i1)
+          z = a(j, i)
+          a(j, i1) = x*c + z*s
+          a(j, i) = -x*s + z*c
         end do
 
-        z = pythag ( f, h )
+        z = pythag(f, h)
         w(i1) = z
 
-        if ( z /= 0.0_rkx ) then
-          c = f / z
-          s = h / z
+        if (z/=0.0_rkx) then
+          c = f/z
+          s = h/z
         end if
 
-        f = c * g + s * y
-        x = -s * g + c * y
+        f = c*g + s*y
+        x = -s*g + c*y
 
         do j = 1, ip
-          y = b(i1,j)
-          z = b(i,j)
-          b(i1,j) = y * c + z * s
-          b(i,j) = -y * s + z * c
+          y = b(i1, j)
+          z = b(i, j)
+          b(i1, j) = y*c + z*s
+          b(i, j) = -y*s + z*c
         end do
 
-     end do
+      end do
 
-     rv1(l) = 0.0_rkx
-     rv1(k) = f
-     w(k) = x
-     go to 520
+      rv1(l) = 0.0_rkx
+      rv1(k) = f
+      w(k) = x
+      go to 100
 !
 !  Convergence.
 !
-650 continue
+120   continue
 
-    if ( z < 0.0_rkx ) then
-      w(k) = - z
-      a(1:n,k) = - a(1:n,k)
-    end if
+      if (z<0.0_rkx) then
+        w(k) = -z
+        a(1:n, k) = -a(1:n, k)
+      end if
 
-  end do
+    end do
 
-  return
-end subroutine minfit
+    return
+  end subroutine minfit
 
-subroutine ortbak ( n, low, igh, a, ort, m, z )
+  subroutine ortbak(n, low, igh, a, ort, m, z)
 
 !*****************************************************************************80
 !
@@ -9660,51 +9653,51 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 !    the eigenvectors to be back transformed in the first M columns.  On
 !    output, the real and imaginary parts of the transformed eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,igh)
-  real    ( kind = rkx ) :: g
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: mp
-  real    ( kind = rkx ) :: ort(igh)
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: a(n, igh)
+    real (kind=rkx) :: g
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: mp
+    real (kind=rkx) :: ort(igh)
+    real (kind=rkx) :: z(n, m)
 
-  if ( m == 0 ) then
-    return
-  end if
-
-  do mp = igh - 1, low + 1, -1
-
-    if ( a(mp,mp-1) /= 0.0_rkx ) then
-
-      ort(mp+1:igh) = a(mp+1:igh,mp-1)
-
-      do j = 1, m
-
-        g = dot_product ( ort(mp:igh), z(mp:igh,j) )
-
-        g = ( g / ort(mp) ) / a(mp,mp-1)
-
-        do i = mp, igh
-          z(i,j) = z(i,j) + g * ort(i)
-        end do
-
-      end do
-
+    if (m==0) then
+      return
     end if
 
-  end do
+    do mp = igh - 1, low + 1, -1
 
-  return
-end subroutine ortbak
+      if (a(mp,mp-1)/=0.0_rkx) then
 
-subroutine orthes ( n, low, igh, a, ort )
+        ort(mp+1:igh) = a(mp+1:igh, mp-1)
+
+        do j = 1, m
+
+          g = dot_product(ort(mp:igh), z(mp:igh,j))
+
+          g = (g/ort(mp))/a(mp, mp-1)
+
+          do i = mp, igh
+            z(i, j) = z(i, j) + g*ort(i)
+          end do
+
+        end do
+
+      end if
+
+    end do
+
+    return
+  end subroutine ortbak
+
+  subroutine orthes(n, low, igh, a, ort)
 
 !*****************************************************************************80
 !
@@ -9752,98 +9745,98 @@ subroutine orthes ( n, low, igh, a, ort )
 !    Output, real ( kind = rkx ) ORT(IGH), contains further information about the
 !    transformations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: la
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mp
-  real    ( kind = rkx ) :: ort(igh)
-  real    ( kind = rkx ) :: xscale
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: la
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mp
+    real (kind=rkx) :: ort(igh)
+    real (kind=rkx) :: xscale
 
-  la = igh - 1
+    la = igh - 1
 
-  do m = low + 1, la
+    do m = low + 1, la
 
-     h = 0.0_rkx
-     ort(m) = 0.0_rkx
-     xscale = 0.0_rkx
+      h = 0.0_rkx
+      ort(m) = 0.0_rkx
+      xscale = 0.0_rkx
 !
 !  Scale the column.
 !
-     do i = m, igh
-       xscale = xscale + abs ( a(i,m-1) )
-     end do
+      do i = m, igh
+        xscale = xscale + abs(a(i,m-1))
+      end do
 
-     if ( xscale /= 0.0_rkx ) then
+      if (xscale/=0.0_rkx) then
 
-     mp = m + igh
-
-     do ii = m, igh
-       i = mp - ii
-       ort(i) = a(i,m-1) / xscale
-       h = h + ort(i) * ort(i)
-     end do
-
-     g = - sign ( sqrt ( h ), ort(m) )
-     h = h - ort(m) * g
-     ort(m) = ort(m) - g
-!
-!  Form (I-(U*Ut)/h) * A.
-!
-     do j = m, n
-
-        f = 0.0_rkx
+        mp = m + igh
 
         do ii = m, igh
           i = mp - ii
-          f = f + ort(i) * a(i,j)
+          ort(i) = a(i, m-1)/xscale
+          h = h + ort(i)*ort(i)
         end do
 
-        f = f / h
+        g = -sign(sqrt(h), ort(m))
+        h = h - ort(m)*g
+        ort(m) = ort(m) - g
+!
+!  Form (I-(U*Ut)/h) * A.
+!
+        do j = m, n
 
-        do i = m, igh
-          a(i,j) = a(i,j) - f * ort(i)
+          f = 0.0_rkx
+
+          do ii = m, igh
+            i = mp - ii
+            f = f + ort(i)*a(i, j)
+          end do
+
+          f = f/h
+
+          do i = m, igh
+            a(i, j) = a(i, j) - f*ort(i)
+          end do
+
         end do
-
-     end do
 !
 !  Form (I-(u*ut)/h) * A * (I-(u*ut)/h).
 !
-     do i = 1, igh
+        do i = 1, igh
 
-        f = 0.0_rkx
-        do jj = m, igh
-          j = mp - jj
-          f = f + ort(j) * a(i,j)
+          f = 0.0_rkx
+          do jj = m, igh
+            j = mp - jj
+            f = f + ort(j)*a(i, j)
+          end do
+
+          a(i, m:igh) = a(i, m:igh) - f*ort(m:igh)/h
+
         end do
 
-        a(i,m:igh) = a(i,m:igh) - f * ort(m:igh) / h
+        ort(m) = xscale*ort(m)
+        a(m, m-1) = xscale*g
 
-     end do
+      end if
 
-     ort(m) = xscale * ort(m)
-     a(m,m-1) = xscale * g
+    end do
 
-    end if
+    return
+  end subroutine orthes
 
-  end do
-
-  return
-end subroutine orthes
-
-subroutine ortran ( n, low, igh, a, ort, z )
+  subroutine ortran(n, low, igh, a, ort, z)
 
 !*****************************************************************************80
 !
@@ -9904,62 +9897,62 @@ subroutine ortran ( n, low, igh, a, ort, z )
 !    Output, real ( kind = rkx ) Z(N,N), contains the transformation matrix produced in the
 !    reduction by ORTHES.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: igh
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: igh
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,igh)
-  real    ( kind = rkx ) :: g
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: kl
-  integer ( kind = ik4 ) :: low
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: mp
-  real    ( kind = rkx ) :: ort(igh)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, igh)
+    real (kind=rkx) :: g
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: kl
+    integer (kind=ik4) :: low
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: mp
+    real (kind=rkx) :: ort(igh)
+    real (kind=rkx) :: z(n, n)
 !
 !  Initialize Z to the identity matrix.
 !
-  z(1:n,1:n) = 0.0_rkx
+    z(1:n, 1:n) = 0.0_rkx
 
-  do i = 1, n
-    z(i,i) = 1.0_rkx
-  end do
+    do i = 1, n
+      z(i, i) = 1.0_rkx
+    end do
 
-  kl = igh - low - 1
+    kl = igh - low - 1
 
-  if ( kl < 1 ) then
-    return
-  end if
-
-  do mm = 1, kl
-
-    mp = igh - mm
-
-    if ( a(mp,mp-1) /= 0.0_rkx ) then
-
-      ort(mp+1:igh) = a(mp+1:igh,mp-1)
-
-      do j = mp, igh
-
-        g = dot_product ( ort(mp:igh), z(mp:igh,j) )
-
-        g = ( g / ort(mp) ) / a(mp,mp-1)
-
-        z(mp:igh,j) = z(mp:igh,j) + g * ort(mp:igh)
-
-      end do
-
+    if (kl<1) then
+      return
     end if
 
-  end do
+    do mm = 1, kl
 
-  return
-end subroutine ortran
+      mp = igh - mm
 
-subroutine qzhes ( n, a, b, matz, z )
+      if (a(mp,mp-1)/=0.0_rkx) then
+
+        ort(mp+1:igh) = a(mp+1:igh, mp-1)
+
+        do j = mp, igh
+
+          g = dot_product(ort(mp:igh), z(mp:igh,j))
+
+          g = (g/ort(mp))/a(mp, mp-1)
+
+          z(mp:igh, j) = z(mp:igh, j) + g*ort(mp:igh)
+
+        end do
+
+      end if
+
+    end do
+
+    return
+  end subroutine ortran
+
+  subroutine qzhes(n, a, b, matz, z)
 
 !*****************************************************************************80
 !
@@ -10024,181 +10017,181 @@ subroutine qzhes ( n, a, b, matz, z )
 !    Output, real ( kind = rkx ) Z(N,N), contains the product of the right hand
 !    transformations if MATZ is TRUE.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: b(n,n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: l1
-  integer ( kind = ik4 ) :: lb
-  logical              :: matz
-  integer ( kind = ik4 ) :: nk1
-  integer ( kind = ik4 ) :: nm1
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: rho
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: t
-  real    ( kind = rkx ) :: u1
-  real    ( kind = rkx ) :: u2
-  real    ( kind = rkx ) :: v1
-  real    ( kind = rkx ) :: v2
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: b(n, n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: l1
+    integer (kind=ik4) :: lb
+    logical :: matz
+    integer (kind=ik4) :: nk1
+    integer (kind=ik4) :: nm1
+    real (kind=rkx) :: r
+    real (kind=rkx) :: rho
+    real (kind=rkx) :: s
+    real (kind=rkx) :: t
+    real (kind=rkx) :: u1
+    real (kind=rkx) :: u2
+    real (kind=rkx) :: v1
+    real (kind=rkx) :: v2
+    real (kind=rkx) :: z(n, n)
 !
 !  Set Z to the identity matrix.
 !
-  if ( matz ) then
+    if (matz) then
 
-    z(1:n,1:n) = 0.0_rkx
+      z(1:n, 1:n) = 0.0_rkx
 
-    do i = 1, n
-      z(i,i) = 1.0_rkx
-    end do
+      do i = 1, n
+        z(i, i) = 1.0_rkx
+      end do
 
-  end if
+    end if
 !
 !  Reduce B to upper triangular form.
 !
-  if ( n <= 1 ) then
-    return
-  end if
-
-  nm1 = n - 1
-
-  do l = 1, n-1
-
-    l1 = l + 1
-
-    s = sum ( abs ( b(l+1:n,l) ) )
-
-    if ( s /= 0.0_rkx ) then
-
-      s = s + abs ( b(l,l) )
-      b(l:n,l) = b(l:n,l) / s
-
-      r = sqrt ( sum ( b(l:n,l)**2 ) )
-      r = sign ( r, b(l,l) )
-      b(l,l) = b(l,l) + r
-      rho = r * b(l,l)
-
-      do j = l+1, n
-
-        t = dot_product ( b(l:n,l), b(l:n,j) )
-
-        b(l:n,j) = b(l:n,j) - t * b(l:n,l) / rho
-
-      end do
-
-      do j = 1, n
-
-        t = dot_product ( b(l:n,l), a(l:n,j) )
-
-        a(l:n,j) = a(l:n,j) - t * b(l:n,l) / rho
-
-      end do
-
-      b(l,l) = - s * r
-      b(l+1:n,l) = 0.0_rkx
-
+    if (n<=1) then
+      return
     end if
 
-  end do
+    nm1 = n - 1
+
+    do l = 1, n - 1
+
+      l1 = l + 1
+
+      s = sum(abs(b(l+1:n,l)))
+
+      if (s/=0.0_rkx) then
+
+        s = s + abs(b(l,l))
+        b(l:n, l) = b(l:n, l)/s
+
+        r = sqrt(sum(b(l:n,l)**2))
+        r = sign(r, b(l,l))
+        b(l, l) = b(l, l) + r
+        rho = r*b(l, l)
+
+        do j = l + 1, n
+
+          t = dot_product(b(l:n,l), b(l:n,j))
+
+          b(l:n, j) = b(l:n, j) - t*b(l:n, l)/rho
+
+        end do
+
+        do j = 1, n
+
+          t = dot_product(b(l:n,l), a(l:n,j))
+
+          a(l:n, j) = a(l:n, j) - t*b(l:n, l)/rho
+
+        end do
+
+        b(l, l) = -s*r
+        b(l+1:n, l) = 0.0_rkx
+
+      end if
+
+    end do
 !
 !  Reduce A to upper Hessenberg form, while keeping B triangular.
 !
-  if ( n == 2 ) then
-    return
-  end if
+    if (n==2) then
+      return
+    end if
 
-  do k = 1, n-2
+    do k = 1, n - 2
 
-     nk1 = nm1 - k
+      nk1 = nm1 - k
 
-     do lb = 1, nk1
+      do lb = 1, nk1
 
         l = n - lb
         l1 = l + 1
 !
 !  Zero A(l+1,k).
 !
-        s = abs ( a(l,k) ) + abs ( a(l1,k) )
+        s = abs(a(l,k)) + abs(a(l1,k))
 
-        if ( s /= 0.0_rkx ) then
+        if (s/=0.0_rkx) then
 
-        u1 = a(l,k) / s
-        u2 = a(l1,k) / s
-        r = sign ( sqrt ( u1**2 + u2**2 ), u1 )
-        v1 =  -(u1 + r) / r
-        v2 = -u2 / r
-        u2 = v2 / v1
+          u1 = a(l, k)/s
+          u2 = a(l1, k)/s
+          r = sign(sqrt(u1**2+u2**2), u1)
+          v1 = -(u1+r)/r
+          v2 = -u2/r
+          u2 = v2/v1
 
-        do j = k, n
-          t = a(l,j) + u2 * a(l1,j)
-          a(l,j) = a(l,j) + t * v1
-          a(l1,j) = a(l1,j) + t * v2
-        end do
+          do j = k, n
+            t = a(l, j) + u2*a(l1, j)
+            a(l, j) = a(l, j) + t*v1
+            a(l1, j) = a(l1, j) + t*v2
+          end do
 
-        a(l1,k) = 0.0_rkx
+          a(l1, k) = 0.0_rkx
 
-        do j = l, n
-          t = b(l,j) + u2 * b(l1,j)
-          b(l,j) = b(l,j) + t * v1
-          b(l1,j) = b(l1,j) + t * v2
-        end do
+          do j = l, n
+            t = b(l, j) + u2*b(l1, j)
+            b(l, j) = b(l, j) + t*v1
+            b(l1, j) = b(l1, j) + t*v2
+          end do
 !
 !  Zero B(l+1,l).
 !
-        s = abs ( b(l1,l1) ) + abs ( b(l1,l) )
+          s = abs(b(l1,l1)) + abs(b(l1,l))
 
-        if ( s /= 0.0 ) then
+          if (s/=0.0) then
 
-        u1 = b(l1,l1) / s
-        u2 = b(l1,l) / s
-        r = sign ( sqrt ( u1**2 + u2**2 ), u1 )
-        v1 =  -( u1 + r ) / r
-        v2 = -u2 / r
-        u2 = v2 / v1
+            u1 = b(l1, l1)/s
+            u2 = b(l1, l)/s
+            r = sign(sqrt(u1**2+u2**2), u1)
+            v1 = -(u1+r)/r
+            v2 = -u2/r
+            u2 = v2/v1
 
-        do i = 1, l1
-          t = b(i,l1) + u2 * b(i,l)
-          b(i,l1) = b(i,l1) + t * v1
-          b(i,l) = b(i,l) + t * v2
-        end do
+            do i = 1, l1
+              t = b(i, l1) + u2*b(i, l)
+              b(i, l1) = b(i, l1) + t*v1
+              b(i, l) = b(i, l) + t*v2
+            end do
 
-        b(l1,l) = 0.0_rkx
+            b(l1, l) = 0.0_rkx
 
-        do i = 1, n
-          t = a(i,l1) + u2 * a(i,l)
-          a(i,l1) = a(i,l1) + t * v1
-          a(i,l) = a(i,l) + t * v2
-        end do
+            do i = 1, n
+              t = a(i, l1) + u2*a(i, l)
+              a(i, l1) = a(i, l1) + t*v1
+              a(i, l) = a(i, l) + t*v2
+            end do
 
-        if ( matz ) then
+            if (matz) then
 
-          do i = 1, n
-            t = z(i,l1) + u2 * z(i,l)
-            z(i,l1) = z(i,l1) + t * v1
-            z(i,l) = z(i,l) + t * v2
-          end do
+              do i = 1, n
+                t = z(i, l1) + u2*z(i, l)
+                z(i, l1) = z(i, l1) + t*v1
+                z(i, l) = z(i, l) + t*v2
+              end do
+
+            end if
+
+          end if
 
         end if
 
-        end if
-
-      end if
+      end do
 
     end do
 
-  end do
+    return
+  end subroutine qzhes
 
-  return
-end subroutine qzhes
-
-subroutine qzit ( n, a, b, eps1, matz, z, ierr )
+  subroutine qzit(n, a, b, eps1, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -10282,478 +10275,477 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: a1
-  real    ( kind = rkx ) :: a11
-  real    ( kind = rkx ) :: a12
-  real    ( kind = rkx ) :: a2
-  real    ( kind = rkx ) :: a21
-  real    ( kind = rkx ) :: a22
-  real    ( kind = rkx ) :: a3
-  real    ( kind = rkx ) :: a33
-  real    ( kind = rkx ) :: a34
-  real    ( kind = rkx ) :: a43
-  real    ( kind = rkx ) :: a44
-  real    ( kind = rkx ) :: ani
-  real    ( kind = rkx ) :: anorm
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: b11
-  real    ( kind = rkx ) :: b12
-  real    ( kind = rkx ) :: b22
-  real    ( kind = rkx ) :: b33
-  real    ( kind = rkx ) :: b34
-  real    ( kind = rkx ) :: b44
-  real    ( kind = rkx ) :: bni
-  real    ( kind = rkx ) :: bnorm
-  integer ( kind = ik4 ) :: en
-  integer ( kind = ik4 ) :: enm2
-  integer ( kind = ik4 ) :: enorn
-  real    ( kind = rkx ) :: ep
-  real    ( kind = rkx ) :: eps1
-  real    ( kind = rkx ) :: epsa
-  real    ( kind = rkx ) :: epsb
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ish
-  integer ( kind = ik4 ) :: itn
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: k1
-  integer ( kind = ik4 ) :: k2
-  integer ( kind = ik4 ) :: km1
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: l1
-  integer ( kind = ik4 ) :: ld
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: lm1
-  integer ( kind = ik4 ) :: lor1
-  logical              :: matz
-  integer ( kind = ik4 ) :: na
-  logical              :: notlas
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: sh
-  real    ( kind = rkx ) :: t
-  real    ( kind = rkx ) :: u1
-  real    ( kind = rkx ) :: u2
-  real    ( kind = rkx ) :: u3
-  real    ( kind = rkx ) :: v1
-  real    ( kind = rkx ) :: v2
-  real    ( kind = rkx ) :: v3
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: a1
+    real (kind=rkx) :: a11
+    real (kind=rkx) :: a12
+    real (kind=rkx) :: a2
+    real (kind=rkx) :: a21
+    real (kind=rkx) :: a22
+    real (kind=rkx) :: a3
+    real (kind=rkx) :: a33
+    real (kind=rkx) :: a34
+    real (kind=rkx) :: a43
+    real (kind=rkx) :: a44
+    real (kind=rkx) :: ani
+    real (kind=rkx) :: anorm
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: b11
+    real (kind=rkx) :: b12
+    real (kind=rkx) :: b22
+    real (kind=rkx) :: b33
+    real (kind=rkx) :: b34
+    real (kind=rkx) :: b44
+    real (kind=rkx) :: bni
+    real (kind=rkx) :: bnorm
+    integer (kind=ik4) :: en
+    integer (kind=ik4) :: enm2
+    integer (kind=ik4) :: enorn
+    real (kind=rkx) :: ep
+    real (kind=rkx) :: eps1
+    real (kind=rkx) :: epsa
+    real (kind=rkx) :: epsb
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ish
+    integer (kind=ik4) :: itn
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: k1
+    integer (kind=ik4) :: k2
+    integer (kind=ik4) :: km1
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: l1
+    integer (kind=ik4) :: ld
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: lm1
+    integer (kind=ik4) :: lor1
+    logical :: matz
+    integer (kind=ik4) :: na
+    logical :: notlas
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: sh
+    real (kind=rkx) :: t
+    real (kind=rkx) :: u1
+    real (kind=rkx) :: u2
+    real (kind=rkx) :: u3
+    real (kind=rkx) :: v1
+    real (kind=rkx) :: v2
+    real (kind=rkx) :: v3
+    real (kind=rkx) :: z(n, n)
 
-  ierr = 0
+    ierr = 0
 !
 !  Compute EPSA and EPSB.
 !
-  anorm = 0.0_rkx
-  bnorm = 0.0_rkx
+    anorm = 0.0_rkx
+    bnorm = 0.0_rkx
 
-  do i = 1, n
+    do i = 1, n
 
-    if ( i == 1 ) then
-      ani = 0.0_rkx
-    else
-      ani = abs ( a(i,i-1) )
-    end if
+      if (i==1) then
+        ani = 0.0_rkx
+      else
+        ani = abs(a(i,i-1))
+      end if
 
-    bni = 0.0_rkx
+      bni = 0.0_rkx
 
-    do j = i, n
-      ani = ani + abs ( a(i,j) )
-      bni = bni + abs ( b(i,j) )
+      do j = i, n
+        ani = ani + abs(a(i,j))
+        bni = bni + abs(b(i,j))
+      end do
+
+      anorm = max(anorm, ani)
+      bnorm = max(bnorm, bni)
+
     end do
 
-    anorm = max ( anorm, ani )
-    bnorm = max ( bnorm, bni )
+    if (anorm==0.0_rkx) then
+      anorm = 1.0_rkx
+    end if
 
-  end do
+    if (bnorm==0.0_rkx) then
+      bnorm = 1.0_rkx
+    end if
 
-  if ( anorm == 0.0_rkx ) then
-    anorm = 1.0_rkx
-  end if
+    ep = eps1
 
-  if ( bnorm == 0.0_rkx ) then
-    bnorm = 1.0_rkx
-  end if
-
-  ep = eps1
-
-  if ( ep > 0.0_rkx ) then
-    go to 50
-  end if
+    if (ep>0.0_rkx) then
+      go to 100
+    end if
 !
 !  Use roundoff level if EPS1 is 0.
 !
-  ep = epsilon ( ep )
-
-50 continue
-
-  epsa = ep * anorm
-  epsb = ep * bnorm
-!
-!  Reduce A to quasi-triangular form, while keeping B triangular.
-!
-  lor1 = 1
-  enorn = n
-  en = n
-  itn = 30 * n
-!
-!  Begin QZ step.
-!
-60 continue
-
-  if ( en <= 2 ) then
-    go to 1001
-  end if
-
-  if (.not. matz) enorn = en
-  its = 0
-  na = en - 1
-  enm2 = na - 1
-
-70 continue
-
-  ish = 2
-!
-!  Check for convergence or reducibility.
-!
-  do ll = 1, en
-    lm1 = en - ll
-    l = lm1 + 1
-    if ( l == 1 ) go to 95
-    if ( abs ( a(l,lm1) ) <= epsa ) then
-      exit
-    end if
-  end do
-
-90 continue
-
-  a(l,lm1) = 0.0_rkx
-  if ( l < na ) go to 95
-!
-!  1-by-1 or 2-by-2 block isolated.
-!
-  en = lm1
-  go to 60
-!
-!  Check for small top of B.
-!
-95 continue
-
-  ld = l
+    ep = epsilon(ep)
 
 100 continue
 
-  l1 = l + 1
-  b11 = b(l,l)
+    epsa = ep*anorm
+    epsb = ep*bnorm
+!
+!  Reduce A to quasi-triangular form, while keeping B triangular.
+!
+    lor1 = 1
+    enorn = n
+    en = n
+    itn = 30*n
+!
+!  Begin QZ step.
+!
+110 continue
 
-  if ( abs ( b11 ) > epsb ) go to 120
+    if (en<=2) then
+      go to 250
+    end if
 
-  b(l,l) = 0.0_rkx
-  s = abs ( a(l,l) ) + abs ( a(l1,l) )
-  u1 = a(l,l) / s
-  u2 = a(l1,l) / s
-  r = sign ( sqrt ( u1**2 + u2**2 ), u1 )
-  v1 = - ( u1 + r ) / r
-  v2 = -u2 / r
-  u2 = v2 / v1
-
-  do j = l, enorn
-    t = a(l,j) + u2 * a(l1,j)
-    a(l,j) = a(l,j) + t * v1
-    a(l1,j) = a(l1,j) + t * v2
-    t = b(l,j) + u2 * b(l1,j)
-    b(l,j) = b(l,j) + t * v1
-    b(l1,j) = b(l1,j) + t * v2
-  end do
-
-  if ( l /= 1 ) then
-    a(l,lm1) = -a(l,lm1)
-  end if
-  lm1 = l
-  l = l1
-  go to 90
+    if (.not. matz) enorn = en
+    its = 0
+    na = en - 1
+    enm2 = na - 1
 
 120 continue
 
-  a11 = a(l,l) / b11
-  a21 = a(l1,l) / b11
-  if ( ish == 1 ) go to 140
+    ish = 2
+!
+!  Check for convergence or reducibility.
+!
+    do ll = 1, en
+      lm1 = en - ll
+      l = lm1 + 1
+      if (l==1) go to 140
+      if (abs(a(l,lm1))<=epsa) then
+        exit
+      end if
+    end do
+
+130 continue
+
+    a(l, lm1) = 0.0_rkx
+    if (l<na) go to 140
+!
+!  1-by-1 or 2-by-2 block isolated.
+!
+    en = lm1
+    go to 110
+!
+!  Check for small top of B.
+!
+140 continue
+
+    ld = l
+
+150 continue
+
+    l1 = l + 1
+    b11 = b(l, l)
+
+    if (abs(b11)>epsb) go to 160
+
+    b(l, l) = 0.0_rkx
+    s = abs(a(l,l)) + abs(a(l1,l))
+    u1 = a(l, l)/s
+    u2 = a(l1, l)/s
+    r = sign(sqrt(u1**2+u2**2), u1)
+    v1 = -(u1+r)/r
+    v2 = -u2/r
+    u2 = v2/v1
+
+    do j = l, enorn
+      t = a(l, j) + u2*a(l1, j)
+      a(l, j) = a(l, j) + t*v1
+      a(l1, j) = a(l1, j) + t*v2
+      t = b(l, j) + u2*b(l1, j)
+      b(l, j) = b(l, j) + t*v1
+      b(l1, j) = b(l1, j) + t*v2
+    end do
+
+    if (l/=1) then
+      a(l, lm1) = -a(l, lm1)
+    end if
+    lm1 = l
+    l = l1
+    go to 130
+
+160 continue
+
+    a11 = a(l, l)/b11
+    a21 = a(l1, l)/b11
+    if (ish==1) go to 170
 !
 !  Iteration strategy.
 !
-  if ( itn == 0 ) go to 1000
-  if ( its == 10 ) go to 155
+    if (itn==0) go to 240
+    if (its==10) go to 190
 !
 !  Determine type of shift.
 !
-  b22 = b(l1,l1)
-  if ( abs ( b22 ) < epsb ) b22 = epsb
-  b33 = b(na,na)
-  if ( abs ( b33 ) < epsb ) b33 = epsb
-  b44 = b(en,en)
-  if ( abs ( b44 ) < epsb ) b44 = epsb
-  a33 = a(na,na) / b33
-  a34 = a(na,en) / b44
-  a43 = a(en,na) / b33
-  a44 = a(en,en) / b44
-  b34 = b(na,en) / b44
-  t = 0.5_rkx * (a43 * b34 - a33 - a44)
-  r = t * t + a34 * a43 - a33 * a44
+    b22 = b(l1, l1)
+    if (abs(b22)<epsb) b22 = epsb
+    b33 = b(na, na)
+    if (abs(b33)<epsb) b33 = epsb
+    b44 = b(en, en)
+    if (abs(b44)<epsb) b44 = epsb
+    a33 = a(na, na)/b33
+    a34 = a(na, en)/b44
+    a43 = a(en, na)/b33
+    a44 = a(en, en)/b44
+    b34 = b(na, en)/b44
+    t = 0.5_rkx*(a43*b34-a33-a44)
+    r = t*t + a34*a43 - a33*a44
 
-  if ( r < 0.0_rkx ) go to 150
+    if (r<0.0_rkx) go to 180
 !
 !  Determine single shift zeroth column of A.
 !
-  ish = 1
-  r = sqrt ( r )
-  sh = -t + r
-  s = -t - r
-  if ( abs ( s - a44 ) < abs ( sh - a44 ) ) sh = s
+    ish = 1
+    r = sqrt(r)
+    sh = -t + r
+    s = -t - r
+    if (abs(s-a44)<abs(sh-a44)) sh = s
 !
 !  Look for two consecutive small sub-diagonal elements of A.
 !
-  do ll = ld, enm2
-    l = enm2 + ld - ll
-    if ( l == ld ) then
-      exit
+    do ll = ld, enm2
+      l = enm2 + ld - ll
+      if (l==ld) then
+        exit
+      end if
+      lm1 = l - 1
+      l1 = l + 1
+      t = a(l, l)
+      if (abs(b(l,l))>epsb) t = t - sh*b(l, l)
+      if (abs(a(l,lm1))<=abs(t/a(l1,l))*epsa) go to 150
+    end do
+
+170 continue
+
+    a1 = a11 - sh
+    a2 = a21
+
+    if (l/=ld) then
+      a(l, lm1) = -a(l, lm1)
     end if
-    lm1 = l - 1
-    l1 = l + 1
-    t = a(l,l)
-    if ( abs ( b(l,l) ) > epsb ) t = t - sh * b(l,l)
-    if ( abs ( a(l,lm1) ) <= abs ( t / a(l1,l) ) * epsa ) go to 100
-  end do
 
-140 continue
-
-  a1 = a11 - sh
-  a2 = a21
-
-  if ( l /= ld ) then
-    a(l,lm1) = -a(l,lm1)
-  end if
-
-  go to 160
+    go to 200
 !
 !  Determine double shift zeroth column of A.
 !
-150 continue
+180 continue
 
-  a12 = a(l,l1) / b22
-  a22 = a(l1,l1) / b22
-  b12 = b(l,l1) / b22
-  a1 = ( ( a33 - a11 ) * ( a44 - a11 ) - a34 * a43 + a43 * b34 * a11 ) &
-    / a21 + a12 - a11 * b12
-  a2 = (a22 - a11) - a21 * b12 - (a33 - a11) - (a44 - a11) + a43 * b34
-  a3 = a(l1+1,l1) / b22
-  go to 160
+    a12 = a(l, l1)/b22
+    a22 = a(l1, l1)/b22
+    b12 = b(l, l1)/b22
+    a1 = ((a33-a11)*(a44-a11)-a34*a43+a43*b34*a11)/a21 + a12 - a11*b12
+    a2 = (a22-a11) - a21*b12 - (a33-a11) - (a44-a11) + a43*b34
+    a3 = a(l1+1, l1)/b22
+    go to 200
 !
 !  Ad hoc shift.
 !
-155 continue
+190 continue
 
-  a1 = 0.0_rkx
-  a2 = 1.0_rkx
-  a3 = 1.1605_rkx
+    a1 = 0.0_rkx
+    a2 = 1.0_rkx
+    a3 = 1.1605_rkx
 
-  160 continue
-  its = its + 1
-  itn = itn - 1
-  if ( .not. matz ) lor1 = ld
+200 continue
+    its = its + 1
+    itn = itn - 1
+    if (.not. matz) lor1 = ld
 !
 !  Main loop.
 !
-  do k = l, na
+    do k = l, na
 
-     notlas = k /= na .and. ish == 2
-     k1 = k + 1
-     k2 = k + 2
-     km1 = max ( k-1, l )
-     ll = min ( en, k1+ish )
+      notlas = k /= na .and. ish == 2
+      k1 = k + 1
+      k2 = k + 2
+      km1 = max(k-1, l)
+      ll = min(en, k1+ish)
 
-     if ( notlas ) go to 190
+      if (notlas) go to 210
 !
 !  Zero A(k+1,k-1).
 !
-     if ( k /= l ) then
-       a1 = a(k,km1)
-       a2 = a(k1,km1)
-     end if
+      if (k/=l) then
+        a1 = a(k, km1)
+        a2 = a(k1, km1)
+      end if
 
-     s = abs ( a1 ) + abs ( a2 )
+      s = abs(a1) + abs(a2)
 
-     if ( s == 0.0_rkx ) go to 70
+      if (s==0.0_rkx) go to 120
 
-     u1 = a1 / s
-     u2 = a2 / s
-     r = sign ( sqrt ( u1**2 + u1**2 ), u1 )
-     v1 = -( u1 + r ) / r
-     v2 = -u2 / r
-     u2 = v2 / v1
+      u1 = a1/s
+      u2 = a2/s
+      r = sign(sqrt(u1**2+u1**2), u1)
+      v1 = -(u1+r)/r
+      v2 = -u2/r
+      u2 = v2/v1
 
-     do j = km1, enorn
-       t = a(k,j) + u2 * a(k1,j)
-       a(k,j) = a(k,j) + t * v1
-       a(k1,j) = a(k1,j) + t * v2
-       t = b(k,j) + u2 * b(k1,j)
-       b(k,j) = b(k,j) + t * v1
-       b(k1,j) = b(k1,j) + t * v2
-     end do
+      do j = km1, enorn
+        t = a(k, j) + u2*a(k1, j)
+        a(k, j) = a(k, j) + t*v1
+        a(k1, j) = a(k1, j) + t*v2
+        t = b(k, j) + u2*b(k1, j)
+        b(k, j) = b(k, j) + t*v1
+        b(k1, j) = b(k1, j) + t*v2
+      end do
 
-     if ( k /= l ) then
-       a(k1,km1) = 0.0_rkx
-     end if
+      if (k/=l) then
+        a(k1, km1) = 0.0_rkx
+      end if
 
-     go to 240
+      go to 220
 !
 !  Zero A(k+1,k-1) and A(k+2,k-1).
 !
-190  continue
+210   continue
 
-     if ( k /= l ) then
-       a1 = a(k,km1)
-       a2 = a(k1,km1)
-       a3 = a(k2,km1)
-     end if
+      if (k/=l) then
+        a1 = a(k, km1)
+        a2 = a(k1, km1)
+        a3 = a(k2, km1)
+      end if
 
-     s = abs ( a1 ) + abs ( a2 ) + abs ( a3 )
+      s = abs(a1) + abs(a2) + abs(a3)
 
-     if ( s == 0.0_rkx ) go to 260
+      if (s==0.0_rkx) go to 230
 
-     u1 = a1 / s
-     u2 = a2 / s
-     u3 = a3 / s
-     r = sign ( sqrt ( u1**2 + u2**2 + u3**2 ), u1 )
-     v1 = -(u1 + r) / r
-     v2 = -u2 / r
-     v3 = -u3 / r
-     u2 = v2 / v1
-     u3 = v3 / v1
+      u1 = a1/s
+      u2 = a2/s
+      u3 = a3/s
+      r = sign(sqrt(u1**2+u2**2+u3**2), u1)
+      v1 = -(u1+r)/r
+      v2 = -u2/r
+      v3 = -u3/r
+      u2 = v2/v1
+      u3 = v3/v1
 
-     do j = km1, enorn
-       t = a(k,j) + u2 * a(k1,j) + u3 * a(k2,j)
-       a(k,j) = a(k,j) + t * v1
-       a(k1,j) = a(k1,j) + t * v2
-       a(k2,j) = a(k2,j) + t * v3
-       t = b(k,j) + u2 * b(k1,j) + u3 * b(k2,j)
-       b(k,j) = b(k,j) + t * v1
-       b(k1,j) = b(k1,j) + t * v2
-       b(k2,j) = b(k2,j) + t * v3
-     end do
+      do j = km1, enorn
+        t = a(k, j) + u2*a(k1, j) + u3*a(k2, j)
+        a(k, j) = a(k, j) + t*v1
+        a(k1, j) = a(k1, j) + t*v2
+        a(k2, j) = a(k2, j) + t*v3
+        t = b(k, j) + u2*b(k1, j) + u3*b(k2, j)
+        b(k, j) = b(k, j) + t*v1
+        b(k1, j) = b(k1, j) + t*v2
+        b(k2, j) = b(k2, j) + t*v3
+      end do
 
-     if ( k /= l ) then
-       a(k1,km1) = 0.0_rkx
-       a(k2,km1) = 0.0_rkx
-     end if
+      if (k/=l) then
+        a(k1, km1) = 0.0_rkx
+        a(k2, km1) = 0.0_rkx
+      end if
 !
 !  Zero B(k+2,k+1) and B(k+2,k).
 !
-     s = abs ( b(k2,k2) ) + abs ( b(k2,k1) ) + abs ( b(k2,k) )
-     if ( s == 0.0_rkx ) go to 240
-     u1 = b(k2,k2) / s
-     u2 = b(k2,k1) / s
-     u3 = b(k2,k) / s
-     r = sign ( sqrt ( u1**2 + u2**2 + u3**2 ), u1 )
-     v1 = -(u1 + r) / r
-     v2 = -u2 / r
-     v3 = -u3 / r
-     u2 = v2 / v1
-     u3 = v3 / v1
+      s = abs(b(k2,k2)) + abs(b(k2,k1)) + abs(b(k2,k))
+      if (s==0.0_rkx) go to 220
+      u1 = b(k2, k2)/s
+      u2 = b(k2, k1)/s
+      u3 = b(k2, k)/s
+      r = sign(sqrt(u1**2+u2**2+u3**2), u1)
+      v1 = -(u1+r)/r
+      v2 = -u2/r
+      v3 = -u3/r
+      u2 = v2/v1
+      u3 = v3/v1
 
-     do i = lor1, ll
-       t = a(i,k2) + u2 * a(i,k1) + u3 * a(i,k)
-       a(i,k2) = a(i,k2) + t * v1
-       a(i,k1) = a(i,k1) + t * v2
-       a(i,k) = a(i,k) + t * v3
-       t = b(i,k2) + u2 * b(i,k1) + u3 * b(i,k)
-       b(i,k2) = b(i,k2) + t * v1
-       b(i,k1) = b(i,k1) + t * v2
-       b(i,k) = b(i,k) + t * v3
-     end do
+      do i = lor1, ll
+        t = a(i, k2) + u2*a(i, k1) + u3*a(i, k)
+        a(i, k2) = a(i, k2) + t*v1
+        a(i, k1) = a(i, k1) + t*v2
+        a(i, k) = a(i, k) + t*v3
+        t = b(i, k2) + u2*b(i, k1) + u3*b(i, k)
+        b(i, k2) = b(i, k2) + t*v1
+        b(i, k1) = b(i, k1) + t*v2
+        b(i, k) = b(i, k) + t*v3
+      end do
 
-     b(k2,k) = 0.0_rkx
-     b(k2,k1) = 0.0_rkx
+      b(k2, k) = 0.0_rkx
+      b(k2, k1) = 0.0_rkx
 
-     if ( matz ) then
+      if (matz) then
 
-       do i = 1, n
-         t = z(i,k2) + u2 * z(i,k1) + u3 * z(i,k)
-         z(i,k2) = z(i,k2) + t * v1
-         z(i,k1) = z(i,k1) + t * v2
-         z(i,k) = z(i,k) + t * v3
-       end do
+        do i = 1, n
+          t = z(i, k2) + u2*z(i, k1) + u3*z(i, k)
+          z(i, k2) = z(i, k2) + t*v1
+          z(i, k1) = z(i, k1) + t*v2
+          z(i, k) = z(i, k) + t*v3
+        end do
 
-     end if
+      end if
 !
 !  Zero B(k+1,k).
 !
-240  continue
+220   continue
 
-     s = abs ( b(k1,k1) ) + abs ( b(k1,k) )
+      s = abs(b(k1,k1)) + abs(b(k1,k))
 
-     if ( s /= 0.0_rkx ) then
+      if (s/=0.0_rkx) then
 
-     u1 = b(k1,k1) / s
-     u2 = b(k1,k) / s
-     r = sign ( sqrt ( u1**2 + u2**2 ), u1 )
-     v1 = -( u1 + r ) / r
-     v2 = -u2 / r
-     u2 = v2 / v1
+        u1 = b(k1, k1)/s
+        u2 = b(k1, k)/s
+        r = sign(sqrt(u1**2+u2**2), u1)
+        v1 = -(u1+r)/r
+        v2 = -u2/r
+        u2 = v2/v1
 
-     do i = lor1, ll
-       t = a(i,k1) + u2 * a(i,k)
-       a(i,k1) = a(i,k1) + t * v1
-       a(i,k) = a(i,k) + t * v2
-       t = b(i,k1) + u2 * b(i,k)
-       b(i,k1) = b(i,k1) + t * v1
-       b(i,k) = b(i,k) + t * v2
-     end do
+        do i = lor1, ll
+          t = a(i, k1) + u2*a(i, k)
+          a(i, k1) = a(i, k1) + t*v1
+          a(i, k) = a(i, k) + t*v2
+          t = b(i, k1) + u2*b(i, k)
+          b(i, k1) = b(i, k1) + t*v1
+          b(i, k) = b(i, k) + t*v2
+        end do
 
-     b(k1,k) = 0.0_rkx
+        b(k1, k) = 0.0_rkx
 
-     if ( matz ) then
+        if (matz) then
 
-       do i = 1, n
-         t = z(i,k1) + u2 * z(i,k)
-         z(i,k1) = z(i,k1) + t * v1
-         z(i,k) = z(i,k) + t * v2
-       end do
+          do i = 1, n
+            t = z(i, k1) + u2*z(i, k)
+            z(i, k1) = z(i, k1) + t*v1
+            z(i, k) = z(i, k) + t*v2
+          end do
 
-     end if
+        end if
 
-   end if
+      end if
 
-260  continue
+230   continue
 
-  end do
+    end do
 
-  go to 70
+    go to 120
 !
 !  Set error: not all eigenvalues have converged after 30*N iterations.
 !
-1000 continue
+240 continue
 
-  ierr = en
+    ierr = en
 !
 !  Save EPSB for use by QZVAL and QZVEC.
 !
- 1001 continue
+250 continue
 
-  if ( n > 1 ) then
-    b(n,1) = epsb
-  end if
+    if (n>1) then
+      b(n, 1) = epsb
+    end if
 
-  return
-end subroutine qzit
+    return
+  end subroutine qzit
 
-subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
+  subroutine qzval(n, a, b, alfr, alfi, beta, matz, z)
 
 !*****************************************************************************80
 !
@@ -10836,350 +10828,349 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !    and QZIT, if performed, or else the identity matrix.  On output,
 !    the product of the right hand transformations for all three steps.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: a1
-  real    ( kind = rkx ) :: a11
-  real    ( kind = rkx ) :: a11i
-  real    ( kind = rkx ) :: a11r
-  real    ( kind = rkx ) :: a12
-  real    ( kind = rkx ) :: a12i
-  real    ( kind = rkx ) :: a12r
-  real    ( kind = rkx ) :: a1i
-  real    ( kind = rkx ) :: a2
-  real    ( kind = rkx ) :: a21
-  real    ( kind = rkx ) :: a22
-  real    ( kind = rkx ) :: a22i
-  real    ( kind = rkx ) :: a22r
-  real    ( kind = rkx ) :: a2i
-  real    ( kind = rkx ) :: an
-  real    ( kind = rkx ) :: alfi(n)
-  real    ( kind = rkx ) :: alfr(n)
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: b11
-  real    ( kind = rkx ) :: b12
-  real    ( kind = rkx ) :: b22
-  real    ( kind = rkx ) :: beta(n)
-  real    ( kind = rkx ) :: bn
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: cq
-  real    ( kind = rkx ) :: cz
-  real    ( kind = rkx ) :: d
-  real    ( kind = rkx ) :: di
-  real    ( kind = rkx ) :: dr
-  real    ( kind = rkx ) :: e
-  real    ( kind = rkx ) :: ei
-  integer ( kind = ik4 ) :: en
-  real    ( kind = rkx ) :: epsb
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: isw
-  integer ( kind = ik4 ) :: j
-  logical              :: matz
-  integer ( kind = ik4 ) :: na
-  integer ( kind = ik4 ) :: nn
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: sqi
-  real    ( kind = rkx ) :: sqr
-  real    ( kind = rkx ) :: ssi
-  real    ( kind = rkx ) :: ssr
-  real    ( kind = rkx ) :: szi
-  real    ( kind = rkx ) :: szr
-  real    ( kind = rkx ) :: t
-  real    ( kind = rkx ) :: ti
-  real    ( kind = rkx ) :: tr
-  real    ( kind = rkx ) :: u1
-  real    ( kind = rkx ) :: u2
-  real    ( kind = rkx ) :: v1
-  real    ( kind = rkx ) :: v2
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: a1
+    real (kind=rkx) :: a11
+    real (kind=rkx) :: a11i
+    real (kind=rkx) :: a11r
+    real (kind=rkx) :: a12
+    real (kind=rkx) :: a12i
+    real (kind=rkx) :: a12r
+    real (kind=rkx) :: a1i
+    real (kind=rkx) :: a2
+    real (kind=rkx) :: a21
+    real (kind=rkx) :: a22
+    real (kind=rkx) :: a22i
+    real (kind=rkx) :: a22r
+    real (kind=rkx) :: a2i
+    real (kind=rkx) :: an
+    real (kind=rkx) :: alfi(n)
+    real (kind=rkx) :: alfr(n)
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: b11
+    real (kind=rkx) :: b12
+    real (kind=rkx) :: b22
+    real (kind=rkx) :: beta(n)
+    real (kind=rkx) :: bn
+    real (kind=rkx) :: c
+    real (kind=rkx) :: cq
+    real (kind=rkx) :: cz
+    real (kind=rkx) :: d
+    real (kind=rkx) :: di
+    real (kind=rkx) :: dr
+    real (kind=rkx) :: e
+    real (kind=rkx) :: ei
+    integer (kind=ik4) :: en
+    real (kind=rkx) :: epsb
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: isw
+    integer (kind=ik4) :: j
+    logical :: matz
+    integer (kind=ik4) :: na
+    integer (kind=ik4) :: nn
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: sqi
+    real (kind=rkx) :: sqr
+    real (kind=rkx) :: ssi
+    real (kind=rkx) :: ssr
+    real (kind=rkx) :: szi
+    real (kind=rkx) :: szr
+    real (kind=rkx) :: t
+    real (kind=rkx) :: ti
+    real (kind=rkx) :: tr
+    real (kind=rkx) :: u1
+    real (kind=rkx) :: u2
+    real (kind=rkx) :: v1
+    real (kind=rkx) :: v2
+    real (kind=rkx) :: z(n, n)
 
-  epsb = b(n,1)
-  isw = 1
+    epsb = b(n, 1)
+    isw = 1
 !
 !  Find eigenvalues of quasi-triangular matrices.
 !
-  do nn = 1, n
+    do nn = 1, n
 
-     en = n + 1 - nn
-     na = en - 1
+      en = n + 1 - nn
+      na = en - 1
 
-     if ( isw == 2 ) go to 505
+      if (isw==2) go to 180
 
-     if ( en == 1 ) go to 410
+      if (en==1) go to 100
 
-     if ( a(en,na) /= 0.0_rkx ) go to 420
+      if (a(en,na)/=0.0_rkx) go to 110
 !
 !  1-by-1 block, one real root.
 !
-410  continue
+100   continue
 
-     alfr(en) = a(en,en)
-     if ( b(en,en) < 0.0_rkx ) alfr(en) = -alfr(en)
-     beta(en) = abs ( b(en,en) )
-     alfi(en) = 0.0_rkx
-     go to 510
+      alfr(en) = a(en, en)
+      if (b(en,en)<0.0_rkx) alfr(en) = -alfr(en)
+      beta(en) = abs(b(en,en))
+      alfi(en) = 0.0_rkx
+      go to 190
 !
 !  2-by-2 block.
 !
-420  continue
+110   continue
 
-     if ( abs ( b(na,na) ) <= epsb ) then
-       a1 = a(na,na)
-       a2 = a(en,na)
-       go to 460
-     end if
+      if (abs(b(na,na))<=epsb) then
+        a1 = a(na, na)
+        a2 = a(en, na)
+        go to 130
+      end if
 
-     if ( abs ( b(en,en) ) <= epsb ) then
-       a1 = a(en,en)
-       a2 = a(en,na)
-       bn = 0.0_rkx
-       go to 435
-     end if
+      if (abs(b(en,en))<=epsb) then
+        a1 = a(en, en)
+        a2 = a(en, na)
+        bn = 0.0_rkx
+        go to 120
+      end if
 
-     an = abs ( a(na,na) ) + abs ( a(na,en) ) + abs ( a(en,na) ) &
-       + abs ( a(en,en) )
-     bn = abs ( b(na,na) ) + abs ( b(na,en) ) + abs ( b(en,en) )
-     a11 = a(na,na) / an
-     a12 = a(na,en) / an
-     a21 = a(en,na) / an
-     a22 = a(en,en) / an
-     b11 = b(na,na) / bn
-     b12 = b(na,en) / bn
-     b22 = b(en,en) / bn
-     e = a11 / b11
-     ei = a22 / b22
-     s = a21 / ( b11 * b22 )
-     t = ( a22 - e * b22 ) / b22
+      an = abs(a(na,na)) + abs(a(na,en)) + abs(a(en,na)) + abs(a(en,en))
+      bn = abs(b(na,na)) + abs(b(na,en)) + abs(b(en,en))
+      a11 = a(na, na)/an
+      a12 = a(na, en)/an
+      a21 = a(en, na)/an
+      a22 = a(en, en)/an
+      b11 = b(na, na)/bn
+      b12 = b(na, en)/bn
+      b22 = b(en, en)/bn
+      e = a11/b11
+      ei = a22/b22
+      s = a21/(b11*b22)
+      t = (a22-e*b22)/b22
 
-     if ( abs ( e ) > abs ( ei ) ) then
-       e = ei
-       t = ( a11 - e * b11 ) / b11
-     end if
+      if (abs(e)>abs(ei)) then
+        e = ei
+        t = (a11-e*b11)/b11
+      end if
 
-     c = 0.5_rkx * ( t - s * b12 )
-     d = c**2 + s * ( a12 - e * b12 )
+      c = 0.5_rkx*(t-s*b12)
+      d = c**2 + s*(a12-e*b12)
 
-     if ( d < 0.0_rkx ) then
-       go to 480
-     end if
+      if (d<0.0_rkx) then
+        go to 150
+      end if
 !
 !  Two real roots.
 !  Zero both A(EN,NA) and B(EN,NA).
 !
-     e = e + ( c + sign ( sqrt ( d ), c ) )
-     a11 = a11 - e * b11
-     a12 = a12 - e * b12
-     a22 = a22 - e * b22
+      e = e + (c+sign(sqrt(d),c))
+      a11 = a11 - e*b11
+      a12 = a12 - e*b12
+      a22 = a22 - e*b22
 
-     if ( abs ( a11 ) + abs ( a12 ) >= abs ( a21 ) + abs ( a22 ) ) then
-       a1 = a12
-       a2 = a11
-     else
-       a1 = a22
-       a2 = a21
-     end if
+      if (abs(a11)+abs(a12)>=abs(a21)+abs(a22)) then
+        a1 = a12
+        a2 = a11
+      else
+        a1 = a22
+        a2 = a21
+      end if
 !
 !  Choose and apply real Z.
 !
-435  continue
+120   continue
 
-     s = abs ( a1 ) + abs ( a2 )
-     u1 = a1 / s
-     u2 = a2 / s
-     r = sign ( sqrt ( u1**2 + u2**2 ), u1 )
-     v1 = - ( u1 + r ) / r
-     v2 = - u2 / r
-     u2 = v2 / v1
+      s = abs(a1) + abs(a2)
+      u1 = a1/s
+      u2 = a2/s
+      r = sign(sqrt(u1**2+u2**2), u1)
+      v1 = -(u1+r)/r
+      v2 = -u2/r
+      u2 = v2/v1
 
-     do i = 1, en
-       t = a(i,en) + u2 * a(i,na)
-       a(i,en) = a(i,en) + t * v1
-       a(i,na) = a(i,na) + t * v2
-       t = b(i,en) + u2 * b(i,na)
-       b(i,en) = b(i,en) + t * v1
-       b(i,na) = b(i,na) + t * v2
-     end do
+      do i = 1, en
+        t = a(i, en) + u2*a(i, na)
+        a(i, en) = a(i, en) + t*v1
+        a(i, na) = a(i, na) + t*v2
+        t = b(i, en) + u2*b(i, na)
+        b(i, en) = b(i, en) + t*v1
+        b(i, na) = b(i, na) + t*v2
+      end do
 
-     if ( matz ) then
+      if (matz) then
 
-       do i = 1, n
-         t = z(i,en) + u2 * z(i,na)
-         z(i,en) = z(i,en) + t * v1
-         z(i,na) = z(i,na) + t * v2
-       end do
+        do i = 1, n
+          t = z(i, en) + u2*z(i, na)
+          z(i, en) = z(i, en) + t*v1
+          z(i, na) = z(i, na) + t*v2
+        end do
 
-     end if
+      end if
 
-     if ( bn == 0.0_rkx ) go to 475
+      if (bn==0.0_rkx) go to 140
 
-     if ( an >= abs ( e ) * bn ) then
-       a1 = b(na,na)
-       a2 = b(en,na)
-     else
-       a1 = a(na,na)
-       a2 = a(en,na)
-     end if
+      if (an>=abs(e)*bn) then
+        a1 = b(na, na)
+        a2 = b(en, na)
+      else
+        a1 = a(na, na)
+        a2 = a(en, na)
+      end if
 !
 !  Choose and apply real Q.
 !
-460  continue
+130   continue
 
-     s = abs ( a1 ) + abs ( a2 )
-     if ( s == 0.0_rkx ) go to 475
-     u1 = a1 / s
-     u2 = a2 / s
-     r = sign ( sqrt ( u1**2 + u2**2 ), u1 )
-     v1 = -(u1 + r) / r
-     v2 = -u2 / r
-     u2 = v2 / v1
+      s = abs(a1) + abs(a2)
+      if (s==0.0_rkx) go to 140
+      u1 = a1/s
+      u2 = a2/s
+      r = sign(sqrt(u1**2+u2**2), u1)
+      v1 = -(u1+r)/r
+      v2 = -u2/r
+      u2 = v2/v1
 
-     do j = na, n
-       t = a(na,j) + u2 * a(en,j)
-       a(na,j) = a(na,j) + t * v1
-       a(en,j) = a(en,j) + t * v2
-       t = b(na,j) + u2 * b(en,j)
-       b(na,j) = b(na,j) + t * v1
-       b(en,j) = b(en,j) + t * v2
-     end do
+      do j = na, n
+        t = a(na, j) + u2*a(en, j)
+        a(na, j) = a(na, j) + t*v1
+        a(en, j) = a(en, j) + t*v2
+        t = b(na, j) + u2*b(en, j)
+        b(na, j) = b(na, j) + t*v1
+        b(en, j) = b(en, j) + t*v2
+      end do
 
-475  continue
+140   continue
 
-     a(en,na) = 0.0_rkx
-     b(en,na) = 0.0_rkx
-     alfr(na) = a(na,na)
-     alfr(en) = a(en,en)
-     if ( b(na,na) < 0.0_rkx ) alfr(na) = -alfr(na)
-     if ( b(en,en) < 0.0_rkx ) alfr(en) = -alfr(en)
-     beta(na) = abs ( b(na,na) )
-     beta(en) = abs ( b(en,en) )
-     alfi(en) = 0.0_rkx
-     alfi(na) = 0.0_rkx
-     go to 505
+      a(en, na) = 0.0_rkx
+      b(en, na) = 0.0_rkx
+      alfr(na) = a(na, na)
+      alfr(en) = a(en, en)
+      if (b(na,na)<0.0_rkx) alfr(na) = -alfr(na)
+      if (b(en,en)<0.0_rkx) alfr(en) = -alfr(en)
+      beta(na) = abs(b(na,na))
+      beta(en) = abs(b(en,en))
+      alfi(en) = 0.0_rkx
+      alfi(na) = 0.0_rkx
+      go to 180
 !
 !  Two complex roots.
 !
-480  continue
+150   continue
 
-     e = e + c
-     ei = sqrt ( -d )
-     a11r = a11 - e * b11
-     a11i = ei * b11
-     a12r = a12 - e * b12
-     a12i = ei * b12
-     a22r = a22 - e * b22
-     a22i = ei * b22
+      e = e + c
+      ei = sqrt(-d)
+      a11r = a11 - e*b11
+      a11i = ei*b11
+      a12r = a12 - e*b12
+      a12i = ei*b12
+      a22r = a22 - e*b22
+      a22i = ei*b22
 
-     if ( abs ( a11r ) + abs ( a11i ) + abs ( a12r ) + abs ( a12i ) >= &
-            abs ( a21 ) + abs ( a22r ) + abs ( a22i ) ) then
-       a1 = a12r
-       a1i = a12i
-       a2 = -a11r
-       a2i = -a11i
-     else
-       a1 = a22r
-       a1i = a22i
-       a2 = -a21
-       a2i = 0.0_rkx
-     end if
+      if (abs(a11r)+abs(a11i)+abs(a12r)+abs(a12i)>=abs(a21)+abs(a22r)+abs(a22i &
+        )) then
+        a1 = a12r
+        a1i = a12i
+        a2 = -a11r
+        a2i = -a11i
+      else
+        a1 = a22r
+        a1i = a22i
+        a2 = -a21
+        a2i = 0.0_rkx
+      end if
 !
 !  Choose complex Z.
 !
-     cz = sqrt ( a1**2 + a1i**2 )
+      cz = sqrt(a1**2+a1i**2)
 
-     if ( cz /= 0.0_rkx ) then
-       szr = ( a1 * a2 + a1i * a2i) / cz
-       szi = ( a1 * a2i - a1i * a2) / cz
-       r = sqrt ( cz**2 + szr**2 + szi**2 )
-       cz = cz / r
-       szr = szr / r
-       szi = szi / r
-     else
-       szr = 1.0_rkx
-       szi = 0.0_rkx
-     end if
+      if (cz/=0.0_rkx) then
+        szr = (a1*a2+a1i*a2i)/cz
+        szi = (a1*a2i-a1i*a2)/cz
+        r = sqrt(cz**2+szr**2+szi**2)
+        cz = cz/r
+        szr = szr/r
+        szi = szi/r
+      else
+        szr = 1.0_rkx
+        szi = 0.0_rkx
+      end if
 
-     if ( an >= ( abs ( e ) + ei ) * bn ) then
-       a1 = cz * b11 + szr * b12
-       a1i = szi * b12
-       a2 = szr * b22
-       a2i = szi * b22
-     else
-       a1 = cz * a11 + szr * a12
-       a1i = szi * a12
-       a2 = cz * a21 + szr * a22
-       a2i = szi * a22
-     end if
+      if (an>=(abs(e)+ei)*bn) then
+        a1 = cz*b11 + szr*b12
+        a1i = szi*b12
+        a2 = szr*b22
+        a2i = szi*b22
+      else
+        a1 = cz*a11 + szr*a12
+        a1i = szi*a12
+        a2 = cz*a21 + szr*a22
+        a2i = szi*a22
+      end if
 !
 !  Choose complex Q.
 !
-     cq = sqrt ( a1**2 + a1i**2 )
+      cq = sqrt(a1**2+a1i**2)
 
-     if ( cq /= 0.0_rkx ) then
-       sqr = ( a1 * a2 + a1i * a2i ) / cq
-       sqi = ( a1 * a2i - a1i * a2 ) / cq
-       r = sqrt ( cq**2 + sqr**2 + sqi**2 )
-       cq = cq / r
-       sqr = sqr / r
-       sqi = sqi / r
-     else
-       sqr = 1.0_rkx
-       sqi = 0.0_rkx
-     end if
+      if (cq/=0.0_rkx) then
+        sqr = (a1*a2+a1i*a2i)/cq
+        sqi = (a1*a2i-a1i*a2)/cq
+        r = sqrt(cq**2+sqr**2+sqi**2)
+        cq = cq/r
+        sqr = sqr/r
+        sqi = sqi/r
+      else
+        sqr = 1.0_rkx
+        sqi = 0.0_rkx
+      end if
 !
 !  Compute diagonal elements that would result if transformations were applied.
 !
-     ssr = sqr * szr + sqi * szi
-     ssi = sqr * szi - sqi * szr
-     i = 1
-     tr = cq * cz * a11 + cq * szr * a12 + sqr * cz * a21 + ssr * a22
-     ti = cq * szi * a12 - sqi * cz * a21 + ssi * a22
-     dr = cq * cz * b11 + cq * szr * b12 + ssr * b22
-     di = cq * szi * b12 + ssi * b22
-     go to 503
+      ssr = sqr*szr + sqi*szi
+      ssi = sqr*szi - sqi*szr
+      i = 1
+      tr = cq*cz*a11 + cq*szr*a12 + sqr*cz*a21 + ssr*a22
+      ti = cq*szi*a12 - sqi*cz*a21 + ssi*a22
+      dr = cq*cz*b11 + cq*szr*b12 + ssr*b22
+      di = cq*szi*b12 + ssi*b22
+      go to 170
 
-502  continue
+160   continue
 
-     i = 2
-     tr = ssr * a11 - sqr * cz * a12 - cq * szr * a21 + cq * cz * a22
-     ti = -ssi * a11 - sqi * cz * a12 + cq * szi * a21
-     dr = ssr * b11 - sqr * cz * b12 + cq * cz * b22
-     di = -ssi * b11 - sqi * cz * b12
+      i = 2
+      tr = ssr*a11 - sqr*cz*a12 - cq*szr*a21 + cq*cz*a22
+      ti = -ssi*a11 - sqi*cz*a12 + cq*szi*a21
+      dr = ssr*b11 - sqr*cz*b12 + cq*cz*b22
+      di = -ssi*b11 - sqi*cz*b12
 
-503  continue
+170   continue
 
-     t = ti * dr - tr * di
+      t = ti*dr - tr*di
 
-     if ( t < 0.0_rkx ) then
-       j = en
-     else
-       j = na
-     end if
+      if (t<0.0_rkx) then
+        j = en
+      else
+        j = na
+      end if
 
-     r = sqrt ( dr**2 + di**2 )
-     beta(j) = bn * r
-     alfr(j) = an * (tr * dr + ti * di) / r
-     alfi(j) = an * t / r
+      r = sqrt(dr**2+di**2)
+      beta(j) = bn*r
+      alfr(j) = an*(tr*dr+ti*di)/r
+      alfi(j) = an*t/r
 
-     if ( i == 1 ) go to 502
+      if (i==1) go to 160
 
-505  continue
+180   continue
 
-     isw = 3 - isw
+      isw = 3 - isw
 
-510  continue
+190   continue
 
-  end do
+    end do
 
-  b(n,1) = epsb
+    b(n, 1) = epsb
 
-  return
-end subroutine qzval
+    return
+  end subroutine qzval
 
-subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
+  subroutine qzvec(n, a, b, alfr, alfi, beta, z)
 
 !*****************************************************************************80
 !
@@ -11258,336 +11249,336 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !    Each eigenvector is normalized so that the modulus of its largest
 !    component is 1.0_rkx .
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: alfi(n)
-  real    ( kind = rkx ) :: alfm
-  real    ( kind = rkx ) :: alfr(n)
-  real    ( kind = rkx ) :: almi
-  real    ( kind = rkx ) :: almr
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: beta(n)
-  real    ( kind = rkx ) :: betm
-  real    ( kind = rkx ) :: d
-  real    ( kind = rkx ) :: di
-  real    ( kind = rkx ) :: dr
-  integer ( kind = ik4 ) :: en
-  integer ( kind = ik4 ) :: enm2
-  real    ( kind = rkx ) :: epsb
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: isw
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: na
-  integer ( kind = ik4 ) :: nn
-  real    ( kind = rkx ) :: q
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: ra
-  real    ( kind = rkx ) :: rr
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: sa
-  real    ( kind = rkx ) :: t
-  real    ( kind = rkx ) :: t1
-  real    ( kind = rkx ) :: t2
-  real    ( kind = rkx ) :: ti
-  real    ( kind = rkx ) :: tr
-  real    ( kind = rkx ) :: w
-  real    ( kind = rkx ) :: w1
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: x1
-  real    ( kind = rkx ) :: y
-  real    ( kind = rkx ) :: z(n,n)
-  real    ( kind = rkx ) :: z1
-  real    ( kind = rkx ) :: zz
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: alfi(n)
+    real (kind=rkx) :: alfm
+    real (kind=rkx) :: alfr(n)
+    real (kind=rkx) :: almi
+    real (kind=rkx) :: almr
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: beta(n)
+    real (kind=rkx) :: betm
+    real (kind=rkx) :: d
+    real (kind=rkx) :: di
+    real (kind=rkx) :: dr
+    integer (kind=ik4) :: en
+    integer (kind=ik4) :: enm2
+    real (kind=rkx) :: epsb
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: isw
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: na
+    integer (kind=ik4) :: nn
+    real (kind=rkx) :: q
+    real (kind=rkx) :: r
+    real (kind=rkx) :: ra
+    real (kind=rkx) :: rr
+    real (kind=rkx) :: s
+    real (kind=rkx) :: sa
+    real (kind=rkx) :: t
+    real (kind=rkx) :: t1
+    real (kind=rkx) :: t2
+    real (kind=rkx) :: ti
+    real (kind=rkx) :: tr
+    real (kind=rkx) :: w
+    real (kind=rkx) :: w1
+    real (kind=rkx) :: x
+    real (kind=rkx) :: x1
+    real (kind=rkx) :: y
+    real (kind=rkx) :: z(n, n)
+    real (kind=rkx) :: z1
+    real (kind=rkx) :: zz
 
-  epsb = b(n,1)
-  isw = 1
+    epsb = b(n, 1)
+    isw = 1
 
-  do nn = 1, n
+    do nn = 1, n
 
-     en = n + 1 - nn
-     na = en - 1
+      en = n + 1 - nn
+      na = en - 1
 
-     if ( isw == 2 ) go to 795
+      if (isw==2) go to 250
 
-     if ( alfi(en) /= 0.0_rkx ) go to 710
+      if (alfi(en)/=0.0_rkx) go to 150
 !
 !  Real vector.
 !
-     m = en
-     b(en,en) = 1.0_rkx
+      m = en
+      b(en, en) = 1.0_rkx
 
-     if ( na == 0 ) go to 800
+      if (na==0) go to 260
 
-     alfm = alfr(m)
-     betm = beta(m)
+      alfm = alfr(m)
+      betm = beta(m)
 
-     do ii = 1, na
+      do ii = 1, na
 
         i = en - ii
-        w = betm * a(i,i) - alfm * b(i,i)
+        w = betm*a(i, i) - alfm*b(i, i)
         r = 0.0_rkx
 
         do j = m, en
-          r = r + ( betm * a(i,j) - alfm * b(i,j) ) * b(j,en)
+          r = r + (betm*a(i,j)-alfm*b(i,j))*b(j, en)
         end do
 
-        if ( i == 1 .or. isw == 2 ) go to 630
+        if (i==1 .or. isw==2) go to 100
 
-        if ( betm * a(i,i-1) == 0.0_rkx ) go to 630
+        if (betm*a(i,i-1)==0.0_rkx) go to 100
 
         zz = w
         s = r
-        go to 690
+        go to 130
 
-630     continue
+100     continue
 
         m = i
 
-        if ( isw == 2 ) go to 640
+        if (isw==2) go to 110
 !
 !  Real 1-by-1 block.
 !
         t = w
-        if ( w == 0.0_rkx ) t = epsb
-        b(i,en) = - r / t
-        go to 700
+        if (w==0.0_rkx) t = epsb
+        b(i, en) = -r/t
+        go to 140
 !
 !  Real 2-by-2 block.
 !
-640     continue
+110     continue
 
-        x = betm * a(i,i+1) - alfm * b(i,i+1)
-        y = betm * a(i+1,i)
-        q = w * zz - x * y
-        t = ( x * s - zz * r ) / q
-        b(i,en) = t
+        x = betm*a(i, i+1) - alfm*b(i, i+1)
+        y = betm*a(i+1, i)
+        q = w*zz - x*y
+        t = (x*s-zz*r)/q
+        b(i, en) = t
 
-        if ( abs ( x ) <= abs ( zz ) ) go to 650
+        if (abs(x)<=abs(zz)) go to 120
 
-        b(i+1,en) = (-r - w * t) / x
+        b(i+1, en) = (-r-w*t)/x
 
-        go to 690
+        go to 130
 
-650     continue
+120     continue
 
-        b(i+1,en) = (-s - y * t) / zz
+        b(i+1, en) = (-s-y*t)/zz
 
-690     continue
+130     continue
 
         isw = 3 - isw
 
-700     continue
+140     continue
 
-     end do
+      end do
 !
 !  End real vector.
 !
-     go to 800
+      go to 260
 !
 !  Complex vector.
 !
-710  continue
+150   continue
 
-     m = na
-     almr = alfr(m)
-     almi = alfi(m)
-     betm = beta(m)
+      m = na
+      almr = alfr(m)
+      almi = alfi(m)
+      betm = beta(m)
 !
 !  Last vector component chosen imaginary so eigenvector matrix is triangular.
 !
-     y = betm * a(en,na)
-     b(na,na) = -almi * b(en,en) / y
-     b(na,en) = ( almr * b(en,en) - betm * a(en,en) ) / y
-     b(en,na) = 0.0_rkx
-     b(en,en) = 1.0_rkx
-     enm2 = na - 1
+      y = betm*a(en, na)
+      b(na, na) = -almi*b(en, en)/y
+      b(na, en) = (almr*b(en,en)-betm*a(en,en))/y
+      b(en, na) = 0.0_rkx
+      b(en, en) = 1.0_rkx
+      enm2 = na - 1
 
-     do ii = 1, enm2
+      do ii = 1, enm2
 
         i = na - ii
-        w = betm * a(i,i) - almr * b(i,i)
-        w1 = -almi * b(i,i)
+        w = betm*a(i, i) - almr*b(i, i)
+        w1 = -almi*b(i, i)
         ra = 0.0_rkx
         sa = 0.0_rkx
 
         do j = m, en
-          x = betm * a(i,j) - almr * b(i,j)
-          x1 = -almi * b(i,j)
-          ra = ra + x * b(j,na) - x1 * b(j,en)
-          sa = sa + x * b(j,en) + x1 * b(j,na)
+          x = betm*a(i, j) - almr*b(i, j)
+          x1 = -almi*b(i, j)
+          ra = ra + x*b(j, na) - x1*b(j, en)
+          sa = sa + x*b(j, en) + x1*b(j, na)
         end do
 
-        if ( i == 1 .or. isw == 2 ) go to 770
-        if ( betm * a(i,i-1) == 0.0_rkx ) go to 770
+        if (i==1 .or. isw==2) go to 160
+        if (betm*a(i,i-1)==0.0_rkx) go to 160
 
         zz = w
         z1 = w1
         r = ra
         s = sa
         isw = 2
-        go to 790
-770     continue
+        go to 240
+160     continue
 
         m = i
-        if ( isw == 2 ) go to 780
+        if (isw==2) go to 200
 !
 !  Complex 1-by-1 block.
 !
         tr = -ra
         ti = -sa
 
-773     continue
+170     continue
 
         dr = w
         di = w1
 !
 !  Complex divide (t1,t2) = (tr,ti) / (dr,di),
 !
-775     continue
+180     continue
 
-        if ( abs ( di ) > abs ( dr ) ) go to 777
-        rr = di / dr
-        d = dr + di * rr
-        t1 = (tr + ti * rr) / d
-        t2 = (ti - tr * rr) / d
+        if (abs(di)>abs(dr)) go to 190
+        rr = di/dr
+        d = dr + di*rr
+        t1 = (tr+ti*rr)/d
+        t2 = (ti-tr*rr)/d
         select case (isw)
-          case (1)
-            go to 787
-          case (2)
-            go to 782
+        case (1)
+          go to 230
+        case (2)
+          go to 210
         end select
 
-777     continue
+190     continue
 
-        rr = dr / di
-        d = dr * rr + di
-        t1 = ( tr * rr + ti ) / d
-        t2 = ( ti * rr - tr ) / d
+        rr = dr/di
+        d = dr*rr + di
+        t1 = (tr*rr+ti)/d
+        t2 = (ti*rr-tr)/d
         select case (isw)
-          case (1)
-            go to 787
-          case (2)
-            go to 782
+        case (1)
+          go to 230
+        case (2)
+          go to 210
         end select
 !
 !  Complex 2-by-2 block.
 !
-780     continue
+200     continue
 
-        x = betm * a(i,i+1) - almr * b(i,i+1)
-        x1 = -almi * b(i,i+1)
-        y = betm * a(i+1,i)
-        tr = y * ra - w * r + w1 * s
-        ti = y * sa - w * s - w1 * r
-        dr = w * zz - w1 * z1 - x * y
-        di = w * z1 + w1 * zz - x1 * y
-        if ( dr == 0.0_rkx .and. di == 0.0_rkx ) dr = epsb
-        go to 775
+        x = betm*a(i, i+1) - almr*b(i, i+1)
+        x1 = -almi*b(i, i+1)
+        y = betm*a(i+1, i)
+        tr = y*ra - w*r + w1*s
+        ti = y*sa - w*s - w1*r
+        dr = w*zz - w1*z1 - x*y
+        di = w*z1 + w1*zz - x1*y
+        if (dr==0.0_rkx .and. di==0.0_rkx) dr = epsb
+        go to 180
 
-782     continue
+210     continue
 
-        b(i+1,na) = t1
-        b(i+1,en) = t2
+        b(i+1, na) = t1
+        b(i+1, en) = t2
         isw = 1
-        if ( abs ( y ) > abs ( w ) + abs ( w1 ) ) go to 785
-        tr = -ra - x * b(i+1,na) + x1 * b(i+1,en)
-        ti = -sa - x * b(i+1,en) - x1 * b(i+1,na)
-        go to 773
+        if (abs(y)>abs(w)+abs(w1)) go to 220
+        tr = -ra - x*b(i+1, na) + x1*b(i+1, en)
+        ti = -sa - x*b(i+1, en) - x1*b(i+1, na)
+        go to 170
 
-785     continue
+220     continue
 
-        t1 = (-r - zz * b(i+1,na) + z1 * b(i+1,en) ) / y
-        t2 = (-s - zz * b(i+1,en) - z1 * b(i+1,na) ) / y
+        t1 = (-r-zz*b(i+1,na)+z1*b(i+1,en))/y
+        t2 = (-s-zz*b(i+1,en)-z1*b(i+1,na))/y
 
-787     continue
+230     continue
 
-        b(i,na) = t1
-        b(i,en) = t2
+        b(i, na) = t1
+        b(i, en) = t2
 
-790     continue
+240     continue
 
-     end do
+      end do
 !
 !  End complex vector.
 !
-795   continue
+250   continue
 
       isw = 3 - isw
 
-800   continue
+260   continue
 
-  end do
+    end do
 !
 !  End back substitution.
 !  Transform to original coordinate system.
 !
-  do jj = 1, n
+    do jj = 1, n
 
-     j = n + 1 - jj
+      j = n + 1 - jj
 
-     do i = 1, n
+      do i = 1, n
 
         zz = 0.0_rkx
 
         do k = 1, j
-          zz = zz + z(i,k) * b(k,j)
+          zz = zz + z(i, k)*b(k, j)
         end do
 
-        z(i,j) = zz
+        z(i, j) = zz
 
       end do
 
-  end do
+    end do
 !
 !  Normalize so that modulus of largest component of each vector is 1.
 !  (ISW is 1 initially from before).
 !
-  do j = 1, n
+    do j = 1, n
 
-     d = 0.0_rkx
-     if ( isw == 2 ) go to 920
-     if ( alfi(j) /= 0.0_rkx ) go to 945
+      d = 0.0_rkx
+      if (isw==2) go to 270
+      if (alfi(j)/=0.0_rkx) go to 280
 
-     do i = 1, n
-       d = max ( d, abs ( z(i,j) ) )
-     end do
+      do i = 1, n
+        d = max(d, abs(z(i,j)))
+      end do
 
-     z(1:n,j) = z(1:n,j) / d
+      z(1:n, j) = z(1:n, j)/d
 
-     go to 950
+      go to 290
 
-920  continue
+270   continue
 
-     do i = 1, n
-       r = abs ( z(i,j-1) ) + abs ( z(i,j) )
-       if ( r /= 0.0_rkx ) then
-         r = r * sqrt ( ( z(i,j-1) / r )**2 + ( z(i,j) / r )**2 )
-       end if
-       if ( r > d ) d = r
-     end do
+      do i = 1, n
+        r = abs(z(i,j-1)) + abs(z(i,j))
+        if (r/=0.0_rkx) then
+          r = r*sqrt((z(i,j-1)/r)**2+(z(i,j)/r)**2)
+        end if
+        if (r>d) d = r
+      end do
 
-     z(1:n,j-1) = z(1:n,j-1) / d
-     z(1:n,j) = z(1:n,j) / d
+      z(1:n, j-1) = z(1:n, j-1)/d
+      z(1:n, j) = z(1:n, j)/d
 
-945  continue
+280   continue
 
-     isw = 3 - isw
+      isw = 3 - isw
 
-950  continue
+290   continue
 
-  end do
+    end do
 
-  return
-end subroutine qzvec
+    return
+  end subroutine qzvec
 
-subroutine r8_swap ( x, y )
+  subroutine r8_swap(x, y)
 
 !*****************************************************************************80
 !
@@ -11610,20 +11601,20 @@ subroutine r8_swap ( x, y )
 !    Input/output, real ( kind = rkx ) X, Y.  On output, the values of X and
 !    Y have been interchanged.
 !
-  implicit none
+    implicit none
 
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
-  real    ( kind = rkx ) :: z
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
+    real (kind=rkx) :: z
 
-  z = x
-  x = y
-  y = z
+    z = x
+    x = y
+    y = z
 
-  return
-end subroutine r8_swap
+    return
+  end subroutine r8_swap
 
-subroutine r8mat_print ( m, n, a, title )
+  subroutine r8mat_print(m, n, a, title)
 
 !*****************************************************************************80
 !
@@ -11655,20 +11646,20 @@ subroutine r8mat_print ( m, n, a, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none
+    implicit none
 
-  integer   ( kind = ik4 ) :: m
-  integer   ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real      ( kind = rkx ) :: a(m,n)
-  character ( len = * )  :: title
+    real (kind=rkx) :: a(m, n)
+    character (len=*) :: title
 
-  call r8mat_print_some ( m, n, a, 1, 1, m, n, title )
+    call r8mat_print_some(m, n, a, 1, 1, m, n, title)
 
-  return
-end subroutine r8mat_print
+    return
+  end subroutine r8mat_print
 
-subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
+  subroutine r8mat_print_some(m, n, a, ilo, jlo, ihi, jhi, title)
 
 !*****************************************************************************80
 !
@@ -11702,77 +11693,77 @@ subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none
+    implicit none
 
-  integer   ( kind = ik4 ), parameter :: incx = 5
-  integer   ( kind = ik4 ) :: m
-  integer   ( kind = ik4 ) :: n
+    integer (kind=ik4), parameter :: incx = 5
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real      ( kind = rkx ) :: a(m,n)
-  character ( len = 14 ) :: ctemp(incx)
-  integer   ( kind = ik4 ) :: i
-  integer   ( kind = ik4 ) :: i2hi
-  integer   ( kind = ik4 ) :: i2lo
-  integer   ( kind = ik4 ) :: ihi
-  integer   ( kind = ik4 ) :: ilo
-  integer   ( kind = ik4 ) :: inc
-  integer   ( kind = ik4 ) :: j
-  integer   ( kind = ik4 ) :: j2
-  integer   ( kind = ik4 ) :: j2hi
-  integer   ( kind = ik4 ) :: j2lo
-  integer   ( kind = ik4 ) :: jhi
-  integer   ( kind = ik4 ) :: jlo
-  character ( len = * )  :: title
+    real (kind=rkx) :: a(m, n)
+    character (len=14) :: ctemp(incx)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: i2hi
+    integer (kind=ik4) :: i2lo
+    integer (kind=ik4) :: ihi
+    integer (kind=ik4) :: ilo
+    integer (kind=ik4) :: inc
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: j2
+    integer (kind=ik4) :: j2hi
+    integer (kind=ik4) :: j2lo
+    integer (kind=ik4) :: jhi
+    integer (kind=ik4) :: jlo
+    character (len=*) :: title
 
-  write ( *, '(a)' ) ' '
-  write ( *, '(a)' ) trim ( title )
+    write (*, '(a)') ' '
+    write (*, '(a)') trim(title)
 
-  do j2lo = max ( jlo, 1 ), min ( jhi, n ), incx
+    do j2lo = max(jlo, 1), min(jhi, n), incx
 
-    j2hi = j2lo + incx - 1
-    j2hi = min ( j2hi, n )
-    j2hi = min ( j2hi, jhi )
+      j2hi = j2lo + incx - 1
+      j2hi = min(j2hi, n)
+      j2hi = min(j2hi, jhi)
 
-    inc = j2hi + 1 - j2lo
+      inc = j2hi + 1 - j2lo
 
-    write ( *, '(a)' ) ' '
+      write (*, '(a)') ' '
 
-    do j = j2lo, j2hi
-      j2 = j + 1 - j2lo
-      write ( ctemp(j2), '(i8,6x)' ) j
-    end do
+      do j = j2lo, j2hi
+        j2 = j + 1 - j2lo
+        write (ctemp(j2), '(i8,6x)') j
+      end do
 
-    write ( *, '(''  Col   '',5a14)' ) ctemp(1:inc)
-    write ( *, '(a)' ) '  Row'
-    write ( *, '(a)' ) ' '
+      write (*, '(''  Col   '',5a14)') ctemp(1:inc)
+      write (*, '(a)') '  Row'
+      write (*, '(a)') ' '
 
-    i2lo = max ( ilo, 1 )
-    i2hi = min ( ihi, m )
+      i2lo = max(ilo, 1)
+      i2hi = min(ihi, m)
 
-    do i = i2lo, i2hi
+      do i = i2lo, i2hi
 
-      do j2 = 1, inc
+        do j2 = 1, inc
 
-        j = j2lo - 1 + j2
+          j = j2lo - 1 + j2
 
-        if ( a(i,j) == real ( int ( a(i,j) ), kind = rkx ) ) then
-          write ( ctemp(j2), '(f8.0,6x)' ) a(i,j)
-        else
-          write ( ctemp(j2), '(g14.6)' ) a(i,j)
-        end if
+          if (a(i,j)==real(int(a(i,j)),kind=rkx)) then
+            write (ctemp(j2), '(f8.0,6x)') a(i, j)
+          else
+            write (ctemp(j2), '(g14.6)') a(i, j)
+          end if
+
+        end do
+
+        write (*, '(i5,1x,5a14)') i, (ctemp(j), j=1, inc)
 
       end do
 
-      write ( *, '(i5,1x,5a14)' ) i, ( ctemp(j), j = 1, inc )
-
     end do
 
-  end do
+    return
+  end subroutine r8mat_print_some
 
-  return
-end subroutine r8mat_print_some
-
-subroutine r8vec_print ( n, a, title )
+  subroutine r8vec_print(n, a, title)
 
 !*****************************************************************************80
 !
@@ -11798,25 +11789,25 @@ subroutine r8vec_print ( n, a, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none
+    implicit none
 
-  integer   ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real      ( kind = rkx ) :: a(n)
-  integer   ( kind = ik4 ) :: i
-  character ( len = * ) :: title
+    real (kind=rkx) :: a(n)
+    integer (kind=ik4) :: i
+    character (len=*) :: title
 
-  write ( *, '(a)' ) ' '
-  write ( *, '(a)' ) trim ( title )
-  write ( *, '(a)' ) ' '
-  do i = 1, n
-    write ( *, '(2x,i8,2x,g16.8)' ) i, a(i)
-  end do
+    write (*, '(a)') ' '
+    write (*, '(a)') trim(title)
+    write (*, '(a)') ' '
+    do i = 1, n
+      write (*, '(2x,i8,2x,g16.8)') i, a(i)
+    end do
 
-  return
-end subroutine r8vec_print
+    return
+  end subroutine r8vec_print
 
-subroutine r8vec2_print ( n, a1, a2, title )
+  subroutine r8vec2_print(n, a1, a2, title)
 
 !*****************************************************************************80
 !
@@ -11843,39 +11834,38 @@ subroutine r8vec2_print ( n, a1, a2, title )
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
-  implicit none
+    implicit none
 
-  integer   ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real      ( kind = rkx ) :: a1(n)
-  real      ( kind = rkx ) :: a2(n)
-  integer   ( kind = ik4 ) :: i
-  character ( len = * )  :: title
+    real (kind=rkx) :: a1(n)
+    real (kind=rkx) :: a2(n)
+    integer (kind=ik4) :: i
+    character (len=*) :: title
 
-  write ( *, '(a)' ) ' '
-  write ( *, '(a)' ) trim ( title )
-  write ( *, '(a)' ) ' '
+    write (*, '(a)') ' '
+    write (*, '(a)') trim(title)
+    write (*, '(a)') ' '
 
-  if ( all ( a1(1:n) == aint ( a1(1:n) ) ) .and. &
-       all ( a2(1:n) == aint ( a2(1:n) ) ) ) then
-    do i = 1, n
-      write ( *, '(i8,2i8)' ) i, int ( a1(i) ), int ( a2(i) )
-    end do
-  else if ( all ( abs ( a1(1:n) ) < 1000000.0_rkx ) .and. &
-            all ( abs ( a2(1:n) ) < 1000000.0_rkx ) ) then
-    do i = 1, n
-      write ( *, '(i8,2f14.6)' ) i, a1(i), a2(i)
-    end do
-  else
-    do i = 1, n
-      write ( *, '(i8,2g14.6)' ) i, a1(i), a2(i)
-    end do
-  end if
+    if (all(a1(1:n)==aint(a1(1:n))) .and. all(a2(1:n)==aint(a2(1:n)))) then
+      do i = 1, n
+        write (*, '(i8,2i8)') i, int(a1(i)), int(a2(i))
+      end do
+    else if (all(abs(a1(1:n))<1000000.0_rkx) .and. all(abs( &
+        a2(1:n))<1000000.0_rkx)) then
+      do i = 1, n
+        write (*, '(i8,2f14.6)') i, a1(i), a2(i)
+      end do
+    else
+      do i = 1, n
+        write (*, '(i8,2g14.6)') i, a1(i), a2(i)
+      end do
+    end if
 
-  return
-end subroutine r8vec2_print
+    return
+  end subroutine r8vec2_print
 
-subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
+  subroutine ratqr(n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr)
 
 !*****************************************************************************80
 !
@@ -11978,226 +11968,226 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !    5*N+K, if successive iterates to the K-th eigenvalue are not monotone
 !      increasing, where K refers to the last such occurrence.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: bd(n)
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: delta
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: ep
-  real    ( kind = rkx ) :: eps1
-  real    ( kind = rkx ) :: err
-  real    ( kind = rkx ) :: f
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: idef
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: ind(n)
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jdef
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: m
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: q
-  real    ( kind = rkx ) :: qp
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: tot
-  logical              :: type
-  real    ( kind = rkx ) :: w(n)
+    real (kind=rkx) :: bd(n)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: delta
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: ep
+    real (kind=rkx) :: eps1
+    real (kind=rkx) :: err
+    real (kind=rkx) :: f
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: idef
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: ind(n)
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jdef
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: m
+    real (kind=rkx) :: p
+    real (kind=rkx) :: q
+    real (kind=rkx) :: qp
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: tot
+    logical :: type
+    real (kind=rkx) :: w(n)
 
-  ierr = 0
-  jdef = idef
-  w(1:n) = d(1:n)
+    ierr = 0
+    jdef = idef
+    w(1:n) = d(1:n)
 
-  if ( .not. type ) then
-    j = 1
-    go to 400
-  end if
+    if (.not. type) then
+      j = 1
+      go to 190
+    end if
 
-40 continue
+100 continue
 
-  err = 0.0_rkx
-  s = 0.0_rkx
+    err = 0.0_rkx
+    s = 0.0_rkx
 !
 !  Look for small sub-diagonal entries and define initial shift
 !  from lower Gerschgorin bound.
 !
 !  Copy E2 array into BD.
 !
-  tot = w(1)
-  q = 0.0_rkx
-  j = 0
+    tot = w(1)
+    q = 0.0_rkx
+    j = 0
 
-  do i = 1, n
+    do i = 1, n
 
-     p = q
+      p = q
 
-     if ( i == 1 ) go to 60
+      if (i==1) go to 110
 
-     if ( p > ( abs ( d(i) ) + abs (  d(i-1) ) ) * epsilon ( p ) ) then
-       go to 80
-     end if
+      if (p>(abs(d(i))+abs(d(i-1)))*epsilon(p)) then
+        go to 120
+      end if
 
-60   continue
+110   continue
 
-     e2(i) = 0.0_rkx
+      e2(i) = 0.0_rkx
 
-80   continue
+120   continue
 
-     bd(i) = e2(i)
+      bd(i) = e2(i)
 !
 !  Count also if element of E2 has underflowed.
 !
-     if ( e2(i) == 0.0_rkx ) j = j + 1
-     ind(i) = j
-     q = 0.0_rkx
-     if ( i /= n ) q = abs ( e(i+1) )
-     tot = min ( w(i)-p-q, tot )
+      if (e2(i)==0.0_rkx) j = j + 1
+      ind(i) = j
+      q = 0.0_rkx
+      if (i/=n) q = abs(e(i+1))
+      tot = min(w(i)-p-q, tot)
 
-  end do
+    end do
 
-  if ( jdef == 1 .and. tot < 0.0_rkx ) then
+    if (jdef==1 .and. tot<0.0_rkx) then
+      go to 130
+    end if
+
+    w(1:n) = w(1:n) - tot
+
     go to 140
-  end if
 
-  w(1:n) = w(1:n) - tot
+130 continue
 
-  go to 160
+    tot = 0.0_rkx
 
 140 continue
 
-  tot = 0.0_rkx
-
-160 continue
-
-  do k = 1, m
+    do k = 1, m
 !
 !  Next QR transformation.
 !
-180  continue
+150   continue
 
-     tot = tot + s
-     delta = w(n) - s
-     i = n
-     f = abs ( tot ) * epsilon ( f )
-     if ( eps1 < f ) eps1 = f
-     if ( delta > eps1 ) go to 190
-     if ( delta < (-eps1) ) go to 1000
-     go to 300
+      tot = tot + s
+      delta = w(n) - s
+      i = n
+      f = abs(tot)*epsilon(f)
+      if (eps1<f) eps1 = f
+      if (delta>eps1) go to 160
+      if (delta<(-eps1)) go to 200
+      go to 180
 !
 !  Replace small sub-diagonal squares by zero to reduce the incidence of
 !  underflows.
 !
-190  continue
+160   continue
 
-     do j = k+1, n
-       if ( bd(j) <= ( abs (  w(j) + w(j-1) ) * epsilon ( bd(j) ) ) ** 2 ) then
-         bd(j) = 0.0_rkx
-       end if
-     end do
+      do j = k + 1, n
+        if (bd(j)<=(abs(w(j)+w(j-1))*epsilon(bd(j)))**2) then
+          bd(j) = 0.0_rkx
+        end if
+      end do
 
-     f = bd(n) / delta
-     qp = delta + f
-     p = 1.0_rkx
+      f = bd(n)/delta
+      qp = delta + f
+      p = 1.0_rkx
 
-     do ii = 1, n-k
+      do ii = 1, n - k
 
-       i = n - ii
-       q = w(i) - s - f
-       r = q / qp
-       p = p * r + 1.0_rkx
-       ep = f * r
-       w(i+1) = qp + ep
-       delta = q - ep
+        i = n - ii
+        q = w(i) - s - f
+        r = q/qp
+        p = p*r + 1.0_rkx
+        ep = f*r
+        w(i+1) = qp + ep
+        delta = q - ep
 
-       if ( delta > eps1 ) go to 220
-       if ( delta < (-eps1) ) go to 1000
-       go to 300
+        if (delta>eps1) go to 170
+        if (delta<(-eps1)) go to 200
+        go to 180
 
-220    continue
+170     continue
 
-       f = bd(i) / q
-       qp = delta + f
-       bd(i+1) = qp * ep
+        f = bd(i)/q
+        qp = delta + f
+        bd(i+1) = qp*ep
 
-     end do
+      end do
 
-     w(k) = qp
-     s = qp / p
+      w(k) = qp
+      s = qp/p
 
-     if ( tot + s > tot ) go to 180
+      if (tot+s>tot) go to 150
 !
 !  Set error: irregular end of iteration.
 !  Deflate minimum diagonal element.
 !
-     ierr = 5 * n + k
-     s = 0.0_rkx
-     delta = qp
+      ierr = 5*n + k
+      s = 0.0_rkx
+      delta = qp
 
-     do j = k, n
-       if ( w(j) <= delta ) then
-         i = j
-         delta = w(j)
-       end if
-     end do
+      do j = k, n
+        if (w(j)<=delta) then
+          i = j
+          delta = w(j)
+        end if
+      end do
 !
 !  Convergence.
 !
-300  continue
+180   continue
 
-     if ( i < n ) bd(i+1) = bd(i) * f / qp
-     ii = ind(i)
+      if (i<n) bd(i+1) = bd(i)*f/qp
+      ii = ind(i)
 
-     do jj = 1, i-k
-       j = i - jj
-       w(j+1) = w(j) - s
-       bd(j+1) = bd(j)
-       ind(j+1) = ind(j)
-     end do
+      do jj = 1, i - k
+        j = i - jj
+        w(j+1) = w(j) - s
+        bd(j+1) = bd(j)
+        ind(j+1) = ind(j)
+      end do
 
-     w(k) = tot
-     err = err + abs ( delta)
-     bd(k) = err
-     ind(k) = ii
+      w(k) = tot
+      err = err + abs(delta)
+      bd(k) = err
+      ind(k) = ii
 
-  end do
+    end do
 
-  if ( type ) then
-    return
-  end if
+    if (type) then
+      return
+    end if
 
-  f = bd(1)
-  e2(1) = 2.0_rkx
-  bd(1) = f
-  j = 2
+    f = bd(1)
+    e2(1) = 2.0_rkx
+    bd(1) = f
+    j = 2
 !
 !  Negate elements of W for largest values.
 !
-400 continue
+190 continue
 
-  w(1:n) = - w(1:n)
-  jdef = -jdef
+    w(1:n) = -w(1:n)
+    jdef = -jdef
 
-  if ( j == 1 ) then
-    go to 40
-  end if
+    if (j==1) then
+      go to 100
+    end if
 
-  return
+    return
 !
 !  Set error: IDEF specified incorrectly.
 !
- 1000 continue
+200 continue
 
-  ierr = 6 * n + 1
-  return
-end subroutine ratqr
+    ierr = 6*n + 1
+    return
+  end subroutine ratqr
 
-subroutine rebak ( n, b, dl, m, z )
+  subroutine rebak(n, b, dl, m, z)
 
 !*****************************************************************************80
 !
@@ -12256,27 +12246,27 @@ subroutine rebak ( n, b, dl, m, z )
 !    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: dl(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: j
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: dl(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: j
+    real (kind=rkx) :: z(n, m)
 
-  do j = 1, m
-    do i = n, 1, -1
-      z(i,j) = ( z(i,j) - dot_product ( b(i+1:n,i), z(i+1:n,j) ) ) / dl(i)
+    do j = 1, m
+      do i = n, 1, -1
+        z(i, j) = (z(i,j)-dot_product(b(i+1:n,i),z(i+1:n,j)))/dl(i)
+      end do
     end do
-  end do
 
-  return
-end subroutine rebak
+    return
+  end subroutine rebak
 
-subroutine rebakb ( n, b, dl, m, z )
+  subroutine rebakb(n, b, dl, m, z)
 
 !*****************************************************************************80
 !
@@ -12335,31 +12325,31 @@ subroutine rebakb ( n, b, dl, m, z )
 !    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: dl(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: j
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: dl(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: j
+    real (kind=rkx) :: z(n, m)
 
-  do j = 1, m
+    do j = 1, m
 
-    do i = n, 1, -1
+      do i = n, 1, -1
 
-      z(i,j) = dl(i) * z(i,j) + dot_product ( b(i,1:i-1), z(1:i-1,j) )
+        z(i, j) = dl(i)*z(i, j) + dot_product(b(i,1:i-1), z(1:i-1,j))
+
+      end do
 
     end do
 
-  end do
+    return
+  end subroutine rebakb
 
-  return
-end subroutine rebakb
-
-subroutine reduc ( n, a, b, dl, ierr )
+  subroutine reduc(n, a, b, dl, ierr)
 
 !*****************************************************************************80
 !
@@ -12428,103 +12418,103 @@ subroutine reduc ( n, a, b, dl, ierr )
 !    0, for normal return,
 !    7*N+1, if B is not positive definite.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: dl(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: nn
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: dl(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: nn
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
 
-  ierr = 0
-  nn = abs ( n )
+    ierr = 0
+    nn = abs(n)
 !
 !  Form L in the arrays B and DL.
 !
-  do i = 1, n
+    do i = 1, n
 
-     do j = i, n
+      do j = i, n
 
-        x = b(i,j)
+        x = b(i, j)
 
         do k = 1, i - 1
-          x = x - b(i,k) * b(j,k)
+          x = x - b(i, k)*b(j, k)
         end do
 
-        if ( j == i ) then
+        if (j==i) then
 
-          if ( x <= 0.0_rkx ) then
-            write ( *, '(a)' ) ' '
-            write ( *, '(a)' ) 'REDUC - Fatal error!'
-            write ( *, '(a)' ) '  The matrix is not positive definite.'
-            ierr = 7 * n + 1
+          if (x<=0.0_rkx) then
+            write (*, '(a)') ' '
+            write (*, '(a)') 'REDUC - Fatal error!'
+            write (*, '(a)') '  The matrix is not positive definite.'
+            ierr = 7*n + 1
             return
           end if
 
-          y = sqrt ( x )
+          y = sqrt(x)
           dl(i) = y
         else
-          b(j,i) = x / y
+          b(j, i) = x/y
         end if
 
-    end do
+      end do
 
-  end do
+    end do
 !
 !  Form the transpose of the upper triangle of INV(L)*A
 !  in the lower triangle of the array A.
 !
-  do i = 1, nn
+    do i = 1, nn
 
-     y = dl(i)
+      y = dl(i)
 
-     do j = i, nn
+      do j = i, nn
 
-        x = a(i,j)
+        x = a(i, j)
 
         do k = 1, i - 1
-          x = x - b(i,k) * a(j,k)
+          x = x - b(i, k)*a(j, k)
         end do
 
-        a(j,i) = x / y
+        a(j, i) = x/y
 
       end do
 
-  end do
+    end do
 !
 !  Pre-multiply by INV(L) and overwrite.
 !
-  do j = 1, nn
+    do j = 1, nn
 
-     do i = j, nn
+      do i = j, nn
 
-        x = a(i,j)
+        x = a(i, j)
 
-        do k = j, i-1
-          x = x - a(k,j) * b(i,k)
+        do k = j, i - 1
+          x = x - a(k, j)*b(i, k)
         end do
 
-        do k = 1, j-1
-          x = x - a(j,k) * b(i,k)
+        do k = 1, j - 1
+          x = x - a(j, k)*b(i, k)
         end do
 
-        a(i,j) = x / dl(i)
+        a(i, j) = x/dl(i)
+
+      end do
 
     end do
 
-  end do
+    return
+  end subroutine reduc
 
-  return
-end subroutine reduc
-
-subroutine reduc2 ( n, a, b, dl, ierr )
+  subroutine reduc2(n, a, b, dl, ierr)
 
 !*****************************************************************************80
 !
@@ -12594,105 +12584,105 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 !    0, for normal return,
 !    7*N+1, if B is not positive definite.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: dl(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: nn
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: dl(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: nn
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
 
-  ierr = 0
-  nn = abs ( n )
+    ierr = 0
+    nn = abs(n)
 !
 !  Form L in the arrays B and DL.
 !
-  do i = 1, n
+    do i = 1, n
 
-     do j = i, n
+      do j = i, n
 
-        x = b(i,j)
+        x = b(i, j)
 
         do k = 1, i - 1
-          x = x - b(i,k) * b(j,k)
+          x = x - b(i, k)*b(j, k)
         end do
 
-        if ( j == i ) then
+        if (j==i) then
 
-          if ( x <= 0.0_rkx ) then
-            write ( *, '(a)' ) ' '
-            write ( *, '(a)' ) 'REDUC2 - Fatal error!'
-            write ( *, '(a)' ) '  The matrix is not positive definite.'
-            ierr = 7 * n + 1
+          if (x<=0.0_rkx) then
+            write (*, '(a)') ' '
+            write (*, '(a)') 'REDUC2 - Fatal error!'
+            write (*, '(a)') '  The matrix is not positive definite.'
+            ierr = 7*n + 1
             return
           end if
 
-          y = sqrt ( x )
+          y = sqrt(x)
           dl(i) = y
 
         else
 
-          b(j,i) = x / y
+          b(j, i) = x/y
 
         end if
 
-    end do
+      end do
 
-  end do
+    end do
 !
 !  Form the lower triangle of A*L in the lower triangle of A.
 !
-  do i = 1, nn
+    do i = 1, nn
 
-     do j = 1, i
+      do j = 1, i
 
-        x = a(j,i) * dl(j)
+        x = a(j, i)*dl(j)
 
-        do k = j+1, i
-          x = x + a(k,i) * b(k,j)
+        do k = j + 1, i
+          x = x + a(k, i)*b(k, j)
         end do
 
-        do k = i+1, nn
-          x = x + a(i,k) * b(k,j)
+        do k = i + 1, nn
+          x = x + a(i, k)*b(k, j)
         end do
 
-        a(i,j) = x
+        a(i, j) = x
 
-     end do
+      end do
 
-  end do
+    end do
 !
 !  Pre-multiply by L' and overwrite.
 !
-  do i = 1, nn
+    do i = 1, nn
 
-    y = dl(i)
+      y = dl(i)
 
-    do j = 1, i
+      do j = 1, i
 
-      x = y * a(i,j)
+        x = y*a(i, j)
 
-      do k = i+1, nn
-        x = x + a(k,j) * b(k,i)
+        do k = i + 1, nn
+          x = x + a(k, j)*b(k, i)
+        end do
+
+        a(i, j) = x
+
       end do
-
-      a(i,j) = x
 
     end do
 
-  end do
+    return
+  end subroutine reduc2
 
-  return
-end subroutine reduc2
-
-subroutine rg ( n, a, wr, wi, matz, z, ierr )
+  subroutine rg(n, a, wr, wi, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -12760,51 +12750,51 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
 !    Output, integer ( kind = ik4 ) IERR, an error completion code described in the
 !    documentation for HQR and HQR2.  The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: fv1(n)
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: is1
-  integer ( kind = ik4 ) :: is2
-  integer ( kind = ik4 ) :: iv1(n)
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: wi(n)
-  real    ( kind = rkx ) :: wr(n)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: fv1(n)
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: is1
+    integer (kind=ik4) :: is2
+    integer (kind=ik4) :: iv1(n)
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: wi(n)
+    real (kind=rkx) :: wr(n)
+    real (kind=rkx) :: z(n, n)
 
-  call balanc ( n, a, is1, is2, fv1 )
+    call balanc(n, a, is1, is2, fv1)
 
-  call elmhes ( n, is1, is2, a, iv1 )
+    call elmhes(n, is1, is2, a, iv1)
 
-  if ( matz == 0 ) then
+    if (matz==0) then
 
-    call hqr ( n, is1, is2, a, wr, wi, ierr )
+      call hqr(n, is1, is2, a, wr, wi, ierr)
 
-    if ( ierr /= 0 ) then
-      return
+      if (ierr/=0) then
+        return
+      end if
+
+    else
+
+      call eltran(n, is1, is2, a, iv1, z)
+
+      call hqr2(n, is1, is2, a, wr, wi, z, ierr)
+
+      if (ierr/=0) then
+        return
+      end if
+
+      call balbak(n, is1, is2, fv1, n, z)
+
     end if
 
-  else
+    return
+  end subroutine rg
 
-    call eltran ( n, is1, is2, a, iv1, z )
-
-    call hqr2 ( n, is1, is2, a, wr, wi, z, ierr )
-
-    if ( ierr /= 0 ) then
-      return
-    end if
-
-    call balbak ( n, is1, is2, fv1, n, z )
-
-  end if
-
-  return
-end subroutine rg
-
-subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
+  subroutine rgg(n, a, b, alfr, alfi, beta, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -12879,47 +12869,47 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 !    described in the documentation for QZIT.  The normal completion
 !    code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: alfi(n)
-  real    ( kind = rkx ) :: alfr(n)
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: beta(n)
-  real    ( kind = rkx ) :: eps1
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  logical              :: tf
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: alfi(n)
+    real (kind=rkx) :: alfr(n)
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: beta(n)
+    real (kind=rkx) :: eps1
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    logical :: tf
+    real (kind=rkx) :: z(n, n)
 
-  eps1 = 0.0_rkx
+    eps1 = 0.0_rkx
 
-  if ( matz == 0 ) then
-    tf = .false.
-  else
-    tf = .true.
-  end if
+    if (matz==0) then
+      tf = .false.
+    else
+      tf = .true.
+    end if
 
-  call qzhes ( n, a, b, tf, z )
+    call qzhes(n, a, b, tf, z)
 
-  call qzit ( n, a, b, eps1, tf, z, ierr )
+    call qzit(n, a, b, eps1, tf, z, ierr)
 
-  if ( ierr /= 0 ) then
+    if (ierr/=0) then
+      return
+    end if
+
+    call qzval(n, a, b, alfr, alfi, beta, tf, z)
+
+    if (matz/=0) then
+      call qzvec(n, a, b, alfr, alfi, beta, z)
+    end if
+
     return
-  end if
+  end subroutine rgg
 
-  call qzval ( n, a, b, alfr, alfi, beta, tf, z )
-
-  if ( matz /= 0 ) then
-    call qzvec ( n, a, b, alfr, alfi, beta, z )
-  end if
-
-  return
-end subroutine rgg
-
-subroutine rs ( n, a, w, matz, z, ierr )
+  subroutine rs(n, a, w, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -12980,36 +12970,36 @@ subroutine rs ( n, a, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: fv1(n)
-  real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: fv1(n)
+    real (kind=rkx) :: fv2(n)
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: z(n, n)
 
-  if ( matz == 0 ) then
+    if (matz==0) then
 
-    call tred1 ( n, a, w, fv1, fv2 )
+      call tred1(n, a, w, fv1, fv2)
 
-    call tqlrat ( n, w, fv2, ierr )
+      call tqlrat(n, w, fv2, ierr)
 
-  else
+    else
 
-    call tred2 ( n, a, w, fv1, z )
+      call tred2(n, a, w, fv1, z)
 
-    call tql2 ( n, w, fv1, z, ierr )
+      call tql2(n, w, fv1, z, ierr)
 
-  end if
+    end if
 
-  return
-end subroutine rs
+    return
+  end subroutine rs
 
-subroutine rsb ( n, mb, a, w, matz, z, ierr )
+  subroutine rsb(n, mb, a, w, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -13079,52 +13069,52 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: mb
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: mb
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,mb)
-  real    ( kind = rkx ) :: fv1(n)
-  real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  logical              :: tf
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, mb)
+    real (kind=rkx) :: fv1(n)
+    real (kind=rkx) :: fv2(n)
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    logical :: tf
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: z(n, n)
 
-  if ( mb <= 0 ) then
-    ierr = 12 * n
+    if (mb<=0) then
+      ierr = 12*n
+      return
+    end if
+
+    if (n<mb) then
+      ierr = 12*n
+      return
+    end if
+
+    if (matz==0) then
+
+      tf = .false.
+
+      call bandr(n, mb, a, w, fv1, fv2, tf, z)
+
+      call tqlrat(n, w, fv2, ierr)
+
+    else
+
+      tf = .true.
+
+      call bandr(n, mb, a, w, fv1, fv1, tf, z)
+
+      call tql2(n, w, fv1, z, ierr)
+
+    end if
+
     return
-  end if
+  end subroutine rsb
 
-  if ( n < mb ) then
-    ierr = 12 * n
-    return
-  end if
-
-  if ( matz == 0 ) then
-
-    tf = .false.
-
-    call bandr ( n, mb, a, w, fv1, fv2, tf, z )
-
-    call tqlrat ( n, w, fv2, ierr )
-
-  else
-
-    tf = .true.
-
-    call bandr ( n, mb, a, w, fv1, fv1, tf, z )
-
-    call tql2 ( n, w, fv1, z, ierr )
-
-  end if
-
-  return
-end subroutine rsb
-
-subroutine rsg ( n, a, b, w, matz, z, ierr )
+  subroutine rsg(n, a, b, w, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -13191,62 +13181,62 @@ subroutine rsg ( n, a, b, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: fv1(n)
-  real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: fv1(n)
+    real (kind=rkx) :: fv2(n)
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: z(n, n)
 
-  call reduc ( n, a, b, fv2, ierr )
+    call reduc(n, a, b, fv2, ierr)
 
-  if ( ierr /= 0 ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'RSG - Fatal error!'
-    write ( *, '(a)' ) '  Error return from REDUC.'
+    if (ierr/=0) then
+      write (*, '(a)') ' '
+      write (*, '(a)') 'RSG - Fatal error!'
+      write (*, '(a)') '  Error return from REDUC.'
+      return
+    end if
+
+    if (matz==0) then
+
+      call tred1(n, a, w, fv1, fv2)
+
+      call tqlrat(n, w, fv2, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RSG - Warning!'
+        write (*, '(a)') '  Error return from TQLRAT!'
+        return
+      end if
+
+    else
+
+      call tred2(n, a, w, fv1, z)
+
+      call tql2(n, w, fv1, z, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RSG - Fatal error!'
+        write (*, '(a)') '  Error return from TQL2!'
+        return
+      end if
+
+      call rebak(n, b, fv2, n, z)
+
+    end if
+
     return
-  end if
+  end subroutine rsg
 
-  if ( matz == 0 ) then
-
-    call tred1 ( n, a, w, fv1, fv2 )
-
-    call tqlrat ( n, w, fv2, ierr )
-
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RSG - Warning!'
-      write ( *, '(a)' ) '  Error return from TQLRAT!'
-      return
-    end if
-
-  else
-
-    call tred2 ( n, a, w, fv1, z )
-
-    call tql2 ( n, w, fv1, z, ierr )
-
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RSG - Fatal error!'
-      write ( *, '(a)' ) '  Error return from TQL2!'
-      return
-    end if
-
-    call rebak ( n, b, fv2, n, z )
-
-  end if
-
-  return
-end subroutine rsg
-
-subroutine rsgab ( n, a, b, w, matz, z, ierr )
+  subroutine rsgab(n, a, b, w, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -13309,49 +13299,49 @@ subroutine rsgab ( n, a, b, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: fv1(n)
-  real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: fv1(n)
+    real (kind=rkx) :: fv2(n)
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: z(n, n)
 
-  call reduc2 ( n, a, b, fv2, ierr )
+    call reduc2(n, a, b, fv2, ierr)
 
-  if ( ierr /= 0 ) then
-    return
-  end if
-
-  if ( matz == 0 ) then
-
-    call tred1 ( n, a, w, fv1, fv2 )
-
-    call tqlrat ( n, w, fv2, ierr )
-
-  else
-
-    call tred2 ( n, a, w, fv1, z )
-
-    call tql2 ( n, w, fv1, z, ierr )
-
-    if ( ierr /= 0 ) then
+    if (ierr/=0) then
       return
     end if
 
-    call rebak ( n, b, fv2, n, z )
+    if (matz==0) then
 
-  end if
+      call tred1(n, a, w, fv1, fv2)
 
-  return
-end subroutine rsgab
+      call tqlrat(n, w, fv2, ierr)
 
-subroutine rsgba ( n, a, b, w, matz, z, ierr )
+    else
+
+      call tred2(n, a, w, fv1, z)
+
+      call tql2(n, w, fv1, z, ierr)
+
+      if (ierr/=0) then
+        return
+      end if
+
+      call rebak(n, b, fv2, n, z)
+
+    end if
+
+    return
+  end subroutine rsgab
+
+  subroutine rsgba(n, a, b, w, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -13416,49 +13406,49 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: b(n,n)
-  real    ( kind = rkx ) :: fv1(n)
-  real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: b(n, n)
+    real (kind=rkx) :: fv1(n)
+    real (kind=rkx) :: fv2(n)
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: z(n, n)
 
-  call reduc2 ( n, a, b, fv2, ierr )
+    call reduc2(n, a, b, fv2, ierr)
 
-  if ( ierr /= 0 ) then
-    return
-  end if
-
-  if ( matz == 0 ) then
-
-    call tred1 ( n, a, w, fv1, fv2 )
-
-    call tqlrat ( n, w, fv2, ierr )
-
-  else
-
-    call tred2 ( n, a, w, fv1, z )
-
-    call tql2 ( n, w, fv1, z, ierr )
-
-    if ( ierr /= 0 ) then
+    if (ierr/=0) then
       return
     end if
 
-    call rebakb ( n, b, fv2, n, z )
+    if (matz==0) then
 
-  end if
+      call tred1(n, a, w, fv1, fv2)
 
-  return
-end subroutine rsgba
+      call tqlrat(n, w, fv2, ierr)
 
-subroutine rsm ( n, a, w, m, z, ierr )
+    else
+
+      call tred2(n, a, w, fv1, z)
+
+      call tql2(n, w, fv1, z, ierr)
+
+      if (ierr/=0) then
+        return
+      end if
+
+      call rebakb(n, b, fv2, n, z)
+
+    end if
+
+    return
+  end subroutine rsgba
+
+  subroutine rsm(n, a, w, m, z, ierr)
 
 !*****************************************************************************80
 !
@@ -13519,42 +13509,42 @@ subroutine rsm ( n, a, w, m, z, ierr )
 !    completion code described in the documentation for TQLRAT, IMTQLV and
 !    TINVIT.  The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: fwork1(n)
-  real    ( kind = rkx ) :: fwork2(n)
-  real    ( kind = rkx ) :: fwork3(n)
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: iwork(n)
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: fwork1(n)
+    real (kind=rkx) :: fwork2(n)
+    real (kind=rkx) :: fwork3(n)
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: iwork(n)
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: z(n, m)
 
-  if ( m <= 0 ) then
+    if (m<=0) then
 
-    call tred1 ( n, a, w, fwork1, fwork2 )
+      call tred1(n, a, w, fwork1, fwork2)
 
-    call tqlrat ( n, w, fwork2, ierr )
+      call tqlrat(n, w, fwork2, ierr)
 
-  else
+    else
 
-    call tred1 ( n, a, fwork1, fwork2, fwork3 )
+      call tred1(n, a, fwork1, fwork2, fwork3)
 
-    call imtqlv ( n, fwork1, fwork2, fwork3, w, iwork, ierr )
+      call imtqlv(n, fwork1, fwork2, fwork3, w, iwork, ierr)
 
-    call tinvit ( n, fwork1, fwork2, fwork3, m, w, iwork, z, ierr )
+      call tinvit(n, fwork1, fwork2, fwork3, m, w, iwork, z, ierr)
 
-    call trbak1 ( n, a, fwork2, m, z )
+      call trbak1(n, a, fwork2, m, z)
 
-  end if
+    end if
 
-  return
-end subroutine rsm
+    return
+  end subroutine rsm
 
-subroutine rsp ( n, nv, a, w, matz, z, ierr )
+  subroutine rsp(n, nv, a, w, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -13619,63 +13609,63 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
 !    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
-  integer ( kind = ik4 ) :: nv
+    integer (kind=ik4) :: n
+    integer (kind=ik4) :: nv
 
-  real    ( kind = rkx ) :: a(nv)
-  real    ( kind = rkx ) :: fv1(n)
-  real    ( kind = rkx ) :: fv2(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(nv)
+    real (kind=rkx) :: fv1(n)
+    real (kind=rkx) :: fv2(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: z(n, n)
 
-  if ( ( n * ( n + 1 ) ) / 2 > nv ) then
-    ierr = 20 * n
+    if ((n*(n+1))/2>nv) then
+      ierr = 20*n
+      return
+    end if
+
+    call tred3(n, nv, a, w, fv1, fv2)
+
+    if (matz==0) then
+
+      call tqlrat(n, w, fv2, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RSP - Fatal error!'
+        write (*, '(a)') '  Error return from TQLRAT.'
+        return
+      end if
+
+    else
+
+      z(1:n, 1:n) = 0.0_rkx
+
+      do i = 1, n
+        z(i, i) = 1.0_rkx
+      end do
+
+      call tql2(n, w, fv1, z, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RSP - Fatal error!'
+        write (*, '(a)') '  Error return from TQL2.'
+        return
+      end if
+
+      call trbak3(n, nv, a, n, z)
+
+    end if
+
     return
-  end if
+  end subroutine rsp
 
-  call tred3 ( n, nv, a, w, fv1, fv2 )
-
-  if ( matz == 0 ) then
-
-    call tqlrat ( n, w, fv2, ierr )
-
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RSP - Fatal error!'
-      write ( *, '(a)' ) '  Error return from TQLRAT.'
-      return
-    end if
-
-  else
-
-    z(1:n,1:n) = 0.0_rkx
-
-    do i = 1, n
-      z(i,i) = 1.0_rkx
-    end do
-
-    call tql2 ( n, w, fv1, z, ierr )
-
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RSP - Fatal error!'
-      write ( *, '(a)' ) '  Error return from TQL2.'
-      return
-    end if
-
-    call trbak3 ( n, nv, a, n, z )
-
-  end if
-
-  return
-end subroutine rsp
-
-subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
+  subroutine rspp(n, nv, a, w, matz, z, ierr, m, type)
 
 !*****************************************************************************80
 !
@@ -13751,74 +13741,74 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !    Input, logical TYPE, set to .true. if the smallest eigenvalues
 !    are to be found, or .false. if the largest ones are sought.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
-  integer ( kind = ik4 ) :: nv
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
+    integer (kind=ik4) :: nv
 
-  real    ( kind = rkx ) :: a(nv)
-  real    ( kind = rkx ) :: bd(n)
-  real    ( kind = rkx ) :: eps1
-  integer ( kind = ik4 ) :: idef
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: iwork(n)
-  integer ( kind = ik4 ) :: matz
-  logical              :: type
-  real    ( kind = rkx ) :: w(m)
-  real    ( kind = rkx ) :: work1(n)
-  real    ( kind = rkx ) :: work2(n)
-  real    ( kind = rkx ) :: work3(n)
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: a(nv)
+    real (kind=rkx) :: bd(n)
+    real (kind=rkx) :: eps1
+    integer (kind=ik4) :: idef
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: iwork(n)
+    integer (kind=ik4) :: matz
+    logical :: type
+    real (kind=rkx) :: w(m)
+    real (kind=rkx) :: work1(n)
+    real (kind=rkx) :: work2(n)
+    real (kind=rkx) :: work3(n)
+    real (kind=rkx) :: z(n, m)
 !
 !  IDEF =
 !    -1 if the matrix is known to be negative definite,
 !    +1 if the matrix is known to be positive definite, or
 !    0 otherwise.
 !
-  idef = 0
+    idef = 0
 !
 !  Reduce to symmetric tridiagonal form.
 !
-  call tred3 ( n, nv, a, work1, work2, work3 )
+    call tred3(n, nv, a, work1, work2, work3)
 !
 !  Find the eigenvalues.
 !
-  eps1 = 0.0_rkx
+    eps1 = 0.0_rkx
 
-  call ratqr ( n, eps1, work1, work2, work3, m, w, iwork, &
-    bd, type, idef, ierr )
+    call ratqr(n, eps1, work1, work2, work3, m, w, iwork, bd, type, idef, &
+      ierr)
 
-  if ( ierr /= 0 ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'RSPP - Fatal error!'
-    write ( *, '(a)' ) '  Error return from RATQR.'
-    return
-  end if
-!
-!  Find eigenvectors for the first M eigenvalues.
-!
-  if ( matz /= 0 ) then
-
-    call tinvit ( n, work1, work2, work3, m, w, iwork, z, ierr )
-
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RSPP - Fatal error!'
-      write ( *, '(a)' ) '  Error return from TINVIT.'
+    if (ierr/=0) then
+      write (*, '(a)') ' '
+      write (*, '(a)') 'RSPP - Fatal error!'
+      write (*, '(a)') '  Error return from RATQR.'
       return
     end if
 !
+!  Find eigenvectors for the first M eigenvalues.
+!
+    if (matz/=0) then
+
+      call tinvit(n, work1, work2, work3, m, w, iwork, z, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RSPP - Fatal error!'
+        write (*, '(a)') '  Error return from TINVIT.'
+        return
+      end if
+!
 !  Reverse the transformation.
 !
-    call trbak3 ( n, nv, a, m, z )
+      call trbak3(n, nv, a, m, z)
 
-  end if
+    end if
 
-  return
-end subroutine rspp
+    return
+  end subroutine rspp
 
-subroutine rst ( n, w, e, matz, z, ierr )
+  subroutine rst(n, w, e, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -13882,51 +13872,51 @@ subroutine rst ( n, w, e, matz, z, ierr )
 !    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: e(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: e(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: z(n, n)
 
-  if ( matz == 0 ) then
+    if (matz==0) then
 
-    call imtql1 ( n, w, e, ierr )
+      call imtql1(n, w, e, ierr)
 
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RST - Fatal error!'
-      write ( *, '(a)' ) '  Error return from IMTQL1.'
-      return
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RST - Fatal error!'
+        write (*, '(a)') '  Error return from IMTQL1.'
+        return
+      end if
+
+    else
+
+      z(1:n, 1:n) = 0.0_rkx
+
+      do i = 1, n
+        z(i, i) = 1.0_rkx
+      end do
+
+      call imtql2(n, w, e, z, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RST - Fatal error!'
+        write (*, '(a)') '  Error return from IMTQL2.'
+        return
+      end if
+
     end if
 
-  else
+    return
+  end subroutine rst
 
-    z(1:n,1:n) = 0.0_rkx
-
-    do i = 1, n
-      z(i,i) = 1.0_rkx
-    end do
-
-    call imtql2 ( n, w, e, z, ierr )
-
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RST - Fatal error!'
-      write ( *, '(a)' ) '  Error return from IMTQL2.'
-      return
-    end if
-
-  end if
-
-  return
-end subroutine rst
-
-subroutine rt ( n, a, w, matz, z, ierr )
+  subroutine rt(n, a, w, matz, z, ierr)
 
 !*****************************************************************************80
 !
@@ -13991,63 +13981,63 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: fv1(n)
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: matz
-  real    ( kind = rkx ) :: a(n,3)
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: fv1(n)
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: matz
+    real (kind=rkx) :: a(n, 3)
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: z(n, n)
 
-  if ( matz == 0 ) then
+    if (matz==0) then
 
-    call figi ( n, a, w, fv1, fv1, ierr )
+      call figi(n, a, w, fv1, fv1, ierr)
 
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RT - Fatal error!'
-      write ( *, '(a)' ) '  Error return from FIGI.'
-      return
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RT - Fatal error!'
+        write (*, '(a)') '  Error return from FIGI.'
+        return
+      end if
+
+      call imtql1(n, w, fv1, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RT - Fatal error!'
+        write (*, '(a)') '  Error return from IMTQL1.'
+        return
+      end if
+
+    else
+
+      call figi2(n, a, w, fv1, z, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RT - Fatal error!'
+        write (*, '(a)') '  Error return from FIGI2.'
+        return
+      end if
+
+      call imtql2(n, w, fv1, z, ierr)
+
+      if (ierr/=0) then
+        write (*, '(a)') ' '
+        write (*, '(a)') 'RT - Fatal error!'
+        write (*, '(a)') '  Error return from IMTQL2.'
+        return
+      end if
+
     end if
 
-    call imtql1 ( n, w, fv1, ierr )
+    return
+  end subroutine rt
 
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RT - Fatal error!'
-      write ( *, '(a)' ) '  Error return from IMTQL1.'
-      return
-    end if
-
-  else
-
-    call figi2 ( n, a, w, fv1, z, ierr )
-
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RT - Fatal error!'
-      write ( *, '(a)' ) '  Error return from FIGI2.'
-      return
-    end if
-
-    call imtql2 ( n, w, fv1, z, ierr )
-
-    if ( ierr /= 0 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'RT - Fatal error!'
-      write ( *, '(a)' ) '  Error return from IMTQL2.'
-      return
-    end if
-
-  end if
-
-  return
-end subroutine rt
-
-subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
+  subroutine svd(m, n, a, w, matu, u, matv, v, ierr)
 
 !*****************************************************************************80
 !
@@ -14133,379 +14123,379 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !    0, for normal return,
 !    K, if the K-th singular value has not been determined after 30 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(m,n)
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: i1
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: kk
-  integer ( kind = ik4 ) :: k1
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: ll
-  integer ( kind = ik4 ) :: l1
-  logical              :: matu
-  logical              :: matv
-  integer ( kind = ik4 ) :: mn
-  real    ( kind = rkx ) :: rv1(n)
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: xscale
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: u(m,n)
-  real    ( kind = rkx ) :: v(n,n)
-  real    ( kind = rkx ) :: w(n)
-  real    ( kind = rkx ) :: x
-  real    ( kind = rkx ) :: y
-  real    ( kind = rkx ) :: z
+    real (kind=rkx) :: a(m, n)
+    real (kind=rkx) :: c
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: i1
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: kk
+    integer (kind=ik4) :: k1
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: ll
+    integer (kind=ik4) :: l1
+    logical :: matu
+    logical :: matv
+    integer (kind=ik4) :: mn
+    real (kind=rkx) :: rv1(n)
+    real (kind=rkx) :: s
+    real (kind=rkx) :: xscale
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: u(m, n)
+    real (kind=rkx) :: v(n, n)
+    real (kind=rkx) :: w(n)
+    real (kind=rkx) :: x
+    real (kind=rkx) :: y
+    real (kind=rkx) :: z
 
-  ierr = 0
-  u(1:m,1:n) = a(1:m,1:n)
+    ierr = 0
+    u(1:m, 1:n) = a(1:m, 1:n)
 !
 !  Householder reduction to bidiagonal form.
 !
-  g = 0.0_rkx
-  xscale = 0.0_rkx
-  x = 0.0_rkx
-
-  do i = 1, n
-
-    l = i + 1
-    rv1(i) = xscale * g
     g = 0.0_rkx
-    s = 0.0_rkx
     xscale = 0.0_rkx
+    x = 0.0_rkx
 
-    if ( i <= m ) then
+    do i = 1, n
 
-      xscale = sum ( abs ( u(i:m,i) ) )
+      l = i + 1
+      rv1(i) = xscale*g
+      g = 0.0_rkx
+      s = 0.0_rkx
+      xscale = 0.0_rkx
 
-      if ( xscale /= 0.0_rkx ) then
+      if (i<=m) then
 
-        u(i:m,i) = u(i:m,i) / xscale
+        xscale = sum(abs(u(i:m,i)))
 
-        s = sum ( u(i:m,i)**2 )
+        if (xscale/=0.0_rkx) then
 
-        f = u(i,i)
-        g = - sign ( sqrt ( s ), f )
-        h = f * g - s
-        u(i,i) = f - g
+          u(i:m, i) = u(i:m, i)/xscale
 
-        if ( i /= n ) then
+          s = sum(u(i:m,i)**2)
 
-          do j = l, n
-            s = dot_product ( u(i:m,i), u(i:m,j) )
-            u(i:m,j) = u(i:m,j) + s * u(i:m,i) / h
-          end do
+          f = u(i, i)
+          g = -sign(sqrt(s), f)
+          h = f*g - s
+          u(i, i) = f - g
+
+          if (i/=n) then
+
+            do j = l, n
+              s = dot_product(u(i:m,i), u(i:m,j))
+              u(i:m, j) = u(i:m, j) + s*u(i:m, i)/h
+            end do
+
+          end if
+
+          u(i:m, i) = xscale*u(i:m, i)
 
         end if
 
-        u(i:m,i) = xscale * u(i:m,i)
-
       end if
 
-    end if
+      w(i) = xscale*g
+      g = 0.0_rkx
+      s = 0.0_rkx
+      xscale = 0.0_rkx
 
-    w(i) = xscale * g
-    g = 0.0_rkx
-    s = 0.0_rkx
-    xscale = 0.0_rkx
+      if (i<=m .and. i/=n) then
 
-    if ( i <= m .and. i /= n ) then
+        xscale = sum(abs(u(i,l:n)))
 
-      xscale = sum ( abs ( u(i,l:n) ) )
+        if (xscale/=0.0_rkx) then
 
-      if ( xscale /= 0.0_rkx ) then
+          u(i, l:n) = u(i, l:n)/xscale
+          s = sum(u(i,l:n)**2)
+          f = u(i, l)
+          g = -sign(sqrt(s), f)
+          h = f*g - s
+          u(i, l) = f - g
+          rv1(l:n) = u(i, l:n)/h
 
-        u(i,l:n) = u(i,l:n) / xscale
-        s = sum ( u(i,l:n)**2 )
-        f = u(i,l)
-        g = - sign ( sqrt ( s ), f )
-        h = f * g - s
-        u(i,l) = f - g
-        rv1(l:n) = u(i,l:n) / h
+          if (i/=m) then
 
-        if ( i /= m ) then
+            do j = l, m
 
-          do j = l, m
+              s = dot_product(u(j,l:n), u(i,l:n))
 
-            s = dot_product ( u(j,l:n), u(i,l:n) )
+              u(j, l:n) = u(j, l:n) + s*rv1(l:n)
 
-            u(j,l:n) = u(j,l:n) + s * rv1(l:n)
+            end do
 
-          end do
+          end if
+
+          u(i, l:n) = xscale*u(i, l:n)
 
         end if
 
-        u(i,l:n) = xscale * u(i,l:n)
-
       end if
 
-    end if
+      x = max(x, abs(w(i))+abs(rv1(i)))
 
-    x = max ( x, abs ( w(i) ) + abs ( rv1(i) ) )
-
-  end do
+    end do
 !
 !  Accumulation of right-hand transformations.
 !
-  if ( matv ) then
+    if (matv) then
 
-    do i = n, 1, -1
+      do i = n, 1, -1
 
-      if ( i /= n ) then
+        if (i/=n) then
 
-         if ( g /= 0.0_rkx ) then
+          if (g/=0.0_rkx) then
 
-          v(l:n,i) = ( u(i,l:n) / u(i,l) ) / g
+            v(l:n, i) = (u(i,l:n)/u(i,l))/g
 
-          do j = l, n
+            do j = l, n
 
-            s = dot_product ( u(i,l:n), v(l:n,j) )
+              s = dot_product(u(i,l:n), v(l:n,j))
 
-            v(l:n,j) = v(l:n,j) + s * v(l:n,i)
+              v(l:n, j) = v(l:n, j) + s*v(l:n, i)
 
-          end do
+            end do
+
+          end if
+
+          v(i, l:n) = 0.0_rkx
+          v(l:n, i) = 0.0_rkx
 
         end if
 
-        v(i,l:n) = 0.0_rkx
-        v(l:n,i) = 0.0_rkx
+        v(i, i) = 1.0_rkx
+        g = rv1(i)
+        l = i
 
-      end if
+      end do
 
-      v(i,i) = 1.0_rkx
-      g = rv1(i)
-      l = i
-
-    end do
-
-  end if
+    end if
 !
 !  Accumulation of left-hand transformations.
 !
-  if ( matu ) then
+    if (matu) then
 
-    mn = min ( m, n )
+      mn = min(m, n)
 
-    do i = min ( m, n ), 1, -1
+      do i = min(m, n), 1, -1
 
-      l = i + 1
-      g = w(i)
+        l = i + 1
+        g = w(i)
 
-      if ( i /= n ) then
-        u(i,l:n) = 0.0_rkx
-      end if
+        if (i/=n) then
+          u(i, l:n) = 0.0_rkx
+        end if
 
-      if ( g /= 0.0_rkx ) then
+        if (g/=0.0_rkx) then
 
-        if ( i /= mn ) then
+          if (i/=mn) then
 
-          do j = l, n
-            s = dot_product ( u(l:m,i), u(l:m,j) )
-            f = ( s / u(i,i) ) / g
-            u(i:m,j) = u(i:m,j) + f * u(i:m,i)
+            do j = l, n
+              s = dot_product(u(l:m,i), u(l:m,j))
+              f = (s/u(i,i))/g
+              u(i:m, j) = u(i:m, j) + f*u(i:m, i)
+            end do
+
+          end if
+
+          u(i:m, i) = u(i:m, i)/g
+
+        else
+
+          u(i:m, i) = 0.0_rkx
+
+        end if
+
+        u(i, i) = u(i, i) + 1.0_rkx
+
+      end do
+
+    end if
+!
+!  Diagonalization of the bidiagonal form.
+!
+    tst1 = x
+
+    do kk = 1, n
+
+      k1 = n - kk
+      k = k1 + 1
+      its = 0
+!
+!  Test for splitting.
+!
+100   continue
+
+      do ll = 1, k
+
+        l1 = k - ll
+        l = l1 + 1
+        tst2 = tst1 + abs(rv1(l))
+
+        if (tst2==tst1) then
+          go to 110
+        end if
+
+        tst2 = tst1 + abs(w(l1))
+
+        if (tst2==tst1) then
+          exit
+        end if
+
+      end do
+!
+!  Cancellation of rv1(l) if L greater than 1.
+!
+      c = 0.0_rkx
+      s = 1.0_rkx
+
+      do i = l, k
+
+        f = s*rv1(i)
+        rv1(i) = c*rv1(i)
+        tst2 = tst1 + abs(f)
+
+        if (tst2==tst1) then
+          go to 110
+        end if
+
+        g = w(i)
+        h = pythag(f, g)
+        w(i) = h
+        c = g/h
+        s = -f/h
+
+        if (matu) then
+
+          do j = 1, m
+            y = u(j, l1)
+            z = u(j, i)
+            u(j, l1) = y*c + z*s
+            u(j, i) = -y*s + z*c
           end do
 
         end if
 
-        u(i:m,i) = u(i:m,i) / g
-
-      else
-
-        u(i:m,i) = 0.0_rkx
-
-      end if
-
-      u(i,i) = u(i,i) + 1.0_rkx
-
-    end do
-
-  end if
-!
-!  Diagonalization of the bidiagonal form.
-!
-  tst1 = x
-
-  do kk = 1, n
-
-     k1 = n - kk
-     k = k1 + 1
-     its = 0
-!
-!  Test for splitting.
-!
-520  continue
-
-     do ll = 1, k
-
-       l1 = k - ll
-       l = l1 + 1
-       tst2 = tst1 + abs ( rv1(l) )
-
-       if ( tst2 == tst1 ) then
-         go to 565
-       end if
-
-       tst2 = tst1 + abs ( w(l1) )
-
-       if ( tst2 == tst1 ) then
-         exit
-       end if
-
-     end do
-!
-!  Cancellation of rv1(l) if L greater than 1.
-!
-     c = 0.0_rkx
-     s = 1.0_rkx
-
-     do i = l, k
-
-       f = s * rv1(i)
-       rv1(i) = c * rv1(i)
-       tst2 = tst1 + abs ( f )
-
-       if ( tst2 == tst1 ) then
-         go to 565
-       end if
-
-       g = w(i)
-       h = pythag ( f, g )
-       w(i) = h
-       c = g / h
-       s = -f / h
-
-       if ( matu ) then
-
-         do j = 1, m
-           y = u(j,l1)
-           z = u(j,i)
-           u(j,l1) = y * c + z * s
-           u(j,i) = -y * s + z * c
-         end do
-
-       end if
-
-    end do
+      end do
 !
 !  Test for convergence.
 !
-565 continue
+110   continue
 
-    z = w(k)
+      z = w(k)
 
-    if ( l == k ) go to 650
+      if (l==k) go to 120
 !
 !  Shift from bottom 2 by 2 minor.
 !
-    if ( its >= 30 ) then
-      ierr = k
-      return
-    end if
+      if (its>=30) then
+        ierr = k
+        return
+      end if
 
-    its = its + 1
-    x = w(l)
-    y = w(k1)
-    g = rv1(k1)
-    h = rv1(k)
-    f = 0.5_rkx * ( ( ( g + z ) / h ) * ( ( g - z ) / y ) + y / h - h / y )
-    g = pythag ( f, 1.0_rkx )
-    f = x - ( z / x ) * z + ( h / x ) * ( y / ( f + sign ( g, f ) ) - h)
+      its = its + 1
+      x = w(l)
+      y = w(k1)
+      g = rv1(k1)
+      h = rv1(k)
+      f = 0.5_rkx*(((g+z)/h)*((g-z)/y)+y/h-h/y)
+      g = pythag(f, 1.0_rkx)
+      f = x - (z/x)*z + (h/x)*(y/(f+sign(g,f))-h)
 !
 !  Next QR transformation.
 !
-    c = 1.0_rkx
-    s = 1.0_rkx
+      c = 1.0_rkx
+      s = 1.0_rkx
 
-    do i1 = l, k1
+      do i1 = l, k1
 
-      i = i1 + 1
-      g = rv1(i)
-      y = w(i)
-      h = s * g
-      g = c * g
-      z = pythag ( f, h )
-      rv1(i1) = z
-      c = f / z
-      s = h / z
-      f = x * c + g * s
-      g = -x * s + g * c
-      h = y * s
-      y = y * c
+        i = i1 + 1
+        g = rv1(i)
+        y = w(i)
+        h = s*g
+        g = c*g
+        z = pythag(f, h)
+        rv1(i1) = z
+        c = f/z
+        s = h/z
+        f = x*c + g*s
+        g = -x*s + g*c
+        h = y*s
+        y = y*c
 
-      if ( matv ) then
+        if (matv) then
 
-        do j = 1, n
-          x = v(j,i1)
-          z = v(j,i)
-          v(j,i1) = x * c + z * s
-          v(j,i) = -x * s + z * c
-        end do
+          do j = 1, n
+            x = v(j, i1)
+            z = v(j, i)
+            v(j, i1) = x*c + z*s
+            v(j, i) = -x*s + z*c
+          end do
 
-      end if
+        end if
 
-      z = pythag ( f, h )
-      w(i1) = z
+        z = pythag(f, h)
+        w(i1) = z
 !
 !  Rotation can be arbitrary if Z is zero.
 !
-      if ( z /= 0.0_rkx ) then
-        c = f / z
-        s = h / z
-      end if
+        if (z/=0.0_rkx) then
+          c = f/z
+          s = h/z
+        end if
 
-      f = c * g + s * y
-      x = -s * g + c * y
+        f = c*g + s*y
+        x = -s*g + c*y
 
-      if ( matu ) then
+        if (matu) then
 
-        do j = 1, m
-          y = u(j,i1)
-          z = u(j,i)
-          u(j,i1) = y * c + z * s
-          u(j,i) = -y * s + z * c
-        end do
+          do j = 1, m
+            y = u(j, i1)
+            z = u(j, i)
+            u(j, i1) = y*c + z*s
+            u(j, i) = -y*s + z*c
+          end do
+
+        end if
+
+      end do
+
+      rv1(l) = 0.0_rkx
+      rv1(k) = f
+      w(k) = x
+      go to 100
+!
+!  Convergence.
+!
+120   continue
+
+      if (z<=0.0_rkx) then
+
+        w(k) = -z
+
+        if (matv) then
+          v(1:n, k) = -v(1:n, k)
+        end if
 
       end if
 
     end do
 
-    rv1(l) = 0.0_rkx
-    rv1(k) = f
-    w(k) = x
-    go to 520
-!
-!  Convergence.
-!
-650 continue
+    return
+  end subroutine svd
 
-    if ( z <= 0.0_rkx ) then
-
-      w(k) = - z
-
-      if ( matv ) then
-        v(1:n,k) = - v(1:n,k)
-      end if
-
-    end if
-
-  end do
-
-  return
-end subroutine svd
-
-subroutine timestamp ( )
+  subroutine timestamp
 
 !*****************************************************************************80
 !
@@ -14531,63 +14521,63 @@ subroutine timestamp ( )
 !
 !    None
 !
-  implicit none
+    implicit none
 
-  character ( len = 8 )  :: ampm
-  integer   ( kind = ik4 ) :: d
-  character ( len = 8 )  :: date
-  integer   ( kind = ik4 ) :: h
-  integer   ( kind = ik4 ) :: m
-  integer   ( kind = ik4 ) :: mm
-  character ( len = 9 ), parameter, dimension(12) :: month = [ &
-    'January  ', 'February ', 'March    ', 'April    ', &
-    'May      ', 'June     ', 'July     ', 'August   ', &
-    'September', 'October  ', 'November ', 'December ' ]
-  integer   ( kind = ik4 ) :: n
-  integer   ( kind = ik4 ) :: s
-  character ( len = 10 ) :: time
-  integer   ( kind = ik4 ) :: values(8)
-  integer   ( kind = ik4 ) :: y
-  character ( len = 5 )  :: zone
+    character (len=8) :: ampm
+    integer (kind=ik4) :: d
+    character (len=8) :: date
+    integer (kind=ik4) :: h
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mm
+    character (len=9), parameter, dimension (12) :: month = [ 'January  ', &
+      'February ', 'March    ', 'April    ', 'May      ', 'June     ', &
+      'July     ', 'August   ', 'September', 'October  ', 'November ', &
+      'December ' ]
+    integer (kind=ik4) :: n
+    integer (kind=ik4) :: s
+    character (len=10) :: time
+    integer (kind=ik4) :: values(8)
+    integer (kind=ik4) :: y
+    character (len=5) :: zone
 
-  call date_and_time ( date, time, zone, values )
+    call date_and_time(date, time, zone, values)
 
-  y = values(1)
-  m = values(2)
-  d = values(3)
-  h = values(5)
-  n = values(6)
-  s = values(7)
-  mm = values(8)
+    y = values(1)
+    m = values(2)
+    d = values(3)
+    h = values(5)
+    n = values(6)
+    s = values(7)
+    mm = values(8)
 
-  if ( h < 12 ) then
-    ampm = 'AM'
-  else if ( h == 12 ) then
-    if ( n == 0 .and. s == 0 ) then
-      ampm = 'Noon'
-    else
-      ampm = 'PM'
-    end if
-  else
-    h = h - 12
-    if ( h < 12 ) then
-      ampm = 'PM'
-    else if ( h == 12 ) then
-      if ( n == 0 .and. s == 0 ) then
-        ampm = 'Midnight'
+    if (h<12) then
+      ampm = 'AM'
+    else if (h==12) then
+      if (n==0 .and. s==0) then
+        ampm = 'Noon'
       else
-        ampm = 'AM'
+        ampm = 'PM'
+      end if
+    else
+      h = h - 12
+      if (h<12) then
+        ampm = 'PM'
+      else if (h==12) then
+        if (n==0 .and. s==0) then
+          ampm = 'Midnight'
+        else
+          ampm = 'AM'
+        end if
       end if
     end if
-  end if
 
-  write ( *, '(a,1x,i2,1x,i4,2x,i2,a1,i2.2,a1,i2.2,a1,i3.3,1x,a)' ) &
-    trim ( month(m) ), d, y, h, ':', n, ':', s, '.', mm, trim ( ampm )
+    write (*, '(a,1x,i2,1x,i4,2x,i2,a1,i2.2,a1,i2.2,a1,i3.3,1x,a)') &
+      trim(month(m)), d, y, h, ':', n, ':', s, '.', mm, trim(ampm)
 
-  return
-end subroutine timestamp
+    return
+  end subroutine timestamp
 
-subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
+  subroutine tinvit(n, d, e, e2, m, w, ind, z, ierr)
 
 !*****************************************************************************80
 !
@@ -14661,292 +14651,292 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !    -R, if the eigenvector corresponding to the R-th eigenvalue fails to
 !      converge in 5 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: eps2
-  real    ( kind = rkx ) :: eps3
-  real    ( kind = rkx ) :: eps4
-  integer ( kind = ik4 ) :: group
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: ind(m)
-  integer ( kind = ik4 ) :: ip
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  real    ( kind = rkx ) :: norm
-  real    ( kind = rkx ) :: order
-  integer ( kind = ik4 ) :: p
-  integer ( kind = ik4 ) :: q
-  integer ( kind = ik4 ) :: r
-  real    ( kind = rkx ) :: rv1(n)
-  real    ( kind = rkx ) :: rv2(n)
-  real    ( kind = rkx ) :: rv3(n)
-  real    ( kind = rkx ) :: rv4(n)
-  real    ( kind = rkx ) :: rv6(n)
-  integer ( kind = ik4 ) :: s
-  integer ( kind = ik4 ) :: tag
-  real    ( kind = rkx ) :: u
-  real    ( kind = rkx ) :: uk
-  real    ( kind = rkx ) :: v
-  real    ( kind = rkx ) :: w(m)
-  real    ( kind = rkx ) :: x0
-  real    ( kind = rkx ) :: x1
-  real    ( kind = rkx ) :: xu
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: eps2
+    real (kind=rkx) :: eps3
+    real (kind=rkx) :: eps4
+    integer (kind=ik4) :: group
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: ind(m)
+    integer (kind=ik4) :: ip
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    real (kind=rkx) :: norm
+    real (kind=rkx) :: order
+    integer (kind=ik4) :: p
+    integer (kind=ik4) :: q
+    integer (kind=ik4) :: r
+    real (kind=rkx) :: rv1(n)
+    real (kind=rkx) :: rv2(n)
+    real (kind=rkx) :: rv3(n)
+    real (kind=rkx) :: rv4(n)
+    real (kind=rkx) :: rv6(n)
+    integer (kind=ik4) :: s
+    integer (kind=ik4) :: tag
+    real (kind=rkx) :: u
+    real (kind=rkx) :: uk
+    real (kind=rkx) :: v
+    real (kind=rkx) :: w(m)
+    real (kind=rkx) :: x0
+    real (kind=rkx) :: x1
+    real (kind=rkx) :: xu
+    real (kind=rkx) :: z(n, m)
 
-  ierr = 0
+    ierr = 0
 
-  if ( m == 0 ) then
-    return
-  end if
+    if (m==0) then
+      return
+    end if
 
-  u = 0.0_rkx
-  x0 = 0.0_rkx
+    u = 0.0_rkx
+    x0 = 0.0_rkx
 
-  tag = 0
-  order = 1.0_rkx - e2(1)
-  q = 0
+    tag = 0
+    order = 1.0_rkx - e2(1)
+    q = 0
 !
 !  Establish and process next submatrix.
 !
 100 continue
 
-  p = q + 1
+    p = q + 1
 
-  do q = p, n
-    if ( q == n ) then
-      exit
-    end if
-    if ( e2(q+1) == 0.0_rkx ) then
-      exit
-    end if
-  end do
+    do q = p, n
+      if (q==n) then
+        exit
+      end if
+      if (e2(q+1)==0.0_rkx) then
+        exit
+      end if
+    end do
 !
 !  Find vectors by inverse iteration.
 !
-  tag = tag + 1
-  s = 0
+    tag = tag + 1
+    s = 0
 
-  do r = 1, m
+    do r = 1, m
 
-     if ( ind(r) /= tag ) go to 920
+      if (ind(r)/=tag) go to 220
 
-     its = 1
-     x1 = w(r)
+      its = 1
+      x1 = w(r)
 
-     if ( s /= 0 ) go to 510
+      if (s/=0) go to 120
 !
 !  Check for isolated root.
 !
-     xu = 1.0_rkx
+      xu = 1.0_rkx
 
-     if ( p == q ) then
-       rv6(p) = 1.0_rkx
-       go to 870
-     end if
+      if (p==q) then
+        rv6(p) = 1.0_rkx
+        go to 210
+      end if
 
-     norm = abs ( d(p) )
-     ip = p + 1
+      norm = abs(d(p))
+      ip = p + 1
 
-     do i = p+1, q
-       norm = max ( norm, abs ( d(i) ) + abs ( e(i) ) )
-     end do
+      do i = p + 1, q
+        norm = max(norm, abs(d(i))+abs(e(i)))
+      end do
 !
 !  EPS2 is the criterion for grouping,
 !  EPS3 replaces zero pivots and equal roots are modified by EPS3,
 !  EPS4 is taken very small to avoid overflow.
 !
-     eps2 = 0.001_rkx * norm
-     eps3 = abs ( norm ) * epsilon ( eps3 )
-     uk = real(q - p + 1,rkx)
-     eps4 = uk * eps3
-     uk = eps4 / sqrt ( uk )
-     s = p
+      eps2 = 0.001_rkx*norm
+      eps3 = abs(norm)*epsilon(eps3)
+      uk = real(q-p+1, rkx)
+      eps4 = uk*eps3
+      uk = eps4/sqrt(uk)
+      s = p
 
-505 continue
+110   continue
 
-     group = 0
-     go to 520
+      group = 0
+      go to 130
 !
 !  Look for close or coincident roots.
 !
-510  continue
+120   continue
 
-     if ( abs ( x1 - x0 ) >= eps2 ) go to 505
+      if (abs(x1-x0)>=eps2) go to 110
 
-     group = group + 1
+      group = group + 1
 
-     if ( order * (x1 - x0) <= 0.0_rkx ) then
-       x1 = x0 + order * eps3
-     end if
+      if (order*(x1-x0)<=0.0_rkx) then
+        x1 = x0 + order*eps3
+      end if
 !
 !  Elimination with interchanges and initialization of vector.
 !
-520  continue
+130   continue
 
-     v = 0.0_rkx
+      v = 0.0_rkx
 
-     do i = p, q
+      do i = p, q
 
         rv6(i) = uk
 
-        if ( i == p ) go to 560
+        if (i==p) go to 150
 
-        if ( abs ( e(i) ) < abs ( u ) ) go to 540
+        if (abs(e(i))<abs(u)) go to 140
 
-        xu = u / e(i)
+        xu = u/e(i)
         rv4(i) = xu
         rv1(i-1) = e(i)
         rv2(i-1) = d(i) - x1
         rv3(i-1) = 0.0_rkx
-        if ( i /= q ) rv3(i-1) = e(i+1)
-        u = v - xu * rv2(i-1)
-        v = - xu * rv3(i-1)
-        go to 580
+        if (i/=q) rv3(i-1) = e(i+1)
+        u = v - xu*rv2(i-1)
+        v = -xu*rv3(i-1)
+        go to 160
 
-540     continue
+140     continue
 
-        xu = e(i) / u
+        xu = e(i)/u
         rv4(i) = xu
         rv1(i-1) = u
         rv2(i-1) = v
         rv3(i-1) = 0.0_rkx
 
-560     continue
+150     continue
 
-        u = d(i) - x1 - xu * v
-        if ( i /= q ) v = e(i+1)
+        u = d(i) - x1 - xu*v
+        if (i/=q) v = e(i+1)
 
-580     continue
+160     continue
 
-     end do
+      end do
 
-     if ( u == 0.0_rkx ) then
-       u = eps3
-     end if
+      if (u==0.0_rkx) then
+        u = eps3
+      end if
 
-     rv1(q) = u
-     rv2(q) = 0.0_rkx
-     rv3(q) = 0.0_rkx
+      rv1(q) = u
+      rv2(q) = 0.0_rkx
+      rv3(q) = 0.0_rkx
 !
 !  Back substitution.
 !
-600   continue
+170   continue
 
-  do ii = p, q
-    i = p + q - ii
-    rv6(i) = ( rv6(i) - u * rv2(i) - v * rv3(i) ) / rv1(i)
-    v = u
-    u = rv6(i)
-  end do
+      do ii = p, q
+        i = p + q - ii
+        rv6(i) = (rv6(i)-u*rv2(i)-v*rv3(i))/rv1(i)
+        v = u
+        u = rv6(i)
+      end do
 !
 !  Orthogonalize with respect to previous members of group.
 !
-     j = r
+      j = r
 
-     do jj = 1, group
+      do jj = 1, group
 
-       do
+        do
 
-         j = j - 1
+          j = j - 1
 
-         if ( ind(j) == tag ) then
-           exit
-         end if
+          if (ind(j)==tag) then
+            exit
+          end if
 
-       end do
+        end do
 
-       xu = dot_product ( rv6(p:q), z(p:q,j) )
+        xu = dot_product(rv6(p:q), z(p:q,j))
 
-       rv6(p:q) = rv6(p:q) - xu * z(p:q,j)
+        rv6(p:q) = rv6(p:q) - xu*z(p:q, j)
 
-     end do
+      end do
 
-     norm = sum ( abs ( rv6(p:q) ) )
+      norm = sum(abs(rv6(p:q)))
 
-     if ( norm >= 1.0_rkx ) go to 840
+      if (norm>=1.0_rkx) go to 200
 !
 !  Forward substitution.
 !
-     if ( its == 5 ) go to 830
+      if (its==5) go to 190
 
-     if ( norm == 0.0_rkx ) then
-       rv6(s) = eps4
-       s = s + 1
-       if ( s > q ) s = p
-       go to 780
-     end if
+      if (norm==0.0_rkx) then
+        rv6(s) = eps4
+        s = s + 1
+        if (s>q) s = p
+        go to 180
+      end if
 
-     xu = eps4 / norm
-     rv6(p:q) = rv6(p:q) * xu
+      xu = eps4/norm
+      rv6(p:q) = rv6(p:q)*xu
 !
 !  Elimination operations on next vector iterate.
 !
-780  continue
+180   continue
 !
 !  If RV1(I-1) == E(I), a row interchange was performed earlier in the
 !  triangularization process.
 !
-     do i = ip, q
+      do i = ip, q
 
-       u = rv6(i)
+        u = rv6(i)
 
-       if ( rv1(i-1) == e(i) ) then
-         u = rv6(i-1)
-         rv6(i-1) = rv6(i)
-       end if
+        if (rv1(i-1)==e(i)) then
+          u = rv6(i-1)
+          rv6(i-1) = rv6(i)
+        end if
 
-       rv6(i) = u - rv4(i) * rv6(i-1)
+        rv6(i) = u - rv4(i)*rv6(i-1)
 
-     end do
+      end do
 
-     its = its + 1
-     go to 600
+      its = its + 1
+      go to 170
 !
 !  Set error: non-converged eigenvector.
 !
-830  continue
+190   continue
 
-     ierr = -r
-     xu = 0.0_rkx
-     go to 870
+      ierr = -r
+      xu = 0.0_rkx
+      go to 210
 !
 !  Normalize so that sum of squares is 1 and expand to full order.
 !
-840  continue
+200   continue
 
-     u = 0.0_rkx
-     do i = p, q
-       u = pythag ( u, rv6(i) )
-     end do
+      u = 0.0_rkx
+      do i = p, q
+        u = pythag(u, rv6(i))
+      end do
 
-     xu = 1.0_rkx / u
+      xu = 1.0_rkx/u
 
-870  continue
+210   continue
 
-     z(1:n,r) = 0.0_rkx
-     z(p:q,r) = rv6(p:q) * xu
+      z(1:n, r) = 0.0_rkx
+      z(p:q, r) = rv6(p:q)*xu
 
-     x0 = x1
+      x0 = x1
 
-920  continue
+220   continue
 
-  end do
+    end do
 
-  if ( q < n ) go to 100
+    if (q<n) go to 100
 
-  return
-end subroutine tinvit
+    return
+  end subroutine tinvit
 
-subroutine tql1 ( n, d, e, ierr )
+  subroutine tql1(n, d, e, ierr)
 
 !*****************************************************************************80
 !
@@ -15012,150 +15002,150 @@ subroutine tql1 ( n, d, e, ierr )
 !    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: c2
-  real    ( kind = rkx ) :: c3
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: dl1
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: el1
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: l1
-  integer ( kind = ik4 ) :: l2
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mml
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: s2
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
+    real (kind=rkx) :: c
+    real (kind=rkx) :: c2
+    real (kind=rkx) :: c3
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: dl1
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: el1
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: l1
+    integer (kind=ik4) :: l2
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mml
+    real (kind=rkx) :: p
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: s2
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
 
-  ierr = 0
-  if ( n == 1 ) then
-    return
-  end if
-
-  do i = 2, n
-    e(i-1) = e(i)
-  end do
-
-  f = 0.0_rkx
-  tst1 = 0.0_rkx
-  e(n) = 0.0_rkx
-
-  do l = 1, n
-
-    j = 0
-    h = abs ( d(l) ) + abs ( e(l) )
-    tst1 = max ( tst1, h )
-!
-!  Look for a small sub-diagonal element.
-!
-    do m = l, n
-
-      tst2 = tst1 + abs ( e(m) )
-
-      if ( tst2 == tst1 ) then
-        exit
-      end if
-
-    end do
-
-    if ( m == l ) go to 210
-
-130 continue
-
-    if ( j >= 30 ) then
-      ierr = l
+    ierr = 0
+    if (n==1) then
       return
     end if
 
-    j = j + 1
+    do i = 2, n
+      e(i-1) = e(i)
+    end do
+
+    f = 0.0_rkx
+    tst1 = 0.0_rkx
+    e(n) = 0.0_rkx
+
+    do l = 1, n
+
+      j = 0
+      h = abs(d(l)) + abs(e(l))
+      tst1 = max(tst1, h)
+!
+!  Look for a small sub-diagonal element.
+!
+      do m = l, n
+
+        tst2 = tst1 + abs(e(m))
+
+        if (tst2==tst1) then
+          exit
+        end if
+
+      end do
+
+      if (m==l) go to 110
+
+100   continue
+
+      if (j>=30) then
+        ierr = l
+        return
+      end if
+
+      j = j + 1
 !
 !  Form the shift.
 !
-    l1 = l + 1
-    l2 = l1 + 1
-    g = d(l)
-    p = ( d(l1) - g ) / ( 2.0_rkx * e(l) )
-    r = pythag ( p, 1.0_rkx )
-    d(l) = e(l) / ( p + sign ( r, p ) )
-    d(l1) = e(l) * ( p + sign ( r, p ) )
-    dl1 = d(l1)
-    h = g - d(l)
+      l1 = l + 1
+      l2 = l1 + 1
+      g = d(l)
+      p = (d(l1)-g)/(2.0_rkx*e(l))
+      r = pythag(p, 1.0_rkx)
+      d(l) = e(l)/(p+sign(r,p))
+      d(l1) = e(l)*(p+sign(r,p))
+      dl1 = d(l1)
+      h = g - d(l)
 
-    d(l2:n) = d(l2:n) - h
+      d(l2:n) = d(l2:n) - h
 
-    f = f + h
+      f = f + h
 !
 !  QL transformation.
 !
-    p = d(m)
-    c = 1.0_rkx
-    c2 = c
-    el1 = e(l1)
-    s = 0.0_rkx
-    mml = m - l
-
-    do ii = 1, mml
-      c3 = c2
+      p = d(m)
+      c = 1.0_rkx
       c2 = c
-      s2 = s
-      i = m - ii
-      g = c * e(i)
-      h = c * p
-      r = pythag ( p, e(i) )
-      e(i+1) = s * r
-      s = e(i) / r
-      c = p / r
-      p = c * d(i) - s * g
-      d(i+1) = h + s * ( c * g + s * d(i) )
-    end do
+      el1 = e(l1)
+      s = 0.0_rkx
+      mml = m - l
 
-    p = - s * s2 * c3 * el1 * e(l) / dl1
-    e(l) = s * p
-    d(l) = c * p
-    tst2 = tst1 + abs ( e(l) )
-    if ( tst2 > tst1 ) go to 130
+      do ii = 1, mml
+        c3 = c2
+        c2 = c
+        s2 = s
+        i = m - ii
+        g = c*e(i)
+        h = c*p
+        r = pythag(p, e(i))
+        e(i+1) = s*r
+        s = e(i)/r
+        c = p/r
+        p = c*d(i) - s*g
+        d(i+1) = h + s*(c*g+s*d(i))
+      end do
 
-210 continue
+      p = -s*s2*c3*el1*e(l)/dl1
+      e(l) = s*p
+      d(l) = c*p
+      tst2 = tst1 + abs(e(l))
+      if (tst2>tst1) go to 100
 
-    p = d(l) + f
+110   continue
+
+      p = d(l) + f
 !
 !  Order the eigenvalues.
 !
-    do ii = 2, l
-      i = l + 2 - ii
-      if ( p >= d(i-1) ) then
-        go to 270
-      end if
-      d(i) = d(i-1)
+      do ii = 2, l
+        i = l + 2 - ii
+        if (p>=d(i-1)) then
+          go to 120
+        end if
+        d(i) = d(i-1)
+      end do
+
+      i = 1
+
+120   continue
+
+      d(i) = p
+
     end do
 
-    i = 1
+    return
+  end subroutine tql1
 
-270 continue
-
-    d(i) = p
-
-  end do
-
-  return
-end subroutine tql1
-
-subroutine tql2 ( n, d, e, z, ierr )
+  subroutine tql2(n, d, e, z, ierr)
 
 !*****************************************************************************80
 !
@@ -15228,175 +15218,175 @@ subroutine tql2 ( n, d, e, z, ierr )
 !    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: c2
-  real    ( kind = rkx ) :: c3
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: dl1
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: el1
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: l1
-  integer ( kind = ik4 ) :: l2
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mml
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: s2
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: c
+    real (kind=rkx) :: c2
+    real (kind=rkx) :: c3
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: dl1
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: el1
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: l1
+    integer (kind=ik4) :: l2
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mml
+    real (kind=rkx) :: p
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: s2
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: z(n, n)
 !
-  ierr = 0
+    ierr = 0
 
-  if ( n == 1 ) then
-    return
-  end if
+    if (n==1) then
+      return
+    end if
 
-  do i = 2, n
-    e(i-1) = e(i)
-  end do
+    do i = 2, n
+      e(i-1) = e(i)
+    end do
 
-  f = 0.0_rkx
-  tst1 = 0.0_rkx
-  e(n) = 0.0_rkx
+    f = 0.0_rkx
+    tst1 = 0.0_rkx
+    e(n) = 0.0_rkx
 
-  do l = 1, n
+    do l = 1, n
 
-     j = 0
-     h = abs ( d(l) ) + abs ( e(l) )
-     tst1 = max ( tst1, h )
+      j = 0
+      h = abs(d(l)) + abs(e(l))
+      tst1 = max(tst1, h)
 !
 !  Look for a small sub-diagonal element.
 !
-     do m = l, n
-       tst2 = tst1 + abs ( e(m) )
-       if ( tst2 == tst1 ) then
-         exit
-       end if
-     end do
+      do m = l, n
+        tst2 = tst1 + abs(e(m))
+        if (tst2==tst1) then
+          exit
+        end if
+      end do
 
-     if ( m == l ) go to 220
+      if (m==l) go to 110
 
- 130 continue
+100   continue
 
-     if ( j >= 30 ) then
-       ierr = l
-       return
-     end if
+      if (j>=30) then
+        ierr = l
+        return
+      end if
 
-     j = j + 1
+      j = j + 1
 !
 !  Form shift.
 !
-     l1 = l + 1
-     l2 = l1 + 1
-     g = d(l)
-     p = ( d(l1) - g ) / ( 2.0_rkx * e(l) )
-     r = pythag ( p, 1.0_rkx )
-     d(l) = e(l) / ( p + sign ( r, p ) )
-     d(l1) = e(l) * ( p + sign ( r, p ) )
-     dl1 = d(l1)
-     h = g - d(l)
-     d(l2:n) = d(l2:n) - h
-     f = f + h
+      l1 = l + 1
+      l2 = l1 + 1
+      g = d(l)
+      p = (d(l1)-g)/(2.0_rkx*e(l))
+      r = pythag(p, 1.0_rkx)
+      d(l) = e(l)/(p+sign(r,p))
+      d(l1) = e(l)*(p+sign(r,p))
+      dl1 = d(l1)
+      h = g - d(l)
+      d(l2:n) = d(l2:n) - h
+      f = f + h
 !
 !  QL transformation.
 !
-     p = d(m)
-     c = 1.0_rkx
-     c2 = c
-     el1 = e(l1)
-     s = 0.0_rkx
-     mml = m - l
+      p = d(m)
+      c = 1.0_rkx
+      c2 = c
+      el1 = e(l1)
+      s = 0.0_rkx
+      mml = m - l
 
-     do ii = 1, mml
+      do ii = 1, mml
 
         c3 = c2
         c2 = c
         s2 = s
         i = m - ii
-        g = c * e(i)
-        h = c * p
-        r = pythag ( p, e(i) )
-        e(i+1) = s * r
-        s = e(i) / r
-        c = p / r
-        p = c * d(i) - s * g
-        d(i+1) = h + s * ( c * g + s * d(i) )
+        g = c*e(i)
+        h = c*p
+        r = pythag(p, e(i))
+        e(i+1) = s*r
+        s = e(i)/r
+        c = p/r
+        p = c*d(i) - s*g
+        d(i+1) = h + s*(c*g+s*d(i))
 !
 !  Form vector.
 !
         do k = 1, n
-          h = z(k,i+1)
-          z(k,i+1) = s * z(k,i) + c * h
-          z(k,i) = c * z(k,i) - s * h
+          h = z(k, i+1)
+          z(k, i+1) = s*z(k, i) + c*h
+          z(k, i) = c*z(k, i) - s*h
         end do
 
-     end do
+      end do
 
-     p = - s * s2 * c3 * el1 * e(l) / dl1
-     e(l) = s * p
-     d(l) = c * p
-     tst2 = tst1 + abs ( e(l) )
+      p = -s*s2*c3*el1*e(l)/dl1
+      e(l) = s*p
+      d(l) = c*p
+      tst2 = tst1 + abs(e(l))
 
-     if ( tst2 > tst1 ) then
-       go to 130
-     end if
+      if (tst2>tst1) then
+        go to 100
+      end if
 
-220  continue
+110   continue
 
-     d(l) = d(l) + f
+      d(l) = d(l) + f
 
-  end do
+    end do
 !
 !  Order eigenvalues and eigenvectors.
 !
-  do ii = 2, n
+    do ii = 2, n
 
-    i = ii - 1
-    k = i
-    p = d(i)
+      i = ii - 1
+      k = i
+      p = d(i)
 
-    do j = ii, n
+      do j = ii, n
 
-      if ( d(j) < p ) then
-        k = j
-        p = d(j)
+        if (d(j)<p) then
+          k = j
+          p = d(j)
+        end if
+
+      end do
+
+      if (k/=i) then
+
+        d(k) = d(i)
+        d(i) = p
+
+        do j = 1, n
+          call r8_swap(z(j,i), z(j,k))
+        end do
+
       end if
 
     end do
 
-    if ( k /= i ) then
+    return
+  end subroutine tql2
 
-      d(k) = d(i)
-      d(i) = p
-
-      do j = 1, n
-        call r8_swap ( z(j,i), z(j,k) )
-      end do
-
-    end if
-
-  end do
-
-  return
-end subroutine tql2
-
-subroutine tqlrat ( n, d, e2, ierr )
+  subroutine tqlrat(n, d, e2, ierr)
 
 !*****************************************************************************80
 !
@@ -15461,142 +15451,142 @@ subroutine tqlrat ( n, d, e2, ierr )
 !    0, for no error,
 !    J, if the J-th eigenvalue could not be determined after 30 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: b
-  real    ( kind = rkx ) :: c
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: l1
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: mml
-  real    ( kind = rkx ) :: p
-  real    ( kind = rkx ) :: r
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: t
+    real (kind=rkx) :: b
+    real (kind=rkx) :: c
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: l1
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: mml
+    real (kind=rkx) :: p
+    real (kind=rkx) :: r
+    real (kind=rkx) :: s
+    real (kind=rkx) :: t
 
-  ierr = 0
+    ierr = 0
 
-  if ( n == 1 ) then
-    return
-  end if
+    if (n==1) then
+      return
+    end if
 
-  do i = 2, n
-    e2(i-1) = e2(i)
-  end do
+    do i = 2, n
+      e2(i-1) = e2(i)
+    end do
 
-  f = 0.0_rkx
-  t = 0.0_rkx
-  e2(n) = 0.0_rkx
+    f = 0.0_rkx
+    t = 0.0_rkx
+    e2(n) = 0.0_rkx
 
-  do l = 1, n
+    do l = 1, n
 
-     j = 0
-     h = abs ( d(l) ) + sqrt ( e2(l) )
+      j = 0
+      h = abs(d(l)) + sqrt(e2(l))
 
-     if ( t <= h ) then
+      if (t<=h) then
 
-       t = h
-       b = abs ( t ) * epsilon ( b )
-       c = b * b
+        t = h
+        b = abs(t)*epsilon(b)
+        c = b*b
 
-     end if
+      end if
 !
 !  Look for small squared sub-diagonal element.
 !
-     do m = l, n
-       if ( e2(m) <= c ) then
-         exit
-       end if
-     end do
+      do m = l, n
+        if (e2(m)<=c) then
+          exit
+        end if
+      end do
 
-     if ( m == l ) go to 210
+      if (m==l) go to 110
 
-130  continue
+100   continue
 
-     if ( j >= 30 ) then
-       ierr = l
-       return
-     end if
+      if (j>=30) then
+        ierr = l
+        return
+      end if
 
-     j = j + 1
+      j = j + 1
 !
 !  Form shift.
 !
-     l1 = l + 1
-     s = sqrt ( e2(l) )
-     g = d(l)
-     p = ( d(l1) - g ) / ( 2.0_rkx * s )
-     r = pythag ( p, 1.0_rkx )
-     d(l) = s / ( p + sign ( r, p ) )
-     h = g - d(l)
-     d(l1:n) = d(l1:n) - h
-     f = f + h
+      l1 = l + 1
+      s = sqrt(e2(l))
+      g = d(l)
+      p = (d(l1)-g)/(2.0_rkx*s)
+      r = pythag(p, 1.0_rkx)
+      d(l) = s/(p+sign(r,p))
+      h = g - d(l)
+      d(l1:n) = d(l1:n) - h
+      f = f + h
 !
 !  Rational QL transformation.
 !
-     g = d(m)
-     if ( g == 0.0_rkx ) g = b
-     h = g
-     s = 0.0_rkx
-     mml = m - l
+      g = d(m)
+      if (g==0.0_rkx) g = b
+      h = g
+      s = 0.0_rkx
+      mml = m - l
 
-     do ii = 1, mml
-       i = m - ii
-       p = g * h
-       r = p + e2(i)
-       e2(i+1) = s * r
-       s = e2(i) / r
-       d(i+1) = h + s * ( h + d(i) )
-       g = d(i) - e2(i) / g
-       if ( g == 0.0_rkx ) g = b
-       h = g * p / r
-     end do
+      do ii = 1, mml
+        i = m - ii
+        p = g*h
+        r = p + e2(i)
+        e2(i+1) = s*r
+        s = e2(i)/r
+        d(i+1) = h + s*(h+d(i))
+        g = d(i) - e2(i)/g
+        if (g==0.0_rkx) g = b
+        h = g*p/r
+      end do
 
-     e2(l) = s * g
-     d(l) = h
+      e2(l) = s*g
+      d(l) = h
 !
 !  Guard against underflow in convergence test.
 !
-     if ( h == 0.0_rkx ) go to 210
-     if ( abs ( e2(l) ) <= abs ( c / h ) ) go to 210
-     e2(l) = h * e2(l)
-     if ( e2(l) /= 0.0_rkx ) go to 130
+      if (h==0.0_rkx) go to 110
+      if (abs(e2(l))<=abs(c/h)) go to 110
+      e2(l) = h*e2(l)
+      if (e2(l)/=0.0_rkx) go to 100
 
-210  continue
+110   continue
 
-     p = d(l) + f
+      p = d(l) + f
 !
 !  Order the eigenvalues.
 !
-     do ii = 2, l
-       i = l + 2 - ii
-       if ( p >= d(i-1) ) go to 270
-       d(i) = d(i-1)
-     end do
+      do ii = 2, l
+        i = l + 2 - ii
+        if (p>=d(i-1)) go to 120
+        d(i) = d(i-1)
+      end do
 
-     i = 1
+      i = 1
 
-270  continue
+120   continue
 
-     d(i) = p
+      d(i) = p
 
-  end do
+    end do
 
-  return
-end subroutine tqlrat
+    return
+  end subroutine tqlrat
 
-subroutine trbak1 ( n, a, e, m, z )
+  subroutine trbak1(n, a, e, m, z)
 
 !*****************************************************************************80
 !
@@ -15654,51 +15644,51 @@ subroutine trbak1 ( n, a, e, m, z )
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: e(n)
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: e(n)
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: s
+    real (kind=rkx) :: z(n, m)
 
-  if ( m <= 0 ) then
-    return
-  end if
-
-  if ( n <= 1 ) then
-    return
-  end if
-
-  do i = 2, n
-
-    l = i - 1
-
-    if ( e(i) /= 0.0_rkx ) then
-
-      do j = 1, m
-
-        s = dot_product ( a(i,1:l), z(1:l,j) )
-
-        s = ( s / a(i,l) ) / e(i)
-
-        z(1:l,j) = z(1:l,j) + s * a(i,1:l)
-
-      end do
-
+    if (m<=0) then
+      return
     end if
 
-  end do
+    if (n<=1) then
+      return
+    end if
 
-  return
-end subroutine trbak1
+    do i = 2, n
 
-subroutine trbak3 ( n, nv, a, m, z )
+      l = i - 1
+
+      if (e(i)/=0.0_rkx) then
+
+        do j = 1, m
+
+          s = dot_product(a(i,1:l), z(1:l,j))
+
+          s = (s/a(i,l))/e(i)
+
+          z(1:l, j) = z(1:l, j) + s*a(i, 1:l)
+
+        end do
+
+      end if
+
+    end do
+
+    return
+  end subroutine trbak1
+
+  subroutine trbak3(n, nv, a, m, z)
 
 !*****************************************************************************80
 !
@@ -15756,64 +15746,64 @@ subroutine trbak3 ( n, nv, a, m, z )
 !    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: nv
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: nv
 
-  real    ( kind = rkx ) :: a(nv)
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ik
-  integer ( kind = ik4 ) :: iz
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  integer ( kind = ik4 ) :: n
-  real    ( kind = rkx ) :: s
-  real    ( kind = rkx ) :: z(n,m)
+    real (kind=rkx) :: a(nv)
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ik
+    integer (kind=ik4) :: iz
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    integer (kind=ik4) :: n
+    real (kind=rkx) :: s
+    real (kind=rkx) :: z(n, m)
 
-  if ( m == 0 ) then
-    return
-  end if
-
-  do i = 2, n
-
-    l = i - 1
-    iz = ( i * l ) / 2
-    ik = iz + i
-    h = a(ik)
-
-    if ( h /= 0.0_rkx ) then
-
-      do j = 1, m
-
-        s = 0.0_rkx
-        ik = iz
-
-        do k = 1, l
-          ik = ik + 1
-          s = s + a(ik) * z(k,j)
-        end do
-
-        s = ( s / h ) / h
-        ik = iz
-
-        do k = 1, l
-          ik = ik + 1
-          z(k,j) = z(k,j) - s * a(ik)
-        end do
-
-      end do
-
+    if (m==0) then
+      return
     end if
 
-  end do
+    do i = 2, n
 
-  return
-end subroutine trbak3
+      l = i - 1
+      iz = (i*l)/2
+      ik = iz + i
+      h = a(ik)
 
-subroutine tred1 ( n, a, d, e, e2 )
+      if (h/=0.0_rkx) then
+
+        do j = 1, m
+
+          s = 0.0_rkx
+          ik = iz
+
+          do k = 1, l
+            ik = ik + 1
+            s = s + a(ik)*z(k, j)
+          end do
+
+          s = (s/h)/h
+          ik = iz
+
+          do k = 1, l
+            ik = ik + 1
+            z(k, j) = z(k, j) - s*a(ik)
+          end do
+
+        end do
+
+      end if
+
+    end do
+
+    return
+  end subroutine trbak3
+
+  subroutine tred1(n, a, d, e, e2)
 
 !*****************************************************************************80
 !
@@ -15879,130 +15869,130 @@ subroutine tred1 ( n, a, d, e, e2 )
 !    Output, real ( kind = rkx ) E2(N), contains the squares of the corresponding
 !    elements of E.  E2 may coincide with E if the squares are not needed.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: xscale
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: xscale
 
-  d(1:n) = a(n,1:n)
+    d(1:n) = a(n, 1:n)
 
-  do i = 1, n
-    a(n,i) = a(i,i)
-  end do
+    do i = 1, n
+      a(n, i) = a(i, i)
+    end do
 
-  do ii = 1, n
+    do ii = 1, n
 
-    i = n + 1 - ii
-    l = i - 1
-    h = 0.0_rkx
+      i = n + 1 - ii
+      l = i - 1
+      h = 0.0_rkx
 !
 !  Scale row.
 !
-    xscale = sum ( abs ( d(1:l) ) )
+      xscale = sum(abs(d(1:l)))
 
-    if ( xscale == 0.0_rkx ) then
+      if (xscale==0.0_rkx) then
 
-      do j = 1, l
-        d(j) = a(l,j)
-        a(l,j) = a(i,j)
-        a(i,j) = 0.0_rkx
+        do j = 1, l
+          d(j) = a(l, j)
+          a(l, j) = a(i, j)
+          a(i, j) = 0.0_rkx
+        end do
+
+        e(i) = 0.0_rkx
+        e2(i) = 0.0_rkx
+
+        cycle
+
+      end if
+
+      d(1:l) = d(1:l)/xscale
+
+      do k = 1, l
+        h = h + d(k)**2
       end do
 
-      e(i) = 0.0_rkx
-      e2(i) = 0.0_rkx
+      e2(i) = h*xscale**2
+      f = d(l)
+      g = -sign(sqrt(h), f)
+      e(i) = xscale*g
+      h = h - f*g
+      d(l) = f - g
 
-      cycle
-
-    end if
-
-    d(1:l) = d(1:l) / xscale
-
-    do k = 1, l
-      h = h + d(k)**2
-    end do
-
-    e2(i) = h * xscale**2
-    f = d(l)
-    g = - sign ( sqrt ( h ), f )
-    e(i) = xscale * g
-    h = h - f * g
-    d(l) = f - g
-
-    if ( l >= 1 ) then
+      if (l>=1) then
 !
 !  Form A * U.
 !
-      e(1:l) = 0.0_rkx
+        e(1:l) = 0.0_rkx
 
-      do j = 1, l
+        do j = 1, l
 
-        f = d(j)
-        g = e(j) + a(j,j) * f
+          f = d(j)
+          g = e(j) + a(j, j)*f
 
-        do k = j+1, l
-          g = g + a(k,j) * d(k)
-          e(k) = e(k) + a(k,j) * f
+          do k = j + 1, l
+            g = g + a(k, j)*d(k)
+            e(k) = e(k) + a(k, j)*f
+          end do
+
+          e(j) = g
+
         end do
-
-        e(j) = g
-
-      end do
 !
 !  Form P.
 !
-      f = 0.0_rkx
+        f = 0.0_rkx
 
-      do j = 1, l
-        e(j) = e(j) / h
-        f = f + e(j) * d(j)
-      end do
+        do j = 1, l
+          e(j) = e(j)/h
+          f = f + e(j)*d(j)
+        end do
 
-      h = f / ( h + h )
+        h = f/(h+h)
 !
 !  Form Q.
 !
-      e(1:l) = e(1:l) - h * d(1:l)
+        e(1:l) = e(1:l) - h*d(1:l)
 !
 !  Form reduced A.
 !
+        do j = 1, l
+
+          f = d(j)
+          g = e(j)
+
+          a(j:l, j) = a(j:l, j) - f*e(j:l) - g*d(j:l)
+
+        end do
+
+      end if
+
       do j = 1, l
-
         f = d(j)
-        g = e(j)
-
-        a(j:l,j) = a(j:l,j) - f * e(j:l) - g * d(j:l)
-
+        d(j) = a(l, j)
+        a(l, j) = a(i, j)
+        a(i, j) = f*xscale
       end do
 
-    end if
 
-    do j = 1, l
-      f = d(j)
-      d(j) = a(l,j)
-      a(l,j) = a(i,j)
-      a(i,j) = f * xscale
     end do
 
+    return
+  end subroutine tred1
 
-  end do
-
-  return
-end subroutine tred1
-
-subroutine tred2 ( n, a, d, e, z )
+  subroutine tred2(n, a, d, e, z)
 
 !*****************************************************************************80
 !
@@ -16068,159 +16058,159 @@ subroutine tred2 ( n, a, d, e, z )
 !    Output, real ( kind = rkx ) Z(N,N), the orthogonal transformation matrix produced
 !    in the reduction.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: a(n,n)
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  real    ( kind = rkx ) :: hh
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: xscale
-  real    ( kind = rkx ) :: z(n,n)
+    real (kind=rkx) :: a(n, n)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    real (kind=rkx) :: hh
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: xscale
+    real (kind=rkx) :: z(n, n)
 
-  do i = 1, n
-    z(i:n,i) = a(i:n,i)
-  end do
+    do i = 1, n
+      z(i:n, i) = a(i:n, i)
+    end do
 
-  d(1:n) = a(n,1:n)
+    d(1:n) = a(n, 1:n)
 
-  do ii = 2, n
+    do ii = 2, n
 
-    i = n + 2 - ii
-    l = i - 1
-    h = 0.0_rkx
-    xscale = 0.0_rkx
+      i = n + 2 - ii
+      l = i - 1
+      h = 0.0_rkx
+      xscale = 0.0_rkx
 !
 !  Scale row.
 !
-    do k = 1, l
-      xscale = xscale + abs ( d(k) )
-    end do
-
-    if ( xscale == 0.0_rkx ) then
-
-      e(i) = d(l)
-
-      do j = 1, l
-        d(j) = z(l,j)
-        z(i,j) = 0.0_rkx
-        z(j,i) = 0.0_rkx
+      do k = 1, l
+        xscale = xscale + abs(d(k))
       end do
 
-      go to 290
+      if (xscale==0.0_rkx) then
 
-    end if
+        e(i) = d(l)
 
-    d(1:l) = d(1:l) / xscale
+        do j = 1, l
+          d(j) = z(l, j)
+          z(i, j) = 0.0_rkx
+          z(j, i) = 0.0_rkx
+        end do
 
-    h = h + dot_product ( d(1:l), d(1:l) )
+        go to 100
 
-    f = d(l)
-    g = - sign ( sqrt ( h ), f )
-    e(i) = xscale * g
-    h = h - f * g
-    d(l) = f - g
+      end if
+
+      d(1:l) = d(1:l)/xscale
+
+      h = h + dot_product(d(1:l), d(1:l))
+
+      f = d(l)
+      g = -sign(sqrt(h), f)
+      e(i) = xscale*g
+      h = h - f*g
+      d(l) = f - g
 !
 !  Form A*U.
 !
-    e(1:l) = 0.0_rkx
-
-    do j = 1, l
-
-      f = d(j)
-      z(j,i) = f
-      g = e(j) + z(j,j) * f
-
-      do k = j+1, l
-        g = g + z(k,j) * d(k)
-        e(k) = e(k) + z(k,j) * f
-      end do
-
-      e(j) = g
-
-    end do
-!
-!  Form P.
-!
-    e(1:l) = e(1:l) / h
-
-    f = dot_product ( e(1:l), d(1:l) )
-
-    hh = 0.5_rkx * f / h
-!
-!  Form Q.
-!
-    e(1:l) = e(1:l) - hh * d(1:l)
-!
-!  Form reduced A.
-!
-    do j = 1, l
-
-      f = d(j)
-      g = e(j)
-
-      z(j:l,j) = z(j:l,j) - f * e(j:l) - g * d(j:l)
-
-      d(j) = z(l,j)
-      z(i,j) = 0.0_rkx
-
-    end do
-
-290 continue
-
-    d(i) = h
-
-
-  end do
-!
-!  Accumulation of transformation matrices.
-!
-  do i = 2, n
-
-    l = i - 1
-    z(n,l) = z(l,l)
-    z(l,l) = 1.0_rkx
-    h = d(i)
-    if ( h /= 0.0_rkx ) then
-
-      d(1:l) = z(1:l,i) / h
+      e(1:l) = 0.0_rkx
 
       do j = 1, l
 
-        g = dot_product ( z(1:l,i), z(1:l,j) )
+        f = d(j)
+        z(j, i) = f
+        g = e(j) + z(j, j)*f
 
-        do k = 1, l
-          z(k,j) = z(k,j) - g * d(k)
+        do k = j + 1, l
+          g = g + z(k, j)*d(k)
+          e(k) = e(k) + z(k, j)*f
         end do
+
+        e(j) = g
+
+      end do
+!
+!  Form P.
+!
+      e(1:l) = e(1:l)/h
+
+      f = dot_product(e(1:l), d(1:l))
+
+      hh = 0.5_rkx*f/h
+!
+!  Form Q.
+!
+      e(1:l) = e(1:l) - hh*d(1:l)
+!
+!  Form reduced A.
+!
+      do j = 1, l
+
+        f = d(j)
+        g = e(j)
+
+        z(j:l, j) = z(j:l, j) - f*e(j:l) - g*d(j:l)
+
+        d(j) = z(l, j)
+        z(i, j) = 0.0_rkx
 
       end do
 
-    end if
+100   continue
 
-    z(1:l,i) = 0.0_rkx
+      d(i) = h
 
-  end do
 
-  d(1:n) = z(n,1:n)
+    end do
+!
+!  Accumulation of transformation matrices.
+!
+    do i = 2, n
 
-  z(n,1:n-1) = 0.0_rkx
-  z(n,n) = 1.0_rkx
+      l = i - 1
+      z(n, l) = z(l, l)
+      z(l, l) = 1.0_rkx
+      h = d(i)
+      if (h/=0.0_rkx) then
 
-  e(1) = 0.0_rkx
+        d(1:l) = z(1:l, i)/h
 
-  return
-end subroutine tred2
+        do j = 1, l
 
-subroutine tred3 ( n, nv, a, d, e, e2 )
+          g = dot_product(z(1:l,i), z(1:l,j))
+
+          do k = 1, l
+            z(k, j) = z(k, j) - g*d(k)
+          end do
+
+        end do
+
+      end if
+
+      z(1:l, i) = 0.0_rkx
+
+    end do
+
+    d(1:n) = z(n, 1:n)
+
+    z(n, 1:n-1) = 0.0_rkx
+    z(n, n) = 1.0_rkx
+
+    e(1) = 0.0_rkx
+
+    return
+  end subroutine tred2
+
+  subroutine tred3(n, nv, a, d, e, e2)
 
 !*****************************************************************************80
 !
@@ -16287,116 +16277,116 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
 !    Output, real ( kind = rkx ) E2(N),  the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: n
-  integer ( kind = ik4 ) :: nv
+    integer (kind=ik4) :: n
+    integer (kind=ik4) :: nv
 
-  real    ( kind = rkx ) :: a(nv)
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: f
-  real    ( kind = rkx ) :: g
-  real    ( kind = rkx ) :: h
-  real    ( kind = rkx ) :: hh
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: iz
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jk
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: xscale
+    real (kind=rkx) :: a(nv)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: f
+    real (kind=rkx) :: g
+    real (kind=rkx) :: h
+    real (kind=rkx) :: hh
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: iz
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jk
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: xscale
 
-  do ii = 1, n
+    do ii = 1, n
 
-     i = n + 1 - ii
-     l = i - 1
-     iz = ( i * l ) / 2
-     h = 0.0_rkx
-     xscale = 0.0_rkx
+      i = n + 1 - ii
+      l = i - 1
+      iz = (i*l)/2
+      h = 0.0_rkx
+      xscale = 0.0_rkx
 !
 !  Scale row.
 !
-     do k = 1, l
-       iz = iz + 1
-       d(k) = a(iz)
-       xscale = xscale + abs ( d(k) )
-     end do
+      do k = 1, l
+        iz = iz + 1
+        d(k) = a(iz)
+        xscale = xscale + abs(d(k))
+      end do
 
-     if ( xscale == 0.0_rkx ) then
-       e(i) = 0.0_rkx
-       e2(i) = 0.0_rkx
-       go to 290
-     end if
+      if (xscale==0.0_rkx) then
+        e(i) = 0.0_rkx
+        e2(i) = 0.0_rkx
+        go to 100
+      end if
 
-     do k = 1, l
-       d(k) = d(k) / xscale
-       h = h + d(k)**2
-     end do
+      do k = 1, l
+        d(k) = d(k)/xscale
+        h = h + d(k)**2
+      end do
 
-     e2(i) = xscale * xscale * h
-     f = d(l)
-     g = - sign ( sqrt ( h ), f )
-     e(i) = xscale * g
-     h = h - f * g
-     d(l) = f - g
-     a(iz) = xscale * d(l)
+      e2(i) = xscale*xscale*h
+      f = d(l)
+      g = -sign(sqrt(h), f)
+      e(i) = xscale*g
+      h = h - f*g
+      d(l) = f - g
+      a(iz) = xscale*d(l)
 
-     if ( l == 1 ) go to 290
+      if (l==1) go to 100
 
-     jk = 1
+      jk = 1
 
-     do j = 1, l
+      do j = 1, l
 
         f = d(j)
         g = 0.0_rkx
 
-        do k = 1, j-1
-          g = g + a(jk) * d(k)
-          e(k) = e(k) + a(jk) * f
+        do k = 1, j - 1
+          g = g + a(jk)*d(k)
+          e(k) = e(k) + a(jk)*f
           jk = jk + 1
         end do
 
-        e(j) = g + a(jk) * f
+        e(j) = g + a(jk)*f
         jk = jk + 1
 
-     end do
+      end do
 !
 !  Form P.
 !
-     e(1:l) = e(1:l) / h
-     f = dot_product ( e(1:l), d(1:l) )
-     hh = f / ( h + h )
+      e(1:l) = e(1:l)/h
+      f = dot_product(e(1:l), d(1:l))
+      hh = f/(h+h)
 !
 !  Form Q.
 !
-     e(1:l) = e(1:l) - hh * d(1:l)
-     jk = 1
+      e(1:l) = e(1:l) - hh*d(1:l)
+      jk = 1
 !
 !  Form reduced A.
 !
-     do j = 1, l
-       f = d(j)
-       g = e(j)
-       do k = 1, j
-         a(jk) = a(jk) - f * e(k) - g * d(k)
-         jk = jk + 1
-       end do
-     end do
+      do j = 1, l
+        f = d(j)
+        g = e(j)
+        do k = 1, j
+          a(jk) = a(jk) - f*e(k) - g*d(k)
+          jk = jk + 1
+        end do
+      end do
 
-290  continue
+100   continue
 
-     d(i) = a(iz+1)
-     a(iz+1) = xscale * sqrt ( h )
+      d(i) = a(iz+1)
+      a(iz+1) = xscale*sqrt(h)
 
-  end do
+    end do
 
-  return
-end subroutine tred3
+    return
+  end subroutine tred3
 
-subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
+  subroutine tridib(n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr)
 
 !*****************************************************************************80
 !
@@ -16484,387 +16474,387 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !    3*N+2, if multiple eigenvalues at index M22 make unique selection
 !      impossible.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: eps1
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: ind(m)
-  integer ( kind = ik4 ) :: isturm
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: k
-  integer ( kind = ik4 ) :: l
-  real    ( kind = rkx ) :: lb
-  integer ( kind = ik4 ) :: m1
-  integer ( kind = ik4 ) :: m11
-  integer ( kind = ik4 ) :: m2
-  integer ( kind = ik4 ) :: m22
-  integer ( kind = ik4 ) :: p
-  integer ( kind = ik4 ) :: q
-  integer ( kind = ik4 ) :: r
-  real    ( kind = rkx ) :: rv4(n)
-  real    ( kind = rkx ) :: rv5(n)
-  integer ( kind = ik4 ) :: s
-  real    ( kind = rkx ) :: t1
-  real    ( kind = rkx ) :: t2
-  integer ( kind = ik4 ) :: tag
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: u
-  real    ( kind = rkx ) :: ub
-  real    ( kind = rkx ) :: v
-  real    ( kind = rkx ) :: w(m)
-  real    ( kind = rkx ) :: x0
-  real    ( kind = rkx ) :: x1
-  real    ( kind = rkx ) :: xu
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: eps1
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: ind(m)
+    integer (kind=ik4) :: isturm
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: k
+    integer (kind=ik4) :: l
+    real (kind=rkx) :: lb
+    integer (kind=ik4) :: m1
+    integer (kind=ik4) :: m11
+    integer (kind=ik4) :: m2
+    integer (kind=ik4) :: m22
+    integer (kind=ik4) :: p
+    integer (kind=ik4) :: q
+    integer (kind=ik4) :: r
+    real (kind=rkx) :: rv4(n)
+    real (kind=rkx) :: rv5(n)
+    integer (kind=ik4) :: s
+    real (kind=rkx) :: t1
+    real (kind=rkx) :: t2
+    integer (kind=ik4) :: tag
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: u
+    real (kind=rkx) :: ub
+    real (kind=rkx) :: v
+    real (kind=rkx) :: w(m)
+    real (kind=rkx) :: x0
+    real (kind=rkx) :: x1
+    real (kind=rkx) :: xu
 
-  ierr = 0
-  tag = 0
-  xu = d(1)
-  x0 = d(1)
-  s = 0
-  u = 0.0_rkx
+    ierr = 0
+    tag = 0
+    xu = d(1)
+    x0 = d(1)
+    s = 0
+    u = 0.0_rkx
 !
 !  Look for small sub-diagonal entries and determine an
 !  interval containing all the eigenvalues.
 !
-  do i = 1, n
+    do i = 1, n
 
-     x1 = u
+      x1 = u
 
-     if ( i == n ) then
-       u = 0.0_rkx
-     else
-       u = abs ( e(i+1) )
-     end if
+      if (i==n) then
+        u = 0.0_rkx
+      else
+        u = abs(e(i+1))
+      end if
 
-     xu = min ( xu, d(i)-(x1+u) )
-     x0 = max ( x0, d(i)+(x1+u) )
+      xu = min(xu, d(i)-(x1+u))
+      x0 = max(x0, d(i)+(x1+u))
 
-     if ( i >= 1 ) then
-       tst1 = abs ( d(i) ) + abs ( d(i-1) )
-       tst2 = tst1 + abs ( e(i) )
-       if ( tst2 <= tst1 ) then
-         e2(i) = 0.0_rkx
-       end if
-     else
-       e2(i) = 0.0_rkx
-     end if
+      if (i>=1) then
+        tst1 = abs(d(i)) + abs(d(i-1))
+        tst2 = tst1 + abs(e(i))
+        if (tst2<=tst1) then
+          e2(i) = 0.0_rkx
+        end if
+      else
+        e2(i) = 0.0_rkx
+      end if
 
-  end do
+    end do
 
-  x1 = real(n,rkx)
-  x1 = x1 * max ( abs ( xu ), abs ( x0 ) ) * epsilon ( x1 )
-  xu = xu - x1
-  t1 = xu
-  x0 = x0 + x1
-  t2 = x0
+    x1 = real(n, rkx)
+    x1 = x1*max(abs(xu), abs(x0))*epsilon(x1)
+    xu = xu - x1
+    t1 = xu
+    x0 = x0 + x1
+    t2 = x0
 !
 !  Determine an interval containing exactly the desired eigenvalues.
 !
-  p = 1
-  q = n
-  m1 = m11 - 1
-  if ( m1 == 0 ) go to 75
-  isturm = 1
+    p = 1
+    q = n
+    m1 = m11 - 1
+    if (m1==0) go to 150
+    isturm = 1
 
-50 continue
+100 continue
 
-  v = x1
-  x1 = xu + (x0 - xu) * 0.5_rkx
-  if ( x1 == v ) go to 980
-  go to 320
+    v = x1
+    x1 = xu + (x0-xu)*0.5_rkx
+    if (x1==v) go to 350
+    go to 250
 
-60 continue
+110 continue
 
-  if ( s - m1 < 0 ) then
-    go to 65
-  else if ( s - m1 == 0 ) then
-    go to 73
-  else
-    go to 70
-  end if
+    if (s-m1<0) then
+      go to 120
+    else if (s-m1==0) then
+      go to 140
+    else
+      go to 130
+    end if
 
-65 continue
+120 continue
 
-  xu = x1
-  go to 50
+    xu = x1
+    go to 100
 
-70 continue
+130 continue
 
-  x0 = x1
-  go to 50
+    x0 = x1
+    go to 100
 
-73 continue
+140 continue
 
-  xu = x1
-  t1 = x1
+    xu = x1
+    t1 = x1
 
-75 continue
+150 continue
 
-  m22 = m1 + m
-  if ( m22 == n ) go to 90
-  x0 = t2
-  isturm = 2
-  go to 50
+    m22 = m1 + m
+    if (m22==n) go to 180
+    x0 = t2
+    isturm = 2
+    go to 100
 
-80 continue
+160 continue
 
-  if ( s - m22 < 0 ) then
-    go to 65
-  else if ( s - m22 == 0 ) then
-    go to 85
-  else
-    go to 70
-  end if
+    if (s-m22<0) then
+      go to 120
+    else if (s-m22==0) then
+      go to 170
+    else
+      go to 130
+    end if
 
-85 continue
+170 continue
 
-   t2 = x1
+    t2 = x1
 
-90 continue
+180 continue
 
-  q = 0
-  r = 0
+    q = 0
+    r = 0
 !
 !  Establish and process next submatrix, refining interval by the
 !  Gerschgorin bounds.
 !
-100 continue
+190 continue
 
-  if ( r == m ) then
-    go to 1001
-  end if
+    if (r==m) then
+      go to 360
+    end if
 
-  tag = tag + 1
-  p = q + 1
-  xu = d(p)
-  x0 = d(p)
-  u = 0.0_rkx
-
-  do q = p, n
-
-    x1 = u
+    tag = tag + 1
+    p = q + 1
+    xu = d(p)
+    x0 = d(p)
     u = 0.0_rkx
-    v = 0.0_rkx
 
-    if ( q < n ) then
-      u = abs ( e(q+1) )
-      v = e2(q+1)
-    end if
+    do q = p, n
 
-    xu = min ( d(q)-(x1+u), xu )
-    x0 = max ( d(q)+(x1+u), x0 )
+      x1 = u
+      u = 0.0_rkx
+      v = 0.0_rkx
 
-    if ( v == 0.0_rkx ) then
-      exit
-    end if
+      if (q<n) then
+        u = abs(e(q+1))
+        v = e2(q+1)
+      end if
 
-  end do
+      xu = min(d(q)-(x1+u), xu)
+      x0 = max(d(q)+(x1+u), x0)
 
-  x1 = max ( abs ( xu ), abs ( x0 ) ) * epsilon ( x1 )
-  if ( eps1 <= 0.0_rkx ) eps1 = -x1
-  if ( p /= q ) go to 180
+      if (v==0.0_rkx) then
+        exit
+      end if
+
+    end do
+
+    x1 = max(abs(xu), abs(x0))*epsilon(x1)
+    if (eps1<=0.0_rkx) eps1 = -x1
+    if (p/=q) go to 200
 !
 !  Check for isolated root within interval.
 !
-  if ( t1 > d(p) .or. d(p) >= t2 ) go to 940
-  m1 = p
-  m2 = p
-  rv5(p) = d(p)
-  go to 900
-
-180 continue
-
-  x1 = x1 * (q - p + 1)
-  lb = max ( t1, xu-x1 )
-  ub = min ( t2, x0+x1 )
-  x1 = lb
-  isturm = 3
-  go to 320
+    if (t1>d(p) .or. d(p)>=t2) go to 340
+    m1 = p
+    m2 = p
+    rv5(p) = d(p)
+    go to 300
 
 200 continue
 
-  m1 = s + 1
-  x1 = ub
-  isturm = 4
-  go to 320
+    x1 = x1*(q-p+1)
+    lb = max(t1, xu-x1)
+    ub = min(t2, x0+x1)
+    x1 = lb
+    isturm = 3
+    go to 250
+
+210 continue
+
+    m1 = s + 1
+    x1 = ub
+    isturm = 4
+    go to 250
 
 220 continue
 
-  m2 = s
-  if ( m1 > m2 ) go to 940
+    m2 = s
+    if (m1>m2) go to 340
 !
 !  Find roots by bisection.
 !
-  x0 = ub
-  isturm = 5
+    x0 = ub
+    isturm = 5
 
-  rv5(m1:m2) = ub
-  rv4(m1:m2) = lb
+    rv5(m1:m2) = ub
+    rv4(m1:m2) = lb
 !
 !  Loop for the K-th eigenvalue.
 !
-  k = m2
+    k = m2
 
-250 continue
+230 continue
 
-  xu = lb
+    xu = lb
 
-  do ii = m1, k
+    do ii = m1, k
 
-    i = m1 + k - ii
-    if ( xu < rv4(i) ) then
-      xu = rv4(i)
-      exit
-    end if
+      i = m1 + k - ii
+      if (xu<rv4(i)) then
+        xu = rv4(i)
+        exit
+      end if
 
-  end do
+    end do
 
-  if ( x0 > rv5(k) ) x0 = rv5(k)
+    if (x0>rv5(k)) x0 = rv5(k)
 !
 !  Next bisection step.
 !
-300  continue
+240 continue
 
-     x1 = ( xu + x0 ) * 0.5_rkx
-     if ( ( x0 - xu ) <= abs ( eps1) ) go to 420
-     tst1 = 2.0_rkx * ( abs ( xu ) + abs ( x0 ) )
-     tst2 = tst1 + (x0 - xu)
-     if ( tst2 == tst1 ) go to 420
+    x1 = (xu+x0)*0.5_rkx
+    if ((x0-xu)<=abs(eps1)) go to 290
+    tst1 = 2.0_rkx*(abs(xu)+abs(x0))
+    tst2 = tst1 + (x0-xu)
+    if (tst2==tst1) go to 290
 !
 !  Sturm sequence.
 !
-320  continue
+250 continue
 
-     s = p - 1
-     u = 1.0_rkx
+    s = p - 1
+    u = 1.0_rkx
 
-     do i = p, q
+    do i = p, q
 
-       if ( u == 0.0_rkx ) then
-         v = abs ( e(i) ) / epsilon ( v )
-         if ( e2(i) == 0.0_rkx ) v = 0.0_rkx
-       else
-         v = e2(i) / u
-       end if
+      if (u==0.0_rkx) then
+        v = abs(e(i))/epsilon(v)
+        if (e2(i)==0.0_rkx) v = 0.0_rkx
+      else
+        v = e2(i)/u
+      end if
 
-       u = d(i) - x1 - v
+      u = d(i) - x1 - v
 
-       if ( u < 0.0_rkx ) then
-         s = s + 1
-       end if
+      if (u<0.0_rkx) then
+        s = s + 1
+      end if
 
-     end do
+    end do
 
-     select case (isturm)
-       case (1)
-         go to 60
-       case (2)
-         go to 80
-       case (3)
-         go to 200
-       case (4)
-         go to 220
-       case(5)
-         go to 360
-     end select
+    select case (isturm)
+    case (1)
+      go to 110
+    case (2)
+      go to 160
+    case (3)
+      go to 210
+    case (4)
+      go to 220
+    case (5)
+      go to 260
+    end select
 !
 !  Refine intervals.
 !
-360  continue
+260 continue
 
-     if ( s >= k) go to 400
-     xu = x1
-     if ( s >= m1) go to 380
-     rv4(m1) = x1
-     go to 300
+    if (s>=k) go to 280
+    xu = x1
+    if (s>=m1) go to 270
+    rv4(m1) = x1
+    go to 240
 
-380  continue
+270 continue
 
-     rv4(s+1) = x1
-     if ( rv5(s) > x1) rv5(s) = x1
-     go to 300
+    rv4(s+1) = x1
+    if (rv5(s)>x1) rv5(s) = x1
+    go to 240
 
-400  continue
+280 continue
 
-     x0 = x1
-     go to 300
+    x0 = x1
+    go to 240
 !
 !  K-th eigenvalue found.
 !
-420  continue
+290 continue
 
-  rv5(k) = x1
-  k = k - 1
-  if ( k >= m1 ) go to 250
+    rv5(k) = x1
+    k = k - 1
+    if (k>=m1) go to 230
 !
 !  Order eigenvalues tagged with their submatrix associations.
 !
-900 continue
+300 continue
 
-  s = r
-  r = r + m2 - m1 + 1
-  j = 1
-  k = m1
+    s = r
+    r = r + m2 - m1 + 1
+    j = 1
+    k = m1
 
-  do l = 1, r
+    do l = 1, r
 
-     if ( j > s ) go to 910
-     if ( k > m2 ) go to 940
-     if ( rv5(k) >= w(l) ) go to 915
+      if (j>s) go to 310
+      if (k>m2) go to 340
+      if (rv5(k)>=w(l)) go to 320
 
-     do ii = j, s
-       i = l + s - ii
-       w(i+1) = w(i)
-       ind(i+1) = ind(i)
-     end do
+      do ii = j, s
+        i = l + s - ii
+        w(i+1) = w(i)
+        ind(i+1) = ind(i)
+      end do
 
-910  continue
+310   continue
 
-     w(l) = rv5(k)
-     ind(l) = tag
-     k = k + 1
-     go to 920
+      w(l) = rv5(k)
+      ind(l) = tag
+      k = k + 1
+      go to 330
 
-915  continue
+320   continue
 
-     j = j + 1
+      j = j + 1
 
-920  continue
+330   continue
 
-  end do
+    end do
 
-940 continue
+340 continue
 
-  if ( q < n ) then
-    go to 100
-  end if
+    if (q<n) then
+      go to 190
+    end if
 
-  go to 1001
+    go to 360
 !
 !  Set error: interval cannot be found containing exactly the
 !  desired eigenvalues.
 !
-980 continue
+350 continue
 
-  ierr = 3 * n + isturm
+    ierr = 3*n + isturm
 
-1001 continue
+360 continue
 
-  lb = t1
-  ub = t2
-  return
-end subroutine tridib
+    lb = t1
+    ub = t2
+    return
+  end subroutine tridib
 
-subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
+  subroutine tsturm(n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr)
 
 !*****************************************************************************80
 !
@@ -16953,471 +16943,471 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !    4*N+R, if the eigenvector corresponding to the R-th
 !      eigenvalue fails to converge in 5 iterations.
 !
-  implicit none
+    implicit none
 
-  integer ( kind = ik4 ) :: mm
-  integer ( kind = ik4 ) :: n
+    integer (kind=ik4) :: mm
+    integer (kind=ik4) :: n
 
-  real    ( kind = rkx ) :: d(n)
-  real    ( kind = rkx ) :: e(n)
-  real    ( kind = rkx ) :: e2(n)
-  real    ( kind = rkx ) :: eps1
-  real    ( kind = rkx ) :: eps2
-  real    ( kind = rkx ) :: eps3
-  real    ( kind = rkx ) :: eps4
-  integer ( kind = ik4 ) :: group
-  integer ( kind = ik4 ) :: i
-  integer ( kind = ik4 ) :: ierr
-  integer ( kind = ik4 ) :: ii
-  integer ( kind = ik4 ) :: ip
-  integer ( kind = ik4 ) :: isturm
-  integer ( kind = ik4 ) :: its
-  integer ( kind = ik4 ) :: j
-  integer ( kind = ik4 ) :: jj
-  integer ( kind = ik4 ) :: k
-  real    ( kind = rkx ) :: lb
-  integer ( kind = ik4 ) :: m
-  integer ( kind = ik4 ) :: m1
-  integer ( kind = ik4 ) :: m2
-  real    ( kind = rkx ) :: norm
-  integer ( kind = ik4 ) :: p
-  integer ( kind = ik4 ) :: q
-  integer ( kind = ik4 ) :: r
-  real    ( kind = rkx ) :: rv1(n)
-  real    ( kind = rkx ) :: rv2(n)
-  real    ( kind = rkx ) :: rv3(n)
-  real    ( kind = rkx ) :: rv4(n)
-  real    ( kind = rkx ) :: rv5(n)
-  real    ( kind = rkx ) :: rv6(n)
-  integer ( kind = ik4 ) :: s
-  real    ( kind = rkx ) :: t1
-  real    ( kind = rkx ) :: t2
-  real    ( kind = rkx ) :: tst1
-  real    ( kind = rkx ) :: tst2
-  real    ( kind = rkx ) :: u
-  real    ( kind = rkx ) :: ub
-  real    ( kind = rkx ) :: uk
-  real    ( kind = rkx ) :: v
-  real    ( kind = rkx ) :: w(mm)
-  real    ( kind = rkx ) :: x0
-  real    ( kind = rkx ) :: x1
-  real    ( kind = rkx ) :: xu
-  real    ( kind = rkx ) :: z(n,mm)
+    real (kind=rkx) :: d(n)
+    real (kind=rkx) :: e(n)
+    real (kind=rkx) :: e2(n)
+    real (kind=rkx) :: eps1
+    real (kind=rkx) :: eps2
+    real (kind=rkx) :: eps3
+    real (kind=rkx) :: eps4
+    integer (kind=ik4) :: group
+    integer (kind=ik4) :: i
+    integer (kind=ik4) :: ierr
+    integer (kind=ik4) :: ii
+    integer (kind=ik4) :: ip
+    integer (kind=ik4) :: isturm
+    integer (kind=ik4) :: its
+    integer (kind=ik4) :: j
+    integer (kind=ik4) :: jj
+    integer (kind=ik4) :: k
+    real (kind=rkx) :: lb
+    integer (kind=ik4) :: m
+    integer (kind=ik4) :: m1
+    integer (kind=ik4) :: m2
+    real (kind=rkx) :: norm
+    integer (kind=ik4) :: p
+    integer (kind=ik4) :: q
+    integer (kind=ik4) :: r
+    real (kind=rkx) :: rv1(n)
+    real (kind=rkx) :: rv2(n)
+    real (kind=rkx) :: rv3(n)
+    real (kind=rkx) :: rv4(n)
+    real (kind=rkx) :: rv5(n)
+    real (kind=rkx) :: rv6(n)
+    integer (kind=ik4) :: s
+    real (kind=rkx) :: t1
+    real (kind=rkx) :: t2
+    real (kind=rkx) :: tst1
+    real (kind=rkx) :: tst2
+    real (kind=rkx) :: u
+    real (kind=rkx) :: ub
+    real (kind=rkx) :: uk
+    real (kind=rkx) :: v
+    real (kind=rkx) :: w(mm)
+    real (kind=rkx) :: x0
+    real (kind=rkx) :: x1
+    real (kind=rkx) :: xu
+    real (kind=rkx) :: z(n, mm)
 
-  ierr = 0
-  s = 0
-  t1 = lb
-  t2 = ub
+    ierr = 0
+    s = 0
+    t1 = lb
+    t2 = ub
 !
 !  Look for small sub-diagonal entries.
 !
-  e2(1) = 0.0_rkx
+    e2(1) = 0.0_rkx
 
-  do i = 2, n
+    do i = 2, n
 
-    tst1 = abs ( d(i) ) + abs ( d(i-1) )
-    tst2 = tst1 + abs ( e(i) )
+      tst1 = abs(d(i)) + abs(d(i-1))
+      tst2 = tst1 + abs(e(i))
 
-    if ( tst2 <= tst1 ) then
-      e2(i) = 0.0_rkx
-    end if
+      if (tst2<=tst1) then
+        e2(i) = 0.0_rkx
+      end if
 
-  end do
+    end do
 !
 !  Determine the number of eigenvalues in the interval.
 !
-  p = 1
-  q = n
-  x1 = ub
-  isturm = 1
-  go to 320
+    p = 1
+    q = n
+    x1 = ub
+    isturm = 1
+    go to 180
 
-60 continue
+100 continue
 
-  m = s
-  x1 = lb
-  isturm = 2
-  go to 320
+    m = s
+    x1 = lb
+    isturm = 2
+    go to 180
 
-80 continue
+110 continue
 
-  m = m - s
+    m = m - s
 
-  if ( m > mm ) go to 980
+    if (m>mm) go to 300
 
-  q = 0
-  r = 0
+    q = 0
+    r = 0
 !
 !  Establish and process next submatrix, refining interval by the
 !  Gerschgorin bounds.
 !
-100 continue
+120 continue
 
-  if ( r == m ) go to 1001
+    if (r==m) go to 310
 
-  p = q + 1
-  xu = d(p)
-  x0 = d(p)
-  u = 0.0_rkx
+    p = q + 1
+    xu = d(p)
+    x0 = d(p)
+    u = 0.0_rkx
 
-  do q = p, n
+    do q = p, n
 
-     x1 = u
-     u = 0.0_rkx
-     v = 0.0_rkx
+      x1 = u
+      u = 0.0_rkx
+      v = 0.0_rkx
 
-     if ( q /= n ) then
-       u = abs ( e(q+1) )
-       v = e2(q+1)
-     end if
+      if (q/=n) then
+        u = abs(e(q+1))
+        v = e2(q+1)
+      end if
 
-     xu = min ( d(q)-(x1+u), xu )
-     x0 = max ( d(q)+(x1+u), x0 )
+      xu = min(d(q)-(x1+u), xu)
+      x0 = max(d(q)+(x1+u), x0)
 
-     if ( v == 0.0_rkx ) then
-       exit
-     end if
+      if (v==0.0_rkx) then
+        exit
+      end if
 
-  end do
+    end do
 
-  x1 = max ( abs ( xu ), abs ( x0 ) ) * epsilon ( x1 )
+    x1 = max(abs(xu), abs(x0))*epsilon(x1)
 
-  if ( eps1 <= 0.0_rkx ) then
-    eps1 = -x1
-  end if
+    if (eps1<=0.0_rkx) then
+      eps1 = -x1
+    end if
 
-  if ( p /= q ) go to 180
+    if (p/=q) go to 130
 !
 !  Check for isolated root within interval.
 !
-  if ( t1 > d(p) .or. d(p) >= t2 ) go to 940
+    if (t1>d(p) .or. d(p)>=t2) go to 290
 
-  r = r + 1
+    r = r + 1
 
-  z(1:n,r) = 0.0_rkx
+    z(1:n, r) = 0.0_rkx
 
-  w(r) = d(p)
-  z(p,r) = 1.0_rkx
-  go to 940
+    w(r) = d(p)
+    z(p, r) = 1.0_rkx
+    go to 290
 
-180 continue
+130 continue
 
-  u = real(q - p + 1,rkx)
-  x1 = u * x1
-  lb = max ( t1, xu-x1 )
-  ub = min ( t2, x0+x1 )
-  x1 = lb
-  isturm = 3
-  go to 320
+    u = real(q-p+1, rkx)
+    x1 = u*x1
+    lb = max(t1, xu-x1)
+    ub = min(t2, x0+x1)
+    x1 = lb
+    isturm = 3
+    go to 180
 
-200 continue
+140 continue
 
-  m1 = s + 1
-  x1 = ub
-  isturm = 4
-  go to 320
+    m1 = s + 1
+    x1 = ub
+    isturm = 4
+    go to 180
 
-220 continue
+150 continue
 
-  m2 = s
-  if ( m1 > m2 ) go to 940
+    m2 = s
+    if (m1>m2) go to 290
 !
 !  Find roots by bisection.
 !
-  x0 = ub
-  isturm = 5
+    x0 = ub
+    isturm = 5
 
-  rv5(m1:m2) = ub
-  rv4(m1:m2) = lb
+    rv5(m1:m2) = ub
+    rv4(m1:m2) = lb
 !
 !  Loop for K-th eigenvalue.
 !
-  k = m2
+    k = m2
 
-250 continue
+160 continue
 
-  xu = lb
+    xu = lb
 
-  do ii = m1, k
+    do ii = m1, k
 
-    i = m1 + k - ii
+      i = m1 + k - ii
 
-    if ( xu < rv4(i) ) then
-      xu = rv4(i)
-      exit
-    end if
+      if (xu<rv4(i)) then
+        xu = rv4(i)
+        exit
+      end if
 
-  end do
+    end do
 
-  if ( x0 > rv5(k) ) x0 = rv5(k)
+    if (x0>rv5(k)) x0 = rv5(k)
 !
 !  Next bisection step.
 !
-300 continue
+170 continue
 
-     x1 = ( xu + x0 ) * 0.5_rkx
-     if ( ( x0 - xu ) <= abs ( eps1 ) ) go to 420
-     tst1 = 2.0_rkx * ( abs ( xu ) + abs ( x0 ) )
-     tst2 = tst1 + (x0 - xu)
-     if ( tst2 == tst1 ) go to 420
+    x1 = (xu+x0)*0.5_rkx
+    if ((x0-xu)<=abs(eps1)) go to 240
+    tst1 = 2.0_rkx*(abs(xu)+abs(x0))
+    tst2 = tst1 + (x0-xu)
+    if (tst2==tst1) go to 240
 !
 !  Sturm sequence.
 !
-320  continue
+180 continue
 
-     s = p - 1
-     u = 1.0_rkx
+    s = p - 1
+    u = 1.0_rkx
 
-     do i = p, q
+    do i = p, q
 
-        if ( u /= 0.0_rkx ) go to 325
-        v = abs ( e(i) ) / epsilon ( v )
-        if ( e2(i) == 0.0_rkx ) v = 0.0_rkx
-        go to 330
+      if (u/=0.0_rkx) go to 190
+      v = abs(e(i))/epsilon(v)
+      if (e2(i)==0.0_rkx) v = 0.0_rkx
+      go to 200
 
-325     continue
+190   continue
 
-        v = e2(i) / u
-330     continue
+      v = e2(i)/u
+200   continue
 
-        u = d(i) - x1 - v
-        if ( u < 0.0_rkx ) s = s + 1
+      u = d(i) - x1 - v
+      if (u<0.0_rkx) s = s + 1
 
-     end do
+    end do
 
-     select case (isturm)
-       case (1)
-         go to 60
-       case (2)
-         go to 80
-       case (3)
-         go to 200
-       case (4)
-         go to 220
-       case(5)
-         go to 360
-     end select
+    select case (isturm)
+    case (1)
+      go to 100
+    case (2)
+      go to 110
+    case (3)
+      go to 140
+    case (4)
+      go to 150
+    case (5)
+      go to 210
+    end select
 !
 !  Refine intervals.
 !
-360  continue
+210 continue
 
-     if ( s >= k ) go to 400
-     xu = x1
-     if ( s >= m1 ) go to 380
-     rv4(m1) = x1
-     go to 300
+    if (s>=k) go to 230
+    xu = x1
+    if (s>=m1) go to 220
+    rv4(m1) = x1
+    go to 170
 
-380  continue
+220 continue
 
-     rv4(s+1) = x1
-     if ( rv5(s) > x1 ) then
-       rv5(s) = x1
-     end if
-     go to 300
+    rv4(s+1) = x1
+    if (rv5(s)>x1) then
+      rv5(s) = x1
+    end if
+    go to 170
 
-400  continue
+230 continue
 
-     x0 = x1
-     go to 300
+    x0 = x1
+    go to 170
 !
 !  K-th eigenvalue found.
 !
-420  continue
+240 continue
 
-  rv5(k) = x1
-  k = k - 1
-  if ( k >= m1 ) go to 250
+    rv5(k) = x1
+    k = k - 1
+    if (k>=m1) go to 160
 !
 !  Find vectors by inverse iteration.
 !
-  norm = abs ( d(p) )
-  ip = p + 1
+    norm = abs(d(p))
+    ip = p + 1
 
-  do i = ip, q
-    norm = max ( norm, abs ( d(i) ) + abs ( e(i) ) )
-  end do
+    do i = ip, q
+      norm = max(norm, abs(d(i))+abs(e(i)))
+    end do
 !
 !  EPS2 is the criterion for grouping,
 !  EPS3 replaces zero pivots and equal roots are modified by eps3,
 !  EPS4 is taken very small to avoid overflow.
 !
-  eps2 = 0.001_rkx * norm
-  eps3 = abs ( norm ) * epsilon ( eps3 )
-  uk = real(q - p + 1,rkx)
-  eps4 = uk * eps3
-  uk = eps4 / sqrt ( uk )
-  group = 0
-  s = p
+    eps2 = 0.001_rkx*norm
+    eps3 = abs(norm)*epsilon(eps3)
+    uk = real(q-p+1, rkx)
+    eps4 = uk*eps3
+    uk = eps4/sqrt(uk)
+    group = 0
+    s = p
 
-  do k = m1, m2
+    do k = m1, m2
 
-     r = r + 1
-     its = 1
-     w(r) = rv5(k)
-     x1 = rv5(k)
+      r = r + 1
+      its = 1
+      w(r) = rv5(k)
+      x1 = rv5(k)
 !
 !  Look for close or coincident roots.
 !
-     if ( k /= m1 ) then
-       if ( x1 - x0 >= eps2 ) group = -1
-       group = group + 1
-       if ( x1 <= x0 ) then
-         x1 = x0 + eps3
-       end if
-     end if
+      if (k/=m1) then
+        if (x1-x0>=eps2) group = -1
+        group = group + 1
+        if (x1<=x0) then
+          x1 = x0 + eps3
+        end if
+      end if
 !
 !  Elimination with interchanges and initialization of vector.
 !
-     v = 0.0_rkx
+      v = 0.0_rkx
 
-     do i = p, q
+      do i = p, q
 
         rv6(i) = uk
 
-        if ( i == p ) go to 560
+        if (i==p) go to 250
 
-        if ( abs ( e(i) ) >= abs ( u ) ) then
-          xu = u / e(i)
+        if (abs(e(i))>=abs(u)) then
+          xu = u/e(i)
           rv4(i) = xu
           rv1(i-1) = e(i)
           rv2(i-1) = d(i) - x1
           rv3(i-1) = 0.0_rkx
-          if ( i /= q ) rv3(i-1) = e(i+1)
-          u = v - xu * rv2(i-1)
-          v = -xu * rv3(i-1)
+          if (i/=q) rv3(i-1) = e(i+1)
+          u = v - xu*rv2(i-1)
+          v = -xu*rv3(i-1)
           cycle
         end if
 
-        xu = e(i) / u
+        xu = e(i)/u
         rv4(i) = xu
         rv1(i-1) = u
         rv2(i-1) = v
         rv3(i-1) = 0.0_rkx
 
-560     continue
+250     continue
 
-        u = d(i) - x1 - xu * v
+        u = d(i) - x1 - xu*v
 
-        if ( i /= q ) then
+        if (i/=q) then
           v = e(i+1)
         end if
 
-     end do
+      end do
 
-     if ( u == 0.0_rkx ) u = eps3
-     rv1(q) = u
-     rv2(q) = 0.0_rkx
-     rv3(q) = 0.0_rkx
+      if (u==0.0_rkx) u = eps3
+      rv1(q) = u
+      rv2(q) = 0.0_rkx
+      rv3(q) = 0.0_rkx
 !
 !  Back substitution.
 !
-600  continue
+260   continue
 
-     do ii = p, q
+      do ii = p, q
         i = p + q - ii
-        rv6(i) = ( rv6(i) - u * rv2(i) - v * rv3(i) ) / rv1(i)
+        rv6(i) = (rv6(i)-u*rv2(i)-v*rv3(i))/rv1(i)
         v = u
         u = rv6(i)
-     end do
+      end do
 !
 !  Orthogonalize with respect to previous members of group.
 !
-     do jj = 1, group
+      do jj = 1, group
         j = r - group - 1 + jj
-        xu = dot_product ( rv6(p:q), z(p:q,j) )
-        rv6(p:q) = rv6(p:q) - xu * z(p:q,j)
-     end do
+        xu = dot_product(rv6(p:q), z(p:q,j))
+        rv6(p:q) = rv6(p:q) - xu*z(p:q, j)
+      end do
 
-     norm = sum ( abs ( rv6(p:q) ) )
+      norm = sum(abs(rv6(p:q)))
 
-     if ( norm >= 1.0_rkx ) then
-       go to 840
-     end if
+      if (norm>=1.0_rkx) then
+        go to 280
+      end if
 !
 !  Forward substitution.
 !
-     if ( its == 5 ) then
-       ierr = 4 * n + r
-       go to 1001
-     end if
+      if (its==5) then
+        ierr = 4*n + r
+        go to 310
+      end if
 
-     if ( norm == 0.0_rkx ) then
-       rv6(s) = eps4
-       s = s + 1
-       if ( s > q ) then
-         s = p
-       end if
-       go to 780
-     end if
+      if (norm==0.0_rkx) then
+        rv6(s) = eps4
+        s = s + 1
+        if (s>q) then
+          s = p
+        end if
+        go to 270
+      end if
 
-    xu = eps4 / norm
+      xu = eps4/norm
 
-     rv6(p:q) = rv6(p:q) * xu
+      rv6(p:q) = rv6(p:q)*xu
 !
 !  Elimination operations on next vector iterate.
 !
-780    continue
+270   continue
 !
 !  If rv1(i-1) == e(i), a row interchange was performed earlier in the
 !  triangularization process.
 !
-     do i = p, q
+      do i = p, q
 
-       u = rv6(i)
+        u = rv6(i)
 
-       if ( rv1(i-1) == e(i) ) then
-         u = rv6(i-1)
-         rv6(i-1) = rv6(i)
-       end if
+        if (rv1(i-1)==e(i)) then
+          u = rv6(i-1)
+          rv6(i-1) = rv6(i)
+        end if
 
-       rv6(i) = u - rv4(i) * rv6(i-1)
+        rv6(i) = u - rv4(i)*rv6(i-1)
 
-     end do
+      end do
 
-     its = its + 1
-     go to 600
+      its = its + 1
+      go to 260
 !
 !  Normalize so that sum of squares is 1 and expand to full order.
 !
-840  continue
+280   continue
 
-     u = 0.0_rkx
+      u = 0.0_rkx
 
-     do i = p, q
-       u = pythag ( u, rv6(i) )
-     end do
+      do i = p, q
+        u = pythag(u, rv6(i))
+      end do
 
-     xu = 1.0_rkx / u
+      xu = 1.0_rkx/u
 
-     z(1:n,r) = 0.0_rkx
-     z(p:q,r) = rv6(p:q) * xu
+      z(1:n, r) = 0.0_rkx
+      z(p:q, r) = rv6(p:q)*xu
 
-     x0 = x1
+      x0 = x1
 
-  end do
+    end do
 
-940 continue
+290 continue
 
-  if ( q < n ) then
-    go to 100
-  end if
+    if (q<n) then
+      go to 120
+    end if
 
-  go to 1001
+    go to 310
 !
 !  Set error: underestimate of number of eigenvalues in interval.
 !
-980 continue
+300 continue
 
-  ierr = 3 * n + 1
+    ierr = 3*n + 1
 
-1001 continue
+310 continue
 
-  lb = t1
-  ub = t2
+    lb = t1
+    ub = t2
 
-  return
-end subroutine tsturm
+    return
+  end subroutine tsturm
 
 end module eispack
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -15,7 +15,7 @@
 
 module lapack_dgbsv
 
-  use mod_realkinds, only : rk8
+  use mod_realkinds, only: rk8
 
   implicit none
 
@@ -23,7 +23,7 @@ module lapack_dgbsv
 
   public :: dgbsv
 
-  contains
+contains
 
 !> \brief <b> DGBSV computes the solution to system of linear equations A * X = B for GB matrices</b> (simple driver)
 !
@@ -187,8 +187,8 @@ module lapack_dgbsv
 !> \endverbatim
 !>
 !  =====================================================================
-    SUBROUTINE DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
-      IMPLICIT NONE
+  subroutine dgbsv(n, kl, ku, nrhs, ab, ldab, ipiv, b, ldb, info)
+    implicit none
 !
 !  -- LAPACK driver routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -196,56 +196,56 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      INTEGER            :: INFO, KL, KU, LDAB, LDB, N, NRHS
+    integer :: info, kl, ku, ldab, ldb, n, nrhs
 !     ..
 !     .. Array Arguments ..
-      INTEGER            :: IPIV( * )
-      real(rk8)   :: AB( LDAB, * ), B( LDB, * )
+    integer :: ipiv(*)
+    real (rk8) :: ab(ldab, *), b(ldb, *)
 !     ..
 !
 !  =====================================================================
 !
 !     .. Intrinsic Functions ..
-      INTRINSIC          MAX
+    intrinsic :: max
 !     ..
 !     .. Executable Statements ..
 !
 !     Test the input parameters.
 !
-      INFO = 0
-      IF( N<0 ) THEN
-         INFO = -1
-      ELSE IF( KL<0 ) THEN
-         INFO = -2
-      ELSE IF( KU<0 ) THEN
-         INFO = -3
-      ELSE IF( NRHS<0 ) THEN
-         INFO = -4
-      ELSE IF( LDAB<2*KL+KU+1 ) THEN
-         INFO = -6
-      ELSE IF( LDB<MAX( N, 1 ) ) THEN
-         INFO = -9
-      END IF
-      IF( INFO/=0 ) THEN
-         CALL XERBLA( 'DGBSV ', -INFO )
-         RETURN
-      END IF
+    info = 0
+    if (n<0) then
+      info = -1
+    else if (kl<0) then
+      info = -2
+    else if (ku<0) then
+      info = -3
+    else if (nrhs<0) then
+      info = -4
+    else if (ldab<2*kl+ku+1) then
+      info = -6
+    else if (ldb<max(n,1)) then
+      info = -9
+    end if
+    if (info/=0) then
+      call xerbla('DGBSV ', -info)
+      return
+    end if
 !
 !     Compute the LU factorization of the band matrix A.
 !
-      CALL DGBTRF( N, N, KL, KU, AB, LDAB, IPIV, INFO )
-      IF( INFO==0 ) THEN
+    call dgbtrf(n, n, kl, ku, ab, ldab, ipiv, info)
+    if (info==0) then
 !
 !        Solve the system A*X = B, overwriting B with X.
 !
-         CALL DGBTRS( 'No transpose', N, KL, KU, NRHS, AB, LDAB, IPIV, &
-                      B, LDB, INFO )
-      END IF
-      RETURN
+      call dgbtrs('No transpose', n, kl, ku, nrhs, ab, ldab, ipiv, b, ldb, &
+        info)
+    end if
+    return
 !
 !     End of DGBSV
 !
-    END SUBROUTINE DGBSV
+  end subroutine dgbsv
 
 !> \brief \b DGBTF2 computes the LU factorization of a general band matrix using the unblocked version of the algorithm.
 !
@@ -392,8 +392,8 @@ module lapack_dgbsv
 !> \endverbatim
 !>
 !  =====================================================================
-    SUBROUTINE DGBTF2( M, N, KL, KU, AB, LDAB, IPIV, INFO )
-      IMPLICIT NONE
+  subroutine dgbtf2(m, n, kl, ku, ab, ldab, ipiv, info)
+    implicit none
 !
 !  -- LAPACK computational routine (version 3.4.2) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -401,123 +401,117 @@ module lapack_dgbsv
 !     September 2012
 !
 !     .. Scalar Arguments ..
-      INTEGER            :: INFO, KL, KU, LDAB, M, N
+    integer :: info, kl, ku, ldab, m, n
 !     ..
 !     .. Array Arguments ..
-      INTEGER            :: IPIV( * )
-      real(rk8)   :: AB( LDAB, * )
+    integer :: ipiv(*)
+    real (rk8) :: ab(ldab, *)
 !     ..
 !
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8)   :: ONE, ZERO
-      PARAMETER          ( ONE = 1.0_rk8, ZERO = 0.0_rk8 )
+    real (rk8) :: one, zero
+    parameter (one=1.0_rk8, zero=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      INTEGER            :: I, J, JP, JU, KM, KV
+    integer :: i, j, jp, ju, km, kv
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+    intrinsic :: max, min
 !     ..
 !     .. Executable Statements ..
 !
 !     KV is the number of superdiagonals in the factor U, allowing for
 !     fill-in.
 !
-      KV = KU + KL
+    kv = ku + kl
 !
 !     Test the input parameters.
 !
-      INFO = 0
-      IF( M<0 ) THEN
-         INFO = -1
-      ELSE IF( N<0 ) THEN
-         INFO = -2
-      ELSE IF( KL<0 ) THEN
-         INFO = -3
-      ELSE IF( KU<0 ) THEN
-         INFO = -4
-      ELSE IF( LDAB<KL+KV+1 ) THEN
-         INFO = -6
-      END IF
-      IF( INFO/=0 ) THEN
-         CALL XERBLA( 'DGBTF2', -INFO )
-         RETURN
-      END IF
+    info = 0
+    if (m<0) then
+      info = -1
+    else if (n<0) then
+      info = -2
+    else if (kl<0) then
+      info = -3
+    else if (ku<0) then
+      info = -4
+    else if (ldab<kl+kv+1) then
+      info = -6
+    end if
+    if (info/=0) then
+      call xerbla('DGBTF2', -info)
+      return
+    end if
 !
 !     Quick return if possible
 !
-      IF( M==0 .OR. N==0 ) &
-         RETURN
+    if (m==0 .or. n==0) return
 !
 !     Gaussian elimination with partial pivoting
 !
 !     Set fill-in elements in columns KU+2 to KV to zero.
 !
-      DO 20 J = KU + 2, MIN( KV, N )
-         DO 10 I = KV - J + 2, KL
-            AB( I, J ) = ZERO
-   10    CONTINUE
-   20 CONTINUE
+    do j = ku + 2, min(kv, n)
+      do i = kv - j + 2, kl
+        ab(i, j) = zero
+      end do
+    end do
 !
 !     JU is the index of the last column affected by the current stage
 !     of the factorization.
 !
-      JU = 1
+    ju = 1
 !
-      DO 40 J = 1, MIN( M, N )
+    do j = 1, min(m, n)
 !
 !        Set fill-in elements in column J+KV to zero.
 !
-         IF( J+KV<=N ) THEN
-            DO 30 I = 1, KL
-               AB( I, J+KV ) = ZERO
-   30       CONTINUE
-         END IF
+      if (j+kv<=n) then
+        do i = 1, kl
+          ab(i, j+kv) = zero
+        end do
+      end if
 !
 !        Find pivot and test for singularity. KM is the number of
 !        subdiagonal elements in the current column.
 !
-         KM = MIN( KL, M-J )
-         JP = IDAMAX( KM+1, AB( KV+1, J ), 1 )
-         IPIV( J ) = JP + J - 1
-         IF( AB( KV+JP, J )/=ZERO ) THEN
-            JU = MAX( JU, MIN( J+KU+JP-1, N ) )
+      km = min(kl, m-j)
+      jp = idamax(km+1, ab(kv+1,j), 1)
+      ipiv(j) = jp + j - 1
+      if (ab(kv+jp,j)/=zero) then
+        ju = max(ju, min(j+ku+jp-1,n))
 !
 !           Apply interchange to columns J to JU.
 !
-            IF( JP/=1 ) &
-               CALL DSWAP( JU-J+1, AB( KV+JP, J ), LDAB-1, &
-                           AB( KV+1, J ), LDAB-1 )
+        if (jp/=1) call dswap(ju-j+1, ab(kv+jp,j), ldab-1, ab(kv+1,j), ldab-1)
 !
-            IF( KM>0 ) THEN
+        if (km>0) then
 !
 !              Compute multipliers.
 !
-               CALL DSCAL( KM, ONE / AB( KV+1, J ), AB( KV+2, J ), 1 )
+          call dscal(km, one/ab(kv+1,j), ab(kv+2,j), 1)
 !
 !              Update trailing submatrix within the band.
 !
-               IF( JU>J )                                         &
-                  CALL DGER( KM, JU-J, -ONE, AB( KV+2, J ), 1,       &
-                             AB( KV, J+1 ), LDAB-1, AB( KV+1, J+1 ), &
-                             LDAB-1 )
-            END IF
-         ELSE
+          if (ju>j) call dger(km, ju-j, -one, ab(kv+2,j), 1, ab(kv,j+1), &
+            ldab-1, ab(kv+1,j+1), ldab-1)
+        end if
+      else
 !
 !           If pivot is zero, set INFO to the index of the pivot
 !           unless a zero pivot has already been found.
 !
-            IF( INFO==0 ) &
-               INFO = J
-         END IF
-   40 CONTINUE
-      RETURN
+        if (info==0) info = j
+      end if
+    end do
+    return
 !
 !     End of DGBTF2
 !
-    END SUBROUTINE DGBTF2
+  end subroutine dgbtf2
 !> \brief \b DGBTRF
 !
 !  =========== DOCUMENTATION ===========
@@ -662,8 +656,8 @@ module lapack_dgbsv
 !> \endverbatim
 !>
 !  =====================================================================
-    SUBROUTINE DGBTRF( M, N, KL, KU, AB, LDAB, IPIV, INFO )
-      IMPLICIT NONE
+  subroutine dgbtrf(m, n, kl, ku, ab, ldab, ipiv, info)
+    implicit none
 !
 !  -- LAPACK computational routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -671,115 +665,113 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      INTEGER            :: INFO, KL, KU, LDAB, M, N
+    integer :: info, kl, ku, ldab, m, n
 !     ..
 !     .. Array Arguments ..
-      INTEGER            :: IPIV( * )
-      real(rk8)   :: AB( LDAB, * )
+    integer :: ipiv(*)
+    real (rk8) :: ab(ldab, *)
 !     ..
 !
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8)   :: ONE, ZERO
-      PARAMETER          ( ONE = 1.0_rk8, ZERO = 0.0_rk8 )
-      INTEGER            :: NBMAX, LDWORK
-      PARAMETER          ( NBMAX = 64, LDWORK = NBMAX+1 )
+    real (rk8) :: one, zero
+    parameter (one=1.0_rk8, zero=0.0_rk8)
+    integer :: nbmax, ldwork
+    parameter (nbmax=64, ldwork=nbmax+1)
 !     ..
 !     .. Local Scalars ..
-      INTEGER            :: I, I2, I3, II, IP, J, J2, J3, JB, JJ, JM, JP, &
-                         JU, K2, KM, KV, NB, NW
-      real(rk8)   :: TEMP
+    integer :: i, i2, i3, ii, ip, j, j2, j3, jb, jj, jm, jp, ju, k2, km, kv, &
+      nb, nw
+    real (rk8) :: temp
 !     ..
 !     .. Local Arrays ..
-      real(rk8)   :: WORK13( LDWORK, NBMAX ), &
-                         WORK31( LDWORK, NBMAX )
+    real (rk8) :: work13(ldwork, nbmax), work31(ldwork, nbmax)
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+    intrinsic :: max, min
 !     ..
 !     .. Executable Statements ..
 !
 !     KV is the number of superdiagonals in the factor U, allowing for
 !     fill-in
 !
-      KV = KU + KL
+    kv = ku + kl
 !
 !     Test the input parameters.
 !
-      INFO = 0
-      IF( M<0 ) THEN
-         INFO = -1
-      ELSE IF( N<0 ) THEN
-         INFO = -2
-      ELSE IF( KL<0 ) THEN
-         INFO = -3
-      ELSE IF( KU<0 ) THEN
-         INFO = -4
-      ELSE IF( LDAB<KL+KV+1 ) THEN
-         INFO = -6
-      END IF
-      IF( INFO/=0 ) THEN
-         CALL XERBLA( 'DGBTRF', -INFO )
-         RETURN
-      END IF
+    info = 0
+    if (m<0) then
+      info = -1
+    else if (n<0) then
+      info = -2
+    else if (kl<0) then
+      info = -3
+    else if (ku<0) then
+      info = -4
+    else if (ldab<kl+kv+1) then
+      info = -6
+    end if
+    if (info/=0) then
+      call xerbla('DGBTRF', -info)
+      return
+    end if
 !
 !     Quick return if possible
 !
-      IF( M==0 .OR. N==0 ) &
-         RETURN
+    if (m==0 .or. n==0) return
 !
 !     Determine the block size for this environment
 !
-      NB = ILAENV( 1, 'DGBTRF', M, N, KL, KU )
+    nb = ilaenv(1, 'DGBTRF', m, n, kl, ku)
 !
 !     The block size must not exceed the limit set by the size of the
 !     local arrays WORK13 and WORK31.
 !
-      NB = MIN( NB, NBMAX )
+    nb = min(nb, nbmax)
 !
-      IF( NB<=1 .OR. NB>KL ) THEN
+    if (nb<=1 .or. nb>kl) then
 !
 !        Use unblocked code
 !
-         CALL DGBTF2( M, N, KL, KU, AB, LDAB, IPIV, INFO )
-      ELSE
+      call dgbtf2(m, n, kl, ku, ab, ldab, ipiv, info)
+    else
 !
 !        Use blocked code
 !
 !        Zero the superdiagonal elements of the work array WORK13
 !
-         DO 20 J = 1, NB
-            DO 10 I = 1, J - 1
-               WORK13( I, J ) = ZERO
-   10       CONTINUE
-   20    CONTINUE
+      do j = 1, nb
+        do i = 1, j - 1
+          work13(i, j) = zero
+        end do
+      end do
 !
 !        Zero the subdiagonal elements of the work array WORK31
 !
-         DO 40 J = 1, NB
-            DO 30 I = J + 1, NB
-               WORK31( I, J ) = ZERO
-   30       CONTINUE
-   40    CONTINUE
+      do j = 1, nb
+        do i = j + 1, nb
+          work31(i, j) = zero
+        end do
+      end do
 !
 !        Gaussian elimination with partial pivoting
 !
 !        Set fill-in elements in columns KU+2 to KV to zero
 !
-         DO 60 J = KU + 2, MIN( KV, N )
-            DO 50 I = KV - J + 2, KL
-               AB( I, J ) = ZERO
-   50       CONTINUE
-   60    CONTINUE
+      do j = ku + 2, min(kv, n)
+        do i = kv - j + 2, kl
+          ab(i, j) = zero
+        end do
+      end do
 !
 !        JU is the index of the last column affected by the current
 !        stage of the factorization
 !
-         JU = 1
+      ju = 1
 !
-         DO 180 J = 1, MIN( M, N ), NB
-            JB = MIN( NB, MIN( M, N )-J+1 )
+      do j = 1, min(m, n), nb
+        jb = min(nb, min(m,n)-j+1)
 !
 !           The active part of the matrix is partitioned
 !
@@ -793,240 +785,226 @@ module lapack_dgbsv
 !           of columns are JB, J2, J3. The superdiagonal elements of A13
 !           and the subdiagonal elements of A31 lie outside the band.
 !
-            I2 = MIN( KL-JB, M-J-JB+1 )
-            I3 = MIN( JB, M-J-KL+1 )
+        i2 = min(kl-jb, m-j-jb+1)
+        i3 = min(jb, m-j-kl+1)
 !
 !           J2 and J3 are computed after JU has been updated.
 !
 !           Factorize the current block of JB columns
 !
-            DO 80 JJ = J, J + JB - 1
+        do jj = j, j + jb - 1
 !
 !              Set fill-in elements in column JJ+KV to zero
 !
-               IF( JJ+KV<=N ) THEN
-                  DO 70 I = 1, KL
-                     AB( I, JJ+KV ) = ZERO
-   70             CONTINUE
-               END IF
+          if (jj+kv<=n) then
+            do i = 1, kl
+              ab(i, jj+kv) = zero
+            end do
+          end if
 !
 !              Find pivot and test for singularity. KM is the number of
 !              subdiagonal elements in the current column.
 !
-               KM = MIN( KL, M-JJ )
-               JP = IDAMAX( KM+1, AB( KV+1, JJ ), 1 )
-               IPIV( JJ ) = JP + JJ - J
-               IF( AB( KV+JP, JJ )/=ZERO ) THEN
-                  JU = MAX( JU, MIN( JJ+KU+JP-1, N ) )
-                  IF( JP/=1 ) THEN
+          km = min(kl, m-jj)
+          jp = idamax(km+1, ab(kv+1,jj), 1)
+          ipiv(jj) = jp + jj - j
+          if (ab(kv+jp,jj)/=zero) then
+            ju = max(ju, min(jj+ku+jp-1,n))
+            if (jp/=1) then
 !
 !                    Apply interchange to columns J to J+JB-1
 !
-                     IF( JP+JJ-1<J+KL ) THEN
+              if (jp+jj-1<j+kl) then
 !
-                        CALL DSWAP( JB, AB( KV+1+JJ-J, J ), LDAB-1, &
-                                    AB( KV+JP+JJ-J, J ), LDAB-1 )
-                     ELSE
+                call dswap(jb, ab(kv+1+jj-j,j), ldab-1, ab(kv+jp+jj-j,j), &
+                  ldab-1)
+              else
 !
 !                       The interchange affects columns J to JJ-1 of A31
 !                       which are stored in the work array WORK31
 !
-                        CALL DSWAP( JJ-J, AB( KV+1+JJ-J, J ), LDAB-1, &
-                                    WORK31( JP+JJ-J-KL, 1 ), LDWORK )
-                        CALL DSWAP( J+JB-JJ, AB( KV+1, JJ ), LDAB-1,  &
-                                    AB( KV+JP, JJ ), LDAB-1 )
-                     END IF
-                  END IF
+                call dswap(jj-j, ab(kv+1+jj-j,j), ldab-1, &
+                  work31(jp+jj-j-kl,1), ldwork)
+                call dswap(j+jb-jj, ab(kv+1,jj), ldab-1, ab(kv+jp,jj), ldab-1)
+              end if
+            end if
 !
 !                 Compute multipliers
 !
-                  CALL DSCAL( KM, ONE / AB( KV+1, JJ ), AB( KV+2, JJ ), &
-                              1 )
+            call dscal(km, one/ab(kv+1,jj), ab(kv+2,jj), 1)
 !
 !                 Update trailing submatrix within the band and within
 !                 the current block. JM is the index of the last column
 !                 which needs to be updated.
 !
-                  JM = MIN( JU, J+JB-1 )
-                  IF( JM>JJ ) &
-                     CALL DGER( KM, JM-JJ, -ONE, AB( KV+2, JJ ), 1, &
-                                AB( KV, JJ+1 ), LDAB-1,             &
-                                AB( KV+1, JJ+1 ), LDAB-1 )
-               ELSE
+            jm = min(ju, j+jb-1)
+            if (jm>jj) call dger(km, jm-jj, -one, ab(kv+2,jj), 1, ab(kv,jj+1), &
+              ldab-1, ab(kv+1,jj+1), ldab-1)
+          else
 !
 !                 If pivot is zero, set INFO to the index of the pivot
 !                 unless a zero pivot has already been found.
 !
-                  IF( INFO==0 ) &
-                     INFO = JJ
-               END IF
+            if (info==0) info = jj
+          end if
 !
 !              Copy current column of A31 into the work array WORK31
 !
-               NW = MIN( JJ-J+1, I3 )
-               IF( NW>0 ) &
-                  CALL DCOPY( NW, AB( KV+KL+1-JJ+J, JJ ), 1, &
-                              WORK31( 1, JJ-J+1 ), 1 )
-   80       CONTINUE
-            IF( J+JB<=N ) THEN
+          nw = min(jj-j+1, i3)
+          if (nw>0) call dcopy(nw, ab(kv+kl+1-jj+j,jj), 1, work31(1,jj-j+1), &
+            1)
+        end do
+        if (j+jb<=n) then
 !
 !              Apply the row interchanges to the other blocks.
 !
-               J2 = MIN( JU-J+1, KV ) - JB
-               J3 = MAX( 0, JU-J-KV+1 )
+          j2 = min(ju-j+1, kv) - jb
+          j3 = max(0, ju-j-kv+1)
 !
 !              Use DLASWP to apply the row interchanges to A12, A22, and
 !              A32.
 !
-               CALL DLASWP( J2, AB( KV+1-JB, J+JB ), LDAB-1, 1, JB, &
-                            IPIV( J ), 1 )
+          call dlaswp(j2, ab(kv+1-jb,j+jb), ldab-1, 1, jb, ipiv(j), 1)
 !
 !              Adjust the pivot indices.
 !
-               DO 90 I = J, J + JB - 1
-                  IPIV( I ) = IPIV( I ) + J - 1
-   90          CONTINUE
+          do i = j, j + jb - 1
+            ipiv(i) = ipiv(i) + j - 1
+          end do
 !
 !              Apply the row interchanges to A13, A23, and A33
 !              columnwise.
 !
-               K2 = J - 1 + JB + J2
-               DO 110 I = 1, J3
-                  JJ = K2 + I
-                  DO 100 II = J + I - 1, J + JB - 1
-                     IP = IPIV( II )
-                     IF( IP/=II ) THEN
-                        TEMP = AB( KV+1+II-JJ, JJ )
-                        AB( KV+1+II-JJ, JJ ) = AB( KV+1+IP-JJ, JJ )
-                        AB( KV+1+IP-JJ, JJ ) = TEMP
-                     END IF
-  100             CONTINUE
-  110          CONTINUE
+          k2 = j - 1 + jb + j2
+          do i = 1, j3
+            jj = k2 + i
+            do ii = j + i - 1, j + jb - 1
+              ip = ipiv(ii)
+              if (ip/=ii) then
+                temp = ab(kv+1+ii-jj, jj)
+                ab(kv+1+ii-jj, jj) = ab(kv+1+ip-jj, jj)
+                ab(kv+1+ip-jj, jj) = temp
+              end if
+            end do
+          end do
 !
 !              Update the relevant part of the trailing submatrix
 !
-               IF( J2>0 ) THEN
+          if (j2>0) then
 !
 !                 Update A12
 !
-                  CALL DTRSM( 'Left', 'Lower', 'No transpose', 'Unit', &
-                              JB, J2, ONE, AB( KV+1, J ), LDAB-1,      &
-                              AB( KV+1-JB, J+JB ), LDAB-1 )
+            call dtrsm('Left', 'Lower', 'No transpose', 'Unit', jb, j2, one, &
+              ab(kv+1,j), ldab-1, ab(kv+1-jb,j+jb), ldab-1)
 !
-                  IF( I2>0 ) THEN
+            if (i2>0) then
 !
 !                    Update A22
 !
-                     CALL DGEMM( 'No transpose', 'No transpose', I2, J2, &
-                                 JB, -ONE, AB( KV+1+JB, J ), LDAB-1,     &
-                                 AB( KV+1-JB, J+JB ), LDAB-1, ONE,       &
-                                 AB( KV+1, J+JB ), LDAB-1 )
-                  END IF
+              call dgemm('No transpose', 'No transpose', i2, j2, jb, -one, &
+                ab(kv+1+jb,j), ldab-1, ab(kv+1-jb,j+jb), ldab-1, one, &
+                ab(kv+1,j+jb), ldab-1)
+            end if
 !
-                  IF( I3>0 ) THEN
+            if (i3>0) then
 !
 !                    Update A32
 !
-                     CALL DGEMM( 'No transpose', 'No transpose', I3, J2, &
-                                 JB, -ONE, WORK31, LDWORK,               &
-                                 AB( KV+1-JB, J+JB ), LDAB-1, ONE,       &
-                                 AB( KV+KL+1-JB, J+JB ), LDAB-1 )
-                  END IF
-               END IF
+              call dgemm('No transpose', 'No transpose', i3, j2, jb, -one, &
+                work31, ldwork, ab(kv+1-jb,j+jb), ldab-1, one, &
+                ab(kv+kl+1-jb,j+jb), ldab-1)
+            end if
+          end if
 !
-               IF( J3>0 ) THEN
+          if (j3>0) then
 !
 !                 Copy the lower triangle of A13 into the work array
 !                 WORK13
 !
-                  DO 130 JJ = 1, J3
-                     DO 120 II = JJ, JB
-                        WORK13( II, JJ ) = AB( II-JJ+1, JJ+J+KV-1 )
-  120                CONTINUE
-  130             CONTINUE
+            do jj = 1, j3
+              do ii = jj, jb
+                work13(ii, jj) = ab(ii-jj+1, jj+j+kv-1)
+              end do
+            end do
 !
 !                 Update A13 in the work array
 !
-                  CALL DTRSM( 'Left', 'Lower', 'No transpose', 'Unit', &
-                              JB, J3, ONE, AB( KV+1, J ), LDAB-1,      &
-                              WORK13, LDWORK )
+            call dtrsm('Left', 'Lower', 'No transpose', 'Unit', jb, j3, one, &
+              ab(kv+1,j), ldab-1, work13, ldwork)
 !
-                  IF( I2>0 ) THEN
+            if (i2>0) then
 !
 !                    Update A23
 !
-                     CALL DGEMM( 'No transpose', 'No transpose', I2, J3, &
-                                 JB, -ONE, AB( KV+1+JB, J ), LDAB-1,     &
-                                 WORK13, LDWORK, ONE, AB( 1+JB, J+KV ),  &
-                                 LDAB-1 )
-                  END IF
+              call dgemm('No transpose', 'No transpose', i2, j3, jb, -one, &
+                ab(kv+1+jb,j), ldab-1, work13, ldwork, one, ab(1+jb,j+kv), &
+                ldab-1)
+            end if
 !
-                  IF( I3>0 ) THEN
+            if (i3>0) then
 !
 !                    Update A33
 !
-                     CALL DGEMM( 'No transpose', 'No transpose', I3, J3, &
-                                 JB, -ONE, WORK31, LDWORK, WORK13,       &
-                                 LDWORK, ONE, AB( 1+KL, J+KV ), LDAB-1 )
-                  END IF
+              call dgemm('No transpose', 'No transpose', i3, j3, jb, -one, &
+                work31, ldwork, work13, ldwork, one, ab(1+kl,j+kv), ldab-1)
+            end if
 !
 !                 Copy the lower triangle of A13 back into place
 !
-                  DO 150 JJ = 1, J3
-                     DO 140 II = JJ, JB
-                        AB( II-JJ+1, JJ+J+KV-1 ) = WORK13( II, JJ )
-  140                CONTINUE
-  150             CONTINUE
-               END IF
-            ELSE
+            do jj = 1, j3
+              do ii = jj, jb
+                ab(ii-jj+1, jj+j+kv-1) = work13(ii, jj)
+              end do
+            end do
+          end if
+        else
 !
 !              Adjust the pivot indices.
 !
-               DO 160 I = J, J + JB - 1
-                  IPIV( I ) = IPIV( I ) + J - 1
-  160          CONTINUE
-            END IF
+          do i = j, j + jb - 1
+            ipiv(i) = ipiv(i) + j - 1
+          end do
+        end if
 !
 !           Partially undo the interchanges in the current block to
 !           restore the upper triangular form of A31 and copy the upper
 !           triangle of A31 back into place
 !
-            DO 170 JJ = J + JB - 1, J, -1
-               JP = IPIV( JJ ) - JJ + 1
-               IF( JP/=1 ) THEN
+        do jj = j + jb - 1, j, -1
+          jp = ipiv(jj) - jj + 1
+          if (jp/=1) then
 !
 !                 Apply interchange to columns J to JJ-1
 !
-                  IF( JP+JJ-1<J+KL ) THEN
+            if (jp+jj-1<j+kl) then
 !
 !                    The interchange does not affect A31
 !
-                     CALL DSWAP( JJ-J, AB( KV+1+JJ-J, J ), LDAB-1, &
-                                 AB( KV+JP+JJ-J, J ), LDAB-1 )
-                  ELSE
+              call dswap(jj-j, ab(kv+1+jj-j,j), ldab-1, ab(kv+jp+jj-j,j), &
+                ldab-1)
+            else
 !
 !                    The interchange does affect A31
 !
-                     CALL DSWAP( JJ-J, AB( KV+1+JJ-J, J ), LDAB-1, &
-                                 WORK31( JP+JJ-J-KL, 1 ), LDWORK )
-                  END IF
-               END IF
+              call dswap(jj-j, ab(kv+1+jj-j,j), ldab-1, work31(jp+jj-j-kl,1), &
+                ldwork)
+            end if
+          end if
 !
 !              Copy the current column of A31 back into place
 !
-               NW = MIN( I3, JJ-J+1 )
-               IF( NW>0 ) &
-                  CALL DCOPY( NW, WORK31( 1, JJ-J+1 ), 1, &
-                              AB( KV+KL+1-JJ+J, JJ ), 1 )
-  170       CONTINUE
-  180    CONTINUE
-      END IF
+          nw = min(i3, jj-j+1)
+          if (nw>0) call dcopy(nw, work31(1,jj-j+1), 1, ab(kv+kl+1-jj+j,jj), &
+            1)
+        end do
+      end do
+    end if
 !
-      RETURN
+    return
 !
 !     End of DGBTRF
 !
-    END SUBROUTINE DGBTRF
+  end subroutine dgbtrf
 !> \brief \b DGBTRS
 !
 !  =========== DOCUMENTATION ===========
@@ -1164,9 +1142,8 @@ module lapack_dgbsv
 !> \ingroup doubleGBcomputational
 !
 !  =====================================================================
-    SUBROUTINE DGBTRS( TRANS, N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, &
-                       INFO )
-      IMPLICIT NONE
+  subroutine dgbtrs(trans, n, kl, ku, nrhs, ab, ldab, ipiv, b, ldb, info)
+    implicit none
 !
 !  -- LAPACK computational routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1174,63 +1151,62 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      CHARACTER          :: TRANS
-      INTEGER            :: INFO, KL, KU, LDAB, LDB, N, NRHS
+    character :: trans
+    integer :: info, kl, ku, ldab, ldb, n, nrhs
 !     ..
 !     .. Array Arguments ..
-      INTEGER            :: IPIV( * )
-      real(rk8)   :: AB( LDAB, * ), B( LDB, * )
+    integer :: ipiv(*)
+    real (rk8) :: ab(ldab, *), b(ldb, *)
 !     ..
 !
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8)   :: ONE
-      PARAMETER          ( ONE = 1.0_rk8 )
+    real (rk8) :: one
+    parameter (one=1.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      LOGICAL            :: LNOTI, NOTRAN
-      INTEGER            :: I, J, KD, L, LM
+    logical :: lnoti, notran
+    integer :: i, j, kd, l, lm
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC          MAX, MIN
+    intrinsic :: max, min
 !     ..
 !     .. Executable Statements ..
 !
 !     Test the input parameters.
 !
-      INFO = 0
-      NOTRAN = LSAME( TRANS, 'N' )
-      IF( .NOT.NOTRAN .AND. .NOT.LSAME( TRANS, 'T' ) .AND. .NOT. &
-          LSAME( TRANS, 'C' ) ) THEN
-         INFO = -1
-      ELSE IF( N<0 ) THEN
-         INFO = -2
-      ELSE IF( KL<0 ) THEN
-         INFO = -3
-      ELSE IF( KU<0 ) THEN
-         INFO = -4
-      ELSE IF( NRHS<0 ) THEN
-         INFO = -5
-      ELSE IF( LDAB<( 2*KL+KU+1 ) ) THEN
-         INFO = -7
-      ELSE IF( LDB<MAX( 1, N ) ) THEN
-         INFO = -10
-      END IF
-      IF( INFO/=0 ) THEN
-         CALL XERBLA( 'DGBTRS', -INFO )
-         RETURN
-      END IF
+    info = 0
+    notran = lsame(trans, 'N')
+    if (.not. notran .and. .not. lsame(trans,'T') .and. &
+      .not. lsame(trans,'C')) then
+      info = -1
+    else if (n<0) then
+      info = -2
+    else if (kl<0) then
+      info = -3
+    else if (ku<0) then
+      info = -4
+    else if (nrhs<0) then
+      info = -5
+    else if (ldab<(2*kl+ku+1)) then
+      info = -7
+    else if (ldb<max(1,n)) then
+      info = -10
+    end if
+    if (info/=0) then
+      call xerbla('DGBTRS', -info)
+      return
+    end if
 !
 !     Quick return if possible
 !
-      IF( N==0 .OR. NRHS==0 ) &
-         RETURN
+    if (n==0 .or. nrhs==0) return
 !
-      KD = KU + KL + 1
-      LNOTI = KL>0
+    kd = ku + kl + 1
+    lnoti = kl > 0
 !
-      IF( NOTRAN ) THEN
+    if (notran) then
 !
 !        Solve  A*X = B.
 !
@@ -1241,55 +1217,52 @@ module lapack_dgbsv
 !        where each transformation L(i) is a rank-one modification of
 !        the identity matrix.
 !
-         IF( LNOTI ) THEN
-            DO 10 J = 1, N - 1
-               LM = MIN( KL, N-J )
-               L = IPIV( J )
-               IF( L/=J ) &
-                  CALL DSWAP( NRHS, B( L, 1 ), LDB, B( J, 1 ), LDB )
-               CALL DGER( LM, NRHS, -ONE, AB( KD+1, J ), 1, B( J, 1 ), &
-                          LDB, B( J+1, 1 ), LDB )
-   10       CONTINUE
-         END IF
+      if (lnoti) then
+        do j = 1, n - 1
+          lm = min(kl, n-j)
+          l = ipiv(j)
+          if (l/=j) call dswap(nrhs, b(l,1), ldb, b(j,1), ldb)
+          call dger(lm, nrhs, -one, ab(kd+1,j), 1, b(j,1), ldb, b(j+1,1), ldb)
+        end do
+      end if
 !
-         DO 20 I = 1, NRHS
+      do i = 1, nrhs
 !
 !           Solve U*X = B, overwriting B with X.
 !
-            CALL DTBSV( 'Upper', 'No transpose', 'Non-unit', N, KL+KU, &
-                        AB, LDAB, B( 1, I ), 1 )
-   20    CONTINUE
+        call dtbsv('Upper', 'No transpose', 'Non-unit', n, kl+ku, ab, ldab, &
+          b(1,i), 1)
+      end do
 !
-      ELSE
+    else
 !
 !        Solve A**T*X = B.
 !
-         DO 30 I = 1, NRHS
+      do i = 1, nrhs
 !
 !           Solve U**T*X = B, overwriting B with X.
 !
-            CALL DTBSV( 'Upper', 'Transpose', 'Non-unit', N, KL+KU, AB, &
-                        LDAB, B( 1, I ), 1 )
-   30    CONTINUE
+        call dtbsv('Upper', 'Transpose', 'Non-unit', n, kl+ku, ab, ldab, &
+          b(1,i), 1)
+      end do
 !
 !        Solve L**T*X = B, overwriting B with X.
 !
-         IF( LNOTI ) THEN
-            DO 40 J = N - 1, 1, -1
-               LM = MIN( KL, N-J )
-               CALL DGEMV( 'Transpose', LM, NRHS, -ONE, B( J+1, 1 ), &
-                           LDB, AB( KD+1, J ), 1, ONE, B( J, 1 ), LDB )
-               L = IPIV( J )
-               IF( L/=J ) &
-                  CALL DSWAP( NRHS, B( L, 1 ), LDB, B( J, 1 ), LDB )
-   40       CONTINUE
-         END IF
-      END IF
-      RETURN
+      if (lnoti) then
+        do j = n - 1, 1, -1
+          lm = min(kl, n-j)
+          call dgemv('Transpose', lm, nrhs, -one, b(j+1,1), ldb, ab(kd+1,j), &
+            1, one, b(j,1), ldb)
+          l = ipiv(j)
+          if (l/=j) call dswap(nrhs, b(l,1), ldb, b(j,1), ldb)
+        end do
+      end if
+    end if
+    return
 !
 !     End of DGBTRS
 !
-    END SUBROUTINE DGBTRS
+  end subroutine dgbtrs
 !> \brief \b DLASWP performs a series of row interchanges on a general rectangular matrix.
 !
 !  =========== DOCUMENTATION ===========
@@ -1404,8 +1377,8 @@ module lapack_dgbsv
 !> \endverbatim
 !>
 !  =====================================================================
-    SUBROUTINE DLASWP( N, A, LDA, K1, K2, IPIV, INCX )
-      IMPLICIT NONE
+  subroutine dlaswp(n, a, lda, k1, k2, ipiv, incx)
+    implicit none
 !
 !  -- LAPACK auxiliary routine (version 3.4.2) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1413,75 +1386,75 @@ module lapack_dgbsv
 !     September 2012
 !
 !     .. Scalar Arguments ..
-      INTEGER            :: INCX, K1, K2, LDA, N
+    integer :: incx, k1, k2, lda, n
 !     ..
 !     .. Array Arguments ..
-      INTEGER            :: IPIV( * )
-      real(rk8)   :: A( LDA, * )
+    integer :: ipiv(*)
+    real (rk8) :: a(lda, *)
 !     ..
 !
 ! =====================================================================
 !
 !     .. Local Scalars ..
-      INTEGER            :: I, I1, I2, INC, IP, IX, IX0, J, K, N32
-      real(rk8)   :: TEMP
+    integer :: i, i1, i2, inc, ip, ix, ix0, j, k, n32
+    real (rk8) :: temp
 !     ..
 !     .. Executable Statements ..
 !
 !     Interchange row I with row IPIV(I) for each of rows K1 through K2.
 !
-      IF( INCX>0 ) THEN
-         IX0 = K1
-         I1 = K1
-         I2 = K2
-         INC = 1
-      ELSE IF( INCX<0 ) THEN
-         IX0 = 1 + ( 1-K2 )*INCX
-         I1 = K2
-         I2 = K1
-         INC = -1
-      ELSE
-         RETURN
-      END IF
+    if (incx>0) then
+      ix0 = k1
+      i1 = k1
+      i2 = k2
+      inc = 1
+    else if (incx<0) then
+      ix0 = 1 + (1-k2)*incx
+      i1 = k2
+      i2 = k1
+      inc = -1
+    else
+      return
+    end if
 !
-      N32 = ( N / 32 )*32
-      IF( N32/=0 ) THEN
-         DO 30 J = 1, N32, 32
-            IX = IX0
-            DO 20 I = I1, I2, INC
-               IP = IPIV( IX )
-               IF( IP/=I ) THEN
-                  DO 10 K = J, J + 31
-                     TEMP = A( I, K )
-                     A( I, K ) = A( IP, K )
-                     A( IP, K ) = TEMP
-   10             CONTINUE
-               END IF
-               IX = IX + INCX
-   20       CONTINUE
-   30    CONTINUE
-      END IF
-      IF( N32/=N ) THEN
-         N32 = N32 + 1
-         IX = IX0
-         DO 50 I = I1, I2, INC
-            IP = IPIV( IX )
-            IF( IP/=I ) THEN
-               DO 40 K = N32, N
-                  TEMP = A( I, K )
-                  A( I, K ) = A( IP, K )
-                  A( IP, K ) = TEMP
-   40          CONTINUE
-            END IF
-            IX = IX + INCX
-   50    CONTINUE
-      END IF
+    n32 = (n/32)*32
+    if (n32/=0) then
+      do j = 1, n32, 32
+        ix = ix0
+        do i = i1, i2, inc
+          ip = ipiv(ix)
+          if (ip/=i) then
+            do k = j, j + 31
+              temp = a(i, k)
+              a(i, k) = a(ip, k)
+              a(ip, k) = temp
+            end do
+          end if
+          ix = ix + incx
+        end do
+      end do
+    end if
+    if (n32/=n) then
+      n32 = n32 + 1
+      ix = ix0
+      do i = i1, i2, inc
+        ip = ipiv(ix)
+        if (ip/=i) then
+          do k = n32, n
+            temp = a(i, k)
+            a(i, k) = a(ip, k)
+            a(ip, k) = temp
+          end do
+        end if
+        ix = ix + incx
+      end do
+    end if
 !
-      RETURN
+    return
 !
 !     End of DLASWP
 !
-    END SUBROUTINE DLASWP
+  end subroutine dlaswp
 !> \brief \b IEEECK
 !
 !  =========== DOCUMENTATION ===========
@@ -1564,8 +1537,8 @@ module lapack_dgbsv
 !> \ingroup auxOTHERauxiliary
 !
 !  =====================================================================
-    INTEGER FUNCTION IEEECK( ISPEC, ZERO, ONE )
-      IMPLICIT NONE
+  integer function ieeeck(ispec, zero, one)
+    implicit none
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1573,119 +1546,117 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      INTEGER            :: ISPEC
-      REAL               :: ONE, ZERO
+    integer :: ispec
+    real :: one, zero
 !     ..
 !
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      REAL               :: NAN1, NAN2, NAN3, NAN4, NAN5, NAN6, NEGINF, &
-                         NEGZRO, NEWZRO, POSINF
+    real :: nan1, nan2, nan3, nan4, nan5, nan6, neginf, negzro, newzro, posinf
 !     ..
 !     .. Executable Statements ..
-      IEEECK = 1
+    ieeeck = 1
 !
-      POSINF = ONE / ZERO
-      IF( POSINF<=ONE ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    posinf = one/zero
+    if (posinf<=one) then
+      ieeeck = 0
+      return
+    end if
 !
-      NEGINF = -ONE / ZERO
-      IF( NEGINF>=ZERO ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    neginf = -one/zero
+    if (neginf>=zero) then
+      ieeeck = 0
+      return
+    end if
 !
-      NEGZRO = ONE / ( NEGINF+ONE )
-      IF( NEGZRO/=ZERO ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    negzro = one/(neginf+one)
+    if (negzro/=zero) then
+      ieeeck = 0
+      return
+    end if
 !
-      NEGINF = ONE / NEGZRO
-      IF( NEGINF>=ZERO ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    neginf = one/negzro
+    if (neginf>=zero) then
+      ieeeck = 0
+      return
+    end if
 !
-      NEWZRO = NEGZRO + ZERO
-      IF( NEWZRO/=ZERO ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    newzro = negzro + zero
+    if (newzro/=zero) then
+      ieeeck = 0
+      return
+    end if
 !
-      POSINF = ONE / NEWZRO
-      IF( POSINF<=ONE ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    posinf = one/newzro
+    if (posinf<=one) then
+      ieeeck = 0
+      return
+    end if
 !
-      NEGINF = NEGINF*POSINF
-      IF( NEGINF>=ZERO ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    neginf = neginf*posinf
+    if (neginf>=zero) then
+      ieeeck = 0
+      return
+    end if
 !
-      POSINF = POSINF*POSINF
-      IF( POSINF<=ONE ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    posinf = posinf*posinf
+    if (posinf<=one) then
+      ieeeck = 0
+      return
+    end if
 !
 !
 !
 !
 !     Return if we were only asked to check infinity arithmetic
 !
-      IF( ISPEC==0 ) &
-         RETURN
+    if (ispec==0) return
 !
-      NAN1 = POSINF + NEGINF
+    nan1 = posinf + neginf
 !
-      NAN2 = POSINF / NEGINF
+    nan2 = posinf/neginf
 !
-      NAN3 = POSINF / POSINF
+    nan3 = posinf/posinf
 !
-      NAN4 = POSINF*ZERO
+    nan4 = posinf*zero
 !
-      NAN5 = NEGINF*NEGZRO
+    nan5 = neginf*negzro
 !
-      NAN6 = NAN5*ZERO
+    nan6 = nan5*zero
 !
-      IF( NAN1==NAN1 ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    if (nan1==nan1) then
+      ieeeck = 0
+      return
+    end if
 !
-      IF( NAN2==NAN2 ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    if (nan2==nan2) then
+      ieeeck = 0
+      return
+    end if
 !
-      IF( NAN3==NAN3 ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    if (nan3==nan3) then
+      ieeeck = 0
+      return
+    end if
 !
-      IF( NAN4==NAN4 ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    if (nan4==nan4) then
+      ieeeck = 0
+      return
+    end if
 !
-      IF( NAN5==NAN5 ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    if (nan5==nan5) then
+      ieeeck = 0
+      return
+    end if
 !
-      IF( NAN6==NAN6 ) THEN
-         IEEECK = 0
-         RETURN
-      END IF
+    if (nan6==nan6) then
+      ieeeck = 0
+      return
+    end if
 !
-      RETURN
-    END FUNCTION IEEECK
+    return
+  end function ieeeck
 !> \brief \b ILAENV
 !
 !  =========== DOCUMENTATION ===========
@@ -1848,8 +1819,8 @@ module lapack_dgbsv
 !> \endverbatim
 !>
 !  =====================================================================
-    INTEGER FUNCTION ILAENV( ISPEC, NAME, N1, N2, N3, N4 )
-      IMPLICIT NONE
+  integer function ilaenv(ispec, name, n1, n2, n3, n4)
+    implicit none
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -1857,119 +1828,113 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      CHARACTER(len=*)    :: NAME
-      INTEGER            :: ISPEC, N1, N2, N3, N4
+    character (len=*) :: name
+    integer :: ispec, n1, n2, n3, n4
 !     ..
 !
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      INTEGER            :: I, IC, IZ, NB, NBMIN, NX
-      LOGICAL            :: CNAME, SNAME
-      CHARACTER          :: C1*1, C2*2, C4*2, C3*3, SUBNAM*6
+    integer :: i, ic, iz, nb, nbmin, nx
+    logical :: cname, sname
+    character :: c1*1, c2*2, c4*2, c3*3, subnam*6
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC          CHAR, ICHAR, INT, MIN, REAL
+    intrinsic :: char, ichar, int, min, real
 !     ..
 !     .. Executable Statements ..
 !
-      SELECT CASE (ISPEC)
-        CASE (1, 2, 3)
-          GOTO 10
-        CASE (4)
-          GOTO 80
-        CASE (5)
-          GOTO 90
-        CASE (6, 7)
-          GOTO 110
-        CASE (8)
-          GOTO 120
-        CASE (9)
-          GOTO 130
-        CASE (10)
-          GOTO 140
-        CASE (11)
-          GOTO 150
-        CASE (12, 13, 14, 15, 16)
-          GOTO 160
-      END SELECT
+    select case (ispec)
+    case (1, 2, 3)
+      go to 100
+    case (4)
+      go to 140
+    case (5)
+      go to 150
+    case (6, 7)
+      go to 160
+    case (8)
+      go to 170
+    case (9)
+      go to 180
+    case (10)
+      go to 190
+    case (11)
+      go to 200
+    case (12, 13, 14, 15, 16)
+      go to 210
+    end select
 !
 !     Invalid value for ISPEC
 !
-      ILAENV = -1
-      RETURN
+    ilaenv = -1
+    return
 !
-   10 CONTINUE
+100 continue
 !
 !     Convert NAME to upper case if the first character is lower case.
 !
-      ILAENV = 1
-      SUBNAM = NAME
-      IC = ICHAR( SUBNAM( 1: 1 ) )
-      IZ = ICHAR( 'Z' )
-      IF( IZ==90 .OR. IZ==122 ) THEN
+    ilaenv = 1
+    subnam = name
+    ic = ichar(subnam(1:1))
+    iz = ichar('Z')
+    if (iz==90 .or. iz==122) then
 !
 !        ASCII character set
 !
-         IF( IC>=97 .AND. IC<=122 ) THEN
-            SUBNAM( 1: 1 ) = CHAR( IC-32 )
-            DO 20 I = 2, 6
-               IC = ICHAR( SUBNAM( I: I ) )
-               IF( IC>=97 .AND. IC<=122 ) &
-                  SUBNAM( I: I ) = CHAR( IC-32 )
-   20       CONTINUE
-         END IF
+      if (ic>=97 .and. ic<=122) then
+        subnam(1:1) = char(ic-32)
+        do i = 2, 6
+          ic = ichar(subnam(i:i))
+          if (ic>=97 .and. ic<=122) subnam(i:i) = char(ic-32)
+        end do
+      end if
 !
-      ELSE IF( IZ==233 .OR. IZ==169 ) THEN
+    else if (iz==233 .or. iz==169) then
 !
 !        EBCDIC character set
 !
-         IF( ( IC>=129 .AND. IC<=137 ) .OR. &
-             ( IC>=145 .AND. IC<=153 ) .OR. &
-             ( IC>=162 .AND. IC<=169 ) ) THEN
-            SUBNAM( 1: 1 ) = CHAR( IC+64 )
-            DO 30 I = 2, 6
-               IC = ICHAR( SUBNAM( I: I ) )
-               IF( ( IC>=129 .AND. IC<=137 ) .OR. &
-                   ( IC>=145 .AND. IC<=153 ) .OR. &
-                   ( IC>=162 .AND. IC<=169 ) )SUBNAM( I: &
-                   I ) = CHAR( IC+64 )
-   30       CONTINUE
-         END IF
+      if ((ic>=129 .and. ic<=137) .or. (ic>=145 .and. ic<=153) .or. &
+        (ic>=162 .and. ic<=169)) then
+        subnam(1:1) = char(ic+64)
+        do i = 2, 6
+          ic = ichar(subnam(i:i))
+          if ((ic>=129 .and. ic<=137) .or. (ic>=145 .and. ic<=153) .or. &
+            (ic>=162 .and. ic<=169)) subnam(i:i) = char(ic+64)
+        end do
+      end if
 !
-      ELSE IF( IZ==218 .OR. IZ==250 ) THEN
+    else if (iz==218 .or. iz==250) then
 !
 !        Prime machines:  ASCII+128
 !
-         IF( IC>=225 .AND. IC<=250 ) THEN
-            SUBNAM( 1: 1 ) = CHAR( IC-32 )
-            DO 40 I = 2, 6
-               IC = ICHAR( SUBNAM( I: I ) )
-               IF( IC>=225 .AND. IC<=250 ) &
-                  SUBNAM( I: I ) = CHAR( IC-32 )
-   40       CONTINUE
-         END IF
-      END IF
+      if (ic>=225 .and. ic<=250) then
+        subnam(1:1) = char(ic-32)
+        do i = 2, 6
+          ic = ichar(subnam(i:i))
+          if (ic>=225 .and. ic<=250) subnam(i:i) = char(ic-32)
+        end do
+      end if
+    end if
 !
-      C1 = SUBNAM( 1: 1 )
-      SNAME = C1=='S' .OR. C1=='D'
-      CNAME = C1=='C' .OR. C1=='Z'
-      IF( .NOT.( CNAME .OR. SNAME ) ) &
-         RETURN
-      C2 = SUBNAM( 2: 3 )
-      C3 = SUBNAM( 4: 6 )
-      C4 = C3( 2: 3 )
+    c1 = subnam(1:1)
+    sname = c1 == 'S' .or. c1 == 'D'
+    cname = c1 == 'C' .or. c1 == 'Z'
+    if (.not. (cname .or. sname)) return
+    c2 = subnam(2:3)
+    c3 = subnam(4:6)
+    c4 = c3(2:3)
 !
-      SELECT CASE (ISPEC)
-        CASE (1)
-          GOTO 50
-        CASE (2)
-          GOTO 60
-        CASE (3)
-          GOTO 70
-      END SELECT
+    select case (ispec)
+    case (1)
+      go to 110
+    case (2)
+      go to 120
+    case (3)
+      go to 130
+    end select
 !
-   50 CONTINUE
+110 continue
 !
 !     ISPEC = 1:  block size
 !
@@ -1977,361 +1942,348 @@ module lapack_dgbsv
 !     real and complex.  We assume that NB will take the same value in
 !     single or double precision.
 !
-      NB = 1
+    nb = 1
 !
-      IF( C2=='GE' ) THEN
-         IF( C3=='TRF' ) THEN
-            IF( SNAME ) THEN
-               NB = 64
-            ELSE
-               NB = 64
-            END IF
-         ELSE IF( C3=='QRF' .OR. C3=='RQF' .OR. C3=='LQF' .OR. &
-                  C3=='QLF' ) THEN
-            IF( SNAME ) THEN
-               NB = 32
-            ELSE
-               NB = 32
-            END IF
-         ELSE IF( C3=='HRD' ) THEN
-            IF( SNAME ) THEN
-               NB = 32
-            ELSE
-               NB = 32
-            END IF
-         ELSE IF( C3=='BRD' ) THEN
-            IF( SNAME ) THEN
-               NB = 32
-            ELSE
-               NB = 32
-            END IF
-         ELSE IF( C3=='TRI' ) THEN
-            IF( SNAME ) THEN
-               NB = 64
-            ELSE
-               NB = 64
-            END IF
-         END IF
-      ELSE IF( C2=='PO' ) THEN
-         IF( C3=='TRF' ) THEN
-            IF( SNAME ) THEN
-               NB = 64
-            ELSE
-               NB = 64
-            END IF
-         END IF
-      ELSE IF( C2=='SY' ) THEN
-         IF( C3=='TRF' ) THEN
-            IF( SNAME ) THEN
-               NB = 64
-            ELSE
-               NB = 64
-            END IF
-         ELSE IF( SNAME .AND. C3=='TRD' ) THEN
-            NB = 32
-         ELSE IF( SNAME .AND. C3=='GST' ) THEN
-            NB = 64
-         END IF
-      ELSE IF( CNAME .AND. C2=='HE' ) THEN
-         IF( C3=='TRF' ) THEN
-            NB = 64
-         ELSE IF( C3=='TRD' ) THEN
-            NB = 32
-         ELSE IF( C3=='GST' ) THEN
-            NB = 64
-         END IF
-      ELSE IF( SNAME .AND. C2=='OR' ) THEN
-         IF( C3( 1: 1 )=='G' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NB = 32
-            END IF
-         ELSE IF( C3( 1: 1 )=='M' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NB = 32
-            END IF
-         END IF
-      ELSE IF( CNAME .AND. C2=='UN' ) THEN
-         IF( C3( 1: 1 )=='G' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NB = 32
-            END IF
-         ELSE IF( C3( 1: 1 )=='M' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NB = 32
-            END IF
-         END IF
-      ELSE IF( C2=='GB' ) THEN
-         IF( C3=='TRF' ) THEN
-            IF( SNAME ) THEN
-               IF( N4<=64 ) THEN
-                  NB = 1
-               ELSE
-                  NB = 32
-               END IF
-            ELSE
-               IF( N4<=64 ) THEN
-                  NB = 1
-               ELSE
-                  NB = 32
-               END IF
-            END IF
-         END IF
-      ELSE IF( C2=='PB' ) THEN
-         IF( C3=='TRF' ) THEN
-            IF( SNAME ) THEN
-               IF( N2<=64 ) THEN
-                  NB = 1
-               ELSE
-                  NB = 32
-               END IF
-            ELSE
-               IF( N2<=64 ) THEN
-                  NB = 1
-               ELSE
-                  NB = 32
-               END IF
-            END IF
-         END IF
-      ELSE IF( C2=='TR' ) THEN
-         IF( C3=='TRI' ) THEN
-            IF( SNAME ) THEN
-               NB = 64
-            ELSE
-               NB = 64
-            END IF
-         END IF
-      ELSE IF( C2=='LA' ) THEN
-         IF( C3=='UUM' ) THEN
-            IF( SNAME ) THEN
-               NB = 64
-            ELSE
-               NB = 64
-            END IF
-         END IF
-      ELSE IF( SNAME .AND. C2=='ST' ) THEN
-         IF( C3=='EBZ' ) THEN
-            NB = 1
-         END IF
-      END IF
-      ILAENV = NB
-      RETURN
+    if (c2=='GE') then
+      if (c3=='TRF') then
+        if (sname) then
+          nb = 64
+        else
+          nb = 64
+        end if
+      else if (c3=='QRF' .or. c3=='RQF' .or. c3=='LQF' .or. c3=='QLF') then
+        if (sname) then
+          nb = 32
+        else
+          nb = 32
+        end if
+      else if (c3=='HRD') then
+        if (sname) then
+          nb = 32
+        else
+          nb = 32
+        end if
+      else if (c3=='BRD') then
+        if (sname) then
+          nb = 32
+        else
+          nb = 32
+        end if
+      else if (c3=='TRI') then
+        if (sname) then
+          nb = 64
+        else
+          nb = 64
+        end if
+      end if
+    else if (c2=='PO') then
+      if (c3=='TRF') then
+        if (sname) then
+          nb = 64
+        else
+          nb = 64
+        end if
+      end if
+    else if (c2=='SY') then
+      if (c3=='TRF') then
+        if (sname) then
+          nb = 64
+        else
+          nb = 64
+        end if
+      else if (sname .and. c3=='TRD') then
+        nb = 32
+      else if (sname .and. c3=='GST') then
+        nb = 64
+      end if
+    else if (cname .and. c2=='HE') then
+      if (c3=='TRF') then
+        nb = 64
+      else if (c3=='TRD') then
+        nb = 32
+      else if (c3=='GST') then
+        nb = 64
+      end if
+    else if (sname .and. c2=='OR') then
+      if (c3(1:1)=='G') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nb = 32
+        end if
+      else if (c3(1:1)=='M') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nb = 32
+        end if
+      end if
+    else if (cname .and. c2=='UN') then
+      if (c3(1:1)=='G') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nb = 32
+        end if
+      else if (c3(1:1)=='M') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nb = 32
+        end if
+      end if
+    else if (c2=='GB') then
+      if (c3=='TRF') then
+        if (sname) then
+          if (n4<=64) then
+            nb = 1
+          else
+            nb = 32
+          end if
+        else
+          if (n4<=64) then
+            nb = 1
+          else
+            nb = 32
+          end if
+        end if
+      end if
+    else if (c2=='PB') then
+      if (c3=='TRF') then
+        if (sname) then
+          if (n2<=64) then
+            nb = 1
+          else
+            nb = 32
+          end if
+        else
+          if (n2<=64) then
+            nb = 1
+          else
+            nb = 32
+          end if
+        end if
+      end if
+    else if (c2=='TR') then
+      if (c3=='TRI') then
+        if (sname) then
+          nb = 64
+        else
+          nb = 64
+        end if
+      end if
+    else if (c2=='LA') then
+      if (c3=='UUM') then
+        if (sname) then
+          nb = 64
+        else
+          nb = 64
+        end if
+      end if
+    else if (sname .and. c2=='ST') then
+      if (c3=='EBZ') then
+        nb = 1
+      end if
+    end if
+    ilaenv = nb
+    return
 !
-   60 CONTINUE
+120 continue
 !
 !     ISPEC = 2:  minimum block size
 !
-      NBMIN = 2
-      IF( C2=='GE' ) THEN
-         IF( C3=='QRF' .OR. C3=='RQF' .OR. C3=='LQF' .OR. C3== &
-             'QLF' ) THEN
-            IF( SNAME ) THEN
-               NBMIN = 2
-            ELSE
-               NBMIN = 2
-            END IF
-         ELSE IF( C3=='HRD' ) THEN
-            IF( SNAME ) THEN
-               NBMIN = 2
-            ELSE
-               NBMIN = 2
-            END IF
-         ELSE IF( C3=='BRD' ) THEN
-            IF( SNAME ) THEN
-               NBMIN = 2
-            ELSE
-               NBMIN = 2
-            END IF
-         ELSE IF( C3=='TRI' ) THEN
-            IF( SNAME ) THEN
-               NBMIN = 2
-            ELSE
-               NBMIN = 2
-            END IF
-         END IF
-      ELSE IF( C2=='SY' ) THEN
-         IF( C3=='TRF' ) THEN
-            IF( SNAME ) THEN
-               NBMIN = 8
-            ELSE
-               NBMIN = 8
-            END IF
-         ELSE IF( SNAME .AND. C3=='TRD' ) THEN
-            NBMIN = 2
-         END IF
-      ELSE IF( CNAME .AND. C2=='HE' ) THEN
-         IF( C3=='TRD' ) THEN
-            NBMIN = 2
-         END IF
-      ELSE IF( SNAME .AND. C2=='OR' ) THEN
-         IF( C3( 1: 1 )=='G' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NBMIN = 2
-            END IF
-         ELSE IF( C3( 1: 1 )=='M' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NBMIN = 2
-            END IF
-         END IF
-      ELSE IF( CNAME .AND. C2=='UN' ) THEN
-         IF( C3( 1: 1 )=='G' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NBMIN = 2
-            END IF
-         ELSE IF( C3( 1: 1 )=='M' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NBMIN = 2
-            END IF
-         END IF
-      END IF
-      ILAENV = NBMIN
-      RETURN
+    nbmin = 2
+    if (c2=='GE') then
+      if (c3=='QRF' .or. c3=='RQF' .or. c3=='LQF' .or. c3=='QLF') then
+        if (sname) then
+          nbmin = 2
+        else
+          nbmin = 2
+        end if
+      else if (c3=='HRD') then
+        if (sname) then
+          nbmin = 2
+        else
+          nbmin = 2
+        end if
+      else if (c3=='BRD') then
+        if (sname) then
+          nbmin = 2
+        else
+          nbmin = 2
+        end if
+      else if (c3=='TRI') then
+        if (sname) then
+          nbmin = 2
+        else
+          nbmin = 2
+        end if
+      end if
+    else if (c2=='SY') then
+      if (c3=='TRF') then
+        if (sname) then
+          nbmin = 8
+        else
+          nbmin = 8
+        end if
+      else if (sname .and. c3=='TRD') then
+        nbmin = 2
+      end if
+    else if (cname .and. c2=='HE') then
+      if (c3=='TRD') then
+        nbmin = 2
+      end if
+    else if (sname .and. c2=='OR') then
+      if (c3(1:1)=='G') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nbmin = 2
+        end if
+      else if (c3(1:1)=='M') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nbmin = 2
+        end if
+      end if
+    else if (cname .and. c2=='UN') then
+      if (c3(1:1)=='G') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nbmin = 2
+        end if
+      else if (c3(1:1)=='M') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nbmin = 2
+        end if
+      end if
+    end if
+    ilaenv = nbmin
+    return
 !
-   70 CONTINUE
+130 continue
 !
 !     ISPEC = 3:  crossover point
 !
-      NX = 0
-      IF( C2=='GE' ) THEN
-         IF( C3=='QRF' .OR. C3=='RQF' .OR. C3=='LQF' .OR. C3== &
-             'QLF' ) THEN
-            IF( SNAME ) THEN
-               NX = 128
-            ELSE
-               NX = 128
-            END IF
-         ELSE IF( C3=='HRD' ) THEN
-            IF( SNAME ) THEN
-               NX = 128
-            ELSE
-               NX = 128
-            END IF
-         ELSE IF( C3=='BRD' ) THEN
-            IF( SNAME ) THEN
-               NX = 128
-            ELSE
-               NX = 128
-            END IF
-         END IF
-      ELSE IF( C2=='SY' ) THEN
-         IF( SNAME .AND. C3=='TRD' ) THEN
-            NX = 32
-         END IF
-      ELSE IF( CNAME .AND. C2=='HE' ) THEN
-         IF( C3=='TRD' ) THEN
-            NX = 32
-         END IF
-      ELSE IF( SNAME .AND. C2=='OR' ) THEN
-         IF( C3( 1: 1 )=='G' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NX = 128
-            END IF
-         END IF
-      ELSE IF( CNAME .AND. C2=='UN' ) THEN
-         IF( C3( 1: 1 )=='G' ) THEN
-            IF( C4=='QR' .OR. C4=='RQ' .OR. C4=='LQ' .OR. C4== &
-                'QL' .OR. C4=='HR' .OR. C4=='TR' .OR. C4=='BR' ) &
-                 THEN
-               NX = 128
-            END IF
-         END IF
-      END IF
-      ILAENV = NX
-      RETURN
+    nx = 0
+    if (c2=='GE') then
+      if (c3=='QRF' .or. c3=='RQF' .or. c3=='LQF' .or. c3=='QLF') then
+        if (sname) then
+          nx = 128
+        else
+          nx = 128
+        end if
+      else if (c3=='HRD') then
+        if (sname) then
+          nx = 128
+        else
+          nx = 128
+        end if
+      else if (c3=='BRD') then
+        if (sname) then
+          nx = 128
+        else
+          nx = 128
+        end if
+      end if
+    else if (c2=='SY') then
+      if (sname .and. c3=='TRD') then
+        nx = 32
+      end if
+    else if (cname .and. c2=='HE') then
+      if (c3=='TRD') then
+        nx = 32
+      end if
+    else if (sname .and. c2=='OR') then
+      if (c3(1:1)=='G') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nx = 128
+        end if
+      end if
+    else if (cname .and. c2=='UN') then
+      if (c3(1:1)=='G') then
+        if (c4=='QR' .or. c4=='RQ' .or. c4=='LQ' .or. c4=='QL' .or. &
+          c4=='HR' .or. c4=='TR' .or. c4=='BR') then
+          nx = 128
+        end if
+      end if
+    end if
+    ilaenv = nx
+    return
 !
-   80 CONTINUE
+140 continue
 !
 !     ISPEC = 4:  number of shifts (used by xHSEQR)
 !
-      ILAENV = 6
-      RETURN
+    ilaenv = 6
+    return
 !
-   90 CONTINUE
+150 continue
 !
 !     ISPEC = 5:  minimum column dimension (not used)
 !
-      ILAENV = 2
-      RETURN
+    ilaenv = 2
+    return
 !
 !  100 CONTINUE
 !
 !     ISPEC = 6:  crossover point for SVD (used by xGELSS and xGESVD)
 !
-      ILAENV = INT( REAL( MIN( N1, N2 ) )*1.6E0 )
-      RETURN
+    ilaenv = int(real(min(n1,n2))*1.6E0)
+    return
 !
-  110 CONTINUE
+160 continue
 !
 !     ISPEC = 7:  number of processors (not used)
 !
-      ILAENV = 1
-      RETURN
+    ilaenv = 1
+    return
 !
-  120 CONTINUE
+170 continue
 !
 !     ISPEC = 8:  crossover point for multishift (used by xHSEQR)
 !
-      ILAENV = 50
-      RETURN
+    ilaenv = 50
+    return
 !
-  130 CONTINUE
+180 continue
 !
 !     ISPEC = 9:  maximum size of the subproblems at the bottom of the
 !                 computation tree in the divide-and-conquer algorithm
 !                 (used by xGELSD and xGESDD)
 !
-      ILAENV = 25
-      RETURN
+    ilaenv = 25
+    return
 !
-  140 CONTINUE
+190 continue
 !
 !     ISPEC = 10: ieee NaN arithmetic can be trusted not to trap
 !
 !     ILAENV = 0
-      ILAENV = 1
-      IF( ILAENV==1 ) THEN
-         ILAENV = IEEECK( 1, 0.0, 1.0 )
-      END IF
-      RETURN
+    ilaenv = 1
+    if (ilaenv==1) then
+      ilaenv = ieeeck(1, 0.0, 1.0)
+    end if
+    return
 !
-  150 CONTINUE
+200 continue
 !
 !     ISPEC = 11: infinity arithmetic can be trusted not to trap
 !
 !     ILAENV = 0
-      ILAENV = 1
-      IF( ILAENV==1 ) THEN
-         ILAENV = IEEECK( 0, 0.0, 1.0 )
-      END IF
-      RETURN
+    ilaenv = 1
+    if (ilaenv==1) then
+      ilaenv = ieeeck(0, 0.0, 1.0)
+    end if
+    return
 !
-  160 CONTINUE
+210 continue
 !
 !     12 <= ISPEC <= 16: xHSEQR or one of its subroutines.
 !
-      ILAENV = IPARMQ( ISPEC, N2, N3)
-      RETURN
+    ilaenv = iparmq(ispec, n2, n3)
+    return
 !
 !     End of ILAENV
 !
-    END FUNCTION ILAENV
+  end function ilaenv
 !> \brief \b IPARMQ
 !
 !  =========== DOCUMENTATION ===========
@@ -2546,8 +2498,8 @@ module lapack_dgbsv
 !> \endverbatim
 !>
 !  =====================================================================
-    INTEGER FUNCTION IPARMQ( ISPEC, ILO, IHI )
-      IMPLICIT NONE
+  integer function iparmq(ispec, ilo, ihi)
+    implicit none
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2555,82 +2507,73 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      INTEGER            :: IHI, ILO, ISPEC
+    integer :: ihi, ilo, ispec
 !
 !  ================================================================
 !     .. Parameters ..
-      INTEGER            :: INMIN, INWIN, INIBL, ISHFTS, IACC22
-      PARAMETER          ( INMIN = 12, INWIN = 13, INIBL = 14, &
-                         ISHFTS = 15, IACC22 = 16 )
-      INTEGER            :: NMIN, K22MIN, KACMIN, NIBBLE, KNWSWP
-      PARAMETER          ( NMIN = 75, K22MIN = 14, KACMIN = 14, &
-                         NIBBLE = 14, KNWSWP = 500 )
-      REAL               :: TWO
-      PARAMETER          ( TWO = 2.0 )
+    integer :: inmin, inwin, inibl, ishfts, iacc22
+    parameter (inmin=12, inwin=13, inibl=14, ishfts=15, iacc22=16)
+    integer :: nmin, k22min, kacmin, nibble, knwswp
+    parameter (nmin=75, k22min=14, kacmin=14, nibble=14, knwswp=500)
+    real :: two
+    parameter (two=2.0)
 !     ..
 !     .. Local Scalars ..
-      INTEGER            :: NH, NS
+    integer :: nh, ns
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC          LOG, MAX, MOD, NINT, REAL
+    intrinsic :: log, max, mod, nint, real
 !     ..
 !     .. Executable Statements ..
-      IF( ( ISPEC==ISHFTS ) .OR. ( ISPEC==INWIN ) .OR. &
-          ( ISPEC==IACC22 ) ) THEN
+    if ((ispec==ishfts) .or. (ispec==inwin) .or. (ispec==iacc22)) then
 !
 !        ==== Set the number simultaneous shifts ====
 !
-         NH = IHI - ILO + 1
-         NS = 2
-         IF( NH>=30 ) &
-            NS = 4
-         IF( NH>=60 ) &
-            NS = 10
-         IF( NH>=150 ) &
-            NS = MAX( 10, NH / NINT( LOG( REAL( NH ) ) / LOG( TWO ) ) )
-         IF( NH>=590 ) &
-            NS = 64
-         IF( NH>=3000 ) &
-            NS = 128
-         IF( NH>=6000 ) &
-            NS = 256
-         NS = MAX( 2, NS-MOD( NS, 2 ) )
-      END IF
+      nh = ihi - ilo + 1
+      ns = 2
+      if (nh>=30) ns = 4
+      if (nh>=60) ns = 10
+      if (nh>=150) ns = max(10, nh/nint(log(real(nh))/log(two)))
+      if (nh>=590) ns = 64
+      if (nh>=3000) ns = 128
+      if (nh>=6000) ns = 256
+      ns = max(2, ns-mod(ns,2))
+    end if
 !
-      IF( ISPEC==INMIN ) THEN
+    if (ispec==inmin) then
 !
 !
 !        ===== Matrices of order smaller than NMIN get sent
 !        .     to xLAHQR, the classic double shift algorithm.
 !        .     This must be at least 11. ====
 !
-         IPARMQ = NMIN
+      iparmq = nmin
 !
-      ELSE IF( ISPEC==INIBL ) THEN
+    else if (ispec==inibl) then
 !
 !        ==== INIBL: skip a multi-shift qr iteration and
 !        .    whenever aggressive early deflation finds
 !        .    at least (NIBBLE*(window size)/100) deflations. ====
 !
-         IPARMQ = NIBBLE
+      iparmq = nibble
 !
-      ELSE IF( ISPEC==ISHFTS ) THEN
+    else if (ispec==ishfts) then
 !
 !        ==== NSHFTS: The number of simultaneous shifts =====
 !
-         IPARMQ = NS
+      iparmq = ns
 !
-      ELSE IF( ISPEC==INWIN ) THEN
+    else if (ispec==inwin) then
 !
 !        ==== NW: deflation window size.  ====
 !
-         IF( NH<=KNWSWP ) THEN
-            IPARMQ = NS
-         ELSE
-            IPARMQ = 3*NS / 2
-         END IF
+      if (nh<=knwswp) then
+        iparmq = ns
+      else
+        iparmq = 3*ns/2
+      end if
 !
-      ELSE IF( ISPEC==IACC22 ) THEN
+    else if (ispec==iacc22) then
 !
 !        ==== IACC22: Whether to accumulate reflections
 !        .     before updating the far-from-diagonal elements
@@ -2639,21 +2582,19 @@ module lapack_dgbsv
 !        .     by making this choice dependent also upon the
 !        .     NH=IHI-ILO+1.
 !
-         IPARMQ = 0
-         IF( NS>=KACMIN ) &
-            IPARMQ = 1
-         IF( NS>=K22MIN ) &
-            IPARMQ = 2
+      iparmq = 0
+      if (ns>=kacmin) iparmq = 1
+      if (ns>=k22min) iparmq = 2
 !
-      ELSE
+    else
 !        ===== invalid value of ispec =====
-         IPARMQ = -1
+      iparmq = -1
 !
-      END IF
+    end if
 !
 !     ==== End of IPARMQ ====
 !
-    END FUNCTION IPARMQ
+  end function iparmq
 !> \brief \b LSAME
 !
 !  =========== DOCUMENTATION ===========
@@ -2705,8 +2646,8 @@ module lapack_dgbsv
 !> \ingroup auxOTHERauxiliary
 !
 !  =====================================================================
-    LOGICAL FUNCTION LSAME( CA, CB )
-      IMPLICIT NONE
+  logical function lsame(ca, cb)
+    implicit none
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2714,72 +2655,69 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      CHARACTER          :: CA, CB
+    character :: ca, cb
 !     ..
 !
 ! =====================================================================
 !
 !     .. Intrinsic Functions ..
-      INTRINSIC          ICHAR
+    intrinsic :: ichar
 !     ..
 !     .. Local Scalars ..
-      INTEGER            :: INTA, INTB, ZCODE
+    integer :: inta, intb, zcode
 !     ..
 !     .. Executable Statements ..
 !
 !     Test if the characters are equal
 !
-      LSAME = CA==CB
-      IF( LSAME ) &
-         RETURN
+    lsame = ca == cb
+    if (lsame) return
 !
 !     Now test for equivalence if both characters are alphabetic.
 !
-      ZCODE = ICHAR( 'Z' )
+    zcode = ichar('Z')
 !
 !     Use 'Z' rather than 'A' so that ASCII can be detected on Prime
 !     machines, on which ICHAR returns a value with bit 8 set.
 !     ICHAR('A') on Prime machines returns 193 which is the same as
 !     ICHAR('A') on an EBCDIC machine.
 !
-      INTA = ICHAR( CA )
-      INTB = ICHAR( CB )
+    inta = ichar(ca)
+    intb = ichar(cb)
 !
-      IF( ZCODE==90 .OR. ZCODE==122 ) THEN
+    if (zcode==90 .or. zcode==122) then
 !
 !        ASCII is assumed - ZCODE is the ASCII code of either lower or
 !        upper case 'Z'.
 !
-         IF( INTA>=97 .AND. INTA<=122 ) INTA = INTA - 32
-         IF( INTB>=97 .AND. INTB<=122 ) INTB = INTB - 32
+      if (inta>=97 .and. inta<=122) inta = inta - 32
+      if (intb>=97 .and. intb<=122) intb = intb - 32
 !
-      ELSE IF( ZCODE==233 .OR. ZCODE==169 ) THEN
+    else if (zcode==233 .or. zcode==169) then
 !
 !        EBCDIC is assumed - ZCODE is the EBCDIC code of either lower or
 !        upper case 'Z'.
 !
-         IF( INTA>=129 .AND. INTA<=137 .OR. &
-             INTA>=145 .AND. INTA<=153 .OR. &
-             INTA>=162 .AND. INTA<=169 ) INTA = INTA + 64
-         IF( INTB>=129 .AND. INTB<=137 .OR. &
-             INTB>=145 .AND. INTB<=153 .OR. &
-             INTB>=162 .AND. INTB<=169 ) INTB = INTB + 64
+      if (inta>=129 .and. inta<=137 .or. inta>=145 .and. inta<=153 .or. &
+        inta>=162 .and. inta<=169) inta = inta + 64
+      if (intb>=129 .and. intb<=137 .or. intb>=145 .and. intb<=153 .or. &
+        intb>=162 .and. intb<=169) intb = intb + 64
 !
-      ELSE IF( ZCODE==218 .OR. ZCODE==250 ) THEN
+    else if (zcode==218 .or. zcode==250) then
 !
 !        ASCII is assumed, on Prime machines - ZCODE is the ASCII code
 !        plus 128 of either lower or upper case 'Z'.
 !
-         IF( INTA>=225 .AND. INTA<=250 ) INTA = INTA - 32
-         IF( INTB>=225 .AND. INTB<=250 ) INTB = INTB - 32
-      END IF
-      LSAME = INTA==INTB
+      if (inta>=225 .and. inta<=250) inta = inta - 32
+      if (intb>=225 .and. intb<=250) intb = intb - 32
+    end if
+    lsame = inta == intb
 !
 !     RETURN
 !
 !     End of LSAME
 !
-      END FUNCTION LSAME
+  end function lsame
 !> \brief \b XERBLA
 !
 !  =========== DOCUMENTATION ===========
@@ -2850,8 +2788,8 @@ module lapack_dgbsv
 !> \ingroup auxOTHERauxiliary
 !
 !  =====================================================================
-    SUBROUTINE XERBLA( SRNAME, INFO )
-      IMPLICIT NONE
+  subroutine xerbla(srname, info)
+    implicit none
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
 !  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -2859,35 +2797,35 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      CHARACTER(len=*)      :: SRNAME
-      INTEGER            :: INFO
+    character (len=*) :: srname
+    integer :: info
 !     ..
 !
 ! =====================================================================
 !
 !     .. Intrinsic Functions ..
-      INTRINSIC          LEN_TRIM
+    intrinsic :: len_trim
 !     ..
 !     .. Executable Statements ..
 !
-      WRITE( *, FMT = 9999 )SRNAME( 1:LEN_TRIM( SRNAME ) ), INFO
+    write (*, fmt=100) srname(1:len_trim(srname)), info
 !
-      STOP
+    stop
 !
- 9999 FORMAT( ' ** On entry to ', A, ' parameter number ', I2, ' had ', &
-            'an illegal value' )
+100 format (' ** On entry to ', a, ' parameter number ', i2, ' had ', &
+      'an illegal value')
 !
 !     End of XERBLA
 !
-    END SUBROUTINE XERBLA
+  end subroutine xerbla
 
-    INTEGER FUNCTION IDAMAX(N,DX,INCX)
-      IMPLICIT NONE
+  integer function idamax(n, dx, incx)
+    implicit none
 !     .. Scalar Arguments ..
-      INTEGER :: INCX,N
+    integer :: incx, n
 !     ..
 !     .. Array Arguments ..
-      real(rk8) :: DX(*)
+    real (rk8) :: dx(*)
 !     ..
 !
 !  Purpose
@@ -2905,52 +2843,52 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      real(rk8) :: DMAX
-      INTEGER :: I,IX
+    real (rk8) :: dmax
+    integer :: i, ix
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC ABS
+    intrinsic :: abs
 !     ..
-      IDAMAX = 0
-      IF (N<1 .OR. INCX<=0) RETURN
-      IDAMAX = 1
-      IF (N==1) RETURN
-      IF (INCX==1) THEN
+    idamax = 0
+    if (n<1 .or. incx<=0) return
+    idamax = 1
+    if (n==1) return
+    if (incx==1) then
 !
 !        code for increment equal to 1
 !
-         DMAX = ABS(DX(1))
-         DO I = 2,N
-            IF (ABS(DX(I))>DMAX) THEN
-               IDAMAX = I
-               DMAX = ABS(DX(I))
-            END IF
-         END DO
-      ELSE
+      dmax = abs(dx(1))
+      do i = 2, n
+        if (abs(dx(i))>dmax) then
+          idamax = i
+          dmax = abs(dx(i))
+        end if
+      end do
+    else
 !
 !        code for increment not equal to 1
 !
-         IX = 1
-         DMAX = ABS(DX(1))
-         IX = IX + INCX
-         DO I = 2,N
-            IF (ABS(DX(IX))>DMAX) THEN
-               IDAMAX = I
-               DMAX = ABS(DX(IX))
-            END IF
-            IX = IX + INCX
-         END DO
-      END IF
-      RETURN
-    END FUNCTION IDAMAX
+      ix = 1
+      dmax = abs(dx(1))
+      ix = ix + incx
+      do i = 2, n
+        if (abs(dx(ix))>dmax) then
+          idamax = i
+          dmax = abs(dx(ix))
+        end if
+        ix = ix + incx
+      end do
+    end if
+    return
+  end function idamax
 
-    SUBROUTINE DSWAP(N,DX,INCX,DY,INCY)
-      IMPLICIT NONE
+  subroutine dswap(n, dx, incx, dy, incy)
+    implicit none
 !     .. Scalar Arguments ..
-      INTEGER :: INCX,INCY,N
+    integer :: incx, incy, n
 !     ..
 !     .. Array Arguments ..
-      real(rk8) :: DX(*),DY(*)
+    real (rk8) :: dx(*), dy(*)
 !     ..
 !
 !  Purpose
@@ -2968,69 +2906,69 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      real(rk8) :: DTEMP
-      INTEGER :: I,IX,IY,M,MP1
+    real (rk8) :: dtemp
+    integer :: i, ix, iy, m, mp1
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC MOD
+    intrinsic :: mod
 !     ..
-      IF (N<=0) RETURN
-      IF (INCX==1 .AND. INCY==1) THEN
+    if (n<=0) return
+    if (incx==1 .and. incy==1) then
 !
 !       code for both increments equal to 1
 !
 !
 !       clean-up loop
 !
-         M = MOD(N,3)
-         IF (M/=0) THEN
-            DO I = 1,M
-               DTEMP = DX(I)
-               DX(I) = DY(I)
-               DY(I) = DTEMP
-            END DO
-            IF (N<3) RETURN
-         END IF
-         MP1 = M + 1
-         DO I = MP1,N,3
-            DTEMP = DX(I)
-            DX(I) = DY(I)
-            DY(I) = DTEMP
-            DTEMP = DX(I+1)
-            DX(I+1) = DY(I+1)
-            DY(I+1) = DTEMP
-            DTEMP = DX(I+2)
-            DX(I+2) = DY(I+2)
-            DY(I+2) = DTEMP
-         END DO
-      ELSE
+      m = mod(n, 3)
+      if (m/=0) then
+        do i = 1, m
+          dtemp = dx(i)
+          dx(i) = dy(i)
+          dy(i) = dtemp
+        end do
+        if (n<3) return
+      end if
+      mp1 = m + 1
+      do i = mp1, n, 3
+        dtemp = dx(i)
+        dx(i) = dy(i)
+        dy(i) = dtemp
+        dtemp = dx(i+1)
+        dx(i+1) = dy(i+1)
+        dy(i+1) = dtemp
+        dtemp = dx(i+2)
+        dx(i+2) = dy(i+2)
+        dy(i+2) = dtemp
+      end do
+    else
 !
 !       code for unequal increments or equal increments not equal
 !         to 1
 !
-         IX = 1
-         IY = 1
-         IF (INCX<0) IX = (-N+1)*INCX + 1
-         IF (INCY<0) IY = (-N+1)*INCY + 1
-         DO I = 1,N
-            DTEMP = DX(IX)
-            DX(IX) = DY(IY)
-            DY(IY) = DTEMP
-            IX = IX + INCX
-            IY = IY + INCY
-         END DO
-      END IF
-      RETURN
-    END SUBROUTINE DSWAP
+      ix = 1
+      iy = 1
+      if (incx<0) ix = (-n+1)*incx + 1
+      if (incy<0) iy = (-n+1)*incy + 1
+      do i = 1, n
+        dtemp = dx(ix)
+        dx(ix) = dy(iy)
+        dy(iy) = dtemp
+        ix = ix + incx
+        iy = iy + incy
+      end do
+    end if
+    return
+  end subroutine dswap
 
-    SUBROUTINE DSCAL(N,DA,DX,INCX)
-      IMPLICIT NONE
+  subroutine dscal(n, da, dx, incx)
+    implicit none
 !     .. Scalar Arguments ..
-      real(rk8) :: DA
-      INTEGER :: INCX,N
+    real (rk8) :: da
+    integer :: incx, n
 !     ..
 !     .. Array Arguments ..
-      real(rk8) :: DX(*)
+    real (rk8) :: dx(*)
 !     ..
 !
 !  Purpose
@@ -3049,54 +2987,54 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      INTEGER :: I,M,MP1,NINCX
+    integer :: i, m, mp1, nincx
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC MOD
+    intrinsic :: mod
 !     ..
-      IF (N<=0 .OR. INCX<=0) RETURN
-      IF (INCX==1) THEN
+    if (n<=0 .or. incx<=0) return
+    if (incx==1) then
 !
 !        code for increment equal to 1
 !
 !
 !        clean-up loop
 !
-         M = MOD(N,5)
-         IF (M/=0) THEN
-            DO I = 1,M
-               DX(I) = DA*DX(I)
-            END DO
-            IF (N<5) RETURN
-         END IF
-         MP1 = M + 1
-         DO I = MP1,N,5
-            DX(I) = DA*DX(I)
-            DX(I+1) = DA*DX(I+1)
-            DX(I+2) = DA*DX(I+2)
-            DX(I+3) = DA*DX(I+3)
-            DX(I+4) = DA*DX(I+4)
-         END DO
-      ELSE
+      m = mod(n, 5)
+      if (m/=0) then
+        do i = 1, m
+          dx(i) = da*dx(i)
+        end do
+        if (n<5) return
+      end if
+      mp1 = m + 1
+      do i = mp1, n, 5
+        dx(i) = da*dx(i)
+        dx(i+1) = da*dx(i+1)
+        dx(i+2) = da*dx(i+2)
+        dx(i+3) = da*dx(i+3)
+        dx(i+4) = da*dx(i+4)
+      end do
+    else
 !
 !        code for increment not equal to 1
 !
-         NINCX = N*INCX
-         DO I = 1,NINCX,INCX
-            DX(I) = DA*DX(I)
-         END DO
-      END IF
-      RETURN
-    END SUBROUTINE DSCAL
+      nincx = n*incx
+      do i = 1, nincx, incx
+        dx(i) = da*dx(i)
+      end do
+    end if
+    return
+  end subroutine dscal
 
-    SUBROUTINE DGER(M,N,ALPHA,X,INCX,Y,INCY,A,LDA)
-      IMPLICIT NONE
+  subroutine dger(m, n, alpha, x, incx, y, incy, a, lda)
+    implicit none
 !     .. Scalar Arguments ..
-      real(rk8) :: ALPHA
-      INTEGER :: INCX,INCY,LDA,M,N
+    real (rk8) :: alpha
+    integer :: incx, incy, lda, m, n
 !     ..
 !     .. Array Arguments ..
-      real(rk8) :: A(LDA,*),X(*),Y(*)
+    real (rk8) :: a(lda, *), x(*), y(*)
 !     ..
 !
 !  Purpose
@@ -3173,90 +3111,90 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8) :: ZERO
-      PARAMETER (ZERO=0.0_rk8)
+    real (rk8) :: zero
+    parameter (zero=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      real(rk8) :: TEMP
-      INTEGER :: I,INFO,IX,J,JY,KX
+    real (rk8) :: temp
+    integer :: i, info, ix, j, jy, kx
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC MAX
+    intrinsic :: max
 !     ..
 !
 !     Test the input parameters.
 !
-      INFO = 0
-      IF (M<0) THEN
-          INFO = 1
-      ELSE IF (N<0) THEN
-          INFO = 2
-      ELSE IF (INCX==0) THEN
-          INFO = 5
-      ELSE IF (INCY==0) THEN
-          INFO = 7
-      ELSE IF (LDA<MAX(1,M)) THEN
-          INFO = 9
-      END IF
-      IF (INFO/=0) THEN
-          CALL XERBLA('DGER  ',INFO)
-          RETURN
-      END IF
+    info = 0
+    if (m<0) then
+      info = 1
+    else if (n<0) then
+      info = 2
+    else if (incx==0) then
+      info = 5
+    else if (incy==0) then
+      info = 7
+    else if (lda<max(1,m)) then
+      info = 9
+    end if
+    if (info/=0) then
+      call xerbla('DGER  ', info)
+      return
+    end if
 !
 !     Quick return if possible.
 !
-      IF ((M==0) .OR. (N==0) .OR. (ALPHA==ZERO)) RETURN
+    if ((m==0) .or. (n==0) .or. (alpha==zero)) return
 !
 !     Start the operations. In this version the elements of A are
 !     accessed sequentially with one pass through A.
 !
-      IF (INCY>0) THEN
-          JY = 1
-      ELSE
-          JY = 1 - (N-1)*INCY
-      END IF
-      IF (INCX==1) THEN
-          DO 20 J = 1,N
-              IF (Y(JY)/=ZERO) THEN
-                  TEMP = ALPHA*Y(JY)
-                  DO 10 I = 1,M
-                      A(I,J) = A(I,J) + X(I)*TEMP
-   10             CONTINUE
-              END IF
-              JY = JY + INCY
-   20     CONTINUE
-      ELSE
-          IF (INCX>0) THEN
-              KX = 1
-          ELSE
-              KX = 1 - (M-1)*INCX
-          END IF
-          DO 40 J = 1,N
-              IF (Y(JY)/=ZERO) THEN
-                  TEMP = ALPHA*Y(JY)
-                  IX = KX
-                  DO 30 I = 1,M
-                      A(I,J) = A(I,J) + X(IX)*TEMP
-                      IX = IX + INCX
-   30             CONTINUE
-              END IF
-              JY = JY + INCY
-   40     CONTINUE
-      END IF
+    if (incy>0) then
+      jy = 1
+    else
+      jy = 1 - (n-1)*incy
+    end if
+    if (incx==1) then
+      do j = 1, n
+        if (y(jy)/=zero) then
+          temp = alpha*y(jy)
+          do i = 1, m
+            a(i, j) = a(i, j) + x(i)*temp
+          end do
+        end if
+        jy = jy + incy
+      end do
+    else
+      if (incx>0) then
+        kx = 1
+      else
+        kx = 1 - (m-1)*incx
+      end if
+      do j = 1, n
+        if (y(jy)/=zero) then
+          temp = alpha*y(jy)
+          ix = kx
+          do i = 1, m
+            a(i, j) = a(i, j) + x(ix)*temp
+            ix = ix + incx
+          end do
+        end if
+        jy = jy + incy
+      end do
+    end if
 !
-      RETURN
+    return
 !
 !     End of DGER  .
 !
-    END SUBROUTINE DGER
+  end subroutine dger
 
-    SUBROUTINE DCOPY(N,DX,INCX,DY,INCY)
-      IMPLICIT NONE
+  subroutine dcopy(n, dx, incx, dy, incy)
+    implicit none
 !     .. Scalar Arguments ..
-      INTEGER :: INCX,INCY,N
+    integer :: incx, incy, n
 !     ..
 !     .. Array Arguments ..
-      real(rk8) :: DX(*),DY(*)
+    real (rk8) :: dx(*), dy(*)
 !     ..
 !
 !  Purpose
@@ -3274,63 +3212,64 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      INTEGER :: I,IX,IY,M,MP1
+    integer :: i, ix, iy, m, mp1
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC MOD
+    intrinsic :: mod
 !     ..
-      IF (N<=0) RETURN
-      IF (INCX==1 .AND. INCY==1) THEN
+    if (n<=0) return
+    if (incx==1 .and. incy==1) then
 !
 !        code for both increments equal to 1
 !
 !
 !        clean-up loop
 !
-         M = MOD(N,7)
-         IF (M/=0) THEN
-            DO I = 1,M
-               DY(I) = DX(I)
-            END DO
-            IF (N<7) RETURN
-         END IF
-         MP1 = M + 1
-         DO I = MP1,N,7
-            DY(I) = DX(I)
-            DY(I+1) = DX(I+1)
-            DY(I+2) = DX(I+2)
-            DY(I+3) = DX(I+3)
-            DY(I+4) = DX(I+4)
-            DY(I+5) = DX(I+5)
-            DY(I+6) = DX(I+6)
-         END DO
-      ELSE
+      m = mod(n, 7)
+      if (m/=0) then
+        do i = 1, m
+          dy(i) = dx(i)
+        end do
+        if (n<7) return
+      end if
+      mp1 = m + 1
+      do i = mp1, n, 7
+        dy(i) = dx(i)
+        dy(i+1) = dx(i+1)
+        dy(i+2) = dx(i+2)
+        dy(i+3) = dx(i+3)
+        dy(i+4) = dx(i+4)
+        dy(i+5) = dx(i+5)
+        dy(i+6) = dx(i+6)
+      end do
+    else
 !
 !        code for unequal increments or equal increments
 !          not equal to 1
 !
-         IX = 1
-         IY = 1
-         IF (INCX<0) IX = (-N+1)*INCX + 1
-         IF (INCY<0) IY = (-N+1)*INCY + 1
-         DO I = 1,N
-            DY(IY) = DX(IX)
-            IX = IX + INCX
-            IY = IY + INCY
-         END DO
-      END IF
-      RETURN
-    END SUBROUTINE DCOPY
+      ix = 1
+      iy = 1
+      if (incx<0) ix = (-n+1)*incx + 1
+      if (incy<0) iy = (-n+1)*incy + 1
+      do i = 1, n
+        dy(iy) = dx(ix)
+        ix = ix + incx
+        iy = iy + incy
+      end do
+    end if
+    return
+  end subroutine dcopy
 
-    SUBROUTINE DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
-      IMPLICIT NONE
+  subroutine dgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, &
+    ldc)
+    implicit none
 !     .. Scalar Arguments ..
-      real(rk8) :: ALPHA,BETA
-      INTEGER :: K,LDA,LDB,LDC,M,N
-      CHARACTER :: TRANSA,TRANSB
+    real (rk8) :: alpha, beta
+    integer :: k, lda, ldb, ldc, m, n
+    character :: transa, transb
 !     ..
 !     .. Array Arguments ..
-      real(rk8) :: A(LDA,*),B(LDB,*),C(LDC,*)
+    real (rk8) :: a(lda, *), b(ldb, *), c(ldc, *)
 !     ..
 !
 !  Purpose
@@ -3457,191 +3396,189 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Intrinsic Functions ..
-      INTRINSIC MAX
+    intrinsic :: max
 !     ..
 !     .. Local Scalars ..
-      real(rk8) :: TEMP
-      INTEGER :: I,INFO,J,L,NCOLA,NROWA,NROWB
-      LOGICAL :: NOTA,NOTB
+    real (rk8) :: temp
+    integer :: i, info, j, l, nrowa, nrowb
+    logical :: nota, notb
 !     ..
 !     .. Parameters ..
-      real(rk8) :: ONE,ZERO
-      PARAMETER (ONE=1.0_rk8,ZERO=0.0_rk8)
+    real (rk8) :: one, zero
+    parameter (one=1.0_rk8, zero=0.0_rk8)
 !     ..
 !
 !     Set  NOTA  and  NOTB  as  true if  A  and  B  respectively are not
 !     transposed and set  NROWA, NCOLA and  NROWB  as the number of rows
 !     and  columns of  A  and the  number of  rows  of  B  respectively.
 !
-      NOTA = LSAME(TRANSA,'N')
-      NOTB = LSAME(TRANSB,'N')
-      IF (NOTA) THEN
-          NROWA = M
-          NCOLA = K
-      ELSE
-          NROWA = K
-          NCOLA = M
-      END IF
-      IF (NOTB) THEN
-          NROWB = K
-      ELSE
-          NROWB = N
-      END IF
+    nota = lsame(transa, 'N')
+    notb = lsame(transb, 'N')
+    if (nota) then
+      nrowa = m
+    else
+      nrowa = k
+    end if
+    if (notb) then
+      nrowb = k
+    else
+      nrowb = n
+    end if
 !
 !     Test the input parameters.
 !
-      INFO = 0
-      IF ((.NOT.NOTA) .AND. (.NOT.LSAME(TRANSA,'C')) .AND. &
-          (.NOT.LSAME(TRANSA,'T'))) THEN
-          INFO = 1
-      ELSE IF ((.NOT.NOTB) .AND. (.NOT.LSAME(TRANSB,'C')) .AND. &
-               (.NOT.LSAME(TRANSB,'T'))) THEN
-          INFO = 2
-      ELSE IF (M<0) THEN
-          INFO = 3
-      ELSE IF (N<0) THEN
-          INFO = 4
-      ELSE IF (K<0) THEN
-          INFO = 5
-      ELSE IF (LDA<MAX(1,NROWA)) THEN
-          INFO = 8
-      ELSE IF (LDB<MAX(1,NROWB)) THEN
-          INFO = 10
-      ELSE IF (LDC<MAX(1,M)) THEN
-          INFO = 13
-      END IF
-      IF (INFO/=0) THEN
-          CALL XERBLA('DGEMM ',INFO)
-          RETURN
-      END IF
+    info = 0
+    if ((.not. nota) .and. (.not. lsame(transa,'C')) .and. (.not. lsame(transa &
+      ,'T'))) then
+      info = 1
+    else if ((.not. notb) .and. (.not. lsame(transb, &
+        'C')) .and. (.not. lsame(transb,'T'))) then
+      info = 2
+    else if (m<0) then
+      info = 3
+    else if (n<0) then
+      info = 4
+    else if (k<0) then
+      info = 5
+    else if (lda<max(1,nrowa)) then
+      info = 8
+    else if (ldb<max(1,nrowb)) then
+      info = 10
+    else if (ldc<max(1,m)) then
+      info = 13
+    end if
+    if (info/=0) then
+      call xerbla('DGEMM ', info)
+      return
+    end if
 !
 !     Quick return if possible.
 !
-      IF ((M==0) .OR. (N==0) .OR. &
-          (((ALPHA==ZERO).OR. (K==0)).AND. (BETA==ONE))) RETURN
+    if ((m==0) .or. (n==0) .or. (((alpha==zero) .or. (k==0)) .and. (beta== &
+      one))) return
 !
 !     And if  alpha.eq.zero.
 !
-      IF (ALPHA==ZERO) THEN
-          IF (BETA==ZERO) THEN
-              DO 20 J = 1,N
-                  DO 10 I = 1,M
-                      C(I,J) = ZERO
-   10             CONTINUE
-   20         CONTINUE
-          ELSE
-              DO 40 J = 1,N
-                  DO 30 I = 1,M
-                      C(I,J) = BETA*C(I,J)
-   30             CONTINUE
-   40         CONTINUE
-          END IF
-          RETURN
-      END IF
+    if (alpha==zero) then
+      if (beta==zero) then
+        do j = 1, n
+          do i = 1, m
+            c(i, j) = zero
+          end do
+        end do
+      else
+        do j = 1, n
+          do i = 1, m
+            c(i, j) = beta*c(i, j)
+          end do
+        end do
+      end if
+      return
+    end if
 !
 !     Start the operations.
 !
-      IF (NOTB) THEN
-          IF (NOTA) THEN
+    if (notb) then
+      if (nota) then
 !
 !           Form  C := alpha*A*B + beta*C.
 !
-              DO 90 J = 1,N
-                  IF (BETA==ZERO) THEN
-                      DO 50 I = 1,M
-                          C(I,J) = ZERO
-   50                 CONTINUE
-                  ELSE IF (BETA/=ONE) THEN
-                      DO 60 I = 1,M
-                          C(I,J) = BETA*C(I,J)
-   60                 CONTINUE
-                  END IF
-                  DO 80 L = 1,K
-                      IF (B(L,J)/=ZERO) THEN
-                          TEMP = ALPHA*B(L,J)
-                          DO 70 I = 1,M
-                              C(I,J) = C(I,J) + TEMP*A(I,L)
-   70                     CONTINUE
-                      END IF
-   80             CONTINUE
-   90         CONTINUE
-          ELSE
+        do j = 1, n
+          if (beta==zero) then
+            do i = 1, m
+              c(i, j) = zero
+            end do
+          else if (beta/=one) then
+            do i = 1, m
+              c(i, j) = beta*c(i, j)
+            end do
+          end if
+          do l = 1, k
+            if (b(l,j)/=zero) then
+              temp = alpha*b(l, j)
+              do i = 1, m
+                c(i, j) = c(i, j) + temp*a(i, l)
+              end do
+            end if
+          end do
+        end do
+      else
 !
 !           Form  C := alpha*A**T*B + beta*C
 !
-              DO 120 J = 1,N
-                  DO 110 I = 1,M
-                      TEMP = ZERO
-                      DO 100 L = 1,K
-                          TEMP = TEMP + A(L,I)*B(L,J)
-  100                 CONTINUE
-                      IF (BETA==ZERO) THEN
-                          C(I,J) = ALPHA*TEMP
-                      ELSE
-                          C(I,J) = ALPHA*TEMP + BETA*C(I,J)
-                      END IF
-  110             CONTINUE
-  120         CONTINUE
-          END IF
-      ELSE
-          IF (NOTA) THEN
+        do j = 1, n
+          do i = 1, m
+            temp = zero
+            do l = 1, k
+              temp = temp + a(l, i)*b(l, j)
+            end do
+            if (beta==zero) then
+              c(i, j) = alpha*temp
+            else
+              c(i, j) = alpha*temp + beta*c(i, j)
+            end if
+          end do
+        end do
+      end if
+    else
+      if (nota) then
 !
 !           Form  C := alpha*A*B**T + beta*C
 !
-              DO 170 J = 1,N
-                  IF (BETA==ZERO) THEN
-                      DO 130 I = 1,M
-                          C(I,J) = ZERO
-  130                 CONTINUE
-                  ELSE IF (BETA/=ONE) THEN
-                      DO 140 I = 1,M
-                          C(I,J) = BETA*C(I,J)
-  140                 CONTINUE
-                  END IF
-                  DO 160 L = 1,K
-                      IF (B(J,L)/=ZERO) THEN
-                          TEMP = ALPHA*B(J,L)
-                          DO 150 I = 1,M
-                              C(I,J) = C(I,J) + TEMP*A(I,L)
-  150                     CONTINUE
-                      END IF
-  160             CONTINUE
-  170         CONTINUE
-          ELSE
+        do j = 1, n
+          if (beta==zero) then
+            do i = 1, m
+              c(i, j) = zero
+            end do
+          else if (beta/=one) then
+            do i = 1, m
+              c(i, j) = beta*c(i, j)
+            end do
+          end if
+          do l = 1, k
+            if (b(j,l)/=zero) then
+              temp = alpha*b(j, l)
+              do i = 1, m
+                c(i, j) = c(i, j) + temp*a(i, l)
+              end do
+            end if
+          end do
+        end do
+      else
 !
 !           Form  C := alpha*A**T*B**T + beta*C
 !
-              DO 200 J = 1,N
-                  DO 190 I = 1,M
-                      TEMP = ZERO
-                      DO 180 L = 1,K
-                          TEMP = TEMP + A(L,I)*B(J,L)
-  180                 CONTINUE
-                      IF (BETA==ZERO) THEN
-                          C(I,J) = ALPHA*TEMP
-                      ELSE
-                          C(I,J) = ALPHA*TEMP + BETA*C(I,J)
-                      END IF
-  190             CONTINUE
-  200         CONTINUE
-          END IF
-      END IF
+        do j = 1, n
+          do i = 1, m
+            temp = zero
+            do l = 1, k
+              temp = temp + a(l, i)*b(j, l)
+            end do
+            if (beta==zero) then
+              c(i, j) = alpha*temp
+            else
+              c(i, j) = alpha*temp + beta*c(i, j)
+            end if
+          end do
+        end do
+      end if
+    end if
 !
-      RETURN
+    return
 !
 !     End of DGEMM .
 !
-    END SUBROUTINE DGEMM
+  end subroutine dgemm
 
-    SUBROUTINE DTRSM(SIDE,UPLO,TRANSA,DIAG,M,N,ALPHA,A,LDA,B,LDB)
-      IMPLICIT NONE
+  subroutine dtrsm(side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb)
+    implicit none
 !     .. Scalar Arguments ..
-      real(rk8) :: ALPHA
-      INTEGER :: LDA,LDB,M,N
-      CHARACTER :: DIAG,SIDE,TRANSA,UPLO
+    real (rk8) :: alpha
+    integer :: lda, ldb, m, n
+    character :: diag, side, transa, uplo
 !     ..
 !     .. Array Arguments ..
-      real(rk8) :: A(LDA,*),B(LDB,*)
+    real (rk8) :: a(lda, *), b(ldb, *)
 !     ..
 !
 !  Purpose
@@ -3767,251 +3704,250 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Intrinsic Functions ..
-      INTRINSIC MAX
+    intrinsic :: max
 !     ..
 !     .. Local Scalars ..
-      real(rk8) :: TEMP
-      INTEGER :: I,INFO,J,K,NROWA
-      LOGICAL :: LSIDE,NOUNIT,UPPER
+    real (rk8) :: temp
+    integer :: i, info, j, k, nrowa
+    logical :: lside, nounit, upper
 !     ..
 !     .. Parameters ..
-      real(rk8) :: ONE,ZERO
-      PARAMETER (ONE=1.0_rk8,ZERO=0.0_rk8)
+    real (rk8) :: one, zero
+    parameter (one=1.0_rk8, zero=0.0_rk8)
 !     ..
 !
 !     Test the input parameters.
 !
-      LSIDE = LSAME(SIDE,'L')
-      IF (LSIDE) THEN
-          NROWA = M
-      ELSE
-          NROWA = N
-      END IF
-      NOUNIT = LSAME(DIAG,'N')
-      UPPER = LSAME(UPLO,'U')
+    lside = lsame(side, 'L')
+    if (lside) then
+      nrowa = m
+    else
+      nrowa = n
+    end if
+    nounit = lsame(diag, 'N')
+    upper = lsame(uplo, 'U')
 !
-      INFO = 0
-      IF ((.NOT.LSIDE) .AND. (.NOT.LSAME(SIDE,'R'))) THEN
-          INFO = 1
-      ELSE IF ((.NOT.UPPER) .AND. (.NOT.LSAME(UPLO,'L'))) THEN
-          INFO = 2
-      ELSE IF ((.NOT.LSAME(TRANSA,'N')) .AND. &
-               (.NOT.LSAME(TRANSA,'T')) .AND. &
-               (.NOT.LSAME(TRANSA,'C'))) THEN
-          INFO = 3
-      ELSE IF ((.NOT.LSAME(DIAG,'U')) .AND. (.NOT.LSAME(DIAG,'N'))) THEN
-          INFO = 4
-      ELSE IF (M<0) THEN
-          INFO = 5
-      ELSE IF (N<0) THEN
-          INFO = 6
-      ELSE IF (LDA<MAX(1,NROWA)) THEN
-          INFO = 9
-      ELSE IF (LDB<MAX(1,M)) THEN
-          INFO = 11
-      END IF
-      IF (INFO/=0) THEN
-          CALL XERBLA('DTRSM ',INFO)
-          RETURN
-      END IF
+    info = 0
+    if ((.not. lside) .and. (.not. lsame(side,'R'))) then
+      info = 1
+    else if ((.not. upper) .and. (.not. lsame(uplo,'L'))) then
+      info = 2
+    else if ((.not. lsame(transa,'N')) .and. (.not. lsame(transa, &
+        'T')) .and. (.not. lsame(transa,'C'))) then
+      info = 3
+    else if ((.not. lsame(diag,'U')) .and. (.not. lsame(diag,'N'))) then
+      info = 4
+    else if (m<0) then
+      info = 5
+    else if (n<0) then
+      info = 6
+    else if (lda<max(1,nrowa)) then
+      info = 9
+    else if (ldb<max(1,m)) then
+      info = 11
+    end if
+    if (info/=0) then
+      call xerbla('DTRSM ', info)
+      return
+    end if
 !
 !     Quick return if possible.
 !
-      IF (M==0 .OR. N==0) RETURN
+    if (m==0 .or. n==0) return
 !
 !     And when  alpha.eq.zero.
 !
-      IF (ALPHA==ZERO) THEN
-          DO 20 J = 1,N
-              DO 10 I = 1,M
-                  B(I,J) = ZERO
-   10         CONTINUE
-   20     CONTINUE
-          RETURN
-      END IF
+    if (alpha==zero) then
+      do j = 1, n
+        do i = 1, m
+          b(i, j) = zero
+        end do
+      end do
+      return
+    end if
 !
 !     Start the operations.
 !
-      IF (LSIDE) THEN
-          IF (LSAME(TRANSA,'N')) THEN
+    if (lside) then
+      if (lsame(transa,'N')) then
 !
 !           Form  B := alpha*inv( A )*B.
 !
-              IF (UPPER) THEN
-                  DO 60 J = 1,N
-                      IF (ALPHA/=ONE) THEN
-                          DO 30 I = 1,M
-                              B(I,J) = ALPHA*B(I,J)
-   30                     CONTINUE
-                      END IF
-                      DO 50 K = M,1,-1
-                          IF (B(K,J)/=ZERO) THEN
-                              IF (NOUNIT) B(K,J) = B(K,J)/A(K,K)
-                              DO 40 I = 1,K - 1
-                                  B(I,J) = B(I,J) - B(K,J)*A(I,K)
-   40                         CONTINUE
-                          END IF
-   50                 CONTINUE
-   60             CONTINUE
-              ELSE
-                  DO 100 J = 1,N
-                      IF (ALPHA/=ONE) THEN
-                          DO 70 I = 1,M
-                              B(I,J) = ALPHA*B(I,J)
-   70                     CONTINUE
-                      END IF
-                      DO 90 K = 1,M
-                          IF (B(K,J)/=ZERO) THEN
-                              IF (NOUNIT) B(K,J) = B(K,J)/A(K,K)
-                              DO 80 I = K + 1,M
-                                  B(I,J) = B(I,J) - B(K,J)*A(I,K)
-   80                         CONTINUE
-                          END IF
-   90                 CONTINUE
-  100             CONTINUE
-              END IF
-          ELSE
+        if (upper) then
+          do j = 1, n
+            if (alpha/=one) then
+              do i = 1, m
+                b(i, j) = alpha*b(i, j)
+              end do
+            end if
+            do k = m, 1, -1
+              if (b(k,j)/=zero) then
+                if (nounit) b(k, j) = b(k, j)/a(k, k)
+                do i = 1, k - 1
+                  b(i, j) = b(i, j) - b(k, j)*a(i, k)
+                end do
+              end if
+            end do
+          end do
+        else
+          do j = 1, n
+            if (alpha/=one) then
+              do i = 1, m
+                b(i, j) = alpha*b(i, j)
+              end do
+            end if
+            do k = 1, m
+              if (b(k,j)/=zero) then
+                if (nounit) b(k, j) = b(k, j)/a(k, k)
+                do i = k + 1, m
+                  b(i, j) = b(i, j) - b(k, j)*a(i, k)
+                end do
+              end if
+            end do
+          end do
+        end if
+      else
 !
 !           Form  B := alpha*inv( A**T )*B.
 !
-              IF (UPPER) THEN
-                  DO 130 J = 1,N
-                      DO 120 I = 1,M
-                          TEMP = ALPHA*B(I,J)
-                          DO 110 K = 1,I - 1
-                              TEMP = TEMP - A(K,I)*B(K,J)
-  110                     CONTINUE
-                          IF (NOUNIT) TEMP = TEMP/A(I,I)
-                          B(I,J) = TEMP
-  120                 CONTINUE
-  130             CONTINUE
-              ELSE
-                  DO 160 J = 1,N
-                      DO 150 I = M,1,-1
-                          TEMP = ALPHA*B(I,J)
-                          DO 140 K = I + 1,M
-                              TEMP = TEMP - A(K,I)*B(K,J)
-  140                     CONTINUE
-                          IF (NOUNIT) TEMP = TEMP/A(I,I)
-                          B(I,J) = TEMP
-  150                 CONTINUE
-  160             CONTINUE
-              END IF
-          END IF
-      ELSE
-          IF (LSAME(TRANSA,'N')) THEN
+        if (upper) then
+          do j = 1, n
+            do i = 1, m
+              temp = alpha*b(i, j)
+              do k = 1, i - 1
+                temp = temp - a(k, i)*b(k, j)
+              end do
+              if (nounit) temp = temp/a(i, i)
+              b(i, j) = temp
+            end do
+          end do
+        else
+          do j = 1, n
+            do i = m, 1, -1
+              temp = alpha*b(i, j)
+              do k = i + 1, m
+                temp = temp - a(k, i)*b(k, j)
+              end do
+              if (nounit) temp = temp/a(i, i)
+              b(i, j) = temp
+            end do
+          end do
+        end if
+      end if
+    else
+      if (lsame(transa,'N')) then
 !
 !           Form  B := alpha*B*inv( A ).
 !
-              IF (UPPER) THEN
-                  DO 210 J = 1,N
-                      IF (ALPHA/=ONE) THEN
-                          DO 170 I = 1,M
-                              B(I,J) = ALPHA*B(I,J)
-  170                     CONTINUE
-                      END IF
-                      DO 190 K = 1,J - 1
-                          IF (A(K,J)/=ZERO) THEN
-                              DO 180 I = 1,M
-                                  B(I,J) = B(I,J) - A(K,J)*B(I,K)
-  180                         CONTINUE
-                          END IF
-  190                 CONTINUE
-                      IF (NOUNIT) THEN
-                          TEMP = ONE/A(J,J)
-                          DO 200 I = 1,M
-                              B(I,J) = TEMP*B(I,J)
-  200                     CONTINUE
-                      END IF
-  210             CONTINUE
-              ELSE
-                  DO 260 J = N,1,-1
-                      IF (ALPHA/=ONE) THEN
-                          DO 220 I = 1,M
-                              B(I,J) = ALPHA*B(I,J)
-  220                     CONTINUE
-                      END IF
-                      DO 240 K = J + 1,N
-                          IF (A(K,J)/=ZERO) THEN
-                              DO 230 I = 1,M
-                                  B(I,J) = B(I,J) - A(K,J)*B(I,K)
-  230                         CONTINUE
-                          END IF
-  240                 CONTINUE
-                      IF (NOUNIT) THEN
-                          TEMP = ONE/A(J,J)
-                          DO 250 I = 1,M
-                              B(I,J) = TEMP*B(I,J)
-  250                     CONTINUE
-                      END IF
-  260             CONTINUE
-              END IF
-          ELSE
+        if (upper) then
+          do j = 1, n
+            if (alpha/=one) then
+              do i = 1, m
+                b(i, j) = alpha*b(i, j)
+              end do
+            end if
+            do k = 1, j - 1
+              if (a(k,j)/=zero) then
+                do i = 1, m
+                  b(i, j) = b(i, j) - a(k, j)*b(i, k)
+                end do
+              end if
+            end do
+            if (nounit) then
+              temp = one/a(j, j)
+              do i = 1, m
+                b(i, j) = temp*b(i, j)
+              end do
+            end if
+          end do
+        else
+          do j = n, 1, -1
+            if (alpha/=one) then
+              do i = 1, m
+                b(i, j) = alpha*b(i, j)
+              end do
+            end if
+            do k = j + 1, n
+              if (a(k,j)/=zero) then
+                do i = 1, m
+                  b(i, j) = b(i, j) - a(k, j)*b(i, k)
+                end do
+              end if
+            end do
+            if (nounit) then
+              temp = one/a(j, j)
+              do i = 1, m
+                b(i, j) = temp*b(i, j)
+              end do
+            end if
+          end do
+        end if
+      else
 !
 !           Form  B := alpha*B*inv( A**T ).
 !
-              IF (UPPER) THEN
-                  DO 310 K = N,1,-1
-                      IF (NOUNIT) THEN
-                          TEMP = ONE/A(K,K)
-                          DO 270 I = 1,M
-                              B(I,K) = TEMP*B(I,K)
-  270                     CONTINUE
-                      END IF
-                      DO 290 J = 1,K - 1
-                          IF (A(J,K)/=ZERO) THEN
-                              TEMP = A(J,K)
-                              DO 280 I = 1,M
-                                  B(I,J) = B(I,J) - TEMP*B(I,K)
-  280                         CONTINUE
-                          END IF
-  290                 CONTINUE
-                      IF (ALPHA/=ONE) THEN
-                          DO 300 I = 1,M
-                              B(I,K) = ALPHA*B(I,K)
-  300                     CONTINUE
-                      END IF
-  310             CONTINUE
-              ELSE
-                  DO 360 K = 1,N
-                      IF (NOUNIT) THEN
-                          TEMP = ONE/A(K,K)
-                          DO 320 I = 1,M
-                              B(I,K) = TEMP*B(I,K)
-  320                     CONTINUE
-                      END IF
-                      DO 340 J = K + 1,N
-                          IF (A(J,K)/=ZERO) THEN
-                              TEMP = A(J,K)
-                              DO 330 I = 1,M
-                                  B(I,J) = B(I,J) - TEMP*B(I,K)
-  330                         CONTINUE
-                          END IF
-  340                 CONTINUE
-                      IF (ALPHA/=ONE) THEN
-                          DO 350 I = 1,M
-                              B(I,K) = ALPHA*B(I,K)
-  350                     CONTINUE
-                      END IF
-  360             CONTINUE
-              END IF
-          END IF
-      END IF
+        if (upper) then
+          do k = n, 1, -1
+            if (nounit) then
+              temp = one/a(k, k)
+              do i = 1, m
+                b(i, k) = temp*b(i, k)
+              end do
+            end if
+            do j = 1, k - 1
+              if (a(j,k)/=zero) then
+                temp = a(j, k)
+                do i = 1, m
+                  b(i, j) = b(i, j) - temp*b(i, k)
+                end do
+              end if
+            end do
+            if (alpha/=one) then
+              do i = 1, m
+                b(i, k) = alpha*b(i, k)
+              end do
+            end if
+          end do
+        else
+          do k = 1, n
+            if (nounit) then
+              temp = one/a(k, k)
+              do i = 1, m
+                b(i, k) = temp*b(i, k)
+              end do
+            end if
+            do j = k + 1, n
+              if (a(j,k)/=zero) then
+                temp = a(j, k)
+                do i = 1, m
+                  b(i, j) = b(i, j) - temp*b(i, k)
+                end do
+              end if
+            end do
+            if (alpha/=one) then
+              do i = 1, m
+                b(i, k) = alpha*b(i, k)
+              end do
+            end if
+          end do
+        end if
+      end if
+    end if
 !
-      RETURN
+    return
 !
 !     End of DTRSM .
 !
-    END SUBROUTINE DTRSM
+  end subroutine dtrsm
 
-    SUBROUTINE DTBSV(UPLO,TRANS,DIAG,N,K,A,LDA,X,INCX)
-      IMPLICIT NONE
+  subroutine dtbsv(uplo, trans, diag, n, k, a, lda, x, incx)
+    implicit none
 !     .. Scalar Arguments ..
-      INTEGER :: INCX,K,LDA,N
-      CHARACTER :: DIAG,TRANS,UPLO
+    integer :: incx, k, lda, n
+    character :: diag, trans, uplo
 !     ..
 !     .. Array Arguments ..
-      real(rk8) :: A(LDA,*),X(*)
+    real (rk8) :: a(lda, *), x(*)
 !     ..
 !
 !  Purpose
@@ -4150,203 +4086,203 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8) :: ZERO
-      PARAMETER (ZERO=0.0_rk8)
+    real (rk8) :: zero
+    parameter (zero=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      real(rk8) :: TEMP
-      INTEGER :: I,INFO,IX,J,JX,KPLUS1,KX,L
-      LOGICAL :: NOUNIT
+    real (rk8) :: temp
+    integer :: i, info, ix, j, jx, kplus1, kx, l
+    logical :: nounit
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC MAX,MIN
+    intrinsic :: max, min
 !     ..
 !
 !     Test the input parameters.
 !
-      INFO = 0
-      IF (.NOT.LSAME(UPLO,'U') .AND. .NOT.LSAME(UPLO,'L')) THEN
-          INFO = 1
-      ELSE IF (.NOT.LSAME(TRANS,'N') .AND. .NOT.LSAME(TRANS,'T') .AND. &
-               .NOT.LSAME(TRANS,'C')) THEN
-          INFO = 2
-      ELSE IF (.NOT.LSAME(DIAG,'U') .AND. .NOT.LSAME(DIAG,'N')) THEN
-          INFO = 3
-      ELSE IF (N<0) THEN
-          INFO = 4
-      ELSE IF (K<0) THEN
-          INFO = 5
-      ELSE IF (LDA< (K+1)) THEN
-          INFO = 7
-      ELSE IF (INCX==0) THEN
-          INFO = 9
-      END IF
-      IF (INFO/=0) THEN
-          CALL XERBLA('DTBSV ',INFO)
-          RETURN
-      END IF
+    info = 0
+    if (.not. lsame(uplo,'U') .and. .not. lsame(uplo,'L')) then
+      info = 1
+    else if (.not. lsame(trans,'N') .and. .not. lsame(trans,'T') .and. &
+        .not. lsame(trans,'C')) then
+      info = 2
+    else if (.not. lsame(diag,'U') .and. .not. lsame(diag,'N')) then
+      info = 3
+    else if (n<0) then
+      info = 4
+    else if (k<0) then
+      info = 5
+    else if (lda<(k+1)) then
+      info = 7
+    else if (incx==0) then
+      info = 9
+    end if
+    if (info/=0) then
+      call xerbla('DTBSV ', info)
+      return
+    end if
 !
 !     Quick return if possible.
 !
-      IF (N==0) RETURN
+    if (n==0) return
 !
-      NOUNIT = LSAME(DIAG,'N')
+    nounit = lsame(diag, 'N')
 !
 !     Set up the start point in X if the increment is not unity. This
 !     will be  ( N - 1 )*INCX  too small for descending loops.
 !
-      IF (INCX<=0) THEN
-          KX = 1 - (N-1)*INCX
-      ELSE IF (INCX/=1) THEN
-          KX = 1
-      END IF
+    if (incx<=0) then
+      kx = 1 - (n-1)*incx
+    else if (incx/=1) then
+      kx = 1
+    end if
 !
 !     Start the operations. In this version the elements of A are
 !     accessed by sequentially with one pass through A.
 !
-      IF (LSAME(TRANS,'N')) THEN
+    if (lsame(trans,'N')) then
 !
 !        Form  x := inv( A )*x.
 !
-          IF (LSAME(UPLO,'U')) THEN
-              KPLUS1 = K + 1
-              IF (INCX==1) THEN
-                  DO 20 J = N,1,-1
-                      IF (X(J)/=ZERO) THEN
-                          L = KPLUS1 - J
-                          IF (NOUNIT) X(J) = X(J)/A(KPLUS1,J)
-                          TEMP = X(J)
-                          DO 10 I = J - 1,MAX(1,J-K),-1
-                              X(I) = X(I) - TEMP*A(L+I,J)
-   10                     CONTINUE
-                      END IF
-   20             CONTINUE
-              ELSE
-                  KX = KX + (N-1)*INCX
-                  JX = KX
-                  DO 40 J = N,1,-1
-                      KX = KX - INCX
-                      IF (X(JX)/=ZERO) THEN
-                          IX = KX
-                          L = KPLUS1 - J
-                          IF (NOUNIT) X(JX) = X(JX)/A(KPLUS1,J)
-                          TEMP = X(JX)
-                          DO 30 I = J - 1,MAX(1,J-K),-1
-                              X(IX) = X(IX) - TEMP*A(L+I,J)
-                              IX = IX - INCX
-   30                     CONTINUE
-                      END IF
-                      JX = JX - INCX
-   40             CONTINUE
-              END IF
-          ELSE
-              IF (INCX==1) THEN
-                  DO 60 J = 1,N
-                      IF (X(J)/=ZERO) THEN
-                          L = 1 - J
-                          IF (NOUNIT) X(J) = X(J)/A(1,J)
-                          TEMP = X(J)
-                          DO 50 I = J + 1,MIN(N,J+K)
-                              X(I) = X(I) - TEMP*A(L+I,J)
-   50                     CONTINUE
-                      END IF
-   60             CONTINUE
-              ELSE
-                  JX = KX
-                  DO 80 J = 1,N
-                      KX = KX + INCX
-                      IF (X(JX)/=ZERO) THEN
-                          IX = KX
-                          L = 1 - J
-                          IF (NOUNIT) X(JX) = X(JX)/A(1,J)
-                          TEMP = X(JX)
-                          DO 70 I = J + 1,MIN(N,J+K)
-                              X(IX) = X(IX) - TEMP*A(L+I,J)
-                              IX = IX + INCX
-   70                     CONTINUE
-                      END IF
-                      JX = JX + INCX
-   80             CONTINUE
-              END IF
-          END IF
-      ELSE
+      if (lsame(uplo,'U')) then
+        kplus1 = k + 1
+        if (incx==1) then
+          do j = n, 1, -1
+            if (x(j)/=zero) then
+              l = kplus1 - j
+              if (nounit) x(j) = x(j)/a(kplus1, j)
+              temp = x(j)
+              do i = j - 1, max(1, j-k), -1
+                x(i) = x(i) - temp*a(l+i, j)
+              end do
+            end if
+          end do
+        else
+          kx = kx + (n-1)*incx
+          jx = kx
+          do j = n, 1, -1
+            kx = kx - incx
+            if (x(jx)/=zero) then
+              ix = kx
+              l = kplus1 - j
+              if (nounit) x(jx) = x(jx)/a(kplus1, j)
+              temp = x(jx)
+              do i = j - 1, max(1, j-k), -1
+                x(ix) = x(ix) - temp*a(l+i, j)
+                ix = ix - incx
+              end do
+            end if
+            jx = jx - incx
+          end do
+        end if
+      else
+        if (incx==1) then
+          do j = 1, n
+            if (x(j)/=zero) then
+              l = 1 - j
+              if (nounit) x(j) = x(j)/a(1, j)
+              temp = x(j)
+              do i = j + 1, min(n, j+k)
+                x(i) = x(i) - temp*a(l+i, j)
+              end do
+            end if
+          end do
+        else
+          jx = kx
+          do j = 1, n
+            kx = kx + incx
+            if (x(jx)/=zero) then
+              ix = kx
+              l = 1 - j
+              if (nounit) x(jx) = x(jx)/a(1, j)
+              temp = x(jx)
+              do i = j + 1, min(n, j+k)
+                x(ix) = x(ix) - temp*a(l+i, j)
+                ix = ix + incx
+              end do
+            end if
+            jx = jx + incx
+          end do
+        end if
+      end if
+    else
 !
 !        Form  x := inv( A**T)*x.
 !
-          IF (LSAME(UPLO,'U')) THEN
-              KPLUS1 = K + 1
-              IF (INCX==1) THEN
-                  DO 100 J = 1,N
-                      TEMP = X(J)
-                      L = KPLUS1 - J
-                      DO 90 I = MAX(1,J-K),J - 1
-                          TEMP = TEMP - A(L+I,J)*X(I)
-   90                 CONTINUE
-                      IF (NOUNIT) TEMP = TEMP/A(KPLUS1,J)
-                      X(J) = TEMP
-  100             CONTINUE
-              ELSE
-                  JX = KX
-                  DO 120 J = 1,N
-                      TEMP = X(JX)
-                      IX = KX
-                      L = KPLUS1 - J
-                      DO 110 I = MAX(1,J-K),J - 1
-                          TEMP = TEMP - A(L+I,J)*X(IX)
-                          IX = IX + INCX
-  110                 CONTINUE
-                      IF (NOUNIT) TEMP = TEMP/A(KPLUS1,J)
-                      X(JX) = TEMP
-                      JX = JX + INCX
-                      IF (J>K) KX = KX + INCX
-  120             CONTINUE
-              END IF
-          ELSE
-              IF (INCX==1) THEN
-                  DO 140 J = N,1,-1
-                      TEMP = X(J)
-                      L = 1 - J
-                      DO 130 I = MIN(N,J+K),J + 1,-1
-                          TEMP = TEMP - A(L+I,J)*X(I)
-  130                 CONTINUE
-                      IF (NOUNIT) TEMP = TEMP/A(1,J)
-                      X(J) = TEMP
-  140             CONTINUE
-              ELSE
-                  KX = KX + (N-1)*INCX
-                  JX = KX
-                  DO 160 J = N,1,-1
-                      TEMP = X(JX)
-                      IX = KX
-                      L = 1 - J
-                      DO 150 I = MIN(N,J+K),J + 1,-1
-                          TEMP = TEMP - A(L+I,J)*X(IX)
-                          IX = IX - INCX
-  150                 CONTINUE
-                      IF (NOUNIT) TEMP = TEMP/A(1,J)
-                      X(JX) = TEMP
-                      JX = JX - INCX
-                      IF ((N-J)>=K) KX = KX - INCX
-  160             CONTINUE
-              END IF
-          END IF
-      END IF
+      if (lsame(uplo,'U')) then
+        kplus1 = k + 1
+        if (incx==1) then
+          do j = 1, n
+            temp = x(j)
+            l = kplus1 - j
+            do i = max(1, j-k), j - 1
+              temp = temp - a(l+i, j)*x(i)
+            end do
+            if (nounit) temp = temp/a(kplus1, j)
+            x(j) = temp
+          end do
+        else
+          jx = kx
+          do j = 1, n
+            temp = x(jx)
+            ix = kx
+            l = kplus1 - j
+            do i = max(1, j-k), j - 1
+              temp = temp - a(l+i, j)*x(ix)
+              ix = ix + incx
+            end do
+            if (nounit) temp = temp/a(kplus1, j)
+            x(jx) = temp
+            jx = jx + incx
+            if (j>k) kx = kx + incx
+          end do
+        end if
+      else
+        if (incx==1) then
+          do j = n, 1, -1
+            temp = x(j)
+            l = 1 - j
+            do i = min(n, j+k), j + 1, -1
+              temp = temp - a(l+i, j)*x(i)
+            end do
+            if (nounit) temp = temp/a(1, j)
+            x(j) = temp
+          end do
+        else
+          kx = kx + (n-1)*incx
+          jx = kx
+          do j = n, 1, -1
+            temp = x(jx)
+            ix = kx
+            l = 1 - j
+            do i = min(n, j+k), j + 1, -1
+              temp = temp - a(l+i, j)*x(ix)
+              ix = ix - incx
+            end do
+            if (nounit) temp = temp/a(1, j)
+            x(jx) = temp
+            jx = jx - incx
+            if ((n-j)>=k) kx = kx - incx
+          end do
+        end if
+      end if
+    end if
 !
-      RETURN
+    return
 !
 !     End of DTBSV .
 !
-    END SUBROUTINE DTBSV
+  end subroutine dtbsv
 
-    SUBROUTINE DGEMV(TRANS,M,N,ALPHA,A,LDA,X,INCX,BETA,Y,INCY)
-      IMPLICIT NONE
+  subroutine dgemv(trans, m, n, alpha, a, lda, x, incx, beta, y, incy)
+    implicit none
 !     .. Scalar Arguments ..
-      real(rk8) :: ALPHA,BETA
-      INTEGER :: INCX,INCY,LDA,M,N
-      CHARACTER :: TRANS
+    real (rk8) :: alpha, beta
+    integer :: incx, incy, lda, m, n
+    character :: trans
 !     ..
 !     .. Array Arguments ..
-      real(rk8) :: A(LDA,*),X(*),Y(*)
+    real (rk8) :: a(lda, *), x(*), y(*)
 !     ..
 !
 !  Purpose
@@ -4445,158 +4381,157 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rk8) :: ONE,ZERO
-      PARAMETER (ONE=1.0_rk8,ZERO=0.0_rk8)
+    real (rk8) :: one, zero
+    parameter (one=1.0_rk8, zero=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      real(rk8) :: TEMP
-      INTEGER :: I,INFO,IX,IY,J,JX,JY,KX,KY,LENX,LENY
+    real (rk8) :: temp
+    integer :: i, info, ix, iy, j, jx, jy, kx, ky, lenx, leny
 !     ..
 !     .. Intrinsic Functions ..
-      INTRINSIC MAX
+    intrinsic :: max
 !     ..
 !
 !     Test the input parameters.
 !
-      INFO = 0
-      IF (.NOT.LSAME(TRANS,'N') .AND. .NOT.LSAME(TRANS,'T') .AND. &
-          .NOT.LSAME(TRANS,'C')) THEN
-          INFO = 1
-      ELSE IF (M<0) THEN
-          INFO = 2
-      ELSE IF (N<0) THEN
-          INFO = 3
-      ELSE IF (LDA<MAX(1,M)) THEN
-          INFO = 6
-      ELSE IF (INCX==0) THEN
-          INFO = 8
-      ELSE IF (INCY==0) THEN
-          INFO = 11
-      END IF
-      IF (INFO/=0) THEN
-          CALL XERBLA('DGEMV ',INFO)
-          RETURN
-      END IF
+    info = 0
+    if (.not. lsame(trans,'N') .and. .not. lsame(trans,'T') .and. &
+      .not. lsame(trans,'C')) then
+      info = 1
+    else if (m<0) then
+      info = 2
+    else if (n<0) then
+      info = 3
+    else if (lda<max(1,m)) then
+      info = 6
+    else if (incx==0) then
+      info = 8
+    else if (incy==0) then
+      info = 11
+    end if
+    if (info/=0) then
+      call xerbla('DGEMV ', info)
+      return
+    end if
 !
 !     Quick return if possible.
 !
-      IF ((M==0) .OR. (N==0) .OR. &
-          ((ALPHA==ZERO).AND. (BETA==ONE))) RETURN
+    if ((m==0) .or. (n==0) .or. ((alpha==zero) .and. (beta==one))) return
 !
 !     Set  LENX  and  LENY, the lengths of the vectors x and y, and set
 !     up the start points in  X  and  Y.
 !
-      IF (LSAME(TRANS,'N')) THEN
-          LENX = N
-          LENY = M
-      ELSE
-          LENX = M
-          LENY = N
-      END IF
-      IF (INCX>0) THEN
-          KX = 1
-      ELSE
-          KX = 1 - (LENX-1)*INCX
-      END IF
-      IF (INCY>0) THEN
-          KY = 1
-      ELSE
-          KY = 1 - (LENY-1)*INCY
-      END IF
+    if (lsame(trans,'N')) then
+      lenx = n
+      leny = m
+    else
+      lenx = m
+      leny = n
+    end if
+    if (incx>0) then
+      kx = 1
+    else
+      kx = 1 - (lenx-1)*incx
+    end if
+    if (incy>0) then
+      ky = 1
+    else
+      ky = 1 - (leny-1)*incy
+    end if
 !
 !     Start the operations. In this version the elements of A are
 !     accessed sequentially with one pass through A.
 !
 !     First form  y := beta*y.
 !
-      IF (BETA/=ONE) THEN
-          IF (INCY==1) THEN
-              IF (BETA==ZERO) THEN
-                  DO 10 I = 1,LENY
-                      Y(I) = ZERO
-   10             CONTINUE
-              ELSE
-                  DO 20 I = 1,LENY
-                      Y(I) = BETA*Y(I)
-   20             CONTINUE
-              END IF
-          ELSE
-              IY = KY
-              IF (BETA==ZERO) THEN
-                  DO 30 I = 1,LENY
-                      Y(IY) = ZERO
-                      IY = IY + INCY
-   30             CONTINUE
-              ELSE
-                  DO 40 I = 1,LENY
-                      Y(IY) = BETA*Y(IY)
-                      IY = IY + INCY
-   40             CONTINUE
-              END IF
-          END IF
-      END IF
-      IF (ALPHA==ZERO) RETURN
-      IF (LSAME(TRANS,'N')) THEN
+    if (beta/=one) then
+      if (incy==1) then
+        if (beta==zero) then
+          do i = 1, leny
+            y(i) = zero
+          end do
+        else
+          do i = 1, leny
+            y(i) = beta*y(i)
+          end do
+        end if
+      else
+        iy = ky
+        if (beta==zero) then
+          do i = 1, leny
+            y(iy) = zero
+            iy = iy + incy
+          end do
+        else
+          do i = 1, leny
+            y(iy) = beta*y(iy)
+            iy = iy + incy
+          end do
+        end if
+      end if
+    end if
+    if (alpha==zero) return
+    if (lsame(trans,'N')) then
 !
 !        Form  y := alpha*A*x + y.
 !
-          JX = KX
-          IF (INCY==1) THEN
-              DO 60 J = 1,N
-                  IF (X(JX)/=ZERO) THEN
-                      TEMP = ALPHA*X(JX)
-                      DO 50 I = 1,M
-                          Y(I) = Y(I) + TEMP*A(I,J)
-   50                 CONTINUE
-                  END IF
-                  JX = JX + INCX
-   60         CONTINUE
-          ELSE
-              DO 80 J = 1,N
-                  IF (X(JX)/=ZERO) THEN
-                      TEMP = ALPHA*X(JX)
-                      IY = KY
-                      DO 70 I = 1,M
-                          Y(IY) = Y(IY) + TEMP*A(I,J)
-                          IY = IY + INCY
-   70                 CONTINUE
-                  END IF
-                  JX = JX + INCX
-   80         CONTINUE
-          END IF
-      ELSE
+      jx = kx
+      if (incy==1) then
+        do j = 1, n
+          if (x(jx)/=zero) then
+            temp = alpha*x(jx)
+            do i = 1, m
+              y(i) = y(i) + temp*a(i, j)
+            end do
+          end if
+          jx = jx + incx
+        end do
+      else
+        do j = 1, n
+          if (x(jx)/=zero) then
+            temp = alpha*x(jx)
+            iy = ky
+            do i = 1, m
+              y(iy) = y(iy) + temp*a(i, j)
+              iy = iy + incy
+            end do
+          end if
+          jx = jx + incx
+        end do
+      end if
+    else
 !
 !        Form  y := alpha*A**T*x + y.
 !
-          JY = KY
-          IF (INCX==1) THEN
-              DO 100 J = 1,N
-                  TEMP = ZERO
-                  DO 90 I = 1,M
-                      TEMP = TEMP + A(I,J)*X(I)
-   90             CONTINUE
-                  Y(JY) = Y(JY) + ALPHA*TEMP
-                  JY = JY + INCY
-  100         CONTINUE
-          ELSE
-              DO 120 J = 1,N
-                  TEMP = ZERO
-                  IX = KX
-                  DO 110 I = 1,M
-                      TEMP = TEMP + A(I,J)*X(IX)
-                      IX = IX + INCX
-  110             CONTINUE
-                  Y(JY) = Y(JY) + ALPHA*TEMP
-                  JY = JY + INCY
-  120         CONTINUE
-          END IF
-      END IF
+      jy = ky
+      if (incx==1) then
+        do j = 1, n
+          temp = zero
+          do i = 1, m
+            temp = temp + a(i, j)*x(i)
+          end do
+          y(jy) = y(jy) + alpha*temp
+          jy = jy + incy
+        end do
+      else
+        do j = 1, n
+          temp = zero
+          ix = kx
+          do i = 1, m
+            temp = temp + a(i, j)*x(ix)
+            ix = ix + incx
+          end do
+          y(jy) = y(jy) + alpha*temp
+          jy = jy + incy
+        end do
+      end if
+    end if
 !
-      RETURN
+    return
 !
 !     End of DGEMV .
 !
-    END SUBROUTINE DGEMV
+  end subroutine dgemv
 
 end module lapack_dgbsv
 
