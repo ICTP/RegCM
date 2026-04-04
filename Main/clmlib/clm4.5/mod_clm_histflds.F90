@@ -1122,6 +1122,10 @@ module mod_clm_histflds
          avgflag='A', long_name='atmospheric rain', &
          ptr_gcell=clm_a2l%forc_rain, default='inactive')
 
+    call hist_addfld1d (fname='SWdown', units='W/m^2',  &
+         avgflag='A', long_name='atmospheric incident solar radiation', &
+         ptr_gcell=clm_a2l%forc_solar, default='inactive')
+
     call hist_addfld1d (fname='LWdown', units='W/m^2',  &
          avgflag='A', long_name='atmospheric longwave radiation', &
          ptr_gcell=clm_a2l%forc_lwrad, default='inactive')
