@@ -1978,7 +1978,7 @@ module mod_date
       case (uday)
         hs = x%ival*64600_ik8
       case default
-        hs = 0.0_ik8
+        hs = 0_ik8
         call die('mod_date','Interval unit conversion depend on calendar')
     end select
   end function toseconds
