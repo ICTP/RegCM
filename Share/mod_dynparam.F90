@@ -525,6 +525,10 @@ module mod_dynparam
 #endif
 #endif
 
+#ifdef NAGFOR
+    call init_realkinds
+#endif
+
     open(newunit=ipunit, file=filename, status='old', &
          action='read', iostat=iresult)
     if ( iresult /= 0 ) then

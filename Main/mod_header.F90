@@ -47,7 +47,11 @@ module mod_header
       call cpu_time(start_time)
       last_time = start_time
       write (stdout,"(/,2x,'This is RegCM development version')")
-      write (stdout,f99001)  GIT_VER, __DATE__, __TIME__
+#ifdef NAGFOR
+      write (stdout,f99001)  GIT_VER, '1900-01-01', '00:00:00'
+#else
+      write (stdout,f99001) GIT_VER, __DATE__, __TIME__
+#endif
     end if
 
   end subroutine whoami

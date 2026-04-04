@@ -434,7 +434,7 @@ module mod_service
 #ifdef IBM
       call flush_(lunit)
 #else
-      call flush(lunit)
+      flush(lunit)
 #endif
     end subroutine flusha
 end module mod_service

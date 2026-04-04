@@ -65,6 +65,10 @@ module mod_realkinds
   real(rk8) :: nan
   real(rk8) :: inf
 #endif
+  real(rk4) :: inf_r4
+  real(rk4) :: nan_r4
+  real(rk8) :: inf_r8
+  real(rk8) :: nan_r8
 #else
   real(rk4), parameter :: nan_r4 = transfer(__SYSTEM_NAN_32__, 1._real32)
   real(rk4), parameter :: inf_r4 = transfer(__SYSTEM_INF_32__, 1._real32)
@@ -119,12 +123,16 @@ module mod_realkinds
 #ifdef NAGFOR
   subroutine init_realkinds( )
     implicit none
+    inf_r4 = ieee_value(real(rk4), ieee_positive_inf)
+    nan_r4 = ieee_value(real(rk4), ieee_quiet_nan)
+    inf_r8 = ieee_value(real(rk8), ieee_positive_inf)
+    nan_r8 = ieee_value(real(rk8), ieee_quiet_nan)
 #ifdef SINGLE_PRECISION_REAL
-    nan = 1.0_rk4/0.0_rk4
-    inf = 2.0_rk4 * huge(1.0_rk4)
+    nan = nan_r4
+    inf = inf_r4
 #else
-    nan = tiny(1.0_rk8)
-    inf = huge(1.0_rk8)
+    nan = nan_r8
+    inf = inf_r8
 #endif
   end subroutine init_realkinds
 #endif
