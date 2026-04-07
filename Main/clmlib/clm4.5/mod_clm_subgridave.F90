@@ -576,14 +576,24 @@ module  mod_clm_subgridave
     pgridcell => clm3%g%l%c%p%gridcell
     plandunit => clm3%g%l%c%p%landunit
 
-    call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
+    call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
     if ( c2l_scale_type == 'unity' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -601,7 +611,12 @@ module  mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -624,7 +639,12 @@ module  mod_clm_subgridave
     end if
 
     if ( p2c_scale_type == 'unity' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do  p = lbp, ubp
+#else
       do concurrent ( p = lbp:ubp )
+#endif
         scale_p2c(p) = 1.0_rk8
       end do
     else
@@ -632,11 +652,16 @@ module  mod_clm_subgridave
       call fatal(__FILE__,__LINE__,'clm is now stopping')
     end if
 
-    !$acc kernels
+    !$acc kernels async
     garr(:) = spval
     sumwt(:) = 0._rk8
     !$acc end kernels
+#ifdef OPENACC
+    !$acc parallel loop gang vector async
+    do p = lbp, ubp
+#else
     do concurrent ( p = lbp:ubp )
+#endif
       if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
         c = pcolumn(p)
         l = plandunit(p)
@@ -647,7 +672,7 @@ module  mod_clm_subgridave
         end if
       end if
     end do
-    !$acc parallel loop gang vector
+    !$acc parallel loop gang vector async
     do p = lbp, ubp
       if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
         c = pcolumn(p)
@@ -665,7 +690,7 @@ module  mod_clm_subgridave
     end do
 
     found = .false.
-    !$acc parallel loop gang vector copy(found) copyout(iind)
+    !$acc parallel loop gang vector copy(found) copyout(iind) async
     do g = lbg, ubg
       if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
@@ -674,6 +699,7 @@ module  mod_clm_subgridave
         garr(g) = garr(g)/sumwt(g)
       end if
     end do
+    !$acc wait
     if ( found ) then
       write(stderr,*)'p2g_1d error: sumwt is greater than 1.0 at g= ',iind
       call fatal(__FILE__,__LINE__,'clm is now stopping')
@@ -733,14 +759,24 @@ module  mod_clm_subgridave
     pgridcell    => clm3%g%l%c%p%gridcell
     plandunit    => clm3%g%l%c%p%landunit
 
-    call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
+    call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
     if ( c2l_scale_type == 'unity' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -758,7 +794,12 @@ module  mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -781,7 +822,12 @@ module  mod_clm_subgridave
     end if
 
     if ( p2c_scale_type == 'unity' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do p = lbp, ubp
+#else
       do concurrent ( p = lbp:ubp )
+#endif
         scale_p2c(p) = 1.0_rk8
       end do
     else
@@ -789,11 +835,17 @@ module  mod_clm_subgridave
       call fatal(__FILE__,__LINE__,'clm is now stopping')
     end if
 
-    !$acc kernels
+    !$acc kernels async
     garr(:,:) = spval
     sumwt(:,:) = 0._rk8
     !$acc end kernels
+#ifdef OPENACC
+    !$acc parallel loop collapse(2) gang vector async
+    do j = 1, num2d
+    do p = lbp, ubp
+#else
     do concurrent ( p = lbp:ubp, j = 1:num2d )
+#endif
       if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
         c = pcolumn(p)
         l = plandunit(p)
@@ -803,8 +855,11 @@ module  mod_clm_subgridave
           if ( sumwt(g,j) == 0._rk8 ) garr(g,j) = 0._rk8
         end if
       end if
+#ifdef OPENACC
     end do
-    !$acc parallel loop collapse(2) gang vector
+#endif
+    end do
+    !$acc parallel loop collapse(2) gang vector async
     do j = 1, num2d
       do p = lbp, ubp
         if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
@@ -823,7 +878,7 @@ module  mod_clm_subgridave
       end do
     end do
     found = .false.
-    !$acc parallel loop collapse(2) gang vector copy(found) copyout(iind)
+    !$acc parallel loop collapse(2) gang vector copy(found) copyout(iind) async
     do j = 1, num2d
     do g = lbg, ubg
       if ( sumwt(g,j) > 1.0_rk8 + 1.e-3_rk8 ) then
@@ -835,6 +890,7 @@ module  mod_clm_subgridave
       end if
     end do
     end do
+    !$acc wait
     if ( found ) then
       !$acc update host(sumwt)
       write(stderr,*) &
@@ -1105,14 +1161,24 @@ module  mod_clm_subgridave
     clandunit  => clm3%g%l%c%landunit
     cgridcell  => clm3%g%l%c%gridcell
 
-    call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
+    call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
     if ( c2l_scale_type == 'unity' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1130,7 +1196,12 @@ module  mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1152,11 +1223,16 @@ module  mod_clm_subgridave
      call fatal(__FILE__,__LINE__,'clm is now stopping')
     end if
 
-    !$acc kernels
+    !$acc kernels async
     garr(:) = spval
     sumwt(:) = 0._rk8
     !$acc end kernels
+#ifdef OPENACC
+    !$acc parallel loop gang vector async
+    do c = lbc, ubc
+#else
     do concurrent ( c = lbc:ubc )
+#endif
       if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
         l = clandunit(c)
         if ( carr(c) /= spval .and. &
@@ -1166,7 +1242,7 @@ module  mod_clm_subgridave
         end if
       end if
     end do
-    !$acc parallel loop gang vector
+    !$acc parallel loop gang vector async
     do c = lbc, ubc
       if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
         l = clandunit(c)
@@ -1181,7 +1257,7 @@ module  mod_clm_subgridave
       end if
     end do
     found = .false.
-    !$acc parallel loop gang vector copy(found) copyout(iind)
+    !$acc parallel loop gang vector copy(found) copyout(iind) async
     do g = lbg, ubg
       if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
@@ -1190,6 +1266,7 @@ module  mod_clm_subgridave
         garr(g) = garr(g)/sumwt(g)
       end if
     end do
+    !$acc wait
     if (found) then
       write(stderr,*)'c2g_1d error: sumwt is greater than 1.0 at g= ',iind
       call fatal(__FILE__,__LINE__,'clm is now stopping')
@@ -1241,14 +1318,24 @@ module  mod_clm_subgridave
     clandunit  => clm3%g%l%c%landunit
     cgridcell  => clm3%g%l%c%gridcell
 
-    call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
+    call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
     if ( c2l_scale_type == 'unity' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         scale_c2l(c) = 1.0_rk8
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1266,7 +1353,12 @@ module  mod_clm_subgridave
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
+#ifdef OPENACC
+      !$acc parallel loop gang vector async
+      do c = lbc, ubc
+#else
       do concurrent ( c = lbc:ubc )
+#endif
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
@@ -1288,11 +1380,17 @@ module  mod_clm_subgridave
       call fatal(__FILE__,__LINE__,'clm is now stopping')
     end if
 
-    !$acc kernels
+    !$acc kernels async
     garr(:,:) = spval
     sumwt(:,:) = 0._rk8
     !$acc end kernels
+#ifdef OPENACC
+    !$acc parallel loop collapse(2) gang vector async
+    do j = 1, num2d
+    do c = lbc, ubc
+#else
     do concurrent ( c = lbc:ubc, j = 1:num2d )
+#endif
       if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
         l = clandunit(c)
         if ( carr(c,j) /= spval .and. &
@@ -1301,8 +1399,11 @@ module  mod_clm_subgridave
           if ( sumwt(g,j) == 0._rk8) garr(g,j ) = 0._rk8
         end if
       end if
+#ifdef OPENACC
     end do
-    !$acc parallel loop collapse(2) gang vector
+#endif
+    end do
+    !$acc parallel loop collapse(2) gang vector async
     do j = 1, num2d
       do c = lbc, ubc
         if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
@@ -1320,7 +1421,7 @@ module  mod_clm_subgridave
       end do
     end do
     found = .false.
-    !$acc parallel loop collapse(2) gang vector copy(found) copyout(iind)
+    !$acc parallel loop collapse(2) gang vector copy(found) copyout(iind) async
     do j = 1, num2d
     do g = lbg, ubg
       if ( sumwt(g,j) > 1.0_rk8 + 1.e-3_rk8 ) then
@@ -1331,6 +1432,7 @@ module  mod_clm_subgridave
       end if
     end do
     end do
+    !$acc wait
     if ( found ) then
       write(stderr,*)'c2g_2d error: sumwt is greater than 1.0 at g= ',iind
       call fatal(__FILE__,__LINE__,'clm is now stopping')
@@ -1363,13 +1465,18 @@ module  mod_clm_subgridave
     wtgcell    => clm3%g%l%wtgcell
     lgridcell  => clm3%g%l%gridcell
 
-    call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
+    call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
-    !$acc kernels
+    !$acc kernels async
     garr(:) = spval
     sumwt(:) = 0._rk8
     !$acc end kernels
+#ifdef OPENACC
+    !$acc parallel loop gang vector async
+    do l = lbl, ubl
+#else
     do concurrent ( l = lbl:ubl )
+#endif
       if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
         if ( larr(l) /= spval .and. scale_l2g(l) /= spval ) then
           g = lgridcell(l)
@@ -1377,7 +1484,7 @@ module  mod_clm_subgridave
         end if
       end if
     end do
-    !$acc parallel loop gang vector
+    !$acc parallel loop gang vector async
     do l = lbl, ubl
       if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
         if ( larr(l) /= spval .and. scale_l2g(l) /= spval ) then
@@ -1390,7 +1497,7 @@ module  mod_clm_subgridave
       end if
     end do
     found = .false.
-    !$acc parallel loop gang vector copy(found) copyout(iind)
+    !$acc parallel loop gang vector copy(found) copyout(iind) async
     do g = lbg, ubg
       if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
@@ -1399,6 +1506,7 @@ module  mod_clm_subgridave
         garr(g) = garr(g)/sumwt(g)
       end if
     end do
+    !$acc wait
     if ( found ) then
       write(stderr,*)'l2g_1d error: sumwt is greater than 1.0 at g= ',iind
       call fatal(__FILE__,__LINE__,'clm is now stopping')
@@ -1434,21 +1542,30 @@ module  mod_clm_subgridave
     wtgcell   => clm3%g%l%wtgcell
     lgridcell => clm3%g%l%gridcell
 
-    call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
+    call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
-    !$acc kernels
+    !$acc kernels async
     garr(:,:) = spval
     sumwt(:,:) = 0._rk8
     !$acc end kernels
+#ifdef OPENACC
+    !$acc parallel loop collapse(2) gang vector async
+    do j = 1, num2d
+    do l = lbl, ubl
+#else
     do concurrent ( l = lbl:ubl, j = 1:num2d )
+#endif
       if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
         if ( larr(l,j) /= spval .and. scale_l2g(l) /= spval ) then
           g = lgridcell(l)
           if ( sumwt(g,j) == 0._rk8 ) garr(g,j) = 0._rk8
         end if
       end if
+#ifdef OPENACC
     end do
-    !$acc parallel loop collapse(2) gang vector
+#endif
+    end do
+    !$acc parallel loop collapse(2) gang vector async
     do j = 1, num2d
       do l = lbl, ubl
         if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
@@ -1464,7 +1581,7 @@ module  mod_clm_subgridave
     end do
 
     found = .false.
-    !$acc parallel loop collapse(2) gang vector copy(found) copyout(iind)
+    !$acc parallel loop collapse(2) gang vector copy(found) copyout(iind) async
     do j = 1, num2d
     do g = lbg, ubg
       if ( sumwt(g,j) > 1.0_rk8 + 1.e-3_rk8 ) then
@@ -1476,6 +1593,7 @@ module  mod_clm_subgridave
       end if
     end do
     end do
+    !$acc wait
     if ( found ) then
       write(stderr,*) &
          'l2g_2d error: sumwt is greater than 1.0 at g= ',iind(1),' lev= ',iind(2)
@@ -1488,6 +1606,31 @@ module  mod_clm_subgridave
   ! This array can later be used to scale each landunit in forming
   ! grid cell averages.
   !
+  subroutine build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
+     implicit none
+     ! scale factor type for averaging
+     character(len=*), intent(in) :: l2g_scale_type
+     integer(ik4), intent(in) :: lbl, ubl ! column indices
+     real(rk8), intent(out), dimension(lbl:ubl) :: scale_l2g ! scale factor
+     ! scale factor for each landunit type
+     real(rk8), dimension(max_lunit) :: scale_lookup
+     integer(ik4) :: l                       ! index
+     integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
+
+     ltype      => clm3%g%l%itype
+
+     call create_scale_l2g_lookup_async(l2g_scale_type,scale_lookup)
+
+#ifdef OPENACC
+     !$acc parallel loop gang vector async
+     do l = lbl, ubl
+#else
+     do concurrent ( l = lbl:ubl )
+#endif
+       scale_l2g(l) = scale_lookup(ltype(l))
+     end do
+  end subroutine build_scale_l2g_async
+
   subroutine build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
      implicit none
      ! scale factor type for averaging
@@ -1511,6 +1654,72 @@ module  mod_clm_subgridave
   ! Create a lookup array, scale_lookup(1..max_lunit), which gives the
   ! scale factor for each landunit type depending on l2g_scale_type
   !
+  subroutine create_scale_l2g_lookup_async(l2g_scale_type,scale_lookup)
+    implicit none
+    ! scale factor type for averaging
+    character(len=*), intent(in) :: l2g_scale_type
+    ! scale factor for each landunit type
+    real(rk8), dimension(max_lunit), intent(out) :: scale_lookup
+
+    ! ------------ WJS (10-14-11): IMPORTANT GENERAL NOTES ------------
+    !
+    ! Since scale_l2g is not currently included in the sumwt accumulations,
+    ! you need to be careful about the scale values you use. Values of 1 and
+    ! spval are safe (including having multiple landunits with value 1), but
+    ! only use other values if you know what you are doing!
+    ! For example, using a value of 0 is NOT the correct way to exclude a
+    ! landunit from the average, because the normalization will be done
+    ! incorrectly in this case: instead, use spval to exclude a landunit from
+    ! the average. Similarly, using a value of 2 is NOT the correct way to
+    ! give a landunit double relative weight in general, because the
+    ! normalization won't be done correctly in this case, either.
+    !
+    ! In the longer-term, I believe that the correct solution to this problem
+    ! is to include scale_l2g (and the other scale factors) in the sumwt
+    ! accumulations (e.g., sumwt = sumwt + wtgcell * scale_p2c * scale_c2l
+    ! * scale_l2g), but that requires some more thought to (1) make sure
+    ! that is correct, and (2) make sure it doesn't break the urban scaling.
+    !
+    ! -----------------------------------------------------------------
+
+    ! Initialize scale_lookup to spval for all landunits.
+    ! Thus, any landunit that keeps the default value will be excluded
+    ! from grid cell averages.
+    !$acc kernels async
+    scale_lookup(:) = spval
+    !$acc end kernels
+    if ( l2g_scale_type == 'unity' ) then
+      !$acc kernels async
+      scale_lookup(:) = 1.0_rk8
+      !$acc end kernels
+    else if ( l2g_scale_type == 'veg' ) then
+      !$acc kernels async
+      scale_lookup(istsoil) = 1.0_rk8
+      scale_lookup(istcrop) = 1.0_rk8
+      !$acc end kernels
+    else if ( l2g_scale_type == 'ice' ) then
+      !$acc kernels async
+      scale_lookup(istice) = 1.0_rk8
+      !$acc end kernels
+    else if ( l2g_scale_type == 'nonurb' ) then
+      !$acc kernels async
+      scale_lookup(:) = 1.0_rk8
+      !$acc end kernels
+      !$acc kernels async
+      scale_lookup(isturb) = spval
+      !$acc end kernels
+    else if ( l2g_scale_type == 'lake' ) then
+      !$acc kernels async
+      scale_lookup(istdlak) = 1.0_rk8
+      !$acc end kernels
+    else
+      write(stderr,*) &
+          'scale_l2g_lookup_array error: scale type ',l2g_scale_type, &
+          ' not supported'
+      call fatal(__FILE__,__LINE__,'clm is now stopping')
+    end if
+  end subroutine create_scale_l2g_lookup_async
+
   subroutine create_scale_l2g_lookup(l2g_scale_type,scale_lookup)
     implicit none
     ! scale factor type for averaging
