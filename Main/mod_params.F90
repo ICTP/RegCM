@@ -180,36 +180,34 @@ module mod_params
 
 #ifdef OASIS
     namelist /oasisparam/ l_write_grids, write_restart_option, &
-                          oasis_sync_lag, &
-                          l_cpl_im_sst, &
-!                          l_cpl_im_sit, &
-                          l_cpl_im_wz0, &
-                          l_cpl_im_wust, &
-                          l_cpl_ex_u10m, &
-                          l_cpl_ex_v10m, &
-                          l_cpl_ex_wspd, &
-                          l_cpl_ex_wdir, &
-                          l_cpl_ex_t2m, &
-!                          l_cpl_ex_t10m, &
-                          l_cpl_ex_q2m, &
-!                          l_cpl_ex_q10m, &
-                          l_cpl_ex_slp, &
-                          l_cpl_ex_taux, &
-                          l_cpl_ex_tauy, &
-                          l_cpl_ex_z0, &
-                          l_cpl_ex_ustr, &
-                          l_cpl_ex_evap, &
-                          l_cpl_ex_prec, &
-                          l_cpl_ex_nuwa, &
-                          l_cpl_ex_ulhf, &
-                          l_cpl_ex_ushf, &
-                          l_cpl_ex_uwlw, &
-                          l_cpl_ex_dwlw, &
-                          l_cpl_ex_nulw, &
-                          l_cpl_ex_uwsw, &
-                          l_cpl_ex_dwsw, &
-                          l_cpl_ex_ndsw, &
-                          l_cpl_ex_rhoa
+                          oasis_sync_lag
+    namelist /oasisparam/ &
+      l_cpl_im_sst,  l_cpl_im_wz0,  l_cpl_im_wust, l_cpl_ex_u10m, &
+      l_cpl_ex_v10m, l_cpl_ex_wspd, l_cpl_ex_wdir, l_cpl_ex_t2m,  &
+      l_cpl_ex_q2m,  l_cpl_ex_slp,  l_cpl_ex_taux, l_cpl_ex_tauy, &
+      l_cpl_ex_z0,   l_cpl_ex_ustr, l_cpl_ex_evap, l_cpl_ex_prec, &
+      l_cpl_ex_nuwa, l_cpl_ex_ulhf, l_cpl_ex_ushf, l_cpl_ex_uwlw, &
+      l_cpl_ex_dwlw, l_cpl_ex_nulw, l_cpl_ex_uwsw, l_cpl_ex_dwsw, &
+      l_cpl_ex_ndsw, l_cpl_ex_rhoa
+!     l_cpl_im_sit, l_cpl_ex_t10m, l_cpl_ex_q10m
+#ifdef ECLM
+    namelist /oasisparam/ &
+      l_cpl_ex_tatm,    l_cpl_ex_uatm,    l_cpl_ex_vatm,    &
+      l_cpl_ex_qatm,    l_cpl_ex_hgt,     l_cpl_ex_patm,    &
+      l_cpl_ex_dwrlwf,  l_cpl_ex_swdir,   l_cpl_ex_swdif,   &
+      l_cpl_ex_snow,    l_cpl_ex_rainf,   l_cpl_im_tgbb,    &
+      l_cpl_im_t2m,     l_cpl_im_q2m,     l_cpl_im_u10m,    &
+      l_cpl_im_sent,    l_cpl_im_evpr,    l_cpl_im_ram1,    &
+      l_cpl_im_rah1,    l_cpl_im_tauy,    l_cpl_im_taux,    &
+      l_cpl_im_sncv,    l_cpl_im_wt,      l_cpl_im_zo,      &
+      l_cpl_im_tlef,    l_cpl_im_albei,   l_cpl_im_albed,   &
+      l_cpl_im_flxvoc,  l_cpl_im_flxdst,  l_cpl_im_fluxch4, &
+      l_cpl_im_ddvel,   l_cpl_im_tlai,    l_cpl_im_roff,    &
+      l_cpl_im_srfroff, l_cpl_im_tsoi,    l_cpl_im_snwmelt, &
+      l_cpl_im_h2ovol,  l_cpl_im_h2oliq,  l_cpl_im_h2oice,  &
+      l_cpl_im_h2o10cm , l_cpl_im_tgrd , l_cpl_im_albei_2,  &
+      l_cpl_im_albed_2
+#endif
     ! OASIS field +++
 #endif
 
@@ -656,6 +654,51 @@ module mod_params
     l_cpl_ex_dwsw = .false.
     l_cpl_ex_ndsw = .false.
     l_cpl_ex_rhoa = .false.
+#ifdef ECLM
+    l_cpl_im_tgrd = .false.
+    l_cpl_ex_tatm = .false.
+    l_cpl_ex_uatm = .false.
+    l_cpl_ex_vatm = .false.
+    l_cpl_ex_qatm = .false.
+    l_cpl_ex_hgt = .false.
+    l_cpl_ex_swdir = .false.
+    l_cpl_ex_swdif = .false.
+    l_cpl_ex_dwrlwf = .false.
+    l_cpl_ex_patm = .false.
+    l_cpl_ex_snow = .false.
+    l_cpl_ex_rainf = .false.
+    l_cpl_im_tgbb = .false.
+    l_cpl_im_t2m = .false.
+    l_cpl_im_q2m = .false.
+    l_cpl_im_u10m = .false.
+    l_cpl_im_sent = .false.
+    l_cpl_im_evpr = .false.
+    l_cpl_im_ram1 = .false.
+    l_cpl_im_rah1 = .false.
+    l_cpl_im_taux = .false.
+    l_cpl_im_tauy = .false.
+    l_cpl_im_wt = .false.
+    l_cpl_im_sncv = .false.
+    l_cpl_im_zo = .false.
+    l_cpl_im_tlef = .false.
+    l_cpl_im_albei = .false.
+    l_cpl_im_albei_2 = .false.
+    l_cpl_im_albed = .false.
+    l_cpl_im_albed_2 = .false.
+    l_cpl_im_flxvoc = .false.
+    l_cpl_im_flxdst = .false.
+    l_cpl_im_fluxch4 = .false.
+    l_cpl_im_ddvel = .false.
+    l_cpl_im_tlai = .false.
+    l_cpl_im_roff = .false.
+    l_cpl_im_srfroff = .false.
+    l_cpl_im_snwmelt =  .false.
+    l_cpl_im_tsoi = .false.
+    l_cpl_im_h2o10cm = .false.
+    l_cpl_im_h2ovol = .false.
+    l_cpl_im_h2oliq = .false.
+    l_cpl_im_h2oice = .false.
+#endif
     ! OASIS field +++
 #endif
 
@@ -1097,9 +1140,9 @@ module mod_params
         rewind(ipunit)
         read(ipunit, oasisparam, iostat=iretval, err=122)
         if ( iretval /= 0 ) then
-          write(stdout,*) 'OASIS parameters absent.'
-          write(stdout,*) 'Disable OASIS coupling.'
-          ioasiscpl = 0
+          write(stderr,*) 'OASIS parameters absent.'
+          call fatal(__FILE__,__LINE__, &
+                     'OASIS PARAM READ ERROR')
 #ifdef DEBUG
         else
           write(stdout,*) 'Read oasisparam OK'
@@ -1110,8 +1153,8 @@ module mod_params
       if ( ioasiscpl == 1 ) then
         write(stdout,*) 'ioasiscpl set to 1 while OASIS has'
         write(stdout,*) 'not been enabled during compilation.'
-        write(stdout,*) 'Disable OASIS coupling.'
-        ioasiscpl = 0
+        call fatal(__FILE__,__LINE__, &
+                   'OASIS PARAM READ ERROR')
       end if
 #endif
 
@@ -1323,7 +1366,6 @@ module mod_params
     call bcast(iocncpl)
     call bcast(iwavcpl)
     call bcast(icopcpl)
-    call bcast(ioasiscpl)
     call bcast(iocnrough)
     call bcast(iocnzoq)
     call bcast(ipgf)
@@ -1526,6 +1568,51 @@ module mod_params
       call bcast(l_cpl_ex_dwsw)
       call bcast(l_cpl_ex_ndsw)
       call bcast(l_cpl_ex_rhoa)
+#ifdef ECLM
+      call bcast(l_cpl_im_tgbb)
+      call bcast(l_cpl_im_t2m)
+      call bcast(l_cpl_im_q2m)
+      call bcast(l_cpl_im_u10m)
+      call bcast(l_cpl_im_sent)
+      call bcast(l_cpl_im_evpr)
+      call bcast(l_cpl_im_ram1)
+      call bcast(l_cpl_im_rah1)
+      call bcast(l_cpl_im_taux)
+      call bcast(l_cpl_im_tauy)
+      call bcast(l_cpl_im_wt)
+      call bcast(l_cpl_im_sncv)
+      call bcast(l_cpl_im_zo)
+      call bcast(l_cpl_im_tlef)
+      call bcast(l_cpl_im_albei)
+      call bcast(l_cpl_im_albed)
+      call bcast(l_cpl_im_albei_2)
+      call bcast(l_cpl_im_albed_2)
+      call bcast(l_cpl_im_flxvoc)
+      call bcast(l_cpl_im_flxdst)
+      call bcast(l_cpl_im_fluxch4)
+      call bcast(l_cpl_im_ddvel)
+      call bcast(l_cpl_im_tlai)
+      call bcast(l_cpl_im_roff)
+      call bcast(l_cpl_im_srfroff)
+      call bcast(l_cpl_im_snwmelt)
+      call bcast(l_cpl_im_tsoi)
+      call bcast(l_cpl_im_h2o10cm)
+      call bcast(l_cpl_im_h2ovol)
+      call bcast(l_cpl_im_h2oliq)
+      call bcast(l_cpl_im_h2oice)
+      call bcast(l_cpl_im_tgrd)
+      call bcast(l_cpl_ex_tatm)
+      call bcast(l_cpl_ex_uatm)
+      call bcast(l_cpl_ex_vatm)
+      call bcast(l_cpl_ex_qatm)
+      call bcast(l_cpl_ex_hgt)
+      call bcast(l_cpl_ex_swdir)
+      call bcast(l_cpl_ex_swdif)
+      call bcast(l_cpl_ex_dwrlwf)
+      call bcast(l_cpl_ex_patm)
+      call bcast(l_cpl_ex_snow)
+      call bcast(l_cpl_ex_rainf)
+#endif
       ! OASIS field +++
     end if
 #endif
@@ -2905,7 +2992,6 @@ module mod_params
 
 #ifdef OASIS
    l_cpl_im_sst  = ( ioasiscpl == 1 ) .and. ( l_cpl_im_sst )
-!   l_cpl_im_sit  = ( ioasiscpl == 1 ) .and. ( l_cpl_im_sit )
    l_cpl_im_wz0  = ( ioasiscpl == 1 ) .and. ( l_cpl_im_wz0 )
    l_cpl_im_wust = ( ioasiscpl == 1 ) .and. ( l_cpl_im_wust )
    l_cpl_ex_u10m = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_u10m )
@@ -2913,9 +2999,7 @@ module mod_params
    l_cpl_ex_wspd = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_wspd )
    l_cpl_ex_wdir = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_wdir )
    l_cpl_ex_t2m  = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_t2m )
-!   l_cpl_ex_t10m = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_t10m )
    l_cpl_ex_q2m  = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_q2m )
-!   l_cpl_ex_q10m = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_q10m )
    l_cpl_ex_slp  = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_slp )
    l_cpl_ex_taux = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_taux )
    l_cpl_ex_tauy = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_tauy )
@@ -2933,6 +3017,9 @@ module mod_params
    l_cpl_ex_dwsw = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_dwsw )
    l_cpl_ex_ndsw = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_ndsw )
    l_cpl_ex_rhoa = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_rhoa )
+!  l_cpl_im_sit  = ( ioasiscpl == 1 ) .and. ( l_cpl_im_sit )
+!  l_cpl_ex_t10m = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_t10m )
+!  l_cpl_ex_q10m = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_q10m )
    ! OASIS field +++
    if ( ioasiscpl == 1 ) then
      if ( myid == italk ) then
@@ -2942,7 +3029,6 @@ module mod_params
        write(stdout,*) '      Sync lag is: ', oasis_sync_lag
      end if
      if ( .not. l_cpl_im_sst  .and. &
-!          .not. l_cpl_im_sit  .and. &
           .not. l_cpl_im_wz0  .and. &
           .not. l_cpl_im_wust .and. &
           .not. l_cpl_ex_u10m .and. &
@@ -2950,9 +3036,7 @@ module mod_params
           .not. l_cpl_ex_wspd .and. &
           .not. l_cpl_ex_wdir .and. &
           .not. l_cpl_ex_t2m  .and. &
-!          .not. l_cpl_ex_t10m .and. &
           .not. l_cpl_ex_q2m  .and. &
-!          .not. l_cpl_ex_q10m .and. &
           .not. l_cpl_ex_slp  .and. &
           .not. l_cpl_ex_taux .and. &
           .not. l_cpl_ex_tauy .and. &
@@ -2969,7 +3053,58 @@ module mod_params
           .not. l_cpl_ex_uwsw .and. &
           .not. l_cpl_ex_dwsw .and. &
           .not. l_cpl_ex_ndsw .and. &
-          .not. l_cpl_ex_rhoa ) then
+#ifndef ECLM
+          .not. l_cpl_ex_rhoa &
+!         .not. l_cpl_im_sit  .and. &
+!         .not. l_cpl_ex_t10m .and. &
+!         .not. l_cpl_ex_q10m .and. &
+#else
+          .not. l_cpl_ex_rhoa .and. &
+          .not. l_cpl_im_tgrd  .and. &
+          .not. l_cpl_ex_tatm  .and. &
+          .not. l_cpl_ex_uatm  .and. &
+          .not. l_cpl_ex_vatm  .and. &
+          .not. l_cpl_ex_qatm  .and. &
+          .not. l_cpl_ex_hgt  .and. &
+          .not. l_cpl_ex_swdir  .and. &
+          .not. l_cpl_ex_swdif  .and. &
+          .not. l_cpl_ex_dwrlwf  .and. &
+          .not. l_cpl_ex_patm  .and. &
+          .not. l_cpl_ex_snow  .and. &
+          .not. l_cpl_ex_rainf  .and. &
+          .not. l_cpl_im_tgbb  .and. &
+          .not. l_cpl_im_t2m  .and. &
+          .not. l_cpl_im_q2m  .and. &
+          .not. l_cpl_im_u10m  .and. &
+          .not. l_cpl_im_sent  .and. &
+          .not. l_cpl_im_evpr  .and. &
+          .not. l_cpl_im_ram1  .and. &
+          .not. l_cpl_im_rah1  .and. &
+          .not. l_cpl_im_taux  .and. &
+          .not. l_cpl_im_tauy  .and. &
+          .not. l_cpl_im_wt  .and. &
+          .not. l_cpl_im_sncv  .and. &
+          .not. l_cpl_im_zo  .and. &
+          .not. l_cpl_im_tlef  .and. &
+          .not. l_cpl_im_albei  .and. &
+          .not. l_cpl_im_albei_2  .and. &
+          .not. l_cpl_im_albed  .and. &
+          .not. l_cpl_im_albed_2  .and. &
+          .not. l_cpl_im_flxvoc  .and. &
+          .not. l_cpl_im_flxdst  .and. &
+          .not. l_cpl_im_fluxch4  .and. &
+          .not. l_cpl_im_ddvel  .and. &
+          .not. l_cpl_im_tlai  .and. &
+          .not. l_cpl_im_roff  .and. &
+          .not. l_cpl_im_srfroff  .and. &
+          .not. l_cpl_im_snwmelt  .and. &
+          .not. l_cpl_im_tsoi  .and. &
+          .not. l_cpl_im_h2o10cm  .and. &
+          .not. l_cpl_im_h2ovol  .and. &
+          .not. l_cpl_im_h2oliq  .and. &
+          .not. l_cpl_im_h2oice &
+#endif
+          ) then
           ! OASIS field +++
        if ( myid == italk ) then
          write(stdout,*) 'Warning: no enabled coupling field found.'

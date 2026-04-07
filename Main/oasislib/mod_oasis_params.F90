@@ -33,6 +33,15 @@ module mod_oasis_params
   end type infogrd
   public :: infogrd
 
+  type :: info3dgrd
+    character(len=4) :: naNM, naWM
+    integer :: id                   ! partition identificator
+    integer :: j1, j2, jll, i1, i2, ill, k1, k2, kll
+    integer :: ja, jb, jgl, ia, ib, igl, ka, kb, kgl
+    integer :: nc
+  end type info3dgrd
+  public :: info3dgrd
+
   ! field information type
   type infofld
     character(len=:), allocatable :: na ! field name
@@ -40,6 +49,13 @@ module mod_oasis_params
     type(infogrd), pointer :: grd => null()       ! field related definition indexes
   end type infofld
   public :: infofld
+
+  type info3dfld
+    character(len=:), allocatable :: na ! field name
+    integer :: id
+    type(info3dgrd), pointer :: grd  ! Pointer to 3D grid
+  end type info3dfld
+  public :: info3dfld
 
   character(len=6), parameter, public :: comp_name = 'REGCM5' ! component name
   integer(ik4), public :: comp_id ! component identification

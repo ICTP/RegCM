@@ -137,7 +137,7 @@ fi
 
 USE_OPENACC="0"
 # TODO: make this configurable
-PGI_GPU_ARCH="ccall-major"
+PGI_GPU_ARCH="ccnative"
 
 AC_ARG_ENABLE(openacc,
   AC_HELP_STRING([--enable-openacc],
@@ -215,6 +215,24 @@ if eval "test x"$USEOASIS" = x1"; then
   AC_MSG_WARN([OASIS path: $OASIS_PREFIX])
   AC_MSG_WARN([OASIS communication technique: $OASIS_CHAN])
   AM_CPPFLAGS="\$(DEFINE)OASIS $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+USEECLM="0"
+AC_ARG_ENABLE(eclm,
+  AC_HELP_STRING([--enable-eclm],
+                 [Supply this option if you plan on using ECLM option.]),
+  [USEECLM="1"]
+)
+AM_CONDITIONAL(DO_COMPILE_ECLM, [test x"$USEECLM" = x1])
+
+if eval "test x"$USEECLM" = x1"; then
+  USEOASIS=1
+  AM_CONDITIONAL(DO_COMPILE_OASIS, [test x"$USEOASIS" = x1])
+  AC_MSG_WARN([Compiling ECLM and OASIS enabled code])
+  AC_MSG_WARN([OASIS path: $OASIS_PREFIX])
+  AC_MSG_WARN([OASIS communication technique: $OASIS_CHAN])
+  AM_CPPFLAGS="\$(DEFINE)OASIS \$(DEFINE)ECLM $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -894,14 +912,10 @@ AC_SUBST(MPEUFCFLAGS)
 
 if eval "test x"$USEOASIS" = x1"; then
   if test -z "$COMPILER_SUN_TRUE"; then
-    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/build/lib/psmile.$OASIS_CHAN"
-    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/build/lib/scrip"
-    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/build/lib/mct"
+    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/include"
     AC_SUBST(AM_CPPFLAGS)
   else
-    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/build/lib/psmile.$OASIS_CHAN"
-    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/build/lib/scrip"
-    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/build/lib/mct"
+    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/include"
     AC_SUBST(AM_CPPFLAGS)
   fi
   OASIS3_LIBS="-L$OASIS_PREFIX/lib -lpsmile.$OASIS_CHAN -lmct -lmpeu -lscrip"

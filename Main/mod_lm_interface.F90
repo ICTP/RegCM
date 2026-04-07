@@ -255,10 +255,15 @@ module mod_lm_interface
     use mod_che_interface
     implicit none
 
+#ifndef ECLM
     call cl_setup(lndcomm,mddom%mask,mdsub%mask)
     call cl_setup(ocncomm,mddom%mask,mdsub%mask,.true.)
+#else
+    call cl_setup(ocncomm,mddom%mask,mdsub%mask,.true.)
+#endif
 
 #ifdef DEBUG
+#ifndef ECLM
     write(ndebug,*) 'TOTAL POINTS FOR LAND  IN LNDCOMM : ', &
       lndcomm%linear_npoint_sg(myid+1)
     write(ndebug,*) 'Cartesian p ', lndcomm%cartesian_npoint_g
@@ -269,6 +274,7 @@ module mod_lm_interface
     write(ndebug,*) 'Subgrid Cartesian d ', lndcomm%cartesian_displ_sg
     write(ndebug,*) 'Subgrid Linear    p ', lndcomm%linear_npoint_sg
     write(ndebug,*) 'Subgrid Linear    d ', lndcomm%linear_displ_sg
+#endif
     write(ndebug,*) 'TOTAL POINTS FOR OCEAN IN OCNCOMM : ', &
       ocncomm%linear_npoint_sg(myid+1)
     write(ndebug,*) 'Cartesian p ', ocncomm%cartesian_npoint_g
@@ -281,7 +287,9 @@ module mod_lm_interface
     write(ndebug,*) 'Subgrid Linear    d ', ocncomm%linear_displ_sg
 #endif
 
+#ifndef ECLM
     call allocate_mod_bats_internal(lndcomm)
+#endif
     call allocate_mod_ocn_internal(ocncomm)
 
     if ( idcsst   == 1 ) ldcsst   = .true.
@@ -388,12 +396,29 @@ module mod_lm_interface
 
   subroutine initialize_surface_model
     implicit none
-#ifdef CLM
+#if defined(CLM) || defined(ECLM)
     integer(ik4) :: i, j, n
 #endif
     if ( irceideal == 0 ) then
 #ifndef CLM45
+#ifdef ECLM
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        if ( lm%ldmsk1(n,j,i) == 1 ) then
+          lms%swdiralb(n,j,i) = 0.16_rkx
+          lms%swdifalb(n,j,i) = 0.16_rkx
+          lms%lwdiralb(n,j,i) = 0.32_rkx
+          lms%lwdifalb(n,j,i) = 0.32_rkx
+          lms%swalb(n,j,i) = (lms%swdiralb(n,j,i) + lms%swdifalb(n,j,i))
+          lms%lwalb(n,j,i) = (lms%lwdiralb(n,j,i) + lms%lwdifalb(n,j,i))
+          lms%tgbrd(n,j,i) = lm%tg(j,i)
+          lms%tgrd(n,j,i) = lm%tg(j,i)
+          lms%tgbb(n,j,i) = lm%tg(j,i)
+          lms%emisv(n,j,i) = 1.0_rkx
+        end if
+      end do
+#else
       call initbats(lm,lms)
+#endif
 #else
       call initclm45(lm,lms)
 #endif
@@ -458,10 +483,12 @@ module mod_lm_interface
       end do
     end if
 #else
+#ifdef ECLM
+    write(stdout, *) 'ECLM version ENABLED!'
+#endif
     if ( irceideal == 0 ) call vecbats(lm,lms)
 #endif
 #endif
-!FAB
     if ( islab_ocean == 1 ) then
       !@acc call nvtxStartRange("update_slabocean")
       call update_slabocean(xslabtime,lms)
@@ -582,7 +609,9 @@ module mod_lm_interface
     if ( irceideal == 0 ) call albedoclm45(lm,lms)
     !@acc call nvtxEndRange
 #else
+#ifndef ECLM
     if ( irceideal == 0 ) call albedobats(lm,lms)
+#endif
 #endif
 #endif
     !@acc call nvtxStartRange("albedoocn")

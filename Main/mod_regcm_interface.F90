@@ -161,7 +161,7 @@ module mod_regcm_interface
       !
       ! OASIS Definition Phase (grids, partitions, fields)
       !
-      call oasisxregcm_def
+      call oasisxregcm_def(mpiCommunicator)
     end if
 #endif
     !

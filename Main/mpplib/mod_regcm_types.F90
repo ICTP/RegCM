@@ -471,7 +471,7 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:,:) :: ustar => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: w10m => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: rhoa => null( )
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
     real(rkx), pointer, contiguous, dimension(:,:,:) :: hfso => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: vocemiss => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: dustemiss => null( )
