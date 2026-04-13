@@ -50,7 +50,7 @@ module mod_oasis_generic
   public :: oasisxregcm_setup_grid, oasisxregcm_setup_3dgrid
   public :: oasisxregcm_setup_field, oasisxregcm_setup_3dfield
   public :: oasisxregcm_deallocate_field, oasisxregcm_deallocate_3dfield
-  public :: oasisxregcm_def_partition
+  public :: oasisxregcm_def_partition, oasisxregcm_def_partition_3d
   public :: oasisxregcm_allocate_oasisgrids, srf_sqm
   public :: oasisxregcm_write_oasisgrids, oasisxregcm_write_oasis3dgrids
   public :: oasisxregcm_deallocate_oasisgrids, &
@@ -342,7 +342,6 @@ module mod_oasis_generic
     ! paral(7) = global extent in y
     ! paral(8) = global extent in z
     subroutine oasisxregcm_box_partition_3d(paral, grd)
-      implicit none
       implicit none
       type(info3dgrd), intent(in) :: grd
       integer, dimension(:), allocatable, intent(out) :: paral

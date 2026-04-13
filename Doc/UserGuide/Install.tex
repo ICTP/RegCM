@@ -220,6 +220,32 @@ The corresponding arguments are shown below.
 \end{verbatim}
 \end{enumerate}
 
+\subsection{eCLM option}
+
+To build the eCLM coupled model, a particular modified version of the
+\verb=OASIS3-MCT5.0= libraries is needed. Yoy can get it from here:
+
+\begin{verbatim}
+https://icg4geo.icg.kfa-juelich.de/ExternalReposPublic/oasis3-mct
+\end{verbatim}
+
+Adapting one if the system configuration files in \verb=util/make_dir=.
+
+\begin{verbatim}
+  git clone https://icg4geo.icg.kfa-juelich.de/ExternalReposPublic/oasis3-mct.git
+  cd oasis3-mct
+  export OASIS_ROOT=$PWD
+  cp util/make_dir/make.{compiler}_{mpi}_hostname util/make_dir/make.{mysystem}
+  [edit util/make_dir/make.mysystem and fix paths]
+  export OASIS_ENV={mysystem}
+  make -f TopMakefileOasis3
+\end{verbatim}
+
+If all is ok, the OASIS static libraries will be compiled in a directory
+inside \verb=$OASIS_ROOT=.
+
+Export its path as \verb=OASIS_PREFIX=.
+
 \section{Build the model executables}
 
 Now that everything is hopefully configured, you may use the \verb=make=

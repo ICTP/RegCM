@@ -52,7 +52,7 @@ module mod_oasis_interface
   public :: oasis_lag           ! -> mod_oasis_params
 
 #ifdef ECLM
-  real(rkx), dimension(:,:), contiguous, pointer :: temps, temps_rf, temps_snw
+  real(rkx), dimension(:,:), contiguous, pointer :: temps, temp_rf, temp_snw
   real(rkx), dimension(:,:), contiguous, pointer :: temp, temp2, temp3
   real(rkx), dimension(:,:,:), contiguous, pointer :: temp3d
   real(rkx), dimension(:,:,:), contiguous, pointer :: temp3d_2
@@ -174,7 +174,7 @@ module mod_oasis_interface
   real(rkx), dimension(:,:), allocatable :: cpl_sst,  &
                                             cpl_wz0,  &
                                             cpl_wust, &
-                                            cpl_wdir, &
+                                            cpl_wdir
 !                                           cpl_sit
 #ifdef ECLM
   real(rkx), dimension(:,:), allocatable :: cpl_t2m, cpl_q2m, cpl_u10m,   &
@@ -209,6 +209,8 @@ module mod_oasis_interface
   public :: oasisxregcm_rcv_all
   public :: oasisxregcm_snd_all
   public :: oasisxregcm_sync_wait
+
+  integer :: kdim
 
   contains
 
@@ -728,6 +730,7 @@ module mod_oasis_interface
     integer(ik4), pointer, contiguous, dimension(:,:,:) :: mask3d
     integer(ik4) :: il_flag ! flag for grid writing by proc 0
     integer(ik4) :: ierror
+    integer(ik4) :: i,j,k
 #ifdef DEBUG
     !--------------------------------------------------------------------------
     write(ndebug,*) oasis_prefix, 'start collecting grid data'
@@ -1036,7 +1039,7 @@ module mod_oasis_interface
     logical :: l_act
 #ifdef ECLM
     type(infogrd), pointer :: grd
-    integer(ik4) :: i, j, n, l
+    integer(ik4) :: i, j, k, n, l
 #endif
     !--------------------------------------------------------------------------
 #ifdef DEBUG
@@ -1135,21 +1138,19 @@ module mod_oasis_interface
     end if
     if ( l_cpl_im_u10m ) then ! surface friction velocity [s-1]
       call oasisxregcm_rcv(cpl_u10m,im_u10m,time,l_act)
-      call getmem2d(temp,jci1,jci2,ici1,ici2,'sendoasis:temp')
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
-      call getmem3d(temp3d1,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
-      call getmem3d(temp3d2,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
-      call getmem3d(temp3d_2,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d1,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d2,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d_2,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
       call fill_land(temp3d,cpl_u10m,mddom%lndcat,im_u10m%grd)
       do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-        temp(n,j,i) = sqrt(atms%ubx3d(j,i,kz)**2+atms%vbx3d(j,i,kz)**2)
-        temp3d1(n,j,i)  = temp3d(n,j,j)/temp(n,j,i)
+        temp3d(n,j,i) = sqrt(atms%ubx3d(j,i,kz)**2+atms%vbx3d(j,i,kz)**2)
+        temp3d1(n,j,i)  = temp3d(n,j,j)/temp3d(n,j,i)
         temp3d2(n,j,i)  = temp3d1(n,j,i)*atms%ubx3d(j,i,kz)
         temp3d_2(n,j,i) = temp3d1(n,j,i)*atms%vbx3d(j,i,kz)
         lms%u10m(n,j,i) = temp3d2(n,j,i)
         lms%v10m(n,j,i) = temp3d_2(n,j,i)
       end do
-      deallocate(temp)
       deallocate(temp3d)
       deallocate(temp3d1)
       deallocate(temp3d2)
@@ -1176,13 +1177,12 @@ module mod_oasis_interface
       call fill_land(lms%tauy,cpl_tauy,mddom%lndcat,im_tauy%grd)
       call oasisxregcm_rcv(cpl_taux,im_taux,time,l_act)
       call fill_land(lms%taux,cpl_taux,mddom%lndcat,im_taux%grd)
-      call getmem2d(temp,jci1,jci2,ici1,ici2,'sendoasis:temp')
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
       do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
         if ( mdsub%ldmsk(n,j,i) == 1 ) then
-          temp(n,j,i) = atms%ubx3d(j,i,kz)**2+atms%vbx3d(j,i,kz)**2
+          temp3d(n,j,i) = atms%ubx3d(j,i,kz)**2+atms%vbx3d(j,i,kz)**2
           temp3d(n,j,i) = sqrt((lms%taux(n,j,i)**2 + &
-                                lms%tauy(n,j,i)**2)/temp(n,j,i))
+                                lms%tauy(n,j,i)**2)/temp3d(n,j,i))
           lms%drag(n,j,i) = temp3d(n,j,i)
         end if
       end do
@@ -1199,7 +1199,7 @@ module mod_oasis_interface
     end if
     if ( l_cpl_im_zo ) then
       call oasisxregcm_rcv(cpl_zo,im_zo,time,l_act)
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
       call fill_land(temp3d,cpl_zo,mddom%lndcat,im_zo%grd)
       do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
         if ( mdsub%ldmsk(n,j,i) == 1 ) then
@@ -1234,7 +1234,7 @@ module mod_oasis_interface
     end if
     if ( l_cpl_im_albed ) then
       call oasisxregcm_rcv(cpl_albed,im_albed,time,l_act)
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
       call fill_land(temp3d,cpl_albed,mddom%lndcat,im_albed%grd)
       do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
         if ( mdsub%ldmsk(n,j,i) == 1 ) then
@@ -1248,7 +1248,7 @@ module mod_oasis_interface
     end if
     if ( l_cpl_im_albed_2 ) then
       call oasisxregcm_rcv(cpl_albed_2,im_albed_2,time,l_act)
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
       call fill_land(temp3d,cpl_albed_2,mddom%lndcat,im_albed_2%grd)
       do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
         if ( mdsub%ldmsk(n,j,i) == 1 ) then
@@ -1262,7 +1262,7 @@ module mod_oasis_interface
     end if
     if ( l_cpl_im_albei ) then ! surface friction velocity [s-1]
       call oasisxregcm_rcv(cpl_albei,im_albei,time,l_act)
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
       call fill_land(temp3d,cpl_albei,mddom%lndcat,im_albei%grd)
       do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
         if ( mdsub%ldmsk(n,j,i) == 1 ) then
@@ -1276,7 +1276,7 @@ module mod_oasis_interface
     end if
     if ( l_cpl_im_albei_2 ) then ! surface friction velocity [s-1]
       call oasisxregcm_rcv(cpl_albei_2,im_albei_2,time,l_act)
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
       call fill_land(temp3d,cpl_albei_2,mddom%lndcat,im_albei_2%grd)
       do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
         if ( mdsub%ldmsk(n,j,i) == 1 ) then
@@ -1297,7 +1297,7 @@ module mod_oasis_interface
     if ( l_cpl_im_h2ovol ) then
       call oasisxregcm_rcv_3d(cpl_h2ovol,im_h2ovol,time,l_act)
       l = ubound(cpl_h2ovol, 3)
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
       do k = 1, l
         call fill_land(temp3d,cpl_h2ovol(:,:,k),mddom%lndcat,im_h2ovol%grd)
         do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
@@ -1311,8 +1311,8 @@ module mod_oasis_interface
     if ( l_cpl_im_h2oliq .or. l_cpl_im_h2oice ) then
       call oasisxregcm_rcv_3d(cpl_h2oliq,im_h2oliq,time,l_act)
       l = ubound(cpl_h2oliq, 3)
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
-      call getmem3d(temp3d_2,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d_2')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d_2,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d_2')
       do k = 1, l
         call fill_land(temp3d,cpl_h2oliq(:,:,k),mddom%lndcat,im_h2oliq%grd)
         call fill_land(temp3d_2,cpl_h2oice(:,:,k),mddom%lndcat,im_h2oice%grd)
@@ -1328,7 +1328,7 @@ module mod_oasis_interface
     if ( l_cpl_im_tsoi ) then
       call oasisxregcm_rcv_3d(cpl_tsoi,im_tsoi,time,l_act)
       l = ubound(cpl_tsoi, 3)
-      call getmem3d(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
+      call getmem(temp3d,1,nnsg,jci1,jci2,ici1,ici2,'sendoasis:temp3d')
       do k = 1, l
         call fill_land(temp3d,cpl_tsoi(:,:,k),mddom%lndcat,im_tsoi%grd)
         do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
@@ -1670,29 +1670,29 @@ module mod_oasis_interface
       do concurrent ( j = grd%j1:grd%j2, i = grd%i1:grd%i2 )
         temp(j,i)= sum(lms%prcp(:,j,i))*rdnnsg 
         if ( atms%tb3d(j,i,kz) -tzero <1.0_rk8 ) then
-          temps_rf(j,i) = d_zero
-          temps_snw(j,i) = temp(j,i)
+          temp_rf(j,i) = d_zero
+          temp_snw(j,i) = temp(j,i)
         else
-          temps_snw(j,i) = d_zero
-          temps_rf(j,i) = temp(j,i)
+          temp_snw(j,i) = d_zero
+          temp_rf(j,i) = temp(j,i)
         end if
       end do
       deallocate(temp)
       if ( l_cpl_ex_rainf ) then !
         grd => ex_rainf%grd
         call oasisxregcm_snd( &
-             temps_rf, &
+             temp_rf, &
              ex_rainf, time, .false. .or. l_write_restart)
         nullify(grd)
-        deallocate(temps_rf)
+        deallocate(temp_rf)
       end if
       if ( l_cpl_ex_snow ) then !
         grd => ex_snow%grd
         call oasisxregcm_snd( &
-             temps_snw, &
+             temp_snw, &
              ex_snow, time, .false. .or. l_write_restart)
         nullify(grd)
-        deallocate(temps_snw)
+        deallocate(temp_snw)
       end if
     end if
 #endif
