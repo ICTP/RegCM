@@ -148,7 +148,7 @@ module mod_micro_wdm7
   real(rkx), parameter :: xai = -dldti/rwat
   real(rkx), parameter :: xbi = xai + wlhs/(rwat*wattp)
   real(rkx), parameter :: ep0 = psat * exp(log(wattp/tzero)*xa) * &
-                                        exp(xb*(1.0_rkx-wattp/tzero))
+                                       exp(xb*(1.0_rkx-wattp/tzero))
   real(rkx), parameter :: lv1 = cpw-cpv
 
   real(rkx),  save :: qc0, qc1, qck1, pidnc, bvtr2, bvtr4, bvtr5,  &
@@ -1220,7 +1220,7 @@ module mod_micro_wdm7
               !
               if ( prevp(i,k) == -qrs(i,k,1)*rdtcld ) then
                 ncr(i,k,1) = ncr(i,k,1)+ncr(i,k,3)
-                ncr(i,k,3) = d_zero
+                ncr(i,k,3) = ncmin
               end if
             else
               prevp(i,k) = min(prevp(i,k),satdt*0.5_rkx)
@@ -1542,9 +1542,8 @@ module mod_micro_wdm7
             acrfac = 5.0_rkx*rslope3(i,k,2)*rslope3(i,k,2)*rslope(i,k,4) + &
                      2.0_rkx*rslope3(i,k,2)*rslope2(i,k,2)*rslope2(i,k,4) + &
                      0.5_rkx*rslope2(i,k,2)*rslope2(i,k,2)*rslope3(i,k,4)
-            phacs(i,k) = pisqr*eachs*n0s*n0sfac*n0h*abs(vt2h-vt2ave) * &
-                         (dens/den(i,k))*acrfac
-            phacs(i,k) = min(phacs(i,k), qrs(i,k,2)*rdtcld)
+            phacs(i,k) = min(pisqr*eachs*n0s*n0sfac*n0h*abs(vt2h-vt2ave) * &
+                         (dens/den(i,k))*acrfac, qrs(i,k,2)*rdtcld)
           end if
           !
           ! phacg: Accretion of snow by hail [BHT A15]
@@ -1554,9 +1553,8 @@ module mod_micro_wdm7
             acrfac = 5.0_rkx*rslope3(i,k,3)*rslope3(i,k,3)*rslope(i,k,4) + &
                      2.0_rkx*rslope3(i,k,3)*rslope2(i,k,3)*rslope2(i,k,4) + &
                      0.5_rkx*rslope2(i,k,3)*rslope2(i,k,3)*rslope3(i,k,4)
-            phacg(i,k) = pisqr*eachg*n0g*n0h*abs(vt2h-vt2ave) * &
-                         (deng/den(i,k))*acrfac
-            phacg(i,k) = min(phacg(i,k), qrs(i,k,3)*rdtcld)
+            phacg(i,k) = min(pisqr*eachg*n0g*n0h*abs(vt2h-vt2ave) * &
+                         (deng/den(i,k))*acrfac, qrs(i,k,3)*rdtcld)
           end if
           !
           ! pgwet: wet growth of graupel [LFO 43]
@@ -1723,31 +1721,31 @@ module mod_micro_wdm7
               if ( abs(prevp(i,k)+pidep(i,k)+psdep(i,k) + &
                        pgdep(i,k)+phdep(i,k)) >= abs(satdt)) ifsat = 1
             end if
-           !
-           ! pigen: generation(nucleation) of ice from vapor [hl a50] [hdc 7-8]
-           !       (t<t0: v->i)
-           !
-           if ( supsat > 0.0_rkx .and. ifsat /= 1 ) then
-             supice = satdt-prevp(i,k)-pidep(i,k)-psdep(i,k) - &
-                      pgdep(i,k)-phdep(i,k)
-             xni0 = minni*exp(0.1_rkx*supcol)
-             roqi0 = 4.92e-11_rkx*xni0**1.33_rkx
-             pigen(i,k) = max(d_zero, &
+            !
+            ! pigen: generation(nucleation) of ice from vapor [hl a50] [hdc 7-8]
+            !       (t<t0: v->i)
+            !
+            if ( supsat > 0.0_rkx .and. ifsat /= 1 ) then
+              supice = satdt-prevp(i,k)-pidep(i,k)-psdep(i,k) - &
+                       pgdep(i,k)-phdep(i,k)
+              xni0 = minni*exp(0.1_rkx*supcol)
+              roqi0 = 4.92e-11_rkx*xni0**1.33_rkx
+              pigen(i,k) = max(d_zero, &
                            (roqi0/den(i,k)-max(qci(i,k,2),d_zero))*rdtcld)
-             pigen(i,k) = min(min(pigen(i,k),satdt),supice)
-           end if
-           !
-           ! psaut: conversion(aggregation) of ice to snow [hdc 12]
-           !       (t<t0: i->s)
-           !
-           if ( qci(i,k,2) > 0.0_rkx ) then
-             qimax = roqimax/den(i,k)
-             psaut(i,k) = max(d_zero,(qci(i,k,2)-qimax)*rdtcld)
-           end if
-           !
-           ! pgaut: conversion(aggregation) of snow to graupel [HL A4] [LFO 37]
-           !        (T<T0: QS->QG)
-           !
+              pigen(i,k) = min(min(pigen(i,k),satdt),supice)
+            end if
+            !
+            ! psaut: conversion(aggregation) of ice to snow [hdc 12]
+            !       (t<t0: i->s)
+            !
+            if ( qci(i,k,2) > 0.0_rkx ) then
+              qimax = roqimax/den(i,k)
+              psaut(i,k) = max(d_zero,(qci(i,k,2)-qimax)*rdtcld)
+            end if
+            !
+            ! pgaut: conversion(aggregation) of snow to graupel [HL A4] [LFO 37]
+            !        (T<T0: QS->QG)
+            !
             if ( qrs(i,k,2) > 0.0_rkx ) then
               alpha2 = 1.e-3_rkx*exp(0.09_rkx*(-supcol))
               pgaut(i,k) = min(max(d_zero,alpha2*(qrs(i,k,2)-qs0)), &
@@ -2217,9 +2215,9 @@ module mod_micro_wdm7
           ! evapration of Cloud number concentration  [LH A3]
           ! (NC->NCCN)
           !
-          if ( abs(pcond(i,k)+qci(i,k,1)*rdtcld) < dlowval ) then
+          if ( pcond(i,k) == -qci(i,k,1)*rdtcld ) then
             ncr(i,k,1) = ncr(i,k,1)+ncr(i,k,2)
-            ncr(i,k,2) = d_zero
+            ncr(i,k,2) = ncmin
           end if
           qv(i,k) = qv(i,k)-pcond(i,k)*dtcld
           qci(i,k,1) = max(qci(i,k,1)+pcond(i,k)*dtcld,d_zero)
