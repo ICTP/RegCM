@@ -59,7 +59,6 @@ module mod_micro_wdm7
   ! collection efficiency
   real(rkx), parameter :: peaut = 0.55_rkx
   ! maritime cloud in contrast to 3.e8 in tc80
-  real(rkx), parameter :: xncr = 3.e8_rkx
   real(rkx), parameter :: xncr0 = 5.e7_rkx
   real(rkx), parameter :: xncr1 = 5.e8_rkx
   ! the dynamic viscosity kgm-1s-1
@@ -606,7 +605,7 @@ module mod_micro_wdm7
       fallsum, fallsum_qsi, fallsum_qg, fallsum_qh, xlwork2,      &
       factor, source, qval, xlf, pfrzdtc, pfrzdtr, supice, gfac,  &
       alpha2, delta2, delta3, lencon, lenconcr, nfrzdtc, nfrzdtr, &
-      coecol, vt2ave, rs0, ghw1, ghw2, ghw3, ghw4, tr, temp, ffax
+      coecol, vt2ave, rs0, ghw1, ghw2, ghw3, ghw4, tr, temp, rceff
     integer(ik4) :: mstepmax, i, k, loop, loops, ifsat, n, numdt
     !
     ! latent heat for phase changes and heat capacity. neglect the
@@ -1055,7 +1054,7 @@ module mod_micro_wdm7
           ! pgfrz: freezing of rain water [hl a20] [lfo 45]
           !        (t<t0, r->g)
           !
-          if ( supcol > d_zero .and. qrs(i,k,1) > 0.0_rkx ) then
+          if ( supcol > 0.0_rkx .and. qrs(i,k,1) > 0.0_rkx ) then
             supcolt = min(supcol,70.0_rkx)
             pfrzdtr = min(140.0_rkx*pisqr*pfrz1*ncr(i,k,3)*rhoh2o/den(i,k) * &
                   (exp(pfrz2*supcolt)-d_one)*rslope3(i,k,1) * &
@@ -1134,7 +1133,7 @@ module mod_micro_wdm7
           !        (QC->QR)
           !
           lencon  = 2.7e-2_rkx*den(i,k)*qci(i,k,1) * &
-            (1.e20_rkx/16.0_rkx*rslopec2(i,k)*rslopec2(i,k)-0.4_rkx)
+            (1.e20_rkx*0.0625_rkx*rslopec2(i,k)*rslopec2(i,k)-0.4_rkx)
           lenconcr = max(1.2_rkx*lencon, qcrmin)
           if ( qci(i,k,1) > qcm(i) .and. ncr(i,k,2) > ncmin ) then
             praut(i,k) = qck1*qci(i,k,1)**(7.0_rkx/3.0_rkx) / &
@@ -1265,19 +1264,18 @@ module mod_micro_wdm7
           if ( qsum(i,k) > 1.1e-15_rkx ) then
             vt2ave = (vt2s*qrs(i,k,2) + vt2g*qrs(i,k,3))/(qsum(i,k))
           else
-            vt2ave = d_zero
+            vt2ave = 0.0_rkx
           end if
-          if ( supcol > d_zero .and. qci(i,k,2) > qmin ) then
+          if ( supcol > 0.0_rkx .and. qci(i,k,2) > qmin ) then
             if ( qrs(i,k,1) > qcrmin ) then
               !
               ! praci: accretion of cloud ice by rain [LF0 25]
               !        (t<t0: i->r)
               !
               acrfac = 6.0_rkx*rslope2(i,k,1) + &
-                d_four*diameter*rslope(i,k,1) + &
-                diameter**2
+                       4.0_rkx*diameter*rslope(i,k,1) + diameter**2
               praci(i,k) = mathpi*qci(i,k,2)*ncr(i,k,3) * &
-                abs(vt2r-vt2i)*acrfac*d_rfour
+                abs(vt2r-vt2i)*acrfac*0.25_rkx
               ! reduce collection efficiency (suggested by B. Wilt)
               praci(i,k) = praci(i,k)*min(max(d_zero,qrs(i,k,1) / &
                 qci(i,k,2)),d_one)**2
@@ -1298,9 +1296,9 @@ module mod_micro_wdm7
             ! niacr: Accretion of rain by cloud ice  [LH A25]
             !        (T<T0: NR->)
             !
-            if ( ncr(i,k,3) > nrmin .and. qrs(i,k,1) > qmin ) then
+            if ( ncr(i,k,3) > nrmin .and. qrs(i,k,1) > 0.0_rkx ) then
               niacr(i,k) = mathpi*avtr*ncr(i,k,3)*xni(i,k)*denfac(i,k) * &
-                g4pbr*rslope2(i,k,1)*rslopeb(i,k,1)*d_rfour
+                g4pbr*rslope2(i,k,1)*rslopeb(i,k,1)*0.25_rkx
               ! reduce collection efficiency (suggested by B. Wilt)
               niacr(i,k) = niacr(i,k) * &
                 min(max(d_zero, qci(i,k,2)/qrs(i,k,1)), d_one)**2
@@ -1311,10 +1309,11 @@ module mod_micro_wdm7
             !        (t<t0: i->s)
             !
             if( qrs(i,k,2) > qcrmin ) then
-              acrfac = d_two*rslope3(i,k,2)+d_two*diameter*rslope2(i,k,2) + &
+              acrfac = 2.0_rkx*rslope3(i,k,2) + &
+                       2.0_rkx*diameter*rslope2(i,k,2) + &
                        diameter**2*rslope(i,k,2)
               psaci(i,k) = mathpi*qci(i,k,2)*eacrs*n0s*n0sfac * &
-                           abs(vt2ave-vt2i)*acrfac*d_rfour
+                           abs(vt2ave-vt2i)*acrfac*0.25_rkx
               psaci(i,k) = min(psaci(i,k), qci(i,k,2)*rdtcld)
             end if
             !
@@ -1323,10 +1322,11 @@ module mod_micro_wdm7
             !
             if( qrs(i,k,3) > qcrmin ) then
               egi = exp(0.07_rkx*(-supcol))
-              acrfac = d_two*rslope3(i,k,3)+d_two*diameter*rslope2(i,k,3) + &
+              acrfac = 2.0_rkx*rslope3(i,k,3) + &
+                       2.0_rkx*diameter*rslope2(i,k,3) + &
                        diameter**2*rslope(i,k,3)
               pgaci(i,k) = mathpi*egi*qci(i,k,2)*n0g * &
-                abs(vt2ave-vt2i)*acrfac*d_rfour
+                abs(vt2ave-vt2i)*acrfac*0.25_rkx
               pgaci(i,k) = min(pgaci(i,k), qci(i,k,2)*rdtcld)
             end if
             !
@@ -1335,50 +1335,53 @@ module mod_micro_wdm7
             !
             if( qrs(i,k,4) > qcrmin ) then
               ehi = exp(0.07_rkx*(-supcol))
-              acrfac = d_two*rslope3(i,k,4) + &
-                       d_two*diameter*rslope2(i,k,4) + &
+              acrfac = 2.0_rkx*rslope3(i,k,4) + &
+                       2.0_rkx*diameter*rslope2(i,k,4) + &
                        diameter**2*rslope(i,k,4)
               phaci(i,k) = mathpi*ehi*qci(i,k,2)*n0h * &
-                abs(vt2h-vt2i)*acrfac*d_rfour
+                abs(vt2h-vt2i)*acrfac*0.25_rkx
               phaci(i,k) = min(phaci(i,k), qci(i,k,2)*rdtcld)
             end if
           end if
           !
           ! psacw: accretion of cloud water by snow  [HL A7] [LFO 24]
           !        (t<t0: c->s, and t>=t0: c->r)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,2) > qcrmin .and. qci(i,k,1) > qmin ) then
-            ffax = min(qrs(i,k,2)/qci(i,k,1),d_one)**2
+            rceff = min(max(qrs(i,k,2)/qci(i,k,1),d_zero),d_one)**2
             psacw(i,k) = min(pacrc*n0sfac*rslope3(i,k,2) * &
-              rslopeb(i,k,2)*ffax*qci(i,k,1)*denfac(i,k), qci(i,k,1)*rdtcld)
+              rslopeb(i,k,2)*rceff*qci(i,k,1)*denfac(i,k), qci(i,k,1)*rdtcld)
           end if
           !
           ! nsacw: Accretion of cloud water by snow  [LH A12]
           !        (NC ->)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,2) > qcrmin .and. ncr(i,k,2) > ncmin ) then
-            ! reduce collection efficiency (suggested by B. Wilt)
+            rceff = min(max(qrs(i,k,2)/qci(i,k,1),d_zero),d_one)**2
             nsacw(i,k) = min(pacrc*n0sfac*rslope3(i,k,2) * &
-              rslopeb(i,k,2)*ffax*ncr(i,k,2)*denfac(i,k), ncr(i,k,2)*rdtcld)
+              rslopeb(i,k,2)*rceff*ncr(i,k,2)*denfac(i,k), ncr(i,k,2)*rdtcld)
           end if
           !
           ! pgacw: Accretion of cloud water by graupel [HL A6] [LFO 40]
           !        (T<T0: C->G, and T>=T0: C->R)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,3) > qcrmin .and. qci(i,k,1) > qmin ) then
-            ! reduce collection efficiency (suggested by B. Wilt)
-            ffax = min(qrs(i,k,3)/qci(i,k,1),d_one)**2
+            rceff = min(max(qrs(i,k,3)/qci(i,k,1),d_zero),d_one)**2
             pgacw(i,k) = min(pacrg*rslope3(i,k,3)*rslopeb(i,k,3) * &
-              qci(i,k,1)*ffax*denfac(i,k), qci(i,k,1)*rdtcld)
+              qci(i,k,1)*rceff*denfac(i,k), qci(i,k,1)*rdtcld)
           end if
           !
           ! ngacw: Accretion of cloud water by graupel [LH A13]
           !        (NC->
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,3) > qcrmin .and. ncr(i,k,2) > ncmin ) then
-            ! reduce collection efficiency (suggested by B. Wilt)
+            rceff = min(max(qrs(i,k,3)/qci(i,k,1),d_zero),d_one)**2
             ngacw(i,k) = min(pacrg*rslope3(i,k,3)*rslopeb(i,k,3) * &
-              ncr(i,k,2)*ffax*denfac(i,k), ncr(i,k,2)*rdtcld)
+              ncr(i,k,2)*rceff*denfac(i,k), ncr(i,k,2)*rdtcld)
           end if
           !
           ! paacw: Accretion of cloud water by averaged snow/graupel
@@ -1397,51 +1400,48 @@ module mod_micro_wdm7
           !
           ! phacw: Accretion of cloud water by hail [BHT A08]
           !        (T<T0: C->H, and T>=T0: C->R)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,4) > qcrmin .and. qci(i,k,1) > qmin ) then
-            ! reduce collection efficiency (suggested by B. Wilt)
-            ffax = min(qrs(i,k,4)/qci(i,k,1),d_one)**2
+            rceff = min(max(qrs(i,k,4)/qci(i,k,1),d_zero),d_one)**2
             phacw(i,k) = min(pacrh*rslope3(i,k,4)*rslopeb(i,k,4) * &
-              qci(i,k,1)*ffax*denfac(i,k), qci(i,k,1)*rdtcld)
+              qci(i,k,1)*rceff*denfac(i,k), qci(i,k,1)*rdtcld)
           end if
           !
           ! nhacw: Accretion of cloud water by hail
           !        (NC->)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,4) > qcrmin .and. ncr(i,k,2) > ncmin ) then
-            ! reduce collection efficiency (suggested by B. Wilt)
+            rceff = min(max(qrs(i,k,4)/qci(i,k,1),d_zero),d_one)**2
             nhacw(i,k) = min(pacrh*rslope3(i,k,4)*rslopeb(i,k,4) * &
-                ncr(i,k,2)*ffax*denfac(i,k), ncr(i,k,2)*rdtcld)
+                ncr(i,k,2)*rceff*denfac(i,k), ncr(i,k,2)*rdtcld)
           end if
           !
           ! pracs: Accretion of snow by rain [HL A11] [LFO 27]
           !         (T<T0: S->G)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,2) > qcrmin .and. qrs(i,k,1) > qcrmin ) then
             if ( supcol > d_zero ) then
-              acrfac = d_five*rslope3(i,k,2)*rslope3(i,k,2) + &
-                       d_four*rslope3(i,k,2)*rslope2(i,k,2)*rslope(i,k,1) + &
+              acrfac = 5.0_rkx*rslope3(i,k,2)*rslope3(i,k,2) + &
+                       4.0_rkx*rslope3(i,k,2)*rslope2(i,k,2)*rslope(i,k,1) + &
                        1.5_rkx*rslope2(i,k,2)*rslope2(i,k,2)*rslope2(i,k,1)
-              pracs(i,k) = pisqr*ncr(i,k,3)*n0s*n0sfac * &
-                abs(vt2r-vt2ave)*(dens/den(i,k))*acrfac
-              ! reduce collection efficiency (suggested by B. Wilt)
-              pracs(i,k) = pracs(i,k) * &
-                min(max(d_zero,qrs(i,k,1)/qrs(i,k,2)),d_one)**2
-              pracs(i,k) = min(pracs(i,k), qrs(i,k,2)*rdtcld)
+              rceff = min(max(qrs(i,k,1)/qrs(i,k,2),d_zero),d_one)**2
+              pracs(i,k) = min(pisqr*ncr(i,k,3)*n0s*n0sfac*acrfac*rceff* &
+                abs(vt2r-vt2ave)*(dens/den(i,k)), qrs(i,k,2)*rdtcld)
             end if
             !
             ! psacr: Accretion of rain by snow [HL A10] [LFO 28]
             !         (T<T0:R->S or R->G) (T>=T0: enhance melting of snow)
+            ! reduce collection efficiency (suggested by B. Wilt)
             !
-            acrfac = 30_rkx*rslope3(i,k,1)*rslope3(i,k,1)*rslope(i,k,2)  + &
-                     10_rkx*rslope2(i,k,1)*rslope2(i,k,1)*rslope2(i,k,2) + &
-                     d_two*rslope3(i,k,1)*rslope3(i,k,2)
-            psacr(i,k) = pisqr*ncr(i,k,3)*n0s*n0sfac * &
-              abs(vt2ave-vt2r)*(rhoh2o/den(i,k))*acrfac
-              ! reduce collection efficiency (suggested by B. Wilt)
-            psacr(i,k) = psacr(i,k) * &
-              min(max(d_zero,qrs(i,k,2)/qrs(i,k,1)),d_one)**2
-            psacr(i,k) = min(psacr(i,k), qrs(i,k,1)*rdtcld)
+            acrfac = 30.0_rkx*rslope3(i,k,1)*rslope2(i,k,1)*rslope(i,k,2)  + &
+                     10.0_rkx*rslope2(i,k,1)*rslope2(i,k,1)*rslope2(i,k,2) + &
+                     2.0_rkx*rslope3(i,k,1)*rslope3(i,k,2)
+            rceff = min(max(qrs(i,k,2)/qrs(i,k,1),d_zero),d_one)**2
+            psacr(i,k) = min(pisqr*ncr(i,k,3)*n0s*n0sfac*acrfac*rceff* &
+              abs(vt2ave-vt2r)*(rhoh2o/den(i,k)), qrs(i,k,1)*rdtcld)
           end if
           if ( qrs(i,k,2) > qcrmin .and. &
                qrs(i,k,1) > qmin   .and. &
@@ -1449,60 +1449,55 @@ module mod_micro_wdm7
             !
             ! nsacr: Accretion of rain by snow  [LH A23]
             !       (T<T0:NR->)
+            ! reduce collection efficiency (suggested by B. Wilt)
             !
             acrfac = 1.5_rkx*rslope2(i,k,1)*rslope(i,k,2) + &
-                     d_one*rslope(i,k,1)*rslope2(i,k,2)+d_half*rslope3(i,k,2)
-            nsacr(i,k) = mathpi*ncr(i,k,3)*n0s*n0sfac * &
-              abs(vt2ave-vt2r)*acrfac
-              ! reduce collection efficiency (suggested by B. Wilt)
-            nsacr(i,k) = nsacr(i,k) * &
-              min(max(d_zero,qrs(i,k,2)/qrs(i,k,1)),d_one)**2
-            nsacr(i,k) = min(nsacr(i,k), ncr(i,k,3)*rdtcld)
+                     1.0_rkx*rslope(i,k,1)*rslope2(i,k,2) + &
+                     0.5_rkx*rslope3(i,k,2)
+            rceff = min(max(d_zero,qrs(i,k,2)/qrs(i,k,1)),d_one)**2
+            nsacr(i,k) = min(mathpi*ncr(i,k,3)*n0s*n0sfac*acrfac*rceff * &
+              abs(vt2ave-vt2r), ncr(i,k,3)*rdtcld)
           end if
           !
           ! pracg: Accretion of graupel by rain [BHT A17]
           !         (T<T0: G->H)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,3) > qcrmin .and. qrs(i,k,1) > qcrmin ) then
             if( supcol > d_zero ) then
-              acrfac = d_five*rslope3(i,k,3)*rslope3(i,k,3) +        &
-                       d_four*rslope3(i,k,3)*rslope2(i,k,3)*rslope(i,k,1) + &
+              acrfac = 5.0_rkx*rslope3(i,k,3)*rslope3(i,k,3) +        &
+                       4.0_rkx*rslope3(i,k,3)*rslope2(i,k,3)*rslope(i,k,1) + &
                        1.5_rkx*rslope2(i,k,3)*rslope2(i,k,3)*rslope2(i,k,1)
-              pracg(i,k) = pisqr*ncr(i,k,3)*n0g * &
-                abs(vt2r-vt2ave)*(deng/den(i,k))*acrfac
-              ! reduce collection efficiency (suggested by B. Wilt)
-              pracg(i,k) = pracg(i,k) * &
-                min(max(d_zero,qrs(i,k,1)/qrs(i,k,3)),d_one)**2
-              pracg(i,k) = min(pracg(i,k), qrs(i,k,3)*rdtcld)
+              rceff = min(max(d_zero,qrs(i,k,1)/qrs(i,k,3)),d_one)**2
+              pracg(i,k) = min(pisqr*ncr(i,k,3)*n0g*acrfac*rceff * &
+                abs(vt2r-vt2ave)*(deng/den(i,k)),qrs(i,k,3)*rdtcld)
             end if
             !
             ! pgacr: Accretion of rain by graupel [HL A12] [LFO 42]
             !         (T<T0: R->G) (T>=T0: enhance melting of graupel)
+            ! reduce collection efficiency (suggested by B. Wilt)
             !
             acrfac = 30.0_rkx*rslope3(i,k,1)*rslope2(i,k,1)*rslope(i,k,3) + &
                      10.0_rkx*rslope2(i,k,1)*rslope2(i,k,1)*rslope2(i,k,3) + &
-                     d_two*rslope3(i,k,1)*rslope3(i,k,1)
-            pgacr(i,k) = pisqr*ncr(i,k,3)*n0g * &
-              abs(vt2ave-vt2r)*(rhoh2o/den(i,k))*acrfac
-            ! reduce collection efficiency (suggested by B. Wilt)
-            pgacr(i,k) = pgacr(i,k) * &
-              min(max(d_zero,qrs(i,k,3)/qrs(i,k,1)),d_one)**2
-            pgacr(i,k) = min(pgacr(i,k), qrs(i,k,1)*rdtcld)
+                     2.0_rkx*rslope3(i,k,1)*rslope3(i,k,3)
+            rceff = min(max(d_zero,qrs(i,k,3)/qrs(i,k,1)),d_one)**2
+            pgacr(i,k) = min(pisqr*ncr(i,k,3)*n0g*acrfac*rceff * &
+              abs(vt2ave-vt2r)*(rhoh2o/den(i,k)), qrs(i,k,1)*rdtcld)
           end if
           !
           ! ngacr: Accretion of rain by graupel  [LH A24]
           !        (T<T0: NR->)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,3) > qcrmin .and. &
                qrs(i,k,1) > qmin   .and. &
                ncr(i,k,3) > nrmin ) then
             acrfac = 1.5_rkx*rslope2(i,k,1)*rslope(i,k,3) + &
-                     d_one*rslope(i,k,1)*rslope2(i,k,3) + d_half*rslope3(i,k,3)
-            ngacr(i,k) = mathpi*ncr(i,k,3)*n0g*abs(vt2ave-vt2r)*acrfac
-            ! reduce collection efficiency (suggested by B. Wilt)
-            ngacr(i,k) = ngacr(i,k) * &
-              min(max(d_zero,qrs(i,k,3)/qrs(i,k,1)),d_one)**2
-            ngacr(i,k) = min(ngacr(i,k), ncr(i,k,3)*rdtcld)
+                     1.0_rkx*rslope(i,k,1)*rslope2(i,k,3) + &
+                     0.5_rkx*rslope3(i,k,3)
+            rceff = min(max(d_zero,qrs(i,k,3)/qrs(i,k,1)),d_one)**2
+            ngacr(i,k) = min(mathpi*ncr(i,k,3)*n0g*acrfac*rceff * &
+              abs(vt2ave-vt2r), ncr(i,k,3)*rdtcld)
           end if
           ! pgacs: Accretion of snow by graupel [HL A13] [LFO 29]
           !        (S->G): This process is eliminated in V3.0 with the
@@ -1514,41 +1509,39 @@ module mod_micro_wdm7
           !
           ! phacr: Accretion of rain by hail [BHT A13]
           !         (T<T0: R->H) (T>=T0: enhance melting of hail)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,4) > qcrmin .and. qrs(i,k,1) > qcrmin ) then
             acrfac = 30.0_rkx*rslope3(i,k,1)*rslope2(i,k,1)*rslope(i,k,4) + &
                      10.0_rkx*rslope3(i,k,1)*rslope(i,k,1)*rslope2(i,k,4) + &
-                     d_two*rslope3(i,k,1)*rslope3(i,k,4)
-            phacr(i,k) = pisqr*ncr(i,k,3)*n0h * &
-              abs(vt2h-vt2r)*(rhoh2o/den(i,k))*acrfac
-              ! reduce collection efficiency (suggested by B. Wilt)
-            phacr(i,k) = phacr(i,k) * &
-              min(max(d_zero,qrs(i,k,4)/qrs(i,k,1)),d_one)**2
-            phacr(i,k) = min(phacr(i,k), qrs(i,k,1)*rdtcld)
+                     2.0_rkx*rslope3(i,k,1)*rslope3(i,k,4)
+            rceff = min(max(d_zero,qrs(i,k,4)/qrs(i,k,1)),d_one)**2
+            phacr(i,k) = min(pisqr*ncr(i,k,3)*n0h*acrfac*rceff * &
+              abs(vt2h-vt2r)*(rhoh2o/den(i,k)), qrs(i,k,1)*rdtcld)
           end if
           !
           ! nhacr: Accretion of rain by hail
           !        (T<T0: NR->)
+          ! reduce collection efficiency (suggested by B. Wilt)
           !
           if ( qrs(i,k,4) > qcrmin .and. &
                qrs(i,k,1) > qmin   .and. &
                ncr(i,k,3) > nrmin ) then
             acrfac = 1.5_rkx*rslope2(i,k,1)*rslope(i,k,4) + &
-                     d_one*rslope(i,k,1)*rslope2(i,k,4) + d_half*rslope3(i,k,4)
-            nhacr(i,k) = mathpi*ncr(i,k,3)*n0h*abs(vt2h-vt2r)*acrfac
-            ! reduce collection efficiency (suggested by B. Wilt)
-            nhacr(i,k) = nhacr(i,k) * &
-              min(max(d_zero,qrs(i,k,4)/qrs(i,k,1)),d_one)**2
-            nhacr(i,k) = min(nhacr(i,k), ncr(i,k,3)*rdtcld)
+                     1.0_rkx*rslope(i,k,1)*rslope2(i,k,4) + &
+                     0.5_rkx*rslope3(i,k,4)
+            rceff = min(max(d_zero,qrs(i,k,4)/qrs(i,k,1)),d_one)**2
+            nhacr(i,k) = min(mathpi*ncr(i,k,3)*n0h*acrfac*rceff * &
+               abs(vt2h-vt2r), ncr(i,k,3)*rdtcld)
           end if
           !
           ! phacs: Accretion of snow by hail [BHT A14]
           !         (T<T0: S->H)
           !
           if ( qrs(i,k,4) > qcrmin .and. qrs(i,k,2) > qcrmin ) then
-            acrfac = d_five*rslope3(i,k,2)*rslope3(i,k,2)*rslope(i,k,4) + &
-                     d_two*rslope3(i,k,2)*rslope2(i,k,2)*rslope2(i,k,4) + &
-                     d_half*rslope2(i,k,2)*rslope2(i,k,2)*rslope3(i,k,4)
+            acrfac = 5.0_rkx*rslope3(i,k,2)*rslope3(i,k,2)*rslope(i,k,4) + &
+                     2.0_rkx*rslope3(i,k,2)*rslope2(i,k,2)*rslope2(i,k,4) + &
+                     0.5_rkx*rslope2(i,k,2)*rslope2(i,k,2)*rslope3(i,k,4)
             phacs(i,k) = pisqr*eachs*n0s*n0sfac*n0h*abs(vt2h-vt2ave) * &
                          (dens/den(i,k))*acrfac
             phacs(i,k) = min(phacs(i,k), qrs(i,k,2)*rdtcld)
@@ -1558,9 +1551,9 @@ module mod_micro_wdm7
           !         (T<T0: G->H)
           !
           if ( qrs(i,k,4) > qcrmin .and. qrs(i,k,3) > qcrmin ) then
-            acrfac = d_five*rslope3(i,k,3)*rslope3(i,k,3)*rslope(i,k,4) + &
-                     d_two*rslope3(i,k,3)*rslope2(i,k,3)*rslope2(i,k,4) + &
-                     d_half*rslope2(i,k,3)*rslope2(i,k,3)*rslope3(i,k,4)
+            acrfac = 5.0_rkx*rslope3(i,k,3)*rslope3(i,k,3)*rslope(i,k,4) + &
+                     2.0_rkx*rslope3(i,k,3)*rslope2(i,k,3)*rslope2(i,k,4) + &
+                     0.5_rkx*rslope2(i,k,3)*rslope2(i,k,3)*rslope3(i,k,4)
             phacg(i,k) = pisqr*eachg*n0g*n0h*abs(vt2h-vt2ave) * &
                          (deng/den(i,k))*acrfac
             phacg(i,k) = min(phacg(i,k), qrs(i,k,3)*rdtcld)
