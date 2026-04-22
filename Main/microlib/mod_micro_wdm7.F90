@@ -2910,7 +2910,7 @@ module mod_micro_wdm7
   end subroutine nislfv_rain_plm6
 
   pure real(rkx) function cpmcal(q)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: q
     cpmcal = cpd*(d_one-max(q,qmin)) + cpv*max(q,qmin)
@@ -2919,7 +2919,7 @@ module mod_micro_wdm7
   ! diffus: diffusion coefficient of the water vapor
 
   pure real(rkx) function diffus(x,y)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
     diffus = 8.794e-5_rkx * exp(log(x)*(1.81_rkx)) / y
@@ -2928,7 +2928,7 @@ module mod_micro_wdm7
   ! viscos: kinematic viscosity(m2s-1)
 
   pure real(rkx) function viscos(x,y)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
     viscos = 1.496e-6_rkx * (x*sqrt(x)) /(x+120.0_rkx)/y
@@ -2936,21 +2936,21 @@ module mod_micro_wdm7
   end function viscos
 
   pure real(rkx) function xka(x,y)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
     xka = 1.414e3_rkx * viscos(x,y) * y
   end function xka
 
   pure real(rkx) function diffac(a,b,c,d,e)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: a, b, c, d, e
     diffac = d*a*a/(xka(c,d)*rwat*c*c)+d_one/(e*diffus(c,b))
   end function diffac
 
   pure real(rkx) function venfac(a,b,c)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: a, b, c
     venfac = exp(log((viscos(b,c)/diffus(b,a)))*(1.0_rkx/3.0_rkx)) / &
@@ -2958,7 +2958,7 @@ module mod_micro_wdm7
   end function venfac
 
   pure real(rkx) function conden(a,b,c,d,e)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: a, b, c, d, e
     conden = (max(b,qmin)-c)/(1.0_rkx+d*d/(rwat*e)*c/(a*a))
@@ -2968,35 +2968,35 @@ module mod_micro_wdm7
   ! valid for mixing ratio > 1.e-9 kg/kg.
   !
   pure real(rkx) function lamdac(x,y,z)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
     lamdac = exp(log(((pidnc*z)/(x*y)))*(1.0_rkx/3.0_rkx))
   end function lamdac
 
   pure real(rkx) function lamdar(x,y,z)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
     lamdar = exp(log(((pidnr*z)/(x*y)))*(1.0_rkx/3.0_rkx))
   end function lamdar
 
   pure real(rkx) function lamdas(x,y,z)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
     lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
   end function lamdas
 
   pure real(rkx) function lamdag(x,y)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
     lamdag = sqrt(sqrt(pidn0g/(x*y)))
   end function lamdag
 
   pure real(rkx) function lamdah(x,y)
-    !$acc loop seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
     lamdah = sqrt(sqrt(pidn0h/(x*y)))
