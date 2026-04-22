@@ -221,117 +221,95 @@ module mod_micro_wsm5
     !real(rkx), dimension(kz) :: re_qc, re_qi, re_qs
 
     if ( idynamic /= 3 ) then
-      n = 1
-      do i = ici1, ici2
-        do j = jci1, jci2
-          ptfac(n) = mo2mc%psb(j,i)*rdt
-          n = n + 1
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
+        ptfac(n) = mo2mc%psb(j,i)*rdt
       end do
     else
-      ptfac(:) = rdt
+      do concurrent ( n = is:ie )
+        ptfac(n) = rdt
+      end do
     end if
 
-    do k = 1, kz
-      n = 1
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       kk = kzp1-k
-      do i = ici1, ici2
-        do j = jci1, jci2
-          t(n,kk) = mo2mc%t(j,i,k)
-          p(n,kk) = mo2mc%phs(j,i,k)
-          qv(n,kk) = mo2mc%qxx(j,i,k,iqv)
-          qci(n,kk,1) = mo2mc%qxx(j,i,k,iqc)
-          qci(n,kk,2) = mo2mc%qxx(j,i,k,iqi)
-          qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr)
-          qrs(n,kk,2) = mo2mc%qxx(j,i,k,iqs)
-          delz(n,kk) = mo2mc%delz(j,i,k)
-          den(n,kk) = mo2mc%rho(j,i,k)
-          n = n + 1
-        end do
-      end do
+      n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
+      t(n,kk) = mo2mc%t(j,i,k)
+      p(n,kk) = mo2mc%phs(j,i,k)
+      qv(n,kk) = mo2mc%qxx(j,i,k,iqv)
+      qci(n,kk,1) = mo2mc%qxx(j,i,k,iqc)
+      qci(n,kk,2) = mo2mc%qxx(j,i,k,iqi)
+      qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr)
+      qrs(n,kk,2) = mo2mc%qxx(j,i,k,iqs)
+      delz(n,kk) = mo2mc%delz(j,i,k)
+      den(n,kk) = mo2mc%rho(j,i,k)
     end do
 
     if ( ichem == 1 ) then
-      mc2mo%remrat(:,:,:) = d_zero
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        mc2mo%remrat(j,i,k) = d_zero
+      end do
     end if
 
     call wsm52d(dt,is,ie)
 
-    do k = 1, kz
-      n = 1
-      kk = kzp1 - k
-      do i = ici1, ici2
-        do j = jci1, jci2
-          mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) + &
-                  (t(n,kk)-mo2mc%t(j,i,k))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
-                  (qv(n,kk)-mo2mc%qxx(j,i,k,iqv))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) + &
-                  (qci(n,kk,1)-mo2mc%qxx(j,i,k,iqc))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqi) = mc2mo%qxten(j,i,k,iqi) + &
-                  (qci(n,kk,2)-mo2mc%qxx(j,i,k,iqi))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqr) = mc2mo%qxten(j,i,k,iqr) + &
-                  (qrs(n,kk,1)-mo2mc%qxx(j,i,k,iqr))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqs) = mc2mo%qxten(j,i,k,iqs) + &
-                  (qrs(n,kk,2)-mo2mc%qxx(j,i,k,iqs))*ptfac(n)
-          n = n + 1
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      kk = kzp1-k
+      n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
+      mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) + &
+         (t(n,kk)-mo2mc%t(j,i,k))*ptfac(n)
+      mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
+         (qv(n,kk)-mo2mc%qxx(j,i,k,iqv))*ptfac(n)
+      mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) + &
+         (qci(n,kk,1)-mo2mc%qxx(j,i,k,iqc))*ptfac(n)
+      mc2mo%qxten(j,i,k,iqi) = mc2mo%qxten(j,i,k,iqi) + &
+         (qci(n,kk,2)-mo2mc%qxx(j,i,k,iqi))*ptfac(n)
+      mc2mo%qxten(j,i,k,iqr) = mc2mo%qxten(j,i,k,iqr) + &
+         (qrs(n,kk,1)-mo2mc%qxx(j,i,k,iqr))*ptfac(n)
+      mc2mo%qxten(j,i,k,iqs) = mc2mo%qxten(j,i,k,iqs) + &
+         (qrs(n,kk,2)-mo2mc%qxx(j,i,k,iqs))*ptfac(n)
     end do
 
     if ( ichem == 1 ) then
-      do k = 1, kz
-        n = 1
-        kk = kzp1 - k
-        do i = ici1, ici2
-          do j = jci1, jci2
-            if ( qrs(n,kk,1) > dlowval ) then
-              pf1 = fall(n,kk,1)*delz(n,kk)/rhoh2o/qrs(n,kk,1)
-            else
-              pf1 = d_zero
-            end if
-            if ( qrs(n,kk,2) > dlowval ) then
-              pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o/qrs(n,kk,2)
-            else
-              pf2 = d_zero
-            end if
-            mc2mo%remrat(j,i,k) = pf1 + pf2
-            n = n + 1
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        kk = kzp1-k
+        n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
+        if ( qrs(n,kk,1) > dlowval ) then
+          pf1 = fall(n,kk,1)*delz(n,kk)/rhoh2o/qrs(n,kk,1)
+        else
+          pf1 = d_zero
+        end if
+        if ( qrs(n,kk,2) > dlowval ) then
+          pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o/qrs(n,kk,2)
+        else
+          pf2 = d_zero
+        end if
+        mc2mo%remrat(j,i,k) = pf1 + pf2
       end do
-      do i = ici1, ici2
-        do j = jci1, jci2
-          mc2mo%rembc(j,i,1) = d_zero
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        mc2mo%rembc(j,i,1) = d_zero
       end do
-      do k = 2, kz
-        do i = ici1, ici2
-          do j = jci1, jci2
-            mc2mo%rembc(j,i,k) = d_zero
-            if ( mc2mo%remrat(j,i,k) > d_zero ) then
-              do kk = 1, k - 1
-                qcw = mo2mc%qcn(j,i,k)
-                mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
+        mc2mo%rembc(j,i,k) = d_zero
+        if ( mc2mo%remrat(j,i,k) > d_zero ) then
+          !@acc loop seq
+          do kk = 1, k - 1
+            qcw = mo2mc%qcn(j,i,k)
+            mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
                   mc2mo%remrat(j,i,kk) * qcw * &
-                              (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
-              end do
-            end if
+                  (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
           end do
-        end do
+        end if
       end do
     end if
 
-    n = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        totp = rain(n) + snow(n)
-        mc2mo%trrate(j,i) = totp * rdt
-        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp
-        mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + mc2mo%trrate(j,i)
-        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*rdt
-        n = n + 1
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
+      totp = rain(n) + snow(n)
+      mc2mo%trrate(j,i) = totp * rdt
+      mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp
+      mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + mc2mo%trrate(j,i)
+      mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*rdt
     end do
 
 !    do n = is, ie
@@ -396,7 +374,7 @@ module mod_micro_wsm5
     real(rkx), dimension(ims:ime,kz,2) :: work1
     real(rkx), dimension(ims:ime,kz) :: fallc, xl, cpm
     real(rkx), dimension(ims:ime,kz) :: denfac, xni, denqrs1, denqrs2
-    real(rkx), dimension(ims:ime,kz) :: denqci, n0sfac
+    real(rkx), dimension(ims:ime,kz) :: denqci
     real(rkx), dimension(ims:ime,kz) :: work2, workr, works, work1c
     real(rkx), dimension(ims:ime) :: delqrs1, delqrs2, delqi
     real(rkx), dimension(ims:ime,kz) :: pigen, pidep, psdep, praut
@@ -405,30 +383,22 @@ module mod_micro_wsm5
     real(rkx) :: supcol, supcolt, coeres, supsat, dtcld, xmi, tr, &
       eacrs, satdt, vt2i, vt2s, acrfac, qimax, diameter, xni0,   &
       roqi0, fallsum, fallsum_qsi, xlwork2, factor, source, qval, &
-      xlf, pfrzdtc, pfrzdtr, supice, temp, rdtcld
-    integer(ik4) :: i, k, loop, loops, ifsat, nval
-
-    nval = ime-ims+1
+      xlf, pfrzdtc, pfrzdtr, supice, temp, rdtcld, n0sfac
+    integer(ik4) :: i, k, loop, loops, ifsat
     !
     ! latent heat for phase changes and heat capacity. neglect the
     ! changes during microphysical process calculation
     ! emanuel(1994)
     !
-    do k = 1, kz
-      do i = ims, ime
-        cpm(i,k) = cpmcal(qv(i,k))
-        xl(i,k) = wlhv-lv1*(t(i,k)-tzero)
-      end do
-    end do
-    do k = 1, kz
-      do i = ims, ime
-        denfac(i,k) = sqrt(stdrho/den(i,k))
-      end do
+    do concurrent ( i = ims:ime, k = 1:kz )
+      cpm(i,k) = cpmcal(qv(i,k))
+      xl(i,k) = wlhv-lv1*(t(i,k)-tzero)
+      denfac(i,k) = sqrt(stdrho/den(i,k))
     end do
     !
     ! initialize the surface rain, snow
     !
-    do i = ims, ime
+    do concurrent ( i = ims:ime )
       rain(i) = d_zero
       snow(i) = d_zero
     end do
@@ -446,57 +416,51 @@ module mod_micro_wsm5
 
     bigloop: &
     do loop = 1, loops
-      do k = 1, kz
-        do i = ims, ime
-          tr = wattp/t(i,k)
-          qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
-          qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
-          qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
-          qs(i,k,1) = max(qs(i,k,1),qvmin)
-          rh(i,k,1) = max(qv(i,k) / qs(i,k,1),qvmin)
-          if ( t(i,k) < wattp ) then
-            qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
-            qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
-            qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
-            qs(i,k,2) = max(qs(i,k,2),qvmin)
-            rh(i,k,2) = max(qv(i,k) / qs(i,k,2),qvmin)
-          else
-            qs(i,k,2) = qs(i,k,1)
-            rh(i,k,2) = rh(i,k,1)
-          endif
-        end do
+      do concurrent ( i = ims:ime, k = 1:kz )
+        tr = wattp/t(i,k)
+        qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+        qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
+        qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
+        qs(i,k,1) = max(qs(i,k,1),qvmin)
+        rh(i,k,1) = max(qv(i,k) / qs(i,k,1),qvmin)
+        if ( t(i,k) < wattp ) then
+          qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
+          qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
+          qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
+          qs(i,k,2) = max(qs(i,k,2),qvmin)
+          rh(i,k,2) = max(qv(i,k) / qs(i,k,2),qvmin)
+        else
+          qs(i,k,2) = qs(i,k,1)
+          rh(i,k,2) = rh(i,k,1)
+        endif
       end do
       !
       ! initialize the variables for microphysical physics
       !
-      do k = 1, kz
-        do i = ims, ime
-          prevp(i,k) = d_zero
-          psdep(i,k) = d_zero
-          praut(i,k) = d_zero
-          psaut(i,k) = d_zero
-          pracw(i,k) = d_zero
-          psaci(i,k) = d_zero
-          psacw(i,k) = d_zero
-          pigen(i,k) = d_zero
-          pidep(i,k) = d_zero
-          pcond(i,k) = d_zero
-          psmlt(i,k) = d_zero
-          psevp(i,k) = d_zero
-          fall(i,k,1) = d_zero
-          fall(i,k,2) = d_zero
-          fallc(i,k) = d_zero
-        end do
+      do concurrent ( i = ims:ime, k = 1:kz )
+        prevp(i,k) = d_zero
+        psdep(i,k) = d_zero
+        praut(i,k) = d_zero
+        psaut(i,k) = d_zero
+        pracw(i,k) = d_zero
+        psaci(i,k) = d_zero
+        psacw(i,k) = d_zero
+        pigen(i,k) = d_zero
+        pidep(i,k) = d_zero
+        pcond(i,k) = d_zero
+        psmlt(i,k) = d_zero
+        psevp(i,k) = d_zero
+        fall(i,k,1) = d_zero
+        fall(i,k,2) = d_zero
+        fallc(i,k) = d_zero
       end do
       !
       ! ni: ice crystal number concentraiton   [hdc 5c]
       !
-      do k = 1, kz
-        do i = ims, ime
-          temp = den(i,k)*max(qci(i,k,2),qcimin)
-          temp = sqrt(sqrt(temp*temp*temp))
-          xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
-        end do
+      do concurrent ( i = ims:ime, k = 1:kz )
+        temp = den(i,k)*max(qci(i,k,2),qcimin)
+        temp = sqrt(sqrt(temp*temp*temp))
+        xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
       end do
       !
       ! compute the fallout term:
@@ -504,100 +468,91 @@ module mod_micro_wsm5
       !
       call slope_wsm5(qrs,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
-      do k = kz, 1, -1
-        do i = ims, ime
-          workr(i,k) = work1(i,k,1)
-          works(i,k) = work1(i,k,2)
-          denqrs1(i,k) = den(i,k)*qrs(i,k,1)
-          denqrs2(i,k) = den(i,k)*qrs(i,k,2)
-          if ( qrs(i,k,1) <= qrsmin ) workr(i,k) = d_zero
-          if ( qrs(i,k,2) <= qrsmin ) works(i,k) = d_zero
-        end do
+      do concurrent ( i = ims:ime, k = kz:1:-1 )
+        workr(i,k) = work1(i,k,1)
+        works(i,k) = work1(i,k,2)
+        denqrs1(i,k) = den(i,k)*qrs(i,k,1)
+        denqrs2(i,k) = den(i,k)*qrs(i,k,2)
+        if ( qrs(i,k,1) <= 0.0_rkx ) workr(i,k) = d_zero
+        if ( qrs(i,k,2) <= 0.0_rkx ) works(i,k) = d_zero
       end do
-      call nislfv_rain_plm(nval,den,denfac,t, &
+
+      call nislfv_rain_plm(ims,ime,den,denfac,t, &
                            delz,workr,denqrs1,delqrs1,dtcld,1,1)
-      call nislfv_rain_plm(nval,den,denfac,t, &
+      call nislfv_rain_plm(ims,ime,den,denfac,t, &
                            delz,works,denqrs2,delqrs2,dtcld,2,1)
-      do k = 1, kz
-        do i = ims, ime
-          qrs(i,k,1) = max(denqrs1(i,k)/den(i,k),d_zero)
-          qrs(i,k,2) = max(denqrs2(i,k)/den(i,k),d_zero)
-          fall(i,k,1) = denqrs1(i,k)*workr(i,k)/delz(i,k)
-          fall(i,k,2) = denqrs2(i,k)*works(i,k)/delz(i,k)
-        end do
+
+      do concurrent ( i = ims:ime, k = 1:kz )
+        qrs(i,k,1) = max(denqrs1(i,k)/den(i,k),d_zero)
+        qrs(i,k,2) = max(denqrs2(i,k)/den(i,k),d_zero)
+        fall(i,k,1) = denqrs1(i,k)*workr(i,k)/delz(i,k)
+        fall(i,k,2) = denqrs2(i,k)*works(i,k)/delz(i,k)
       end do
-      do i = ims, ime
+      do concurrent ( i = ims:ime )
         fall(i,1,1) = delqrs1(i)/delz(i,1)*rdtcld
         fall(i,1,2) = delqrs2(i)/delz(i,1)*rdtcld
       end do
+
       call slope_wsm5(qrs,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
-      do k = kz, 1, -1
-        do i = ims, ime
-          supcol = tzero - t(i,k)
-          n0sfac(i,k) = max(min(exp(alpha*supcol),nfacmax),d_one)
-          if ( t(i,k) > tzero .and. qrs(i,k,2) > qrsmin ) then
-            !
-            ! psmlt: melting of snow [hl a33] [rh83 a25]
-            !       (t>t0: s->r)
-            !
-            xlf = wlhf
-            !work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
-            work2(i,k) = (exp(log(((1.496e-6_rkx*((t(i,k))*sqrt(t(i,k))) / &
-                       ((t(i,k))+120.0_rkx)/(den(i,k)))/(8.794e-5_rkx * &
-                       exp(log(t(i,k))*(1.81_rkx))/p(i,k)))) * &
-                       ((onet)))/sqrt((1.496e-6_rkx*((t(i,k)) * &
-                       sqrt(t(i,k)))/((t(i,k))+120.0_rkx)/(den(i,k)))) * &
-                       sqrt(sqrt(stdrho/(den(i,k)))))
-            coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
-            psmlt(i,k) = (1.414e3_rkx*(1.496e-6_rkx*((t(i,k))*sqrt(t(i,k))) / &
-                        ((t(i,k))+120.0_rkx)/(den(i,k)))*(den(i,k))) / &
-                        xlf*(tzero-t(i,k))*halfpi*n0sfac(i,k) * &
-                        (precs1*rslope2(i,k,2)+precs2*work2(i,k)* &
-                        coeres)/den(i,k)
-            psmlt(i,k) = min(max(psmlt(i,k)*dtcld,-qrs(i,k,2)),d_zero)
-            qrs(i,k,2) = qrs(i,k,2) + psmlt(i,k)
-            qrs(i,k,1) = qrs(i,k,1) - psmlt(i,k)
-            t(i,k) = t(i,k) + xlf/cpm(i,k)*psmlt(i,k)
-          end if
-        end do
+      do concurrent ( i = ims:ime, k = kz:1:-1 )
+        supcol = tzero - t(i,k)
+        n0sfac = max(min(exp(alpha*supcol),nfacmax),d_one)
+        if ( t(i,k) > tzero .and. qrs(i,k,2) > qrsmin ) then
+          !
+          ! psmlt: melting of snow [hl a33] [rh83 a25]
+          !       (t>t0: s->r)
+          !
+          xlf = wlhf
+          !work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
+          work2(i,k) = (exp(log(((1.496e-6_rkx*((t(i,k))*sqrt(t(i,k))) / &
+                     ((t(i,k))+120.0_rkx)/(den(i,k)))/(8.794e-5_rkx * &
+                     exp(log(t(i,k))*(1.81_rkx))/p(i,k)))) * &
+                     ((onet)))/sqrt((1.496e-6_rkx*((t(i,k)) * &
+                     sqrt(t(i,k)))/((t(i,k))+120.0_rkx)/(den(i,k)))) * &
+                     sqrt(sqrt(stdrho/(den(i,k)))))
+          coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
+          psmlt(i,k) = (1.414e3_rkx*(1.496e-6_rkx*((t(i,k))*sqrt(t(i,k))) / &
+                      ((t(i,k))+120.0_rkx)/(den(i,k)))*(den(i,k))) / &
+                      xlf*(tzero-t(i,k))*halfpi*n0sfac * &
+                      (precs1*rslope2(i,k,2)+precs2*work2(i,k)* &
+                      coeres)/den(i,k)
+          psmlt(i,k) = min(max(psmlt(i,k)*dtcld,-qrs(i,k,2)),d_zero)
+          qrs(i,k,2) = qrs(i,k,2) + psmlt(i,k)
+          qrs(i,k,1) = qrs(i,k,1) - psmlt(i,k)
+          t(i,k) = t(i,k) + xlf/cpm(i,k)*psmlt(i,k)
+        end if
       end do
       !
       ! vice [ms-1] : fallout of ice crystal [hdc 5a]
       !
-      do k = kz, 1, -1
-        do i = ims, ime
-          if ( qci(i,k,2) > qcimin ) then
-            xmi = den(i,k)*qci(i,k,2)/xni(i,k)
-            diameter  = max(min(dicon*sqrt(xmi),dimax), 1.e-25_rkx)
-            work1c(i,k) = 1.49e4_rkx*exp(log(diameter)*(1.31_rkx))
-          else
-            work1c(i,k) = d_zero
-          end if
-        end do
+      do concurrent ( i = ims:ime, k = kz:1:-1 )
+        if ( qci(i,k,2) > qcimin ) then
+          xmi = den(i,k)*qci(i,k,2)/xni(i,k)
+          diameter  = max(min(dicon*sqrt(xmi),dimax), 1.e-25_rkx)
+          work1c(i,k) = 1.49e4_rkx*exp(log(diameter)*(1.31_rkx))
+        else
+          work1c(i,k) = d_zero
+        end if
       end do
       !
       ! forward semi-laglangian scheme (jh), pcm (piecewise constant), (linear)
       !
-      do k = kz, 1, -1
-        do i = ims, ime
-          denqci(i,k) = den(i,k)*qci(i,k,2)
-        end do
+      do concurrent ( i = ims:ime, k = kz:1:-1 )
+        denqci(i,k) = den(i,k)*qci(i,k,2)
       end do
-      call nislfv_rain_plm(nval,den,denfac,t, &
+      call nislfv_rain_plm(ims,ime,den,denfac,t, &
                            delz,work1c,denqci,delqi,dtcld,1,0)
-      do k = 1, kz
-        do i = ims, ime
-          qci(i,k,2) = max(denqci(i,k)/den(i,k),d_zero)
-        end do
+      do concurrent ( i = ims:ime, k = 1:kz )
+        qci(i,k,2) = max(denqci(i,k)/den(i,k),d_zero)
       end do
-      do i = ims, ime
+      do concurrent ( i = ims:ime )
         fallc(i,1) = delqi(i)/delz(i,1)*rdtcld
       end do
       !
       ! rain (unit is mm/sec;kgm-2s-1: /1000*delt ===> m)==> mm for wrf
       !
-      do i = ims, ime
+      do concurrent ( i = ims:ime )
         fallsum = fall(i,1,1)+fall(i,1,2)+fallc(i,1)
         fallsum_qsi = fall(i,1,2)+fallc(i,1)
         if ( fallsum > d_zero ) then
@@ -611,56 +566,54 @@ module mod_micro_wsm5
       ! pimlt: instantaneous melting of cloud ice [hl a47] [rh83 a28]
       !       (t>t0: i->c)
       !
-      do k = 1, kz
-        do i = ims, ime
-          supcol = tzero-t(i,k)
-          xlf = wlhs-xl(i,k)
-          if ( supcol < d_zero ) xlf = wlhf
-          if ( supcol < d_zero .and. qci(i,k,2) > qcimin ) then
-            qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
-            t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
-            qci(i,k,2) = d_zero
-          end if
-          !
-          ! pihmf: homogeneous freezing of cloud water below -40c [hl a45]
-          !        (t<-40c: c->i)
-          !
-          if ( supcol > 40.0_rkx .and. qci(i,k,1) > qcimin ) then
-            qci(i,k,2) = qci(i,k,2) + qci(i,k,1)
-            t(i,k) = t(i,k) + xlf/cpm(i,k)*qci(i,k,1)
-            qci(i,k,1) = d_zero
-          end if
-          !
-          ! pihtf: heterogeneous freezing of cloud water [hl a44]
-          !        (t0>t>-40c: c->i)
-          !
-          if ( supcol > d_zero .and. qci(i,k,1) > qcimin ) then
-            if ( qci(i,k,1) > 1.0e-9_rkx ) then
-              supcolt = min(supcol,50.0_rkx)
-              pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-d_one) * &
-                 den(i,k)/rhoh2o/xncr*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
-            else
-              pfrzdtc = 0.9_rkx*qci(i,k,1)
-            end if
-            qci(i,k,2) = qci(i,k,2) + pfrzdtc
-            t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtc
-            qci(i,k,1) = qci(i,k,1)-pfrzdtc
-          end if
-          !
-          ! psfrz: freezing of rain water [hl a20] [lfo 45]
-          !        (t<t0, r->s)
-          !
-          if ( supcol > d_zero .and. qrs(i,k,1) > qrsmin ) then
+      do concurrent ( i = ims:ime, k = 1:kz )
+        supcol = tzero-t(i,k)
+        xlf = wlhs-xl(i,k)
+        if ( supcol < d_zero ) xlf = wlhf
+        if ( supcol < d_zero .and. qci(i,k,2) > qcimin ) then
+          qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
+          t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
+          qci(i,k,2) = d_zero
+        end if
+        !
+        ! pihmf: homogeneous freezing of cloud water below -40c [hl a45]
+        !        (t<-40c: c->i)
+        !
+        if ( supcol > 40.0_rkx .and. qci(i,k,1) > qcimin ) then
+          qci(i,k,2) = qci(i,k,2) + qci(i,k,1)
+          t(i,k) = t(i,k) + xlf/cpm(i,k)*qci(i,k,1)
+          qci(i,k,1) = d_zero
+        end if
+        !
+        ! pihtf: heterogeneous freezing of cloud water [hl a44]
+        !        (t0>t>-40c: c->i)
+        !
+        if ( supcol > d_zero .and. qci(i,k,1) > qcimin ) then
+          if ( qci(i,k,1) > 1.0e-9_rkx ) then
             supcolt = min(supcol,50.0_rkx)
-            temp = rslope(i,k,1)
-            temp = temp*temp*temp*temp*temp*temp*temp
-            pfrzdtr = min(20.0_rkx*pisqr*pfrz1*n0r*rhoh2o/den(i,k) * &
-                (exp(pfrz2*supcolt)-d_one)*temp*dtcld, qrs(i,k,1))
-            qrs(i,k,2) = qrs(i,k,2) + pfrzdtr
-            t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtr
-            qrs(i,k,1) = qrs(i,k,1)-pfrzdtr
+            pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-d_one) * &
+               den(i,k)/rhoh2o/xncr*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
+          else
+            pfrzdtc = 0.9_rkx*qci(i,k,1)
           end if
-        end do
+          qci(i,k,2) = qci(i,k,2) + pfrzdtc
+          t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtc
+          qci(i,k,1) = qci(i,k,1)-pfrzdtc
+        end if
+        !
+        ! psfrz: freezing of rain water [hl a20] [lfo 45]
+        !        (t<t0, r->s)
+        !
+        if ( supcol > d_zero .and. qrs(i,k,1) > qrsmin ) then
+          supcolt = min(supcol,50.0_rkx)
+          temp = rslope(i,k,1)
+          temp = temp*temp*temp*temp*temp*temp*temp
+          pfrzdtr = min(20.0_rkx*pisqr*pfrz1*n0r*rhoh2o/den(i,k) * &
+              (exp(pfrz2*supcolt)-d_one)*temp*dtcld, qrs(i,k,1))
+          qrs(i,k,2) = qrs(i,k,2) + pfrzdtr
+          t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtr
+          qrs(i,k,1) = qrs(i,k,1)-pfrzdtr
+        end if
       end do
       !
       ! update the slope parameters for microphysics computation
@@ -673,54 +626,50 @@ module mod_micro_wsm5
       !         (ry88, y93, h85)
       ! work2: parameter associated with the ventilation effects(y93)
       !
-      do k = 1, kz
-        do i = ims, ime
-          work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qs(i,k,1))
-          work1(i,k,2) = diffac(wlhs,p(i,k),t(i,k),den(i,k),qs(i,k,2))
-          work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
-        end do
+      do concurrent ( i = ims:ime, k = 1:kz )
+        work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qs(i,k,1))
+        work1(i,k,2) = diffac(wlhs,p(i,k),t(i,k),den(i,k),qs(i,k,2))
+        work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
       end do
       !
       ! warm rain processes
       !
       ! - follows the processes in rh83 and lfo except for autoconcersion
       !
-      do k = 1, kz
-        do i = ims, ime
-          supsat = max(qv(i,k),qvmin)-qs(i,k,1)
-          satdt = supsat*rdtcld
-          !
-          ! praut: auto conversion rate from cloud to rain [hdc 16]
-          !        (c->r)
-          !
-          if ( qci(i,k,1) > qc0 ) then
-            praut(i,k) = qck1*exp(log(qci(i,k,1))*((7.0_rkx/3.0_rkx)))
-            praut(i,k) = min(praut(i,k),qci(i,k,1)*rdtcld)
+      do concurrent ( i = ims:ime, k = 1:kz )
+        supsat = max(qv(i,k),qvmin)-qs(i,k,1)
+        satdt = supsat*rdtcld
+        !
+        ! praut: auto conversion rate from cloud to rain [hdc 16]
+        !        (c->r)
+        !
+        if ( qci(i,k,1) > qc0 ) then
+          praut(i,k) = qck1*exp(log(qci(i,k,1))*((7.0_rkx/3.0_rkx)))
+          praut(i,k) = min(praut(i,k),qci(i,k,1)*rdtcld)
+        end if
+        !
+        ! pracw: accretion of cloud water by rain [hl a40] [lfo 51]
+        !        (c->r)
+        !
+        if ( qrs(i,k,1) > qrsmin .and. qci(i,k,1) > qcimin ) then
+          pracw(i,k) = min(pacrr*rslope3(i,k,1)*rslopeb(i,k,1) * &
+                           qci(i,k,1)*denfac(i,k),qci(i,k,1)*rdtcld)
+        end if
+        !
+        ! prevp: evaporation/condensation rate of rain [hdc 14]
+        !        (v->r or r->v)
+        !
+        if ( qrs(i,k,1) > qrsmin ) then
+          coeres = rslope2(i,k,1)*sqrt(rslope(i,k,1)*rslopeb(i,k,1))
+          prevp(i,k) = (rh(i,k,1)-d_one)*(precr1*rslope2(i,k,1) + &
+                       precr2*work2(i,k)*coeres)/work1(i,k,1)
+          if ( prevp(i,k) < d_zero ) then
+            prevp(i,k) = max(prevp(i,k),-qrs(i,k,1)*rdtcld)
+            prevp(i,k) = max(prevp(i,k),satdt/2.0_rkx)
+          else
+            prevp(i,k) = min(prevp(i,k),satdt/2.0_rkx)
           end if
-          !
-          ! pracw: accretion of cloud water by rain [hl a40] [lfo 51]
-          !        (c->r)
-          !
-          if ( qrs(i,k,1) > qrsmin .and. qci(i,k,1) > qcimin ) then
-            pracw(i,k) = min(pacrr*rslope3(i,k,1)*rslopeb(i,k,1) * &
-                             qci(i,k,1)*denfac(i,k),qci(i,k,1)*rdtcld)
-          end if
-          !
-          ! prevp: evaporation/condensation rate of rain [hdc 14]
-          !        (v->r or r->v)
-          !
-          if ( qrs(i,k,1) > qrsmin ) then
-            coeres = rslope2(i,k,1)*sqrt(rslope(i,k,1)*rslopeb(i,k,1))
-            prevp(i,k) = (rh(i,k,1)-d_one)*(precr1*rslope2(i,k,1) + &
-                         precr2*work2(i,k)*coeres)/work1(i,k,1)
-            if ( prevp(i,k) < d_zero ) then
-              prevp(i,k) = max(prevp(i,k),-qrs(i,k,1)*rdtcld)
-              prevp(i,k) = max(prevp(i,k),satdt/2.0_rkx)
-            else
-              prevp(i,k) = min(prevp(i,k),satdt/2.0_rkx)
-            end if
-          end if
-        end do
+        end if
       end do
       !
       ! cold rain processes
@@ -732,320 +681,315 @@ module mod_micro_wsm5
       !   concentration (ni), ice nuclei number concentration
       !   (n0i), ice diameter (d)
       !
-      do k = 1, kz
-        do i = ims, ime
-          supcol = tzero-t(i,k)
-          n0sfac(i,k) = max(min(exp(alpha*supcol),nfacmax),d_one)
-          supsat = max(qv(i,k),qvmin)-qs(i,k,2)
-          satdt = supsat*rdtcld
-          ifsat = 0
+      do concurrent ( i = ims:ime, k = 1:kz )
+        supcol = tzero-t(i,k)
+        n0sfac = max(min(exp(alpha*supcol),nfacmax),d_one)
+        supsat = max(qv(i,k),qvmin)-qs(i,k,2)
+        satdt = supsat*rdtcld
+        ifsat = 0
+        !
+        ! ni: ice crystal number concentraiton   [hdc 5c]
+        !
+        temp = den(i,k)*max(qci(i,k,2),qcimin)
+        temp = sqrt(sqrt(temp*temp*temp))
+        xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
+        eacrs = exp(0.07_rkx*(-supcol))
+        if ( supcol > d_zero ) then
+          if ( qrs(i,k,2) > qrsmin .and. qci(i,k,2) > qcimin ) then
+            xmi = den(i,k)*qci(i,k,2)/xni(i,k)
+            diameter  = min(dicon * sqrt(xmi),dimax)
+            vt2i = 1.49e4_rkx*diameter**1.31_rkx
+            vt2s = pvts*rslopeb(i,k,2)*denfac(i,k)
+            !
+            ! psaci: accretion of cloud ice by rain [hdc 10]
+            !        (t<t0: i->s)
+            !
+            acrfac = d_two*rslope3(i,k,2) + d_two*diameter*rslope2(i,k,2) + &
+                     diameter**2*rslope(i,k,2)
+            psaci(i,k) = mathpi*qci(i,k,2)*eacrs*n0s*n0sfac * &
+                         abs(vt2s-vt2i)*acrfac*d_rfour
+          end if
+        end if
+        !
+        ! psacw: accretion of cloud water by snow  [hl a7] [lfo 24]
+        !        (t<t0: c->s, and t>=t0: c->r)
+        !
+        if ( qrs(i,k,2) > qrsmin .and. qci(i,k,1) > qcimin ) then
+          psacw(i,k) = min(pacrc*n0sfac*rslope3(i,k,2) * &
+                           rslopeb(i,k,2)*qci(i,k,1)*denfac(i,k), &
+                           qci(i,k,1)*rdtcld)
+        end if
+        if ( supcol > d_zero ) then
           !
-          ! ni: ice crystal number concentraiton   [hdc 5c]
+          ! pidep: deposition/sublimation rate of ice [hdc 9]
+          !       (t<t0: v->i or i->v)
           !
-          temp = den(i,k)*max(qci(i,k,2),qcimin)
-          temp = sqrt(sqrt(temp*temp*temp))
-          xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
-          eacrs = exp(0.07_rkx*(-supcol))
-          if ( supcol > d_zero ) then
-            if ( qrs(i,k,2) > qrsmin .and. qci(i,k,2) > qcimin ) then
-              xmi = den(i,k)*qci(i,k,2)/xni(i,k)
-              diameter  = min(dicon * sqrt(xmi),dimax)
-              vt2i = 1.49e4_rkx*diameter**1.31_rkx
-              vt2s = pvts*rslopeb(i,k,2)*denfac(i,k)
-              !
-              ! psaci: accretion of cloud ice by rain [hdc 10]
-              !        (t<t0: i->s)
-              !
-              acrfac = d_two*rslope3(i,k,2) + d_two*diameter*rslope2(i,k,2) + &
-                       diameter**2*rslope(i,k,2)
-              psaci(i,k) = mathpi*qci(i,k,2)*eacrs*n0s*n0sfac(i,k) * &
-                           abs(vt2s-vt2i)*acrfac*d_rfour
+          if ( qci(i,k,2) > 1.0e-15_rkx .and. ifsat /= 1 ) then
+            xmi = den(i,k)*qci(i,k,2)/xni(i,k)
+            diameter = dicon * sqrt(xmi)
+            pidep(i,k) = d_four*diameter*xni(i,k) * &
+                         (rh(i,k,2)-d_one)/work1(i,k,2)
+            supice = satdt-prevp(i,k)
+            if ( pidep(i,k) < d_zero ) then
+              pidep(i,k) = max(max(pidep(i,k),satdt*d_half),supice)
+              pidep(i,k) = max(pidep(i,k),-qci(i,k,2)*rdtcld)
+            else
+              pidep(i,k) = min(min(pidep(i,k),satdt*d_half),supice)
+            end if
+            if ( abs(prevp(i,k)+pidep(i,k)) >= abs(satdt) ) ifsat = 1
+          end if
+          !
+          ! psdep: deposition/sublimation rate of snow [hdc 14]
+          !        (v->s or s->v)
+          !
+          if ( qrs(i,k,2) > qrsmin .and. ifsat /= 1 ) then
+            coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
+            psdep(i,k) = (rh(i,k,2)-d_one)*n0sfac * &
+                         (precs1*rslope2(i,k,2) + &
+                          precs2*work2(i,k)*coeres)/work1(i,k,2)
+            supice = satdt-prevp(i,k)-pidep(i,k)
+            if ( psdep(i,k) < d_zero ) then
+              psdep(i,k) = max(psdep(i,k),-qrs(i,k,2)*rdtcld)
+              psdep(i,k) = max(max(psdep(i,k),satdt*d_half),supice)
+            else
+              psdep(i,k) = min(min(psdep(i,k),satdt*d_half),supice)
+            end if
+            if ( abs(prevp(i,k)+pidep(i,k)+psdep(i,k)) >= abs(satdt) ) then
+              ifsat = 1
             end if
           end if
           !
-          ! psacw: accretion of cloud water by snow  [hl a7] [lfo 24]
-          !        (t<t0: c->s, and t>=t0: c->r)
+          ! pigen: generation(nucleation) of ice from vapor [hl a50] [hdc 7-8]
+          !       (t<t0: v->i)
           !
-          if ( qrs(i,k,2) > qrsmin .and. qci(i,k,1) > qcimin ) then
-            psacw(i,k) = min(pacrc*n0sfac(i,k)*rslope3(i,k,2) * &
-                             rslopeb(i,k,2)*qci(i,k,1)*denfac(i,k), &
-                             qci(i,k,1)*rdtcld)
-          end if
-          if ( supcol > d_zero ) then
-            !
-            ! pidep: deposition/sublimation rate of ice [hdc 9]
-            !       (t<t0: v->i or i->v)
-            !
-            if ( qci(i,k,2) > 1.0e-15_rkx .and. ifsat /= 1 ) then
-              xmi = den(i,k)*qci(i,k,2)/xni(i,k)
-              diameter = dicon * sqrt(xmi)
-              pidep(i,k) = d_four*diameter*xni(i,k) * &
-                           (rh(i,k,2)-d_one)/work1(i,k,2)
-              supice = satdt-prevp(i,k)
-              if ( pidep(i,k) < d_zero ) then
-                pidep(i,k) = max(max(pidep(i,k),satdt*d_half),supice)
-                pidep(i,k) = max(pidep(i,k),-qci(i,k,2)*rdtcld)
-              else
-                pidep(i,k) = min(min(pidep(i,k),satdt*d_half),supice)
-              end if
-              if ( abs(prevp(i,k)+pidep(i,k)) >= abs(satdt) ) ifsat = 1
-            end if
-            !
-            ! psdep: deposition/sublimation rate of snow [hdc 14]
-            !        (v->s or s->v)
-            !
-            if ( qrs(i,k,2) > qrsmin .and. ifsat /= 1 ) then
-              coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
-              psdep(i,k) = (rh(i,k,2)-d_one)*n0sfac(i,k) * &
-                           (precs1*rslope2(i,k,2) + &
-                            precs2*work2(i,k)*coeres)/work1(i,k,2)
-              supice = satdt-prevp(i,k)-pidep(i,k)
-              if ( psdep(i,k) < d_zero ) then
-                psdep(i,k) = max(psdep(i,k),-qrs(i,k,2)*rdtcld)
-                psdep(i,k) = max(max(psdep(i,k),satdt*d_half),supice)
-              else
-                psdep(i,k) = min(min(psdep(i,k),satdt*d_half),supice)
-              end if
-              if ( abs(prevp(i,k)+pidep(i,k)+psdep(i,k)) >= abs(satdt) ) then
-                ifsat = 1
-              end if
-            end if
-            !
-            ! pigen: generation(nucleation) of ice from vapor [hl a50] [hdc 7-8]
-            !       (t<t0: v->i)
-            !
-            if ( supsat > d_zero .and. ifsat /= 1 ) then
-              supice = satdt-prevp(i,k)-pidep(i,k)-psdep(i,k)
-              xni0 = minni*exp(0.1_rkx*supcol)
-              roqi0 = 4.92e-11_rkx*exp(log(xni0)*(1.33_rkx))
-              pigen(i,k) = max(d_zero, &
-                            (roqi0/den(i,k)-max(qci(i,k,2),d_zero))*rdtcld)
-              pigen(i,k) = min(min(pigen(i,k),satdt),supice)
-            end if
-            !
-            ! psaut: conversion(aggregation) of ice to snow [hdc 12]
-            !       (t<t0: i->s)
-            !
-            if ( qci(i,k,2) > qcimin ) then
-              qimax = roqimax/den(i,k)
-              psaut(i,k) = max(d_zero,(qci(i,k,2)-qimax)*rdtcld)
-            end if
+          if ( supsat > d_zero .and. ifsat /= 1 ) then
+            supice = satdt-prevp(i,k)-pidep(i,k)-psdep(i,k)
+            xni0 = minni*exp(0.1_rkx*supcol)
+            roqi0 = 4.92e-11_rkx*exp(log(xni0)*(1.33_rkx))
+            pigen(i,k) = max(d_zero, &
+                          (roqi0/den(i,k)-max(qci(i,k,2),d_zero))*rdtcld)
+            pigen(i,k) = min(min(pigen(i,k),satdt),supice)
           end if
           !
-          ! psevp: evaporation of melting snow [hl a35] [rh83 a27]
-          !       (t>t0: s->v)
+          ! psaut: conversion(aggregation) of ice to snow [hdc 12]
+          !       (t<t0: i->s)
           !
-          if ( supcol <= d_zero ) then
-            if ( qrs(i,k,2) > qrsmin .and. rh(i,k,1) < d_one ) then
-              psevp(i,k) = psdep(i,k)*work1(i,k,2)/work1(i,k,1)
-              psevp(i,k) = min(max(psevp(i,k),-qrs(i,k,2)*rdtcld),d_zero)
-            end if
+          if ( qci(i,k,2) > qcimin ) then
+            qimax = roqimax/den(i,k)
+            psaut(i,k) = max(d_zero,(qci(i,k,2)-qimax)*rdtcld)
           end if
-        end do
+        end if
+        !
+        ! psevp: evaporation of melting snow [hl a35] [rh83 a27]
+        !       (t>t0: s->v)
+        !
+        if ( supcol <= d_zero ) then
+          if ( qrs(i,k,2) > qrsmin .and. rh(i,k,1) < d_one ) then
+            psevp(i,k) = psdep(i,k)*work1(i,k,2)/work1(i,k,1)
+            psevp(i,k) = min(max(psevp(i,k),-qrs(i,k,2)*rdtcld),d_zero)
+          end if
+        end if
       end do
       !
       ! check mass conservation of generation terms and feedback to the
       ! large scale
       !
-      do k = 1, kz
-        do i = ims, ime
-          if ( t(i,k) <= tzero ) then
-            !
-            ! cloud water
-            !
-            qval = max(qci(i,k,1),qcimin)
-            source = (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld
-            if ( source > qval ) then
-              factor = qval/source
-              praut(i,k) = praut(i,k)*factor
-              pracw(i,k) = pracw(i,k)*factor
-              psacw(i,k) = psacw(i,k)*factor
-            end if
-            !
-            ! cloud ice
-            !
-            qval = max(qci(i,k,2),qcimin)
-            source = (psaut(i,k)+psaci(i,k)-pigen(i,k)-pidep(i,k))*dtcld
-            if ( source > qval ) then
-              factor = qval/source
-              psaut(i,k) = psaut(i,k)*factor
-              psaci(i,k) = psaci(i,k)*factor
-              pigen(i,k) = pigen(i,k)*factor
-              pidep(i,k) = pidep(i,k)*factor
-            end if
-            !
-            ! rain
-            !
-            qval = max(qrs(i,k,1),d_zero)
-            source = (-praut(i,k)-pracw(i,k)-prevp(i,k))*dtcld
-            if (source > qval) then
-              factor = qval/source
-              praut(i,k) = praut(i,k)*factor
-              pracw(i,k) = pracw(i,k)*factor
-              prevp(i,k) = prevp(i,k)*factor
-            end if
-            !
-            ! snow
-            !
-            qval = max(qrs(i,k,2),d_zero)
-            source = (-psdep(i,k)-psaut(i,k)-psaci(i,k)-psacw(i,k))*dtcld
-            if (source > qval) then
-              factor = qval/source
-              psdep(i,k) = psdep(i,k)*factor
-              psaut(i,k) = psaut(i,k)*factor
-              psaci(i,k) = psaci(i,k)*factor
-              psacw(i,k) = psacw(i,k)*factor
-            endif
-            work2(i,k) = -(prevp(i,k)+psdep(i,k)+pigen(i,k)+pidep(i,k))
-            ! update
-            qv(i,k) = qv(i,k)+work2(i,k)*dtcld
-            qci(i,k,1) = max(qci(i,k,1) - &
-              (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld, d_zero)
-            qrs(i,k,1) = max(qrs(i,k,1) + &
-              (praut(i,k)+pracw(i,k)+prevp(i,k))*dtcld, d_zero)
-            qci(i,k,2) = max(qci(i,k,2) - &
-              (psaut(i,k)+psaci(i,k)-pigen(i,k)-pidep(i,k))*dtcld, d_zero)
-            qrs(i,k,2) = max(qrs(i,k,2) + &
-              (psdep(i,k)+psaut(i,k)+psaci(i,k)+psacw(i,k))*dtcld, d_zero)
-            xlf = wlhs-xl(i,k)
-            xlwork2 = -wlhs*(psdep(i,k)+pidep(i,k)+pigen(i,k)) - &
-                       xl(i,k)*prevp(i,k)-xlf*psacw(i,k)
-            t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
-          else
-            !
-            ! cloud water
-            !
-            qval = max(qci(i,k,1),qcimin)
-            source = (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld
-            if ( source > qval ) then
-              factor = qval/source
-              praut(i,k) = praut(i,k)*factor
-              pracw(i,k) = pracw(i,k)*factor
-              psacw(i,k) = psacw(i,k)*factor
-            end if
-            !
-            ! rain
-            !
-            qval = max(qrs(i,k,1),d_zero)
-            source = (-praut(i,k)-pracw(i,k)-prevp(i,k)-psacw(i,k))*dtcld
-            if ( source > qval ) then
-              factor = qval/source
-              praut(i,k) = praut(i,k)*factor
-              pracw(i,k) = pracw(i,k)*factor
-              prevp(i,k) = prevp(i,k)*factor
-              psacw(i,k) = psacw(i,k)*factor
-            end if
-            !
-            ! snow
-            !
-            qval = max(qrs(i,k,2),d_zero)
-            source = (-psevp(i,k))*dtcld
-            if ( source > qval ) then
-              factor = qval/source
-              psevp(i,k) = psevp(i,k)*factor
-            end if
-            work2(i,k)=-(prevp(i,k)+psevp(i,k))
-            ! update
-            qv(i,k) = qv(i,k)+work2(i,k)*dtcld
-            qci(i,k,1) = max(qci(i,k,1) - &
-              (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld, d_zero)
-            qrs(i,k,1) = max(qrs(i,k,1) + &
-              (praut(i,k)+pracw(i,k)+prevp(i,k)+psacw(i,k))*dtcld, d_zero)
-            qrs(i,k,2) = max(qrs(i,k,2)+psevp(i,k)*dtcld, d_zero)
-            xlf = wlhs-xl(i,k)
-            xlwork2 = -xl(i,k)*(prevp(i,k)+psevp(i,k))
-            t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
+      do concurrent ( i = ims:ime, k = 1:kz )
+        if ( t(i,k) <= tzero ) then
+          !
+          ! cloud water
+          !
+          qval = max(qci(i,k,1),qcimin)
+          source = (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld
+          if ( source > qval ) then
+            factor = qval/source
+            praut(i,k) = praut(i,k)*factor
+            pracw(i,k) = pracw(i,k)*factor
+            psacw(i,k) = psacw(i,k)*factor
           end if
-        end do
+          !
+          ! cloud ice
+          !
+          qval = max(qci(i,k,2),qcimin)
+          source = (psaut(i,k)+psaci(i,k)-pigen(i,k)-pidep(i,k))*dtcld
+          if ( source > qval ) then
+            factor = qval/source
+            psaut(i,k) = psaut(i,k)*factor
+            psaci(i,k) = psaci(i,k)*factor
+            pigen(i,k) = pigen(i,k)*factor
+            pidep(i,k) = pidep(i,k)*factor
+          end if
+          !
+          ! rain
+          !
+          qval = max(qrs(i,k,1),d_zero)
+          source = (-praut(i,k)-pracw(i,k)-prevp(i,k))*dtcld
+          if (source > qval) then
+            factor = qval/source
+            praut(i,k) = praut(i,k)*factor
+            pracw(i,k) = pracw(i,k)*factor
+            prevp(i,k) = prevp(i,k)*factor
+          end if
+          !
+          ! snow
+          !
+          qval = max(qrs(i,k,2),d_zero)
+          source = (-psdep(i,k)-psaut(i,k)-psaci(i,k)-psacw(i,k))*dtcld
+          if (source > qval) then
+            factor = qval/source
+            psdep(i,k) = psdep(i,k)*factor
+            psaut(i,k) = psaut(i,k)*factor
+            psaci(i,k) = psaci(i,k)*factor
+            psacw(i,k) = psacw(i,k)*factor
+          endif
+          work2(i,k) = -(prevp(i,k)+psdep(i,k)+pigen(i,k)+pidep(i,k))
+          ! update
+          qv(i,k) = qv(i,k)+work2(i,k)*dtcld
+          qci(i,k,1) = max(qci(i,k,1) - &
+            (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld, d_zero)
+          qrs(i,k,1) = max(qrs(i,k,1) + &
+            (praut(i,k)+pracw(i,k)+prevp(i,k))*dtcld, d_zero)
+          qci(i,k,2) = max(qci(i,k,2) - &
+            (psaut(i,k)+psaci(i,k)-pigen(i,k)-pidep(i,k))*dtcld, d_zero)
+          qrs(i,k,2) = max(qrs(i,k,2) + &
+            (psdep(i,k)+psaut(i,k)+psaci(i,k)+psacw(i,k))*dtcld, d_zero)
+          xlf = wlhs-xl(i,k)
+          xlwork2 = -wlhs*(psdep(i,k)+pidep(i,k)+pigen(i,k)) - &
+                     xl(i,k)*prevp(i,k)-xlf*psacw(i,k)
+          t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
+        else
+          !
+          ! cloud water
+          !
+          qval = max(qci(i,k,1),qcimin)
+          source = (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld
+          if ( source > qval ) then
+            factor = qval/source
+            praut(i,k) = praut(i,k)*factor
+            pracw(i,k) = pracw(i,k)*factor
+            psacw(i,k) = psacw(i,k)*factor
+          end if
+          !
+          ! rain
+          !
+          qval = max(qrs(i,k,1),d_zero)
+          source = (-praut(i,k)-pracw(i,k)-prevp(i,k)-psacw(i,k))*dtcld
+          if ( source > qval ) then
+            factor = qval/source
+            praut(i,k) = praut(i,k)*factor
+            pracw(i,k) = pracw(i,k)*factor
+            prevp(i,k) = prevp(i,k)*factor
+            psacw(i,k) = psacw(i,k)*factor
+          end if
+          !
+          ! snow
+          !
+          qval = max(qrs(i,k,2),d_zero)
+          source = (-psevp(i,k))*dtcld
+          if ( source > qval ) then
+            factor = qval/source
+            psevp(i,k) = psevp(i,k)*factor
+          end if
+          work2(i,k)=-(prevp(i,k)+psevp(i,k))
+          ! update
+          qv(i,k) = qv(i,k)+work2(i,k)*dtcld
+          qci(i,k,1) = max(qci(i,k,1) - &
+            (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld, d_zero)
+          qrs(i,k,1) = max(qrs(i,k,1) + &
+            (praut(i,k)+pracw(i,k)+prevp(i,k)+psacw(i,k))*dtcld, d_zero)
+          qrs(i,k,2) = max(qrs(i,k,2)+psevp(i,k)*dtcld, d_zero)
+          xlf = wlhs-xl(i,k)
+          xlwork2 = -xl(i,k)*(prevp(i,k)+psevp(i,k))
+          t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
+        end if
       end do
-      do k = 1, kz
-        do i = ims, ime
-          tr = wattp/t(i,k)
-          qs(i,k,1) = psat * exp(log(tr)*xa + xb*(d_one-tr))
-          qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
-          qs(i,k,1) = ep2 * qs(i,k,1)/(p(i,k)-qs(i,k,1))
-          qs(i,k,1) = max(qs(i,k,1),qcimin)
-        end do
+      do concurrent ( i = ims:ime, k = 1:kz )
+        tr = wattp/t(i,k)
+        qs(i,k,1) = psat * exp(log(tr)*xa + xb*(d_one-tr))
+        qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
+        qs(i,k,1) = ep2 * qs(i,k,1)/(p(i,k)-qs(i,k,1))
+        qs(i,k,1) = max(qs(i,k,1),qcimin)
       end do
       ! pcond: condensational/evaporational rate of cloud water
       !        [hl a46] [rh83 a6]
       ! if there exists additional water vapor condensated/if
       ! evaporation of cloud water is not enough to remove subsaturation
       !
-      do k = 1, kz
-        do i = ims, ime
-          work1(i,k,1) = ((max(qv(i,k),qvmin)-qs(i,k,1)))/  &
-               (d_one+(xl(i,k))*(xl(i,k))/(rwat*(cpm(i,k)))*(qs(i,k,1)) / &
-               ((t(i,k))*(t(i,k))))
-          work2(i,k) = qci(i,k,1)+work1(i,k,1)
-          pcond(i,k) = min(max(work1(i,k,1)*rdtcld,d_zero), &
-                           max(qv(i,k),qvmin)*rdtcld)
-          if ( qci(i,k,1) > qcimin .and. work1(i,k,1) < d_zero ) then
-            pcond(i,k) = max(work1(i,k,1),-qci(i,k,1))*rdtcld
-          end if
-          qv(i,k) = qv(i,k) - pcond(i,k)*dtcld
-          qci(i,k,1) = max(qci(i,k,1)+pcond(i,k)*dtcld,d_zero)
-          t(i,k) = t(i,k) + pcond(i,k)*xl(i,k)/cpm(i,k)*dtcld
-        end do
+      do concurrent ( i = ims:ime, k = 1:kz )
+        work1(i,k,1) = ((max(qv(i,k),qvmin)-qs(i,k,1)))/  &
+             (d_one+(xl(i,k))*(xl(i,k))/(rwat*(cpm(i,k)))*(qs(i,k,1)) / &
+             ((t(i,k))*(t(i,k))))
+        work2(i,k) = qci(i,k,1)+work1(i,k,1)
+        pcond(i,k) = min(max(work1(i,k,1)*rdtcld,d_zero), &
+                         max(qv(i,k),qvmin)*rdtcld)
+        if ( qci(i,k,1) > qcimin .and. work1(i,k,1) < d_zero ) then
+          pcond(i,k) = max(work1(i,k,1),-qci(i,k,1))*rdtcld
+        end if
+        qv(i,k) = qv(i,k) - pcond(i,k)*dtcld
+        qci(i,k,1) = max(qci(i,k,1)+pcond(i,k)*dtcld,d_zero)
+        t(i,k) = t(i,k) + pcond(i,k)*xl(i,k)/cpm(i,k)*dtcld
       end do
     end do bigloop
 
-    do k = 1, kz
-      do i = ims, ime
-        if ( qrs(i,k,1) < qrsmin ) qrs(i,k,1) = d_zero
-        if ( qrs(i,k,2) < qrsmin ) qrs(i,k,2) = d_zero
-      end do
+    do concurrent ( i = ims:ime, k = 1:kz )
+      if ( qrs(i,k,1) < qrsmin ) qrs(i,k,1) = d_zero
+      if ( qrs(i,k,2) < qrsmin ) qrs(i,k,2) = d_zero
     end do
 
-  contains
-
-    pure real(rkx) function cpmcal(q)
-      implicit none
-      real(rkx), intent(in) :: q
-      cpmcal = cpd*(d_one-max(q,qvmin)) + cpv*max(q,qvmin)
-    end function cpmcal
-
-    ! diffus: diffusion coefficient of the water vapor
-    pure real(rkx) function diffus(x,y)
-      implicit none
-      real(rkx), intent(in) :: x, y
-      diffus = 8.794e-5_rkx * exp(log(x)*(1.81_rkx)) / y
-    end function diffus
-
-    ! viscos: kinematic viscosity(m2s-1)
-    pure real(rkx) function viscos(x,y)
-      implicit none
-      real(rkx), intent(in) :: x, y
-      viscos = 1.496e-6_rkx * (x*sqrt(x)) /(x+120.0_rkx)/y
-      ! viscos = 1.496e-6_rkx *x**1.5_rkx / (x+120.0_rkx)/y
-    end function viscos
-
-    pure real(rkx) function xka(x,y)
-      implicit none
-      real(rkx), intent(in) :: x, y
-      xka = 1.414e3_rkx * viscos(x,y) * y
-    end function xka
-
-    pure real(rkx) function diffac(a,b,c,d,e)
-      implicit none
-      real(rkx), intent(in) :: a, b, c, d, e
-      diffac = d*a*a/(xka(c,d)*rwat*c*c)+d_one/(e*diffus(c,b))
-    end function diffac
-
-    pure real(rkx) function venfac(a,b,c)
-      implicit none
-      real(rkx), intent(in) :: a, b, c
-      venfac = exp(log((viscos(b,c)/diffus(b,a)))*((onet))) / &
-                   sqrt(viscos(b,c))*sqrt(sqrt(stdrho/c))
-    end function venfac
-
-    pure real(rkx) function conden(a,b,c,d,e)
-      implicit none
-      real(rkx), intent(in) :: a, b, c, d, e
-      conden = (max(b,qvmin)-c)/(d_one+d*d/(rwat*e)*c/(a*a))
-    end function conden
-
   end subroutine wsm52d
+
+  pure real(rkx) function cpmcal(q)
+    !@acc routine seq
+    implicit none
+    real(rkx), intent(in) :: q
+    cpmcal = cpd*(d_one-max(q,qvmin)) + cpv*max(q,qvmin)
+  end function cpmcal
+
+  ! diffus: diffusion coefficient of the water vapor
+  pure real(rkx) function diffus(x,y)
+    !@acc routine seq
+    implicit none
+    real(rkx), intent(in) :: x, y
+    diffus = 8.794e-5_rkx * exp(log(x)*(1.81_rkx)) / y
+  end function diffus
+
+  ! viscos: kinematic viscosity(m2s-1)
+  pure real(rkx) function viscos(x,y)
+    !@acc routine seq
+    implicit none
+    real(rkx), intent(in) :: x, y
+    viscos = 1.496e-6_rkx * (x*sqrt(x)) /(x+120.0_rkx)/y
+    ! viscos = 1.496e-6_rkx *x**1.5_rkx / (x+120.0_rkx)/y
+  end function viscos
+
+  pure real(rkx) function xka(x,y)
+    !@acc routine seq
+    implicit none
+    real(rkx), intent(in) :: x, y
+    xka = 1.414e3_rkx * viscos(x,y) * y
+  end function xka
+
+  pure real(rkx) function diffac(a,b,c,d,e)
+    !@acc routine seq
+    implicit none
+    real(rkx), intent(in) :: a, b, c, d, e
+    diffac = d*a*a/(xka(c,d)*rwat*c*c)+d_one/(e*diffus(c,b))
+  end function diffac
+
+  pure real(rkx) function venfac(a,b,c)
+    !@acc routine seq
+    implicit none
+    real(rkx), intent(in) :: a, b, c
+    venfac = exp(log((viscos(b,c)/diffus(b,a)))*((onet))) / &
+                 sqrt(viscos(b,c))*sqrt(sqrt(stdrho/c))
+  end function venfac
+
+  pure real(rkx) function conden(a,b,c,d,e)
+    !@acc routine seq
+    implicit none
+    real(rkx), intent(in) :: a, b, c, d, e
+    conden = (max(b,qvmin)-c)/(d_one+d*d/(rwat*e)*c/(a*a))
+  end function conden
 
   subroutine slope_wsm5(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt, &
                         ims,ime)
@@ -1058,59 +1002,61 @@ module mod_micro_wsm5
     real(rkx) :: supcol, n0sfac
     integer(ik4) :: i, k
 
-    do k = 1, kz
-      do i = ims, ime
-        supcol = tzero-t(i,k)
-        n0sfac = max(min(exp(alpha*supcol),nfacmax),d_one)
-        !
-        ! n0s: intercept parameter for snow [m-4] [hdc 6]
-        !
-        if ( qrs(i,k,1) <= qrsmin ) then
-          rslope(i,k,1) = rslopermax
-          rslopeb(i,k,1) = rsloperbmax
-          rslope2(i,k,1) = rsloper2max
-          rslope3(i,k,1) = rsloper3max
-        else
-          rslope(i,k,1) = d_one/lamdar(qrs(i,k,1),den(i,k))
-          rslopeb(i,k,1) = exp(log(rslope(i,k,1))*(bvtr))
-          rslope2(i,k,1) = rslope(i,k,1)*rslope(i,k,1)
-          rslope3(i,k,1) = rslope2(i,k,1)*rslope(i,k,1)
-        end if
-        if ( qrs(i,k,2) <= qrsmin ) then
-          rslope(i,k,2) = rslopesmax
-          rslopeb(i,k,2) = rslopesbmax
-          rslope2(i,k,2) = rslopes2max
-          rslope3(i,k,2) = rslopes3max
-        else
-          rslope(i,k,2) = d_one/lamdas(qrs(i,k,2),den(i,k),n0sfac)
-          rslopeb(i,k,2) = exp(log(rslope(i,k,2))*(bvts))
-          rslope2(i,k,2) = rslope(i,k,2)*rslope(i,k,2)
-          rslope3(i,k,2) = rslope2(i,k,2)*rslope(i,k,2)
-        end if
-        vt(i,k,1) = pvtr*rslopeb(i,k,1)*denfac(i,k)
-        vt(i,k,2) = pvts*rslopeb(i,k,2)*denfac(i,k)
-        if ( qrs(i,k,1) <= qrsmin ) vt(i,k,1) = d_zero
-        if ( qrs(i,k,2) <= qrsmin ) vt(i,k,2) = d_zero
-      end do
+    do concurrent ( i = ims:ime, k = 1:kz )
+      supcol = tzero-t(i,k)
+      n0sfac = max(min(exp(alpha*supcol),nfacmax),d_one)
+      !
+      ! n0s: intercept parameter for snow [m-4] [hdc 6]
+      !
+      if ( qrs(i,k,1) <= qrsmin ) then
+        rslope(i,k,1) = rslopermax
+        rslopeb(i,k,1) = rsloperbmax
+        rslope2(i,k,1) = rsloper2max
+        rslope3(i,k,1) = rsloper3max
+      else
+        rslope(i,k,1) = d_one/lamdar(qrs(i,k,1),den(i,k))
+        rslopeb(i,k,1) = exp(log(rslope(i,k,1))*(bvtr))
+        rslope2(i,k,1) = rslope(i,k,1)*rslope(i,k,1)
+        rslope3(i,k,1) = rslope2(i,k,1)*rslope(i,k,1)
+      end if
+      if ( qrs(i,k,2) <= qrsmin ) then
+        rslope(i,k,2) = rslopesmax
+        rslopeb(i,k,2) = rslopesbmax
+        rslope2(i,k,2) = rslopes2max
+        rslope3(i,k,2) = rslopes3max
+      else
+        rslope(i,k,2) = d_one/lamdas(qrs(i,k,2),den(i,k),n0sfac)
+        rslopeb(i,k,2) = exp(log(rslope(i,k,2))*(bvts))
+        rslope2(i,k,2) = rslope(i,k,2)*rslope(i,k,2)
+        rslope3(i,k,2) = rslope2(i,k,2)*rslope(i,k,2)
+      end if
+      vt(i,k,1) = pvtr*rslopeb(i,k,1)*denfac(i,k)
+      vt(i,k,2) = pvts*rslopeb(i,k,2)*denfac(i,k)
+      if ( qrs(i,k,1) <= 0.0_rkx ) vt(i,k,1) = 0.0_rkx
+      if ( qrs(i,k,2) <= 0.0_rkx ) vt(i,k,2) = 0.0_rkx
     end do
-
-    contains
-
-    pure real(rkx) function lamdar(x,y)
-      implicit none
-      real(rkx), intent(in) :: x, y
-      lamdar = sqrt(sqrt(pidn0r/(x*y)))
-    end function lamdar
-
-    pure real(rkx) function lamdas(x,y,z)
-      implicit none
-      real(rkx), intent(in) :: x, y, z
-      lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
-    end function lamdas
-
   end subroutine slope_wsm5
 
-  subroutine slope_rain(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
+  !
+  ! size distributions: (x=mixing ratio, y=air density):
+  ! valid for mixing ratio > 1.e-9 kg/kg.
+  !
+
+  pure real(rkx) function lamdar(x,y)
+    !@acc routine seq
+    implicit none
+    real(rkx), intent(in) :: x, y
+    lamdar = sqrt(sqrt(pidn0r/(x*y)))
+  end function lamdar
+
+  pure real(rkx) function lamdas(x,y,z)
+    !@acc routine seq
+    implicit none
+    real(rkx), intent(in) :: x, y, z
+    lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
+  end function lamdas
+
+  pure subroutine slope_rain(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
     implicit none
     real(rkx), dimension(kz), intent(in) :: qrs, den, denfac
     real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
@@ -1130,23 +1076,11 @@ module mod_micro_wsm5
         rslope3(k) = rslope2(k)*rslope(k)
       end if
       vt(k) = pvtr*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= qrsmin ) vt(k) = d_zero
+      if ( qrs(k) <= 0.0_rkx ) vt(k) = 0.0_rkx
     end do
-
-    contains
-    !
-    ! size distributions: (x=mixing ratio, y=air density):
-    ! valid for mixing ratio > 1.e-9 kg/kg.
-    !
-    pure real(rkx) function lamdar(x,y)
-      implicit none
-      real(rkx), intent(in) :: x, y
-      lamdar = sqrt(sqrt(pidn0r/(x*y)))
-    end function lamdar
-
   end subroutine slope_rain
 
-  subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt)
+  pure subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt)
     implicit none
     real(rkx), dimension(kz), intent(in) :: t, qrs, den, denfac
     real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
@@ -1172,20 +1106,8 @@ module mod_micro_wsm5
         rslope3(k) = rslope2(k)*rslope(k)
       end if
       vt(k) = pvts*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= qrsmin ) vt(k) = d_zero
+      if ( qrs(k) <= 0.0_rkx ) vt(k) = 0.0_rkx
     end do
-
-    contains
-    !
-    ! size distributions: (x=mixing ratio, y=air density):
-    ! valid for mixing ratio > 1.e-9 kg/kg.
-    !
-    pure real(rkx) function lamdas(x,y,z)
-      implicit none
-      real(rkx), intent(in) :: x, y, z
-      lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
-    end function lamdas
-
   end subroutine slope_snow
   !
   ! For non-iteration semi-lagrangain forward advection for cloud
@@ -1207,17 +1129,17 @@ module mod_micro_wsm5
   ! Author: Hann-Ming Henry Juang <henry.juang@noaa.gov>
   !         implemented by Song-You Hong
   !
-  subroutine nislfv_rain_plm(im,denl,denfacl,tkl,dzl, &
+  subroutine nislfv_rain_plm(ims,ime,denl,denfacl,tkl,dzl, &
                              wwl,rql,precip,dt,id,maxiter)
     implicit none
-    integer(ik4), intent(in) :: im, id, maxiter
-    real(rkx), dimension(im,kz), intent(in) :: denl
-    real(rkx), dimension(im,kz), intent(in) :: denfacl
-    real(rkx), dimension(im,kz), intent(in) :: tkl
-    real(rkx), dimension(im,kz), intent(in) :: dzl
-    real(rkx), dimension(im,kz), intent(in) :: wwl
-    real(rkx), dimension(im,kz), intent(inout) :: rql
-    real(rkx), dimension(im), intent(out) :: precip
+    integer(ik4), intent(in) :: ims, ime, id, maxiter
+    real(rkx), dimension(ims:ime,kz), intent(in) :: denl
+    real(rkx), dimension(ims:ime,kz), intent(in) :: denfacl
+    real(rkx), dimension(ims:ime,kz), intent(in) :: tkl
+    real(rkx), dimension(ims:ime,kz), intent(in) :: dzl
+    real(rkx), dimension(ims:ime,kz), intent(in) :: wwl
+    real(rkx), dimension(ims:ime,kz), intent(inout) :: rql
+    real(rkx), dimension(ims:ime), intent(out) :: precip
     real(rkx), intent(in) :: dt
 
     integer(ik4) :: i, k, n, m, kk, kb, kt
@@ -1233,16 +1155,19 @@ module mod_micro_wsm5
     real(rkx), parameter :: fa1 = 9.0_rkx/16.0_rkx
     real(rkx), parameter :: fa2 = 1.0_rkx/16.0_rkx
 
-    precip(:) = d_zero
-
     i_loop : &
-    do i = 1, im
-      dz(:) = dzl(i,:)
-      qq(:) = rql(i,:)
-      ww(:) = wwl(i,:)
-      den(:) = denl(i,:)
-      denfac(:) = denfacl(i,:)
-      tk(:) = tkl(i,:)
+    do concurrent ( i = ims:ime )
+      precip(i) = d_zero
+
+      !@acc loop seq
+      do k = 1, kz
+        dz(k) = dzl(i,k)
+        qq(k) = rql(i,k)
+        ww(k) = wwl(i,k)
+        den(k) = denl(i,k)
+        denfac(k) = denfacl(i,k)
+        tk(k) = tkl(i,k)
+      end do
       ! skip for no precipitation for all layers
       allold = d_zero
       do k = 1, kz
@@ -1255,25 +1180,28 @@ module mod_micro_wsm5
       ! compute interface values
       !
       zi(1) = d_zero
+      !@acc loop seq
       do k = 1, kz
         zi(k+1) = zi(k)+dz(k)
+        !
+        ! save departure wind
+        !
+        wd(k) = ww(k)
       end do
-      !
-      ! save departure wind
-      !
-      wd(:) = ww(:)
       n = 1
       do
         ! plm is 2nd order, we can use 2nd order wi or 3rd order wi
         ! 2nd order interpolation to get wi
         wi(1) = ww(1)
         wi(kzp1) = ww(kz)
+        !@acc loop seq
         do k = 2, kz
           wi(k) = (ww(k)*dz(k-1)+ww(k-1)*dz(k))/(dz(k-1)+dz(k))
         end do
         ! 3rd order interpolation to get wi
         wi(1) = ww(1)
         wi(2) = d_half*(ww(2)+ww(1))
+        !@acc loop seq
         do k = 3, kzm1
           wi(k) = fa1*(ww(k)+ww(k-1))-fa2*(ww(k+1)+ww(k-2))
         end do
@@ -1282,6 +1210,7 @@ module mod_micro_wsm5
         !
         ! terminate of top of raingroup
         !
+        !@acc loop seq
         do k = 2, kz
           if ( ww(k) == 0.0_rkx ) wi(k) = ww(k-1)
         end do
@@ -1296,9 +1225,11 @@ module mod_micro_wsm5
           end if
         end do
         ! compute arrival point
+        !@acc loop seq
         do k = 1, kzp1
           za(k) = zi(k) - wi(k)*dt
         end do
+        !@acc loop seq
         do k = 1, kz
           dza(k) = za(k+1)-za(k)
         end do
@@ -1306,6 +1237,7 @@ module mod_micro_wsm5
         !
         ! compute deformation at arrival point
         !
+        !@acc loop seq
         do k = 1, kz
           qa(k) = qq(k)*dz(k)/dza(k)
           qr(k) = qa(k)/den(k)
@@ -1321,17 +1253,24 @@ module mod_micro_wsm5
         else
           call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
         end if
-        if ( n >= 2 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
+        if ( n >= 2 ) then
+          !@acc loop seq
+          do k = 1, kz
+            wa(k) = d_half*(wa(k)+was(k))
+          end do
+        end if
+        !@acc loop seq
         do k = 1, kz
           ! mean wind is average of departure and new arrival winds
           ww(k) = d_half * ( wd(k)+wa(k) )
+          was(k) = wa(k)
         end do
-        was(:) = wa(:)
         n = n + 1
       end do
       !
       ! estimate values at arrival cell interface with monotone
       !
+      !@acc loop seq
       do k = 2, kz
         xdip = (qa(k+1)-qa(k)) / (dza(k+1)+dza(k))
         xdim = (qa(k)-qa(k-1)) / (dza(k-1)+dza(k))
@@ -1357,6 +1296,7 @@ module mod_micro_wsm5
       qn = d_zero
       kb = 1
       kt = 1
+      !@acc loop seq
       intp : &
       do k = 1, kz
         kb = max(kb-1,1)
@@ -1422,6 +1362,7 @@ module mod_micro_wsm5
       !
       ! rain out
       !
+      !@acc loop seq
       sum_precip: &
       do k = 1, kz
         if ( za(k) < d_zero .and. za(k+1) < d_zero ) then
@@ -1437,7 +1378,9 @@ module mod_micro_wsm5
       !
       ! replace the new values
       !
-      rql(i,:) = qn(:)
+      do k = 1, kz
+        rql(i,k) = qn(k)
+      end do
     end do i_loop
   end subroutine nislfv_rain_plm
   !

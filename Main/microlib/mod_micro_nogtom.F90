@@ -46,6 +46,8 @@
 !          amounts
 !       f) Collection fudge factor removed from autoconversion and replaced by
 !          explicit parameterization from Khairoutdinov and Kogan [2000].
+!     202604: Giuliani
+!       a) New positive least square solver plugged in.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -236,8 +238,6 @@ module mod_micro_nogtom
   logical, parameter :: vfqr_rd = .true.
   real(rkx), parameter :: dens0 = 1.225_rkx ! kg m-3
 
-  logical, parameter :: newsolver = .true.
-
   contains
 
 #include <esatliq.inc>
@@ -367,7 +367,6 @@ module mod_micro_nogtom
     real(rkx), dimension(mxqx,mxqx) :: qsimp
     ! Initial values
     real(rkx), dimension(mxqx) :: qx0, qxfg, qxn
-    real(rkx), dimension(mxqx) :: ratio, sinksum
     ! array for sorting explicit terms
     ! integer(ik4), dimension(mxqx) :: iorder
     real(rkx) :: tk, tc, dens, pbot, snowp, rainp, supsat, subsat
@@ -398,11 +397,6 @@ module mod_micro_nogtom
     real(rkx) :: precip, cfpr, acrit
     logical :: lccn, lerror, ldetr, lconden, lactiv, locast
     logical :: ltkgt0, ltklt0, ltkgthomo, lcloud
-    logical, dimension(mxqx,mxqx) :: lind2
-    integer(ik4) :: ii, jj, ll, imax, nn
-    real(rkx) :: aamax, dum, xsum, swap
-    real(rkx), dimension(mxqx) :: vv
-    integer(ik4), dimension(mxqx) :: indx
     real(rkx), dimension(mxqx) :: rsp1
     real(rkx), dimension(mxqx) :: rsp2
     real(rkx), dimension(mxqx) :: rsp3
@@ -646,12 +640,11 @@ module mod_micro_nogtom
 #ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
-      ratio,sinksum,lind2,vv,indx,rsp1,rsp2,rsp3,isp1)
+      rsp1,rsp2,rsp3,isp1)
 #else
     !$acc parallel loop collapse(2) gang vector &
     !$acc     private(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp, &
-    !$acc             qx0,qxfg,qxn,ratio,sinksum,lind2,vv,indx,    &
-    !$acc             rsp1,rsp2,rsp3,isp1)
+    !$acc             qx0,qxfg,qxn,rsp1,rsp2,rsp3,isp1)
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
@@ -1695,91 +1688,14 @@ module mod_micro_nogtom
           end if
 
         end if ! lmicro
+
         !------------------------------------------------------------------
-        !  MICROPHYSICS ENDS HERE
+        !  PHISICAL MICROPHYSICS ENDS HERE
         !------------------------------------------------------------------
 
-        !--------------------------------
-        ! solver for the microphysics
-        !--------------------------------
-        ! Truncate sum of explicit sinks to size of bin
-        ! this approach is inaccurate, but conserves -
-        ! prob best can do with explicit (i.e. not implicit!) terms
-        !----------------------------------------------------------
-        do n = 1, nqx
-          sinksum(n) = d_zero
-        end do
-        do n = 1, nqx
-          do m = 1, nqx
-            lind2(m,n) = .false.
-          end do
-        end do
-        !----------------------------
-        ! collect sink terms and mark
-        !----------------------------
-        do jn = 1, nqx
-          do n = 1, nqx
-            sinksum(n) = sinksum(n) - qsexp(n,jn)
-          end do
-        end do
-        !---------------------------------------
-        ! calculate overshoot and scaling factor
-        !---------------------------------------
-        do n = 1, nqx
-          ratio(n) = max(qx0(n),verylowqx) / &
-            max(sinksum(n),max(qx0(n),verylowqx))
-        end do
         !--------------------------------------------------------
-        ! now sort ratio to find out which species run out first
+        ! Begin solver for the microphysics: linear problem setup
         !--------------------------------------------------------
-        ! iorder = argsort(ratio)
-        !--------------------------------------------
-        ! scale the sink terms, in the correct order,
-        ! recalculating the scale factor each time
-        !--------------------------------------------
-        do n = 1, nqx
-          sinksum(n) = d_zero
-        end do
-        !----------------
-        ! recalculate sum
-        !----------------
-        do n = 1, nqx
-          do jn = 1, nqx
-            !jo = iorder(n)
-            !lind2(jo,jn) = qsexp(jo,jn) < d_zero
-            !sinksum(jo) = sinksum(jo) - qsexp(jo,jn)
-            lind2(n,jn) = qsexp(n,jn) < d_zero
-            sinksum(n) = sinksum(n) - qsexp(n,jn)
-          end do
-        end do
-        !---------------------------
-        ! recalculate scaling factor
-        !---------------------------
-        do n = 1, nqx
-          !jo = iorder(n)
-          !ratio(jo) = max(qx0(jo),verylowqx) / &
-          !   max(sinksum(jo),max(qx0(jo),verylowqx))
-          ratio(n) = max(qx0(n),verylowqx) / &
-             max(sinksum(n),max(qx0(n),verylowqx))
-        end do
-        !------
-        ! scale
-        !------
-        do n = 1, nqx
-          do jn = 1, nqx
-            !jo = iorder(n)
-            !if ( lind2(jo,jn) ) then
-            !  qsexp(jo,jn) = qsexp(jo,jn)*ratio(jo)
-            !  qsexp(jn,jo) = qsexp(jn,jo)*ratio(jo)
-            !end if
-            if ( lind2(n,jn) ) then
-              qsexp(n,jn) = qsexp(n,jn)*ratio(n)
-              qsexp(jn,n) = qsexp(jn,n)*ratio(n)
-            end if
-          end do
-        end do
-
-        ! SOLVE THE LINEAR SYSTEM
 
         ! Set the LHS of equation
         do n = 1, nqx
@@ -1810,113 +1726,11 @@ module mod_micro_nogtom
           qxn(n) = qx0(n) + rexplicit
         end do
 
-        if ( newsolver ) then
-          call solver(nqx,qlhs,qxn,rsp1,rsp2,rsp3,isp1)
-        else
-          ! Original solver
-          do n = 1, nqx
-            aamax = d_zero
-            do jn = 1, nqx
-              if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
-            end do
-#ifndef OPENACC
-#ifdef DEBUG
-            if ( aamax == d_zero ) then
-              do nn = 1, nqx
-                write(stderr,'(a,i2,f20.9)') 'QX0 ', nn, qx0(nn)
-                do ll = 1, nqx
-                  write(stderr,'(a,i2,i2,f20.9)') 'QLHS ', &
-                      ll, nn, qlhs(ll,nn)
-                end do
-              end do
-            end if
-#endif
-#endif
-            vv(n) = d_one/aamax ! Save the scaling.
-          end do
-          !                                                Ux=y
-          ! solve A x = b-------------> LU x = b---------> Ly=b
-          !
-          do n = 1, nqx
-            ! This is the loop over columns
-            if ( n > 1 ) then
-              do m = 1, n - 1
-                xsum = qlhs(m,n)
-                do kk = 1, m - 1
-                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
-                end do
-                qlhs(m,n) = xsum
-              end do
-            end if
-            ! Initialize the search for largest pivot element.
-            aamax = d_zero
-            imax = n
-            do m = n, nqx
-              xsum = qlhs(m,n)
-              if ( n > 1 ) then
-                do kk = 1, n - 1
-                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
-                end do
-                qlhs(m,n) = xsum
-              end if
-              dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
-              if ( dum >= aamax ) then
-                ! better than the best so far
-                imax = m
-                aamax = dum
-              end if
-            end do
-            if ( n /= imax ) then
-              ! Do we need to interchange rows? yes, do so...
-              ! D = -D !...and change the parity of D.
-              do ii = 1, nqx
-                swap = qlhs(imax,ii)
-                qlhs(imax,ii) = qlhs(n,ii)
-                qlhs(n,ii) = swap
-              end do
-              vv(imax) = vv(n) ! Also interchange the scale factor.
-            end if
-            indx(n) = imax
-            if ( n /= nqx ) then
-              dum = d_one/max(qlhs(n,n),verylowqx)
-              do m = n + 1, nqx
-                qlhs(m,n) = qlhs(m,n)*dum
-              end do
-            end if
-          end do
-          !
-          ! Now solve the set of n linear equations A * X = B.
-          ! B(1:N) is input as the right-hand side vector B,
-          ! and is used to store solution after back-substitution.
-          !
-          ii = 0
-          ! When ii is set to a positive value, it will become
-          ! the index of the  first nonvanishing element of B.
-          ! We now do the forward substitution, and the only new
-          ! wrinkle is to unscramble the permutation as we go.
-          do m = 1, nqx
-            ll = indx(m)
-            xsum = qxn(ll)
-            qxn(ll) = qxn(m)
-            if ( ii == 0 ) then
-              if ( abs(xsum) > verylowqx ) ii = m
-            else
-              do jj = ii, m - 1
-                xsum = xsum - qlhs(m,jj)*qxn(jj)
-              end do
-            end if
-            qxn(m) = xsum
-          end do
-          ! Now we do the backsubstitution
-          do m = nqx, 1, -1
-            xsum = qxn(m)
-            do jj = m + 1, nqx
-              xsum = xsum - qlhs(m,jj)*qxn(jj)
-            end do
-            ! Store a component of the solution vector qxn.
-            qxn(m) = xsum/qlhs(m,m)
-          end do
-        end if
+        call solver(nqx,qlhs,qxn,rsp1,rsp2,rsp3,isp1)
+
+        !---------------------------------------------------------
+        ! End solver for the microphysics: qxn is now the solution
+        !---------------------------------------------------------
 
         !-------------------------------------------------------------------
         !  Precipitation/sedimentation fluxes to next level
@@ -2343,7 +2157,7 @@ module mod_micro_nogtom
       unorm = sum( a(1:nsetp,j)**2 )
     end if
     unorm = sqrt(unorm)
-    if ( unorm + ABS(a(npp1,j))*factor - unorm > d_zero ) then
+    if ( unorm + abs(a(npp1,j))*factor - unorm > d_zero ) then
 
       ! COL J IS SUFFICIENTLY INDEPENDENT.  COPY B INTO ZZ, UPDATE ZZ
       ! AND SOLVE FOR ZTEST ( = PROPOSED NEW VALUE FOR X(J) ).
