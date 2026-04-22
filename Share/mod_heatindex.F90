@@ -370,7 +370,8 @@ module mod_heatindex
     fa = (a-ta)/ra(a,ta) + (pc-pa)/(zs(rs)+za) - (tc-a)/rs
     fb = (b-ta)/ra(b,ta) + (pc-pa)/(zs(rs)+za) - (tc-b)/rs
 #ifdef DEBUG
-    if ( fa*fb > 0.0_rkx ) then
+    if ( ( fa > 0.0_rkx .and. fb > 0.0_rkx ) .or. &
+         ( fa < 0.0_rkx .and. fb < 0.0_rkx ) ) then
       write(stderr,*) 'solve1 : ta, pa, rs : ', ta, pa, rs
       call fatal(__FILE__,__LINE__,'error interval, solve1')
     end if
@@ -409,7 +410,8 @@ module mod_heatindex
     fa = (a-ta)/ra_bar(a,ta) + (pc-pa)/(zs(rs)+za_bar) - (tc-a)/rs
     fb = (b-ta)/ra_bar(b,ta) + (pc-pa)/(zs(rs)+za_bar) - (tc-b)/rs
 #ifdef DEBUG
-    if ( fa*fb > 0.0_rkx ) then
+    if ( ( fa > 0.0_rkx .and. fb > 0.0_rkx ) .or. &
+         ( fa < 0.0_rkx .and. fb < 0.0_rkx ) ) then
       write(stderr,*) 'solve2'
       call fatal(__FILE__,__LINE__,'error interval, solve2')
     end if
@@ -452,7 +454,8 @@ module mod_heatindex
       (pc-pa)*(b-ta)/((b-ta)*(zs(rs)+za_bar)+r*ra_bar(b,ta)*(ts_bar-b)) - &
       (tc-ts_bar)/rs
 #ifdef DEBUG
-    if ( fa*fb > 0.0_rkx ) then
+    if ( ( fa > 0.0_rkx .and. fb > 0.0_rkx ) .or. &
+         ( fa < 0.0_rkx .and. fb < 0.0_rkx ) ) then
       write(stderr,*) 'solve3 : ta, pa, rs, ts_bar, a, b, fa, fb : ', &
         ta, pa, rs, ts_bar, a, b, fa, fb
       call fatal(__FILE__,__LINE__,'error interval, solve3')
@@ -495,7 +498,8 @@ module mod_heatindex
     fb = (b-ta)/ra_un(b,ta) + &
       (pc-pa)/(zs((tc-b)/(q-qv(ta,pa)))+za_un)-(q-qv(ta,pa))
 #ifdef DEBUG
-    if ( fa*fb > 0.0_rkx ) then
+    if ( ( fa > 0.0_rkx .and. fb > 0.0_rkx ) .or. &
+         ( fa < 0.0_rkx .and. fb < 0.0_rkx ) ) then
       write(stderr,*) 'solve4'
       call fatal(__FILE__,__LINE__,'error interval, solve4')
     end if
@@ -535,7 +539,8 @@ module mod_heatindex
     fa = (a-ta)/ra_un(a,ta) + (phi_salt*pvstar(a)-pa)/za_un -(q-qv(ta,pa))
     fb = (b-ta)/ra_un(b,ta) + (phi_salt*pvstar(b)-pa)/za_un -(q-qv(ta,pa))
 #ifdef DEBUG
-    if ( fa*fb > 0.0_rkx ) then
+    if ( ( fa > 0.0_rkx .and. fb > 0.0_rkx ) .or. &
+         ( fa < 0.0_rkx .and. fb < 0.0_rkx ) ) then
       write(stderr,*) 'solve5'
       call fatal(__FILE__,__LINE__,'error interval, solve5')
     end if
@@ -576,7 +581,8 @@ module mod_heatindex
     tmp = find_eqvar(b,1.0_rkx)
     fb = tmp(1) - eqvar
 #ifdef DEBUG
-    if ( fa*fb > 0.0_rkx ) then
+    if ( ( fa > 0.0_rkx .and. fb > 0.0_rkx ) .or. &
+         ( fa < 0.0_rkx .and. fb < 0.0_rkx ) ) then
       write(stderr,*) 'solvei'
       call fatal(__FILE__,__LINE__,'error interval, solvei')
     end if
@@ -618,7 +624,8 @@ module mod_heatindex
     tmp = find_eqvar(b,min(1.0_rkx,pa0/pvstar(b)))
     fb = tmp(2) - eqvar
 #ifdef DEBUG
-    if ( fa*fb > 0.0_rkx ) then
+    if ( ( fa > 0.0_rkx .and. fb > 0.0_rkx ) .or. &
+         ( fa < 0.0_rkx .and. fb < 0.0_rkx ) ) then
       write(stderr,*) 'solveii : a, b, fa, fb, eqvar : ', &
         a, b, fa, fb, eqvar
       call fatal(__FILE__,__LINE__,'error interval, solveii')
@@ -661,7 +668,8 @@ module mod_heatindex
     tmp = find_eqvar(b,pa0/pvstar(b))
     fb = tmp(3) - eqvar
 #ifdef DEBUG
-    if ( fa*fb > 0.0_rkx ) then
+    if ( ( fa > 0.0_rkx .and. fb > 0.0_rkx ) .or. &
+         ( fa < 0.0_rkx .and. fb < 0.0_rkx ) ) then
       write(stderr,*) 'solveiii'
       call fatal(__FILE__,__LINE__,'error interval, solveiii')
     end if
@@ -703,7 +711,8 @@ module mod_heatindex
     tmp = find_eqvar(b,pa0/pvstar(b))
     fb = tmp(4) - eqvar
 #ifdef DEBUG
-    if ( fa*fb > 0.0_rkx ) then
+    if ( ( fa > 0.0_rkx .and. fb > 0.0_rkx ) .or. &
+         ( fa < 0.0_rkx .and. fb < 0.0_rkx ) ) then
       write(stderr,*) 'solveiv : eqvar : ', eqvar
       call fatal(__FILE__,__LINE__,'error interval, solveiv')
     end if

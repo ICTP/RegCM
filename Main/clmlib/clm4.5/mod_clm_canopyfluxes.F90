@@ -1283,7 +1283,8 @@ module mod_clm_canopyfluxes
 
        erre = 0._rk8
 
-       if (efe(p)*efeb(p) < 0._rk8) then
+       if ( ( efe(p) > 0.0_rk8 .and. efeb(p) < 0.0_rk8 ) .or. &
+            ( efe(p) < 0.0_rk8 .and. efeb(p) > 0.0_rk8 ) ) then
          efeold = efe(p)
          efe(p) = 0.1_rk8*efeold
          erre = efe(p) - efeold
