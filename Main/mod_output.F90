@@ -354,56 +354,56 @@ module mod_output
         end if
         if ( associated(atm_qg_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1, kz
-              atm_qg_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqg)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_qg_out(j,i,k) = mo_atm%qx(j,i,k,iqg)
             end do
           else
-            do k = 1, kz
-              atm_qg_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqg)/ps_out
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_qg_out(j,i,k) = atm1%qx(j,i,k,iqg)/ps_out(j,i)
             end do
           end if
         end if
         if ( associated(atm_qh_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1, kz
-              atm_qh_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqh)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_qh_out(j,i,k) = mo_atm%qx(j,i,k,iqh)
             end do
           else
-            do k = 1, kz
-              atm_qh_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqh)/ps_out
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_qh_out(j,i,k) = atm1%qx(j,i,k,iqh)/ps_out(j,i)
             end do
           end if
         end if
         if ( associated(atm_nn_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1, kz
-              atm_nn_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqn)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_nn_out(j,i,k) = mo_atm%qx(j,i,k,cqn)
             end do
           else
-            do k = 1, kz
-              atm_nn_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqn)/ps_out
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_nn_out(j,i,k) = atm1%qx(j,i,k,cqn)/ps_out(j,i)
             end do
           end if
         end if
         if ( associated(atm_nc_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1, kz
-              atm_nc_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqc)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_nc_out(j,i,k) = mo_atm%qx(j,i,k,cqc)
             end do
           else
-            do k = 1, kz
-              atm_nc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqc)/ps_out
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_nc_out(j,i,k) = atm1%qx(j,i,k,cqc)/ps_out(j,i)
             end do
           end if
         end if
         if ( associated(atm_nr_out) ) then
           if ( idynamic == 3 ) then
-            do k = 1, kz
-              atm_nr_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqr)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_nr_out(j,i,k) = mo_atm%qx(j,i,k,cqr)
             end do
           else
-            do k = 1, kz
-              atm_nr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqr)/ps_out
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_nr_out(j,i,k) = atm1%qx(j,i,k,cqr)/ps_out(j,i)
             end do
           end if
         end if

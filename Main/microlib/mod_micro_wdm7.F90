@@ -540,8 +540,8 @@ module mod_micro_wdm7
     real(rkx), intent(in) :: delt
     integer(ik4), intent(in) :: ims, ime
 
-    real(rkx), dimension(ims:ime,kz,4) :: falk, work1, &
-      rslope2, rslopeb, rslope, rslope3
+    real(rkx), dimension(ims:ime,kz,4) :: falk, work1
+    real(rkx), dimension(ims:ime,kz,4) :: rslope2, rslopeb, rslope, rslope3
     real(rkx), dimension(ims:ime,kz) :: rslopec, rslopec2, rslopec3
     real(rkx), dimension(ims:ime,kz) :: fallc, xl, cpm
     real(rkx), dimension(ims:ime,kz,2) :: avedia
@@ -748,7 +748,7 @@ module mod_micro_wdm7
         end if
       end do
 
-      mstepmax = minval(mstep)
+      mstepmax = maxval(mstep)
 
       do n = 1, mstepmax
         do concurrent( i = ims:ime )

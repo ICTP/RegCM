@@ -1002,7 +1002,9 @@ module mod_tendency
       ! Total water load
       !
       if ( ipptls > 1 ) then
+        !$acc kernels
         qcd(:,:,:) = d_zero
+        !$acc end kernels
         do concurrent ( j = jce1:jce2, i = ice1:ice2, &
                         k = 1:kz, n = iqfrst:iqlst )
           qcd(j,i,k) = qcd(j,i,k) + atmx%qx(j,i,k,n)
@@ -1015,7 +1017,9 @@ module mod_tendency
       integer(ik4) :: i, j, k
       real(rkx), dimension(jde1:jde2,ide1:ide2) :: dummy
 
+      !$acc kernels
       qdot(:,:,:)  = d_zero
+      !$acc end kernels
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         dummy(j,i) = d_one/(dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
       end do
@@ -1023,7 +1027,9 @@ module mod_tendency
         !
         ! compute the pressure tendency
         !
+        !$acc kernels
         pten(:,:) = d_zero
+        !$acc end kernels
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           !
           ! The surface pressure tendency in the   hydrostatic model:
@@ -1089,7 +1095,9 @@ module mod_tendency
       ! compute omega
       !
       if ( idynamic == 1 ) then
+        !$acc kernels
         omega(:,:,:) = d_zero
+        !$acc end kernels
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
         end do
@@ -1111,45 +1119,59 @@ module mod_tendency
 
     subroutine init_tendencies
       implicit none
+      !$acc kernels
       aten%u(:,:,:,:) = d_zero
       aten%v(:,:,:,:) = d_zero
       aten%t(:,:,:,:) = d_zero
       aten%qx(:,:,:,:,:) = d_zero
+      !$acc end kernels
       !
       ! Pressure perturbations and vertical velocity tendencies in the
       ! nonhydrostatic model
       !
       if ( idynamic == 2 ) then
+        !$acc kernels
         aten%pp(:,:,:,:) = d_zero
         aten%w(:,:,:,:) = d_zero
+        !$acc end kernels
       end if
       !
       ! TKE for UW pbl
       !
       if ( ibltyp == 2 ) then
+        !$acc kernels
         aten%tke(:,:,:,:) = d_zero
+        !$acc end kernels
       end if
       !
       ! Diagnostic helpers
       !
       if ( idiag > 0 ) then
-        ten0 = d_zero
-        qen0 = d_zero
+        !$acc kernels
+        ten0(:,:,:) = d_zero
+        qen0(:,:,:) = d_zero
+        !$acc end kernels
       end if
       !
       ! Chemistry
       !
       if ( ichem == 1 ) then
+        !$acc kernels
         aten%chi(:,:,:,:,:)  = d_zero
+        !$acc end kernels
         if ( ichdiag > 0 ) then
-          chiten0 = d_zero
+          !$acc kernels
+          chiten0(:,:,:,:) = d_zero
+          !$acc end kernels
         end if
       end if
       !
       ! Cloud fractions
       !
+      !$acc kernels
       cldfra(:,:,:) = d_zero
       cldlwc(:,:,:) = d_zero
+      !$acc end kernels
     end subroutine init_tendencies
 
     subroutine advection

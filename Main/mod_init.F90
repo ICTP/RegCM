@@ -166,9 +166,7 @@ module mod_init
           else
 #ifndef RCEMIP
             do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-              if ( mo_atm%t(j,i,k) > 253.15 ) then
-                mo_atm%qx(j,i,k,iqc) = minqc
-              end if
+              mo_atm%qx(j,i,k,iqc) = minqc
             end do
 #endif
           end if
@@ -179,9 +177,7 @@ module mod_init
           else
 #ifndef RCEMIP
             do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-              if ( mo_atm%t(j,i,k) < 253.15 ) then
-                mo_atm%qx(j,i,k,iqi) = minqc
-              end if
+              mo_atm%qx(j,i,k,iqi) = minqc
             end do
 #endif
           end if
@@ -255,16 +251,16 @@ module mod_init
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
             atm1%qx(j,i,k,cqn) = 1.0e8_rkx
             atm2%qx(j,i,k,cqn) = 1.0e8_rkx
-            atm1%qx(j,i,k,cqc) = 100.0_rkx
-            atm2%qx(j,i,k,cqc) = 100.0_rkx
-            atm1%qx(j,i,k,cqr) = 1.0_rkx
-            atm2%qx(j,i,k,cqr) = 1.0_rkx
+            atm1%qx(j,i,k,cqc) = 1000.0_rkx
+            atm2%qx(j,i,k,cqc) = 1000.0_rkx
+            atm1%qx(j,i,k,cqr) = 100.0_rkx
+            atm2%qx(j,i,k,cqr) = 100.0_rkx
           end do
         else
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            mo_atm%qx(j,i,k,cqn) = 1.0e8_rkx
-            mo_atm%qx(j,i,k,cqc) = 100.0_rkx
-            mo_atm%qx(j,i,k,cqr) = 1.0_rkx
+            mo_atm%qx(j,i,k,cqn) = 1.0e8
+            mo_atm%qx(j,i,k,cqc) = 1000.0_rkx
+            mo_atm%qx(j,i,k,cqr) = 100.0_rkx
           end do
         end if
       end if
