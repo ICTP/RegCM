@@ -292,7 +292,7 @@ module mod_micro_wsm5
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
         mc2mo%rembc(j,i,k) = d_zero
         if ( mc2mo%remrat(j,i,k) > d_zero ) then
-          !@acc loop seq
+          !$acc loop seq
           do kk = 1, k - 1
             qcw = mo2mc%qcn(j,i,k)
             mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
@@ -939,7 +939,7 @@ module mod_micro_wsm5
   end subroutine wsm52d
 
   pure real(rkx) function cpmcal(q)
-    !@acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: q
     cpmcal = cpd*(d_one-max(q,qvmin)) + cpv*max(q,qvmin)
@@ -947,7 +947,7 @@ module mod_micro_wsm5
 
   ! diffus: diffusion coefficient of the water vapor
   pure real(rkx) function diffus(x,y)
-    !@acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
     diffus = 8.794e-5_rkx * exp(log(x)*(1.81_rkx)) / y
@@ -955,7 +955,7 @@ module mod_micro_wsm5
 
   ! viscos: kinematic viscosity(m2s-1)
   pure real(rkx) function viscos(x,y)
-    !@acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
     viscos = 1.496e-6_rkx * (x*sqrt(x)) /(x+120.0_rkx)/y
@@ -963,21 +963,21 @@ module mod_micro_wsm5
   end function viscos
 
   pure real(rkx) function xka(x,y)
-    !@acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
     xka = 1.414e3_rkx * viscos(x,y) * y
   end function xka
 
   pure real(rkx) function diffac(a,b,c,d,e)
-    !@acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: a, b, c, d, e
     diffac = d*a*a/(xka(c,d)*rwat*c*c)+d_one/(e*diffus(c,b))
   end function diffac
 
   pure real(rkx) function venfac(a,b,c)
-    !@acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: a, b, c
     venfac = exp(log((viscos(b,c)/diffus(b,a)))*((onet))) / &
@@ -985,7 +985,7 @@ module mod_micro_wsm5
   end function venfac
 
   pure real(rkx) function conden(a,b,c,d,e)
-    !@acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: a, b, c, d, e
     conden = (max(b,qvmin)-c)/(d_one+d*d/(rwat*e)*c/(a*a))
@@ -1043,14 +1043,14 @@ module mod_micro_wsm5
   !
 
   pure real(rkx) function lamdar(x,y)
-    !@acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
     lamdar = sqrt(sqrt(pidn0r/(x*y)))
   end function lamdar
 
   pure real(rkx) function lamdas(x,y,z)
-    !@acc routine seq
+    !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
     lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
@@ -1159,7 +1159,7 @@ module mod_micro_wsm5
     do concurrent ( i = ims:ime )
       precip(i) = d_zero
 
-      !@acc loop seq
+      !$acc loop seq
       do k = 1, kz
         dz(k) = dzl(i,k)
         qq(k) = rql(i,k)
@@ -1180,7 +1180,7 @@ module mod_micro_wsm5
       ! compute interface values
       !
       zi(1) = d_zero
-      !@acc loop seq
+      !$acc loop seq
       do k = 1, kz
         zi(k+1) = zi(k)+dz(k)
         !
@@ -1194,14 +1194,14 @@ module mod_micro_wsm5
         ! 2nd order interpolation to get wi
         wi(1) = ww(1)
         wi(kzp1) = ww(kz)
-        !@acc loop seq
+        !$acc loop seq
         do k = 2, kz
           wi(k) = (ww(k)*dz(k-1)+ww(k-1)*dz(k))/(dz(k-1)+dz(k))
         end do
         ! 3rd order interpolation to get wi
         wi(1) = ww(1)
         wi(2) = d_half*(ww(2)+ww(1))
-        !@acc loop seq
+        !$acc loop seq
         do k = 3, kzm1
           wi(k) = fa1*(ww(k)+ww(k-1))-fa2*(ww(k+1)+ww(k-2))
         end do
@@ -1210,7 +1210,7 @@ module mod_micro_wsm5
         !
         ! terminate of top of raingroup
         !
-        !@acc loop seq
+        !$acc loop seq
         do k = 2, kz
           if ( ww(k) == 0.0_rkx ) wi(k) = ww(k-1)
         end do
@@ -1225,11 +1225,11 @@ module mod_micro_wsm5
           end if
         end do
         ! compute arrival point
-        !@acc loop seq
+        !$acc loop seq
         do k = 1, kzp1
           za(k) = zi(k) - wi(k)*dt
         end do
-        !@acc loop seq
+        !$acc loop seq
         do k = 1, kz
           dza(k) = za(k+1)-za(k)
         end do
@@ -1237,7 +1237,7 @@ module mod_micro_wsm5
         !
         ! compute deformation at arrival point
         !
-        !@acc loop seq
+        !$acc loop seq
         do k = 1, kz
           qa(k) = qq(k)*dz(k)/dza(k)
           qr(k) = qa(k)/den(k)
@@ -1254,12 +1254,12 @@ module mod_micro_wsm5
           call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
         end if
         if ( n >= 2 ) then
-          !@acc loop seq
+          !$acc loop seq
           do k = 1, kz
             wa(k) = d_half*(wa(k)+was(k))
           end do
         end if
-        !@acc loop seq
+        !$acc loop seq
         do k = 1, kz
           ! mean wind is average of departure and new arrival winds
           ww(k) = d_half * ( wd(k)+wa(k) )
@@ -1270,7 +1270,7 @@ module mod_micro_wsm5
       !
       ! estimate values at arrival cell interface with monotone
       !
-      !@acc loop seq
+      !$acc loop seq
       do k = 2, kz
         xdip = (qa(k+1)-qa(k)) / (dza(k+1)+dza(k))
         xdim = (qa(k)-qa(k-1)) / (dza(k-1)+dza(k))
@@ -1296,7 +1296,7 @@ module mod_micro_wsm5
       qn = d_zero
       kb = 1
       kt = 1
-      !@acc loop seq
+      !$acc loop seq
       intp : &
       do k = 1, kz
         kb = max(kb-1,1)
@@ -1362,7 +1362,7 @@ module mod_micro_wsm5
       !
       ! rain out
       !
-      !@acc loop seq
+      !$acc loop seq
       sum_precip: &
       do k = 1, kz
         if ( za(k) < d_zero .and. za(k+1) < d_zero ) then
