@@ -327,7 +327,7 @@ module mod_init
         call inito3
       end if
 
-      if ( ipptls == 5 .and. ifchem == 0 ) then
+      if ( ipptls == 5 .and. ichem == 0 ) then
         !
         ! Initialize number concentrations
         !    cqn = Cloud condensation nuclei
