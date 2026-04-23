@@ -327,7 +327,7 @@ module mod_init
         call inito3
       end if
 
-      if ( ipptls == 5 ) then
+      if ( ipptls == 5 .and. ifchem == 0 ) then
         !
         ! Initialize number concentrations
         !    cqn = Cloud condensation nuclei
@@ -413,8 +413,8 @@ module mod_init
         else
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
             mo_atm%qx(j,i,k,cqn) = tccn(j,i,k)
-            mo_atm%qx(j,i,k,cqc) = 1000.0_rkx
-            mo_atm%qx(j,i,k,cqr) = 100.0_rkx
+            mo_atm%qx(j,i,k,cqc) = 0.001_rkx * tccn(j,i,k)
+            mo_atm%qx(j,i,k,cqr) = 0.0001 * tccn(j,i,k)
           end do
         end if
         deallocate(tccn)
