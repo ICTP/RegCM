@@ -158,7 +158,7 @@ module mod_bdycod
     integer(ik4) :: nseed
     integer(ik8) :: sclock
     integer(ik4), allocatable, dimension(:) :: seed
-    real(rkx), dimension(1) :: ht
+    real(rkx) :: ht
     real(rkx), dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: noise
 
     namelist /dimensions/ nlev
@@ -224,10 +224,10 @@ module mod_bdycod
       ht = 0.0
       ! vertical interpolation for xub%b0,xvb%b0,xtb%b0,xqb%b0
       pi = sigma*(ps-ptop*10.0_rkx) + (ptop*10.0_rkx)
-      call intz1(ui,u,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(vi,v,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(ti,t,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
-      call intz1(qi,r,pi,p,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(ui,u,pi,p,ht,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(vi,v,pi,p,ht,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(ti,t,pi,p,ht,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(qi,r,pi,p,ht,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
       do k = 1, kz
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
@@ -239,10 +239,10 @@ module mod_bdycod
       xpsb%b0 = ps * 0.1_rkx
       ht = 0.0
       zi = atm0%z(jci1,ici1,1:kz)
-      call intz1(ui,u,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(vi,v,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(ti,t,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
-      call intz1(qi,r,zi,g,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(ui,u,zi,g,ht,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(vi,v,zi,g,ht,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(ti,t,zi,g,ht,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(qi,r,zi,g,ht,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
       do k = 1, kz
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
@@ -256,10 +256,10 @@ module mod_bdycod
       xpsb%b0 = ps * 100.0_rkx
       ht = 0.0
       zi = mo_atm%zeta(jci1,ici1,1:kz)
-      call intz1(ui,u,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(vi,v,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(ti,t,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
-      call intz1(qi,r,zi,g,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(ui,u,zi,g,ht,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(vi,v,zi,g,ht,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(ti,t,zi,g,ht,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(qi,r,zi,g,ht,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
       do k = 1, kz
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
