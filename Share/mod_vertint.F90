@@ -84,6 +84,12 @@ module mod_vertint
     module procedure intp1_pointer_r4
   end interface intp1
 
+  interface intz1
+    module procedure intz13d
+    module procedure intz13d1d
+    module procedure intz11d
+  end interface intz1
+
   public :: intlin, intgtb, intlog, intlinz
   public :: intpsn, intv0, intv1, intvp, intv2, intv3
   public :: intlinreg, intlinprof
@@ -1425,7 +1431,51 @@ module mod_vertint
 
   ! Vertical interpolation to Z levels.
   !
-  subroutine intz1(frcm,fccm,zrcm,zccm,trcm,ni,nj,krcm,kccm,a,e1,e2)
+  subroutine intz11d(frcm,fccm,zrcm,zccm,trcm,krcm,kccm,a,e1,e2)
+    implicit none
+    integer(ik4), intent(in) :: kccm, krcm
+    real(rkx), intent(in) :: a, e1, e2, trcm
+    real(rkx), dimension(kccm), intent(in) :: fccm, zccm
+    real(rkx), dimension(krcm), intent(in) :: zrcm
+    real(rkx), dimension(krcm), intent(out) :: frcm
+    real(rkx), dimension(krcm) :: xr
+    integer(ik4) :: k
+    do k = 1, krcm
+      xr(k) = zrcm(k) + trcm
+    end do
+    call interp1d(zccm,fccm,xr,frcm,a,e1,e2)
+  end subroutine intz11d
+
+  subroutine intz13d1d(frcm,fccm,zrcm,zccm,trcm,j1,j2,i1,i2,krcm,kccm,a,e1,e2)
+    implicit none
+    integer(ik4), intent(in) :: kccm, krcm, j1, j2, i1, i2
+    real(rkx), intent(in) :: a, e1, e2
+    real(rkx), pointer, dimension(:,:,:), intent(in) :: fccm
+    real(rkx), pointer, dimension(:), intent(in) :: zccm
+    real(rkx), pointer, dimension(:,:,:), intent(in) :: zrcm
+    real(rkx), pointer, dimension(:,:), intent(in) :: trcm ! geopotential
+    real(rkx), pointer, dimension(:,:,:), intent(out) :: frcm
+    real(rkx), dimension(kccm) :: xc, fc
+    real(rkx), dimension(krcm) :: xr, fr
+    integer(ik4) :: i, j, k
+    do i = i1, i2
+      do j = j1, j2
+        do k = 1, kccm
+          xc(k) = zccm(k)
+          fc(k) = fccm(j,i,k)
+        end do
+        do k = 1, krcm
+          xr(k) = zrcm(j,i,k) + trcm(j,i)*regrav
+        end do
+        call interp1d(xc,fc,xr,fr,a,e1,e2)
+        do k = 1, krcm
+          frcm(j,i,k) = fr(k)
+        end do
+      end do
+    end do
+  end subroutine intz13d1d
+
+  subroutine intz13d(frcm,fccm,zrcm,zccm,trcm,ni,nj,krcm,kccm,a,e1,e2)
     implicit none
     integer(ik4), intent(in) :: kccm, krcm, ni, nj
     real(rkx), intent(in) :: a, e1, e2
@@ -1451,7 +1501,7 @@ module mod_vertint
         end do
       end do
     end do
-  end subroutine intz1
+  end subroutine intz13d
 
   ! Vertical interpolation to P levels.
   !

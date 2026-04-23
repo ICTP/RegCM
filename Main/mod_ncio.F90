@@ -41,6 +41,7 @@ module mod_ncio
   public :: open_som, som_search, read_som, close_som
   public :: open_clmbc, clmbc_search, close_clmbc, read_clmbc
   public :: fixqcqi, we_have_qc, we_have_qi
+  public :: read_ccn, tccn_data
 
   integer(ik4) :: ibcin, somin, clmbcin
   integer(ik4) :: istatus
@@ -75,6 +76,14 @@ module mod_ncio
 #endif
   real(rkx), dimension(:,:,:), pointer, contiguous :: tempw => null()
   real(rkx), dimension(:,:), pointer, contiguous :: tempwtop => null()
+
+  type :: tccn_data
+    integer(ik4) :: nlon, nlat, nlev
+    real(rkx), pointer, dimension(:), contiguous :: lon
+    real(rkx), pointer, dimension(:), contiguous :: lat
+    real(rkx), pointer, dimension(:), contiguous :: altitude
+    real(rkx), pointer, dimension(:,:,:,:), contiguous :: ccn
+  end type
 
   contains
 
@@ -1370,6 +1379,53 @@ module mod_ncio
       call fatal(f,l,trim(mf))
     end if
   end subroutine check_ok
+
+  subroutine read_ccn(ccn)
+    implicit none
+    type(tccn_data), intent(inout) :: ccn
+    character(len=256) :: ccnfile
+    integer(ik4) :: ncid, idim, ivar
+    integer(ik4), parameter :: nseas = 4
+    character(len=*), parameter :: omcam = 'CCN_climatology_cloudfree_8km.nc'
+
+    ccnfile = trim(inpglob)//pthsep//'CCN'//pthsep//omcam
+    call openfile_withname(ccnfile,ncid)
+    istatus = nf90_inq_dimid(ncid, 'lon', idim)
+    call check_ok(__FILE__,__LINE__,'Dimension lon miss', 'CCN FILE')
+    istatus = nf90_inquire_dimension(ncid, idim, len=ccn%nlon)
+    call check_ok(__FILE__,__LINE__,'Dimension lon read error', 'CCN FILE')
+    istatus = nf90_inq_dimid(ncid, 'lat', idim)
+    call check_ok(__FILE__,__LINE__,'Dimension lat miss', 'CCN FILE')
+    istatus = nf90_inquire_dimension(ncid, idim, len=ccn%nlat)
+    call check_ok(__FILE__,__LINE__,'Dimension lat read error', 'CCN FILE')
+    istatus = nf90_inq_dimid(ncid, 'altitude', idim)
+    call check_ok(__FILE__,__LINE__,'Dimension altitude miss', 'CCN FILE')
+    istatus = nf90_inquire_dimension(ncid, idim, len=ccn%nlev)
+    call check_ok(__FILE__,__LINE__,'Dimension altitude read error', 'CCN FILE')
+    allocate(ccn%lon(ccn%nlon), ccn%lat(ccn%nlat), ccn%altitude(ccn%nlev))
+    allocate(ccn%ccn(ccn%nlon,ccn%nlat,ccn%nlev,nseas))
+    istatus = nf90_inq_varid(ncid, 'lon', ivar)
+    call check_ok(__FILE__,__LINE__,'variable lon miss', 'CCN FILE')
+    istatus = nf90_get_var(ncid, ivar, ccn%lon)
+    call check_ok(__FILE__,__LINE__,'variable lon read error', 'CCN FILE')
+    istatus = nf90_inq_varid(ncid, 'lat', ivar)
+    call check_ok(__FILE__,__LINE__,'variable lat miss', 'CCN FILE')
+    istatus = nf90_get_var(ncid, ivar, ccn%lat)
+    call check_ok(__FILE__,__LINE__,'variable lat read error', 'CCN FILE')
+    istatus = nf90_inq_varid(ncid, 'altitude', ivar)
+    call check_ok(__FILE__,__LINE__,'variable altitude miss', 'CCN FILE')
+    istatus = nf90_get_var(ncid, ivar, ccn%altitude)
+    call check_ok(__FILE__,__LINE__,'variable altitude read error', 'CCN FILE')
+    istatus = nf90_inq_varid(ncid, 'CCN_cl_sn', ivar)
+    call check_ok(__FILE__,__LINE__,'variable CCN_cl_sn miss', 'CCN FILE')
+    istatus = nf90_get_var(ncid, ivar, ccn%ccn)
+    call check_ok(__FILE__,__LINE__,'variable CCN_cl_sn read error', 'CCN FILE')
+    istatus = nf90_close(ncid)
+    call check_ok(__FILE__,__LINE__,'Error Close CCN file','CCN FILE')
+    ! Unit of measure: set altitude in meters, CCN in #/m3
+    ccn%altitude(:) = ccn%altitude(:) * 1000.0_rkx  ! In file km amsl
+    ccn%ccn(:,:,:,:) = ccn%ccn(:,:,:,:) * 1.0e6_rkx ! In file #/cm3
+  end subroutine read_ccn
 
 end module mod_ncio
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

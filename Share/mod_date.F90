@@ -47,6 +47,11 @@ module mod_date
   integer(ik4), public, parameter :: uyrs = 6
   integer(ik4), public, parameter :: ucnt = 7
 
+  integer(ik4), public, parameter :: isea_djf = 1
+  integer(ik4), public, parameter :: isea_mam = 2
+  integer(ik4), public, parameter :: isea_jja = 3
+  integer(ik4), public, parameter :: isea_son = 4
+
   integer(ik4), parameter :: reference_year = 1900
   integer(ik4), parameter :: cordex_refdate = 1950010100
 
@@ -184,7 +189,7 @@ module mod_date
   public :: split_idate, julianday, dayofyear, toseconds
   public :: getyear, getmonth, getday
   public :: gethour, getminute, getsecond
-  public :: date_is, time_is
+  public :: date_is, time_is, season_index
   public :: curr_date, ref_date, curr_time, calendar_str, calendar_int
   public :: date_in_scenario
   public :: ndaypm, yeardays, yearpoint
@@ -2168,6 +2173,25 @@ module mod_date
     imm = t%minute
     iss = t%second
   end subroutine split_rcm_time_and_date_complete
+
+  integer(ik4) function season_index(x) result(iseas)
+    implicit none
+    type (rcm_time_and_date), intent(in) :: x
+    integer(ik4) :: iy, im, id
+    call split_rcm_date(x,iy,im,id)
+    select case(im)
+      case (12,1,2)
+        iseas = isea_djf
+      case (3,4,5)
+        iseas = isea_mam
+      case (6,7,8)
+        iseas = isea_jja
+      case (9,10,11)
+        iseas = isea_son
+      case default
+        iseas = -1
+     end select
+  end function season_index
 
   logical function full_date_is(x,y,m,d)
     implicit none

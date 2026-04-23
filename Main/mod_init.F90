@@ -21,6 +21,7 @@ module mod_init
   use mod_realkinds
   use mod_dynparam
   use mod_stdio
+  use mod_date
   use mod_runparams
   use mod_mppparam
   use mod_lm_interface
@@ -45,6 +46,8 @@ module mod_init
   use mod_outvars
   use mod_service
   use mod_massck
+  use mod_kdinterp
+  use mod_vertint
   use mod_zita
   use mod_sound, only : init_sound
   use mod_moloch, only : init_moloch
@@ -76,6 +79,7 @@ module mod_init
     real(rkx) :: rdnnsg
     real(rkx) :: zzi, zfilt
     real(rkx), dimension(kzp1) :: ozprnt
+    real(rkx), dimension(:,:,:), pointer :: tccn => null( )
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
     integer(ik4), save :: idindx = 0
@@ -240,31 +244,6 @@ module mod_init
         end do
       end if
 
-      if ( ipptls == 5 ) then
-        !
-        ! Initialize number concentrations
-        !    cqn = Cloud condensation nuclei
-        !    cqc = Cloud droplet number concentration
-        !    cqr = Rain drop number concentration
-        !
-        if ( idynamic < 3 ) then
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            atm1%qx(j,i,k,cqn) = 1.0e8_rkx
-            atm2%qx(j,i,k,cqn) = 1.0e8_rkx
-            atm1%qx(j,i,k,cqc) = 1000.0_rkx
-            atm2%qx(j,i,k,cqc) = 1000.0_rkx
-            atm1%qx(j,i,k,cqr) = 100.0_rkx
-            atm2%qx(j,i,k,cqr) = 100.0_rkx
-          end do
-        else
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            mo_atm%qx(j,i,k,cqn) = 1.0e8
-            mo_atm%qx(j,i,k,cqc) = 1000.0_rkx
-            mo_atm%qx(j,i,k,cqr) = 100.0_rkx
-          end do
-        end if
-      end if
-
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         sfs%tg(j,i) = xtsb%b0(j,i)
       end do
@@ -346,6 +325,99 @@ module mod_init
         call updateo3(rcmtimer%idate,scenario)
       else
         call inito3
+      end if
+
+      if ( ipptls == 5 ) then
+        !
+        ! Initialize number concentrations
+        !    cqn = Cloud condensation nuclei
+        !    cqc = Cloud droplet number concentration
+        !    cqr = Rain drop number concentration
+        !
+        if ( myid == iocpu ) then
+          write(stdout, *) 'Reading CCN data to initialize model state'
+          ccnread : block
+            type(tccn_data) :: ccns
+            type(h_interpolator) :: hint
+            real(rkx), dimension(:,:), pointer, contiguous :: alon => null( )
+            real(rkx), dimension(:,:), pointer, contiguous :: alat => null( )
+            real(rkx), dimension(:,:,:), pointer, contiguous :: sccn => null( )
+            real(rkx), dimension(:,:,:), pointer, contiguous :: iccn => null( )
+            real(rkx), dimension(:,:,:), pointer, contiguous :: occn => null( )
+            real(rkx), dimension(:,:,:), pointer, contiguous :: temp => null( )
+            real(rkx), dimension(:), pointer, contiguous :: altitude => null( )
+            integer(ik4) :: nlev
+            allocate(alon(jcross1:jcross2,icross1:icross2))
+            allocate(alat(jcross1:jcross2,icross1:icross2))
+            call grid_collect(mddom%xlon,alon,jce1,jce2,ice1,ice2)
+            call grid_collect(mddom%xlat,alat,jce1,jce2,ice1,ice2)
+            call read_ccn(ccns)
+            sccn => ccns%ccn(:,:,:,season_index(rcmtimer%idate))
+            nlev = ccns%nlev
+            altitude => ccns%altitude
+            call bcast(nlev)
+            call bcast(altitude)
+            call h_interpolator_create(hint,ccns%lat,ccns%lon,alat,alon)
+            allocate(iccn(jcross1:jcross2,icross1:icross2,nlev))
+#ifdef OPENACC
+            allocate(temp(jcross1:jcross2,icross1:icross2,nlev))
+            call h_interpolate_cont(hint,sccn,iccn,temp, &
+                    ccns%nlon,ccns%nlat,njcross,nicross,nlev)
+            deallocate(temp)
+#else
+            call h_interpolate_cont(hint,sccn,iccn)
+#endif
+            call h_interpolator_destroy(hint)
+            deallocate(ccns%lat,ccns%lon,ccns%ccn)
+            deallocate(alon,alat)
+            allocate(occn(jce1:jce2,ice1:ice2,nlev))
+            call grid_distribute(iccn,occn,jce1,jce2,ice1,ice2,1,nlev)
+            deallocate(iccn)
+            allocate(tccn(jce1:jce2,ice1:ice2,kz))
+            call intz1(tccn,occn,atms%za,altitude,mddom%ht, &
+                     jce1,jce2,ice1,ice2,kz,nlev,0.7_rkx,0.4_rkx,0.7_rkx)
+            deallocate(altitude)
+            deallocate(occn)
+          end block ccnread
+        else
+          ccnrecv : block
+            real(rkx), dimension(:,:), pointer, contiguous :: alon => null( )
+            real(rkx), dimension(:,:), pointer, contiguous :: alat => null( )
+            real(rkx), dimension(:,:,:), pointer, contiguous :: iccn => null( )
+            real(rkx), dimension(:,:,:), pointer, contiguous :: occn => null( )
+            real(rkx), dimension(:), pointer, contiguous :: altitude => null( )
+            integer :: nlev
+            call grid_collect(mddom%xlon,alon,jce1,jce2,ice1,ice2)
+            call grid_collect(mddom%xlat,alat,jce1,jce2,ice1,ice2)
+            call bcast(nlev)
+            allocate(altitude(nlev))
+            call bcast(altitude)
+            allocate(occn(jce1:jce2,ice1:ice2,1:nlev))
+            call grid_distribute(iccn,occn,jce1,jce2,ice1,ice2,1,nlev)
+            allocate(tccn(jce1:jce2,ice1:ice2,1:nlev))
+            call intz1(tccn,occn,atms%za,altitude,mddom%ht, &
+                     jce1,jce2,ice1,ice2,kz,nlev,0.7_rkx,0.4_rkx,0.7_rkx)
+            deallocate(altitude)
+            deallocate(occn)
+          end block ccnrecv
+        end if
+        if ( idynamic < 3 ) then
+          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+            atm1%qx(j,i,k,cqn) = tccn(j,i,k)
+            atm2%qx(j,i,k,cqn) = tccn(j,i,k)
+            atm1%qx(j,i,k,cqc) = 1000.0_rkx
+            atm2%qx(j,i,k,cqc) = 1000.0_rkx
+            atm1%qx(j,i,k,cqr) = 100.0_rkx
+            atm2%qx(j,i,k,cqr) = 100.0_rkx
+          end do
+        else
+          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+            mo_atm%qx(j,i,k,cqn) = tccn(j,i,k)
+            mo_atm%qx(j,i,k,cqc) = 1000.0_rkx
+            mo_atm%qx(j,i,k,cqr) = 100.0_rkx
+          end do
+        end if
+        deallocate(tccn)
       end if
       !
       ! End of initial run case
