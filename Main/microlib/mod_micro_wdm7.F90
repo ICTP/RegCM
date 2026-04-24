@@ -532,9 +532,10 @@ module mod_micro_wdm7
     real(rkx), dimension(ims:ime,kz) :: nraut, nracw, nccol, &
       nrcol, nsacw, ngacw, nhacw, niacr, nsacr, ngacr,  &
       nhacr, naacw, nseml, ngeml, nheml, ncact
-    real(rkx), dimension(ims:ime,kz) :: lamdr_tmp, lamdc_tmp
     real(rkx), dimension(ims:ime) :: delqrs2, delqrs3, &
       delqrs4, delqi
+    real(rkx), dimension(ims:ime,kz,4) :: qrs_tmp
+    real(rkx), dimension(ims:ime,kz) :: ncr_tmp
     integer(ik4), dimension(ims:ime) :: mstep
     real(rkx), dimension(ims:ime,kz) :: pigen, pidep, psdep, praut
     real(rkx), dimension(ims:ime,kz) :: psaut, prevp, psevp, pracw
@@ -553,7 +554,8 @@ module mod_micro_wdm7
       fallsum, fallsum_qsi, fallsum_qg, fallsum_qh, xlwork2,      &
       factor, source, qval, xlf, pfrzdtc, pfrzdtr, supice, gfac,  &
       alpha2, delta2, delta3, lencon, lenconcr, nfrzdtc, nfrzdtr, &
-      coecol, vt2ave, rs0, ghw1, ghw2, ghw3, ghw4, tr, temp, rceff
+      coecol, vt2ave, rs0, ghw1, ghw2, ghw3, ghw4, tr, temp,      &
+      rceff, lamdax
     integer(ik4) :: mstepmax, i, k, loop, loops, ifsat, n, numdt
     !
     ! latent heat for phase changes and heat capacity. neglect the
@@ -715,7 +717,14 @@ module mod_micro_wdm7
       ! compute the fallout term:
       ! first, vertical terminal velocity for minor loops
       !
-      call slope_wdm7(qrs,ncr(:,:,3),den,denfac,t, &
+      do concurrent ( i = ims:ime, k = 1:kz )
+        qrs_tmp(i,k,1) = qrs(i,k,1)
+        qrs_tmp(i,k,2) = qrs(i,k,2)
+        qrs_tmp(i,k,3) = qrs(i,k,3)
+        qrs_tmp(i,k,4) = qrs(i,k,4)
+        ncr_tmp(i,k) = ncr(i,k,3)
+      end do
+      call slope_wdm7(qrs_tmp,ncr_tmp,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,workn,ims,ime)
       mstepmax = 1
       numdt = 1
@@ -727,9 +736,7 @@ module mod_micro_wdm7
           mstep(i) = numdt
         end if
       end do
-
       mstepmax = maxval(mstep)
-
       do n = 1, mstepmax
         do concurrent( i = ims:ime )
           if ( n <= mstep(i) ) then
@@ -753,7 +760,11 @@ module mod_micro_wdm7
                 (falkn(i,k)-falkn(i,k+1)*(delz(i,k+1)/delz(i,k))))
           end if
         end do
-        call slope_rain2d(qrs(:,:,1),ncr(:,:,3),den,denfac, &
+        do concurrent ( i = ims:ime, k = 1:kz )
+          qrs_tmp(i,k,1) = qrs(i,k,1)
+          ncr_tmp(i,k) = ncr(i,k,3)
+        end do
+        call slope_rain2d(qrs_tmp,ncr_tmp,den,denfac, &
               rslope,rslopeb,rslope2,rslope3,work1,workn,ims,ime)
         do concurrent ( i = ims:ime, k = kz:1:-1 )
           work1(i,k,1) = work1(i,k,1)/delz(i,k)
@@ -794,7 +805,14 @@ module mod_micro_wdm7
         fall(i,1,3) = delqrs3(i)/delz(i,1)*rdtcld
         fall(i,1,4) = delqrs4(i)/delz(i,1)*rdtcld
       end do
-      call slope_wdm7(qrs,ncr(:,:,3),den,denfac,t, &
+      do concurrent ( i = ims:ime, k = 1:kz )
+        qrs_tmp(i,k,1) = qrs(i,k,1)
+        qrs_tmp(i,k,2) = qrs(i,k,2)
+        qrs_tmp(i,k,3) = qrs(i,k,3)
+        qrs_tmp(i,k,4) = qrs(i,k,4)
+        ncr_tmp(i,k) = ncr(i,k,3)
+      end do
+      call slope_wdm7(qrs_tmp,ncr_tmp,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,workn,ims,ime)
       do concurrent ( i = ims:ime, k = kz:1:-1 )
         supcol = tzero - t(i,k)
@@ -887,8 +905,8 @@ module mod_micro_wdm7
       do concurrent ( i = ims:ime, k = kz:1:-1 )
         denqci(i,k) = den(i,k)*qci(i,k,2)
       end do
-      call nislfv_rain_plmr(ims,ime,den,denfac, &
-                           delz,work1c,denqci,denqci,delqi,dtcld,1,0,0)
+      call nislfv_rain_plmr(ims,ime,den,denfac,delz, &
+                            work1c,denqci,denqci,delqi,dtcld,1,0,0)
       do concurrent ( i = ims:ime, k = 1:kz )
         qci(i,k,2) = max(denqci(i,k)/den(i,k),0.0_rkx)
       end do
@@ -1001,7 +1019,14 @@ module mod_micro_wdm7
       !
       ! update the slope parameters for microphysics computation
       !
-      call slope_wdm7(qrs,ncr(:,:,3),den,denfac,t, &
+      do concurrent ( i = ims:ime, k = 1:kz )
+        qrs_tmp(i,k,1) = qrs(i,k,1)
+        qrs_tmp(i,k,2) = qrs(i,k,2)
+        qrs_tmp(i,k,3) = qrs(i,k,3)
+        qrs_tmp(i,k,4) = qrs(i,k,4)
+        ncr_tmp(i,k) = ncr(i,k,3)
+      end do
+      call slope_wdm7(qrs_tmp,ncr_tmp,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,workn,ims,ime)
       do concurrent ( i = ims:ime, k = 1:kz )
         !
@@ -2051,7 +2076,7 @@ module mod_micro_wdm7
         endif
       end do
 
-      call slope_wdm7(qrs,ncr(:,:,3),den,denfac,t, &
+      call slope_wdm7(qrs_tmp,ncr_tmp,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,workn,ims,ime)
 
       do concurrent ( i = ims:ime, k = 1:kz )
@@ -2133,29 +2158,29 @@ module mod_micro_wdm7
         if ( qci(i,k,1) <= qmin) qci(i,k,1) = 0.0_rkx
         if ( qci(i,k,2) <= qmin) qci(i,k,2) = 0.0_rkx
         if ( qrs(i,k,1) >= qcrmin .and. ncr(i,k,3) > nrmin) then
-          lamdr_tmp(i,k) = exp(log(((pidnr*ncr(i,k,3)) / &
+          lamdax = exp(log(((pidnr*ncr(i,k,3)) / &
              (den(i,k)*qrs(i,k,1))))*(onet))
-          if ( lamdr_tmp(i,k) <= lamdarmin ) then
-            lamdr_tmp(i,k) = lamdarmin
+          if ( lamdax <= lamdarmin ) then
+            lamdax = lamdarmin
             ncr(i,k,3) = max(den(i,k)*qrs(i,k,1) * &
-              lamdr_tmp(i,k)**3/pidnr,0.0_rkx)
-          else if ( lamdr_tmp(i,k) >= lamdarmax ) then
-            lamdr_tmp(i,k) = lamdarmax
+              lamdax**3/pidnr,0.0_rkx)
+          else if ( lamdax >= lamdarmax ) then
+            lamdax = lamdarmax
             ncr(i,k,3) = max(den(i,k)*qrs(i,k,1) * &
-              lamdr_tmp(i,k)**3/pidnr,0.0_rkx)
+              lamdax**3/pidnr,0.0_rkx)
           end if
         end if
         if ( qci(i,k,1) >= qmin .and. ncr(i,k,2) > ncmin ) then
-          lamdc_tmp(i,k) = exp(log(((pidnc*ncr(i,k,2)) / &
+          lamdax = exp(log(((pidnc*ncr(i,k,2)) / &
              (den(i,k)*qci(i,k,1))))*(onet))
-          if ( lamdc_tmp(i,k) <= lamdacmin ) then
-            lamdc_tmp(i,k) = lamdacmin
+          if ( lamdax <= lamdacmin ) then
+            lamdax = lamdacmin
             ncr(i,k,2) = max(den(i,k)*qci(i,k,1) * &
-              lamdc_tmp(i,k)**3/pidnc,0.0_rkx)
-          else if ( lamdc_tmp(i,k) >= lamdacmax ) then
-            lamdc_tmp(i,k) = lamdacmax
+              lamdax**3/pidnc,0.0_rkx)
+          else if ( lamdax >= lamdacmax ) then
+            lamdax = lamdacmax
             ncr(i,k,2) = max(den(i,k)*qci(i,k,1) * &
-              lamdc_tmp(i,k)**3/pidnc,0.0_rkx)
+              lamdax**3/pidnc,0.0_rkx)
           end if
         end if
       end do
