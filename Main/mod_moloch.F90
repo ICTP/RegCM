@@ -642,14 +642,8 @@ module mod_moloch
     call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
     call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
     call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-    if ( is_present_qc( ) ) then
-      call exchange_lrbt(qc,1,jce1,jce2,ice1,ice2,1,kz)
-    end if
-    if ( is_present_qi( ) ) then
-      call exchange_lrbt(qi,1,jce1,jce2,ice1,ice2,1,kz)
-    end if
+    call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( (iboudy == 1 .or. iboudy >= 5) .and. ichem == 1 ) then
       call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
@@ -1962,31 +1956,15 @@ module mod_moloch
     do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
       v(j,i,k) = v(j,i,k) + dtsec * mo_atm%vten(j,i,k)
     end do
-#ifdef RCEMIP
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      if ( k > ktrop(j,i) ) then
-        qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
-        qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
-      end if
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                    k = 1:kz, n = iqfrst:nqx)
-      if ( k > ktrop(j,i) ) then
-        qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
-        qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
-      end if
-    end do
-#else
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
       qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                     k = 1:kz, n = iqfrst:nqx)
-      qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
-      qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
+      qx(j,i,k,n) = qx(j,i,k,n) + dtsec * mo_atm%qxten(j,i,k,n)
+      if ( qx(j,i,k,n) < 0.0_rkx ) qx(j,i,k,n) = 0.0_rkx
     end do
-#endif
     if ( ibltyp == 2 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
         tke(j,i,k) = max(tke(j,i,k) + dtsec * mo_atm%tketen(j,i,k),tkemin)
@@ -1995,7 +1973,7 @@ module mod_moloch
     if ( ichem == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
         trac(j,i,k,n) = trac(j,i,k,n) + dtsec * mo_atm%chiten(j,i,k,n)
-        trac(j,i,k,n) = max(trac(j,i,k,n), d_zero)
+        if ( trac(j,i,k,n) < 0.0_rkx ) trac(j,i,k,n) = 0.0_rkx
       end do
     end if
 #ifdef DEBUG
