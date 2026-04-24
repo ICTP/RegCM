@@ -357,7 +357,7 @@ module mod_micro_wdm7
       qrs(n,kk,2) = max(mo2mc%qxx(j,i,k,iqs),0.0_rkx)
       qrs(n,kk,3) = max(mo2mc%qxx(j,i,k,iqg),0.0_rkx)
       qrs(n,kk,4) = max(mo2mc%qxx(j,i,k,iqh),0.0_rkx)
-      ncr(n,kk,1) = max(mo2mc%qxx(j,i,k,cqn),0.0_rkx)
+      ncr(n,kk,1) = min(max(mo2mc%qxx(j,i,k,cqn),1.0e8_rkx),2.0e10_rkx)
       ncr(n,kk,2) = max(mo2mc%qxx(j,i,k,cqc),0.0_rkx)
       ncr(n,kk,3) = max(mo2mc%qxx(j,i,k,cqr),0.0_rkx)
     end do
@@ -692,11 +692,6 @@ module mod_micro_wdm7
         delqrs4(i) = 0.0_rkx
       end do
       do concurrent ( i = ims:ime, k = 1:kz )
-        ! Initialize particle numbers to pop in and avoid numerical errors
-        if ( qci(i,k,1) > 1.0e-8_rkx .or. &
-             qrs(i,k,1) > 1.0e-8_rkx ) then
-          ncr(i,k,2) = max(ncr(i,k,2),1.0e5_rkx)
-        end if
         if ( qci(i,k,1) <= qmin .or. ncr(i,k,2) <= ncmin ) then
           rslopec(i,k) = rslopecmax
           rslopec2(i,k) = rslopec2max
@@ -764,8 +759,8 @@ module mod_micro_wdm7
           qrs_tmp(i,k,1) = qrs(i,k,1)
           ncr_tmp(i,k) = ncr(i,k,3)
         end do
-        call slope_rain2d(qrs_tmp,ncr_tmp,den,denfac, &
-              rslope,rslopeb,rslope2,rslope3,work1,workn,ims,ime)
+        call slope_rain2d(ims,ime,qrs_tmp,ncr_tmp,den,denfac, &
+              rslope,rslopeb,rslope2,rslope3,work1,workn)
         do concurrent ( i = ims:ime, k = kz:1:-1 )
           work1(i,k,1) = work1(i,k,1)/delz(i,k)
           workn(i,k) = workn(i,k)/delz(i,k)
@@ -2264,7 +2259,7 @@ module mod_micro_wdm7
   end subroutine slope_wdm7
 
   pure subroutine slope_rain(qrs,ncr,den,denfac,rslope,rslopeb, &
-                        rslope2,rslope3,vt,vtn)
+                             rslope2,rslope3,vt,vtn)
     implicit none
     real(rkx), dimension(kz), intent(in) :: qrs, den, denfac, ncr
     real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
@@ -2290,8 +2285,8 @@ module mod_micro_wdm7
     end do
   end subroutine slope_rain
 
-  subroutine slope_rain2d(qrs,ncr,den,denfac,rslope,rslopeb, &
-                          rslope2,rslope3,vt,vtn,ims,ime)
+  subroutine slope_rain2d(ims,ime,qrs,ncr,den,denfac,rslope,rslopeb, &
+                          rslope2,rslope3,vt,vtn)
     implicit none
     integer(ik4), intent(in) :: ims, ime
     real(rkx), dimension(ims:ime,kz), intent(in) :: qrs, den, denfac, ncr

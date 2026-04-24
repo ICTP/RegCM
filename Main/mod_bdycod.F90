@@ -99,8 +99,9 @@ module mod_bdycod
   integer(ik4) :: som_month
 
   real(rkx), parameter, dimension(10) :: qxbval = &
-    [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
-      0.0_rkx, 0.0_rkx, 1.0e8_rkx, 0.0_rkx, 0.0_rkx ]
+    [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
+      0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
+      1.0e8_rkx, 10.0_rkx, 0.01_rkx ]        ! ncc, nc, nr
 
   interface timeint
     module procedure timeint2, timeint3
@@ -2331,7 +2332,7 @@ module mod_bdycod
               qxint = atm1%qx(jci1,i,k,n)
               windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
               if ( windavg > d_zero ) then
-                atm1%qx(jce1,i,k,n) = qxbval(n)
+                atm1%qx(jce1,i,k,n) = qxbval(n)*sfs%psa(jce1,i)
               else
                 atm1%qx(jce1,i,k,n) = qxint
               end if
@@ -2349,7 +2350,7 @@ module mod_bdycod
               qxint = atm1%qx(jci2,i,k,n)
               windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
               if ( windavg < d_zero ) then
-                atm1%qx(jce2,i,k,n) = qxbval(n)
+                atm1%qx(jce2,i,k,n) = qxbval(n)**sfs%psa(jce2,i)
               else
                 atm1%qx(jce2,i,k,n) = qxint
               end if
@@ -2367,7 +2368,7 @@ module mod_bdycod
               qxint = atm1%qx(j,ici1,k,n)
               windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
               if ( windavg > d_zero ) then
-                atm1%qx(j,ice1,k,n) = qxbval(n)
+                atm1%qx(j,ice1,k,n) = qxbval(n)*sfs%psa(j,ice1)
               else
                 atm1%qx(j,ice1,k,n) = qxint
               end if
@@ -2385,7 +2386,7 @@ module mod_bdycod
               qxint = atm1%qx(j,ici2,k,n)
               windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
               if ( windavg < d_zero ) then
-                atm1%qx(j,ice2,k,n) = qxbval(n)
+                atm1%qx(j,ice2,k,n) = qxbval(n)*sfs%psa(j,ice2)
               else
                 atm1%qx(j,ice2,k,n) = qxint
               end if

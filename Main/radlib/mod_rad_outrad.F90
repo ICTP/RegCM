@@ -170,16 +170,16 @@ module mod_rad_outrad
         end do
         do k = kh1, kh2
           hif = hif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
+                         (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
 
         end do
         do k = km1, km2
           mif = mif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
+                         (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
         end do
         do k = kl1, kl2
           lof = lof*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
+                         (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
         end do
         rad_higcl_out(j,i) = real(rad_higcl_out(j,i) + d_one - hif,rkx)
         rad_midcl_out(j,i) = real(rad_midcl_out(j,i) + d_one - mif,rkx)
@@ -207,7 +207,7 @@ module mod_rad_outrad
         call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,0,kzm1)
         call copy4d_div2(tauasc3d,opt_assa8_out,visband,tauxar3d,1,kz)
         call copy4d_div2(gtota3d,opt_agfu8_out,visband,tauasc3d,1,kz)
-      endif
+      end if
 
       call copy4d2(deltaz,opt_deltaz_out)
       if ( idirect > 0 .or. iclimaaer > 0 ) then
@@ -265,7 +265,7 @@ module mod_rad_outrad
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4) :: i, j, n
     if ( associated(b) ) then
-      do concurrent ( j=jci1:jci2, i=ici1:ici2)
+      do concurrent ( j=jci1:jci2, i=ici1:ici2 )
         n = (j-jci1)+(i-ici1)*nj+1
         b(j,i) = real(a(n),rkx)
       end do
@@ -279,14 +279,16 @@ module mod_rad_outrad
     integer(ik4), intent(in) :: l, kl, ki
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
-      b(:,:) = d_zero
+      do concurrent ( j=jci1:jci2, i=ici1:ici2 )
+        b(j,i) = d_zero
+      end do
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i) = real(b(j,i) + a(n,k,l),rkx)
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i) = real(b(j,i) + a(k,n,l),rkx)
         end do
@@ -309,12 +311,12 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2 )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(a(n,k),rkx)
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2 )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(a(k,n),rkx)
         end do
@@ -330,13 +332,13 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n, kk
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,kk) = real(a(n,k,l),rkx)
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,kk) = real(a(n,k,l),rkx)
@@ -353,7 +355,7 @@ module mod_rad_outrad
     integer(ik4) :: i, j, l, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz, l = 1:nl)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz, l = 1:nl )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k,l) = real(a(n,k,l),rkx)
         end do
@@ -373,12 +375,12 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(a(n,k),rkx)
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(a(k,n),rkx)
         end do
@@ -395,12 +397,12 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(a(n,k,l) * c(n,k),rkx)
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k = 1:kz )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(a(k,l,n) * c(k,n),rkx)
         end do
@@ -417,13 +419,13 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n, kk
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,kk) = real(a(n,k,l) / c(n,kk),rkx)
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,kk) = real(a(k,n,l) / c(kk,n),rkx)
@@ -441,7 +443,7 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n, kk
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
           if ( abs(c(n,k,l)) > dlowval_r8 ) then
@@ -451,7 +453,7 @@ module mod_rad_outrad
           end if
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
           kk = (k-ki)+1
           n = (j-jci1)+(i-ici1)*nj+1
           if ( abs(c(k,n,l)) > dlowval_r8 ) then
@@ -470,7 +472,7 @@ module mod_rad_outrad
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
     integer(ik4) :: i, j, n
     if ( associated(b) ) then
-      do concurrent ( j=jci1:jci2, i=ici1:ici2)
+      do concurrent ( j=jci1:jci2, i=ici1:ici2 )
         n = (j-jci1)+(i-ici1)*nj+1
         b(j,i) = real(b(j,i) + a(n),rkx)
       end do
@@ -484,12 +486,12 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(b(j,i,k) + a(n,k),rkx)
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(b(j,i,k) + a(k,n),rkx)
         end do
@@ -505,12 +507,12 @@ module mod_rad_outrad
     integer(ik4) :: i, j, k, n
     if ( associated(b) ) then
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(b(j,i,k) + a(n,k,l),rkx)
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz)
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz )
           n = (j-jci1)+(i-ici1)*nj+1
           b(j,i,k) = real(b(j,i,k) + a(k,l,n),rkx)
         end do

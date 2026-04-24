@@ -115,6 +115,13 @@ module mod_init
               atm1%qx(j,i,k,iqc) = xlb%b0(j,i,k)
               atm2%qx(j,i,k,iqc) = xlb%b0(j,i,k)
             end do
+          else
+#ifndef RCEMIP
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+              atm1%qx(j,i,k,iqc) = minqc*xpsb%b0(j,i)
+              atm2%qx(j,i,k,iqc) = minqc*xpsb%b0(j,i)
+            end do
+#endif
           end if
           if ( ipptls > 1 ) then
             if ( is_present_qi( ) ) then
@@ -122,6 +129,13 @@ module mod_init
                 atm1%qx(j,i,k,iqi) = xib%b0(j,i,k)
                 atm2%qx(j,i,k,iqi) = xib%b0(j,i,k)
               end do
+            else
+#ifndef RCEMIP
+              do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+                atm1%qx(j,i,k,iqi) = minqc*xpsb%b0(j,i)
+                atm2%qx(j,i,k,iqi) = minqc*xpsb%b0(j,i)
+              end do
+#endif
             end if
           end if
         end if
@@ -403,18 +417,18 @@ module mod_init
         end if
         if ( idynamic < 3 ) then
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            atm1%qx(j,i,k,cqn) = tccn(j,i,k)
-            atm2%qx(j,i,k,cqn) = tccn(j,i,k)
-            atm1%qx(j,i,k,cqc) = 1000.0_rkx
-            atm2%qx(j,i,k,cqc) = 1000.0_rkx
-            atm1%qx(j,i,k,cqr) = 100.0_rkx
-            atm2%qx(j,i,k,cqr) = 100.0_rkx
+            atm1%qx(j,i,k,cqn) = tccn(j,i,k)*xpsb%b0(j,i)
+            atm2%qx(j,i,k,cqn) = tccn(j,i,k)*xpsb%b0(j,i)
+            atm1%qx(j,i,k,cqc) = 10.0_rkx*xpsb%b0(j,i)
+            atm2%qx(j,i,k,cqc) = 10.0_rkx*xpsb%b0(j,i)
+            atm1%qx(j,i,k,cqr) = 0.01_rkx*xpsb%b0(j,i)
+            atm2%qx(j,i,k,cqr) = 0.01_rkx*xpsb%b0(j,i)
           end do
         else
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
             mo_atm%qx(j,i,k,cqn) = tccn(j,i,k)
-            mo_atm%qx(j,i,k,cqc) = 0.001_rkx * tccn(j,i,k)
-            mo_atm%qx(j,i,k,cqr) = 0.0001 * tccn(j,i,k)
+            mo_atm%qx(j,i,k,cqc) = 10.0_rkx
+            mo_atm%qx(j,i,k,cqr) = 0.01_rkx
           end do
         end if
         deallocate(tccn)

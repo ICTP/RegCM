@@ -531,7 +531,6 @@ module mod_rad_colmod3
     !     end do
     !   end do
     !
-    !
     ! Tracers mixing ratios
     !
     if ( ichem == 1 ) then
@@ -672,7 +671,7 @@ module mod_rad_colmod3
             !(1.e6 to convert to rel to microm,
             ! 1.e6 to convert nc in m-3)
             rt%rel(k,n) = 1.e6_rk8 * ( 3.0_rk8*lwc / &
-              (4.0_rk8*mathpi*rhoh2o*kparam*nc*1.e6_rk8 ) )**(1.0_rk8/3.0_rk8)
+              (4.0_rk8*mathpi*rhoh2o*kparam*nc*1.e6_rk8) )**(1.0_rk8/3.0_rk8)
           end if
         end do
       end do
@@ -687,7 +686,7 @@ module mod_rad_colmod3
       kabs = kabsl*(1.0_rk8-rt%fice(k,n)) + (kabsi*rt%fice(k,n))
       ! cloud emissivity (fraction)
       arg = min(kabs*rt%clwp(k,n),25.0_rk8)
-      cldemis = max(1.0_rk8 - exp(-arg),0.00_rk8)
+      cldemis = max(1.0_rk8 - exp(-arg),0.0_rk8)
       ! Effective cloud cover
       rt%effcld(k,n) = rt%cld(k,n)*cldemis
     end do
