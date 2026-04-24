@@ -2409,15 +2409,15 @@ module mod_micro_wdm7
     integer(ik4) :: i, k, n, m, kk, kb, kt, rid
     real(rkx) :: tl, tl2, qql, dql, qqd
     real(rkx) :: th, th2, qqh, dqh
-    real(rkx) :: zsum, qsum, xdim, xdip, con1
+    real(rkx) :: zsum, qsum, xdim, xdip
     real(rkx) :: allold, decfl
     real(rkx), dimension(kz) :: dz, ww, qq, wd, wa, wa2, was, nr
-    real(rkx), dimension(kz) :: den, denfac
-    real(rkx), dimension(kzp1) :: wi, zi, za
     real(rkx), dimension(kz) :: qn, qr ,tmp, tmp1, tmp2, tmp3
-    real(rkx), dimension(kzp1) :: dza, qa, qmi, qpi
+    real(rkx), dimension(kz) :: den, denfac
+    real(rkx), dimension(kzp1) :: wi, zi, za, dza, qa, qmi, qpi
     real(rkx), parameter :: fa1 = 9.0_rkx/16.0_rkx
     real(rkx), parameter :: fa2 = 1.0_rkx/16.0_rkx
+    real(rkx), parameter :: con1 = 0.05_rkx
 
     i_loop : &
     do i = ims, ime
@@ -2478,7 +2478,6 @@ module mod_micro_wdm7
         !
         ! diffusivity of wi
         !
-        con1 = 0.05_rkx
         do k = kz, 1, -1
           decfl = (wi(k+1)-wi(k))*dt/dz(k)
           if ( decfl > con1 ) then
@@ -2662,16 +2661,17 @@ module mod_micro_wdm7
     integer(ik4) :: i, k, n, m, kk, kb, kt, ist
     real(rkx) :: tl, tl2, qql, dql, qqd
     real(rkx) :: th, th2, qqh, dqh
-    real(rkx) :: zsum, qsum, xdim, xdip, con1
+    real(rkx) :: zsum, qsum, xdim, xdip
     real(rkx) :: allold, decfl
     real(rkx), dimension(ims:ime) :: precip
-    real(rkx), dimension(kz) :: dz, ww, qq, wd, wa, wa2, was
+    real(rkx), dimension(kz) :: dz, tk, ww, qq, wd, wa, wa2, was
     real(rkx), dimension(kz) :: den, denfac
     real(rkx), dimension(kzp1) :: wi, zi, za
     real(rkx), dimension(kz) :: qn, qr, qr2, qq2, tmp, tmp1, tmp2, tmp3
     real(rkx), dimension(kzp1) :: dza, qa, qa2, qmi, qpi
     real(rkx), parameter :: fa1 = 9.0_rkx/16.0_rkx
     real(rkx), parameter :: fa2 = 1.0_rkx/16.0_rkx
+    real(rkx), parameter :: con1 = 0.05_rkx
 
     i_loop : &
     do i = ims, ime
@@ -2683,6 +2683,7 @@ module mod_micro_wdm7
         qq(k) = rql(i,k)
         qq2(k) = rql2(i,k)
         ww(k) = wwl(i,k)
+        tk(k) = tkl(i,k)
         den(k) = denl(i,k)
         denfac(k) = denfacl(i,k)
       end do
@@ -2725,7 +2726,6 @@ module mod_micro_wdm7
           if ( ww(k) == 0.0_rkx ) wi(k) = ww(k-1)
         end do
         !diffusivity of wi
-        con1 = 0.05_rkx
         do k = kz, 1, -1
           decfl = (wi(k+1)-wi(k))*dt/dz(k)
           if ( decfl > con1 ) then
@@ -2754,7 +2754,7 @@ module mod_micro_wdm7
         ! terminal velocity then back to use mean terminal velocity
         !
         if ( n > maxiter ) exit
-        call slope_snow(qr,den,denfac,tkl,tmp,tmp1,tmp2,tmp3,wa)
+        call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
         call slope_graup(qr2,den,denfac,tmp,tmp1,tmp2,tmp3,wa2)
         do k = 1, kz
           tmp(k) = max((qr(k)+qr2(k)), 1.e-15_rkx)
@@ -2764,7 +2764,11 @@ module mod_micro_wdm7
             wa(k) = 0.0_rkx
           end if
         end do
-        if ( n >= 2 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
+        if ( n >= 2 ) then
+          do k = 1, kz
+            wa(k) = d_half*(wa(k)+was(k))
+          end do
+        end if
         do k = 1, kz
           ! mean wind is average of departure and new arrival winds
           ww(k) = d_half * ( wd(k)+wa(k) )
@@ -2880,6 +2884,8 @@ module mod_micro_wdm7
             cycle sum_precip1
           else if ( za(k) < 0.0_rkx .and. za(k+1) >= 0.0_rkx ) then
             precip(i) = precip(i) + qa(k)*(0.0_rkx-za(k))
+            exit sum_precip1
+          else
             exit sum_precip1
           end if
         end do sum_precip1

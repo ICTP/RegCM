@@ -2160,7 +2160,7 @@ module mod_micro_wsm7
     integer(ik4) :: i, k, n, m, kk, kb, kt, ist
     real(rkx) :: tl, tl2, qql, dql, qqd
     real(rkx) :: th, th2, qqh, dqh
-    real(rkx) :: zsum, qsum, xdim, xdip, con1
+    real(rkx) :: zsum, qsum, xdim, xdip
     real(rkx) :: allold, decfl
     real(rkx), dimension(ims:ime) :: precip
     real(rkx), dimension(kz) :: dz, ww, qq, wd, wa, wa2, was
@@ -2170,6 +2170,7 @@ module mod_micro_wsm7
     real(rkx), dimension(kzp1) :: dza, qa, qa2, qmi, qpi
     real(rkx), parameter :: fa1 = 9.0_rkx/16.0_rkx
     real(rkx), parameter :: fa2 = 1.0_rkx/16.0_rkx
+    real(rkx), parameter :: con1 = 0.05_rkx
 
     i_loop : &
     do i = ims, ime
@@ -2224,7 +2225,6 @@ module mod_micro_wsm7
           if ( ww(k) == 0.0_rkx ) wi(k) = ww(k-1)
         end do
         !diffusivity of wi
-        con1 = 0.05_rkx
         do k = kz, 1, -1
           decfl = (wi(k+1)-wi(k))*dt/dz(k)
           if ( decfl > con1 ) then
@@ -2381,6 +2381,8 @@ module mod_micro_wsm7
             cycle sum_precip1
           else if ( za(k) < d_zero .and. za(k+1) >= d_zero ) then
             precip(i) = precip(i) + qa(k)*(d_zero-za(k))
+            exit sum_precip1
+          else
             exit sum_precip1
           end if
         end do sum_precip1
