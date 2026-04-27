@@ -19,10 +19,9 @@ module mod_cu_kf
   use mod_intkinds
   use mod_constants, only : egrav, regrav, rdry, gdry, tzero
   use mod_constants, only : aliq, bliq, cliq, dliq, ep1
-  use mod_constants, only : cpd, rcpd, wlhf, p00
+  use mod_constants, only : cpd, rcpd, wlhv, wlhf, p00, cpw, cpv
   use mod_constants, only : d_zero, d_one, d_half, d_two
   use mod_constants, only : d_10, d_100, d_1000, dlowval
-  use mod_constants, only : xlv0, xlv1
   use mod_memutil
   use mod_dynparam
   use mod_stdio
@@ -101,6 +100,7 @@ module mod_cu_kf
   real(rkx), parameter :: dpmin = 3.0e3_rkx
   real(rkx), parameter :: ttfrz = tzero - 5.0_rkx
   real(rkx), parameter :: tbfrz = tzero - 25.0_rkx
+  real(rkx), parameter :: lv1 = cpw-cpv
 
   real(rkx), parameter :: u00 = 0.80_rkx
   real(rkx), parameter :: u01 = 0.98_rkx
@@ -1333,7 +1333,7 @@ module mod_cu_kf
             !
             if ( rhh < d_one ) then
               dssdt = (cliq-bliq*dliq)/((tz(nd)-dliq)*(tz(nd)-dliq))
-              rl = xlv0 - xlv1 * tz(nd)
+              rl = wlhv - lv1 * tz(nd)
               dtmp = rl*qss*(d_one-rhh)/(cpd+rl*rhh*qss*dssdt)
               t1rh = tz(nd) + dtmp
               es = rhh*aliq*exp((bliq*t1rh-cliq)/(t1rh-dliq))
@@ -1629,7 +1629,7 @@ module mod_cu_kf
         ! Remove supersaturation for diagnostic purposes, if necessary
         !
         if ( qmix > qss ) then
-          rl = xlv0-xlv1*tmix
+          rl = wlhv - lv1*tmix
           cpm = cpd*(d_one+0.887_rkx*qmix)
           dssdt = qss*(cliq-bliq*dliq)/((tmix-dliq)*(tmix-dliq))
           dq = (qmix-qss)/(d_one+rl*dssdt/cpm)
@@ -1912,7 +1912,7 @@ module mod_cu_kf
         do nk = 1, ltop
           k = ltop - nk + 1
           dtt = (tg(k)-t0(k,np))*86400.0_rkx/timec
-          rl = xlv0-xlv1*tg(k)
+          rl = wlhv - lv1*tg(k)
           dr = -(qg(k)-q0(k,np))*rl*86400.0_rkx/(timec*cpd)
           udfrc = udr(k)*timec*emsd(k)
           uefrc = uer(k)*timec*emsd(k)
@@ -2166,7 +2166,7 @@ module mod_cu_kf
           qice = qice - dq*qice/(qtot+1.0e-10_rkx)
           qu = qs
         else
-          rll = xlv0-xlv1*temp
+          rll = wlhv - lv1*temp
           cpp = cpd*(d_one+0.89_rkx*qu)
           if ( qtot < 1.0e-10_rkx ) then
             ! If no liquid water or ice is available, temperature is given by:

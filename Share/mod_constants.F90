@@ -382,11 +382,6 @@ module mod_constants
   ! Ratio of mean molecular weight of water to that of dry air
   real(rkx), parameter :: ep2 = amw/amd   ! 0.6219770795
   real(rkx), parameter :: rep2 = amd/amw  ! 1.6077762876
-  ! Constant defined for calculation of latent heating
-  real(rkx), parameter :: xlv0 = 3.15E6_rkx
-  real(rkx), parameter :: xlv1 = 2370.0_rkx
-  real(rkx), parameter :: xls0 = 2.905E6_rkx
-  real(rkx), parameter :: xls1 = 259.532_rkx
 
   ! Terminal velocity constants
   real(rkx), parameter :: avt = 841.99667_rkx

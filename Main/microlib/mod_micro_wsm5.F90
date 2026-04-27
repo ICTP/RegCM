@@ -70,8 +70,8 @@ module mod_micro_wsm5
   real(rkx), parameter :: pfrz2 = 0.66_rkx
   ! minimun values for qr, qs, and qg
   real(rkx), parameter :: qrsmin = 1.0e-15_rkx
-  real(rkx), parameter :: qcimin = 1.0e-12_rkx
-  real(rkx), parameter :: qvmin = 1.0e-10_rkx
+  real(rkx), parameter :: qcimin = 1.0e-10_rkx
+  real(rkx), parameter :: qmin = 1.0e-8_rkx
   ! snow/cloud-water collection efficiency
   real(rkx), parameter :: eacrc = 1.0_rkx
 
@@ -421,14 +421,14 @@ module mod_micro_wsm5
         qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
         qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
         qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
-        qs(i,k,1) = max(qs(i,k,1),qvmin)
-        rh(i,k,1) = max(qv(i,k) / qs(i,k,1),qvmin)
+        qs(i,k,1) = max(qs(i,k,1),qmin)
+        rh(i,k,1) = max(qv(i,k) / qs(i,k,1),qmin)
         if ( t(i,k) < wattp ) then
           qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
           qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
           qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
-          qs(i,k,2) = max(qs(i,k,2),qvmin)
-          rh(i,k,2) = max(qv(i,k) / qs(i,k,2),qvmin)
+          qs(i,k,2) = max(qs(i,k,2),qmin)
+          rh(i,k,2) = max(qv(i,k) / qs(i,k,2),qmin)
         else
           qs(i,k,2) = qs(i,k,1)
           rh(i,k,2) = rh(i,k,1)
@@ -466,8 +466,8 @@ module mod_micro_wsm5
       ! compute the fallout term:
       ! first, vertical terminal velocity for minor loops
       !
-      call slope_wsm5(qrs,den,denfac,t, &
-                      rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
+      call slope_wsm5(ims,ime,qrs,den,denfac,t, &
+                      rslope,rslopeb,rslope2,rslope3,work1)
       do concurrent ( i = ims:ime, k = kz:1:-1 )
         workr(i,k) = work1(i,k,1)
         works(i,k) = work1(i,k,2)
@@ -493,8 +493,8 @@ module mod_micro_wsm5
         fall(i,1,2) = delqrs2(i)/delz(i,1)*rdtcld
       end do
 
-      call slope_wsm5(qrs,den,denfac,t, &
-                      rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
+      call slope_wsm5(ims,ime,qrs,den,denfac,t, &
+                      rslope,rslopeb,rslope2,rslope3,work1)
       do concurrent ( i = ims:ime, k = kz:1:-1 )
         supcol = tzero - t(i,k)
         n0sfac = max(min(exp(alpha*supcol),nfacmax),d_one)
@@ -614,8 +614,8 @@ module mod_micro_wsm5
       !
       ! update the slope parameters for microphysics computation
       !
-      call slope_wsm5(qrs,den,denfac,t, &
-                      rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
+      call slope_wsm5(ims,ime,qrs,den,denfac,t, &
+                      rslope,rslopeb,rslope2,rslope3,work1)
       !
       ! work1:  the thermodynamic term in the denominator associated with
       !         heat conduction and vapor diffusion
@@ -633,7 +633,7 @@ module mod_micro_wsm5
       ! - follows the processes in rh83 and lfo except for autoconcersion
       !
       do concurrent ( i = ims:ime, k = 1:kz )
-        supsat = max(qv(i,k),qvmin)-qs(i,k,1)
+        supsat = max(qv(i,k),qmin)-qs(i,k,1)
         satdt = supsat*rdtcld
         !
         ! praut: auto conversion rate from cloud to rain [hdc 16]
@@ -680,7 +680,7 @@ module mod_micro_wsm5
       do concurrent ( i = ims:ime, k = 1:kz )
         supcol = tzero-t(i,k)
         n0sfac = max(min(exp(alpha*supcol),nfacmax),d_one)
-        supsat = max(qv(i,k),qvmin)-qs(i,k,2)
+        supsat = max(qv(i,k),qmin)-qs(i,k,2)
         satdt = supsat*rdtcld
         ifsat = 0
         !
@@ -904,7 +904,7 @@ module mod_micro_wsm5
         qs(i,k,1) = psat * exp(log(tr)*xa + xb*(d_one-tr))
         qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
         qs(i,k,1) = ep2 * qs(i,k,1)/(p(i,k)-qs(i,k,1))
-        qs(i,k,1) = max(qs(i,k,1),qvmin)
+        qs(i,k,1) = max(qs(i,k,1),qmin)
       end do
       ! pcond: condensational/evaporational rate of cloud water
       !        [hl a46] [rh83 a6]
@@ -912,12 +912,12 @@ module mod_micro_wsm5
       ! evaporation of cloud water is not enough to remove subsaturation
       !
       do concurrent ( i = ims:ime, k = 1:kz )
-        work1(i,k,1) = ((max(qv(i,k),qvmin)-qs(i,k,1)))/  &
+        work1(i,k,1) = ((max(qv(i,k),qmin)-qs(i,k,1)))/  &
              (d_one+(xl(i,k))*(xl(i,k))/(rwat*(cpm(i,k)))*(qs(i,k,1)) / &
              ((t(i,k))*(t(i,k))))
         work2(i,k) = qci(i,k,1)+work1(i,k,1)
         pcond(i,k) = min(max(work1(i,k,1)*rdtcld,d_zero), &
-                         max(qv(i,k),qvmin)*rdtcld)
+                         max(qv(i,k),qmin)*rdtcld)
         if ( qci(i,k,1) > 0.0_rkx .and. work1(i,k,1) < d_zero ) then
           pcond(i,k) = max(work1(i,k,1),-qci(i,k,1))*rdtcld
         end if
@@ -940,7 +940,7 @@ module mod_micro_wsm5
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: q
-    cpmcal = cpd*(d_one-max(q,qvmin)) + cpv*max(q,qvmin)
+    cpmcal = cpd*(d_one-max(q,qmin)) + cpv*max(q,qmin)
   end function cpmcal
 
   ! diffus: diffusion coefficient of the water vapor
@@ -986,11 +986,11 @@ module mod_micro_wsm5
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: a, b, c, d, e
-    conden = (max(b,qvmin)-c)/(d_one+d*d/(rwat*e)*c/(a*a))
+    conden = (max(b,qmin)-c)/(d_one+d*d/(rwat*e)*c/(a*a))
   end function conden
 
-  subroutine slope_wsm5(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt, &
-                        ims,ime)
+  subroutine slope_wsm5(ims,ime,qrs,den,denfac,t,rslope,rslopeb,&
+                        rslope2,rslope3,vt)
     implicit none
     integer(ik4), intent(in) :: ims, ime
     real(rkx), dimension(ims:ime,kz,2), intent(in) :: qrs
