@@ -1384,7 +1384,7 @@ module mod_ncio
     implicit none
     type(tccn_data), intent(inout) :: ccn
     character(len=256) :: ccnfile
-    integer(ik4) :: ncid, idim, ivar
+    integer(ik4) :: ncid, idim, ivar, i, j, k, n
     integer(ik4), parameter :: nseas = 4
     character(len=*), parameter :: omcam = 'CCN_climatology_cloudfree_8km.nc'
 
@@ -1424,7 +1424,14 @@ module mod_ncio
     call check_ok(__FILE__,__LINE__,'Error Close CCN file','CCN FILE')
     ! Unit of measure: set altitude in meters, CCN in #/m3
     ccn%altitude(:) = ccn%altitude(:) * 1000.0_rkx  ! In file km amsl
-    ccn%ccn(:,:,:,:) = ccn%ccn(:,:,:,:) * 1.0e6_rkx ! In file #/cm3
+    do concurrent ( j = 1:ccn%nlon, i = 1:ccn%nlat, &
+                    k = 1:ccn%nlev, n = 1:nseas )
+      if ( ccn%ccn(j,i,k,n) < 1.0E20_rkx ) then
+        ccn%ccn(j,i,k,n) = ccn%ccn(j,i,k,n) * 1.0e6_rkx ! In file #/cm3
+      else
+        ccn%ccn(j,i,k,n) = -9999.0_rkx
+      end if
+    end do
   end subroutine read_ccn
 
 end module mod_ncio
