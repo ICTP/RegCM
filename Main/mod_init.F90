@@ -23,6 +23,7 @@ module mod_init
   use mod_stdio
   use mod_date
   use mod_runparams
+  use mod_memutil
   use mod_mppparam
   use mod_lm_interface
   use mod_atm_interface
@@ -366,7 +367,7 @@ module mod_init
             call grid_collect(mddom%xlon,alon,jce1,jce2,ice1,ice2)
             call grid_collect(mddom%xlat,alat,jce1,jce2,ice1,ice2)
             call read_ccn(ccns)
-            sccn => ccns%ccn(:,:,:,season_index(rcmtimer%idate))
+            call assignpnt(ccns%ccn,sccn,season_index(rcmtimer%idate))
             nlev = ccns%nlev
             altitude => ccns%altitude
             call bcast(nlev)
