@@ -409,7 +409,7 @@ module mod_init
             call bcast(altitude)
             allocate(occn(jce1:jce2,ice1:ice2,1:nlev))
             call grid_distribute(iccn,occn,jce1,jce2,ice1,ice2,1,nlev)
-            allocate(tccn(jce1:jce2,ice1:ice2,1:nlev))
+            allocate(tccn(jce1:jce2,ice1:ice2,1:kz))
             call intz1(tccn,occn,atms%za,altitude,mddom%ht, &
                      jce1,jce2,ice1,ice2,kz,nlev,0.7_rkx,0.4_rkx,0.7_rkx)
             deallocate(altitude)

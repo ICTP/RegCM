@@ -1454,7 +1454,7 @@ module mod_vertint
     real(rkx), pointer, dimension(:), intent(in) :: zccm
     real(rkx), pointer, dimension(:,:,:), intent(in) :: zrcm
     real(rkx), pointer, dimension(:,:), intent(in) :: trcm ! geopotential
-    real(rkx), pointer, dimension(:,:,:), intent(out) :: frcm
+    real(rkx), pointer, dimension(:,:,:), intent(inout) :: frcm
     real(rkx), dimension(kccm) :: xc, fc
     real(rkx), dimension(krcm) :: xr, fr
     integer(ik4) :: i, j, k
