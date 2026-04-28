@@ -2066,10 +2066,6 @@ module mod_micro_wdm7
       end do
 
       do concurrent ( i = ims:ime, k = 1:kz )
-        qrs_tmp(i,k,1) = qrs(i,k,1)
-        qrs_tmp(i,k,2) = qrs(i,k,2)
-        qrs_tmp(i,k,3) = qrs(i,k,3)
-        qrs_tmp(i,k,4) = qrs(i,k,4)
         ncr_tmp(i,k) = ncr(i,k,3)
       end do
       call slope_wdm7(ims,ime,qrs_tmp,ncr_tmp,den,denfac,t, &
@@ -2153,7 +2149,7 @@ module mod_micro_wdm7
       do concurrent ( i = ims:ime, k = 1:kz )
         if ( qci(i,k,1) <= qcimin ) qci(i,k,1) = 0.0_rkx
         if ( qci(i,k,2) <= qcimin ) qci(i,k,2) = 0.0_rkx
-        if ( qrs(i,k,1) >= qrsmin .and. ncr(i,k,3) >= nrmin ) then
+        if ( qrs(i,k,1) >= qrsmin .and. ncr(i,k,3) > nrmin ) then
           lamdax = lamdar(qrs(i,k,1),den(i,k),ncr(i,k,3))
           if ( lamdax <= lamdarmin ) then
             lamdax = lamdarmin
@@ -2163,7 +2159,7 @@ module mod_micro_wdm7
             ncr(i,k,3) = den(i,k)*qrs(i,k,1)*(lamdax**3)/pidnr
           end if
         end if
-        if ( qci(i,k,1) >= qcimin .and. ncr(i,k,2) >= ncmin ) then
+        if ( qci(i,k,1) >= qcimin .and. ncr(i,k,2) > ncmin ) then
           lamdax = lamdac(qci(i,k,1),den(i,k),ncr(i,k,2))
           if ( lamdax <= lamdacmin ) then
             lamdax = lamdacmin
