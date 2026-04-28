@@ -155,6 +155,7 @@ module mod_micro_wdm7
   real(rkx), parameter :: ep0 = psat * exp(log(wattp/tzero)*xa) * &
                                        exp(xb*(1.0_rkx-wattp/tzero))
   real(rkx), parameter :: lv1 = cpw-cpv
+  real(rkx), parameter :: diafac = 24.0_rkx**onet
 
   real(rkx),  save :: qc0, qc1, qck1, pidnc, bvtr2, bvtr4, bvtr5,  &
              bvtr7, bvtr3o5, g2pbr, g4pbr, g5pbr, g7pbr, g7pbro2,  &
@@ -740,7 +741,8 @@ module mod_micro_wdm7
             falkn(i,kz) = ncr(i,kz,3)*workn(i,kz)/mstep(i)
             fall(i,kz,1) = fall(i,kz,1) + falk(i,kz,1)
             falln(i,kz) = falln(i,kz) + falkn(i,kz)
-            qrs(i,kz,1) = max(0.0_rkx,qrs(i,kz,1)-dtcld*falk(i,kz,1)/den(i,kz))
+            qrs(i,kz,1) = max(0.0_rkx, &
+                 qrs(i,kz,1)-dtcld*falk(i,kz,1)/den(i,kz))
             ncr(i,kz,3) = max(0.0_rkx,ncr(i,kz,3)-dtcld*falkn(i,kz))
           end if
         end do
@@ -1029,7 +1031,7 @@ module mod_micro_wdm7
         ! compute the mean-volume drop diameter                  [LH A10]
         ! for raindrop distribution
         !
-        avedia(i,k,2) = rslope(i,k,1)*((24.0_rkx)**(1.0_rkx/3.0_rkx))
+        avedia(i,k,2) = rslope(i,k,1)*diafac
         !
         if ( qci(i,k,1) <= qcimin .or. ncr(i,k,2) <= ncmin ) then
           rslopec(i,k) = rslopecmax
@@ -1069,8 +1071,9 @@ module mod_micro_wdm7
           (1.e20_rkx*0.0625_rkx*rslopec2(i,k)*rslopec2(i,k)-0.4_rkx)
         lenconcr = max(1.2_rkx*lencon, qrsmin)
         if ( qci(i,k,1) > qcm(i) .and. ncr(i,k,2) > ncmin ) then
-          praut(i,k) = qck1*qci(i,k,1)**(7.0_rkx/3.0_rkx) / &
-                       ncr(i,k,2)**onet
+          praut(i,k) = qck1 * &
+                       (qci(i,k,1)**(7.0_rkx/3.0_rkx)) / &
+                       (ncr(i,k,2)**onet)
           praut(i,k) = min(praut(i,k),qci(i,k,1)*rdtcld)
           !
           ! nraut: auto conv. rate from cloud to rain [LH A6] [CP 18 & 19]
@@ -1145,8 +1148,8 @@ module mod_micro_wdm7
           prevp(i,k) = (rh(i,k,1)-1.0_rkx)*ncr(i,k,3)*(precr1*rslope(i,k,1) + &
                        precr2*work2(i,k)*coeres)/work1(i,k,1)
           if ( prevp(i,k) < 0.0_rkx ) then
-            prevp(i,k) = max(prevp(i,k),-qrs(i,k,1)*rdtcld)
             prevp(i,k) = max(prevp(i,k),satdt*0.5_rkx)
+            prevp(i,k) = max(prevp(i,k),-qrs(i,k,1)*rdtcld)
             !
             ! Nrevp: evaporation/condensation rate of rain   [LH A14]
             !        (NR->NCCN)
@@ -1502,7 +1505,7 @@ module mod_micro_wdm7
             pgaci_w(i,k) = 0.0_rkx
           end if
           pgwet(i,k) = ghw1/ghw2*(precg1*rslope2(i,k,3)      + &
-                       precg3*ghw3*rslope(i,k,4)**(2.75_rkx) + &
+                       precg3*ghw3*(rslope(i,k,4)**2.75_rkx) + &
                        ghw4*(pgaci_w(i,k)+pgacs(i,k)))
           pgwet(i,k) = max(pgwet(i,k), 0.0_rkx)
         end if
@@ -1518,7 +1521,7 @@ module mod_micro_wdm7
           end if
         end if
         phwet(i,k) = ghw1/ghw2*(prech1*rslope2(i,k,4)      + &
-                     prech3*ghw3*rslope(i,k,4)**(2.75_rkx) + &
+                     prech3*ghw3*(rslope(i,k,4)**2.75_rkx) + &
                      ghw4*(phaci_w(i,k)+phacs(i,k)))
         phwet(i,k) = max(phwet(i,k), 0.0_rkx)
         if ( supcol <= 0.0_rkx ) then
@@ -2060,18 +2063,15 @@ module mod_micro_wdm7
         qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
         qs(i,k,1) = max(qs(i,k,1),qmin)
         rh(i,k,1) = max(qv(i,k)/qs(i,k,1),qmin)
-        if ( t(i,k) < wattp ) then
-          qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
-          qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
-          qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
-          qs(i,k,2) = max(qs(i,k,2),qmin)
-          rh(i,k,2) = max(qv(i,k)/qs(i,k,2),qmin)
-        else
-          qs(i,k,2) = qs(i,k,1)
-          rh(i,k,2) = rh(i,k,1)
-        endif
       end do
 
+      do concurrent ( i = ims:ime, k = 1:kz )
+        qrs_tmp(i,k,1) = qrs(i,k,1)
+        qrs_tmp(i,k,2) = qrs(i,k,2)
+        qrs_tmp(i,k,3) = qrs(i,k,3)
+        qrs_tmp(i,k,4) = qrs(i,k,4)
+        ncr_tmp(i,k) = ncr(i,k,3)
+      end do
       call slope_wdm7(ims,ime,qrs_tmp,ncr_tmp,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,workn)
 
@@ -2080,7 +2080,7 @@ module mod_micro_wdm7
         ! re-compute the mean-volume drop diameter       [LH A10]
         ! for raindrop distribution
         !
-        avedia(i,k,2) = rslope(i,k,1)*((24.0_rkx)**onet)
+        avedia(i,k,2) = rslope(i,k,1)*diafac
         !
         ! Nrevp_s: evaporation/condensation rate of rain   [LH A14]
         !        (NR->NC)
@@ -2096,6 +2096,7 @@ module mod_micro_wdm7
           qrs(i,k,1) = 0.0_rkx
         end if
       end do
+
       do concurrent ( i = ims:ime, k = 1:kz )
         !
         ! rate of change of cloud drop concentration due to CCN activation
@@ -2146,37 +2147,30 @@ module mod_micro_wdm7
         qci(i,k,1) = max(qci(i,k,1)+pcond(i,k)*dtcld,0.0_rkx)
         t(i,k) = t(i,k)+pcond(i,k)*xl(i,k)/cpm(i,k)*dtcld
       end do
-      !
       !----------------------------------------------------------------
       !     padding for small values
       !
       do concurrent ( i = ims:ime, k = 1:kz )
-        if ( qci(i,k,1) <= qcimin) qci(i,k,1) = 0.0_rkx
-        if ( qci(i,k,2) <= qcimin) qci(i,k,2) = 0.0_rkx
-        if ( qrs(i,k,1) >= qrsmin .and. ncr(i,k,3) > nrmin) then
-          lamdax = exp(log(((pidnr*ncr(i,k,3)) / &
-             (den(i,k)*qrs(i,k,1))))*(onet))
+        if ( qci(i,k,1) <= qcimin ) qci(i,k,1) = 0.0_rkx
+        if ( qci(i,k,2) <= qcimin ) qci(i,k,2) = 0.0_rkx
+        if ( qrs(i,k,1) >= qrsmin .and. ncr(i,k,3) >= nrmin ) then
+          lamdax = lamdar(qrs(i,k,1),den(i,k),ncr(i,k,3))
           if ( lamdax <= lamdarmin ) then
             lamdax = lamdarmin
-            ncr(i,k,3) = max(den(i,k)*qrs(i,k,1) * &
-              lamdax**3/pidnr,0.0_rkx)
+            ncr(i,k,3) = den(i,k)*qrs(i,k,1)*(lamdax**3)/pidnr
           else if ( lamdax >= lamdarmax ) then
             lamdax = lamdarmax
-            ncr(i,k,3) = max(den(i,k)*qrs(i,k,1) * &
-              lamdax**3/pidnr,0.0_rkx)
+            ncr(i,k,3) = den(i,k)*qrs(i,k,1)*(lamdax**3)/pidnr
           end if
         end if
-        if ( qci(i,k,1) >= qcimin .and. ncr(i,k,2) > ncmin ) then
-          lamdax = exp(log(((pidnc*ncr(i,k,2)) / &
-             (den(i,k)*qci(i,k,1))))*(onet))
+        if ( qci(i,k,1) >= qcimin .and. ncr(i,k,2) >= ncmin ) then
+          lamdax = lamdac(qci(i,k,1),den(i,k),ncr(i,k,2))
           if ( lamdax <= lamdacmin ) then
             lamdax = lamdacmin
-            ncr(i,k,2) = max(den(i,k)*qci(i,k,1) * &
-              lamdax**3/pidnc,0.0_rkx)
+            ncr(i,k,2) = den(i,k)*qci(i,k,1)*(lamdax**3)/pidnc
           else if ( lamdax >= lamdacmax ) then
             lamdax = lamdacmax
-            ncr(i,k,2) = max(den(i,k)*qci(i,k,1) * &
-              lamdax**3/pidnc,0.0_rkx)
+            ncr(i,k,2) = den(i,k)*qci(i,k,1)*(lamdax**3)/pidnc
           end if
         end if
       end do
