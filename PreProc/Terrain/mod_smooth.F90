@@ -105,47 +105,55 @@ module mod_smooth
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nsp , npass
     real(rkx) , intent(inout) , dimension(nj,ni) :: slab
-    real(rkx) :: aplus , asv , cell
-    integer(ik4) :: i , ie , iem , j , je , jem , k , kp
-    real(rkx) , dimension(2) :: xnu
-    !
-    ! purpose: spatially smooth data in slab to dampen short
-    ! wavelength components
-    !
-    ie = ni - 1
-    je = nj - 1
-    iem = ie - nsp + 1
-    jem = je - nsp + 1
-    xnu(1) =  0.50_rkx
-    xnu(2) = -0.52_rkx
-    do k = 1 , npass
-      do kp = 1 , 2
-        ! first smooth in the ni direction
-        do i = 2 , ie
-          asv = slab(1,i)
-          do j = 2 , je
-            cell = slab(j,i)
-            aplus = slab(j+1,i)
-            if ( (i <= nsp) .or. (i >= iem) .and. &
-                 (j <= nsp) .or. (j >= jem) ) then
-              slab(j,i) = max(cell + xnu(kp)*( (asv+aplus)/d_two - cell),d_zero)
-            end if
-            asv = cell
-          end do
+    real(rkx) , dimension(nj,ni) :: temp1 , temp2
+    integer :: n , i , j
+    temp1(:,:) = slab(:,:)
+    ! Gaussian filter
+    do n = 1 , npass
+      do i = 2 , ni-1
+        do j = 2 , nj-1
+          temp2(j,i) = 0.0625_rkx * ( 4.0_rkx * temp1(j,i) + &
+                  2.0_rkx * (temp1(j,i+1)+temp1(j,i-1) + &
+                             temp1(j+1,i)+temp1(j-1,i)) + &
+            temp1(j+1,i+1)+temp1(j-1,i+1)+temp1(j-1,i-1)+temp1(j+1,i-1))
         end do
-        ! smooth in the nj direction
-        do j = 2 , je
-          asv = slab(j,1)
-          do i = 2 , ie
-            cell = slab(j,i)
-            aplus = slab(j,i+1)
-            if ( (i <= nsp) .or. (i >= iem) .and. &
-                 (j <= nsp) .or. (j >= jem) ) then
-              slab(j,i) = max(cell + xnu(kp)*((asv+aplus)/d_two - cell),d_zero)
-            end if
-            asv = cell
-          end do
-        end do
+      end do
+      do i = 2 , ni-1
+        temp2(1,i) = 0.1_rkx * ( 3.0_rkx * temp1(1,i) + &
+          2.0_rkx * (temp1(1,i+1)+temp1(1,i-1)+temp1(2,i)) + &
+          0.5_rkx * (temp1(2,i+1)+temp1(2,i-1)))
+        temp2(nj,i) = 0.1_rkx * ( 3.0_rkx * temp1(nj,i) + &
+          2.0_rkx * (temp1(nj,i+1)+temp1(nj,i-1)+temp1(nj-1,i)) + &
+          0.5_rkx * (temp1(nj-1,i+1)+temp1(nj-1,i-1)))
+      end do
+      do j = 2 , nj-1
+        temp2(j,1) = 0.1_rkx * ( 3.0_rkx * temp1(j,1) + &
+          2.0_rkx * (temp1(j+1,1)+temp1(j-1,1)+temp1(j,2)) + &
+          0.5_rkx * (temp1(j+1,2)+temp1(j-1,2)))
+        temp2(j,ni) = 0.1_rkx * ( 3.0_rkx * temp1(j,ni) + &
+          2.0_rkx * (temp1(j+1,ni)+temp1(j-1,ni)+temp1(j,ni-1)) + &
+          0.5_rkx * (temp1(j+1,ni-1)+temp1(j-1,ni-1)))
+      end do
+      temp2(1,1) =   0.25_rkx * (temp1(1,   1) +temp1(1,   2)    + &
+                                 temp1(2,   1) +temp1(2,   2))
+      temp2(1,ni) =  0.25_rkx * (temp1(1,   ni)+temp1(1,   ni-1) + &
+                                 temp1(2,   ni)+temp1(2,   ni-1))
+      temp2(nj,1) =  0.25_rkx * (temp1(nj,  1) +temp1(nj,  2)    + &
+                                 temp1(nj-1,1) +temp1(nj-1,2))
+      temp2(nj,ni) = 0.25_rkx * (temp1(nj,  ni)+temp1(nj,  ni-1) + &
+                                 temp1(nj-1,ni)+temp1(nj-1,ni-1))
+      temp1(:,:) = temp2(:,:)
+    end do
+    ! Update filtered in boundary using linear scheme
+    temp2(:,:) = temp1(:,:) - slab(:,:)
+    do n = 1 , nsp
+      do j = 1 , nj
+        slab(j,n) = slab(j,n) + real(nsp-n)/nsp * temp2(j,n)
+        slab(j,ni-n+1) = slab(j,ni-n+1) + real(nsp-n)/nsp * temp2(j,ni-n+1)
+      end do
+      do i = nsp+1 , ni-nsp
+        slab(n,i) = slab(n,i) + real(nsp-n)/nsp * temp2(n,i)
+        slab(nj-n+1,i) = slab(nj-n+1,i) + real(nsp-n)/nsp * temp2(nj-n+1,i)
       end do
     end do
   end subroutine smther
