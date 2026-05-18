@@ -377,7 +377,7 @@ module mod_oasis_regcm_field
       tmp => p
       p => p%next
       deallocate(tmp)
-    end do 
+    end do
     nullify(flist)
   end subroutine depopulate_field_list
 
@@ -393,7 +393,7 @@ module mod_oasis_regcm_field
     do while(associated(p))
       call define_onefield(p,OASIS_Out)
       p => p%next
-    end do 
+    end do
 #ifdef DEBUG
     write(stdout,*) oasis_prefix, ' >> Successful activation'
 #endif
@@ -411,7 +411,7 @@ module mod_oasis_regcm_field
     do while(associated(p))
       call define_onefield(p,OASIS_In)
       p => p%next
-    end do 
+    end do
   end subroutine activate_regcm_import_flist
 
   subroutine define_onefield(p, direction)
@@ -430,21 +430,28 @@ module mod_oasis_regcm_field
     ierror = 0
     p%factive = .true.
 #else
-    call oasis_def_var(p%id, p%fname, p%grd%id, [1,1], &
-            direction, [1,1], OASIS_Real, ierror)
-    if ( ierror /= 0 ) then
-      write(stderr,*) 'oasis_def_var (', p%fname, ') abort compid ', comp_id
-      call oasis_abort(comp_id, __FILE__, &
-              'Problem in oasis_def_var call for field '//p%fname)
-    end if
 #endif
     select type(p)
       class is ( regcm_oasis_field_2d )
+        call oasis_def_var(p%id, p%fname, p%grd%id, [1,1], &
+                direction, [1,1], OASIS_Real, ierror)
+        if ( ierror /= 0 ) then
+          write(stderr,*) 'oasis_def_var (', p%fname, ') abort compid ', comp_id
+          call oasis_abort(comp_id, __FILE__, &
+              'Problem in oasis_def_var call for field '//p%fname)
+        end if
         if ( .not. associated(p%tp) ) then
           call getmem(p%tp,p%grd%j1l,p%grd%j2l,p%grd%i1l,p%grd%i2l, &
                   'OASIS: oasis_field_2d '//trim(p%fname))
         end if
       class is ( regcm_oasis_field_3d )
+        call oasis_def_var(p%id, p%fname, p%grd%id, [1,p%nz], &
+                direction, [1,1], OASIS_Real, ierror)
+        if ( ierror /= 0 ) then
+          write(stderr,*) 'oasis_def_var (', p%fname, ') abort compid ', comp_id
+          call oasis_abort(comp_id, __FILE__, &
+              'Problem in oasis_def_var call for field '//p%fname)
+        end if
         if ( .not. associated(p%tp) ) then
           call getmem(p%tp,p%grd%j1l,p%grd%j2l,p%grd%i1l,p%grd%i2l, &
                   1, p%nz, 'OASIS: oasis_field_3d '//trim(p%fname))
@@ -546,6 +553,8 @@ program testme
 
   ! Cleanup storage
   call depopulate_field_list(flist)
+  call print_field_list(flist_regcm_import)
+  call print_field_list(flist_regcm_export)
   call depopulate_field_list(flist_regcm_export)
   call depopulate_field_list(flist_regcm_import)
   deallocate(f2d, f2d1, f3d)
