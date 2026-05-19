@@ -54,7 +54,8 @@ module mod_projections
     real(rk8) :: xoff, yoff
     real(rk8) :: zsinpol, zcospol, zlampol
     real(rk8) :: pollam, polcphi, polsphi
-    real(rk8) :: conefac, rconefac
+    real(rk8) :: conefac = 1.0_rk8
+    real(rk8) :: rconefac
     integer(ik4) :: nlat, nlon
     logical :: lamtan
     logical :: skiprot
