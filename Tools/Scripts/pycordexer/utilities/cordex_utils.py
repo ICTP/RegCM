@@ -727,7 +727,7 @@ class CordexDataset(Dataset):
             'grid': mgrid,
             'institution': CORDEX_CMIP6_DEFINITIONS['institution_id'][regcm_file.institute_id],
             'institution_id': regcm_file.institute_id,
-            'source': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['source'],
+            'source': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['source'][0],
             'license': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['license'],
             'project_id': list(CORDEX_CMIP6_DEFINITIONS['project_id'])[0],
             'source_id': ICTP_Model,
