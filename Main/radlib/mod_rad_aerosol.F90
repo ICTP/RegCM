@@ -36,6 +36,7 @@ module mod_rad_aerosol
   use parrrsw, only : nbndsw
   use parrrtm, only : nbndlw
   use netcdf
+  use mod_ncstream, only : outstream_netcdf_lock, outstream_netcdf_unlock
   use mo_simple_plumes
   implicit none
 
@@ -1581,6 +1582,7 @@ module mod_rad_aerosol
           icount(2) = idot2-idot1 + 1
           icount(3) = kz
           icount(4) = 1
+          call outstream_netcdf_lock()
           do n = 1, ntr
             call assignpnt(aerm,pnt,n)
             ncstatus = nf90_get_var(ncaec,ncaevar(n),aerio,istart,icount)
@@ -1589,6 +1591,7 @@ module mod_rad_aerosol
                ' in AE file','AEBC FILE')
             call grid_distribute(aerio,pnt,jce1,jce2,ice1,ice2,1,kz)
           end do
+          call outstream_netcdf_unlock()
         end if
       else
         istart(1) = jce1
@@ -1599,6 +1602,7 @@ module mod_rad_aerosol
         icount(2) = (ice2-ice1)+1
         icount(3) = kz
         icount(4) = 1
+        call outstream_netcdf_lock()
         do n = 1, ntr
           call assignpnt(aerm,pnt,n)
           ncstatus = nf90_get_var(ncaec,ncaevar(n),pnt,istart,icount)
@@ -1606,6 +1610,7 @@ module mod_rad_aerosol
              'Error reading variable '//trim(aerclima_chtr(n))// &
              ' in AE file','AEBC FILE')
         end do
+        call outstream_netcdf_unlock()
       end if
 
       if ( idynamic == 2 ) then
@@ -1660,6 +1665,7 @@ module mod_rad_aerosol
         write (stdout, *) 'Opening aerosol file : '//trim(aefile)
       end if
 
+      call outstream_netcdf_lock()
       ncstatus = nf90_open(aefile,nf90_nowrite,ncaec)
       call check_ok(__FILE__,__LINE__, &
         'Error Open AE file '//trim(aefile),'AEBC FILE')
@@ -1692,6 +1698,7 @@ module mod_rad_aerosol
       ncstatus = nf90_get_var(ncaec,idtime,xtime)
       call check_ok(__FILE__,__LINE__, &
          'Error reading variable time in AE file '//trim(aefile),'AEBC FILE')
+      call outstream_netcdf_unlock()
       do n = 1, naetime
         aetime(n) = timeval2date(xtime(n),timeunits,timecal)
       end do
@@ -1711,7 +1718,9 @@ module mod_rad_aerosol
         if ( allocated(aetime) ) then
           deallocate(aetime)
         end if
+        call outstream_netcdf_lock()
         ncstatus = nf90_close(ncaec)
+        call outstream_netcdf_unlock()
         call check_ok(__FILE__,__LINE__, &
                'Error Close AE file','AEBC FILE')
         ncaec = -1
@@ -2162,12 +2171,14 @@ module mod_rad_aerosol
       character(len=*), intent(in) :: vname
       real(rkx), intent(out), dimension(:) :: val
       integer(ik4) :: icvar, iret
+      call outstream_netcdf_lock()
       iret = nf90_inq_varid(ncid,vname,icvar)
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPP FILE')
       end if
       iret = nf90_get_var(ncid,icvar,val)
+      call outstream_netcdf_unlock()
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPP FILE')
@@ -2188,12 +2199,14 @@ module mod_rad_aerosol
       icount(1) = clnlon
       icount(2) = clnlat
       icount(3) = clnlev
+      call outstream_netcdf_lock()
       iret = nf90_inq_varid(ncid,vname,icvar)
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
       end if
       iret = nf90_get_var(ncid,icvar,val,istart,icount)
+      call outstream_netcdf_unlock()
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
@@ -2215,12 +2228,14 @@ module mod_rad_aerosol
       icount(1) = clnlon
       icount(2) = clnlat
       icount(3) = clnlev
+      call outstream_netcdf_lock()
       iret = nf90_inq_varid(ncid,vname,icvar)
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
       end if
       iret = nf90_get_var(ncid,icvar,val,istart,icount)
+      call outstream_netcdf_unlock()
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
@@ -2891,6 +2906,7 @@ module mod_rad_aerosol
       write(infile,'(A,A,I4,I0.2,A)') &
         trim(radclimpath)//pthsep//'MERRA2_OPPMONTH_', &
         trim(filnum),year,month,'.nc'
+      call outstream_netcdf_lock()
       if ( ncid < 0 ) then
         iret = nf90_open(infile,nf90_nowrite,ncid)
         if ( iret /= nf90_noerr ) then
@@ -2931,6 +2947,7 @@ module mod_rad_aerosol
       ncstatus = nf90_inquire_dimension(ncid,idimid,len=clnlat)
       call check_ok(__FILE__,__LINE__, &
          'Error reading dimension lat in file '//trim(infile),'OPP FILE')
+      call outstream_netcdf_unlock()
     end subroutine getfile
 
     subroutine remove_nans(val,set)

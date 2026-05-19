@@ -183,6 +183,15 @@ compiled and linked to the executable.
 The RegCM team strongly suggest to build MPI enabled model also on standalone
 systems, to take advantage of the multicore capabilities of any modern
 processor.
+\item Async NetCDF option
+\begin{Verbatim}
+  --enable-async-netcdf
+                     Enable pthread-backed async NetCDF output and ICBC
+                     prefetching.
+\end{Verbatim}
+This option enables asynchronous output writes and prefetching of boundary
+condition input. The default build leaves these features disabled and does not
+require pthreads.
 \item CLM option
 \begin{Verbatim}
   --enable-clm       Supply this option if you plan on using CLM option.

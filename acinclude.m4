@@ -188,7 +188,7 @@ AC_DEFUN([RR_NETCDF4],[
                          [hdf5=yes],
                          [hdf5=no])
       if test "x$hdf5" = "xyes"; then
-        AM_CPPFLAGS="${DEFINE}NETCDF4_HDF5 $AM_CPPFLAGS"
+        AM_CPPFLAGS="-DNETCDF4_HDF5 $AM_CPPFLAGS"
         break
       fi
     done
@@ -206,7 +206,7 @@ AC_DEFUN([RR_NETCDF4],[
                        [hdf5=no])
 
     if test "x$hdf5" = "xyes"; then
-      AM_CPPFLAGS="${DEFINE}NETCDF4_HDF5 $AM_CPPFLAGS"
+      AM_CPPFLAGS="-DNETCDF4_HDF5 $AM_CPPFLAGS"
     fi
     FCFLAGS="$save_FCFLAGS"
   fi
@@ -223,7 +223,7 @@ AC_DEFUN([RR_NETCDF4],[
                      [ncfilter=no])
 
   if test "x$ncfilter" = "xyes"; then
-    AM_CPPFLAGS="${DEFINE}NCFILTERS_AVAIL $AM_CPPFLAGS"
+    AM_CPPFLAGS="-DNCFILTERS_AVAIL $AM_CPPFLAGS"
   fi
   FCFLAGS="$save_FCFLAGS"
   AC_SUBST([AM_CPPFLAGS])
@@ -247,7 +247,7 @@ AC_DEFUN([RR_CDF5],[
                          [cdf5=yes],
                          [cdf5=no])
       if test "x$cdf5" = "xyes"; then
-        AM_CPPFLAGS="${DEFINE}NETCDF_CDF5 $AM_CPPFLAGS"
+        AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
         break
       fi
     done
@@ -265,7 +265,7 @@ AC_DEFUN([RR_CDF5],[
                        [cdf5=no])
 
     if test "x$cdf5" = "xyes"; then
-      AM_CPPFLAGS="${DEFINE}NETCDF_CDF5 $AM_CPPFLAGS"
+      AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
     fi
     FCFLAGS="$save_FCFLAGS"
   fi
@@ -500,7 +500,7 @@ AC_DEFUN([RCM_FC_CHECK_IEEE_ARITHMETIC],[
   if test "${fc_has_ieee_arithmetic}" = "yes"; then
     AC_DEFINE([HAVE_FC_IEEE_ARITHMETIC],1,
       [Define to 1 if your Fortran compiler supports IEEE_ARITHMETIC module.])
-    FCFLAGS="${DEFINE}F2008 $FCFLAGS"
+    FCFLAGS="-DF2008 $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   AC_MSG_RESULT([${fc_has_ieee_arithmetic}])
@@ -521,7 +521,7 @@ AC_DEFUN([RCM_FC_CHECK_QUAD_PRECISION],[
   if test "${fc_has_quad_precision}" = "yes"; then
     AC_DEFINE([HAVE_FC_QUAD_PRECISION],1,
       [Define to 1 if your Fortran compiler supports quadruple precision reals.])
-    FCFLAGS="${DEFINE}QUAD_PRECISION $FCFLAGS"
+    FCFLAGS="-DQUAD_PRECISION $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   AC_MSG_RESULT([${fc_has_quad_precision}])
@@ -543,7 +543,7 @@ AC_DEFUN([RCM_MPI_CHECK_MPI3],[
   if test "${mpifc_has_mpi3}" = "yes"; then
     AC_DEFINE([HAVE_MPI3],1,
       [Define to 1 if your MPI library supports MPI3 interfaces.])
-    FCFLAGS="${DEFINE}USE_MPI3 $FCFLAGS"
+    FCFLAGS="-DUSE_MPI3 $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   FC="$acx_mpi_save_FC"

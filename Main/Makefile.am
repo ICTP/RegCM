@@ -165,7 +165,7 @@ mod_lm_interface.o : mod_lm_interface.F90 mod_atm_interface.o mod_bats_common.o 
 endif
 endif
 mod_moloch.o : mod_moloch.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_constants.o mod_cu_interface.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_massck.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_service.o mod_slabocean.o mod_slice.o mod_stdatm.o mod_stdio.o mod_sun.o cpmf.inc wlh.inc pfwsat.inc
-mod_ncio.o : mod_ncio.F90 mod_intkinds.o mod_realkinds.o mod_date.o mod_constants.o mod_stdio.o mod_domain.o mod_dynparam.o mod_ensemble.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_nchelper.o mod_runparams.o pfesat.inc
+mod_ncio.o : mod_ncio.F90 mod_intkinds.o mod_realkinds.o mod_date.o mod_constants.o mod_stdio.o mod_domain.o mod_dynparam.o mod_ensemble.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_nchelper.o mod_ncstream.o mod_async_netcdf.o mod_runparams.o pfesat.inc
 mod_output.o : mod_output.F90 mod_atm_interface.o mod_bdycod.o mod_capecin.o mod_che_interface.o mod_che_output.o mod_cu_interface.o mod_dynparam.o mod_header.o mod_intkinds.o mod_lm_interface.o mod_mpmessage.o mod_mppparam.o mod_ncout.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_savefile.o mod_service.o mod_slabocean.o mod_moloch.o mod_split.o mod_projections.o mod_memutil.o mod_constants.o mod_stdio.o mod_date.o mod_outvars.o pfwsat.inc
 if DO_COMPILE_LIBCLM45
 if DO_COMPILE_OASIS

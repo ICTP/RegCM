@@ -235,6 +235,7 @@ module mod_regcm_interface
     implicit none
     real(rk8), intent(in) :: timestr   ! starting time-step
     real(rk8), intent(in) :: timeend   ! ending   time-step
+    logical :: defer_async_for_bdyin
 
     do while ( extime >= timestr .and. extime < timeend )
       !
@@ -259,6 +260,12 @@ module mod_regcm_interface
       end if
 #endif
       !
+      ! Prefetch boundary data before the compute phase when requested.
+      !
+#ifdef ASYNC_NETCDF
+      if ( irceideal /= 1 ) call bdyin_prefetch
+#endif
+      !
       ! Compute tendencies
       !
       if ( idynamic == 3 ) then
@@ -280,6 +287,11 @@ module mod_regcm_interface
       !
       ! Write output for this timestep if requested
       !
+      defer_async_for_bdyin = .false.
+      if ( irceideal /= 1 .and. .not. rcmtimer%reached_endtime ) then
+        defer_async_for_bdyin = alarm_in_bdy%act( )
+      end if
+      if ( defer_async_for_bdyin ) call begin_output_streams_async_batch()
       call output
       !
       ! Boundary code
@@ -291,6 +303,7 @@ module mod_regcm_interface
           !
           if ( irceideal /= 1 ) call bdyin
         end if
+        if ( defer_async_for_bdyin ) call end_output_streams_async_batch()
         !
         ! fill up the boundary values for xxb and xxa variables:
         !

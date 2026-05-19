@@ -37,6 +37,11 @@ module mod_ncout
   public :: write_record_output_stream
   public :: write_vars_slaboc_stream
   public :: newoutfiles
+  public :: flush_output_streams
+  public :: begin_output_streams_async_batch
+  public :: end_output_streams_async_batch
+  public :: lock_output_streams_netcdf
+  public :: unlock_output_streams_netcdf
 
   type varspan
     integer(ik4) :: j1, j2, i1, i2, k1, k2, n1, n2
@@ -4228,7 +4233,38 @@ module mod_ncout
       end if
     end do
     deallocate(outstream)
+    call outstream_async_finalize()
   end subroutine dispose_output_streams
+
+  subroutine flush_output_streams
+    implicit none
+    if ( .not. parallel_out .and. myid /= iocpu ) return
+    call outstream_async_flush()
+  end subroutine flush_output_streams
+
+  subroutine lock_output_streams_netcdf
+    implicit none
+    if ( .not. parallel_out .and. myid /= iocpu ) return
+    call outstream_netcdf_lock()
+  end subroutine lock_output_streams_netcdf
+
+  subroutine unlock_output_streams_netcdf
+    implicit none
+    if ( .not. parallel_out .and. myid /= iocpu ) return
+    call outstream_netcdf_unlock()
+  end subroutine unlock_output_streams_netcdf
+
+  subroutine begin_output_streams_async_batch
+    implicit none
+    if ( .not. parallel_out .and. myid /= iocpu ) return
+    call outstream_async_defer_wake_begin()
+  end subroutine begin_output_streams_async_batch
+
+  subroutine end_output_streams_async_batch
+    implicit none
+    if ( .not. parallel_out .and. myid /= iocpu ) return
+    call outstream_async_defer_wake_end()
+  end subroutine end_output_streams_async_batch
 
   subroutine write_record_output_stream(istream,idate,ifile)
     !@acc use nvtx

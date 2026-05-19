@@ -30,6 +30,7 @@ module mod_rad_o3blk
   use mod_stdio
   use mod_regcm_types
   use netcdf
+  use mod_ncstream, only : outstream_netcdf_lock, outstream_netcdf_unlock
 
   implicit none
 
@@ -97,6 +98,11 @@ module mod_rad_o3blk
     module procedure readvar1d_r8
     module procedure readvar1d_r4
   end interface readvar1d
+
+  interface readvar1d_unlocked
+    module procedure readvar1d_r8_unlocked
+    module procedure readvar1d_r4_unlocked
+  end interface readvar1d_unlocked
 
   contains
 
@@ -406,8 +412,10 @@ module mod_rad_o3blk
     real(rkx), intent(inout), dimension(:), pointer, contiguous :: lat, lon
     real(rk8), intent(inout), dimension(:), pointer, contiguous :: lev
     integer(ik4) :: iret, idimid, nlon, nlat, nlev
+    call outstream_netcdf_lock()
     iret = nf90_open(o3file,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
+      call outstream_netcdf_unlock()
       write (stderr, *) trim(o3file), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
     end if
@@ -422,9 +430,9 @@ module mod_rad_o3blk
       call getmem(lat,1,nlat,'init_o3data:lat')
       call getmem(lon,1,nlon,'init_o3data:lon')
       call getmem(lev,1,nlev,'init_o3data:lev')
-      call readvar1d(ncid,'latitude',lat)
-      call readvar1d(ncid,'longitude',lon)
-      call readvar1d(ncid,'level',lev)
+      call readvar1d_unlocked(ncid,'latitude',lat)
+      call readvar1d_unlocked(ncid,'longitude',lon)
+      call readvar1d_unlocked(ncid,'level',lev)
     else
       iret = nf90_inq_dimid(ncid,'lon',idimid)
       iret = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -435,10 +443,11 @@ module mod_rad_o3blk
       call getmem(lat,1,nlat,'init_o3data:lat')
       call getmem(lon,1,nlon,'init_o3data:lon')
       call getmem(lev,1,nlev,'init_o3data:lev')
-      call readvar1d(ncid,'lat',lat)
-      call readvar1d(ncid,'lon',lon)
-      call readvar1d(ncid,'plev',lev)
+      call readvar1d_unlocked(ncid,'lat',lat)
+      call readvar1d_unlocked(ncid,'lon',lon)
+      call readvar1d_unlocked(ncid,'plev',lev)
     end if
+    call outstream_netcdf_unlock()
     lev(:) = lev(:) * d_100 ! Put it in Pa
   end subroutine init_o3data
 
@@ -459,6 +468,7 @@ module mod_rad_o3blk
     data xfact /0.0_rk8/
     data istart  / 1, 1, 1, 1 /
 
+    call outstream_netcdf_lock()
     if ( iyear == yend .or. iyear < ystart ) then
       iret = nf90_close(ncid)
       if ( iret /= nf90_noerr ) then
@@ -504,10 +514,21 @@ module mod_rad_o3blk
       write (stderr, *) trim(o3filename(iyear))
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
+    call outstream_netcdf_unlock()
     val = real(val*xscale+xfact,rk8)
   end subroutine readvar3d_pack
 
   subroutine readvar1d_r8(ncid,vname,val)
+    implicit none
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk8), intent(out), dimension(:) :: val
+    call outstream_netcdf_lock()
+    call readvar1d_r8_unlocked(ncid,vname,val)
+    call outstream_netcdf_unlock()
+  end subroutine readvar1d_r8
+
+  subroutine readvar1d_r8_unlocked(ncid,vname,val)
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vname
@@ -523,9 +544,19 @@ module mod_rad_o3blk
       write (stderr, *) trim(vname), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
-  end subroutine readvar1d_r8
+  end subroutine readvar1d_r8_unlocked
 
   subroutine readvar1d_r4(ncid,vname,val)
+    implicit none
+    integer(ik4), intent(in) :: ncid
+    character(len=*), intent(in) :: vname
+    real(rk4), intent(out), dimension(:) :: val
+    call outstream_netcdf_lock()
+    call readvar1d_r4_unlocked(ncid,vname,val)
+    call outstream_netcdf_unlock()
+  end subroutine readvar1d_r4
+
+  subroutine readvar1d_r4_unlocked(ncid,vname,val)
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: vname
@@ -541,7 +572,7 @@ module mod_rad_o3blk
       write (stderr, *) trim(vname), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
-  end subroutine readvar1d_r4
+  end subroutine readvar1d_r4_unlocked
 
   subroutine close_o3data
     implicit none
@@ -549,7 +580,9 @@ module mod_rad_o3blk
     if ( myid == iocpu ) then
       call h_interpolator_destroy(hint)
       if ( ncid > 0 ) then
+        call outstream_netcdf_lock()
         iret = nf90_close(ncid)
+        call outstream_netcdf_unlock()
         if ( iret /= nf90_noerr ) then
           write (stderr, *) nf90_strerror(iret)
           call fatal(__FILE__,__LINE__,'ERROR CLOSE OZONE FILE')

@@ -26,6 +26,7 @@ module mod_che_ncio
   use mod_che_common
   use mod_runparams
   use mod_domain
+  use mod_ncstream, only : outstream_netcdf_lock, outstream_netcdf_unlock
   use netcdf
 
   implicit none
@@ -1192,6 +1193,7 @@ module mod_che_ncio
       end if
 
       call close_chbc
+      call outstream_netcdf_lock()
       write (ctime, '(a)') tochar10(idate)
       if ( igaschem == 1 ) then
         icbcname = trim(dirglob)//pthsep//trim(domname)// &
@@ -1287,6 +1289,7 @@ module mod_che_ncio
                'variable '//trim(oxbcname(i))//' missing','OXBC FILE ERROR')
         end do
       end if
+      call outstream_netcdf_unlock()
       if ( do_parallel_netcdf_in ) then
         allocate(rspace3(jde1:jde2,ide1:ide2,kz))
       else
@@ -1301,6 +1304,9 @@ module mod_che_ncio
       integer(ik4), dimension(4) :: istart, icount
       integer(ik4) :: i, j, k, n, iafter
 
+      if ( do_parallel_netcdf_in .or. myid == iocpu ) then
+        call outstream_netcdf_lock()
+      end if
       if ( do_parallel_netcdf_in ) then
         istart(1) = jde1
         istart(2) = ide1
@@ -1455,11 +1461,19 @@ module mod_che_ncio
           end if
         end if
       end if
+      if ( do_parallel_netcdf_in .or. myid == iocpu ) then
+        call outstream_netcdf_unlock()
+      end if
       where (chebdio < d_zero) chebdio = d_zero
     end subroutine read_chbc
 
     subroutine close_chbc
       implicit none
+      logical :: do_close
+      do_close = ichin >= 0 .or. iaein >= 0 .or. ioxin >= 0
+      if ( do_close ) then
+        call outstream_netcdf_lock()
+      end if
       if ( ichin >= 0 ) then
         call closefile(ichin)
         ichin = -1
@@ -1471,6 +1485,9 @@ module mod_che_ncio
       if ( ioxin >= 0 ) then
         call closefile(ioxin)
         ioxin = -1
+      end if
+      if ( do_close ) then
+        call outstream_netcdf_unlock()
       end if
       if ( allocated(chbc_idate) )   deallocate(chbc_idate)
       if ( associated(rspace3) )     deallocate(rspace3)

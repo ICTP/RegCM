@@ -69,6 +69,7 @@ module mod_output
     logical :: ldosav, ldolak, ldosub, ldosts, ldoshf, lnewf
     logical :: ldoslab
     logical :: lstartup
+    logical :: lasync_batch
     integer(ik4) :: i, j, k, n, kk, itr
     real(rkx), dimension(kz) :: p1d, t1d, rh1d, td, pi, q, th, thv, z
     real(rkx) :: cell, srffac, radfac, lakfac, subfac, optfac, stsfac
@@ -228,6 +229,18 @@ module mod_output
         ldoche = .true.
       end if
     end if
+
+    lasync_batch = ( atm_stream > 0 .and. ldoatm ) .or. &
+                   ( srf_stream > 0 .and. ldosrf ) .or. &
+                   ( sub_stream > 0 .and. ldosub ) .or. &
+                   ( lak_stream > 0 .and. ldolak ) .or. &
+                   ( opt_stream > 0 .and. ldoopt ) .or. &
+                   ( che_stream > 0 .and. ldoche ) .or. &
+                   ( shf_stream > 0 .and. ldoshf ) .or. &
+                   ( sts_stream > 0 .and. ldosts ) .or. &
+                   ( rad_stream > 0 .and. ldorad ) .or. &
+                   ( slaboc_stream > 0 .and. ldoslab )
+    if ( lasync_batch ) call begin_output_streams_async_batch()
 
     if ( atm_stream > 0 ) then
       if ( ldoatm ) then
@@ -1875,7 +1888,9 @@ module mod_output
           end if
         end if
 
+        call lock_output_streams_netcdf()
         call write_savefile(rcmtimer%idate)
+        call unlock_output_streams_netcdf()
 
       end if
     end if
@@ -1902,6 +1917,7 @@ module mod_output
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+    if ( lasync_batch ) call end_output_streams_async_batch()
 
     contains
 

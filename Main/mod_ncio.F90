@@ -15,6 +15,7 @@
 
 module mod_ncio
 
+  use, intrinsic :: iso_c_binding
   use mod_intkinds
   use mod_realkinds
   use mod_date
@@ -28,16 +29,30 @@ module mod_ncio
   use mod_mppparam
   use mod_memutil
   use mod_nchelper
-  use mod_domain
-#ifdef OPENACC
-  use, intrinsic :: iso_c_binding
+  use mod_ncstream, only : outstream_async_flush, outstream_netcdf_lock, &
+                           outstream_netcdf_unlock
+#ifdef ASYNC_NETCDF
+  use mod_async_netcdf, only : async_netcdf_buffer, async_netcdf_counter, &
+                               async_netcdf_configured_cap_bytes, &
+                               async_netcdf_counter_fail, &
+                               async_netcdf_counter_poll, &
+                               async_netcdf_counter_reset, &
+                               async_netcdf_counter_wait, &
+                               async_netcdf_get_var_rkx, &
+                               async_netcdf_initialize, &
+                               async_netcdf_release_buffer, &
+                               async_netcdf_try_acquire_buffer
 #endif
+  use mod_domain
   implicit none
 
   private
 
   public :: read_domain_info, read_subdomain_info
   public :: open_icbc, icbc_search, read_icbc, close_icbc
+#ifdef ASYNC_NETCDF
+  public :: warmup_icbc_prefetch, prefetch_icbc, consume_icbc_prefetch
+#endif
   public :: open_som, som_search, read_som, close_som
   public :: open_clmbc, clmbc_search, close_clmbc, read_clmbc
   public :: fixqcqi, we_have_qc, we_have_qi
@@ -77,6 +92,44 @@ module mod_ncio
   real(rkx), dimension(:,:,:), pointer, contiguous :: tempw => null()
   real(rkx), dimension(:,:), pointer, contiguous :: tempwtop => null()
 
+#ifdef ASYNC_NETCDF
+  integer(c_int64_t), parameter :: icbc_prefetch_alignment = 128_c_int64_t
+
+  type icbc_prefetch_slot
+    logical :: active = .false.
+    type(rcm_time_and_date) :: target_date
+    integer(ik4) :: ncid = -1
+    integer(ik4) :: record = -1
+    integer(ik4) :: nitems = 0
+    type(async_netcdf_buffer) :: buffer
+    type(async_netcdf_counter) :: counter
+    real(rkx), pointer, contiguous, dimension(:) :: ps_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: ts_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: u_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: v_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: t_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: qv_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: qc_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: qi_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: pp_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: ww_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: wtop_flat => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: ps => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: ts => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: u => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: v => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: t => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: qv => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: qc => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: qi => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: pp => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: ww => null()
+    real(rkx), pointer, contiguous, dimension(:,:) :: wtop => null()
+  end type icbc_prefetch_slot
+
+  type(icbc_prefetch_slot), save, target :: icbc_prefetch
+#endif
+
   type :: tccn_data
     integer(ik4) :: nlon, nlat, nlev
     real(rkx), pointer, dimension(:), contiguous :: lon
@@ -86,6 +139,8 @@ module mod_ncio
   end type
 
   contains
+
+#include <pfesat.inc>
 
   subroutine fixqcqi( )
     implicit none
@@ -140,6 +195,8 @@ module mod_ncio
     logical :: has_snow
     logical :: has_dhlake
     logical :: lerror
+
+    call outstream_async_flush()
 
     has_snow = .true.
     has_dhlake = .true.
@@ -482,6 +539,8 @@ module mod_ncio
     logical :: has_dhlake
     character(len=3) :: sbstring
 
+    call outstream_async_flush()
+
     has_dhlake = .true.
     write (sbstring,'(i0.3)') nsg
     dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN'//sbstring//'.nc'
@@ -655,6 +714,523 @@ module mod_ncio
     end if
   end function icbc_search
 
+#ifdef ASYNC_NETCDF
+  subroutine warmup_icbc_prefetch()
+    implicit none
+    integer(c_int64_t) :: required_bytes, configured_bytes
+    logical :: async_ready
+
+#ifdef PNETCDF
+    return
+#endif
+    if ( .not. do_parallel_netcdf_in ) return
+    if ( ibcin < 0 .or. .not. allocated(icbc_idate) ) return
+
+    required_bytes = icbc_prefetch_required_bytes()
+    if ( required_bytes <= 0_c_int64_t ) return
+
+    if ( myid == iocpu ) then
+      async_ready = async_netcdf_initialize()
+    else
+      configured_bytes = async_netcdf_configured_cap_bytes()
+      if ( configured_bytes < required_bytes ) return
+      async_ready = async_netcdf_initialize(required_bytes)
+    end if
+    if ( .not. async_ready ) return
+  end subroutine warmup_icbc_prefetch
+
+  subroutine prefetch_icbc(idate)
+    implicit none
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4), dimension(4) :: istart, icount
+    integer(ik4) :: rec, stat, pending, pstatus
+    integer(ik4) :: n2, n3
+    integer(c_int64_t) :: required_bytes, configured_bytes
+    logical :: failed
+    logical :: async_ready
+
+#ifdef PNETCDF
+    return
+#endif
+    if ( .not. do_parallel_netcdf_in ) return
+    if ( ibcin < 0 .or. .not. allocated(icbc_idate) ) return
+
+    if ( icbc_prefetch%active ) then
+      if ( icbc_prefetch%target_date == idate ) return
+      call async_netcdf_counter_poll(icbc_prefetch%counter,pending,pstatus)
+      if ( pending > 0 ) return
+      call release_icbc_prefetch(.false.)
+    end if
+
+    rec = icbc_record_for_date(idate)
+    if ( rec < 1 ) return
+
+    required_bytes = icbc_prefetch_required_bytes()
+    if ( required_bytes <= 0_c_int64_t ) return
+    configured_bytes = async_netcdf_configured_cap_bytes()
+    if ( configured_bytes < required_bytes ) return
+
+    if ( myid == iocpu ) then
+      async_ready = async_netcdf_initialize()
+    else
+      async_ready = async_netcdf_initialize(required_bytes)
+    end if
+    if ( .not. async_ready ) return
+
+    n2 = (jde2-jde1+1)*(ide2-ide1+1)
+    n3 = n2*kz
+
+    call async_netcdf_try_acquire_buffer(icbc_prefetch%buffer, &
+      required_bytes,stat)
+    if ( stat /= nf90_noerr ) return
+
+    call async_netcdf_counter_reset(icbc_prefetch%counter)
+    icbc_prefetch%active = .true.
+    icbc_prefetch%target_date = idate
+    icbc_prefetch%ncid = ibcin
+    icbc_prefetch%record = rec
+    icbc_prefetch%nitems = 0
+    call map_icbc_prefetch_buffers(n2,n3)
+
+    failed = .false.
+    istart(1) = jde1
+    istart(2) = ide1
+    istart(3) = rec
+    icount(1) = jde2-jde1+1
+    icount(2) = ide2-ide1+1
+    icount(3) = 1
+    call enqueue_icbc_prefetch_read(icbc_ivar(1),icbc_prefetch%ps_flat, &
+      istart(1:3),icount(1:3),failed)
+    call enqueue_icbc_prefetch_read(icbc_ivar(2),icbc_prefetch%ts_flat, &
+      istart(1:3),icount(1:3),failed)
+
+    istart(1) = jde1
+    istart(2) = ide1
+    istart(3) = 1
+    istart(4) = rec
+    icount(1) = jde2-jde1+1
+    icount(2) = ide2-ide1+1
+    icount(3) = kz
+    icount(4) = 1
+    call enqueue_icbc_prefetch_read(icbc_ivar(3),icbc_prefetch%u_flat, &
+      istart,icount,failed)
+    call enqueue_icbc_prefetch_read(icbc_ivar(4),icbc_prefetch%v_flat, &
+      istart,icount,failed)
+    call enqueue_icbc_prefetch_read(icbc_ivar(5),icbc_prefetch%t_flat, &
+      istart,icount,failed)
+    call enqueue_icbc_prefetch_read(icbc_ivar(6),icbc_prefetch%qv_flat, &
+      istart,icount,failed)
+    if ( has_qc ) then
+      call enqueue_icbc_prefetch_read(icbc_ivar(10),icbc_prefetch%qc_flat, &
+        istart,icount,failed)
+    end if
+    if ( has_qi ) then
+      call enqueue_icbc_prefetch_read(icbc_ivar(11),icbc_prefetch%qi_flat, &
+        istart,icount,failed)
+    end if
+    if ( idynamic == 2 ) then
+      call enqueue_icbc_prefetch_read(icbc_ivar(7),icbc_prefetch%pp_flat, &
+        istart,icount,failed)
+      call enqueue_icbc_prefetch_read(icbc_ivar(8),icbc_prefetch%ww_flat, &
+        istart,icount,failed)
+      istart(1) = jde1
+      istart(2) = ide1
+      istart(3) = rec
+      icount(1) = jde2-jde1+1
+      icount(2) = ide2-ide1+1
+      icount(3) = 1
+      call enqueue_icbc_prefetch_read(icbc_ivar(9), &
+        icbc_prefetch%wtop_flat,istart(1:3),icount(1:3),failed)
+    end if
+    if ( failed .and. icbc_prefetch%nitems == 0 ) then
+      call release_icbc_prefetch(.false.)
+    end if
+  end subroutine prefetch_icbc
+
+  subroutine consume_icbc_prefetch(idate,ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww, &
+      consumed)
+    implicit none
+    type(rcm_time_and_date), intent(in) :: idate
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ilnd
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: t
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qv
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qc
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qi
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pp
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ww
+    logical, intent(out) :: consumed
+    integer(ik4) :: pending, status
+
+    consumed = .false.
+    if ( .not. icbc_prefetch%active ) return
+    if ( icbc_prefetch%target_date /= idate ) then
+      call async_netcdf_counter_poll(icbc_prefetch%counter,pending,status)
+      if ( pending == 0 ) call release_icbc_prefetch(.false.)
+      return
+    end if
+
+    call async_netcdf_counter_wait(icbc_prefetch%counter,status)
+    if ( status == nf90_noerr ) then
+      ibcrec = icbc_prefetch%record
+      call copy_prefetched_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
+      consumed = .true.
+    end if
+    call release_icbc_prefetch(.false.)
+  end subroutine consume_icbc_prefetch
+
+  integer(ik4) function icbc_record_for_date(idate)
+    implicit none
+    type(rcm_time_and_date), intent(in) :: idate
+    type(rcm_time_interval) :: tdif
+
+    icbc_record_for_date = -1
+    if ( .not. allocated(icbc_idate) ) return
+    if ( ibcnrec < 1 ) return
+    if ( idate > icbc_idate(ibcnrec) .or. idate < icbc_idate(1) ) return
+    tdif = idate-icbc_idate(1)
+    icbc_record_for_date = (nint(tohours(tdif))/ibdyfrq)+1
+    if ( icbc_record_for_date < 1 .or. &
+         icbc_record_for_date > ibcnrec ) icbc_record_for_date = -1
+  end function icbc_record_for_date
+
+  subroutine release_icbc_prefetch(wait)
+    implicit none
+    logical, intent(in) :: wait
+    integer(ik4) :: status
+
+    if ( .not. icbc_prefetch%active ) return
+    if ( wait ) call async_netcdf_counter_wait(icbc_prefetch%counter,status)
+    call async_netcdf_release_buffer(icbc_prefetch%buffer)
+    call clear_icbc_prefetch_pointers()
+    icbc_prefetch%active = .false.
+    icbc_prefetch%ncid = -1
+    icbc_prefetch%record = -1
+    icbc_prefetch%nitems = 0
+    call async_netcdf_counter_reset(icbc_prefetch%counter)
+  end subroutine release_icbc_prefetch
+
+  subroutine enqueue_icbc_prefetch_read(varid,values,start,count,failed)
+    implicit none
+    integer(ik4), intent(in) :: varid
+    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: values
+    integer(ik4), dimension(:), intent(in) :: start, count
+    logical, intent(inout) :: failed
+    integer(ik4) :: stat
+
+    if ( failed ) return
+    stat = async_netcdf_get_var_rkx(icbc_prefetch%ncid,varid,values,start, &
+      count,icbc_prefetch%counter)
+    if ( stat == nf90_noerr ) then
+      icbc_prefetch%nitems = icbc_prefetch%nitems + 1
+    else
+      failed = .true.
+      call async_netcdf_counter_fail(icbc_prefetch%counter,stat)
+    end if
+  end subroutine enqueue_icbc_prefetch_read
+
+  subroutine map_icbc_prefetch_buffers(n2,n3)
+    implicit none
+    integer(ik4), intent(in) :: n2, n3
+    integer(ik4) :: offset
+
+    call clear_icbc_prefetch_pointers()
+    offset = 1
+    call map_prefetch_2d(icbc_prefetch%ps_flat,icbc_prefetch%ps,offset,n2)
+    call map_prefetch_2d(icbc_prefetch%ts_flat,icbc_prefetch%ts,offset,n2)
+    call map_prefetch_3d(icbc_prefetch%u_flat,icbc_prefetch%u,offset,n3)
+    call map_prefetch_3d(icbc_prefetch%v_flat,icbc_prefetch%v,offset,n3)
+    call map_prefetch_3d(icbc_prefetch%t_flat,icbc_prefetch%t,offset,n3)
+    call map_prefetch_3d(icbc_prefetch%qv_flat,icbc_prefetch%qv,offset,n3)
+    if ( has_qc ) then
+      call map_prefetch_3d(icbc_prefetch%qc_flat,icbc_prefetch%qc,offset,n3)
+    end if
+    if ( has_qi ) then
+      call map_prefetch_3d(icbc_prefetch%qi_flat,icbc_prefetch%qi,offset,n3)
+    end if
+    if ( idynamic == 2 ) then
+      call map_prefetch_3d(icbc_prefetch%pp_flat,icbc_prefetch%pp,offset,n3)
+      call map_prefetch_3d(icbc_prefetch%ww_flat,icbc_prefetch%ww,offset,n3)
+      call map_prefetch_2d(icbc_prefetch%wtop_flat,icbc_prefetch%wtop, &
+        offset,n2)
+    end if
+  end subroutine map_icbc_prefetch_buffers
+
+  subroutine map_prefetch_2d(flat,field,offset,nvals)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: flat
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: field
+    integer(ik4), intent(inout) :: offset
+    integer(ik4), intent(in) :: nvals
+
+    flat(1:nvals) => icbc_prefetch%buffer%rkx(offset:offset+nvals-1)
+    field(jde1:jde2,ide1:ide2) => &
+      icbc_prefetch%buffer%rkx(offset:offset+nvals-1)
+    offset = offset + aligned_icbc_elements(nvals)
+  end subroutine map_prefetch_2d
+
+  subroutine map_prefetch_3d(flat,field,offset,nvals)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: flat
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: field
+    integer(ik4), intent(inout) :: offset
+    integer(ik4), intent(in) :: nvals
+
+    flat(1:nvals) => icbc_prefetch%buffer%rkx(offset:offset+nvals-1)
+    field(jde1:jde2,ide1:ide2,1:kz) => &
+      icbc_prefetch%buffer%rkx(offset:offset+nvals-1)
+    offset = offset + aligned_icbc_elements(nvals)
+  end subroutine map_prefetch_3d
+
+  integer(c_int64_t) function icbc_prefetch_required_bytes()
+    implicit none
+    integer(ik4) :: n2, n3
+
+    n2 = (jde2-jde1+1)*(ide2-ide1+1)
+    n3 = n2*kz
+    icbc_prefetch_required_bytes = 2_c_int64_t*aligned_icbc_bytes(n2) + &
+                                   4_c_int64_t*aligned_icbc_bytes(n3)
+    if ( has_qc ) icbc_prefetch_required_bytes = &
+      icbc_prefetch_required_bytes + aligned_icbc_bytes(n3)
+    if ( has_qi ) icbc_prefetch_required_bytes = &
+      icbc_prefetch_required_bytes + aligned_icbc_bytes(n3)
+    if ( idynamic == 2 ) then
+      icbc_prefetch_required_bytes = icbc_prefetch_required_bytes + &
+        2_c_int64_t*aligned_icbc_bytes(n3) + aligned_icbc_bytes(n2)
+    end if
+  end function icbc_prefetch_required_bytes
+
+  integer(c_int64_t) function aligned_icbc_bytes(nvals)
+    implicit none
+    integer(ik4), intent(in) :: nvals
+    integer(c_int64_t) :: bytes
+
+    bytes = int(nvals,c_int64_t)*icbc_rkx_bytes()
+    aligned_icbc_bytes = ((bytes+icbc_prefetch_alignment-1_c_int64_t) / &
+      icbc_prefetch_alignment) * icbc_prefetch_alignment
+  end function aligned_icbc_bytes
+
+  integer(ik4) function aligned_icbc_elements(nvals)
+    implicit none
+    integer(ik4), intent(in) :: nvals
+
+    aligned_icbc_elements = int(aligned_icbc_bytes(nvals) / &
+      icbc_rkx_bytes(),ik4)
+  end function aligned_icbc_elements
+
+  integer(c_int64_t) function icbc_rkx_bytes()
+    implicit none
+
+#ifdef SINGLE_PRECISION_REAL
+    icbc_rkx_bytes = 4_c_int64_t
+#else
+    icbc_rkx_bytes = 8_c_int64_t
+#endif
+  end function icbc_rkx_bytes
+
+  subroutine clear_icbc_prefetch_pointers()
+    implicit none
+
+    nullify(icbc_prefetch%ps_flat,icbc_prefetch%ts_flat)
+    nullify(icbc_prefetch%u_flat,icbc_prefetch%v_flat)
+    nullify(icbc_prefetch%t_flat,icbc_prefetch%qv_flat)
+    nullify(icbc_prefetch%qc_flat,icbc_prefetch%qi_flat)
+    nullify(icbc_prefetch%pp_flat,icbc_prefetch%ww_flat)
+    nullify(icbc_prefetch%wtop_flat)
+    nullify(icbc_prefetch%ps,icbc_prefetch%ts)
+    nullify(icbc_prefetch%u,icbc_prefetch%v)
+    nullify(icbc_prefetch%t,icbc_prefetch%qv)
+    nullify(icbc_prefetch%qc,icbc_prefetch%qi)
+    nullify(icbc_prefetch%pp,icbc_prefetch%ww)
+    nullify(icbc_prefetch%wtop)
+  end subroutine clear_icbc_prefetch_pointers
+
+  subroutine copy_prefetched_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ilnd
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: t
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qv
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qc
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qi
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pp
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ww
+    real(rkx), pointer, contiguous, dimension(:,:) :: psbuf, tsbuf, wtopbuf
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: ubuf, vbuf, tbuf
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: qvbuf, qcbuf, qibuf
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: ppbuf, wwbuf
+    integer(ik4) :: i, j, k
+    real(rkx) :: told, pold, rhold, satvp, tnew, pnew
+
+    psbuf => icbc_prefetch%ps
+    tsbuf => icbc_prefetch%ts
+    ubuf => icbc_prefetch%u
+    vbuf => icbc_prefetch%v
+    tbuf => icbc_prefetch%t
+    qvbuf => icbc_prefetch%qv
+    qcbuf => icbc_prefetch%qc
+    qibuf => icbc_prefetch%qi
+    ppbuf => icbc_prefetch%pp
+    wwbuf => icbc_prefetch%ww
+    wtopbuf => icbc_prefetch%wtop
+
+    if ( ensemble_run ) then
+      if ( lperturb_ps ) then
+        if ( myid == italk ) then
+          write(stdout,'(a,f7.2,a)') &
+                  'PS with value ',perturb_frac_ps*d_100,'%'
+        end if
+        call randify(psbuf,perturb_frac_ps, &
+          jde2-jde1+1,ide2-ide1+1)
+      end if
+    end if
+    !$acc kernels deviceptr(psbuf)
+    ps(jce1:jce2,ice1:ice2) = psbuf(jce1:jce2,ice1:ice2)
+    !$acc end kernels
+
+    if ( ensemble_run ) then
+      if ( myid == italk ) then
+        write(stdout,*) 'Applying perturbation to input dataset:'
+      end if
+      if ( lperturb_ts ) then
+        if ( myid == italk ) then
+          write(stdout,'(a,f7.2,a)') &
+                  'TS with value ',perturb_frac_ts*d_100,'%'
+        end if
+        call randify(tsbuf,perturb_frac_ts, &
+          jde2-jde1+1,ide2-ide1+1)
+      end if
+    end if
+    !$acc kernels deviceptr(tsbuf)
+    ts(jce1:jce2,ice1:ice2) = tsbuf(jce1:jce2,ice1:ice2)
+    !$acc end kernels
+
+    if ( ensemble_run ) then
+      if ( lperturb_u ) then
+        if ( myid == italk ) then
+          write(stdout,'(a,f7.2,a)') 'U with value ',perturb_frac_u*d_100,'%'
+        end if
+        call randify(ubuf,perturb_frac_u, &
+          jde2-jde1+1,ide2-ide1+1,kz)
+      end if
+    end if
+    !$acc kernels deviceptr(ubuf)
+    u(jde1:jde2,ide1:ide2,1:kz) = ubuf
+    !$acc end kernels
+
+    if ( ensemble_run ) then
+      if ( lperturb_v ) then
+        if ( myid == italk ) then
+          write(stdout,'(a,f7.2,a)') 'V with value ',perturb_frac_v*d_100,'%'
+        end if
+        call randify(vbuf,perturb_frac_v, &
+          jde2-jde1+1,ide2-ide1+1,kz)
+      end if
+    end if
+    !$acc kernels deviceptr(vbuf)
+    v(jde1:jde2,ide1:ide2,1:kz) = vbuf
+    !$acc end kernels
+
+    if ( ensemble_run ) then
+      if ( lperturb_t ) then
+        if ( myid == italk ) then
+          write(stdout,'(a,f7.2,a)') 'T with value ',perturb_frac_t*d_100,'%'
+        end if
+        call randify(tbuf,perturb_frac_t, &
+          jde2-jde1+1,ide2-ide1+1,kz)
+      end if
+    end if
+    !$acc kernels deviceptr(tbuf)
+    t(jce1:jce2,ice1:ice2,1:kz) = &
+      tbuf(jce1:jce2,ice1:ice2,1:kz)
+    !$acc end kernels
+
+    if ( ensemble_run ) then
+      if ( lperturb_q ) then
+        if ( myid == italk ) then
+          write(stdout,'(a,f7.2,a)') 'Q with value ',perturb_frac_q*d_100,'%'
+        end if
+        call randify(qvbuf,perturb_frac_q, &
+          jde2-jde1+1,ide2-ide1+1,kz)
+        !$acc kernels deviceptr(qvbuf)
+        where ( qvbuf < 1.0e-8_rkx )
+          qvbuf = 1.0e-8_rkx
+        end where
+        !$acc end kernels
+      end if
+    end if
+    !$acc kernels deviceptr(qvbuf)
+    qv(jce1:jce2,ice1:ice2,1:kz) = &
+      qvbuf(jce1:jce2,ice1:ice2,1:kz)
+    !$acc end kernels
+
+    if ( has_qc ) then
+      !$acc kernels deviceptr(qcbuf)
+      qc(jce1:jce2,ice1:ice2,1:kz) = &
+        qcbuf(jce1:jce2,ice1:ice2,1:kz)
+      !$acc end kernels
+    end if
+    if ( has_qi ) then
+      !$acc kernels deviceptr(qibuf)
+      qi(jce1:jce2,ice1:ice2,1:kz) = &
+        qibuf(jce1:jce2,ice1:ice2,1:kz)
+      !$acc end kernels
+    end if
+    if ( idynamic == 2 ) then
+      !$acc kernels deviceptr(ppbuf)
+      pp(jce1:jce2,ice1:ice2,1:kz) = &
+        ppbuf(jce1:jce2,ice1:ice2,1:kz)
+      !$acc end kernels
+      !$acc kernels deviceptr(wwbuf)
+      ww(jce1:jce2,ice1:ice2,2:kzp1) = &
+        wwbuf(jce1:jce2,ice1:ice2,1:kz)
+      !$acc end kernels
+      !$acc kernels deviceptr(wtopbuf)
+      ww(jce1:jce2,ice1:ice2,1) = &
+        wtopbuf(jce1:jce2,ice1:ice2)
+      !$acc end kernels
+    end if
+
+    if ( itweak == 1 ) then
+      if ( itweak_sst == 1 ) then
+        !$acc kernels
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          if ( ilnd(j,i) == 0 ) then
+            ts(j,i) = ts(j,i) + sst_tweak
+          end if
+        end do
+        !$acc end kernels
+      end if
+      if ( itweak_temperature == 1 ) then
+        !$acc kernels
+        do k = 1, kz
+          do i = ice1, ice2
+            do j = jce1, jce2
+              told = t(j,i,k)
+              pold = sigma(k)*ps(j,i)*d_100
+              satvp = pfesat(told,ps(j,i))
+              rhold = max((qv(j,i,k)/(ep2*satvp/(pold-satvp))),d_zero)
+              tnew = t(j,i,k) + temperature_tweak
+              pnew = pold*(tnew/told)
+              satvp = pfesat(tnew,ps(j,i))
+              qv(j,i,k) = max(rhold*ep2*satvp/(pnew-satvp),d_zero)
+              t(j,i,k) = tnew
+            end do
+          end do
+        end do
+        !$acc end kernels
+      end if
+    end if
+
+  end subroutine copy_prefetched_icbc
+#endif
+
   integer(ik4) function som_search(imon)
     implicit none
     integer(ik4), intent(in) :: imon
@@ -696,6 +1272,7 @@ module mod_ncio
     write (ctime, '(a)') tochar10(idate)
     icbcname = trim(dirglob)//pthsep//trim(domname)// &
                '_ICBC.'//trim(ctime)//'.nc'
+    call outstream_netcdf_lock()
     call openfile_withname(icbcname,ibcin)
     ibcrec = 1
     ibcnrec = 0
@@ -775,6 +1352,7 @@ module mod_ncio
         has_qi = .true.
       end if
     end if
+    call outstream_netcdf_unlock()
     if ( do_parallel_netcdf_in ) then
 #ifdef OPENACC
       size_bytes = (jde2-jde1+1)*(ide2-ide1+1)*kz*8
@@ -816,6 +1394,7 @@ module mod_ncio
     if ( myid == italk ) then
       write(stdout,*) 'Open ',trim(clmbcname)
     end if
+    call outstream_netcdf_lock()
     call openfile_withname(clmbcname,clmbcin)
     clmbcrec = 1
     clmbcnrec = 0
@@ -859,6 +1438,7 @@ module mod_ncio
     call check_ok(__FILE__,__LINE__,'variable strd miss', 'SFBC FILE')
     istatus = nf90_inq_varid(clmbcin, 'clt', clmbc_ivar(4))
     call check_ok(__FILE__,__LINE__,'variable clt miss', 'SFBC FILE')
+    call outstream_netcdf_unlock()
   end subroutine open_clmbc
 
   subroutine open_som( )
@@ -870,10 +1450,12 @@ module mod_ncio
     call close_som
     ctime = 'YYYYMMDDHH'
     somname = trim(dirglob)//pthsep//trim(domname)//'_SOM.'//ctime//'.nc'
+    call outstream_netcdf_lock()
     call openfile_withname(somname,somin)
     call check_domain(somin,.true.,.true.)
     istatus = nf90_inq_varid(somin, 'qflx', som_ivar(1))
     call check_ok(__FILE__,__LINE__,'variable qflx miss', 'SOM FILE')
+    call outstream_netcdf_unlock()
     if ( do_parallel_netcdf_in ) then
       allocate(rspacesom(jci1:jci2,ici1:ici2))
     else
@@ -895,6 +1477,9 @@ module mod_ncio
     end if
     if ( myid == italk ) then
       write(stdout,*) 'Reading SF values for ',tochar(clmbc_idate(clmbcrec))
+    end if
+    if ( do_parallel_netcdf_in .or. myid == iocpu ) then
+      call outstream_netcdf_lock()
     end if
     if ( do_parallel_netcdf_in ) then
       istart(1) = jde1
@@ -942,6 +1527,9 @@ module mod_ncio
         call grid_distribute(rspace2,clt,jci1,jci2,ici1,ici2)
       end if
     end if
+    if ( do_parallel_netcdf_in .or. myid == iocpu ) then
+      call outstream_netcdf_unlock()
+    end if
     clmbcrec = clmbcrec + 1
   end subroutine read_clmbc
 
@@ -964,6 +1552,9 @@ module mod_ncio
     integer(ik4) :: i, j, k
     real(rkx) :: told, pold, rhold, satvp, tnew, pnew
     !@acc call nvtxStartRange("read_icbc")
+    if ( do_parallel_netcdf_in .or. myid == iocpu ) then
+      call outstream_netcdf_lock()
+    end if
     if ( do_parallel_netcdf_in ) then
       !@acc call nvtxStartRange("do_parallel_netcdf_in")
       istart(1) = jde1
@@ -983,9 +1574,9 @@ module mod_ncio
           call randify(rspace2,perturb_frac_ps,icount(1),icount(2))
         end if
       end if
-      !acc kernels deviceptr(rspace2)
+      !$acc kernels deviceptr(rspace2)
       ps(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
-      !acc end kernels
+      !$acc end kernels
       istatus = nf90_get_var(ibcin,icbc_ivar(2),rspace2,istart(1:3),icount(1:3))
       call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
       if ( ensemble_run ) then
@@ -1247,6 +1838,9 @@ module mod_ncio
         end if
       end if
     end if
+    if ( do_parallel_netcdf_in .or. myid == iocpu ) then
+      call outstream_netcdf_unlock()
+    end if
     if ( itweak == 1 ) then
       if ( itweak_sst == 1 ) then
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
@@ -1275,10 +1869,6 @@ module mod_ncio
       end if
     end if
     !@acc call nvtxEndRange
-    contains
-
-#include <pfesat.inc>
-
   end subroutine read_icbc
 
   subroutine read_som(qflx)
@@ -1291,6 +1881,9 @@ module mod_ncio
 
     if ( myid == italk ) then
       write(stdout,*) 'Reading SOM data for ',cmon(somrec)
+    end if
+    if ( do_parallel_netcdf_in .or. myid == iocpu ) then
+      call outstream_netcdf_lock()
     end if
     if ( do_parallel_netcdf_in ) then
       istart(1) = jci1-1
@@ -1320,6 +1913,9 @@ module mod_ncio
           call grid_distribute(rspacesom,qflx,jci1,jci2,ici1,ici2)
         end if
       end if
+    if ( do_parallel_netcdf_in .or. myid == iocpu ) then
+      call outstream_netcdf_unlock()
+    end if
   end subroutine read_som
 
   subroutine close_icbc
@@ -1327,9 +1923,14 @@ module mod_ncio
     use cudafor
 #endif
     implicit none
+#ifdef ASYNC_NETCDF
+    call release_icbc_prefetch(.true.)
+#endif
     if (ibcin >= 0) then
+      call outstream_netcdf_lock()
       istatus = nf90_close(ibcin)
       call check_ok(__FILE__,__LINE__,'Error Close ICBC file','ICBC FILE')
+      call outstream_netcdf_unlock()
       if ( allocated(icbc_idate) ) deallocate(icbc_idate)
       ibcin = -1
     end if
@@ -1352,8 +1953,10 @@ module mod_ncio
   subroutine close_clmbc
     implicit none
     if (clmbcin >= 0) then
+      call outstream_netcdf_lock()
       istatus = nf90_close(clmbcin)
       call check_ok(__FILE__,__LINE__,'Error Close SFBC file','SFBC FILE')
+      call outstream_netcdf_unlock()
       if ( allocated(clmbc_idate) ) deallocate(clmbc_idate)
       clmbcin = -1
     end if
@@ -1362,8 +1965,10 @@ module mod_ncio
   subroutine close_som
     implicit none
     if (somin >= 0) then
+      call outstream_netcdf_lock()
       istatus = nf90_close(somin)
       call check_ok(__FILE__,__LINE__,'Error Close SOM file','SOM FILE')
+      call outstream_netcdf_unlock()
       somin = -1
     end if
     if ( associated(rspacesom) ) deallocate(rspacesom)
@@ -1389,6 +1994,7 @@ module mod_ncio
     character(len=*), parameter :: omcam = 'CCN_climatology_cloudfree_8km.nc'
 
     ccnfile = trim(inpglob)//pthsep//'CCN'//pthsep//omcam
+    call outstream_netcdf_lock()
     call openfile_withname(ccnfile,ncid)
     istatus = nf90_inq_dimid(ncid, 'lon', idim)
     call check_ok(__FILE__,__LINE__,'Dimension lon miss', 'CCN FILE')
@@ -1422,6 +2028,7 @@ module mod_ncio
     call check_ok(__FILE__,__LINE__,'variable CCN_cl_sn read error', 'CCN FILE')
     istatus = nf90_close(ncid)
     call check_ok(__FILE__,__LINE__,'Error Close CCN file','CCN FILE')
+    call outstream_netcdf_unlock()
     ! Unit of measure: set altitude in meters, CCN in #/m3
     ccn%altitude(:) = ccn%altitude(:) * 1000.0_rkx  ! In file km amsl
     do concurrent ( j = 1:ccn%nlon, i = 1:ccn%nlat, &

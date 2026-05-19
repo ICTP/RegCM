@@ -29,6 +29,15 @@ module mod_ncstream
   use pnetcdf
 #else
   use netcdf
+  use mod_async_netcdf, only : async_netcdf_put_var, async_netcdf_sync, &
+                               async_netcdf_close, async_netcdf_wait_all, &
+                               async_netcdf_shutdown, &
+                               async_netcdf_put_var_device, &
+                               async_netcdf_put_var_rkx_as_r4_device, &
+                               async_netcdf_lock, async_netcdf_unlock, &
+                               async_netcdf_is_enabled, &
+                               async_netcdf_defer_wake_begin, &
+                               async_netcdf_defer_wake_end
 #endif
 
   implicit none
@@ -88,6 +97,12 @@ module mod_ncstream
   public :: outstream_writevar
   public :: outstream_addrec
   public :: outstream_sync
+  public :: outstream_async_flush
+  public :: outstream_async_finalize
+  public :: outstream_netcdf_lock
+  public :: outstream_netcdf_unlock
+  public :: outstream_async_defer_wake_begin
+  public :: outstream_async_defer_wake_end
 
   public :: nc_input_stream
   public :: ncinstream_params
@@ -111,6 +126,9 @@ module mod_ncstream
       allocate(ncin%ncp%xs)
       stream => ncin%ncp%xs
       stream%filename = params%fname
+#ifndef PNETCDF
+      call wait_for_async_netcdf('opening input file',stream%filename)
+#endif
 #ifdef NETCDF4_HDF5
       if ( params%mpi_comm /= -1 ) then
         imode = ior(nf90_nowrite,nf90_share)
@@ -292,6 +310,9 @@ module mod_ncstream
       imode = iomode
       stream => ncout%ncp%xs
       stream%filename = params%fname
+#ifndef PNETCDF
+      call async_netcdf_lock()
+#endif
       if ( params%l_keep ) then
         stream%l_keep = params%l_keep
 #ifdef NETCDF4_HDF5
@@ -373,16 +394,25 @@ module mod_ncstream
         end if
 #endif
       end if
+#ifndef PNETCDF
+      call async_netcdf_unlock()
+#endif
       if ( ncstat /= nf90_noerr ) then
         call printerror
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         call die('nc_stream', &
                  'Cannot create or open file '//trim(stream%filename),1)
       end if
+#ifndef PNETCDF
+      call async_netcdf_lock()
+#endif
 #ifdef PNETCDF
       ncstat = nf90mpi_set_fill(stream%id,nf90_nofill,ofmod)
 #else
       ncstat = nf90_set_fill(stream%id,nf90_nofill,ofmod)
+#endif
+#ifndef PNETCDF
+      call async_netcdf_unlock()
 #endif
       if ( ncstat /= nf90_noerr ) then
         call printerror
@@ -431,6 +461,9 @@ module mod_ncstream
       if ( .not. associated(ncin%ncp%xs) ) return
       stream => ncin%ncp%xs
       if ( stream%id >= 0 ) then
+#ifndef PNETCDF
+        call wait_for_async_netcdf('closing input file',stream%filename)
+#endif
 #ifdef PNETCDF
         ncstat = nf90mpi_close(stream%id)
 #else
@@ -462,7 +495,7 @@ module mod_ncstream
 #ifdef PNETCDF
         ncstat = nf90mpi_close(stream%id)
 #else
-        ncstat = nf90_close(stream%id)
+        ncstat = async_netcdf_close(stream%id)
 #endif
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -978,10 +1011,16 @@ module mod_ncstream
         call outstream_addvar(ncout,stvar%spectral_var)
       end if
       if ( .not. stream%l_keep ) then
+#ifndef PNETCDF
+        call async_netcdf_lock()
+#endif
 #ifdef PNETCDF
         ncstat = nf90mpi_enddef(stream%id)
 #else
         ncstat = nf90_enddef(stream%id)
+#endif
+#ifndef PNETCDF
+        call async_netcdf_unlock()
 #endif
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -1256,7 +1295,7 @@ module mod_ncstream
 #ifdef PNETCDF
         ncstat = nf90mpi_sync(stream%id)
 #else
-        ncstat = nf90_sync(stream%id)
+        ncstat = async_netcdf_sync(stream%id)
 #endif
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -1266,6 +1305,58 @@ module mod_ncstream
         end if
       end if
     end subroutine outstream_sync
+
+    subroutine outstream_async_flush()
+      implicit none
+#ifndef PNETCDF
+      ncstat = async_netcdf_wait_all()
+      if ( ncstat /= nf90_noerr ) then
+        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+        call printerror
+        call die('nc_stream','Async output worker failed while flushing',1)
+      end if
+#endif
+    end subroutine outstream_async_flush
+
+    subroutine outstream_async_finalize()
+      implicit none
+#ifndef PNETCDF
+      ncstat = async_netcdf_shutdown()
+      if ( ncstat /= nf90_noerr ) then
+        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+        call printerror
+        call die('nc_stream','Async output worker failed during shutdown',1)
+      end if
+#endif
+    end subroutine outstream_async_finalize
+
+    subroutine outstream_async_defer_wake_begin()
+      implicit none
+#ifndef PNETCDF
+      call async_netcdf_defer_wake_begin()
+#endif
+    end subroutine outstream_async_defer_wake_begin
+
+    subroutine outstream_async_defer_wake_end()
+      implicit none
+#ifndef PNETCDF
+      call async_netcdf_defer_wake_end()
+#endif
+    end subroutine outstream_async_defer_wake_end
+
+    subroutine outstream_netcdf_lock()
+      implicit none
+#ifndef PNETCDF
+      call async_netcdf_lock()
+#endif
+    end subroutine outstream_netcdf_lock
+
+    subroutine outstream_netcdf_unlock()
+      implicit none
+#ifndef PNETCDF
+      call async_netcdf_unlock()
+#endif
+    end subroutine outstream_netcdf_unlock
 
     subroutine instream_findrec(ncin,dtime,record)
       implicit none
@@ -1437,16 +1528,28 @@ module mod_ncstream
             trim(stream%filename)//': Undefined in add_dimension', 1)
       end select
       if ( stream%l_keep ) then
+#ifndef PNETCDF
+        call async_netcdf_lock()
+#endif
 #ifdef PNETCDF
         ncstat = nf90mpi_inq_dimid(stream%id,the_name,stream%id_dims(pdim))
 #else
         ncstat = nf90_inq_dimid(stream%id,the_name,stream%id_dims(pdim))
 #endif
+#ifndef PNETCDF
+        call async_netcdf_unlock()
+#endif
       else
+#ifndef PNETCDF
+        call async_netcdf_lock()
+#endif
 #ifdef PNETCDF
         ncstat = nf90mpi_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
 #else
         ncstat = nf90_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
+#endif
+#ifndef PNETCDF
+        call async_netcdf_unlock()
 #endif
       end if
       if ( ncstat /= nf90_noerr ) then
@@ -1487,6 +1590,9 @@ module mod_ncstream
       integer(ik4) :: iv
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
+#ifndef PNETCDF
+      call async_netcdf_lock()
+#endif
       if ( present(iloc) ) then
         iv = iloc
       else
@@ -1598,9 +1704,15 @@ module mod_ncstream
 #endif
           end if
         class default
+#ifndef PNETCDF
+          call async_netcdf_unlock()
+#endif
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', 'Cannot add attribute of unknow type',1)
       end select
+#ifndef PNETCDF
+      call async_netcdf_unlock()
+#endif
       if ( ncstat /= nf90_noerr ) then
         call printerror
         if ( present(iloc) ) then
@@ -1714,6 +1826,9 @@ module mod_ncstream
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
       if ( stream%l_enabled ) return
+#ifndef PNETCDF
+      call async_netcdf_lock()
+#endif
       if ( ndims == 0 ) then
         if ( stream%l_keep ) then
 #ifdef PNETCDF
@@ -1795,6 +1910,9 @@ module mod_ncstream
         end if
 #endif
       end if
+#ifndef PNETCDF
+      call async_netcdf_unlock()
+#endif
       call add_varatts(stream,var)
     end subroutine add_variable
 
@@ -2220,7 +2338,9 @@ module mod_ncstream
 #ifdef OPENACC
       real(rk4), pointer, contiguous, dimension(:) :: real_1d => null( )
       real(rk8), pointer, contiguous, dimension(:) :: double_1d => null( )
+      real(rkx), pointer, contiguous, dimension(:) :: mixed_1d => null( )
       integer :: istat
+      logical :: ldevice_async
 #endif
       integer(ik4) :: nd, totsize
       logical :: docopy
@@ -2233,6 +2353,13 @@ module mod_ncstream
       if ( stream%id < 0 ) return
       !@acc call nvtxStartRange("outstream_writevar")
       buffer => ncout%obp%xb
+#ifdef OPENACC
+#ifdef PNETCDF
+      ldevice_async = .false.
+#else
+      ldevice_async = async_netcdf_is_enabled()
+#endif
+#endif
       select type(var)
         class is (ncvariable0d_double)
           if ( var%lrecords ) then
@@ -2243,14 +2370,14 @@ module mod_ncstream
             ncstat = nf90mpi_put_var_all(stream%id,var%id,var%rval, &
               stream%istart(1:nd),stream%icount(1:nd))
 #else
-            ncstat = nf90_put_var(stream%id,var%id,var%rval, &
+            ncstat = async_netcdf_put_var(stream%id,var%id,var%rval, &
               stream%istart(1:nd),stream%icount(1:nd))
 #endif
           else
 #ifdef PNETCDF
             ncstat = nf90mpi_put_var_all(stream%id,var%id,var%rval(1))
 #else
-            ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
+            ncstat = async_netcdf_put_var(stream%id,var%id,var%rval(1))
 #endif
           end if
         class is (ncvariable1d_double)
@@ -2264,10 +2391,13 @@ module mod_ncstream
             end if
 #ifdef OPENACC
             double_1d(1:var%nval(1)) => var%rval(1:var%nval(1))
-            istat = cudaMemcpy(buffer%doublebuff, double_1d, var%nval(1), cudaMemcpyDeviceToHost)
-            if ( istat /= cudaSuccess ) then
-              write(*,*) 'cudaMemcpy failed with status: ',istat
-              stop
+            if ( .not. ldevice_async ) then
+              istat = cudaMemcpy(buffer%doublebuff, double_1d, var%nval(1), &
+                cudaMemcpyDeviceToHost)
+              if ( istat /= cudaSuccess ) then
+                write(*,*) 'cudaMemcpy failed with status: ',istat
+                stop
+              end if
             end if
 #else
             buffer%doublebuff(1:var%nval(1)) = var%rval(1:var%nval(1))
@@ -2285,8 +2415,17 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+#ifdef OPENACC
+          if ( ldevice_async .and. docopy ) then
+            ncstat = async_netcdf_put_var_device(stream%id,var%id, &
+              double_1d,stream%istart(1:nd),stream%icount(1:nd))
+          else
+#endif
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#ifdef OPENACC
+          end if
+#endif
 #endif
           !@acc call nvtxEndRange
         class is (ncvariable2d_double)
@@ -2345,10 +2484,13 @@ module mod_ncstream
               end if
 #ifdef OPENACC
               double_1d(1:totsize) => var%rval_slice(:,:,is)
-              istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
-              if ( istat /= cudaSuccess ) then
-                write(*,*) 'cudaMemcpy failed with status: ',istat
-                stop
+              if ( .not. ldevice_async ) then
+                istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, &
+                  cudaMemcpyDeviceToHost)
+                if ( istat /= cudaSuccess ) then
+                  write(*,*) 'cudaMemcpy failed with status: ',istat
+                  stop
+                end if
               end if
 #else
               buffer%doublebuff(1:totsize) =  &
@@ -2358,10 +2500,13 @@ module mod_ncstream
             else
 #ifdef OPENACC
               double_1d(1:totsize) => var%rval(:,:)
-              istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
-              if ( istat /= cudaSuccess ) then
-                write(*,*) 'cudaMemcpy failed with status: ',istat
-                stop
+              if ( .not. ldevice_async ) then
+                istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, &
+                  cudaMemcpyDeviceToHost)
+                if ( istat /= cudaSuccess ) then
+                  write(*,*) 'cudaMemcpy failed with status: ',istat
+                  stop
+                end if
               end if
 #else
               buffer%doublebuff(1:totsize) =  &
@@ -2379,8 +2524,17 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+#ifdef OPENACC
+          if ( ldevice_async .and. docopy ) then
+            ncstat = async_netcdf_put_var_device(stream%id,var%id, &
+              double_1d,stream%istart(1:nd),stream%icount(1:nd))
+          else
+#endif
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#ifdef OPENACC
+          end if
+#endif
 #endif
           !@acc call nvtxEndRange
         class is (ncvariable3d_double)
@@ -2451,10 +2605,13 @@ module mod_ncstream
               end if
 #ifdef OPENACC
               double_1d(1:totsize) => var%rval_slice(:,:,:,is)
-              istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
-              if ( istat /= cudaSuccess ) then
-                write(*,*) 'cudaMemcpy failed with status: ',istat
-                stop
+              if ( .not. ldevice_async ) then
+                istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, &
+                  cudaMemcpyDeviceToHost)
+                if ( istat /= cudaSuccess ) then
+                  write(*,*) 'cudaMemcpy failed with status: ',istat
+                  stop
+                end if
               end if
 #else
               buffer%doublebuff(1:totsize) = &
@@ -2464,10 +2621,13 @@ module mod_ncstream
             else
 #ifdef OPENACC
               double_1d(1:totsize) => var%rval(:,:,:)
-              istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
-              if ( istat /= cudaSuccess ) then
-                write(*,*) 'cudaMemcpy failed with status: ',istat
-                stop
+              if ( .not. ldevice_async ) then
+                istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, &
+                  cudaMemcpyDeviceToHost)
+                if ( istat /= cudaSuccess ) then
+                  write(*,*) 'cudaMemcpy failed with status: ',istat
+                  stop
+                end if
               end if
 #else
               buffer%doublebuff(1:totsize) = &
@@ -2486,8 +2646,17 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+#ifdef OPENACC
+          if ( ldevice_async .and. docopy ) then
+            ncstat = async_netcdf_put_var_device(stream%id,var%id, &
+              double_1d,stream%istart(1:nd),stream%icount(1:nd))
+          else
+#endif
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#ifdef OPENACC
+          end if
+#endif
 #endif
           !@acc call nvtxEndRange
         class is (ncvariable4d_double)
@@ -2568,10 +2737,13 @@ module mod_ncstream
             end if
 #ifdef OPENACC
             double_1d(1:totsize) => var%rval(:,:,:,:)
-            istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, cudaMemcpyDeviceToHost)
-            if ( istat /= cudaSuccess ) then
-              write(*,*) 'cudaMemcpy failed with status: ',istat
-              stop
+            if ( .not. ldevice_async ) then
+              istat = cudaMemcpy(buffer%doublebuff, double_1d, totsize, &
+                cudaMemcpyDeviceToHost)
+              if ( istat /= cudaSuccess ) then
+                write(*,*) 'cudaMemcpy failed with status: ',istat
+                stop
+              end if
             end if
 #else
             buffer%doublebuff(1:totsize) = &
@@ -2589,8 +2761,17 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+#ifdef OPENACC
+          if ( ldevice_async .and. docopy ) then
+            ncstat = async_netcdf_put_var_device(stream%id,var%id, &
+              double_1d,stream%istart(1:nd),stream%icount(1:nd))
+          else
+#endif
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#ifdef OPENACC
+          end if
+#endif
 #endif
           !@acc call nvtxEndRange
         class is (ncvariable0d_real)
@@ -2601,14 +2782,14 @@ module mod_ncstream
             ncstat = nf90mpi_put_var_all(stream%id,var%id,var%rval, &
               stream%istart(1:1),stream%icount(1:1))
 #else
-            ncstat = nf90_put_var(stream%id,var%id,var%rval, &
+            ncstat = async_netcdf_put_var(stream%id,var%id,var%rval, &
               stream%istart(1:1),stream%icount(1:1))
 #endif
           else
 #ifdef PNETCDF
             ncstat = nf90mpi_put_var_all(stream%id,var%id,var%rval(1))
 #else
-            ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
+            ncstat = async_netcdf_put_var(stream%id,var%id,var%rval(1))
 #endif
           end if
         class is (ncvariable0d_mixed)
@@ -2619,14 +2800,14 @@ module mod_ncstream
             ncstat = nf90mpi_put_var_all(stream%id,var%id,var%rval, &
               stream%istart(1:1),stream%icount(1:1))
 #else
-            ncstat = nf90_put_var(stream%id,var%id,var%rval, &
+            ncstat = async_netcdf_put_var(stream%id,var%id,var%rval, &
               stream%istart(1:1),stream%icount(1:1))
 #endif
           else
 #ifdef PNETCDF
             ncstat = nf90mpi_put_var_all(stream%id,var%id,var%rval(1))
 #else
-            ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
+            ncstat = async_netcdf_put_var(stream%id,var%id,var%rval(1))
 #endif
           end if
         class is (ncvariable1d_real)
@@ -2652,7 +2833,7 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
           !@acc call nvtxEndRange
@@ -2666,11 +2847,18 @@ module mod_ncstream
                 ' in file '//trim(stream%filename), 1)
             end if
 #ifdef OPENACC
+#ifndef BITSHAVE
+            mixed_1d(1:var%nval(1)) => var%rval(1:var%nval(1))
+            if ( .not. ldevice_async ) then
+#endif
             double_1d(1:var%nval(1)) => var%rval(1:var%nval(1))
             real_1d(1:var%nval(1)) => buffer%realbuff(1:var%nval(1))
             !$acc kernels deviceptr(real_1d(1:var%nval(1)))
             real_1d(1:var%nval(1)) = real(double_1d(1:var%nval(1)),rk4)
             !$acc end kernels
+#ifndef BITSHAVE
+            end if
+#endif
 #else
             buffer%realbuff(1:var%nval(1)) = real(var%rval(1:var%nval(1)),rk4)
 #endif
@@ -2687,8 +2875,21 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+#ifdef OPENACC
+#ifndef BITSHAVE
+          if ( ldevice_async .and. docopy ) then
+            ncstat = async_netcdf_put_var_rkx_as_r4_device(stream%id,var%id, &
+              mixed_1d,stream%istart(1:nd),stream%icount(1:nd))
+          else
+#endif
+#endif
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#ifdef OPENACC
+#ifndef BITSHAVE
+          end if
+#endif
+#endif
 #endif
           !@acc call nvtxEndRange
         class is (ncvariable2d_real)
@@ -2768,7 +2969,7 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
           !@acc call nvtxEndRange
@@ -2827,11 +3028,18 @@ module mod_ncstream
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
 #ifdef OPENACC
+#ifndef BITSHAVE
+              mixed_1d(1:totsize) => var%rval_slice(:,:,is)
+              if ( .not. ldevice_async ) then
+#endif
               double_1d(1:totsize) => var%rval_slice(:,:,is)
               real_1d(1:totsize) => buffer%realbuff(1:totsize)
               !$acc kernels deviceptr(real_1d(1:totsize))
               real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
               !$acc end kernels
+#ifndef BITSHAVE
+              end if
+#endif
 #else
               buffer%realbuff(1:totsize) =                                   &
                 real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,is), &
@@ -2839,11 +3047,18 @@ module mod_ncstream
 #endif
             else
 #ifdef OPENACC
+#ifndef BITSHAVE
+              mixed_1d(1:totsize) => var%rval(:,:)
+              if ( .not. ldevice_async ) then
+#endif
               double_1d(1:totsize) => var%rval(:,:)
               real_1d(1:totsize) => buffer%realbuff(1:totsize)
               !$acc kernels deviceptr(real_1d(1:totsize))
               real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
               !$acc end kernels
+#ifndef BITSHAVE
+              end if
+#endif
 #else
               buffer%realbuff(1:totsize) =                          &
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
@@ -2865,8 +3080,21 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+#ifdef OPENACC
+#ifndef BITSHAVE
+          if ( ldevice_async .and. docopy ) then
+            ncstat = async_netcdf_put_var_rkx_as_r4_device(stream%id,var%id, &
+              mixed_1d,stream%istart(1:nd),stream%icount(1:nd))
+          else
+#endif
+#endif
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#ifdef OPENACC
+#ifndef BITSHAVE
+          end if
+#endif
+#endif
 #endif
           !@acc call nvtxEndRange
         class is (ncvariable3d_real)
@@ -2958,7 +3186,7 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
           !@acc call nvtxEndRange
@@ -3029,11 +3257,18 @@ module mod_ncstream
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
 #ifdef OPENACC
+#ifndef BITSHAVE
+              mixed_1d(1:totsize) => var%rval_slice(:,:,:,is)
+              if ( .not. ldevice_async ) then
+#endif
               double_1d(1:totsize) => var%rval_slice(:,:,:,is)
               real_1d(1:totsize) =>  buffer%realbuff(1:totsize)
               !$acc kernels deviceptr(real_1d(1:totsize))
               real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
               !$acc end kernels
+#ifndef BITSHAVE
+              end if
+#endif
 #else
               buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
@@ -3041,11 +3276,18 @@ module mod_ncstream
 #endif
             else
 #ifdef OPENACC
+#ifndef BITSHAVE
+              mixed_1d(1:totsize) => var%rval(:,:,:)
+              if ( .not. ldevice_async ) then
+#endif
               double_1d(1:totsize) => var%rval(:,:,:)
               real_1d(1:totsize) => buffer%realbuff(1:totsize)
               !$acc kernels deviceptr(real_1d(1:totsize))
               real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
               !$acc end kernels
+#ifndef BITSHAVE
+              end if
+#endif
 #else
               buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
@@ -3067,8 +3309,21 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+#ifdef OPENACC
+#ifndef BITSHAVE
+          if ( ldevice_async .and. docopy ) then
+            ncstat = async_netcdf_put_var_rkx_as_r4_device(stream%id,var%id, &
+              mixed_1d,stream%istart(1:nd),stream%icount(1:nd))
+          else
+#endif
+#endif
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#ifdef OPENACC
+#ifndef BITSHAVE
+          end if
+#endif
+#endif
 #endif
           !@acc call nvtxEndRange
         class is (ncvariable4d_real)
@@ -3165,7 +3420,7 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
           !@acc call nvtxEndRange
@@ -3246,11 +3501,18 @@ module mod_ncstream
                 ' in file '//trim(stream%filename), 1)
             end if
 #ifdef OPENACC
+#ifndef BITSHAVE
+            mixed_1d(1:totsize) => var%rval(:,:,:,:)
+            if ( .not. ldevice_async ) then
+#endif
             double_1d(1:totsize) => var%rval(:,:,:,:)
             real_1d(1:totsize) => buffer%realbuff(1:totsize)
             !$acc kernels deviceptr(real_1d(1:totsize))
             real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
             !$acc end kernels
+#ifndef BITSHAVE
+            end if
+#endif
 #else
             buffer%realbuff(1:totsize) = &
               real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
@@ -3271,8 +3533,21 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+#ifdef OPENACC
+#ifndef BITSHAVE
+          if ( ldevice_async .and. docopy ) then
+            ncstat = async_netcdf_put_var_rkx_as_r4_device(stream%id,var%id, &
+              mixed_1d,stream%istart(1:nd),stream%icount(1:nd))
+          else
+#endif
+#endif
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#ifdef OPENACC
+#ifndef BITSHAVE
+          end if
+#endif
+#endif
 #endif
           !@acc call nvtxEndRange
         class is (ncvariable0d_integer)
@@ -3283,14 +3558,14 @@ module mod_ncstream
             ncstat = nf90mpi_put_var_all(stream%id,var%id,var%ival, &
               stream%istart(1:1),stream%icount(1:1))
 #else
-            ncstat = nf90_put_var(stream%id,var%id,var%ival, &
+            ncstat = async_netcdf_put_var(stream%id,var%id,var%ival, &
               stream%istart(1:1),stream%icount(1:1))
 #endif
           else
 #ifdef PNETCDF
             ncstat = nf90mpi_put_var_all(stream%id,var%id,var%ival(1))
 #else
-            ncstat = nf90_put_var(stream%id,var%id,var%ival(1))
+            ncstat = async_netcdf_put_var(stream%id,var%id,var%ival(1))
 #endif
           end if
         class is (ncvariable1d_integer)
@@ -3316,7 +3591,7 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
           !@acc call nvtxEndRange
@@ -3390,7 +3665,7 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
           !@acc call nvtxEndRange
@@ -3464,7 +3739,7 @@ module mod_ncstream
                 reshape(var%ival_slice(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2,is), [totsize])
             else
-              buffer%realbuff(1:totsize) =                    &
+              buffer%intbuff(1:totsize) =                     &
                 reshape(var%ival(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2),[totsize])
             end if
@@ -3479,7 +3754,7 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
           !@acc call nvtxEndRange
@@ -3573,7 +3848,7 @@ module mod_ncstream
           ncstat = nf90mpi_put_var_all(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #else
-          ncstat = nf90_put_var(stream%id,var%id, &
+          ncstat = async_netcdf_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
 #endif
           !@acc call nvtxEndRange
@@ -3826,6 +4101,9 @@ module mod_ncstream
       stream => ncin%ncp%xs
       buffer => ncin%ibp%xb
       if ( stream%id < 0 ) return
+#ifndef PNETCDF
+      call wait_for_async_netcdf('reading from',stream%filename)
+#endif
       if ( var%id < 0 ) then
 #ifdef PNETCDF
         ncstat = nf90mpi_inq_varid(stream%id,var%vname,var%id)
@@ -5336,6 +5614,22 @@ module mod_ncstream
           ' in '//trim(stream%filename),1)
       end if
     end subroutine instream_readvar
+
+#ifndef PNETCDF
+    subroutine wait_for_async_netcdf(operation,filename)
+      implicit none
+      character(len=*), intent(in) :: operation
+      character(len=*), intent(in) :: filename
+
+      ncstat = async_netcdf_wait_all()
+      if ( ncstat /= nf90_noerr ) then
+        call printerror
+        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+        call die('nc_stream','Async output worker failed before '// &
+          trim(operation)//' '//trim(filename),1)
+      end if
+    end subroutine wait_for_async_netcdf
+#endif
 
     subroutine printerror
       implicit none

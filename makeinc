@@ -27,44 +27,45 @@ GITVER := -DGIT_VER=\"$(GIT_VERSION)\"
 # CLM45 flags to activate schemes.
 
 ifeq ($(findstring DCLM45, $(CPPFLAGS)),DCLM45)
-  #CPPFLAGS += $(DEFINE)CENTURY_DECOMP
-  #CPPFLAGS += $(DEFINE)CN
-  #CPPFLAGS += $(DEFINE)DYNPFT
-  #CPPFLAGS += $(DEFINE)CNDV
-  #CPPFLAGS += $(DEFINE)CROP
-  #CPPFLAGS += $(DEFINE)LCH4
-  #CPPFLAGS += $(DEFINE)NITRIF_DENITRIF
-  #CPPFLAGS += $(DEFINE)EXTRALAKELAYERS
-  #CPPFLAGS += $(DEFINE)MEXICOCITY
-  #CPPFLAGS += $(DEFINE)PERGRO
-  #CPPFLAGS += $(DEFINE)SNICAR_FRC
-  #CPPFLAGS += $(DEFINE)VERTSOILC
-  #CPPFLAGS += $(DEFINE)VANCOUVER
-  #CPPFLAGS += $(DEFINE)VICHYDRO
-  #CPPFLAGS += $(DEFINE)LCZ_URB
-  #CPPFLAGS += $(DEFINE)HAMSTER_ALBEDO
+  #CPPFLAGS += -DCENTURY_DECOMP
+  #CPPFLAGS += -DCN
+  #CPPFLAGS += -DDYNPFT
+  #CPPFLAGS += -DCNDV
+  #CPPFLAGS += -DCROP
+  #CPPFLAGS += -DLCH4
+  #CPPFLAGS += -DNITRIF_DENITRIF
+  #CPPFLAGS += -DEXTRALAKELAYERS
+  #CPPFLAGS += -DMEXICOCITY
+  #CPPFLAGS += -DPERGRO
+  #CPPFLAGS += -DSNICAR_FRC
+  #CPPFLAGS += -DVERTSOILC
+  #CPPFLAGS += -DVANCOUVER
+  #CPPFLAGS += -DVICHYDRO
+  #CPPFLAGS += -DLCZ_URB
+  #CPPFLAGS += -DHAMSTER_ALBEDO
 endif
 
-#CPPFLAGS += $(DEFINE)RCEMIP
+#CPPFLAGS += -DRCEMIP
 
 space :=
 space +=
 
 fortflag := -D_FORTIFY_SOURCE=2
 scppfla := $(filter-out $(fortflag),$(CPPFLAGS))
-scppfla := $(filter-out $(DEFINE)VICHYDRO,$(scppfla))
-scppfla := $(filter-out $(DEFINE)USE_MPI3,$(scppfla))
-scppfla := $(filter-out $(DEFINE)F2008,$(scppfla))
-scppfla := $(filter-out $(DEFINE)QUAD_PRECISION,$(scppfla))
-scppfla := $(filter-out $(DEFINE)MPI_SERIAL,$(scppfla))
-scppfla := $(filter-out $(DEFINE)NETCDF_CDF5,$(scppfla))
-scppfla := $(filter-out $(DEFINE)NETCDF4_COMPRESS,$(scppfla))
-scppfla := $(filter-out $(DEFINE)NETCDF4_HDF5,$(scppfla))
-scppfla := $(filter-out $(DEFINE)PNETCDF_IN_NETCDF,$(scppfla))
-scppfla := $(filter-out $(DEFINE)PNETCDF,$(scppfla))
-scppfla := $(filter-out $(DEFINE)SKL,$(scppfla))
-scppfla := $(filter-out $(DEFINE)NCFILTERS_AVAIL,$(scppfla))
+scppfla := $(filter-out -DVICHYDRO,$(scppfla))
+scppfla := $(filter-out -DUSE_MPI3,$(scppfla))
+scppfla := $(filter-out -DF2008,$(scppfla))
+scppfla := $(filter-out -DQUAD_PRECISION,$(scppfla))
+scppfla := $(filter-out -DMPI_SERIAL,$(scppfla))
+scppfla := $(filter-out -DNETCDF_CDF5,$(scppfla))
+scppfla := $(filter-out -DNETCDF4_COMPRESS,$(scppfla))
+scppfla := $(filter-out -DNETCDF4_HDF5,$(scppfla))
+scppfla := $(filter-out -DPNETCDF_IN_NETCDF,$(scppfla))
+scppfla := $(filter-out -DPNETCDF,$(scppfla))
+scppfla := $(filter-out -DASYNC_NETCDF,$(scppfla))
+scppfla := $(filter-out -DSKL,$(scppfla))
+scppfla := $(filter-out -DNCFILTERS_AVAIL,$(scppfla))
 scppfla := $(strip $(scppfla))
-flagsuffix := $(subst $(space),_,$(subst $(DEFINE),,$(filter $(DEFINE)% , $(scppfla))))
+flagsuffix := $(subst $(space),_,$(subst -D,,$(filter -D% , $(scppfla))))
 
 program_transform_name := s&$$&$(rcsuffix)$(flagsuffix:_=)&

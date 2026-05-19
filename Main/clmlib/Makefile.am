@@ -140,24 +140,24 @@ endif
 # Set up special characters
 null  :=
 
-FPPFLAGS = $(CPPFLAGS) $(DEFINE)MAXPATCH_PFT=4 $(DEFINE)OFFLINE
+FPPFLAGS = $(CPPFLAGS) -DMAXPATCH_PFT=4 -DOFFLINE
 
 if COMPILER_IBM
 if OSNAME_AIX
-  FPPFLAGS += $(DEFINE)AIX $(DEFINE)FORTRAN_SAME
+  FPPFLAGS += -DAIX -DFORTRAN_SAME
   DEFFLAGS = -DAIX -DFORTRAN_SAME
 else
-  FPPFLAGS += $(DEFINE)LINUX $(DEFINE)FORTRAN_SAME
+  FPPFLAGS += -DLINUX -DFORTRAN_SAME
   DEFFLAGS = -DFORTRAN_SAME -DLINUX
 endif
 else
-  FPPFLAGS += $(DEFINE)LINUX $(DEFINE)FORTRANUNDERSCORE
+  FPPFLAGS += -DLINUX -DFORTRANUNDERSCORE
   DEFFLAGS = -DLINUX -DFORTRANUNDERSCORE
 endif
 
 if COMPILER_GNU
 FCFLAGS += -fno-range-check
-FPPFLAGS += $(DEFINE)G95
+FPPFLAGS += -DG95
 DEFFLAGS += -DFORTRANUNDERSCORE -DLINUX
 endif
 
@@ -259,7 +259,7 @@ Meat.o:  Meat.F90 ESMF_TimeIntervalMod.o ESMF_FractionMod.o ESMF_TimeMod.o ESMF_
 QSatMod.o:  QSatMod.F90 shr_kind_mod.o shr_const_mod.o misc.h preproc.h
 RtmMod.o:  RtmMod.F90 clm_mct_mod.o spmdMod.o clmtype.o clm_varcon.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o shr_kind_mod.o spmdGathScatMod.o perf_mod.o shr_const_mod.o decompMod.o domainMod.o clm_time_manager.o ncdio.o areaMod.o misc.h preproc.h
 RunoffMod.o:  RunoffMod.F90 spmdMod.o clm_mct_mod.o clmtype.o abortutils.o shr_kind_mod.o misc.h preproc.h
-STATICEcosysDynMod.o:  STATICEcosysDynMod.F90 spmdMod.o clmtype.o clm_varpar.o clm_varctl.o abortutils.o fileutils.o shr_kind_mod.o spmdGathScatMod.o decompMod.o clm_time_manager.o pftvarcon.o ncdio.o nanMod.o misc.h preproc.h
+STATICEcosysDynMod.o:  STATICEcosysDynMod.F90 spmdMod.o clmtype.o clm_varpar.o clm_varctl.o abortutils.o fileutils.o shr_kind_mod.o spmdGathScatMod.o decompMod.o clm_time_manager.o pftvarcon.o ncdio.o nanMod.o mod_ncstream.o misc.h preproc.h
 SnowHydrologyMod.o:  SnowHydrologyMod.F90 clm_varcon.o clmtype.o clm_varpar.o shr_kind_mod.o clm_time_manager.o misc.h preproc.h
 SoilHydrologyMod.o:  SoilHydrologyMod.F90 clm_varcon.o clmtype.o clm_varpar.o shr_kind_mod.o shr_const_mod.o clm_time_manager.o TridiagonalMod.o misc.h preproc.h
 SoilTemperatureMod.o:  SoilTemperatureMod.F90 clm_varcon.o clmtype.o clm_varpar.o shr_kind_mod.o TridiagonalMod.o clm_time_manager.o clm_atmlnd.o misc.h preproc.h

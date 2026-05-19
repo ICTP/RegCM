@@ -76,7 +76,7 @@ AC_ARG_ENABLE(singleprecision,
                  [SP_REAL="1"]
 )
 if eval "test x"$SP_REAL" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)SINGLE_PRECISION_REAL $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DSINGLE_PRECISION_REAL $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -87,7 +87,7 @@ AC_ARG_ENABLE(knl,
                  [USE_KNL="1"]
 )
 if eval "test x"$USE_KNL" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)KNL $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DKNL $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -98,7 +98,7 @@ AC_ARG_ENABLE(zen3,
                  [USE_ZEN3="1"]
 )
 if eval "test x"$USE_ZEN3" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)ZEN3 $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DZEN3 $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -109,7 +109,7 @@ AC_ARG_ENABLE(bdw,
                  [USE_BDW="1"]
 )
 if eval "test x"$USE_BDW" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)BDW $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DBDW $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -120,7 +120,7 @@ AC_ARG_ENABLE(nhl,
                  [USE_NHL="1"]
 )
 if eval "test x"$USE_NHL" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)NHL $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DNHL $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -131,7 +131,7 @@ AC_ARG_ENABLE(skl,
                  [USE_SKL="1"]
 )
 if eval "test x"$USE_SKL" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)SKL $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DSKL $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -145,7 +145,7 @@ AC_ARG_ENABLE(openacc,
                  [USE_OPENACC="1"]
 )
 if eval "test x"$USE_OPENACC" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DOPENACC $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -155,7 +155,7 @@ AC_ARG_ENABLE(openacc-debug,
                  [USE_OPENACC="2"]
 )
 if eval "test x"$USE_OPENACC" = x2"; then
-  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DOPENACC $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -165,7 +165,7 @@ AC_ARG_ENABLE(openacc-managed,
                  [USE_OPENACC="3"]
 )
 if eval "test x"$USE_OPENACC" = x3"; then
-  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DOPENACC $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -175,7 +175,7 @@ AC_ARG_ENABLE(openacc-stdpar,
                  [USE_OPENACC="4"]
 )
 if eval "test x"$USE_OPENACC" = x4"; then
-  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS -DSTDPAR"
+  AM_CPPFLAGS="-DOPENACC $AM_CPPFLAGS -DSTDPAR"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -186,7 +186,7 @@ AC_ARG_ENABLE(profile,
                  [USE_PROF="1"]
 )
 if eval "test x"$USE_PROF" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)PROF $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DPROF $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -214,7 +214,7 @@ if eval "test x"$USEOASIS" = x1"; then
   AC_MSG_WARN([Compiling OASIS enabled code])
   AC_MSG_WARN([OASIS path: $OASIS_PREFIX])
   AC_MSG_WARN([OASIS communication technique: $OASIS_CHAN])
-  AM_CPPFLAGS="\$(DEFINE)OASIS $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DOASIS $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -232,7 +232,7 @@ if eval "test x"$USEECLM" = x1"; then
   AC_MSG_WARN([Compiling ECLM and OASIS enabled code])
   AC_MSG_WARN([OASIS path: $OASIS_PREFIX])
   AC_MSG_WARN([OASIS communication technique: $OASIS_CHAN])
-  AM_CPPFLAGS="\$(DEFINE)OASIS \$(DEFINE)ECLM $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DOASIS -DECLM $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -253,11 +253,11 @@ AC_ARG_ENABLE(megan,
 
 if eval "test x"$USECLM" = x1"; then
   AC_MSG_WARN([Compiling CLM enabled code])
-  AM_CPPFLAGS="\$(DEFINE)CLM $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DCLM $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
   if eval "test x"$USEMEGAN" = x1"; then
     AC_MSG_WARN([Compiling CLM with MEGAN enabled code])
-    AM_CPPFLAGS="\$(DEFINE)VOC $AM_CPPFLAGS"
+    AM_CPPFLAGS="-DVOC $AM_CPPFLAGS"
     AC_SUBST(AM_CPPFLAGS)
   fi
 fi
@@ -272,7 +272,7 @@ AM_CONDITIONAL(DO_COMPILE_LIBCLM45, [test x"$USECLM45" = x1])
 
 if eval "test x"$USECLM45" = x1"; then
   AC_MSG_WARN([Compiling CLM45 enabled code])
-  AM_CPPFLAGS="\$(DEFINE)CLM45 $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DCLM45 $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -285,7 +285,7 @@ AC_ARG_ENABLE(cpl,
 AM_CONDITIONAL(DO_COMPILE_CPL, [test x"$USECPL" = x1])
 
 if eval "test x"$USECPL" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)CPL $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DCPL $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -296,7 +296,7 @@ AC_ARG_ENABLE(parallel-nc,
   [PNETCDF_IN_NETCDF="1"],[PNETCDF_IN_NETCDF="0"]
 )
 if eval "test x$PNETCDF_IN_NETCDF = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)PNETCDF_IN_NETCDF $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DPNETCDF_IN_NETCDF $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -307,8 +307,8 @@ AC_ARG_ENABLE(pnetcdf,
   [PNETCDF="1"],[PNETCDF="0"]
 )
 if eval "test x$PNETCDF = x1"; then
-  NULLOPTION=$( echo $AM_CPPFLAGS | sed -e 's/\$(DEFINE)PNETCDF_IN_NETCDF//')
-  AM_CPPFLAGS="\$(DEFINE)PNETCDF $NULLOPTION"
+  NULLOPTION=$( echo $AM_CPPFLAGS | sed -e 's/-DPNETCDF_IN_NETCDF//')
+  AM_CPPFLAGS="-DPNETCDF $NULLOPTION"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -318,9 +318,9 @@ AC_ARG_ENABLE(nc4-filters,
   [NETCDF4_COMPRESS="1"],[NETCDF4_COMPRESS="0"]
   )
 if eval "test x$NETCDF4_COMPRESS = x1"; then
-  NULLOPTION=$( echo $AM_CPPFLAGS | sed -e 's/\$(DEFINE)PNETCDF_IN_NETCDF//' \
-                -e 's/\$(DEFINE)PNETCDF//')
-  AM_CPPFLAGS="\$(DEFINE)NETCDF4_COMPRESS $NULLOPTION"
+  NULLOPTION=$( echo $AM_CPPFLAGS | sed -e 's/-DPNETCDF_IN_NETCDF//' \
+                -e 's/-DPNETCDF//')
+  AM_CPPFLAGS="-DNETCDF4_COMPRESS $NULLOPTION"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -331,6 +331,23 @@ AC_ARG_ENABLE(cdf5,
   [NETCDF_CDF5="1"],[NETCDF_CDF5="0"]
 )
 
+ASYNC_NETCDF="0"
+AC_ARG_ENABLE(async-netcdf,
+  AC_HELP_STRING([--enable-async-netcdf],
+                 [Enable pthread-backed async NetCDF output and ICBC prefetching.]),
+  [if test "x$enableval" = "xyes"; then
+     ASYNC_NETCDF="1"
+   else
+     ASYNC_NETCDF="0"
+   fi],
+  [ASYNC_NETCDF="0"]
+)
+AM_CONDITIONAL(DO_ASYNC_NETCDF, [test x"$ASYNC_NETCDF" = x1])
+if eval "test x$ASYNC_NETCDF = x1"; then
+  AM_CPPFLAGS="-DASYNC_NETCDF $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 DEBUG="0"
 AC_ARG_ENABLE(debug,
   AC_HELP_STRING([--enable-debug],
@@ -338,7 +355,7 @@ AC_ARG_ENABLE(debug,
   [DEBUG="1"]
 )
 if eval "test x$DEBUG = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)DEBUG $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DDEBUG $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -505,9 +522,6 @@ AM_CONDITIONAL(COMPILER_INTEL_LLVM, [ test -z "${FCPROG##ifx*}" -o \
                                            -z "${FCPROG##mpiifx*}" ] )
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
 
-DEFINE="-D"
-AC_SUBST(DEFINE)
-
 # Force Big endian I/O for known compilers
 if test -z "$COMPILER_GNU_TRUE"; then
   # Following check seems not to work on SuSE, need investigation
@@ -637,13 +651,11 @@ if test -z "$COMPILER_PGI_TRUE"; then
   AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_IBM_TRUE"; then
-  DEFINE="-WF,-D"
-  FCFLAGS="$FCFLAGS -WF,-DIBM"
+  FCFLAGS="$FCFLAGS -DIBM"
   OMPFLAGS="-qsmp=omp"
   CPRDEF="XLF"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
-  AC_SUBST(DEFINE)
 fi
 if test -x "$COMPILER_SUN_TRUE"; then
   CPRDEF="WORKSHOP"
@@ -897,15 +909,15 @@ else
   AC_SUBST(MPIFC)
   LIBS="$LIBS -lmpiser"
   AC_SUBST(LIBS)
-  AM_CPPFLAGS="\$(DEFINE)MPI_SERIAL $AM_CPPFLAGS"
+  AM_CPPFLAGS="-DMPI_SERIAL $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-MPEUCFLAGS="\$(DEFINE)SYS$SYSDEF \$(DEFINE)CPR$CPRDEF \$(DEFINE)$name_mangling"
-MPEUFCFLAGS="\$(DEFINE)SYS$SYSDEF \$(DEFINE)CPR$CPRDEF"
+MPEUCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF -D$name_mangling"
+MPEUFCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF"
 if test -n "$SRKDEF"; then
-  MPEUCFLAGS="$MPEUCFLAGS \$(DEFINE)$SRKDEF"
-  MPEUFCFLAGS="$MPEUFCFLAGS \$(DEFINE)$SRKDEF"
+  MPEUCFLAGS="$MPEUCFLAGS -D$SRKDEF"
+  MPEUFCFLAGS="$MPEUFCFLAGS -D$SRKDEF"
 fi
 AC_SUBST(MPEUCFLAGS)
 AC_SUBST(MPEUFCFLAGS)
@@ -936,6 +948,16 @@ if test -z "$COMPILER_SUN_TRUE"; then
 else
   CPPFLAGS="$AM_CPPFLAGS -I$REGCM_ROOT/Share"
   AC_SUBST(CPPFLAGS)
+fi
+if eval "test x$ASYNC_NETCDF = x1"; then
+  AC_LANG_PUSH([C])
+  AC_CHECK_HEADERS([pthread.h], [], [
+    AC_MSG_ERROR([pthread.h is required for --enable-async-netcdf])
+  ])
+  CFLAGS="$CFLAGS -pthread"
+  AC_SUBST(CFLAGS)
+  LIBS="$LIBS -pthread"
+  AC_LANG_POP([C])
 fi
 LIBS="-L$REGCM_ROOT/Share -lrcmlib $LIBS"
 SYSLIBS="$LIBS"

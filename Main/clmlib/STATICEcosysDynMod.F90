@@ -16,6 +16,7 @@ module STATICEcosysdynMOD
   use shr_kind_mod,    only : r8 => shr_kind_r8
   use abortutils,      only : endrun
   use clm_varctl,      only : scmlat,scmlon,single_column
+  use mod_ncstream,    only : outstream_async_flush
   use spmdGathScatMod, only : scatter_data_from_master
 !
 ! !PUBLIC TYPES:
@@ -388,6 +389,8 @@ contains
     ! Open monthly vegetation file
     ! Read data and convert from [lsmlon] x [lsmlat] grid to patch data
     ! ----------------------------------------------------------------------
+
+    call outstream_async_flush()
 
     do k=1,2   !loop over months and read vegetated data
 

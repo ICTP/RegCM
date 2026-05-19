@@ -13,6 +13,7 @@ module mod_clm_staticecosysdyn
   use mod_date
   use mod_dynparam
   use mod_mppparam
+  use mod_ncstream, only : outstream_async_flush
   use mod_runparams
   use mod_mpmessage
   use mod_clm_nchelper
@@ -296,6 +297,7 @@ module mod_clm_staticecosysdyn
       write (stdout,*) 'Attempting to read annual vegetation data .....'
     end if
 
+    call outstream_async_flush()
     call clm_openfile(trim(fsurdat),ncid)
     call clm_check_dims(ncid,ni,nj)
     ns = ni*nj
@@ -381,6 +383,7 @@ module mod_clm_staticecosysdyn
     ! Read data and convert from gridcell to pft data
     ! ----------------------------------------------------------------------
 
+    call outstream_async_flush()
     call clm_openfile(fveg,ncid)
 
     do k = 1, 2   !loop over months and read vegetated data

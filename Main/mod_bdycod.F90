@@ -47,6 +47,9 @@ module mod_bdycod
 
   public :: initideal
   public :: allocate_mod_bdycon, init_bdy, bdyin, bdyval
+#ifdef ASYNC_NETCDF
+  public :: bdyin_prefetch
+#endif
   public :: sponge, nudge, setup_bdycon, raydamp
   public :: is_present_qc, is_present_qi
 
@@ -97,6 +100,10 @@ module mod_bdycod
   real(rkx) :: fnudge, gnudge, rdtbdy
   real(rk8) :: jday
   integer(ik4) :: som_month
+#ifdef ASYNC_NETCDF
+  integer(ik4), save :: bdyin_prefetch_steps = 1
+  logical, save :: bdyin_prefetch_steps_initialized = .false.
+#endif
 
   real(rkx), parameter, dimension(10) :: qxbval = &
     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
@@ -556,11 +563,27 @@ module mod_bdycod
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
     type (rcm_time_interval) :: tdif
+    integer(ik4), pointer, contiguous, dimension(:,:) :: dom_ldmsk
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: sub_ldmsk
+    real(rkx), pointer, contiguous, dimension(:,:) :: dom_lndcat
+    real(rkx), pointer, contiguous, dimension(:,:) :: ts0, ts1
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: sfice
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: sncv
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: snag
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init_bdy'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
+    dom_ldmsk => mddom%ldmsk
+    dom_lndcat => mddom%lndcat
+    sub_ldmsk => mdsub%ldmsk
+    ts0 => xtsb%b0
+    ts1 => xtsb%b1
+    sfice => lms%sfice
+    sncv => lms%sncv
+    snag => lms%snag
 
     bdydate1 = idate1
     bdydate2 = idate1
@@ -814,26 +837,31 @@ module mod_bdycod
     if ( rcmtimer%start( ) ) then
       if ( iseaice == 1 ) then
         if ( islab_ocean == 0 ) then
-          do i = ici1, ici2
-            do j = jci1, jci2
-              if ( mddom%ldmsk(j,i) == 1 ) cycle
-              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-              if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-                if ( cplmsk(j,i) /= 0 ) cycle
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( dom_ldmsk(j,i) == 1 ) cycle
+            if ( lakemod == 1 .and. islake(dom_lndcat(j,i)) ) cycle
+            if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+              if ( cplmsk(j,i) /= 0 ) cycle
+            end if
+            if ( ts0(j,i) <= icetriggert ) then
+              ts0(j,i) = icetriggert
+              dom_ldmsk(j,i) = 2
+            end if
+          end do
+          do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+            if ( dom_ldmsk(j,i) == 1 ) cycle
+            if ( lakemod == 1 .and. islake(dom_lndcat(j,i)) ) cycle
+            if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+              if ( cplmsk(j,i) /= 0 ) cycle
+            end if
+            if ( ts0(j,i) <= icetriggert ) then
+              if ( sub_ldmsk(n,j,i) == 0 ) then
+                sub_ldmsk(n,j,i) = 2
+                sfice(n,j,i) = 1.00_rkx
+                sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
+                snag(n,j,i) = 0.1_rkx
               end if
-              if ( xtsb%b0(j,i) <= icetriggert ) then
-                xtsb%b0(j,i) = icetriggert
-                mddom%ldmsk(j,i) = 2
-                do n = 1, nnsg
-                  if ( mdsub%ldmsk(n,j,i) == 0 ) then
-                    mdsub%ldmsk(n,j,i) = 2
-                    lms%sfice(n,j,i) = 1.00_rkx
-                    lms%sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
-                    lms%snag(n,j,i) = 0.1_rkx
-                  end if
-                end do
-              end if
-            end do
+            end if
           end do
         end if
       end if
@@ -841,34 +869,38 @@ module mod_bdycod
 
     if ( iseaice == 1 ) then
       if ( islab_ocean == 0 ) then
-        do i = ici1, ici2
-          do j = jci1, jci2
-            ! Update temperatures over ocean water and lakes
-            if ( mddom%ldmsk(j,i) == 1 ) cycle
-            if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-            if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-              if ( cplmsk(j,i) /= 0 ) cycle
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          ! Update temperatures over ocean water and lakes
+          if ( dom_ldmsk(j,i) == 1 ) cycle
+          if ( lakemod == 1 .and. islake(dom_lndcat(j,i)) ) cycle
+          if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+            if ( cplmsk(j,i) /= 0 ) cycle
+          end if
+          if ( ts1(j,i) <= icetriggert ) then
+            ts1(j,i) = icetriggert
+            dom_ldmsk(j,i) = 2
+          end if
+        end do
+        do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+          ! Update temperatures over ocean water and lakes
+          if ( dom_ldmsk(j,i) == 1 ) cycle
+          if ( lakemod == 1 .and. islake(dom_lndcat(j,i)) ) cycle
+          if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+            if ( cplmsk(j,i) /= 0 ) cycle
+          end if
+          if ( ts1(j,i) <= icetriggert ) then
+            if ( sub_ldmsk(n,j,i) == 0 ) then
+              sub_ldmsk(n,j,i) = 2
+              sfice(n,j,i) = 1.00_rkx
             end if
-            if ( xtsb%b1(j,i) <= icetriggert ) then
-              xtsb%b1(j,i) = icetriggert
-              mddom%ldmsk(j,i) = 2
-              do n = 1, nnsg
-                if ( mdsub%ldmsk(n,j,i) == 0 ) then
-                  mdsub%ldmsk(n,j,i) = 2
-                  lms%sfice(n,j,i) = 1.00_rkx
-                end if
-              end do
-            else
-              if ( mddom%ldmsk(j,i) == 2 ) then
-                ! Decrease the surface ice to melt it
-                do n = 1, nnsg
-                  if ( mdsub%ldmsk(n,j,i) == 2 ) then
-                    lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
-                  end if
-                end do
+          else
+            if ( dom_ldmsk(j,i) == 2 ) then
+              ! Decrease the surface ice to melt it
+              if ( sub_ldmsk(n,j,i) == 2 ) then
+                sfice(n,j,i) = sfice(n,j,i)*d_r10
               end if
             end if
-          end do
+          end if
         end do
       end if
     end if
@@ -902,10 +934,60 @@ module mod_bdycod
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
 
+#ifdef ASYNC_NETCDF
+    call init_bdyin_prefetch()
+#endif
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine init_bdy
+  !
+#ifdef ASYNC_NETCDF
+  subroutine init_bdyin_prefetch()
+    implicit none
+
+    if ( .not. bdyin_prefetch_steps_initialized ) then
+      call init_bdyin_prefetch_steps()
+    end if
+    if ( bdyin_prefetch_steps <= 0 ) return
+    call warmup_icbc_prefetch()
+  end subroutine init_bdyin_prefetch
+  !
+  subroutine bdyin_prefetch
+    implicit none
+    type(rcm_time_and_date) :: target_date
+    real(rkx) :: lead_seconds
+    logical :: should_prefetch
+
+    if ( .not. bdyin_prefetch_steps_initialized ) then
+      call init_bdyin_prefetch_steps()
+    end if
+    if ( bdyin_prefetch_steps <= 0 ) return
+
+    lead_seconds = real(bdyin_prefetch_steps,rkx)*dtsec
+    should_prefetch = alarm_in_bdy%will_act(lead_seconds)
+    if ( .not. should_prefetch ) return
+
+    target_date = bdydate2 + intbdy
+    if ( target_date > idate2 ) return
+    call prefetch_icbc(target_date)
+  end subroutine bdyin_prefetch
+  !
+  subroutine init_bdyin_prefetch_steps()
+    implicit none
+    character(len=32) :: env_value
+    integer(ik4) :: env_len, env_stat, read_stat
+
+    bdyin_prefetch_steps = 1
+    call get_environment_variable('RCM_BDYIN_PREFETCH_STEPS',env_value, &
+      length=env_len,status=env_stat)
+    if ( env_stat == 0 .and. env_len > 0 ) then
+      read(env_value(1:env_len),*,iostat=read_stat) bdyin_prefetch_steps
+      if ( read_stat /= 0 ) bdyin_prefetch_steps = 1
+    end if
+    bdyin_prefetch_steps_initialized = .true.
+  end subroutine init_bdyin_prefetch_steps
+#endif
   !
   ! this subroutine reads in the boundary conditions.
   !
@@ -915,10 +997,17 @@ module mod_bdycod
     integer(ik4) :: i, j, k, n, datefound
     character(len=32) :: appdat
     logical :: update_slabocn
+#ifdef ASYNC_NETCDF
+    logical :: prefetched
+#endif
     type (rcm_time_interval) :: tdif
     real(rkx), pointer, contiguous, dimension(:,:,:) :: u0, u1, &
       v0, v1, t0, t1, q0, q1, l0, l1, i0, i1, pp0, pp1, ww0, ww1, pai0, pai1
     real(rkx), pointer, contiguous, dimension(:,:) :: ts0, ts1, ps0, ps1
+    integer(ik4), pointer, contiguous, dimension(:,:) :: dom_ldmsk
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: sub_ldmsk
+    real(rkx), pointer, contiguous, dimension(:,:) :: dom_lndcat
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: sfice
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
     integer(ik4), save :: idindx = 0
@@ -947,6 +1036,10 @@ module mod_bdycod
     ts1 => xtsb%b1
     ps0 => xpsb%b0
     ps1 => xpsb%b1
+    dom_ldmsk => mddom%ldmsk
+    dom_lndcat => mddom%lndcat
+    sub_ldmsk => mdsub%ldmsk
+    sfice => lms%sfice
 
     update_slabocn = ( islab_ocean == 1 .and. &
       do_qflux_adj .and. som_month /= rcmtimer%month )
@@ -1010,8 +1103,17 @@ module mod_bdycod
       end if
     end if
     if ( idynamic == 2 ) then
-      call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+#ifdef ASYNC_NETCDF
+      call consume_icbc_prefetch(bdydate2,nhbh1%ps,xtsb%b1, &
+                     mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1, &
+                     xlb%b1,xib%b1,xppb%b1,xwwb%b1,prefetched)
+      if ( .not. prefetched ) then
+#endif
+        call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
+                       xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+#ifdef ASYNC_NETCDF
+      end if
+#endif
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           nhbh1%ps(j,i) = nhbh1%ps(j,i) * d_r10 - ptop
@@ -1021,8 +1123,17 @@ module mod_bdycod
         end do
       end if
     else if ( idynamic == 3 ) then
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+#ifdef ASYNC_NETCDF
+      call consume_icbc_prefetch(bdydate2,xpsb%b1,xtsb%b1, &
+                     mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1, &
+                     xlb%b1,xib%b1,xppb%b1,xwwb%b1,prefetched)
+      if ( .not. prefetched ) then
+#endif
+        call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
+                       xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+#ifdef ASYNC_NETCDF
+      end if
+#endif
       if ( moloch_do_test_1 ) then
         call moloch_static_test1(xtb%b1,xqb%b1,xub%b1,xvb%b1,xpsb%b1,xtsb%b1)
       end if
@@ -1039,8 +1150,17 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+#ifdef ASYNC_NETCDF
+      call consume_icbc_prefetch(bdydate2,xpsb%b1,xtsb%b1, &
+                     mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1, &
+                     xlb%b1,xib%b1,xppb%b1,xwwb%b1,prefetched)
+      if ( .not. prefetched ) then
+#endif
+        call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
+                       xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+#ifdef ASYNC_NETCDF
+      end if
+#endif
     end if
 
     if ( update_slabocn ) then
@@ -1131,37 +1251,64 @@ module mod_bdycod
     !
     if ( iseaice == 1 ) then
       if ( islab_ocean == 0 ) then
+#ifdef OPENACC
+        !$acc parallel loop collapse(2) gang vector
         do i = ici1, ici2
-          do j = jci1, jci2
-            ! Update temperatures over ocean water only
-            if ( mddom%ldmsk(j,i) == 1 ) cycle
-            ! Skip lake points if lake model active
-            if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-            ! Do not update if coupling and ocean active here
-            if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-              if ( cplmsk(j,i) /= 0 ) cycle
+        do j = jci1, jci2
+#else
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#endif
+          ! Update temperatures over ocean water only
+          if ( dom_ldmsk(j,i) == 1 ) cycle
+          ! Skip lake points if lake model active
+          if ( lakemod == 1 .and. islake(dom_lndcat(j,i)) ) cycle
+          ! Do not update if coupling and ocean active here
+          if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+            if ( cplmsk(j,i) /= 0 ) cycle
+          end if
+          ! Sea ice correction
+          if ( ts1(j,i) <= icetriggert ) then
+            ts1(j,i) = icetriggert
+            dom_ldmsk(j,i) = 2
+          end if
+#ifdef OPENACC
+        end do
+#endif
+        end do
+#ifdef OPENACC
+        !$acc parallel loop collapse(3) gang vector
+        do i = ici1, ici2
+        do j = jci1, jci2
+        do n = 1, nnsg
+#else
+        do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+#endif
+          ! Update temperatures over ocean water only
+          if ( dom_ldmsk(j,i) == 1 ) cycle
+          ! Skip lake points if lake model active
+          if ( lakemod == 1 .and. islake(dom_lndcat(j,i)) ) cycle
+          ! Do not update if coupling and ocean active here
+          if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+            if ( cplmsk(j,i) /= 0 ) cycle
+          end if
+          ! Sea ice correction
+          if ( ts1(j,i) <= icetriggert ) then
+            if ( sub_ldmsk(n,j,i) == 0 ) then
+              sub_ldmsk(n,j,i) = 2
+              sfice(n,j,i) = 1.00_rkx
             end if
-            ! Sea ice correction
-            if ( xtsb%b1(j,i) <= icetriggert ) then
-              xtsb%b1(j,i) = icetriggert
-              mddom%ldmsk(j,i) = 2
-              do n = 1, nnsg
-                if ( mdsub%ldmsk(n,j,i) == 0 ) then
-                  mdsub%ldmsk(n,j,i) = 2
-                  lms%sfice(n,j,i) = 1.00_rkx
-                end if
-              end do
-            else
-              if ( mddom%ldmsk(j,i) == 2 ) then
-                ! Decrease the surface ice to melt it
-                do n = 1, nnsg
-                  if ( mdsub%ldmsk(n,j,i) == 2 ) then
-                    lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
-                  end if
-                end do
+          else
+            if ( dom_ldmsk(j,i) == 2 ) then
+              ! Decrease the surface ice to melt it
+              if ( sub_ldmsk(n,j,i) == 2 ) then
+                sfice(n,j,i) = sfice(n,j,i)*d_r10
               end if
             end if
-          end do
+          end if
+#ifdef OPENACC
+        end do
+        end do
+#endif
         end do
       end if
     end if
@@ -4841,7 +4988,7 @@ module mod_bdycod
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z, t, q
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pai
     integer(ik4) :: i, j, k
-    real(rkx) :: tv1, tv2, lrt, tv, zz, zb, p, zdelta
+    real(rkx) :: tv1, tv2, lrt, tv, zz, zb, p, zdelta, paikp1
     ! Hydrostatic initialization of pai
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       zdelta = z(j,i,kz)*egrav
@@ -4852,15 +4999,16 @@ module mod_bdycod
       tv = tv1 - 0.5_rkx*z(j,i,kz)*lrt
       zz = d_one/(rgas*tv)
       p = ps(j,i) * exp(-zdelta*zz)
-      pai(j,i,kz) = (p/p00)**rovcp
-    end do
-    do k = kzm1, 1, -1
-      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+      paikp1 = (p/p00)**rovcp
+      pai(j,i,kz) = paikp1
+      !$acc loop seq
+      do k = kzm1, 1, -1
         tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
         tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
         zb = d_two*egrav*mo_dzita/(mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
         zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
-        pai(j,i,k) = -pai(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
+        paikp1 = -paikp1 / (d_two * tv2) * (zb - zdelta)
+        pai(j,i,k) = paikp1
       end do
     end do
     call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)

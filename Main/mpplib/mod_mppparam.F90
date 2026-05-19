@@ -3126,7 +3126,16 @@ module mod_mppparam
     integer(ik4) :: nx, ny
     integer(ik4) :: lb, rb
     integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
+    logical :: do_lt, do_rt, do_bt, do_tp
     !@acc call nvtxStartRange("real8_2d_exchange")
+    do_lt = .true.
+    do_rt = .true.
+    do_bt = .true.
+    do_tp = .true.
+    if ( ma%left   == mpi_proc_null ) do_lt = .false.
+    if ( ma%right  == mpi_proc_null ) do_rt = .false.
+    if ( ma%bottom == mpi_proc_null ) do_bt = .false.
+    if ( ma%top    == mpi_proc_null ) do_tp = .false.
     nx = j2-j1+1
     ny = i2-i1+1
     lb = nex
@@ -3147,90 +3156,56 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1, ib2, iex
+    integer(ik4) :: id, iex, i, j
 
-    ib2 = 0
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
-    end do
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+    !$acc data copy(ml) create(sdatax,sdatay,rdatax,rdatay)
+    do concurrent ( i = i1:i2, iex = 1:nex )
+      id = (iex-1)*tx + 1 + (i-i1)
+      sdatax(id      ) = ml(j1+(iex-1),i)
+      sdatax(id+sizex) = ml(j2-(iex-1),i)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    !$acc host_data use_device(sdatax,rdatax)
     call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
         rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
-    ib2 = 0
-    if ( ma%left /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
-      end do
-    else
-      ib2 = ib2 + sizex
-    end if
-    if ( ma%right /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
-      end do
-    else
-      ib2 = ib2 + sizex
-    end if
-
-    ib2 = 0
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1))
+    do concurrent ( i = i1:i2, iex = 1:nex )
+      id = (iex-1)*tx + 1 + (i-i1)
+      if ( do_lt ) ml(j1-iex,i) = rdatax(id      )
+      if ( do_rt ) ml(j2+iex,i) = rdatax(id+sizex)
     end do
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1))
+
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex )
+      id = (iex-1)*ty + 1 + (j-j1+lb)
+      sdatay(id      ) = ml(j,i1+(iex-1))
+      sdatay(id+sizey) = ml(j,i2-(iex-1))
     end do
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
+    !$acc host_data use_device(sdatay,rdatay)
     call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
         rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
-    ib2 = 0
-    if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        ml(j1-lb:j2+rb,i1-iex) = rdatay(ib1:ib2)
-      end do
-    else
-      ib2 = ib2 + sizey
-    end if
-    if ( ma%top /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        ml(j1-lb:j2+rb,i2+iex) = rdatay(ib1:ib2)
-      end do
-    else
-      ib2 = ib2 + sizey
-    end if
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex )
+      id = (iex-1)*ty + 1 + (j-j1+lb)
+      if ( do_bt ) ml(j,i1-iex) = rdatay(id      )
+      if ( do_tp ) ml(j,i2+iex) = rdatay(id+sizey)
+    end do
+    !$acc end data
 
     end block exchange
     !@acc call nvtxEndRange
@@ -3332,18 +3307,27 @@ module mod_mppparam
     !@acc use nvtx
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
-    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4), intent(in) :: nex, j1, j2, i1, i2, k1, k2, n1, n2
     integer(ik4) :: nx, ny, nk, nn
     integer(ik4) :: lb, rb
     integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
+    logical :: do_lt, do_rt, do_bt, do_tp
     !@acc call nvtxStartRange("real8_4d_exchange")
+    do_lt = .true.
+    do_rt = .true.
+    do_bt = .true.
+    do_tp = .true.
+    if ( ma%left   == mpi_proc_null ) do_lt = .false.
+    if ( ma%right  == mpi_proc_null ) do_rt = .false.
+    if ( ma%bottom == mpi_proc_null ) do_bt = .false.
+    if ( ma%top    == mpi_proc_null ) do_tp = .false.
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
     nn = n2-n1+1
     lb = nex
     rb = nex
-    if ( ma%left == mpi_proc_null ) lb = 0
+    if ( ma%left  == mpi_proc_null ) lb = 0
     if ( ma%right == mpi_proc_null ) rb = 0
     tx = ny
     ty = nx+lb+rb
@@ -3359,123 +3343,55 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1, ib2, iex, k, n
+    integer(ik4) :: id, iex, i, j, k, n
 
-    ib2 = 0
-    do n = n1, n2
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
-        end do
-      end do
-    end do
-    do n = n1, n2
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
-        end do
-      end do
+    !$acc data copy(ml) create(sdatax,sdatay,rdatax,rdatay)
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2, n = n1:n2 )
+      id = ((n-n1)*(k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      sdatax(id      ) = ml(j1+(iex-1),i,k,n)
+      sdatax(id+sizex) = ml(j2-(iex-1),i,k,n)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    !$acc host_data use_device(sdatax,rdatax)
     call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
         rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
-
-    ib2 = 0
-    if ( ma%left /= mpi_proc_null ) then
-      do n = n1, n2
-        do k = k1, k2
-          do iex = 1, nex
-            ib1 = ib2 + 1
-            ib2 = ib1 + tx - 1
-            ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
-          end do
-        end do
-      end do
-    else
-      ib2 = ib2 + sizex
-    end if
-    if ( ma%right /= mpi_proc_null ) then
-      do n = n1, n2
-        do k = k1, k2
-          do iex = 1, nex
-            ib1 = ib2 + 1
-            ib2 = ib1 + tx - 1
-            ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
-          end do
-        end do
-      end do
-    else
-      ib2 = ib2 + sizex
-    end if
-
-    ib2 = 0
-    do n = n1, n2
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k,n)
-        end do
-      end do
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2, n = n1:n2 )
+      id = ((n-n1)*(k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      if ( do_lt ) ml(j1-iex,i,k,n) = rdatax(id      )
+      if ( do_rt ) ml(j2+iex,i,k,n) = rdatax(id+sizex)
     end do
-    do n = n1, n2
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k,n)
-        end do
-      end do
+
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2, n = n1:n2 )
+      id = ((n-n1)*(k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      sdatay(id      ) = ml(j,i1+(iex-1),k,n)
+      sdatay(id+sizey) = ml(j,i2-(iex-1),k,n)
     end do
+
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
+    !$acc host_data use_device(sdatay,rdatay)
     call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
         rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
-
-    ib2 = 0
-    if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1, n2
-        do k = k1, k2
-          do iex = 1, nex
-            ib1 = ib2 + 1
-            ib2 = ib1 + ty - 1
-            ml(j1-lb:j2+rb,i1-iex,k,n) = rdatay(ib1:ib2)
-          end do
-        end do
-      end do
-    else
-      ib2 = ib2 + sizey
-    end if
-    if ( ma%top /= mpi_proc_null ) then
-      do n = n1, n2
-        do k = k1, k2
-          do iex = 1, nex
-            ib1 = ib2 + 1
-            ib2 = ib1 + ty - 1
-            ml(j1-lb:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
-          end do
-        end do
-      end do
-    else
-      ib2 = ib2 + sizey
-    end if
-
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2, n = n1:n2 )
+      id = ((n-n1)*(k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      if ( do_bt ) ml(j,i1-iex,k,n) = rdatay(id      )
+      if ( do_tp ) ml(j,i2+iex,k,n) = rdatay(id+sizey)
+    end do
+    !$acc end data
     end block exchange
     !@acc call nvtxEndRange
   end subroutine real8_4d_exchange
@@ -3488,7 +3404,16 @@ module mod_mppparam
     integer(ik4) :: nx, ny
     integer(ik4) :: lb, rb
     integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
+    logical :: do_lt, do_rt, do_bt, do_tp
     !@acc call nvtxStartRange("real4_2d_exchange")
+    do_lt = .true.
+    do_rt = .true.
+    do_bt = .true.
+    do_tp = .true.
+    if ( ma%left   == mpi_proc_null ) do_lt = .false.
+    if ( ma%right  == mpi_proc_null ) do_rt = .false.
+    if ( ma%bottom == mpi_proc_null ) do_bt = .false.
+    if ( ma%top    == mpi_proc_null ) do_tp = .false.
     nx = j2-j1+1
     ny = i2-i1+1
     lb = nex
@@ -3509,90 +3434,56 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1, ib2, iex
+    integer(ik4) :: id, iex, i, j
 
-    ib2 = 0
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
-    end do
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+    !$acc data copy(ml) create(sdatax,sdatay,rdatax,rdatay)
+    do concurrent ( i = i1:i2, iex = 1:nex )
+      id = (iex-1)*tx + 1 + (i-i1)
+      sdatax(id      ) = ml(j1+(iex-1),i)
+      sdatax(id+sizex) = ml(j2-(iex-1),i)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    !$acc host_data use_device(sdatax,rdatax)
     call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
         rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
-    ib2 = 0
-    if ( ma%left /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
-      end do
-    else
-      ib2 = ib2 + sizex
-    end if
-    if ( ma%right /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
-      end do
-    else
-      ib2 = ib2 + sizex
-    end if
-
-    ib2 = 0
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1))
+    do concurrent ( i = i1:i2, iex = 1:nex )
+      id = (iex-1)*tx + 1 + (i-i1)
+      if ( do_lt ) ml(j1-iex,i) = rdatax(id      )
+      if ( do_rt ) ml(j2+iex,i) = rdatax(id+sizex)
     end do
-    do iex = 1, nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1))
+
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex )
+      id = (iex-1)*ty + 1 + (j-j1+lb)
+      sdatay(id      ) = ml(j,i1+(iex-1))
+      sdatay(id+sizey) = ml(j,i2-(iex-1))
     end do
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
+    !$acc host_data use_device(sdatay,rdatay)
     call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
         rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
-    ib2 = 0
-    if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        ml(j1-lb:j2+rb,i1-iex) = rdatay(ib1:ib2)
-      end do
-    else
-      ib2 = ib2 + sizey
-    end if
-    if ( ma%top /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        ml(j1-lb:j2+rb,i2+iex) = rdatay(ib1:ib2)
-      end do
-    else
-      ib2 = ib2 + sizey
-    end if
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex )
+      id = (iex-1)*ty + 1 + (j-j1+lb)
+      if ( do_bt ) ml(j,i1-iex) = rdatay(id      )
+      if ( do_tp ) ml(j,i2+iex) = rdatay(id+sizey)
+    end do
+    !$acc end data
 
     end block exchange
     !@acc call nvtxEndRange
@@ -3694,18 +3585,27 @@ module mod_mppparam
     !@acc use nvtx
     implicit none
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: ml
-    integer(ik4), intent(in) :: nex, j1, j2 , i1, i2, k1, k2, n1, n2
+    integer(ik4), intent(in) :: nex, j1, j2, i1, i2, k1, k2, n1, n2
     integer(ik4) :: nx, ny, nk, nn
     integer(ik4) :: lb, rb
     integer(ik4) :: ndx, ndy, tx, ty, sizex, sizey
+    logical :: do_lt, do_rt, do_bt, do_tp
     !@acc call nvtxStartRange("real4_4d_exchange")
+    do_lt = .true.
+    do_rt = .true.
+    do_bt = .true.
+    do_tp = .true.
+    if ( ma%left   == mpi_proc_null ) do_lt = .false.
+    if ( ma%right  == mpi_proc_null ) do_rt = .false.
+    if ( ma%bottom == mpi_proc_null ) do_bt = .false.
+    if ( ma%top    == mpi_proc_null ) do_tp = .false.
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
     nn = n2-n1+1
     lb = nex
     rb = nex
-    if ( ma%left == mpi_proc_null ) lb = 0
+    if ( ma%left  == mpi_proc_null ) lb = 0
     if ( ma%right == mpi_proc_null ) rb = 0
     tx = ny
     ty = nx+lb+rb
@@ -3721,123 +3621,55 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1, ib2, iex, k, n
+    integer(ik4) :: id, iex, i, j, k, n
 
-    ib2 = 0
-    do n = n1, n2
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
-        end do
-      end do
-    end do
-    do n = n1, n2
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
-        end do
-      end do
+    !$acc data copy(ml) create(sdatax,sdatay,rdatax,rdatay)
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2, n = n1:n2 )
+      id = ((n-n1)*(k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      sdatax(id      ) = ml(j1+(iex-1),i,k,n)
+      sdatax(id+sizex) = ml(j2-(iex-1),i,k,n)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    !$acc host_data use_device(sdatax,rdatax)
     call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
         rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
-
-    ib2 = 0
-    if ( ma%left /= mpi_proc_null ) then
-      do n = n1, n2
-        do k = k1, k2
-          do iex = 1, nex
-            ib1 = ib2 + 1
-            ib2 = ib1 + tx - 1
-            ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
-          end do
-        end do
-      end do
-    else
-      ib2 = ib2 + sizex
-    end if
-    if ( ma%right /= mpi_proc_null ) then
-      do n = n1, n2
-        do k = k1, k2
-          do iex = 1, nex
-            ib1 = ib2 + 1
-            ib2 = ib1 + tx - 1
-            ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
-          end do
-        end do
-      end do
-    else
-      ib2 = ib2 + sizex
-    end if
-
-    ib2 = 0
-    do n = n1, n2
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k,n)
-        end do
-      end do
+    do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2, n = n1:n2 )
+      id = ((n-n1)*(k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      if ( do_lt ) ml(j1-iex,i,k,n) = rdatax(id      )
+      if ( do_rt ) ml(j2+iex,i,k,n) = rdatax(id+sizex)
     end do
-    do n = n1, n2
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k,n)
-        end do
-      end do
+
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2, n = n1:n2 )
+      id = ((n-n1)*(k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      sdatay(id      ) = ml(j,i1+(iex-1),k,n)
+      sdatay(id+sizey) = ml(j,i2-(iex-1),k,n)
     end do
+
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
+    !$acc host_data use_device(sdatay,rdatay)
     call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
         rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
-
-    ib2 = 0
-    if ( ma%bottom /= mpi_proc_null ) then
-      do n = n1, n2
-        do k = k1, k2
-          do iex = 1, nex
-            ib1 = ib2 + 1
-            ib2 = ib1 + ty - 1
-            ml(j1-lb:j2+rb,i1-iex,k,n) = rdatay(ib1:ib2)
-          end do
-        end do
-      end do
-    else
-      ib2 = ib2 + sizey
-    end if
-    if ( ma%top /= mpi_proc_null ) then
-      do n = n1, n2
-        do k = k1, k2
-          do iex = 1, nex
-            ib1 = ib2 + 1
-            ib2 = ib1 + ty - 1
-            ml(j1-lb:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
-          end do
-        end do
-      end do
-    else
-      ib2 = ib2 + sizey
-    end if
-
+    do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2, n = n1:n2 )
+      id = ((n-n1)*(k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      if ( do_bt ) ml(j,i1-iex,k,n) = rdatay(id      )
+      if ( do_tp ) ml(j,i2+iex,k,n) = rdatay(id+sizey)
+    end do
+    !$acc end data
     end block exchange
     !@acc call nvtxEndRange
   end subroutine real4_4d_exchange
