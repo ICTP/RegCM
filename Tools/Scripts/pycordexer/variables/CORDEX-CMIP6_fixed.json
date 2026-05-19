@@ -14,6 +14,9 @@
         "driving_variant_label": [
             "r[[:digit:]]\\{1,\\}i[[:digit:]]\\{1,\\}p[[:digit:]]\\{1,\\}f[[:digit:]]\\{1,\\}$"
         ],
+        "version_realization": [
+            "v[1-9]\\{1,\\}[[:digit:]]\\{0,\\}-r[1-9]\\{1,\\}[[:digit:]]\\{0,\\}$"
+        ],
         "Conventions": [
             "CF-1.11"
         ]
