@@ -181,9 +181,12 @@ module mod_rad_outrad
           lof = lof*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
         end do
-        rad_higcl_out(j,i) = real(rad_higcl_out(j,i) + d_one - hif,rkx)
-        rad_midcl_out(j,i) = real(rad_midcl_out(j,i) + d_one - mif,rkx)
-        rad_lowcl_out(j,i) = real(rad_lowcl_out(j,i) + d_one - lof,rkx)
+        rad_higcl_out(j,i) = max(real(rad_higcl_out(j,i) + &
+                                 d_one-hif,rkx),0.0_rkx)
+        rad_midcl_out(j,i) = max(real(rad_midcl_out(j,i) + &
+                                 d_one-mif,rkx),0.0_rkx)
+        rad_lowcl_out(j,i) = max(real(rad_lowcl_out(j,i) + &
+                                 d_one-lof,rkx),0.0_rkx)
       end do
     end if
 
