@@ -17,7 +17,7 @@ module mod_rad_colmod3
   use mod_intkinds, only : ik4
   use mod_realkinds, only : rk8, rkx
   use mod_constants, only : amd, amo3, mathpi
-  use mod_constants, only : rgas, rhoh2o, tzero
+  use mod_constants, only : rgas, rhoh2o, tzero, lowcld
   use mod_dynparam, only : jci1, jci2, ici1, ici2, kz, kzp1
   use mod_dynparam, only : ntr, nspi
   use mod_memutil, only : getmem, getmem, getmem
@@ -497,7 +497,7 @@ module mod_rad_colmod3
       rt%o3vmr(k,n) = 0.5_rk8*(o3prof(j,i,k+1)+o3prof(j,i,k))*(amd/amo3)
       ! Set a minimum clwp in the cloud of of 0.01 mm
       if ( rt%clwp(k,n) > 0.01_rk8 ) then
-        temp(k,n) = m2r%cldfrc(j,i,k)
+        temp(k,n) = max(m2r%cldfrc(j,i,k),0.01_rkx)
       else
         rt%clwp(k,n) = 0.0_rk8
         temp(k,n) = 0.0_rk8
@@ -573,8 +573,8 @@ module mod_rad_colmod3
       ! Savijarvi,Raisanene (Tellus 1998)
       !
       ! g/m3, already account for cum and ls clouds
-      if ( temp(k,n) > 0.0_rk8 ) then
-        lwc = (rt%ql(k,n) * rt%rho(k,n) * 1000.0_rk8)/temp(k,n)
+      if ( temp(k,n) > lowcld ) then
+        lwc = (rt%ql(k,n)*rt%rho(k,n)*1000.0_rk8)/temp(k,n)
         if ( rt%ioro(n) == 1 ) then
           ! Effective liquid radius over land
           rt%rel(k,n) = min(4.0_rk8 + 7.0_rk8*lwc,15.0_rk8)
@@ -587,7 +587,7 @@ module mod_rad_colmod3
         ! On the Temperature Dependence of the Cloud Ice Particle Effective
         ! Radius - A Satellite Perspective
         !
-        iwc = (rt%qi(k,n) * rt%rho(k,n) * 1000.0_rk8)/temp(k,n)
+        iwc = (rt%qi(k,n)*rt%rho(k,n)*1000.0_rk8)/temp(k,n)
         tempc = rt%t(k,n) - 83.15_rk8
         tcels = tempc - tzero
         fsr = 1.2351_rk8 + 0.0105_rk8 * tcels
@@ -635,9 +635,9 @@ module mod_rad_colmod3
         ! Turn off ice radiative properties by setting fice = 0.0
         ! rt%fice(k,n) = 0.0_rk8
         totcl_l = totcl_l + &
-             (rt%clwp(k,n)*rt%cld(k,n)*(1.0_rk8-rt%fice(k,n)))*0.001_rk8
+             (rt%clwp(k,n)*temp(k,n)*(1.0_rk8-rt%fice(k,n)))*0.001_rk8
         totci_l = totci_l + &
-             (rt%clwp(k,n)*rt%cld(k,n)*rt%fice(k,n))*0.001_rk8
+             (rt%clwp(k,n)*temp(k,n)*rt%fice(k,n))*0.001_rk8
         totwv_l = totwv_l + rt%q(k,n)*rt%rho(k,n)*rt%dz(k,n)
       end do
       rt%totci(n)= totci_l
@@ -688,7 +688,7 @@ module mod_rad_colmod3
       arg = min(kabs*rt%clwp(k,n),25.0_rk8)
       cldemis = max(1.0_rk8 - exp(-arg),0.0_rk8)
       ! Effective cloud cover
-      rt%effcld(k,n) = rt%cld(k,n)*cldemis
+      rt%effcld(k,n) = temp(k,n)*cldemis
     end do
     rt%eccf = real(eccf,rk8)
     rt%labsem = labsem
@@ -731,7 +731,7 @@ module mod_rad_colmod3
     call radout(lout,rt%solin,rt%solout,rt%fsns,rt%fsntc,rt%fsnsc,    &
                 rt%qrs,rt%lwout,rt%flns,rt%flntc,rt%flnsc,rt%qrl,     &
                 rt%flwds,rt%sols,rt%soll,rt%solsd,rt%solld,rt%totcf,  &
-                rt%totwv,rt%totcl,rt%totci,rt%cld,rt%clwp,rt%abv,     &
+                rt%totwv,rt%totcl,rt%totci,temp,rt%clwp,rt%abv,       &
                 rt%sol,rt%aeradfo,rt%aeradfos,rt%aerlwfo,rt%aerlwfos, &
                 tauxar3d,tauasc3d,gtota3d,rt%dz,rt%o3vmr,rt%outtaucl, &
                 rt%outtauci,rt%asaeradfo,rt%asaeradfos,rt%asaerlwfo,  &

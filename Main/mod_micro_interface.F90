@@ -56,6 +56,8 @@ module mod_micro_interface
 
   integer(ik4), parameter :: nchi = 256
   real(rkx), dimension(0:nchi-1) :: chis
+  real(rkx), parameter :: xchi = nchi-1
+  real(rkx), parameter :: rchi = 1.0_rkx/xchi
 
   logical, parameter :: do_cfscaling = .true.
   real(rkx), parameter :: qccrit_lnd = 1.0e-9_rkx
@@ -123,7 +125,7 @@ module mod_micro_interface
     call getmem(qtcrit,jci1,jci2,ici1,ici2,'micro:qtcrit')
     call getmem(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
     do i = 1, nchi
-      cf = real(i-1,rkx)/real(nchi-1,rkx)
+      cf = real(i-1,rkx)*rchi
       chis(i-1) = 0.97_rkx*exp(-((cf-0.098_rkx)**2)/0.0365_rkx)+0.255_rkx
     end do
   end subroutine allocate_micro
@@ -386,7 +388,7 @@ module mod_micro_interface
             ! Implements CF scaling as in Liang GRL 32, 2005
             ! doi: 10.1029/2004GL022301
             if ( do_cfscaling ) then
-              ichi = int(cldfra(j,i,k)*real(nchi-1,rkx))
+              ichi = int(cldfra(j,i,k)*xchi)
               exlwc = exlwc * chis(ichi)
             end if
             cldlwc(j,i,k) = exlwc
@@ -402,19 +404,20 @@ module mod_micro_interface
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           ! Cloud Water Volume
-          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
           cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
+          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
           if ( cldfra(j,i,k) > lowcld ) then
             exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+            ! NOTE : IN CLOUD HERE IS NEEDED !!!
+            exlwc = exlwc/cldfra(j,i,k)
             ! Scaling for CF
             ! Implements CF scaling as in Liang GRL 32, 2005
             ! doi: 10.1029/2004GL022301
             if ( do_cfscaling ) then
-              ichi = int(cldfra(j,i,k)*real(nchi-1,rkx))
+              ichi = int(cldfra(j,i,k)*xchi)
               exlwc = exlwc * chis(ichi)
             end if
-            ! NOTE : IN CLOUD HERE IS NEEDED !!!
-            cldlwc(j,i,k) = exlwc/cldfra(j,i,k)
+            cldlwc(j,i,k) = exlwc
           else
             cldfra(j,i,k) = d_zero
             cldlwc(j,i,k) = d_zero
