@@ -429,8 +429,8 @@ module mod_constants
   real(rkx), parameter :: iceminh = 0.01_rkx
 
   ! Allowed range for cloud fraction
-  real(rkx), parameter :: lowcld = 0.0001_rkx
-  real(rkx), parameter :: hicld  = 0.9999_rkx
+  real(rkx), parameter :: lowcld = 0.01_rkx
+  real(rkx), parameter :: hicld  = 0.99_rkx
 
 end module mod_constants
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
