@@ -2851,10 +2851,9 @@ module mod_ncstream
             mixed_1d(1:var%nval(1)) => var%rval(1:var%nval(1))
             if ( .not. ldevice_async ) then
 #endif
-            double_1d(1:var%nval(1)) => var%rval(1:var%nval(1))
             real_1d(1:var%nval(1)) => buffer%realbuff(1:var%nval(1))
             !$acc kernels deviceptr(real_1d(1:var%nval(1)))
-            real_1d(1:var%nval(1)) = real(double_1d(1:var%nval(1)),rk4)
+            real_1d(1:var%nval(1)) = real(mixed_1d(1:var%nval(1)),rk4)
             !$acc end kernels
 #ifndef BITSHAVE
             end if
@@ -3032,10 +3031,9 @@ module mod_ncstream
               mixed_1d(1:totsize) => var%rval_slice(:,:,is)
               if ( .not. ldevice_async ) then
 #endif
-              double_1d(1:totsize) => var%rval_slice(:,:,is)
               real_1d(1:totsize) => buffer%realbuff(1:totsize)
               !$acc kernels deviceptr(real_1d(1:totsize))
-              real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+              real_1d(1:totsize) = real(mixed_1d(1:totsize),rk4)
               !$acc end kernels
 #ifndef BITSHAVE
               end if
@@ -3051,10 +3049,9 @@ module mod_ncstream
               mixed_1d(1:totsize) => var%rval(:,:)
               if ( .not. ldevice_async ) then
 #endif
-              double_1d(1:totsize) => var%rval(:,:)
               real_1d(1:totsize) => buffer%realbuff(1:totsize)
               !$acc kernels deviceptr(real_1d(1:totsize))
-              real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+              real_1d(1:totsize) = real(mixed_1d(1:totsize),rk4)
               !$acc end kernels
 #ifndef BITSHAVE
               end if
@@ -3261,10 +3258,9 @@ module mod_ncstream
               mixed_1d(1:totsize) => var%rval_slice(:,:,:,is)
               if ( .not. ldevice_async ) then
 #endif
-              double_1d(1:totsize) => var%rval_slice(:,:,:,is)
               real_1d(1:totsize) =>  buffer%realbuff(1:totsize)
               !$acc kernels deviceptr(real_1d(1:totsize))
-              real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+              real_1d(1:totsize) = real(mixed_1d(1:totsize),rk4)
               !$acc end kernels
 #ifndef BITSHAVE
               end if
@@ -3280,10 +3276,9 @@ module mod_ncstream
               mixed_1d(1:totsize) => var%rval(:,:,:)
               if ( .not. ldevice_async ) then
 #endif
-              double_1d(1:totsize) => var%rval(:,:,:)
               real_1d(1:totsize) => buffer%realbuff(1:totsize)
               !$acc kernels deviceptr(real_1d(1:totsize))
-              real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+              real_1d(1:totsize) = real(mixed_1d(1:totsize),rk4)
               !$acc end kernels
 #ifndef BITSHAVE
               end if
@@ -3505,10 +3500,9 @@ module mod_ncstream
             mixed_1d(1:totsize) => var%rval(:,:,:,:)
             if ( .not. ldevice_async ) then
 #endif
-            double_1d(1:totsize) => var%rval(:,:,:,:)
             real_1d(1:totsize) => buffer%realbuff(1:totsize)
             !$acc kernels deviceptr(real_1d(1:totsize))
-            real_1d(1:totsize) = real(double_1d(1:totsize),rk4)
+            real_1d(1:totsize) = real(mixed_1d(1:totsize),rk4)
             !$acc end kernels
 #ifndef BITSHAVE
             end if
