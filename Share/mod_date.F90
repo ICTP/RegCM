@@ -55,11 +55,6 @@ module mod_date
   integer(ik4), parameter :: reference_year = 1900
   integer(ik4), parameter :: cordex_refdate = 1950010100
 
-  character (len=16), public, dimension(7) :: cintstr
-  character (len=12), public, dimension(3) :: calstr
-
-  integer(ik4), dimension(12) :: mlen
-
   type i4wcal
     integer(ik4) :: i
     integer(ik4) :: cal
@@ -194,10 +189,14 @@ module mod_date
   public :: date_in_scenario
   public :: ndaypm, yeardays, yearpoint
 
-  data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
-  data calstr /'gregorian','noleap','360_day'/
-  data cintstr /'seconds', 'minutes', 'hours', 'days', &
-                'months', 'years', 'centuries'/
+  integer(ik4), parameter, dimension(12) :: mlen = &
+    [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+  character (len=12), parameter, public, dimension(7) :: cintstr = &
+       [ 'seconds    ', 'minutes    ', 'hours      ', 'days       ', &
+         'months     ', 'years      ', 'centuries  ' ]
+  character (len=24), parameter, public, dimension(3) :: calstr = &
+       [ 'proleptic gregorian     ', 'noleap                  ', &
+         '360_day                 ' ]
 
   contains
 
@@ -2250,7 +2249,7 @@ module mod_date
     type (rcm_time_and_date), intent(in) :: x
     select case (x%calendar)
       case(gregorian)
-        calstr = 'gregorian'
+        calstr = 'proleptic gregorian'
       case(noleap)
         calstr = 'noleap'
       case(y360)
@@ -2264,7 +2263,7 @@ module mod_date
     implicit none
     character(len=*), intent(in) :: calstr
     select case (calstr)
-      case('gregorian', 'standard')
+      case('gregorian', 'standard', 'proleptic gregorian')
         calint = gregorian
       case('noleap', '365_days', '365_day', 'days_365', 'day_365')
         calint = noleap

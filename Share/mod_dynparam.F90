@@ -357,7 +357,7 @@ module mod_dynparam
 
   ! Days per year and degrees per day
 
-  character(len=12), public :: calendar
+  character(len=24), public :: calendar
   integer(ik4), public :: ical
   real(rkx), public :: dayspy
   real(rkx), public :: vernal_equinox
@@ -764,7 +764,7 @@ module mod_dynparam
     dattyp = 'UNKNW'
     gdate1 = 10100
     gdate2 = 10100
-    calendar = 'gregorian'
+    calendar = 'proleptic gregorian'
     ensemble_run = .false.
     chemtyp = 'MZCLM'
     rewind(ipunit)
@@ -792,7 +792,7 @@ module mod_dynparam
         return
       end if
     end if
-    if (calendar == 'gregorian') then
+    if (calendar == 'gregorian' .or. calendar == 'proleptic gregorian' ) then
       dayspy = 365.2422_rkx
       ical = gregorian
     else if (calendar == 'noleap' .or. calendar == '365_day') then
