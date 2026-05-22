@@ -764,7 +764,7 @@ module mod_dynparam
     dattyp = 'UNKNW'
     gdate1 = 10100
     gdate2 = 10100
-    calendar = 'proleptic gregorian'
+    calendar = 'proleptic_gregorian'
     ensemble_run = .false.
     chemtyp = 'MZCLM'
     rewind(ipunit)
@@ -792,7 +792,7 @@ module mod_dynparam
         return
       end if
     end if
-    if (calendar == 'gregorian' .or. calendar == 'proleptic gregorian' ) then
+    if (calendar == 'gregorian' .or. calendar == 'proleptic_gregorian' ) then
       dayspy = 365.2422_rkx
       ical = gregorian
     else if (calendar == 'noleap' .or. calendar == '365_day') then

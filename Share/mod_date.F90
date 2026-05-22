@@ -195,7 +195,7 @@ module mod_date
        [ 'seconds    ', 'minutes    ', 'hours      ', 'days       ', &
          'months     ', 'years      ', 'centuries  ' ]
   character (len=24), parameter, public, dimension(3) :: calstr = &
-       [ 'proleptic gregorian     ', 'noleap                  ', &
+       [ 'proleptic_gregorian     ', 'noleap                  ', &
          '360_day                 ' ]
 
   contains
@@ -2249,7 +2249,7 @@ module mod_date
     type (rcm_time_and_date), intent(in) :: x
     select case (x%calendar)
       case(gregorian)
-        calstr = 'proleptic gregorian'
+        calstr = 'proleptic_gregorian'
       case(noleap)
         calstr = 'noleap'
       case(y360)
@@ -2263,7 +2263,7 @@ module mod_date
     implicit none
     character(len=*), intent(in) :: calstr
     select case (calstr)
-      case('gregorian', 'standard', 'proleptic gregorian')
+      case('gregorian', 'standard', 'proleptic_gregorian')
         calint = gregorian
       case('noleap', '365_days', '365_day', 'days_365', 'day_365')
         calint = noleap
