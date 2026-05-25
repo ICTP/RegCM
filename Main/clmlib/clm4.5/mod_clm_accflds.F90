@@ -929,7 +929,7 @@ module mod_clm_accflds
 
     if ( nsrest == nsrStartup .and. .not. DoForceRestart ) then
       ! Why not restart? These vars are not in clmr.
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         t_ref2m_max(p) = spval
         t_ref2m_min(p) = spval
         t_ref2m_max_inst(p) = -spval
@@ -957,124 +957,124 @@ module mod_clm_accflds
     ! Initialize clmtype variables that are to be time accumulated
 
     call extract_accum_field ('T_VEG24', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       t_veg24(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('T_VEG240', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       t_veg240(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('FSD24', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       fsd24(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('FSD240', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       fsd240(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('FSI24', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       fsi24(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('FSI240', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       fsi240(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('FSUN24', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       fsun24(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('FSUN240', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       fsun240(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('LAIP', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       elai_p(p) = rbufslp(p)
     end do
 
     if ( crop_prog )then
 
       call extract_accum_field ('GDD0', rbufslp, kkincr)
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         gdd0(p) = rbufslp(p)
       end do
 
       call extract_accum_field ('GDD8', rbufslp, kkincr)
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         gdd8(p) = rbufslp(p)
       end do
 
       call extract_accum_field ('GDD10', rbufslp, kkincr)
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         gdd10(p) = rbufslp(p)
       end do
 
       call extract_accum_field ('GDDPLANT', rbufslp, kkincr)
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         gddplant(p) = rbufslp(p)
       end do
 
       call extract_accum_field ('GDDTSOI', rbufslp, kkincr)
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         gddtsoi(p) = rbufslp(p)
       end do
 
       call extract_accum_field ('TDM10', rbufslp, kkincr)
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         a10tmin(p) = rbufslp(p)
       end do
 
       call extract_accum_field ('TDM5', rbufslp, kkincr)
-      do p = begp, endp
+      do concurrent ( p = begp:endp )
         a5tmin(p) = rbufslp(p)
       end do
 
     end if
 
     call extract_accum_field ('T10', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       t10(p) = rbufslp(p)
     end do
 
 #if (defined CNDV)
 
     call extract_accum_field ('TDA', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       t_mo(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('PREC365', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       prec365(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('AGDDTW', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       agddtw(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('AGDD', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       agdd(p) = rbufslp(p)
     end do
 
 #endif
     call extract_accum_field ('PREC60', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       prec60(p) = rbufslp(p)
     end do
 
     call extract_accum_field ('PREC10', rbufslp, kkincr)
-    do p = begp, endp
+    do concurrent ( p = begp:endp )
       prec10(p) = rbufslp(p)
     end do
 

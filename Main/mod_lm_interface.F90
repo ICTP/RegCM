@@ -859,84 +859,307 @@ module mod_lm_interface
 #ifndef CLM
     integer(ik4) :: k
 #endif
-    integer(ik4) :: i, j, n
+    integer(ik4) :: i, j, n, ns, nl
     real(rkx) :: tas, ps, es, qs, qas, uas, rh, desdt
-    real(rkx) :: sws, lws
+    real(rkx) :: sws, lws, xsum
+    integer(ik4), pointer, contiguous :: lm_iveg(:,:)
+    integer(ik4), pointer, contiguous :: lm_ldmsk(:,:)
+    real(rkx), pointer, contiguous :: lm_totcf(:,:)
+    real(rkx), pointer, contiguous :: lm_qfx(:,:)
+    real(rkx), pointer, contiguous :: lm_cprate(:,:)
+    real(rkx), pointer, contiguous :: lm_snwrat(:,:)
+    real(rkx), pointer, contiguous :: lm_csrate(:,:)
+    real(rkx), pointer, contiguous :: lm_grprat(:,:)
+    real(rkx), pointer, contiguous :: lm_hairat(:,:)
+    real(rkx), pointer, contiguous :: lm_hpbl(:,:)
+    real(rkx), pointer, contiguous :: lm_q2m(:,:)
+    real(rkx), pointer, contiguous :: lm_w10m(:,:)
+    real(rkx), pointer, contiguous :: lm_u10m(:,:)
+    real(rkx), pointer, contiguous :: lm_v10m(:,:)
+    real(rkx), pointer, contiguous :: lm_rswf(:,:)
+    real(rkx), pointer, contiguous :: lm_rlwf(:,:)
+    real(rkx), pointer, contiguous :: lm_dwrlwf(:,:)
+    real(rkx), pointer, contiguous :: lm_solinc(:,:)
+    real(rkx), pointer, contiguous :: lm_sfps(:,:)
+    real(rkx), pointer, contiguous :: lm_swdiralb(:,:)
+    real(rkx), pointer, contiguous :: lm_swdifalb(:,:)
+    real(rkx), pointer, contiguous :: lm_ncprate(:,:)
+    real(rkx), pointer, contiguous :: lm_wetdepflx(:,:,:)
+    real(rkx), pointer, contiguous :: lm_drydepflx(:,:,:)
+    real(rkx), pointer, contiguous :: lms_prcp(:,:,:)
+    real(rkx), pointer, contiguous :: lms_sncv(:,:,:)
+    real(rkx), pointer, contiguous :: lms_srnof(:,:,:)
+    real(rkx), pointer, contiguous :: lms_trnof(:,:,:)
+    real(rkx), pointer, contiguous :: lms_sent(:,:,:)
+    real(rkx), pointer, contiguous :: lms_evpr(:,:,:)
+    real(rkx), pointer, contiguous :: lms_q2m(:,:,:)
+    real(rkx), pointer, contiguous :: lms_t2m(:,:,:)
+    real(rkx), pointer, contiguous :: lms_sfcp(:,:,:)
+    real(rkx), pointer, contiguous :: lms_tgrd(:,:,:)
+    real(rkx), pointer, contiguous :: lms_snwm(:,:,:)
+    real(rkx), pointer, contiguous :: lms_taux(:,:,:)
+    real(rkx), pointer, contiguous :: lms_tauy(:,:,:)
+    real(rkx), pointer, contiguous :: lms_tgbb(:,:,:)
+    real(rkx), pointer, contiguous :: lms_drag(:,:,:)
+    real(rkx), pointer, contiguous :: lms_ustar(:,:,:)
+    real(rkx), pointer, contiguous :: lms_zo(:,:,:)
+    real(rkx), pointer, contiguous :: lms_rhoa(:,:,:)
+    real(rkx), pointer, contiguous :: lms_tlef(:,:,:)
+    real(rkx), pointer, contiguous :: lms_sfice(:,:,:)
+    real(rkx), pointer, contiguous :: lms_sw(:,:,:,:)
+#ifndef CLM
+    logical, pointer, contiguous :: lms_lakmsk(:,:,:)
+    real(rkx), pointer, contiguous :: lms_tlake(:,:,:,:)
+#endif
+#ifdef CLM45
+    real(rkx), pointer, contiguous :: lms_hfso(:,:,:)
+    real(rkx), pointer, contiguous :: lms_tsoi(:,:,:,:)
+#endif
+
+    lm_iveg => lm%iveg
+    lm_ldmsk => lm%ldmsk
+    lm_totcf => lm%totcf
+    lm_qfx => lm%qfx
+    lm_cprate => lm%cprate
+    lm_snwrat => lm%snwrat
+    lm_csrate => lm%csrate
+    lm_grprat => lm%grprat
+    lm_hairat => lm%hairat
+    lm_hpbl => lm%hpbl
+    lm_q2m => lm%q2m
+    lm_w10m => lm%w10m
+    lm_u10m => lm%u10m
+    lm_v10m => lm%v10m
+    lm_rswf => lm%rswf
+    lm_rlwf => lm%rlwf
+    lm_dwrlwf => lm%dwrlwf
+    lm_solinc => lm%solinc
+    lm_sfps => lm%sfps
+    lm_swdiralb => lm%swdiralb
+    lm_swdifalb => lm%swdifalb
+    lm_ncprate => lm%ncprate
+    lm_wetdepflx => lm%wetdepflx
+    lm_drydepflx => lm%drydepflx
+    lms_prcp => lms%prcp
+    lms_sncv => lms%sncv
+    lms_srnof => lms%srnof
+    lms_trnof => lms%trnof
+    lms_sent => lms%sent
+    lms_evpr => lms%evpr
+    lms_q2m => lms%q2m
+    lms_t2m => lms%t2m
+    lms_sfcp => lms%sfcp
+    lms_tgrd => lms%tgrd
+    lms_snwm => lms%snwm
+    lms_taux => lms%taux
+    lms_tauy => lms%tauy
+    lms_tgbb => lms%tgbb
+    lms_drag => lms%drag
+    lms_ustar => lms%ustar
+    lms_zo => lms%zo
+    lms_rhoa => lms%rhoa
+    lms_tlef => lms%tlef
+    lms_sfice => lms%sfice
+    lms_sw => lms%sw
+#ifndef CLM
+    lms_lakmsk => lms%lakmsk
+    lms_tlake => lms%tlake
+#endif
+#ifdef CLM45
+    lms_hfso => lms%hfso
+    lms_tsoi => lms%tsoi
+#endif
 
     ! Fill accumulators
 
     if ( rcmtimer%integrating( ) ) then
       if ( ifsrf ) then
         rnsrf_for_srffrq = rnsrf_for_srffrq + 1.0_rkx
-        if ( associated(srf_totcf_out) ) &
-          srf_totcf_out = srf_totcf_out + lm%totcf
-        if ( associated(srf_evp_out) ) &
-          srf_evp_out = srf_evp_out + lm%qfx
-        if ( associated(srf_tpr_out) ) &
-          srf_tpr_out = srf_tpr_out + sum(lms%prcp,1)*rdnnsg
-        if ( associated(srf_prcv_out) ) &
-          srf_prcv_out = srf_prcv_out + lm%cprate*syncro_srf%rw
+        if ( associated(srf_totcf_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_totcf_out(j,i) = srf_totcf_out(j,i) + lm_totcf(j,i)
+          end do
+        end if
+        if ( associated(srf_evp_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_evp_out(j,i) = srf_evp_out(j,i) + lm_qfx(j,i)
+          end do
+        end if
+        if ( associated(srf_tpr_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_prcp(ns,j,i)
+            end do
+            srf_tpr_out(j,i) = srf_tpr_out(j,i) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_prcv_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_prcv_out(j,i) = srf_prcv_out(j,i) + &
+                                lm_cprate(j,i)*syncro_srf%rw
+          end do
+        end if
         if ( associated(srf_snow_out) ) then
           if ( ipptls > 1 .and. any(icup == 5) ) then
-            srf_snow_out = srf_snow_out + (lm%snwrat+lm%csrate)*syncro_srf%rw
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+              srf_snow_out(j,i) = srf_snow_out(j,i) + &
+                (lm_snwrat(j,i)+lm_csrate(j,i))*syncro_srf%rw
+            end do
           else
-            srf_snow_out = srf_snow_out + lm%snwrat*syncro_srf%rw
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+              srf_snow_out(j,i) = srf_snow_out(j,i) + &
+                                  lm_snwrat(j,i)*syncro_srf%rw
+            end do
           end if
         end if
-        if ( associated(srf_grau_out) ) &
-          srf_grau_out = srf_grau_out + lm%grprat*syncro_srf%rw
-        if ( associated(srf_hail_out) ) &
-          srf_hail_out = srf_hail_out + lm%hairat*syncro_srf%rw
-        if ( associated(srf_zpbl_out) ) &
-          srf_zpbl_out = srf_zpbl_out + lm%hpbl
-        if ( associated(srf_scv_out) ) &
-          srf_scv_out = srf_scv_out + sum(lms%sncv,1)*rdnnsg
+        if ( associated(srf_grau_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_grau_out(j,i) = srf_grau_out(j,i) + &
+                                lm_grprat(j,i)*syncro_srf%rw
+          end do
+        end if
+        if ( associated(srf_hail_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_hail_out(j,i) = srf_hail_out(j,i) + &
+                                lm_hairat(j,i)*syncro_srf%rw
+          end do
+        end if
+        if ( associated(srf_zpbl_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_zpbl_out(j,i) = srf_zpbl_out(j,i) + lm_hpbl(j,i)
+          end do
+        end if
+        if ( associated(srf_scv_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_sncv(ns,j,i)
+            end do
+            srf_scv_out(j,i) = srf_scv_out(j,i) + xsum*rdnnsg
+          end do
+        end if
         if ( associated(srf_sund_out) ) then
-          where( lm%rswf > 120.0_rkx )
-            srf_sund_out = srf_sund_out + dtbat
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( lm_rswf(j,i) > 120.0_rkx ) then
+              srf_sund_out(j,i) = srf_sund_out(j,i) + dtbat
+            end if
+          end do
         end if
         if ( associated(srf_srunoff_out) ) then
-          srf_srunoff_out = srf_srunoff_out+sum(lms%srnof,1)*rdnnsg
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_srnof(ns,j,i)
+            end do
+            srf_srunoff_out(j,i) = srf_srunoff_out(j,i) + xsum*rdnnsg
+          end do
         end if
         if ( associated(srf_trunoff_out) ) then
-          srf_trunoff_out = srf_trunoff_out+sum(lms%trnof,1)*rdnnsg
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_trnof(ns,j,i)
+            end do
+            srf_trunoff_out(j,i) = srf_trunoff_out(j,i) + xsum*rdnnsg
+          end do
         end if
         if ( associated(srf_sena_out) ) then
-          srf_sena_out = srf_sena_out + sum(lms%sent,1)*rdnnsg
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_sent(ns,j,i)
+            end do
+            srf_sena_out(j,i) = srf_sena_out(j,i) + xsum*rdnnsg
+          end do
         end if
         if ( associated(srf_lena_out) ) then
-          srf_lena_out = srf_lena_out + sum(lms%evpr*wlh(lms%tgrd),1)*rdnnsg
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_evpr(ns,j,i)*wlh(lms_tgrd(ns,j,i))
+            end do
+            srf_lena_out(j,i) = srf_lena_out(j,i) + xsum*rdnnsg
+          end do
         end if
-        if ( associated(srf_flw_out) ) &
-          srf_flw_out = srf_flw_out + lm%rlwf
-        if ( associated(srf_fsw_out) ) &
-          srf_fsw_out = srf_fsw_out + lm%rswf
-        if ( associated(srf_fld_out) ) &
-          srf_fld_out = srf_fld_out + lm%dwrlwf
-        if ( associated(srf_sina_out) ) &
-          srf_sina_out = srf_sina_out + lm%solinc
-        if ( associated(srf_snowmelt_out) ) &
-          srf_snowmelt_out = srf_snowmelt_out + sum(lms%snwm,1)*rdnnsg
-        if ( associated(srf_taux_out) ) &
-          srf_taux_out = srf_taux_out + sum(lms%taux,1)*rdnnsg
-        if ( associated(srf_tauy_out) ) &
-          srf_tauy_out = srf_tauy_out + sum(lms%tauy,1)*rdnnsg
+        if ( associated(srf_flw_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_flw_out(j,i) = srf_flw_out(j,i) + lm_rlwf(j,i)
+          end do
+        end if
+        if ( associated(srf_fsw_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_fsw_out(j,i) = srf_fsw_out(j,i) + lm_rswf(j,i)
+          end do
+        end if
+        if ( associated(srf_fld_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_fld_out(j,i) = srf_fld_out(j,i) + lm_dwrlwf(j,i)
+          end do
+        end if
+        if ( associated(srf_sina_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_sina_out(j,i) = srf_sina_out(j,i) + lm_solinc(j,i)
+          end do
+        end if
+        if ( associated(srf_snowmelt_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_snwm(ns,j,i)
+            end do
+            srf_snowmelt_out(j,i) = srf_snowmelt_out(j,i) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_taux_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_taux(ns,j,i)
+            end do
+            srf_taux_out(j,i) = srf_taux_out(j,i) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_tauy_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_tauy(ns,j,i)
+            end do
+            srf_tauy_out(j,i) = srf_tauy_out(j,i) + xsum*rdnnsg
+          end do
+        end if
         if ( associated(srf_evpot_out) ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            if ( lm%ldmsk(j,i) == 0 ) then
+            if ( lm_ldmsk(j,i) == 0 ) then
               srf_evpot_out(j,i) = 0.0_rkx
             else
-              tas = sum(lms%t2m(:,j,i))*rdnnsg
-              ps = sum(lms%sfcp(:,j,i))*rdnnsg
+              tas = d_zero
+              ps = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                tas = tas + lms_t2m(ns,j,i)
+                ps = ps + lms_sfcp(ns,j,i)
+              end do
+              tas = tas*rdnnsg
+              ps = ps*rdnnsg
               es = pfesat(tas,ps)
               qs = pfwsat(tas,ps)
-              qas = lm%q2m(j,i)
-              uas = lm%w10m(j,i)
+              qas = lm_q2m(j,i)
+              uas = lm_w10m(j,i)
               rh = min(max((qas/qs),d_zero),d_one)
               desdt = pfesdt(tas)
-              sws = lm%rswf(j,i)
-              lws = lm%rlwf(j,i)
+              sws = lm_rswf(j,i)
+              lws = lm_rlwf(j,i)
               srf_evpot_out(j,i) = srf_evpot_out(j,i) + &
                  evpt_fao(ps,tas,uas,rh*es,es,desdt,sws,lws)
             end if
@@ -958,18 +1181,45 @@ module mod_lm_interface
           call reorder_add_subgrid(lms%trnof,sub_trunoff_out,lm%ldmsk1)
       end if
       if ( ifshf ) then
-        if ( associated(shf_pcpmax_out) ) &
-          shf_pcpmax_out = max(shf_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
-        if ( associated(shf_pcpavg_out) ) &
-          shf_pcpavg_out = shf_pcpavg_out + sum(lms%prcp,1)*rdnnsg
-        if ( associated(shf_pcprcv_out) ) &
-          shf_pcprcv_out = shf_pcprcv_out + lm%cprate*syncro_srf%rw
+        if ( associated(shf_pcpmax_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_prcp(ns,j,i)
+            end do
+            shf_pcpmax_out(j,i) = max(shf_pcpmax_out(j,i), xsum*rdnnsg)
+          end do
+        end if
+        if ( associated(shf_pcpavg_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_prcp(ns,j,i)
+            end do
+            shf_pcpavg_out(j,i) = shf_pcpavg_out(j,i) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(shf_pcprcv_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            shf_pcprcv_out(j,i) = shf_pcprcv_out(j,i) + &
+                                  lm_cprate(j,i)*syncro_srf%rw
+          end do
+        end if
         if ( associated(shf_twetb_out) ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            tas = sum(lms%t2m(:,j,i))*rdnnsg
-            ps = sum(lms%sfcp(:,j,i))*rdnnsg
+            tas = d_zero
+            ps = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              tas = tas + lms_t2m(ns,j,i)
+              ps = ps + lms_sfcp(ns,j,i)
+            end do
+            tas = tas*rdnnsg
+            ps = ps*rdnnsg
             qs = pfwsat(tas,ps)
-            qas = lm%q2m(j,i)
+            qas = lm_q2m(j,i)
             rh = min(max((qas/qs),d_zero),d_one)*100.0_rkx
             shf_twetb_out(j,i) = max(shf_twetb_out(j,i), &
               tas * atan(0.151977_rkx * sqrt(rh + 8.313659_rkx)) + &
@@ -978,18 +1228,41 @@ module mod_lm_interface
                     atan(0.023101_rkx * rh) - 4.686035_rkx)
           end do
         end if
-        if ( associated(shf_t2m_out) ) &
-          shf_t2m_out(:,:,1) = sum(lms%t2m,1)*rdnnsg
+        if ( associated(shf_t2m_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_t2m(ns,j,i)
+            end do
+            shf_t2m_out(j,i,1) = xsum*rdnnsg
+          end do
+        end if
       else
         if ( ifsrf ) then
-          if ( associated(srf_pcpmax_out) ) &
-            srf_pcpmax_out = max(srf_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
+          if ( associated(srf_pcpmax_out) ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+              xsum = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                xsum = xsum + lms_prcp(ns,j,i)
+              end do
+              srf_pcpmax_out(j,i) = max(srf_pcpmax_out(j,i), xsum*rdnnsg)
+            end do
+          end if
           if ( associated(srf_twetb_out) ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-              tas = sum(lms%t2m(:,j,i))*rdnnsg
-              ps = sum(lms%sfcp(:,j,i))*rdnnsg
+              tas = d_zero
+              ps = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                tas = tas + lms_t2m(ns,j,i)
+                ps = ps + lms_sfcp(ns,j,i)
+              end do
+              tas = tas*rdnnsg
+              ps = ps*rdnnsg
               qs = pfwsat(tas,ps)
-              qas = lm%q2m(j,i)
+              qas = lm_q2m(j,i)
               rh = min(max((qas/qs),d_zero),d_one)*100.0_rkx
               srf_twetb_out(j,i) = max(srf_twetb_out(j,i), &
                 tas * atan(0.151977_rkx * sqrt(rh + 8.313659_rkx)) + &
@@ -1002,35 +1275,118 @@ module mod_lm_interface
       end if
       if ( ifsts ) then
         rnsrf_for_day = rnsrf_for_day + 1.0_rkx
-        if ( associated(sts_tgmax_out) ) &
-          sts_tgmax_out = max(sts_tgmax_out,sum(lms%tgrd,1)*rdnnsg)
-        if ( associated(sts_tgmin_out) ) &
-          sts_tgmin_out = min(sts_tgmin_out,sum(lms%tgrd,1)*rdnnsg)
-        if ( associated(sts_t2max_out) ) &
-          sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(lms%t2m,1)*rdnnsg)
-        if ( associated(sts_t2min_out) ) &
-          sts_t2min_out(:,:,1) = min(sts_t2min_out(:,:,1),sum(lms%t2m,1)*rdnnsg)
-        if ( associated(sts_t2min_out) ) &
-          sts_t2avg_out(:,:,1) = sts_t2avg_out(:,:,1) + sum(lms%t2m,1)*rdnnsg
-        if ( associated(sts_w10max_out) ) &
-          sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
-            sqrt(lm%u10m**2+lm%v10m**2))
-        if ( associated(sts_pcpmax_out) ) &
-          sts_pcpmax_out = max(sts_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
-        if ( associated(sts_pcpavg_out) ) &
-          sts_pcpavg_out = sts_pcpavg_out + sum(lms%prcp,1)*rdnnsg
-        if ( associated(sts_psmin_out) ) &
-          sts_psmin_out = min(sts_psmin_out,lm%sfps(jci1:jci2,ici1:ici2))
-        if ( associated(sts_psavg_out) ) &
-          sts_psavg_out = sts_psavg_out + lm%sfps(jci1:jci2,ici1:ici2)
-        if ( associated(sts_srunoff_out) ) &
-          sts_srunoff_out = sts_srunoff_out+sum(lms%srnof,1)*rdnnsg
-        if ( associated(sts_trunoff_out) ) &
-          sts_trunoff_out = sts_trunoff_out+sum(lms%trnof,1)*rdnnsg
+        if ( associated(sts_tgmax_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_tgrd(ns,j,i)
+            end do
+            sts_tgmax_out(j,i) = max(sts_tgmax_out(j,i), xsum*rdnnsg)
+          end do
+        end if
+        if ( associated(sts_tgmin_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_tgrd(ns,j,i)
+            end do
+            sts_tgmin_out(j,i) = min(sts_tgmin_out(j,i), xsum*rdnnsg)
+          end do
+        end if
+        if ( associated(sts_t2max_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_t2m(ns,j,i)
+            end do
+            sts_t2max_out(j,i,1) = max(sts_t2max_out(j,i,1), xsum*rdnnsg)
+          end do
+        end if
+        if ( associated(sts_t2min_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_t2m(ns,j,i)
+            end do
+            sts_t2min_out(j,i,1) = min(sts_t2min_out(j,i,1), xsum*rdnnsg)
+          end do
+        end if
+        if ( associated(sts_t2min_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_t2m(ns,j,i)
+            end do
+            sts_t2avg_out(j,i,1) = sts_t2avg_out(j,i,1) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(sts_w10max_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            sts_w10max_out(j,i,1) = max(sts_w10max_out(j,i,1), &
+              sqrt(lm_u10m(j,i)**2+lm_v10m(j,i)**2))
+          end do
+        end if
+        if ( associated(sts_pcpmax_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_prcp(ns,j,i)
+            end do
+            sts_pcpmax_out(j,i) = max(sts_pcpmax_out(j,i), xsum*rdnnsg)
+          end do
+        end if
+        if ( associated(sts_pcpavg_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_prcp(ns,j,i)
+            end do
+            sts_pcpavg_out(j,i) = sts_pcpavg_out(j,i) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(sts_psmin_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            sts_psmin_out(j,i) = min(sts_psmin_out(j,i),lm_sfps(j,i))
+          end do
+        end if
+        if ( associated(sts_psavg_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            sts_psavg_out(j,i) = sts_psavg_out(j,i) + lm_sfps(j,i)
+          end do
+        end if
+        if ( associated(sts_srunoff_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_srnof(ns,j,i)
+            end do
+            sts_srunoff_out(j,i) = sts_srunoff_out(j,i) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(sts_trunoff_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_trnof(ns,j,i)
+            end do
+            sts_trunoff_out(j,i) = sts_trunoff_out(j,i) + xsum*rdnnsg
+          end do
+        end if
         if ( associated(sts_sund_out) ) then
-          where( lm%rswf > 120.0_rkx )
-            sts_sund_out = sts_sund_out + dtbat
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( lm_rswf(j,i) > 120.0_rkx ) then
+              sts_sund_out(j,i) = sts_sund_out(j,i) + dtbat
+            end if
+          end do
         end if
         if ( associated(sts_wsgsmax_out) ) then
           call compute_maxgust(lm%u10m,lm%v10m, &
@@ -1040,22 +1396,66 @@ module mod_lm_interface
       end if
       if ( iflak ) then
         rnsrf_for_lakfrq = rnsrf_for_lakfrq + 1.0_rkx
-        if ( associated(lak_tpr_out) ) &
-          lak_tpr_out = lak_tpr_out + sum(lms%prcp,1)*rdnnsg
-        if ( associated(lak_scv_out) ) &
-          lak_scv_out = lak_scv_out + sum(lms%sncv,1)*rdnnsg
-        if ( associated(lak_sena_out) ) &
-          lak_sena_out = lak_sena_out + sum(lms%sent,1)*rdnnsg
-        if ( associated(lak_flw_out) ) &
-          lak_flw_out = lak_flw_out + lm%rlwf
-        if ( associated(lak_fsw_out) ) &
-          lak_fsw_out = lak_fsw_out + lm%rswf
-        if ( associated(lak_fld_out) ) &
-          lak_fld_out = lak_fld_out + lm%dwrlwf
-        if ( associated(lak_sina_out) ) &
-          lak_sina_out = lak_sina_out + lm%solinc
-        if ( associated(lak_evp_out) ) &
-          lak_evp_out = lak_evp_out + sum(lms%evpr,1)*rdnnsg
+        if ( associated(lak_tpr_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_prcp(ns,j,i)
+            end do
+            lak_tpr_out(j,i) = lak_tpr_out(j,i) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(lak_scv_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_sncv(ns,j,i)
+            end do
+            lak_scv_out(j,i) = lak_scv_out(j,i) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(lak_sena_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_sent(ns,j,i)
+            end do
+            lak_sena_out(j,i) = lak_sena_out(j,i) + xsum*rdnnsg
+          end do
+        end if
+        if ( associated(lak_flw_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            lak_flw_out(j,i) = lak_flw_out(j,i) + lm_rlwf(j,i)
+          end do
+        end if
+        if ( associated(lak_fsw_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            lak_fsw_out(j,i) = lak_fsw_out(j,i) + lm_rswf(j,i)
+          end do
+        end if
+        if ( associated(lak_fld_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            lak_fld_out(j,i) = lak_fld_out(j,i) + lm_dwrlwf(j,i)
+          end do
+        end if
+        if ( associated(lak_sina_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            lak_sina_out(j,i) = lak_sina_out(j,i) + lm_solinc(j,i)
+          end do
+        end if
+        if ( associated(lak_evp_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_evpr(ns,j,i)
+            end do
+            lak_evp_out(j,i) = lak_evp_out(j,i) + xsum*rdnnsg
+          end do
+        end if
       end if
     end if
 
@@ -1063,34 +1463,63 @@ module mod_lm_interface
     if ( alarm_out_atm%will_act(dtsrf) ) then
       if ( ifatm ) then
         if ( associated(atm_tgb_out) ) then
-          atm_tgb_out = sum(lms%tgbb,1)*rdnnsg
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_tgbb(ns,j,i)
+            end do
+            atm_tgb_out(j,i) = xsum*rdnnsg
+          end do
         end if
         if ( associated(atm_smw_out) ) then
-          do n = 1, num_soil_layers
-            where ( lm%ldmsk == 1 )
-              atm_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
-            elsewhere
-              atm_smw_out(:,:,n) = dmissval
-            end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                          n = 1:num_soil_layers )
+            if ( lm_ldmsk(j,i) == 1 ) then
+              xsum = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                xsum = xsum + lms_sw(ns,j,i,n)
+              end do
+              atm_smw_out(j,i,n) = xsum*rdnnsg
+            else
+              atm_smw_out(j,i,n) = dmissval
+            end if
           end do
         end if
 #ifdef CLM45
         if ( associated(atm_tsoil_out) ) then
-          do n = 1, num_soil_layers
-            where ( lm%ldmsk == 1 )
-              atm_tsoil_out(:,:,n) = sum(lms%tsoi(:,:,:,n),1)*rdnnsg
-            elsewhere
-              atm_tsoil_out(:,:,n) = dmissval
-            end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                          n = 1:num_soil_layers )
+            if ( lm_ldmsk(j,i) == 1 ) then
+              xsum = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                xsum = xsum + lms_tsoi(ns,j,i,n)
+              end do
+              atm_tsoil_out(j,i,n) = xsum*rdnnsg
+            else
+              atm_tsoil_out(j,i,n) = dmissval
+            end if
           end do
         end if
 #endif
         if ( associated(atm_mrso_out) ) then
-          where ( lm%ldmsk == 1 )
-            atm_mrso_out(:,:) = sum(sum(lms%sw,1),3)*rdnnsg
-          elsewhere
-            atm_mrso_out(:,:) = dmissval
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( lm_ldmsk(j,i) == 1 ) then
+              xsum = d_zero
+              !$acc loop seq
+              do nl = 1, num_soil_layers
+                !$acc loop seq
+                do ns = 1, nnsg
+                  xsum = xsum + lms_sw(ns,j,i,nl)
+                end do
+              end do
+              atm_mrso_out(j,i) = xsum*rdnnsg
+            else
+              atm_mrso_out(j,i) = dmissval
+            end if
+          end do
         end if
       end if
     end if
@@ -1098,58 +1527,147 @@ module mod_lm_interface
     if ( alarm_out_srf%will_act(dtsrf) ) then
 
       if ( ifsrf ) then
-        if ( associated(srf_uvdrag_out) ) &
-          srf_uvdrag_out = sum(lms%drag,1)*rdnnsg
-        if ( associated(srf_ustar_out) ) &
-          srf_ustar_out = sum(lms%ustar,1)*rdnnsg
-        if ( associated(srf_zo_out) ) &
-          srf_zo_out = sum(lms%zo,1)*rdnnsg
-        if ( associated(srf_rhoa_out) ) &
-          srf_rhoa_out = sum(lms%rhoa,1)*rdnnsg
-        if ( associated(srf_tg_out) ) &
-          srf_tg_out = sum(lms%tgrd,1)*rdnnsg
-        if ( associated(srf_tlef_out) ) then
-          where ( lm%ldmsk == 1 )
-            srf_tlef_out = sum(lms%tlef,1)*rdnnsg
-          elsewhere
-            srf_tlef_out = dmissval
-          end where
-        end if
-        if ( associated(srf_aldirs_out) ) &
-          srf_aldirs_out = lm%swdiralb
-        if ( associated(srf_aldifs_out) ) &
-          srf_aldifs_out = lm%swdifalb
-        if ( associated(srf_seaice_out) ) &
-          srf_seaice_out = sum(lms%sfice,1)*rdnnsg
-        if ( associated(srf_t2m_out) ) &
-          srf_t2m_out(:,:,1) = sum(lms%t2m,1)*rdnnsg
-        if ( associated(srf_q2m_out) ) &
-          srf_q2m_out(:,:,1) = lm%q2m
-        if ( associated(srf_rh2m_out) ) then
-          srf_rh2m_out = d_zero
+        if ( associated(srf_uvdrag_out) ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_drag(ns,j,i)
+            end do
+            srf_uvdrag_out(j,i) = xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_ustar_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_ustar(ns,j,i)
+            end do
+            srf_ustar_out(j,i) = xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_zo_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_zo(ns,j,i)
+            end do
+            srf_zo_out(j,i) = xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_rhoa_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_rhoa(ns,j,i)
+            end do
+            srf_rhoa_out(j,i) = xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_tg_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_tgrd(ns,j,i)
+            end do
+            srf_tg_out(j,i) = xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_tlef_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( lm_ldmsk(j,i) == 1 ) then
+              xsum = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                xsum = xsum + lms_tlef(ns,j,i)
+              end do
+              srf_tlef_out(j,i) = xsum*rdnnsg
+            else
+              srf_tlef_out(j,i) = dmissval
+            end if
+          end do
+        end if
+        if ( associated(srf_aldirs_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_aldirs_out(j,i) = lm_swdiralb(j,i)
+          end do
+        end if
+        if ( associated(srf_aldifs_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_aldifs_out(j,i) = lm_swdifalb(j,i)
+          end do
+        end if
+        if ( associated(srf_seaice_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_sfice(ns,j,i)
+            end do
+            srf_seaice_out(j,i) = xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_t2m_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_t2m(ns,j,i)
+            end do
+            srf_t2m_out(j,i,1) = xsum*rdnnsg
+          end do
+        end if
+        if ( associated(srf_q2m_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_q2m_out(j,i,1) = lm_q2m(j,i)
+          end do
+        end if
+        if ( associated(srf_rh2m_out) ) then
+          !$acc kernels
+          srf_rh2m_out = d_zero
+          !$acc end kernels
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            !$acc loop seq
             do n = 1, nnsg
-              qas = lms%q2m(n,j,i)
-              tas = lms%t2m(n,j,i)
-              ps = lms%sfcp(n,j,i)
+              qas = lms_q2m(n,j,i)
+              tas = lms_t2m(n,j,i)
+              ps = lms_sfcp(n,j,i)
               qs = pfwsat(tas,ps)
               srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1) + &
                             min(max((qas/qs),rhmin),rhmax)*d_100
             end do
           end do
+          !$acc kernels
           srf_rh2m_out = srf_rh2m_out * rdnnsg
+          !$acc end kernels
         end if
-        if ( associated(srf_u10m_out) ) &
-          srf_u10m_out(:,:,1) = lm%u10m
-        if ( associated(srf_v10m_out) ) &
-          srf_v10m_out(:,:,1) = lm%v10m
+        if ( associated(srf_u10m_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_u10m_out(j,i,1) = lm_u10m(j,i)
+          end do
+        end if
+        if ( associated(srf_v10m_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            srf_v10m_out(j,i,1) = lm_v10m(j,i)
+          end do
+        end if
         if ( associated(srf_smw_out) ) then
-          do n = 1, num_soil_layers
-            where ( lm%ldmsk == 1 )
-              srf_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
-            elsewhere
-              srf_smw_out(:,:,n) = dmissval
-            end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                          n = 1:num_soil_layers )
+            if ( lm_ldmsk(j,i) == 1 ) then
+              xsum = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                xsum = xsum + lms_sw(ns,j,i,n)
+              end do
+              srf_smw_out(j,i,n) = xsum*rdnnsg
+            else
+              srf_smw_out(j,i,n) = dmissval
+            end if
           end do
         end if
         if ( associated(srf_htindx_out) ) then
@@ -1160,10 +1678,17 @@ module mod_lm_interface
           do i = ici1, ici2
           do j = jci1, jci2
 #endif
-            tas = sum(lms%t2m(:,j,i))*rdnnsg
-            ps = sum(lms%sfcp(:,j,i))*rdnnsg
+            tas = d_zero
+            ps = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              tas = tas + lms_t2m(ns,j,i)
+              ps = ps + lms_sfcp(ns,j,i)
+            end do
+            tas = tas*rdnnsg
+            ps = ps*rdnnsg
             qs = pfwsat(tas,ps)
-            qas = lm%q2m(j,i)
+            qas = lm_q2m(j,i)
             rh = min(max((qas/qs),d_zero),d_one)
             srf_htindx_out(j,i) = heatindex(tas,rh)
 #ifndef STDPAR_FIXED
@@ -1172,25 +1697,46 @@ module mod_lm_interface
           end do
         end if
 #ifdef CLM45
-        if ( associated(srf_hfso_out) ) &
-          srf_hfso_out(:,:) = sum(lms%hfso,1)*rdnnsg
+        if ( associated(srf_hfso_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_hfso(ns,j,i)
+            end do
+            srf_hfso_out(j,i) = xsum*rdnnsg
+          end do
+        end if
         if ( associated(srf_mrsos_out) ) then
-          where ( lm%ldmsk == 1 )
-            srf_mrsos_out(:,:) = (sum(lms%sw(:,:,:,1),1) + &
-                                  sum(lms%sw(:,:,:,2),1) + &
-                                  sum(lms%sw(:,:,:,3),1) + &
-                                  sum(lms%sw(:,:,:,4),1)) * rdnnsg
-          elsewhere
-            srf_mrsos_out(:,:) = dmissval
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( lm_ldmsk(j,i) == 1 ) then
+              xsum = d_zero
+              !$acc loop seq
+              do nl = 1, 4
+                !$acc loop seq
+                do ns = 1, nnsg
+                  xsum = xsum + lms_sw(ns,j,i,nl)
+                end do
+              end do
+              srf_mrsos_out(j,i) = xsum*rdnnsg
+            else
+              srf_mrsos_out(j,i) = dmissval
+            end if
+          end do
         end if
         if ( associated(srf_tsoil_out) ) then
-          do n = 1, num_soil_layers
-            where ( lm%ldmsk == 1 )
-              srf_tsoil_out(:,:,n) = sum(lms%tsoi(:,:,:,n),1)*rdnnsg
-            elsewhere
-              srf_tsoil_out(:,:,n) = dmissval
-            end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                          n = 1:num_soil_layers )
+            if ( lm_ldmsk(j,i) == 1 ) then
+              xsum = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                xsum = xsum + lms_tsoi(ns,j,i,n)
+              end do
+              srf_tsoil_out(j,i,n) = xsum*rdnnsg
+            else
+              srf_tsoil_out(j,i,n) = dmissval
+            end if
           end do
         end if
 #endif
@@ -1222,18 +1768,47 @@ module mod_lm_interface
 
 #ifndef CLM
       if ( iflak ) then
-        if ( associated(lak_tg_out) ) &
-          lak_tg_out = sum(lms%tgbb,1)*rdnnsg
-        if ( associated(lak_aldirs_out) ) &
-          lak_aldirs_out = lm%swdiralb
-        if ( associated(lak_aldifs_out) ) &
-          lak_aldifs_out = lm%swdifalb
-        if ( associated(lak_ice_out) ) &
-          lak_ice_out = sum(lms%sfice,1,lms%lakmsk)*rdnnsg
+        if ( associated(lak_tg_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              xsum = xsum + lms_tgbb(ns,j,i)
+            end do
+            lak_tg_out(j,i) = xsum*rdnnsg
+          end do
+        end if
+        if ( associated(lak_aldirs_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            lak_aldirs_out(j,i) = lm_swdiralb(j,i)
+          end do
+        end if
+        if ( associated(lak_aldifs_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            lak_aldifs_out(j,i) = lm_swdifalb(j,i)
+          end do
+        end if
+        if ( associated(lak_ice_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            xsum = d_zero
+            !$acc loop seq
+            do ns = 1, nnsg
+              if ( lms_lakmsk(ns,j,i) ) then
+                xsum = xsum + lms_sfice(ns,j,i)
+              end if
+            end do
+            lak_ice_out(j,i) = xsum*rdnnsg
+          end do
+        end if
         if ( associated(lak_tlake_out) ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:ndpmax )
-            if ( lm%iveg(j,i) == 14 ) then
-              lak_tlake_out(j,i,k) = tzero + sum(lms%tlake(:,j,i,k))*rdnnsg
+            if ( lm_iveg(j,i) == 14 ) then
+              xsum = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                xsum = xsum + lms_tlake(ns,j,i,k)
+              end do
+              lak_tlake_out(j,i,k) = tzero + xsum*rdnnsg
             end if
           end do
         end if
@@ -1244,17 +1819,41 @@ module mod_lm_interface
 
     ! Reset also accumulation for deposition fluxes
     if ( ichem == 1 ) then
-      lm%wetdepflx = d_zero
-      lm%drydepflx = d_zero
+      !$acc kernels
+      lm_wetdepflx = d_zero
+      lm_drydepflx = d_zero
+      !$acc end kernels
     end if
 
     ! Reset accumulation from precip and cumulus
-    lm%ncprate(:,:) = d_zero
-    if ( associated(lm%cprate) ) lm%cprate(:,:) = d_zero
-    if ( associated(lm%snwrat) ) lm%snwrat(:,:) = d_zero
-    if ( associated(lm%csrate) ) lm%csrate(:,:) = d_zero
-    if ( associated(lm%grprat) ) lm%grprat(:,:) = d_zero
-    if ( associated(lm%hairat) ) lm%hairat(:,:) = d_zero
+    !$acc kernels
+    lm_ncprate(:,:) = d_zero
+    !$acc end kernels
+    if ( associated(lm_cprate) ) then
+      !$acc kernels
+      lm_cprate(:,:) = d_zero
+      !$acc end kernels
+    end if
+    if ( associated(lm_snwrat) ) then
+      !$acc kernels
+      lm_snwrat(:,:) = d_zero
+      !$acc end kernels
+    end if
+    if ( associated(lm_csrate) ) then
+      !$acc kernels
+      lm_csrate(:,:) = d_zero
+      !$acc end kernels
+    end if
+    if ( associated(lm_grprat) ) then
+      !$acc kernels
+      lm_grprat(:,:) = d_zero
+      !$acc end kernels
+    end if
+    if ( associated(lm_hairat) ) then
+      !$acc kernels
+      lm_hairat(:,:) = d_zero
+      !$acc end kernels
+    end if
 
   end subroutine collect_output
 

@@ -56,6 +56,9 @@ module mod_moloch
   real(rkx), pointer, contiguous, dimension(:,:) :: rmu => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: rmv => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: p0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: wfw => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zpby => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zpbw => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: zdiv2 => null( )
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ten0 => null( )
@@ -207,6 +210,9 @@ module mod_moloch
     call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
+    call getmem(wfw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wfw')
+    call getmem(zpby,jci1,jci2,ici1,ice2ga,1,kz,'moloch:zpby')
+    call getmem(zpbw,jci1,jce2ga,ici1,ici2,1,kz,'moloch:zpbw')
     call getmem(mx2,jde1,jde2,ide1,ide2,'moloch:mx2')
     call getmem(rmu,jde1ga,jde2ga,ide1,ide2,'moloch:rmu')
     call getmem(rmv,jde1,jde2,ide1ga,ide2ga,'moloch:rmv')
@@ -1371,9 +1377,6 @@ module mod_moloch
     real(rkx) :: dtrdx, dtrdy, dtrdz
     real(rkx), parameter :: wlow  = 0.0_rkx
     real(rkx), parameter :: whigh = 2.0_rkx
-    real(rkx), dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wfw
-    real(rkx), dimension(jci1:jci2,ici1:ice2ga,1:kz) :: zpby
-    real(rkx), dimension(jci1:jce2ga,ici1:ici2,1:kz) :: zpbw
     real(rkx) :: zamu, is, r, b, zphi, zzden, zdv
     real(rkx) :: zhxvtn, zhxvts, zcostx
     real(rkx) :: zrfmu, zrfmd

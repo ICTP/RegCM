@@ -568,6 +568,11 @@ module mod_clm_canopyfluxes
    real(rk8),pointer, contiguous :: bbb(:)
    ! Ball-Berry slope of conductance-photosynthesis relationship
    real(rk8),pointer, contiguous :: mbb(:)
+   ! Photosynthesis scratch arrays reused for sunlit and shaded calls
+   real(rk8) :: jmax_z(lbp:ubp,nlevcan)
+   real(rk8) :: psn_wc_z(lbp:ubp,nlevcan)
+   real(rk8) :: psn_wj_z(lbp:ubp,nlevcan)
+   real(rk8) :: psn_wp_z(lbp:ubp,nlevcan)
 
    logical :: found
 
@@ -1167,14 +1172,14 @@ module mod_clm_canopyfluxes
      call Photosynthesis(fn, filterp, lbg, ubg, lbp, ubp, svpts, eah,   &
              o2, co2, rb, dayl_factor, c3flag, ac, aj, ap, ag, an,      &
              vcmax_z, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, forc_pbot, &
-             bbb, mbb, phase='sun')
+             bbb, mbb, jmax_z, psn_wc_z, psn_wj_z, psn_wp_z, phase='sun')
      if ( use_c13 ) then
        call Fractionation (lbp, ubp, fn, filterp, phase='sun')
      endif
      call Photosynthesis(fn, filterp, lbg, ubg, lbp, ubp, svpts, eah,   &
              o2, co2, rb, dayl_factor, c3flag, ac, aj, ap, ag, an,      &
              vcmax_z, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, forc_pbot, &
-             bbb, mbb, phase='sha')
+             bbb, mbb, jmax_z, psn_wc_z, psn_wj_z, psn_wp_z, phase='sha')
      if ( use_c13 ) then
        call Fractionation(lbp, ubp, fn, filterp, phase='sha')
      end if
@@ -1654,7 +1659,8 @@ module mod_clm_canopyfluxes
   subroutine Photosynthesis(fn, filterp, lbg, ubg, lbp, ubp, esat_tv, eair,  &
                             oair, cair, rb, dayl_factor, c3flag, ac, aj, ap, &
                             ag, an, vcmax_z, cp, kc, ko, qe, tpu_z, kp_z,    &
-                            theta_cj, forc_pbot, bbb, mbb, phase)
+                            theta_cj, forc_pbot, bbb, mbb, jmax_z, psn_wc_z, &
+                            psn_wj_z, psn_wp_z, phase)
     use mod_clm_varcon, only : rgas, tfrz
     implicit none
     integer(ik4), intent(in)    :: fn            ! size of pft filter
@@ -1735,27 +1741,27 @@ module mod_clm_canopyfluxes
     ! maximum rate of carboxylation (umol co2/m**2/s)
     real(rk8), intent(out) :: vcmax_z(lbp:ubp,nlevcan)
     ! maximum electron transport rate (umol electrons/m**2/s)
-    real(rk8) :: jmax_z(lbp:ubp,nlevcan)
+    real(rk8), intent(inout) :: jmax_z(lbp:ubp,nlevcan)
     ! triose phosphate utilization rate (umol CO2/m**2/s)
     real(rk8), intent(out) :: tpu_z(lbp:ubp,nlevcan)
     ! initial slope of CO2 response curve (C4 plants)
     real(rk8), intent(out) :: kp_z(lbp:ubp,nlevcan)
 
     logical :: c3flag(lbp:ubp) ! true if C3 and false if C4
-    real(rk8) :: lnc(lbp:ubp)     ! leaf N concentration (gN leaf/m^2)
+    real(rk8) :: lnc     ! leaf N concentration (gN leaf/m^2)
     real(rk8) :: kc(lbp:ubp)    ! Michaelis-Menten constant for CO2 (Pa)
     real(rk8) :: ko(lbp:ubp)    ! Michaelis-Menten constant for O2 (Pa)
     real(rk8) :: cp(lbp:ubp)    ! CO2 compensation point (Pa)
     ! Ball-Berry minimum leaf conductance, unstressed (umol H2O/m**2/s)
-    real(rk8) :: bbbopt(lbp:ubp)
+    real(rk8) :: bbbopt
     ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
     real(rk8) :: bbb(lbp:ubp)
     ! Ball-Berry slope of conductance-photosynthesis relationship, unstressed
-    real(rk8) :: mbbopt(lbp:ubp)
+    real(rk8) :: mbbopt
     ! Ball-Berry slope of conductance-photosynthesis relationship
     real(rk8) :: mbb(lbp:ubp)
     ! leaf nitrogen decay coefficient
-    real(rk8) :: kn(lbp:ubp)
+    real(rk8) :: kn
     ! canopy top: maximum rate of carboxylation at 25C (umol CO2/m**2/s)
     real(rk8) :: vcmax25top
     ! canopy top: maximum electron transport rate at 25C (umol electrons/m**2/s)
@@ -1856,11 +1862,11 @@ module mod_clm_canopyfluxes
     real(rk8),pointer, contiguous :: gb_mol(:)
 
     ! Rubisco-limited contribution to psn_z (umol CO2/m**2/s)
-     real(rk8) :: psn_wc_z(lbp:ubp,nlevcan)
+    real(rk8), intent(inout) :: psn_wc_z(lbp:ubp,nlevcan)
     ! RuBP-limited contribution to psn_z (umol CO2/m**2/s)
-    real(rk8) :: psn_wj_z(lbp:ubp,nlevcan)
+    real(rk8), intent(inout) :: psn_wj_z(lbp:ubp,nlevcan)
     ! product-limited contribution to psn_z (umol CO2/m**2/s)
-    real(rk8) :: psn_wp_z(lbp:ubp,nlevcan)
+    real(rk8), intent(inout) :: psn_wp_z(lbp:ubp,nlevcan)
 
     real(rk8) :: psncan       ! canopy sum of psn_z
     real(rk8) :: psncan_wc    ! canopy sum of psn_wc_z
@@ -2028,33 +2034,33 @@ module mod_clm_canopyfluxes
         qe(p) = 0._rk8
         theta_cj(p) = 0.98_rk8
 #if (defined CNDV)
-        bbbopt(p) = 10000._rk8
+        bbbopt = 10000._rk8
 #else
         if ( mlhack ) then
           if ( ivt(p) == nbrdlf_evr_trp_tree ) then
-            bbbopt(p) = 80000._rk8
+            bbbopt = 80000._rk8
           else if ( ivt(p) == nbrdlf_dcd_trp_tree ) then
-            bbbopt(p) = 40000._rk8
-            !bbbopt(p) = 1000._rk8
+            bbbopt = 40000._rk8
+            !bbbopt = 1000._rk8
           else
-            bbbopt(p) = 10000._rk8
+            bbbopt = 10000._rk8
           end if
         else
-          bbbopt(p) = 10000._rk8
+          bbbopt = 10000._rk8
         end if
 #endif
-        mbbopt(p) = 9._rk8
+        mbbopt = 9._rk8
       else
         qe(p) = 0.05_rk8
         theta_cj(p) = 0.80_rk8
-        bbbopt(p) = 40000._rk8
-        mbbopt(p) = 4._rk8
+        bbbopt = 40000._rk8
+        mbbopt = 4._rk8
       end if
 
       ! Soil water stress applied to Ball-Berry parameters
 
-      bbb(p) = max (bbbopt(p)*btran(p), 1._rk8)
-      mbb(p) = mbbopt(p)
+      bbb(p) = max (bbbopt*btran(p), 1._rk8)
+      mbb(p) = mbbopt
 
       ! kc, ko, cp, from: Bernacchi et al (2001)
       ! Plant, Cell and Environment 24:253-259
@@ -2094,11 +2100,11 @@ module mod_clm_canopyfluxes
       ! Leaf nitrogen concentration at the top of the canopy
       ! (g N leaf / m**2 leaf)
 
-      lnc(p) = 1._rk8 / (slatop(ivt(p)) * leafcn(ivt(p)))
+      lnc = 1._rk8 / (slatop(ivt(p)) * leafcn(ivt(p)))
 
       ! vcmax25 at canopy top, as in CN but using lnc at top of the canopy
 
-      vcmax25top = lnc(p) * flnr(ivt(p)) * fnr * act25 * dayl_factor(p)
+      vcmax25top = lnc * flnr(ivt(p)) * fnr * act25 * dayl_factor(p)
 #ifndef CN
       vcmax25top = vcmax25top * fnitr(ivt(p))
 #else
@@ -2128,9 +2134,9 @@ module mod_clm_canopyfluxes
       ! will use canopy integrated scaling factors from SurfaceAlbedo.
 
       if (dayl_factor(p) == 0._rk8) then
-        kn(p) =  0._rk8
+        kn =  0._rk8
       else
-        kn(p) = exp(0.00963_rk8 * vcmax25top/dayl_factor(p) - 2.43_rk8)
+        kn = exp(0.00963_rk8 * vcmax25top/dayl_factor(p) - 2.43_rk8)
       end if
 
 #if (defined CN)
@@ -2151,7 +2157,7 @@ module mod_clm_canopyfluxes
       ! Then scale this value at the top of the canopy for canopy depth
 
       lmr25top = 2.525e-6_rk8 * (1.5_rk8 ** ((25._rk8 - 20._rk8)/10._rk8))
-      lmr25top = lmr25top * lnc(p) / 12.e-6_rk8
+      lmr25top = lmr25top * lnc / 12.e-6_rk8
 
 #else
       ! Leaf maintenance respiration in proportion to vcmax25top
@@ -2185,7 +2191,7 @@ module mod_clm_canopyfluxes
         if (nlevcan == 1) then
           nscaler = vcmaxcint(p)
         else if (nlevcan > 1) then
-          nscaler = exp(-kn(p) * laican)
+          nscaler = exp(-kn * laican)
         end if
 
         ! Maintenance respiration

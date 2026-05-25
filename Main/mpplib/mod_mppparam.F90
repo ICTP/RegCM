@@ -1819,39 +1819,43 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: mg
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
-    integer(ik4) :: ib, i, j, icpu
+    integer(ik4) :: ib, iboffset, i, j, icpu, w1, w2, w3, w4
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         ml(j,i) = mg(j,i)
       end do
       return
     end if
+    !$acc data create(r4vector2,r4vector1)
     if ( ccid == ccio ) then
-      ib = 1
+      iboffset = 0
       do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1), window(2)
-          do j = window(3), window(4)
-            r4vector1(ib) = mg(j,i)
-            ib = ib + 1
-          end do
+        w1 = window(1)
+        w2 = window(2)
+        w3 = window(3)
+        w4 = window(4)
+        do concurrent ( j = w3:w4, i = w1:w2 )
+          ib = iboffset + (i-w1)*(w4-w3+1) + (j-w3) + 1
+          r4vector1(ib) = mg(j,i)
         end do
+        iboffset = iboffset + (w4-w3+1)*(w2-w1+1)
       end do
     end if
+    !$acc host_data use_device(r4vector1,r4vector2)
     call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
                       r4vector2,tsize,mpi_real4,ccio,mycomm,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
 #endif
-    ib = 1
-    do i = i1, i2
-      do j = j1, j2
-        ml(j,i) = r4vector2(ib)
-        ib = ib + 1
-      end do
+    do concurrent ( j = j1:j2, i = i1:i2 )
+      ib = (i-i1)*(j2-j1+1) + (j-j1) + 1
+      ml(j,i) = r4vector2(ib)
     end do
+    !$acc end data
   end subroutine real4_2d_do_distribute
 
   subroutine integer4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
@@ -2172,6 +2176,7 @@ module mod_mppparam
     logical, pointer, contiguous, dimension(:,:,:), intent(in), optional :: mask
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
+    integer(ik4) :: w1, w2, w3, w4, iboffset
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
@@ -2184,47 +2189,43 @@ module mod_mppparam
       end if
       return
     end if
+    !$acc data create(r4vector2,r4vector1)
     if ( ccid == ccio ) then
-      ib = 1
+      iboffset = 0
       do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1), window(2)
-          do j = window(3), window(4)
-            do n = 1, nnsg
-              r4vector1(ib) = mg(n,j,i)
-              ib = ib + 1
-            end do
-          end do
+        w1 = window(1)
+        w2 = window(2)
+        w3 = window(3)
+        w4 = window(4)
+        do concurrent ( n = 1:nnsg, j = w3:w4, i = w1:w2 )
+          ib = iboffset + (i-w1)*(nnsg)*(w4-w3+1) + (j-w3)*(nnsg) + n
+          r4vector1(ib) = mg(n,j,i)
         end do
+        iboffset = iboffset + (nnsg)*(w4-w3+1)*(w2-w1+1)
       end do
     end if
+    !$acc host_data use_device(r4vector1,r4vector2)
     call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
                       r4vector2,tsize,mpi_real4,ccio,mycomm,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
 #endif
-    ib = 1
     if ( present(mask) ) then
-      do i = i1, i2
-        do j = j1, j2
-          do n = 1, nnsg
-            if ( mask(n,j,i) ) ml(n,j,i) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+        ib = (i-i1)*(j2-j1+1)*(nnsg) + (j-j1)*(nnsg) + n
+        if ( mask(n,j,i) ) ml(n,j,i) = r4vector2(ib)
       end do
     else
-      do i = i1, i2
-        do j = j1, j2
-          do n = 1, nnsg
-            ml(n,j,i) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+        ib = (i-i1)*(j2-j1+1)*(nnsg) + (j-j1)*(nnsg) + n
+        ml(n,j,i) = r4vector2(ib)
       end do
     end if
+    !$acc end data
   end subroutine real4_2d_do_sub_distribute
 
   subroutine integer4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
@@ -2496,40 +2497,44 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: ml
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
-    integer(ik4) :: ib, i, j, icpu
+    integer(ik4) :: ib, i, j, icpu, ibstart, w1, w2, w3, w4
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         mg(j,i) = ml(j,i)
       end do
       return
     end if
-    ib = 1
-    do i = i1, i2
-      do j = j1, j2
-        r4vector2(ib) = ml(j,i)
-        ib = ib + 1
-      end do
+    !$acc data create(r4vector2,r4vector1)
+    do concurrent ( j = j1:j2, i = i1:i2 )
+      ib = (i-i1)*(j2-j1+1)+j-j1+1
+      r4vector2(ib) = ml(j,i)
     end do
+    !$acc host_data use_device(r4vector2,r4vector1)
     call mpi_gatherv(r4vector2,tsize,mpi_real4, &
                      r4vector1,wincount,windispl,mpi_real4, &
                      ccio,mycomm,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
 #endif
     if ( ccid == ccio ) then
-      ib = 1
+      ibstart = 0
       do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1), window(2)
-          do j = window(3), window(4)
-            mg(j,i) = r4vector1(ib)
-            ib = ib + 1
-          end do
+        w1 = window(1)
+        w2 = window(2)
+        w3 = window(3)
+        w4 = window(4)
+        do concurrent ( j = w3:w4, i = w1:w2 )
+          ib = ibstart + (i-w1)*(w4-w3+1)+j-w3+1
+          mg(j,i) = r4vector1(ib)
         end do
+        ibstart = ibstart + (w4-w3+1)*(w2-w1+1)
       end do
     end if
+    !$acc end data
   end subroutine real4_2d_do_collect
 
   subroutine integer4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -2884,43 +2889,44 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
     integer(ik4) :: ib, i, j, n, icpu
+    integer(ik4) :: w1, w2, w3, w4, iboffset
     if ( nproc == 1 ) then
       do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
         mg(n,j,i) = ml(n,j,i)
       end do
       return
     end if
-    ib = 1
-    do i = i1, i2
-      do j = j1, j2
-        do n = 1, nnsg
-          r4vector2(ib) = ml(n,j,i)
-          ib = ib + 1
-        end do
-      end do
+    !$acc data create(r4vector2,r4vector1)
+    do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+      ib = (i-i1)*(nnsg)*(j2-j1+1) + (j-j1)*(nnsg) + n
+      r4vector2(ib) = ml(n,j,i)
     end do
+    !$acc host_data use_device(r4vector2,r4vector1)
     call mpi_gatherv(r4vector2,tsize,mpi_real4, &
                      r4vector1,wincount,windispl,mpi_real4, &
                      ccio,mycomm,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
 #endif
     if ( ccid == ccio ) then
-      ib = 1
+      iboffset = 0
       do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1), window(2)
-          do j = window(3), window(4)
-            do n = 1, nnsg
-              mg(n,j,i) = r4vector1(ib)
-              ib = ib + 1
-            end do
-          end do
+        w1 = window(1)
+        w2 = window(2)
+        w3 = window(3)
+        w4 = window(4)
+        do concurrent ( n = 1:nnsg, j = w3:w4, i = w1:w2 )
+          ib = iboffset + (i-w1)*(nnsg)*(w4-w3+1) + (j-w3)*(nnsg) + n
+          mg(n,j,i) = r4vector1(ib)
         end do
+        iboffset = iboffset + (nnsg)*(w4-w3+1)*(w2-w1+1)
       end do
     end if
+    !$acc end data
   end subroutine real4_2d_do_sub_collect
 
   subroutine integer4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
@@ -5301,72 +5307,70 @@ module mod_mppparam
     real(rk4), dimension(ndy), volatile :: rdatay
     integer(ik4) :: ib1, ib2, iex
 
-    ib2 = 0
-    do iex = 1, nex
-      ib1 = ib2 + 1
+    !$acc data copy(ml) create(sdatax,sdatay,rdatax,rdatay)
+
+    do concurrent ( iex = 1:nex )
+      ib1 = 1 + (iex-1)*(tx)
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do iex = 1, nex
-      ib1 = ib2 + 1
+    do concurrent ( iex = 1:nex )
+      ib1 = 1 + (iex-1)*(tx) + sizex
       ib2 = ib1 + tx - 1
       sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    !$acc host_data use_device(sdatax,rdatax)
     call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
         rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
-    ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
+      do concurrent ( iex = 1:nex )
+        ib1 = 1 + (iex-1)*(tx)
         ib2 = ib1 + tx - 1
         ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
       end do
-    else
-      ib2 = ib2 + sizex
     end if
 
-    ib2 = 0
-    do iex = 1, nex
-      ib1 = ib2 + 1
+    do concurrent ( iex = 1:nex )
+      ib1 = 1 + (iex-1)*(ty)
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2,i1+(iex-1))
     end do
-    do iex = 1, nex
-      ib1 = ib2 + 1
+    do concurrent ( iex = 1:nex )
+      ib1 = 1 + (iex-1)*(ty) + sizey
       ib2 = ib1 + ty - 1
       sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
     end do
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
+    !$acc host_data use_device(sdatay,rdatay)
     call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
         rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
-    ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do iex = 1, nex
-        ib1 = ib2 + 1
+      do concurrent ( iex = 1:nex )
+        ib1 = 1 + (iex-1)*(ty)
         ib2 = ib1 + ty - 1
         ml(j1-lb:j2,i1-iex) = rdatay(ib1:ib2)
       end do
-    else
-      ib2 = ib2 + sizey
     end if
-
+    !$acc end data
     end block exchange
 
   end subroutine real4_2d_exchange_left_bottom
@@ -5398,86 +5402,78 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: ib1, ib2, iex, k
+    integer(ik4) :: id, ib1, ib2, iex, k
 
-    ib2 = 0
-    do k = k1, k2
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
-      end do
+    !$acc data copy(ml) create(sdatax,sdatay,rdatax,rdatay)
+
+    do concurrent ( iex = 1:nex, k = k1:k2 )
+      id = (k-k1)*nex + iex
+      ib1 = 1 + (id-1)*(tx)
+      ib2 = ib1 + tx - 1
+      sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
     end do
-    do k = k1, k2
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
-      end do
+    do concurrent ( iex = 1:nex, k = k1:k2 )
+      id = (k-k1)*nex + iex
+      ib1 = 1 + (id-1)*(tx) + sizex
+      ib2 = ib1 + tx - 1
+      sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    !$acc host_data use_device(sdatax,rdatax)
     call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
         rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
-    ib2 = 0
     if ( ma%left /= mpi_proc_null ) then
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
-        end do
+      do concurrent ( iex = 1:nex, k = k1:k2 )
+        id = (k-k1)*nex + iex
+        ib1 = 1 + (id-1)*(tx)
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
       end do
-    else
-      ib2 = ib2 + sizex
     end if
 
-    ib2 = 0
-    do k = k1, k2
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        sdatay(ib1:ib2) = ml(j1-lb:j2,i1+(iex-1),k)
-      end do
+    do concurrent ( iex = 1:nex, k = k1:k2 )
+      id = (k-k1)*nex + iex
+      ib1 = 1 + (id-1)*(ty)
+      ib2 = ib1 + ty - 1
+      sdatay(ib1:ib2) = ml(j1-lb:j2,i1+(iex-1),k)
     end do
-    do k = k1, k2
-      do iex = 1, nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
-      end do
+    do concurrent ( iex = 1:nex, k = k1:k2 )
+      id = (k-k1)*nex + iex
+      ib1 = 1 + (id-1)*(ty) + sizey
+      ib2 = ib1 + ty - 1
+      sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
     end do
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
+    !$acc host_data use_device(sdatay,rdatay)
     call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
         rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
-    ib2 = 0
     if ( ma%bottom /= mpi_proc_null ) then
-      do k = k1, k2
-        do iex = 1, nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          ml(j1-lb:j2,i1-iex,k) = rdatay(ib1:ib2)
-        end do
+      do concurrent ( iex = 1:nex, k = k1:k2 )
+        id = (k-k1)*nex + iex
+        ib1 = 1 + (id-1)*(ty)
+        ib2 = ib1 + ty - 1
+        ml(j1-lb:j2,i1-iex,k) = rdatay(ib1:ib2)
       end do
-    else
-      ib2 = ib2 + sizey
     end if
-
+    !$acc end data
     end block exchange
 
   end subroutine real4_3d_exchange_left_bottom
@@ -18743,27 +18739,33 @@ module mod_mppparam
       call mypack(cl,matrix,vector,nlev)
       return
     end if
+    !$acc data create(r4vector1,r4vector2)
     do k = 1, nlev
       if ( nval > 0 ) then
         call mypack(cl,matrix,r4vector1,k)
       end if
+      !$acc host_data use_device(r4vector1,r4vector2)
       call mpi_gatherv(r4vector1,nval,mpi_real4,                               &
                        r4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                        mpi_real4,ccio,cartesian_communicator,mpierr)
+      !$acc end host_data
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
 #endif
+      !$acc host_data use_device(r4vector2,vector)
       call mpi_scatterv(r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                         mpi_real4,vector(:,k),npt,mpi_real4,              &
                         iocpu,cl%linear_communicator,mpierr)
+      !$acc end host_data
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
 #endif
     end do
+    !$acc end data
   end subroutine cartesian_to_linear_real4_subgrid_subgrid_4d
 
   subroutine linear_to_cartesian_real8_subgrid_subgrid_4d(cl,vector,matrix)
@@ -18816,19 +18818,24 @@ module mod_mppparam
       call myunpack(cl,vector,matrix,nlev)
       return
     end if
+    !$acc data create(r4vector1,r4vector2)
     do k = 1, nlev
+      !$acc host_data use_device(vector,r4vector2)
       call mpi_gatherv(vector(:,k),npt,mpi_real4,                        &
                        r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real4,iocpu,cl%linear_communicator,mpierr)
+      !$acc end host_data
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
 #endif
+      !$acc host_data use_device(r4vector2,r4vector1)
       call mpi_scatterv(r4vector2,cl%cartesian_npoint_sg, &
                         cl%cartesian_displ_sg,mpi_real4,  &
                         r4vector1,nval,mpi_real4,         &
                         ccio,cartesian_communicator,mpierr)
+      !$acc end host_data
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
@@ -18838,6 +18845,7 @@ module mod_mppparam
         call myunpack(cl,r4vector1,matrix,k)
       end if
     end do
+    !$acc end data
   end subroutine linear_to_cartesian_real4_subgrid_subgrid_4d
 
   subroutine cartesian_to_linear_real8_subgrid_subgrid(cl,matrix,vector)
@@ -18885,25 +18893,31 @@ module mod_mppparam
       call mypack(cl,matrix,vector)
       return
     end if
+    !$acc data create(r4vector1,r4vector2)
     if ( nval > 0 ) then
       call mypack(cl,matrix,r4vector1)
     end if
+    !$acc host_data use_device(r4vector1,r4vector2)
     call mpi_gatherv(r4vector1,nval,mpi_real4,                               &
                      r4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                      mpi_real4,ccio,cartesian_communicator,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
 #endif
+    !$acc host_data use_device(r4vector2,vector)
     call mpi_scatterv(r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_real4,vector,npt,mpi_real4,                   &
                       iocpu,cl%linear_communicator,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
 #endif
+    !$acc end data
   end subroutine cartesian_to_linear_real4_subgrid_subgrid
 
   subroutine linear_to_cartesian_real8_subgrid_subgrid(cl,vector,matrix)
@@ -18952,18 +18966,23 @@ module mod_mppparam
       call myunpack(cl,vector,matrix)
       return
     end if
+    !$acc data create(r4vector1,r4vector2)
+    !$acc host_data use_device(vector,r4vector2)
     call mpi_gatherv(vector,npt,mpi_real4,                             &
                      r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_real4,iocpu,cl%linear_communicator,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
 #endif
+    !$acc host_data use_device(r4vector2,r4vector1)
     call mpi_scatterv(r4vector2,cl%cartesian_npoint_sg, &
                       cl%cartesian_displ_sg,mpi_real4,  &
                       r4vector1,nval,mpi_real4,         &
                       ccio,cartesian_communicator,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
@@ -18972,6 +18991,7 @@ module mod_mppparam
     if ( nval > 0 ) then
       call myunpack(cl,r4vector1,matrix)
     end if
+    !$acc end data
   end subroutine linear_to_cartesian_real4_subgrid_subgrid
 
   subroutine cartesian_to_linear_logical_grid_subgrid(cl,matrix,vector)
@@ -19016,10 +19036,12 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: i, j, n
+    !$acc data create(r4subgrid)
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       r4subgrid(n,j,i) = matrix(j,i)
     end do
     call cartesian_to_linear_real4_subgrid_subgrid(cl,r4subgrid,vector)
+    !$acc end data
   end subroutine cartesian_to_linear_real4_grid_subgrid
 
   subroutine global_to_linear_logical_subgrid_subgrid(cl,matrix,vector)
@@ -19146,17 +19168,23 @@ module mod_mppparam
       call mypack_global(cl,matrix,vector)
       return
     end if
+    !$acc data create(global_r4subgrid)
     call subgrid_collect(matrix,global_r4subgrid,jci1,jci2,ici1,ici2)
+    !$acc data create(r4vector1)
     call mypack_global(cl,global_r4subgrid,r4vector1)
     npt  = cl%linear_npoint_sg(myid+1)
+    !$acc host_data use_device(r4vector1,vector)
     call mpi_scatterv(r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_real4,vector,npt,mpi_real4,                   &
                       iocpu,cl%linear_communicator,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
 #endif
+    !$acc end data
+    !$acc end data
   end subroutine global_to_linear_real4_subgrid_subgrid
 
   subroutine global_to_linear_real4_real8_subgrid_subgrid(cl,matrix,vector)
@@ -19169,17 +19197,23 @@ module mod_mppparam
       call mypack_global(cl,matrix,vector)
       return
     end if
+    !$acc data create(global_r4subgrid)
     call subgrid_collect(matrix,global_r4subgrid,jci1,jci2,ici1,ici2)
+    !$acc data create(r8vector1)
     call mypack_global(cl,global_r4subgrid,r8vector1)
     npt  = cl%linear_npoint_sg(myid+1)
+    !$acc host_data use_device(r8vector1,vector)
     call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_real8,vector,npt,mpi_real8,                   &
                       iocpu,cl%linear_communicator,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
 #endif
+    !$acc end data
+    !$acc end data
   end subroutine global_to_linear_real4_real8_subgrid_subgrid
 
   subroutine linear_to_global_real8_subgrid_subgrid(cl,vector,matrix)
@@ -19222,17 +19256,23 @@ module mod_mppparam
       call myunpack_global(cl,vector,matrix)
       return
     end if
+    !$acc data create(global_r4subgrid)
+    !$acc data create(r4vector1)
+    !$acc host_data use_device(vector,r4vector1)
     call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_real4,  &
                      r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_real4,iocpu,cl%linear_communicator,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
 #endif
     call myunpack_global(cl,r4vector1,global_r4subgrid)
+    !$acc end data
     call subgrid_distribute(global_r4subgrid,matrix, &
             jci1,jci2,ici1,ici2,cl%sgmask)
+    !$acc end data
   end subroutine linear_to_global_real4_subgrid_subgrid
 
   subroutine linear_to_global_real8_real4_subgrid_subgrid(cl,vector,matrix)
@@ -19244,17 +19284,23 @@ module mod_mppparam
       call myunpack_global(cl,vector,matrix)
       return
     end if
+    !$acc data create(global_r4subgrid)
+    !$acc data create(r8vector1)
+    !$acc host_data use_device(vector,r8vector1)
     call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_real8,     &
                      r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_real8,iocpu,cl%linear_communicator,mpierr)
+    !$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
 #endif
     call myunpack_global(cl,r8vector1,global_r4subgrid)
+    !$acc end data
     call subgrid_distribute(global_r4subgrid,matrix, &
             jci1,jci2,ici1,ici2,cl%sgmask)
+    !$acc end data
   end subroutine linear_to_global_real8_real4_subgrid_subgrid
 
   subroutine global_to_linear_real8_subgrid_subgrid_4d(cl,matrix,vector)
@@ -19290,25 +19336,34 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: vector
     integer(ik4) :: npt, k, nlev
+    integer(ik4) :: i, j, n
     nlev = size(matrix,4)
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
+    !$acc data create(r4subgrid,global_r4subgrid)
     do k = 1, nlev
-      r4subgrid = matrix(:,jci1:jci2,ici1:ici2,k)
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        r4subgrid(n,j,i) = matrix(n,j,i,k)
+      end do
       call subgrid_collect(r4subgrid,global_r4subgrid,jci1,jci2,ici1,ici2)
+      !$acc data create(r4vector1)
       call mypack_global(cl,global_r4subgrid,r4vector1)
+      !$acc host_data use_device(r4vector1,vector)
       call mpi_scatterv(r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                         mpi_real4,vector(:,k),npt,mpi_real4,              &
                         iocpu,cl%linear_communicator,mpierr)
+      !$acc end host_data
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
 #endif
+      !$acc end data
     end do
+    !$acc end data
   end subroutine global_to_linear_real4_subgrid_subgrid_4d
 
   subroutine global_to_linear_real4_real8_subgrid_subgrid_4d(cl,matrix,vector)
@@ -19317,25 +19372,34 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: vector
     integer(ik4) :: npt, k, nlev
+    integer(ik4) :: i, j, n
     nlev = size(matrix,4)
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
+    !$acc data create(r4subgrid,global_r4subgrid)
     do k = 1, nlev
-      r4subgrid = matrix(:,jci1:jci2,ici1:ici2,k)
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        r4subgrid(n,j,i) = matrix(n,j,i,k)
+      end do
       call subgrid_collect(r4subgrid,global_r4subgrid,jci1,jci2,ici1,ici2)
+      !$acc data create(r8vector1)
       call mypack_global(cl,global_r4subgrid,r8vector1)
+      !$acc host_data use_device(r8vector1,vector)
       call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                         mpi_real8,vector(:,k),npt,mpi_real8,              &
                         iocpu,cl%linear_communicator,mpierr)
+      !$acc end host_data
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
 #endif
+      !$acc end data
     end do
+    !$acc end data
   end subroutine global_to_linear_real4_real8_subgrid_subgrid_4d
 
   subroutine linear_to_global_real8_subgrid_subgrid_4d(cl,vector,matrix)
@@ -19374,28 +19438,35 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
     integer(ik4) :: npt, nlev, k
+    integer(ik4) :: i, j, n
     nlev = size(vector,2)
     if ( nproc == 1 ) then
       call myunpack(cl,vector,matrix,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
+    !$acc data create(global_r4subgrid,r4subgrid)
     do k = 1, nlev
+      !$acc data create(r4vector1)
+      !$acc host_data use_device(vector,r4vector1)
       call mpi_gatherv(vector(:,k),npt,mpi_real4,                        &
                        r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real4,iocpu,cl%linear_communicator,mpierr)
+      !$acc end host_data
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
 #endif
       call myunpack_global(cl,r4vector1,global_r4subgrid)
+      !$acc end data
       call subgrid_distribute(global_r4subgrid,r4subgrid, &
               jci1,jci2,ici1,ici2,cl%sgmask)
-      where ( cl%sgmask )
-        matrix(:,jci1:jci2,ici1:ici2,k) = r4subgrid
-      end where
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        if ( cl%sgmask(n,j,i) ) matrix(n,j,i,k) = r4subgrid(n,j,i)
+      end do
     end do
+    !$acc end data
   end subroutine linear_to_global_real4_subgrid_subgrid_4d
 
   subroutine linear_to_global_real8_real4_subgrid_subgrid_4d(cl,vector,matrix)
@@ -19404,28 +19475,35 @@ module mod_mppparam
     real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
     integer(ik4) :: npt, nlev, k
+    integer(ik4) :: i, j, n
     nlev = size(vector,2)
     if ( nproc == 1 ) then
       call myunpack(cl,vector,matrix,nlev)
       return
     end if
     npt  = cl%linear_npoint_sg(myid+1)
+    !$acc data create(global_r4subgrid,r4subgrid)
     do k = 1, nlev
+      !$acc data create(r8vector1)
+      !$acc host_data use_device(vector,r8vector1)
       call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
                        r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real8,iocpu,cl%linear_communicator,mpierr)
+      !$acc end host_data
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
 #endif
       call myunpack_global(cl,r8vector1,global_r4subgrid)
+      !$acc end data
       call subgrid_distribute(global_r4subgrid,r4subgrid, &
               jci1,jci2,ici1,ici2,cl%sgmask)
-      where ( cl%sgmask )
-        matrix(:,jci1:jci2,ici1:ici2,k) = r4subgrid
-      end where
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        if ( cl%sgmask(n,j,i) ) matrix(n,j,i,k) = r4subgrid(n,j,i)
+      end do
     end do
+    !$acc end data
   end subroutine linear_to_global_real8_real4_subgrid_subgrid_4d
 
   subroutine global_to_linear_logical_grid_subgrid(cl,matrix,vector)
@@ -19470,10 +19548,12 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: i, j, n
+    !$acc data create(r4subgrid)
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       r4subgrid(n,j,i) = matrix(j,i)
     end do
     call global_to_linear_real4_subgrid_subgrid(cl,r4subgrid,vector)
+    !$acc end data
   end subroutine global_to_linear_real4_grid_subgrid
 
   subroutine global_to_linear_real4_real8_grid_subgrid(cl,matrix,vector)
@@ -19482,10 +19562,12 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
     real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: i, j, n
+    !$acc data create(r4subgrid)
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       r4subgrid(n,j,i) = matrix(j,i)
     end do
     call global_to_linear_real4_real8_subgrid_subgrid(cl,r4subgrid,vector)
+    !$acc end data
   end subroutine global_to_linear_real4_real8_grid_subgrid
 
   subroutine cl_dispose(cl)
@@ -19601,14 +19683,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
     integer(ik4) :: i, j, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        if ( cl%gmask(j,i) ) then
-          vector(iv) = matrix(j,i)
-          iv = iv + 1
-        end if
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%gmask_id(j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(j,i)
+      end if
     end do
   end subroutine mypack_real4_grid
 
@@ -19632,16 +19711,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( cl%sgmask(n,j,i) ) then
-            vector(iv) = matrix(n,j,i)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(n,j,i)
+      end if
     end do
   end subroutine mypack_real4_subgrid
 
@@ -19675,16 +19749,11 @@ module mod_mppparam
     integer(ik4), intent(in) :: klev
     integer(ik4) :: i, j, k, n, iv
     do k = 1, klev
-      iv = 1
-      do i = ici1, ici2
-        do j = jci1, jci2
-          do n = 1, nnsg
-            if ( cl%sgmask(n,j,i) ) then
-              vector(iv,k) = matrix(n,j,i,k)
-              iv = iv + 1
-            end if
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        iv = cl%sgmask_id(n,j,i)
+        if ( iv > 0 ) then
+          vector(iv,k) = matrix(n,j,i,k)
+        end if
       end do
     end do
   end subroutine mypack_real4_subgrid_4d
@@ -19716,16 +19785,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
     integer(ik4), intent(in) :: k
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( cl%sgmask(n,j,i) ) then
-            vector(iv) = matrix(n,j,i,k)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(n,j,i,k)
+      end if
     end do
   end subroutine mypack_real4_subgrid_slice
 
@@ -19813,14 +19877,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        if ( cl%gmask(j,i) ) then
-          matrix(j,i) = vector(iv)
-          iv = iv + 1
-        end if
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%gmask_id(j,i)
+      if ( iv > 0 ) then
+        matrix(j,i) = vector(iv)
+      end if
     end do
   end subroutine myunpack_real4_grid
 
@@ -19830,14 +19891,11 @@ module mod_mppparam
     real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        if ( cl%gmask(j,i) ) then
-          matrix(j,i) = real(vector(iv),rk4)
-          iv = iv + 1
-        end if
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%gmask_id(j,i)
+      if ( iv > 0 ) then
+        matrix(j,i) = real(vector(iv),rk4)
+      end if
     end do
   end subroutine myunpack_real8_real4_grid
 
@@ -19861,16 +19919,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( cl%sgmask(n,j,i) ) then
-            matrix(n,j,i) = vector(iv)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i) = vector(iv)
+      end if
     end do
   end subroutine myunpack_real4_subgrid
 
@@ -19880,16 +19933,11 @@ module mod_mppparam
     real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( cl%sgmask(n,j,i) ) then
-            matrix(n,j,i) = real(vector(iv),rk4)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i) = real(vector(iv),rk4)
+      end if
     end do
   end subroutine myunpack_real8_real4_subgrid
 
@@ -19923,16 +19971,11 @@ module mod_mppparam
     integer(ik4), intent(in) :: klev
     integer(ik4) :: i, j, k, n, iv
     do k = 1, klev
-      iv = 1
-      do i = ici1, ici2
-        do j = jci1, jci2
-          do n = 1, nnsg
-            if ( cl%sgmask(n,j,i) ) then
-              matrix(n,j,i,k) = vector(iv,k)
-              iv = iv + 1
-            end if
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        iv = cl%sgmask_id(n,j,i)
+        if ( iv > 0 ) then
+          matrix(n,j,i,k) = vector(iv,k)
+        end if
       end do
     end do
   end subroutine myunpack_real4_subgrid_4d
@@ -19945,16 +19988,11 @@ module mod_mppparam
     integer(ik4), intent(in) :: klev
     integer(ik4) :: i, j, k, n, iv
     do k = 1, klev
-      iv = 1
-      do i = ici1, ici2
-        do j = jci1, jci2
-          do n = 1, nnsg
-            if ( cl%sgmask(n,j,i) ) then
-              matrix(n,j,i,k) = real(vector(iv,k),rk4)
-              iv = iv + 1
-            end if
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        iv = cl%sgmask_id(n,j,i)
+        if ( iv > 0 ) then
+          matrix(n,j,i,k) = real(vector(iv,k),rk4)
+        end if
       end do
     end do
   end subroutine myunpack_real8_real4_subgrid_4d
@@ -19986,16 +20024,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
     integer(ik4), intent(in) :: k
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( cl%sgmask(n,j,i) ) then
-            matrix(n,j,i,k) = vector(iv)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i,k) = vector(iv)
+      end if
     end do
   end subroutine myunpack_real4_subgrid_slice
 
@@ -20006,16 +20039,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
     integer(ik4), intent(in) :: k
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = ici1, ici2
-      do j = jci1, jci2
-        do n = 1, nnsg
-          if ( cl%sgmask(n,j,i) ) then
-            matrix(n,j,i,k) = real(vector(iv),rk4)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i,k) = real(vector(iv),rk4)
+      end if
     end do
   end subroutine myunpack_real8_real4_subgrid_slice
 
@@ -20111,14 +20139,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: i, j, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        if ( cl%global_gmask(j,i) ) then
-          vector(iv) = matrix(j,i)
-          iv = iv + 1
-        end if
-      end do
+    do concurrent ( j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_gmask_id(j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(j,i)
+      end if
     end do
   end subroutine mypack_global_real4_grid
 
@@ -20128,14 +20153,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: matrix
     real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: i, j, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        if ( cl%global_gmask(j,i) ) then
-          vector(iv) = real(matrix(j,i),rk8)
-          iv = iv + 1
-        end if
-      end do
+    do concurrent ( j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_gmask_id(j,i)
+      if ( iv > 0 ) then
+        vector(iv) = real(matrix(j,i),rk8)
+      end if
     end do
   end subroutine mypack_global_real4_real8_grid
 
@@ -20159,16 +20181,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: vector
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        do n = 1, nnsg
-          if ( cl%global_sgmask(n,j,i) ) then
-            vector(iv) = matrix(n,j,i)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(n,j,i)
+      end if
     end do
   end subroutine mypack_global_real4_subgrid
 
@@ -20178,16 +20195,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
     real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        do n = 1, nnsg
-          if ( cl%global_sgmask(n,j,i) ) then
-            vector(iv) = real(matrix(n,j,i),rk8)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        vector(iv) = real(matrix(n,j,i),rk8)
+      end if
     end do
   end subroutine mypack_global_real4_real8_subgrid
 
@@ -20221,16 +20233,11 @@ module mod_mppparam
     integer(ik4), intent(in) :: klev
     integer(ik4) :: i, j, k, n, iv
     do k = 1, klev
-      iv = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          do n = 1, nnsg
-            if ( cl%global_sgmask(n,j,i) ) then
-              vector(iv,k) = matrix(n,j,i,k)
-              iv = iv + 1
-            end if
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+        iv = cl%global_sgmask_id(n,j,i)
+        if ( iv > 0 ) then
+          vector(iv,k) = matrix(n,j,i,k)
+        end if
       end do
     end do
   end subroutine mypack_global_real4_subgrid_4d
@@ -20243,16 +20250,11 @@ module mod_mppparam
     integer(ik4), intent(in) :: klev
     integer(ik4) :: i, j, k, n, iv
     do k = 1, klev
-      iv = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          do n = 1, nnsg
-            if ( cl%global_sgmask(n,j,i) ) then
-              vector(iv,k) = real(matrix(n,j,i,k),rk8)
-              iv = iv + 1
-            end if
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+        iv = cl%global_sgmask_id(n,j,i)
+        if ( iv > 0 ) then
+          vector(iv,k) = real(matrix(n,j,i,k),rk8)
+        end if
       end do
     end do
   end subroutine mypack_global_real4_real8_subgrid_4d
@@ -20284,16 +20286,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
     integer(ik4), intent(in) :: k
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        do n = 1, nnsg
-          if ( cl%global_sgmask(n,j,i) ) then
-            vector(iv) = matrix(n,j,i,k)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(n,j,i,k)
+      end if
     end do
   end subroutine mypack_global_real4_subgrid_slice
 
@@ -20304,16 +20301,11 @@ module mod_mppparam
     real(rk8), pointer, contiguous, dimension(:), intent(inout) :: vector
     integer(ik4), intent(in) :: k
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        do n = 1, nnsg
-          if ( cl%global_sgmask(n,j,i) ) then
-            vector(iv) = real(matrix(n,j,i,k),rk8)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        vector(iv) = real(matrix(n,j,i,k),rk8)
+      end if
     end do
   end subroutine mypack_global_real4_real8_subgrid_slice
 
@@ -20409,14 +20401,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        if ( cl%global_gmask(j,i) ) then
-          matrix(j,i) = vector(iv)
-          iv = iv + 1
-        end if
-      end do
+    do concurrent ( j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_gmask_id(j,i)
+      if ( iv > 0 ) then
+        matrix(j,i) = vector(iv)
+      end if
     end do
   end subroutine myunpack_global_real4_grid
 
@@ -20426,14 +20415,11 @@ module mod_mppparam
     real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        if ( cl%global_gmask(j,i) ) then
-          matrix(j,i) = real(vector(iv),rk4)
-          iv = iv + 1
-        end if
-      end do
+    do concurrent ( j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_gmask_id(j,i)
+      if ( iv > 0 ) then
+        matrix(j,i) = real(vector(iv),rk4)
+      end if
     end do
   end subroutine myunpack_global_real8_real4_grid
 
@@ -20457,16 +20443,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        do n = 1, nnsg
-          if ( cl%global_sgmask(n,j,i) ) then
-            matrix(n,j,i) = vector(iv)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i) = vector(iv)
+      end if
     end do
   end subroutine myunpack_global_real4_subgrid
 
@@ -20476,16 +20457,11 @@ module mod_mppparam
     real(rk8), pointer, contiguous, dimension(:), intent(in) :: vector
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        do n = 1, nnsg
-          if ( cl%global_sgmask(n,j,i) ) then
-            matrix(n,j,i) = real(vector(iv),rk4)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i) = real(vector(iv),rk4)
+      end if
     end do
   end subroutine myunpack_global_real8_real4_subgrid
 
@@ -20519,16 +20495,11 @@ module mod_mppparam
     integer(ik4), intent(in) :: klev
     integer(ik4) :: i, j, k, n, iv
     do k = 1, klev
-      iv = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          do n = 1, nnsg
-            if ( cl%global_sgmask(n,j,i) ) then
-              matrix(n,j,i,k) = vector(iv,k)
-              iv = iv + 1
-            end if
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+        iv = cl%global_sgmask_id(n,j,i)
+        if ( iv > 0 ) then
+          matrix(n,j,i,k) = vector(iv,k)
+        end if
       end do
     end do
   end subroutine myunpack_global_real4_subgrid_4d
@@ -20541,16 +20512,11 @@ module mod_mppparam
     integer(ik4), intent(in) :: klev
     integer(ik4) :: i, j, k, n, iv
     do k = 1, klev
-      iv = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          do n = 1, nnsg
-            if ( cl%global_sgmask(n,j,i) ) then
-              matrix(n,j,i,k) = real(vector(iv,k),rk4)
-              iv = iv + 1
-            end if
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+        iv = cl%global_sgmask_id(n,j,i)
+        if ( iv > 0 ) then
+          matrix(n,j,i,k) = real(vector(iv,k),rk4)
+        end if
       end do
     end do
   end subroutine myunpack_global_real8_real4_subgrid_4d
@@ -20582,16 +20548,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
     integer(ik4), intent(in) :: k
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        do n = 1, nnsg
-          if ( cl%global_sgmask(n,j,i) ) then
-            matrix(n,j,i,k) = vector(iv)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i,k) = vector(iv)
+      end if
     end do
   end subroutine myunpack_global_real4_subgrid_slice
 
@@ -20602,16 +20563,11 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
     integer(ik4), intent(in) :: k
     integer(ik4) :: i, j, n, iv
-    iv = 1
-    do i = iout1, iout2
-      do j = jout1, jout2
-        do n = 1, nnsg
-          if ( cl%global_sgmask(n,j,i) ) then
-            matrix(n,j,i,k) = real(vector(iv),rk4)
-            iv = iv + 1
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i,k) = real(vector(iv),rk4)
+      end if
     end do
   end subroutine myunpack_global_real8_real4_subgrid_slice
 

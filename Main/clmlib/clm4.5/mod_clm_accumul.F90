@@ -193,7 +193,9 @@ module mod_clm_accumul
     ! Allocate and initialize accumulation field
 
     allocate(accum(nf)%val(beg1d:end1d,numlev))
-    accum(nf)%val(beg1d:end1d,numlev) = init_value
+    !$acc kernels
+    accum(nf)%val(beg1d:end1d,1:numlev) = init_value
+    !$acc end kernels
   end subroutine init_accum_field
   !
   ! Diagnostic printout of accumulated fields
@@ -246,6 +248,7 @@ module mod_clm_accumul
     integer(ik8), intent(in) :: nstep         !timestep index
     integer(ik4) :: i, k, nf        !indices
     integer(ik4) :: ibeg, iend         !subgrid beginning,ending indices
+    real(rk8), pointer, contiguous :: accum_val(:,:)
 !------------------------------------------------------------------------
 
     ! find field index. return if "name" is not on list
@@ -270,6 +273,7 @@ module mod_clm_accumul
             size(field,dim=1),' and should be ',iend-ibeg+1
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
+    accum_val => accum(nf)%val
     ! extract field
     if (accum(nf)%acctype == 'timeavg' .and. &
         mod(nstep,accum(nf)%period) /= 0) then
@@ -278,7 +282,7 @@ module mod_clm_accumul
       end do
     else
       do concurrent ( k = ibeg:iend )
-        field(k) = accum(nf)%val(k,1)
+        field(k) = accum_val(k,1)
       end do
     end if
   end subroutine extract_accum_field_sl
@@ -298,6 +302,7 @@ module mod_clm_accumul
     integer(ik4) :: i, j, k, nf     !indices
     integer(ik4) :: ibeg, iend        !subgrid beginning,ending indices
     integer(ik4) :: numlev             !number of vertical levels
+    real(rk8), pointer, contiguous :: accum_val(:,:)
 
     ! find field index. return if "name" is not on list
 
@@ -327,6 +332,7 @@ module mod_clm_accumul
             size(field,dim=2),' and should be ',numlev
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
+    accum_val => accum(nf)%val
 
     !extract field
 
@@ -337,7 +343,7 @@ module mod_clm_accumul
       end do
     else
       do concurrent ( k = ibeg:iend, j = 1:numlev )
-        field(k,j) = accum(nf)%val(k,j)
+        field(k,j) = accum_val(k,j)
       end do
     end if
   end subroutine extract_accum_field_ml
@@ -595,15 +601,22 @@ module mod_clm_accumul
           beg1d = accum(nf)%beg1d
           end1d = accum(nf)%end1d
           allocate(rbuf1d(beg1d:end1d))
+          !$acc update host(rbuf1d)
           call clm_readvar(ncid,varname,rbuf1d,accum(nf)%gcomm)
+          !$acc update device(rbuf1d)
+          !$acc kernels
           accum(nf)%val(beg1d:end1d,1) = rbuf1d(beg1d:end1d)
+          !$acc end kernels
           deallocate(rbuf1d)
         end if
       else if ( flag == 'write' ) then
         beg1d = accum(nf)%beg1d
         end1d = accum(nf)%end1d
         allocate(rbuf1d(beg1d:end1d))
+        !$acc kernels
         rbuf1d(beg1d:end1d) = accum(nf)%val(beg1d:end1d,1)
+        !$acc end kernels
+        !$acc update host(rbuf1d)
         call clm_writevar(ncid,varname,rbuf1d,accum(nf)%gcomm)
         deallocate(rbuf1d)
       end if

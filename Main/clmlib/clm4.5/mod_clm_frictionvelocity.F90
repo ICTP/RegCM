@@ -95,9 +95,9 @@ module mod_clm_frictionvelocity
     integer(ik4) :: n  ! pft/landunit index
     integer(ik4) :: pp ! pfti,pftf index
     ! reference height "minus" zero displacement heght [m]
-    real(rk8):: zldis(lbn:ubn)
+    real(rk8) :: zldis
     ! dimensionless height used in Monin-Obukhov theory
-    real(rk8):: zeta(lbn:ubn)
+    real(rk8) :: zeta
     ! Used to diagnose the 10 meter wind
     real(rk8) :: tmp1,tmp2,tmp3,tmp4
     real(rk8) :: fmnew  ! Used to diagnose the 10 meter wind
@@ -138,29 +138,29 @@ module mod_clm_frictionvelocity
       ! Wind profile
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_u_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_u_pft(n)-displa(n)
+        zldis = forc_hgt_u_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetam) then
+      zeta = zldis/obu(n)
+      if (zeta < -zetam) then
         ustar(n) = vkc*um(n)/(log(-zetam*obu(n)/z0m(n))&
               - StabilityFunc1(-zetam) &
               + StabilityFunc1(z0m(n)/obu(n)) &
-              + 1.14_rk8*((-zeta(n))**0.333_rk8-(zetam)**0.333_rk8))
-      else if (zeta(n) < 0._rk8) then
-        ustar(n) = vkc*um(n)/(log(zldis(n)/z0m(n))&
-              - StabilityFunc1(zeta(n))&
+              + 1.14_rk8*((-zeta)**0.333_rk8-(zetam)**0.333_rk8))
+      else if (zeta < 0._rk8) then
+        ustar(n) = vkc*um(n)/(log(zldis/z0m(n))&
+              - StabilityFunc1(zeta)&
               + StabilityFunc1(z0m(n)/obu(n)))
-      else if (zeta(n) <=  1._rk8) then
-        ustar(n) = vkc*um(n)/(log(zldis(n)/z0m(n)) + &
-                5._rk8*zeta(n) -5._rk8*z0m(n)/obu(n))
+      else if (zeta <=  1._rk8) then
+        ustar(n) = vkc*um(n)/(log(zldis/z0m(n)) + &
+                5._rk8*zeta -5._rk8*z0m(n)/obu(n))
       else
         ustar(n) = vkc*um(n)/(log(obu(n)/z0m(n))+5._rk8-5._rk8*z0m(n)/obu(n) &
-              +(5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+              +(5._rk8*log(zeta)+zeta-1._rk8))
       end if
 
-      if (zeta(n) < 0._rk8) then
+      if (zeta < 0._rk8) then
         vds_tmp = 2.e-3_rk8*ustar(n) * &
           ( 1._rk8 + (300._rk8/(-obu(n)))**0.666_rk8)
       else
@@ -192,58 +192,58 @@ module mod_clm_frictionvelocity
       if (present(landunit_index)) then
         !$acc loop seq
         do pp = pfti(n), pftf(n)
-          if (zldis(n)-z0m(n) <= 10._rk8) then
+          if (zldis-z0m(n) <= 10._rk8) then
             u10_clm(pp) = um(n)
           else
-            if (zeta(n) < -zetam) then
+            if (zeta < -zetam) then
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(-zetam*obu(n)/(10._rk8+z0m(n))) &
                         - StabilityFunc1(-zetam)                        &
                         + StabilityFunc1((10._rk8+z0m(n))/obu(n))         &
-                        + 1.14_rk8*((-zeta(n))**0.333_rk8-(zetam)**0.333_rk8)) )
-            else if (zeta(n) < 0._rk8) then
+                        + 1.14_rk8*((-zeta)**0.333_rk8-(zetam)**0.333_rk8)) )
+            else if (zeta < 0._rk8) then
               u10_clm(pp) = um(n) - &
-                      ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) &
-                        - StabilityFunc1(zeta(n))                  &
+                      ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) &
+                        - StabilityFunc1(zeta)                  &
                         + StabilityFunc1((10._rk8+z0m(n))/obu(n))) )
-            else if (zeta(n) <=  1._rk8) then
+            else if (zeta <=  1._rk8) then
               u10_clm(pp) = um(n) - &
-                      ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) &
-                        + 5._rk8*zeta(n) - 5._rk8*(10._rk8+z0m(n))/obu(n)) )
+                      ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) &
+                        + 5._rk8*zeta - 5._rk8*(10._rk8+z0m(n))/obu(n)) )
             else
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n))) &
                         + 5._rk8 - 5._rk8*(10._rk8+z0m(n))/obu(n)      &
-                        + (5._rk8*log(zeta(n))+zeta(n)-1._rk8)) )
+                        + (5._rk8*log(zeta)+zeta-1._rk8)) )
 
             end if
           end if
           va(pp) = um(n)
         end do
       else
-        if (zldis(n)-z0m(n) <= 10._rk8) then
+        if (zldis-z0m(n) <= 10._rk8) then
           u10_clm(n) = um(n)
         else
-          if (zeta(n) < -zetam) then
+          if (zeta < -zetam) then
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(-zetam*obu(n)/(10._rk8+z0m(n))) &
                       - StabilityFunc1(-zetam)                        &
                       + StabilityFunc1((10._rk8+z0m(n))/obu(n))         &
-                      + 1.14_rk8*((-zeta(n))**0.333_rk8-(zetam)**0.333_rk8)) )
-          else if (zeta(n) < 0._rk8) then
+                      + 1.14_rk8*((-zeta)**0.333_rk8-(zetam)**0.333_rk8)) )
+          else if (zeta < 0._rk8) then
             u10_clm(n) = um(n) - &
-                    ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) &
-                      - StabilityFunc1(zeta(n))                  &
+                    ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) &
+                      - StabilityFunc1(zeta)                  &
                       + StabilityFunc1((10._rk8+z0m(n))/obu(n))) )
-          else if (zeta(n) <=  1._rk8) then
+          else if (zeta <=  1._rk8) then
             u10_clm(n) = um(n) - &
-                    ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) &
-                      + 5._rk8*zeta(n) - 5._rk8*(10._rk8+z0m(n))/obu(n)) )
+                    ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) &
+                      + 5._rk8*zeta - 5._rk8*(10._rk8+z0m(n))/obu(n)) )
           else
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n)))   &
                       + 5._rk8 - 5._rk8*(10._rk8+z0m(n))/obu(n)        &
-                      + (5._rk8*log(zeta(n))+zeta(n)-1._rk8)) )
+                      + (5._rk8*log(zeta)+zeta-1._rk8)) )
           end if
         end if
         va(n) = um(n)
@@ -252,26 +252,26 @@ module mod_clm_frictionvelocity
       ! Temperature profile
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_t_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_t_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_t_pft(n)-displa(n)
+        zldis = forc_hgt_t_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp1(n) = vkc/(log(-zetat*obu(n)/z0h(n))&
               - StabilityFunc2(-zetat) &
               + StabilityFunc2(z0h(n)/obu(n)) &
-              + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-      else if (zeta(n) < 0._rk8) then
-        temp1(n) = vkc/(log(zldis(n)/z0h(n)) &
-              - StabilityFunc2(zeta(n)) &
+              + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+      else if (zeta < 0._rk8) then
+        temp1(n) = vkc/(log(zldis/z0h(n)) &
+              - StabilityFunc2(zeta) &
               + StabilityFunc2(z0h(n)/obu(n)))
-      else if (zeta(n) <=  1._rk8) then
-        temp1(n) = vkc/(log(zldis(n)/z0h(n)) + &
-                5._rk8*zeta(n) - 5._rk8*z0h(n)/obu(n))
+      else if (zeta <=  1._rk8) then
+        temp1(n) = vkc/(log(zldis/z0h(n)) + &
+                5._rk8*zeta - 5._rk8*z0h(n)/obu(n))
       else
         temp1(n) = vkc/(log(obu(n)/z0h(n)) + 5._rk8 - 5._rk8*z0h(n)/obu(n) &
-              + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+              + (5._rk8*log(zeta)+zeta-1._rk8))
       end if
 
       ! Humidity profile
@@ -281,69 +281,69 @@ module mod_clm_frictionvelocity
                 z0q(n) == z0h(n)) then
           temp2(n) = temp1(n)
         else
-          zldis(n) = forc_hgt_q_pft(pfti(n))-displa(n)
-          zeta(n) = zldis(n)/obu(n)
-          if (zeta(n) < -zetat) then
+          zldis = forc_hgt_q_pft(pfti(n))-displa(n)
+          zeta = zldis/obu(n)
+          if (zeta < -zetat) then
             temp2(n) = vkc/(log(-zetat*obu(n)/z0q(n)) &
                  - StabilityFunc2(-zetat) &
                  + StabilityFunc2(z0q(n)/obu(n)) &
-                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-          else if (zeta(n) < 0._rk8) then
-            temp2(n) = vkc/(log(zldis(n)/z0q(n)) &
-                 - StabilityFunc2(zeta(n)) &
+                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+          else if (zeta < 0._rk8) then
+            temp2(n) = vkc/(log(zldis/z0q(n)) &
+                 - StabilityFunc2(zeta) &
                  + StabilityFunc2(z0q(n)/obu(n)))
-          else if (zeta(n) <=  1._rk8) then
-            temp2(n) = vkc/(log(zldis(n)/z0q(n)) + &
-                    5._rk8*zeta(n)-5._rk8*z0q(n)/obu(n))
+          else if (zeta <=  1._rk8) then
+            temp2(n) = vkc/(log(zldis/z0q(n)) + &
+                    5._rk8*zeta-5._rk8*z0q(n)/obu(n))
           else
             temp2(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
-                 + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+                 + (5._rk8*log(zeta)+zeta-1._rk8))
           end if
         end if
       else
         if (forc_hgt_q_pft(n) == forc_hgt_t_pft(n) .and. z0q(n) == z0h(n)) then
           temp2(n) = temp1(n)
         else
-          zldis(n) = forc_hgt_q_pft(n)-displa(n)
-          zeta(n) = zldis(n)/obu(n)
-          if (zeta(n) < -zetat) then
+          zldis = forc_hgt_q_pft(n)-displa(n)
+          zeta = zldis/obu(n)
+          if (zeta < -zetat) then
             temp2(n) = vkc/(log(-zetat*obu(n)/z0q(n)) &
                  - StabilityFunc2(-zetat) &
                  + StabilityFunc2(z0q(n)/obu(n)) &
-                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-          else if (zeta(n) < 0._rk8) then
-            temp2(n) = vkc/(log(zldis(n)/z0q(n)) &
-                 - StabilityFunc2(zeta(n)) &
+                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+          else if (zeta < 0._rk8) then
+            temp2(n) = vkc/(log(zldis/z0q(n)) &
+                 - StabilityFunc2(zeta) &
                  + StabilityFunc2(z0q(n)/obu(n)))
-          else if (zeta(n) <=  1._rk8) then
-            temp2(n) = vkc/(log(zldis(n)/z0q(n)) + &
-                    5._rk8*zeta(n)-5._rk8*z0q(n)/obu(n))
+          else if (zeta <=  1._rk8) then
+            temp2(n) = vkc/(log(zldis/z0q(n)) + &
+                    5._rk8*zeta-5._rk8*z0q(n)/obu(n))
           else
             temp2(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
-                 + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+                 + (5._rk8*log(zeta)+zeta-1._rk8))
           end if
         end if
       end if
 
       ! Temperature profile applied at 2-m
 
-      zldis(n) = 2.0_rk8 + z0h(n)
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zldis = 2.0_rk8 + z0h(n)
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp12m(n) = vkc/(log(-zetat*obu(n)/z0h(n))&
               - StabilityFunc2(-zetat) &
               + StabilityFunc2(z0h(n)/obu(n)) &
-              + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-      else if (zeta(n) < 0._rk8) then
-        temp12m(n) = vkc/(log(zldis(n)/z0h(n)) &
-              - StabilityFunc2(zeta(n))  &
+              + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+      else if (zeta < 0._rk8) then
+        temp12m(n) = vkc/(log(zldis/z0h(n)) &
+              - StabilityFunc2(zeta)  &
               + StabilityFunc2(z0h(n)/obu(n)))
-      else if (zeta(n) <=  1._rk8) then
-        temp12m(n) = vkc/(log(zldis(n)/z0h(n)) + &
-                5._rk8*zeta(n) - 5._rk8*z0h(n)/obu(n))
+      else if (zeta <=  1._rk8) then
+        temp12m(n) = vkc/(log(zldis/z0h(n)) + &
+                5._rk8*zeta - 5._rk8*z0h(n)/obu(n))
       else
         temp12m(n) = vkc/(log(obu(n)/z0h(n)) + 5._rk8 - 5._rk8*z0h(n)/obu(n) &
-              + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+              + (5._rk8*log(zeta)+zeta-1._rk8))
       end if
 
       ! Humidity profile applied at 2-m
@@ -351,21 +351,21 @@ module mod_clm_frictionvelocity
       if (z0q(n) == z0h(n)) then
         temp22m(n) = temp12m(n)
       else
-        zldis(n) = 2.0_rk8 + z0q(n)
-        zeta(n) = zldis(n)/obu(n)
-        if (zeta(n) < -zetat) then
+        zldis = 2.0_rk8 + z0q(n)
+        zeta = zldis/obu(n)
+        if (zeta < -zetat) then
           temp22m(n) = vkc/(log(-zetat*obu(n)/z0q(n)) - &
                  StabilityFunc2(-zetat) + StabilityFunc2(z0q(n)/obu(n)) &
-                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-        else if (zeta(n) < 0._rk8) then
-          temp22m(n) = vkc/(log(zldis(n)/z0q(n)) - &
-                 StabilityFunc2(zeta(n))+StabilityFunc2(z0q(n)/obu(n)))
-        else if (zeta(n) <=  1._rk8) then
-          temp22m(n) = vkc/(log(zldis(n)/z0q(n)) + &
-                  5._rk8*zeta(n)-5._rk8*z0q(n)/obu(n))
+                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+        else if (zeta < 0._rk8) then
+          temp22m(n) = vkc/(log(zldis/z0q(n)) - &
+                 StabilityFunc2(zeta)+StabilityFunc2(z0q(n)/obu(n)))
+        else if (zeta <=  1._rk8) then
+          temp22m(n) = vkc/(log(zldis/z0q(n)) + &
+                  5._rk8*zeta-5._rk8*z0q(n)/obu(n))
         else
           temp22m(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
-                 + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+                 + (5._rk8*log(zeta)+zeta-1._rk8))
         end if
       end if
 
@@ -377,18 +377,18 @@ module mod_clm_frictionvelocity
       ! Code from LSM routine SurfaceTemperature was used to obtain u10
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_u_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_u_pft(n)-displa(n)
+        zldis = forc_hgt_u_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (min(zeta(n), 1._rk8) < 0._rk8) then
-        tmp1 = (1._rk8 - 16._rk8*min(zeta(n),1._rk8))**0.25_rk8
+      zeta = zldis/obu(n)
+      if (min(zeta, 1._rk8) < 0._rk8) then
+        tmp1 = (1._rk8 - 16._rk8*min(zeta,1._rk8))**0.25_rk8
         tmp2 = log((1._rk8+tmp1*tmp1)/2._rk8)
         tmp3 = log((1._rk8+tmp1)/2._rk8)
         fmnew = 2._rk8*tmp3 + tmp2 - 2._rk8*atan(tmp1) + 1.5707963_rk8
       else
-        fmnew = -5._rk8*min(zeta(n),1._rk8)
+        fmnew = -5._rk8*min(zeta,1._rk8)
       end if
       if (iter == 1) then
         fm(n) = fmnew
@@ -396,7 +396,7 @@ module mod_clm_frictionvelocity
         fm(n) = 0.5_rk8 * (fm(n)+fmnew)
       end if
       zeta10 = min(10._rk8/obu(n), 1._rk8)
-      if (zeta(n) == 0._rk8) zeta10 = 0._rk8
+      if (zeta == 0._rk8) zeta10 = 0._rk8
       if (zeta10 < 0._rk8) then
         tmp1 = (1.0_rk8 - 16.0_rk8 * zeta10)**0.25_rk8
         tmp2 = log((1.0_rk8 + tmp1*tmp1)/2.0_rk8)
@@ -438,17 +438,17 @@ module mod_clm_frictionvelocity
       n = filtern(f)
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_u_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_u_pft(n)-displa(n)
+        zldis = forc_hgt_u_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetam) then           ! zeta < -1
+      zeta = zldis/obu(n)
+      if (zeta < -zetam) then           ! zeta < -1
         ustar(n) = vkc * um(n) / log(-zetam*obu(n)/z0m(n))
-      else if (zeta(n) < 0._rk8) then         ! -1 <= zeta < 0
-        ustar(n) = vkc * um(n) / log(zldis(n)/z0m(n))
-      else if (zeta(n) <= 1._rk8) then        !  0 <= ztea <= 1
-        ustar(n)=vkc * um(n)/log(zldis(n)/z0m(n))
+      else if (zeta < 0._rk8) then         ! -1 <= zeta < 0
+        ustar(n) = vkc * um(n) / log(zldis/z0m(n))
+      else if (zeta <= 1._rk8) then        !  0 <= ztea <= 1
+        ustar(n)=vkc * um(n)/log(zldis/z0m(n))
       else                             !  1 < zeta, phi=5+zeta
         ustar(n)=vkc * um(n)/log(obu(n)/z0m(n))
       end if
@@ -469,18 +469,18 @@ module mod_clm_frictionvelocity
       if (present(landunit_index)) then
         !$acc loop seq
         do pp = pfti(n),pftf(n)
-          if (zldis(n)-z0m(n) <= 10._rk8) then
+          if (zldis-z0m(n) <= 10._rk8) then
             u10_clm(pp) = um(n)
           else
-            if (zeta(n) < -zetam) then
+            if (zeta < -zetam) then
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(-zetam*obu(n)/(10._rk8+z0m(n))) ) )
-            else if (zeta(n) < 0._rk8) then
+            else if (zeta < 0._rk8) then
               u10_clm(pp) = um(n) - &
-                      ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) ) )
-            else if (zeta(n) <=  1._rk8) then
+                      ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) ) )
+            else if (zeta <=  1._rk8) then
               u10_clm(pp) = um(n) - &
-                      ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) ) )
+                      ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) ) )
             else
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n))) ) )
@@ -489,16 +489,16 @@ module mod_clm_frictionvelocity
           va(pp) = um(n)
         end do
       else
-        if (zldis(n)-z0m(n) <= 10._rk8) then
+        if (zldis-z0m(n) <= 10._rk8) then
           u10_clm(n) = um(n)
         else
-          if (zeta(n) < -zetam) then
+          if (zeta < -zetam) then
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(-zetam*obu(n)/(10._rk8+z0m(n)))))
-          else if (zeta(n) < 0._rk8) then
-            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n)))))
-          else if (zeta(n) <=  1._rk8) then
-            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n)))))
+          else if (zeta < 0._rk8) then
+            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n)))))
+          else if (zeta <=  1._rk8) then
+            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n)))))
           else
             u10_clm(n) = um(n)-(ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n)))))
           end if
@@ -507,57 +507,57 @@ module mod_clm_frictionvelocity
       end if
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_t_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_t_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_t_pft(n)-displa(n)
+        zldis = forc_hgt_t_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp1(n)=vkc/log(-zetat*obu(n)/z0h(n))
-      else if (zeta(n) < 0._rk8) then
-        temp1(n)=vkc/log(zldis(n)/z0h(n))
-      else if (zeta(n) <= 1._rk8) then
-        temp1(n)=vkc/log(zldis(n)/z0h(n))
+      else if (zeta < 0._rk8) then
+        temp1(n)=vkc/log(zldis/z0h(n))
+      else if (zeta <= 1._rk8) then
+        temp1(n)=vkc/log(zldis/z0h(n))
       else
         temp1(n)=vkc/log(obu(n)/z0h(n))
       end if
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_q_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_q_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_q_pft(n)-displa(n)
+        zldis = forc_hgt_q_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp2(n)=vkc/log(-zetat*obu(n)/z0q(n))
-      else if (zeta(n) < 0._rk8) then
-        temp2(n)=vkc/log(zldis(n)/z0q(n))
-      else if (zeta(n) <= 1._rk8) then
-        temp2(n)=vkc/log(zldis(n)/z0q(n))
+      else if (zeta < 0._rk8) then
+        temp2(n)=vkc/log(zldis/z0q(n))
+      else if (zeta <= 1._rk8) then
+        temp2(n)=vkc/log(zldis/z0q(n))
       else
         temp2(n)=vkc/log(obu(n)/z0q(n))
       end if
 
-      zldis(n) = 2.0_rk8 + z0h(n)
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zldis = 2.0_rk8 + z0h(n)
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp12m(n)=vkc/log(-zetat*obu(n)/z0h(n))
-      else if (zeta(n) < 0._rk8) then
-        temp12m(n)=vkc/log(zldis(n)/z0h(n))
-      else if (zeta(n) <= 1._rk8) then
-        temp12m(n)=vkc/log(zldis(n)/z0h(n))
+      else if (zeta < 0._rk8) then
+        temp12m(n)=vkc/log(zldis/z0h(n))
+      else if (zeta <= 1._rk8) then
+        temp12m(n)=vkc/log(zldis/z0h(n))
       else
         temp12m(n)=vkc/log(obu(n)/z0h(n))
       end if
 
-      zldis(n) = 2.0_rk8 + z0q(n)
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zldis = 2.0_rk8 + z0q(n)
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp22m(n)=vkc/log(-zetat*obu(n)/z0q(n))
-      else if (zeta(n) < 0._rk8) then
-        temp22m(n)=vkc/log(zldis(n)/z0q(n))
-      else if (zeta(n) <= 1._rk8) then
-        temp22m(n)=vkc/log(zldis(n)/z0q(n))
+      else if (zeta < 0._rk8) then
+        temp22m(n)=vkc/log(zldis/z0q(n))
+      else if (zeta <= 1._rk8) then
+        temp22m(n)=vkc/log(zldis/z0q(n))
       else
         temp22m(n)=vkc/log(obu(n)/z0q(n))
       end if
@@ -568,18 +568,18 @@ module mod_clm_frictionvelocity
       ! Therefore d <= 0.034*z1 and may safely be neglected.
       ! Code from LSM routine SurfaceTemperature was used to obtain u10
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_u_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_u_pft(n)-displa(n)
+        zldis = forc_hgt_u_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (min(zeta(n), 1._rk8) < 0._rk8) then
-        tmp1 = (1._rk8 - 16._rk8*min(zeta(n),1._rk8))**0.25_rk8
+      zeta = zldis/obu(n)
+      if (min(zeta, 1._rk8) < 0._rk8) then
+        tmp1 = (1._rk8 - 16._rk8*min(zeta,1._rk8))**0.25_rk8
         tmp2 = log((1._rk8+tmp1*tmp1)/2._rk8)
         tmp3 = log((1._rk8+tmp1)/2._rk8)
         fmnew = 2._rk8*tmp3 + tmp2 - 2._rk8*atan(tmp1) + 1.5707963_rk8
       else
-        fmnew = -5._rk8*min(zeta(n),1._rk8)
+        fmnew = -5._rk8*min(zeta,1._rk8)
       end if
       if (iter == 1) then
         fm(n) = fmnew
@@ -587,7 +587,7 @@ module mod_clm_frictionvelocity
         fm(n) = 0.5_rk8 * (fm(n)+fmnew)
       end if
       zeta10 = min(10._rk8/obu(n), 1._rk8)
-      if (zeta(n) == 0._rk8) zeta10 = 0._rk8
+      if (zeta == 0._rk8) zeta10 = 0._rk8
       if (zeta10 < 0._rk8) then
         tmp1 = (1.0_rk8 - 16.0 * zeta10)**0.25_rk8
         tmp2 = log((1.0_rk8 + tmp1*tmp1)/2.0_rk8)
@@ -681,9 +681,9 @@ module mod_clm_frictionvelocity
     integer(ik4) :: n  ! pft/landunit index
     integer(ik4) :: pp ! pfti,pftf index
     ! reference height "minus" zero displacement heght [m]
-    real(rk8):: zldis(lbn:ubn)
+    real(rk8) :: zldis
     ! dimensionless height used in Monin-Obukhov theory
-    real(rk8):: zeta(lbn:ubn)
+    real(rk8) :: zeta
     ! Used to diagnose the 10 meter wind
     real(rk8) :: tmp1,tmp2,tmp3,tmp4
     real(rk8) :: fmnew  ! Used to diagnose the 10 meter wind
@@ -719,29 +719,29 @@ module mod_clm_frictionvelocity
       ! Wind profile
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_u_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_u_pft(n)-displa(n)
+        zldis = forc_hgt_u_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetam) then
+      zeta = zldis/obu(n)
+      if (zeta < -zetam) then
         ustar(n) = vkc*um(n)/(log(-zetam*obu(n)/z0m(n))&
               - StabilityFunc1(-zetam) &
               + StabilityFunc1(z0m(n)/obu(n)) &
-              + 1.14_rk8*((-zeta(n))**0.333_rk8-(zetam)**0.333_rk8))
-      else if (zeta(n) < 0._rk8) then
-        ustar(n) = vkc*um(n)/(log(zldis(n)/z0m(n))&
-              - StabilityFunc1(zeta(n))&
+              + 1.14_rk8*((-zeta)**0.333_rk8-(zetam)**0.333_rk8))
+      else if (zeta < 0._rk8) then
+        ustar(n) = vkc*um(n)/(log(zldis/z0m(n))&
+              - StabilityFunc1(zeta)&
               + StabilityFunc1(z0m(n)/obu(n)))
-      else if (zeta(n) <=  1._rk8) then
-        ustar(n) = vkc*um(n)/(log(zldis(n)/z0m(n)) + &
-                5._rk8*zeta(n) -5._rk8*z0m(n)/obu(n))
+      else if (zeta <=  1._rk8) then
+        ustar(n) = vkc*um(n)/(log(zldis/z0m(n)) + &
+                5._rk8*zeta -5._rk8*z0m(n)/obu(n))
       else
         ustar(n) = vkc*um(n)/(log(obu(n)/z0m(n))+5._rk8-5._rk8*z0m(n)/obu(n) &
-              +(5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+              +(5._rk8*log(zeta)+zeta-1._rk8))
       end if
 
-      if (zeta(n) < 0._rk8) then
+      if (zeta < 0._rk8) then
         vds_tmp = 2.e-3_rk8*ustar(n) * &
           ( 1._rk8 + (300._rk8/(-obu(n)))**0.666_rk8)
       else
@@ -773,58 +773,58 @@ module mod_clm_frictionvelocity
       if (present(landunit_index)) then
         !$acc loop seq
         do pp = pfti(n), pftf(n)
-          if (zldis(n)-z0m(n) <= 10._rk8) then
+          if (zldis-z0m(n) <= 10._rk8) then
             u10_clm(pp) = um(n)
           else
-            if (zeta(n) < -zetam) then
+            if (zeta < -zetam) then
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(-zetam*obu(n)/(10._rk8+z0m(n))) &
                         - StabilityFunc1(-zetam)                        &
                         + StabilityFunc1((10._rk8+z0m(n))/obu(n))         &
-                        + 1.14_rk8*((-zeta(n))**0.333_rk8-(zetam)**0.333_rk8)) )
-            else if (zeta(n) < 0._rk8) then
+                        + 1.14_rk8*((-zeta)**0.333_rk8-(zetam)**0.333_rk8)) )
+            else if (zeta < 0._rk8) then
               u10_clm(pp) = um(n) - &
-                      ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) &
-                        - StabilityFunc1(zeta(n))                  &
+                      ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) &
+                        - StabilityFunc1(zeta)                  &
                         + StabilityFunc1((10._rk8+z0m(n))/obu(n))) )
-            else if (zeta(n) <=  1._rk8) then
+            else if (zeta <=  1._rk8) then
               u10_clm(pp) = um(n) - &
-                      ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) &
-                        + 5._rk8*zeta(n) - 5._rk8*(10._rk8+z0m(n))/obu(n)) )
+                      ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) &
+                        + 5._rk8*zeta - 5._rk8*(10._rk8+z0m(n))/obu(n)) )
             else
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n))) &
                         + 5._rk8 - 5._rk8*(10._rk8+z0m(n))/obu(n)      &
-                        + (5._rk8*log(zeta(n))+zeta(n)-1._rk8)) )
+                        + (5._rk8*log(zeta)+zeta-1._rk8)) )
 
             end if
           end if
           va(pp) = um(n)
         end do
       else
-        if (zldis(n)-z0m(n) <= 10._rk8) then
+        if (zldis-z0m(n) <= 10._rk8) then
           u10_clm(n) = um(n)
         else
-          if (zeta(n) < -zetam) then
+          if (zeta < -zetam) then
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(-zetam*obu(n)/(10._rk8+z0m(n))) &
                       - StabilityFunc1(-zetam)                        &
                       + StabilityFunc1((10._rk8+z0m(n))/obu(n))         &
-                      + 1.14_rk8*((-zeta(n))**0.333_rk8-(zetam)**0.333_rk8)) )
-          else if (zeta(n) < 0._rk8) then
+                      + 1.14_rk8*((-zeta)**0.333_rk8-(zetam)**0.333_rk8)) )
+          else if (zeta < 0._rk8) then
             u10_clm(n) = um(n) - &
-                    ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) &
-                      - StabilityFunc1(zeta(n))                  &
+                    ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) &
+                      - StabilityFunc1(zeta)                  &
                       + StabilityFunc1((10._rk8+z0m(n))/obu(n))) )
-          else if (zeta(n) <=  1._rk8) then
+          else if (zeta <=  1._rk8) then
             u10_clm(n) = um(n) - &
-                    ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) &
-                      + 5._rk8*zeta(n) - 5._rk8*(10._rk8+z0m(n))/obu(n)) )
+                    ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) &
+                      + 5._rk8*zeta - 5._rk8*(10._rk8+z0m(n))/obu(n)) )
           else
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n)))   &
                       + 5._rk8 - 5._rk8*(10._rk8+z0m(n))/obu(n)        &
-                      + (5._rk8*log(zeta(n))+zeta(n)-1._rk8)) )
+                      + (5._rk8*log(zeta)+zeta-1._rk8)) )
           end if
         end if
         va(n) = um(n)
@@ -833,26 +833,26 @@ module mod_clm_frictionvelocity
       ! Temperature profile
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_t_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_t_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_t_pft(n)-displa(n)
+        zldis = forc_hgt_t_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp1(n) = vkc/(log(-zetat*obu(n)/z0h(n))&
               - StabilityFunc2(-zetat) &
               + StabilityFunc2(z0h(n)/obu(n)) &
-              + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-      else if (zeta(n) < 0._rk8) then
-        temp1(n) = vkc/(log(zldis(n)/z0h(n)) &
-              - StabilityFunc2(zeta(n)) &
+              + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+      else if (zeta < 0._rk8) then
+        temp1(n) = vkc/(log(zldis/z0h(n)) &
+              - StabilityFunc2(zeta) &
               + StabilityFunc2(z0h(n)/obu(n)))
-      else if (zeta(n) <=  1._rk8) then
-        temp1(n) = vkc/(log(zldis(n)/z0h(n)) + &
-                5._rk8*zeta(n) - 5._rk8*z0h(n)/obu(n))
+      else if (zeta <=  1._rk8) then
+        temp1(n) = vkc/(log(zldis/z0h(n)) + &
+                5._rk8*zeta - 5._rk8*z0h(n)/obu(n))
       else
         temp1(n) = vkc/(log(obu(n)/z0h(n)) + 5._rk8 - 5._rk8*z0h(n)/obu(n) &
-              + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+              + (5._rk8*log(zeta)+zeta-1._rk8))
       end if
 
       ! Humidity profile
@@ -862,69 +862,69 @@ module mod_clm_frictionvelocity
                 z0q(n) == z0h(n)) then
           temp2(n) = temp1(n)
         else
-          zldis(n) = forc_hgt_q_pft(pfti(n))-displa(n)
-          zeta(n) = zldis(n)/obu(n)
-          if (zeta(n) < -zetat) then
+          zldis = forc_hgt_q_pft(pfti(n))-displa(n)
+          zeta = zldis/obu(n)
+          if (zeta < -zetat) then
             temp2(n) = vkc/(log(-zetat*obu(n)/z0q(n)) &
                  - StabilityFunc2(-zetat) &
                  + StabilityFunc2(z0q(n)/obu(n)) &
-                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-          else if (zeta(n) < 0._rk8) then
-            temp2(n) = vkc/(log(zldis(n)/z0q(n)) &
-                 - StabilityFunc2(zeta(n)) &
+                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+          else if (zeta < 0._rk8) then
+            temp2(n) = vkc/(log(zldis/z0q(n)) &
+                 - StabilityFunc2(zeta) &
                  + StabilityFunc2(z0q(n)/obu(n)))
-          else if (zeta(n) <=  1._rk8) then
-            temp2(n) = vkc/(log(zldis(n)/z0q(n)) + &
-                    5._rk8*zeta(n)-5._rk8*z0q(n)/obu(n))
+          else if (zeta <=  1._rk8) then
+            temp2(n) = vkc/(log(zldis/z0q(n)) + &
+                    5._rk8*zeta-5._rk8*z0q(n)/obu(n))
           else
             temp2(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
-                 + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+                 + (5._rk8*log(zeta)+zeta-1._rk8))
           end if
         end if
       else
         if (forc_hgt_q_pft(n) == forc_hgt_t_pft(n) .and. z0q(n) == z0h(n)) then
           temp2(n) = temp1(n)
         else
-          zldis(n) = forc_hgt_q_pft(n)-displa(n)
-          zeta(n) = zldis(n)/obu(n)
-          if (zeta(n) < -zetat) then
+          zldis = forc_hgt_q_pft(n)-displa(n)
+          zeta = zldis/obu(n)
+          if (zeta < -zetat) then
             temp2(n) = vkc/(log(-zetat*obu(n)/z0q(n)) &
                  - StabilityFunc2(-zetat) &
                  + StabilityFunc2(z0q(n)/obu(n)) &
-                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-          else if (zeta(n) < 0._rk8) then
-            temp2(n) = vkc/(log(zldis(n)/z0q(n)) &
-                 - StabilityFunc2(zeta(n)) &
+                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+          else if (zeta < 0._rk8) then
+            temp2(n) = vkc/(log(zldis/z0q(n)) &
+                 - StabilityFunc2(zeta) &
                  + StabilityFunc2(z0q(n)/obu(n)))
-          else if (zeta(n) <=  1._rk8) then
-            temp2(n) = vkc/(log(zldis(n)/z0q(n)) + &
-                    5._rk8*zeta(n)-5._rk8*z0q(n)/obu(n))
+          else if (zeta <=  1._rk8) then
+            temp2(n) = vkc/(log(zldis/z0q(n)) + &
+                    5._rk8*zeta-5._rk8*z0q(n)/obu(n))
           else
             temp2(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
-                 + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+                 + (5._rk8*log(zeta)+zeta-1._rk8))
           end if
         end if
       end if
 
       ! Temperature profile applied at 2-m
 
-      zldis(n) = 2.0_rk8 + z0h(n)
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zldis = 2.0_rk8 + z0h(n)
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp12m(n) = vkc/(log(-zetat*obu(n)/z0h(n))&
               - StabilityFunc2(-zetat) &
               + StabilityFunc2(z0h(n)/obu(n)) &
-              + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-      else if (zeta(n) < 0._rk8) then
-        temp12m(n) = vkc/(log(zldis(n)/z0h(n)) &
-              - StabilityFunc2(zeta(n))  &
+              + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+      else if (zeta < 0._rk8) then
+        temp12m(n) = vkc/(log(zldis/z0h(n)) &
+              - StabilityFunc2(zeta)  &
               + StabilityFunc2(z0h(n)/obu(n)))
-      else if (zeta(n) <=  1._rk8) then
-        temp12m(n) = vkc/(log(zldis(n)/z0h(n)) + &
-                5._rk8*zeta(n) - 5._rk8*z0h(n)/obu(n))
+      else if (zeta <=  1._rk8) then
+        temp12m(n) = vkc/(log(zldis/z0h(n)) + &
+                5._rk8*zeta - 5._rk8*z0h(n)/obu(n))
       else
         temp12m(n) = vkc/(log(obu(n)/z0h(n)) + 5._rk8 - 5._rk8*z0h(n)/obu(n) &
-              + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+              + (5._rk8*log(zeta)+zeta-1._rk8))
       end if
 
       ! Humidity profile applied at 2-m
@@ -932,21 +932,21 @@ module mod_clm_frictionvelocity
       if (z0q(n) == z0h(n)) then
         temp22m(n) = temp12m(n)
       else
-        zldis(n) = 2.0_rk8 + z0q(n)
-        zeta(n) = zldis(n)/obu(n)
-        if (zeta(n) < -zetat) then
+        zldis = 2.0_rk8 + z0q(n)
+        zeta = zldis/obu(n)
+        if (zeta < -zetat) then
           temp22m(n) = vkc/(log(-zetat*obu(n)/z0q(n)) - &
                  StabilityFunc2(-zetat) + StabilityFunc2(z0q(n)/obu(n)) &
-                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta(n))**(-0.333_rk8)))
-        else if (zeta(n) < 0._rk8) then
-          temp22m(n) = vkc/(log(zldis(n)/z0q(n)) - &
-                 StabilityFunc2(zeta(n))+StabilityFunc2(z0q(n)/obu(n)))
-        else if (zeta(n) <=  1._rk8) then
-          temp22m(n) = vkc/(log(zldis(n)/z0q(n)) + &
-                  5._rk8*zeta(n)-5._rk8*z0q(n)/obu(n))
+                 + 0.8_rk8*((zetat)**(-0.333_rk8)-(-zeta)**(-0.333_rk8)))
+        else if (zeta < 0._rk8) then
+          temp22m(n) = vkc/(log(zldis/z0q(n)) - &
+                 StabilityFunc2(zeta)+StabilityFunc2(z0q(n)/obu(n)))
+        else if (zeta <=  1._rk8) then
+          temp22m(n) = vkc/(log(zldis/z0q(n)) + &
+                  5._rk8*zeta-5._rk8*z0q(n)/obu(n))
         else
           temp22m(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
-                 + (5._rk8*log(zeta(n))+zeta(n)-1._rk8))
+                 + (5._rk8*log(zeta)+zeta-1._rk8))
         end if
       end if
 
@@ -958,18 +958,18 @@ module mod_clm_frictionvelocity
       ! Code from LSM routine SurfaceTemperature was used to obtain u10
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_u_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_u_pft(n)-displa(n)
+        zldis = forc_hgt_u_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (min(zeta(n), 1._rk8) < 0._rk8) then
-        tmp1 = (1._rk8 - 16._rk8*min(zeta(n),1._rk8))**0.25_rk8
+      zeta = zldis/obu(n)
+      if (min(zeta, 1._rk8) < 0._rk8) then
+        tmp1 = (1._rk8 - 16._rk8*min(zeta,1._rk8))**0.25_rk8
         tmp2 = log((1._rk8+tmp1*tmp1)/2._rk8)
         tmp3 = log((1._rk8+tmp1)/2._rk8)
         fmnew = 2._rk8*tmp3 + tmp2 - 2._rk8*atan(tmp1) + 1.5707963_rk8
       else
-        fmnew = -5._rk8*min(zeta(n),1._rk8)
+        fmnew = -5._rk8*min(zeta,1._rk8)
       end if
       if (iter == 1) then
         fm(n) = fmnew
@@ -977,7 +977,7 @@ module mod_clm_frictionvelocity
         fm(n) = 0.5_rk8 * (fm(n)+fmnew)
       end if
       zeta10 = min(10._rk8/obu(n), 1._rk8)
-      if (zeta(n) == 0._rk8) zeta10 = 0._rk8
+      if (zeta == 0._rk8) zeta10 = 0._rk8
       if (zeta10 < 0._rk8) then
         tmp1 = (1.0_rk8 - 16.0_rk8 * zeta10)**0.25_rk8
         tmp2 = log((1.0_rk8 + tmp1*tmp1)/2.0_rk8)
@@ -1014,17 +1014,17 @@ module mod_clm_frictionvelocity
       n = filtern(f)
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_u_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_u_pft(n)-displa(n)
+        zldis = forc_hgt_u_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetam) then           ! zeta < -1
+      zeta = zldis/obu(n)
+      if (zeta < -zetam) then           ! zeta < -1
         ustar(n) = vkc * um(n) / log(-zetam*obu(n)/z0m(n))
-      else if (zeta(n) < 0._rk8) then         ! -1 <= zeta < 0
-        ustar(n) = vkc * um(n) / log(zldis(n)/z0m(n))
-      else if (zeta(n) <= 1._rk8) then        !  0 <= ztea <= 1
-        ustar(n)=vkc * um(n)/log(zldis(n)/z0m(n))
+      else if (zeta < 0._rk8) then         ! -1 <= zeta < 0
+        ustar(n) = vkc * um(n) / log(zldis/z0m(n))
+      else if (zeta <= 1._rk8) then        !  0 <= ztea <= 1
+        ustar(n)=vkc * um(n)/log(zldis/z0m(n))
       else                             !  1 < zeta, phi=5+zeta
         ustar(n)=vkc * um(n)/log(obu(n)/z0m(n))
       end if
@@ -1045,18 +1045,18 @@ module mod_clm_frictionvelocity
       if (present(landunit_index)) then
         !$acc loop seq
         do pp = pfti(n),pftf(n)
-          if (zldis(n)-z0m(n) <= 10._rk8) then
+          if (zldis-z0m(n) <= 10._rk8) then
             u10_clm(pp) = um(n)
           else
-            if (zeta(n) < -zetam) then
+            if (zeta < -zetam) then
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(-zetam*obu(n)/(10._rk8+z0m(n))) ) )
-            else if (zeta(n) < 0._rk8) then
+            else if (zeta < 0._rk8) then
               u10_clm(pp) = um(n) - &
-                      ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) ) )
-            else if (zeta(n) <=  1._rk8) then
+                      ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) ) )
+            else if (zeta <=  1._rk8) then
               u10_clm(pp) = um(n) - &
-                      ( ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n))) ) )
+                      ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) ) )
             else
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n))) ) )
@@ -1065,16 +1065,16 @@ module mod_clm_frictionvelocity
           va(pp) = um(n)
         end do
       else
-        if (zldis(n)-z0m(n) <= 10._rk8) then
+        if (zldis-z0m(n) <= 10._rk8) then
           u10_clm(n) = um(n)
         else
-          if (zeta(n) < -zetam) then
+          if (zeta < -zetam) then
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(-zetam*obu(n)/(10._rk8+z0m(n)))))
-          else if (zeta(n) < 0._rk8) then
-            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n)))))
-          else if (zeta(n) <=  1._rk8) then
-            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis(n)/(10._rk8+z0m(n)))))
+          else if (zeta < 0._rk8) then
+            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n)))))
+          else if (zeta <=  1._rk8) then
+            u10_clm(n) = um(n)-(ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n)))))
           else
             u10_clm(n) = um(n)-(ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n)))))
           end if
@@ -1083,57 +1083,57 @@ module mod_clm_frictionvelocity
       end if
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_t_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_t_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_t_pft(n)-displa(n)
+        zldis = forc_hgt_t_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp1(n)=vkc/log(-zetat*obu(n)/z0h(n))
-      else if (zeta(n) < 0._rk8) then
-        temp1(n)=vkc/log(zldis(n)/z0h(n))
-      else if (zeta(n) <= 1._rk8) then
-        temp1(n)=vkc/log(zldis(n)/z0h(n))
+      else if (zeta < 0._rk8) then
+        temp1(n)=vkc/log(zldis/z0h(n))
+      else if (zeta <= 1._rk8) then
+        temp1(n)=vkc/log(zldis/z0h(n))
       else
         temp1(n)=vkc/log(obu(n)/z0h(n))
       end if
 
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_q_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_q_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_q_pft(n)-displa(n)
+        zldis = forc_hgt_q_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp2(n)=vkc/log(-zetat*obu(n)/z0q(n))
-      else if (zeta(n) < 0._rk8) then
-        temp2(n)=vkc/log(zldis(n)/z0q(n))
-      else if (zeta(n) <= 1._rk8) then
-        temp2(n)=vkc/log(zldis(n)/z0q(n))
+      else if (zeta < 0._rk8) then
+        temp2(n)=vkc/log(zldis/z0q(n))
+      else if (zeta <= 1._rk8) then
+        temp2(n)=vkc/log(zldis/z0q(n))
       else
         temp2(n)=vkc/log(obu(n)/z0q(n))
       end if
 
-      zldis(n) = 2.0_rk8 + z0h(n)
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zldis = 2.0_rk8 + z0h(n)
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp12m(n)=vkc/log(-zetat*obu(n)/z0h(n))
-      else if (zeta(n) < 0._rk8) then
-        temp12m(n)=vkc/log(zldis(n)/z0h(n))
-      else if (zeta(n) <= 1._rk8) then
-        temp12m(n)=vkc/log(zldis(n)/z0h(n))
+      else if (zeta < 0._rk8) then
+        temp12m(n)=vkc/log(zldis/z0h(n))
+      else if (zeta <= 1._rk8) then
+        temp12m(n)=vkc/log(zldis/z0h(n))
       else
         temp12m(n)=vkc/log(obu(n)/z0h(n))
       end if
 
-      zldis(n) = 2.0_rk8 + z0q(n)
-      zeta(n) = zldis(n)/obu(n)
-      if (zeta(n) < -zetat) then
+      zldis = 2.0_rk8 + z0q(n)
+      zeta = zldis/obu(n)
+      if (zeta < -zetat) then
         temp22m(n)=vkc/log(-zetat*obu(n)/z0q(n))
-      else if (zeta(n) < 0._rk8) then
-        temp22m(n)=vkc/log(zldis(n)/z0q(n))
-      else if (zeta(n) <= 1._rk8) then
-        temp22m(n)=vkc/log(zldis(n)/z0q(n))
+      else if (zeta < 0._rk8) then
+        temp22m(n)=vkc/log(zldis/z0q(n))
+      else if (zeta <= 1._rk8) then
+        temp22m(n)=vkc/log(zldis/z0q(n))
       else
         temp22m(n)=vkc/log(obu(n)/z0q(n))
       end if
@@ -1144,18 +1144,18 @@ module mod_clm_frictionvelocity
       ! Therefore d <= 0.034*z1 and may safely be neglected.
       ! Code from LSM routine SurfaceTemperature was used to obtain u10
       if (present(landunit_index)) then
-        zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
+        zldis = forc_hgt_u_pft(pfti(n))-displa(n)
       else
-        zldis(n) = forc_hgt_u_pft(n)-displa(n)
+        zldis = forc_hgt_u_pft(n)-displa(n)
       end if
-      zeta(n) = zldis(n)/obu(n)
-      if (min(zeta(n), 1._rk8) < 0._rk8) then
-        tmp1 = (1._rk8 - 16._rk8*min(zeta(n),1._rk8))**0.25_rk8
+      zeta = zldis/obu(n)
+      if (min(zeta, 1._rk8) < 0._rk8) then
+        tmp1 = (1._rk8 - 16._rk8*min(zeta,1._rk8))**0.25_rk8
         tmp2 = log((1._rk8+tmp1*tmp1)/2._rk8)
         tmp3 = log((1._rk8+tmp1)/2._rk8)
         fmnew = 2._rk8*tmp3 + tmp2 - 2._rk8*atan(tmp1) + 1.5707963_rk8
       else
-        fmnew = -5._rk8*min(zeta(n),1._rk8)
+        fmnew = -5._rk8*min(zeta,1._rk8)
       end if
       if (iter == 1) then
         fm(n) = fmnew
@@ -1163,7 +1163,7 @@ module mod_clm_frictionvelocity
         fm(n) = 0.5_rk8 * (fm(n)+fmnew)
       end if
       zeta10 = min(10._rk8/obu(n), 1._rk8)
-      if (zeta(n) == 0._rk8) zeta10 = 0._rk8
+      if (zeta == 0._rk8) zeta10 = 0._rk8
       if (zeta10 < 0._rk8) then
         tmp1 = (1.0_rk8 - 16.0 * zeta10)**0.25_rk8
         tmp2 = log((1.0_rk8 + tmp1*tmp1)/2.0_rk8)
