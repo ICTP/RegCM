@@ -59,7 +59,9 @@ module mod_pbl_holtbl
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ri
 
   ! minimum eddy diffusivity ( background value )
-  real(rkx), parameter :: kzo = 1.0_rkx ! m^2s-1
+  !real(rkx), parameter :: kzml = 1.0_rkx ! m^2s-1
+  real(rkx), parameter :: kzml = 0.1_rkx ! m^2s-1 WRF value
+  !real(rkx), parameter :: kzml = 0.01_rkx ! m^2s-1 Possible absolute minimum
   real(rkx), parameter :: turbulent_lenght_scale = 100.0_rkx ! m
   real(rkx), parameter :: szkm = (turbulent_lenght_scale*vonkar)**2
   ! coef. of proportionality and lower % of bl in sfc layer
@@ -77,6 +79,9 @@ module mod_pbl_holtbl
   real(rkx), parameter :: kzfrac = 0.8_rkx
   ! power in formula for k in critical ri for judging stability
   real(rkx), parameter :: pink = 2.0_rkx
+  ! Avoid numerical problem with supposedly safe range
+  real(rkx), parameter :: minri = -10.0_rkx
+  real(rkx), parameter :: maxri =  50.0_rkx
 
   contains
 
@@ -131,10 +136,9 @@ module mod_pbl_holtbl
     type(mod_2_pbl), intent(in) :: m2p
     type(pbl_2_mod), intent(inout) :: p2m
     integer(ik4) :: i, j, k, n
-    real(rkx) :: dudz, dvdz, ss, n2, rin, fofri, kzmax
+    real(rkx) :: dudz, dvdz, ss, n2, rin, fofri, kzmh
     real(rkx) :: rrho, uflxsfx, vflxsfx, uu
-    real(rkx) :: sh10, oblen
-    real(rkx) :: zlv, tlv, ulv, vlv, zkv, tkv, vvk
+    real(rkx) :: sh10, oblen, vvk
     real(rkx) :: xfmt, wsc, therm, phpblm, zpbl, xfht
     real(rkx) :: z, zm, zp, zh, zl, wstr
     real(rkx) :: zzh, zzhnew, zzhnew2
@@ -185,7 +189,7 @@ module mod_pbl_holtbl
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
       vv(j,i,k) = max(m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
-                      m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k),0.025_rkx)
+                      m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k), 0.001_rkx)
       dudz = (m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))/dza(j,i,k-1)
       dvdz = (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k))/dza(j,i,k-1)
       ! Vertical wind shear (square)
@@ -194,15 +198,15 @@ module mod_pbl_holtbl
       n2 = egrav * (m2p%thatm(j,i,k-1)-m2p%thatm(j,i,k)) / &
           (dza(j,i,k-1)*0.5_rkx*(m2p%thatm(j,i,k-1)+m2p%thatm(j,i,k)))
       ! Compute the gradient Richardson number
-      rin = max(-5.0_rkx,min(10.0_rkx,n2/ss))
+      rin = max(minri,min(maxri,n2/ss))
       if ( rin < 0.0_rkx ) then
         fofri = sqrt(max(1.0_rkx-18.0_rkx*rin,0.0_rkx))
       else
         fofri = 1.0_rkx/(1.0_rkx+10.0_rkx*rin*(1.0_rkx+8.0_rkx*rin))
       end if
       kzm(j,i,k) = szkm*sqrt(ss)*fofri
-      kzmax = kzfrac*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
-      kzm(j,i,k) = max(min(kzm(j,i,k),kzmax),kzo)
+      kzmh = kzfrac*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
+      kzm(j,i,k) = max(min(kzm(j,i,k),kzmh),kzml)
     end do
     !
     ! Holtslag pbl
@@ -334,30 +338,13 @@ module mod_pbl_holtbl
     ! note: kmxpbl, max no. of pbl levels (set in slice)
     ! compute Bulk Richardson Number (BRN)
     !
-    if ( idynamic == 3 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        zlv = m2p%za(j,i,kz)
-        tlv = thv10(j,i)
-        ulv = m2p%uxatm(j,i,kz)
-        vlv = m2p%vxatm(j,i,kz)
-        do k = kzm1, kmxpbl(j,i), -1
-          zkv = m2p%za(j,i,k)
-          tkv = thvx(j,i,k)
-          vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
-          vvk = vvk + 1.0e-10_rkx
-          ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tlv*vvk)
-          ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
-        end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      !@acc loop seq
+      do k = kzm1, kmxpbl(j,i), -1
+        ri(k,j,i) = max(minri,min(maxri,egrav*(thvx(j,i,k)-thvx(j,i,kz)) * &
+                    m2p%za(j,i,k)/(thv10(j,i)*vv(j,i,k))))
       end do
-    else
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        do k = kzm1, kmxpbl(j,i), -1
-          ri(k,j,i) = egrav*(thvx(j,i,k)-thv10(j,i))*m2p%za(j,i,k) / &
-                      (thv10(j,i)*vv(j,i,k))
-          ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
-        end do
-      end do
-    end if
+    end do
 
     ! looking for first guess bl top
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -373,56 +360,25 @@ module mod_pbl_holtbl
       end do
     end do
 
-    ! recompute richardson no. at lowest model level
-    if ( idynamic == 3 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        if ( lunstb(j,i) ) then
-          ! estimate of convective velocity scale
-          xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
-          wsc = ustr(j,i)*xfmt
-          ! thermal temperature excess
-          therm = fak * hfxv(j,i)/wsc
-          zlv = m2p%za(j,i,kz)
-          tlv = thv10(j,i) + therm
-          ulv = m2p%uxatm(j,i,kz)
-          vlv = m2p%vxatm(j,i,kz)
-          !zlv = max(obklen(j,i),d_10)
-          !tlv = thv10(j,i) + therm
-          vvk = ulv**2 + vlv**2 + fak*ustr(j,i)**2 + 1.0e-10_rkx
-          ri(kz,j,i) = -egrav*therm*zlv/(thv10(j,i)*vvk)
-          ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
-          ! recompute richardson no. at other model levels
-          do k = kzm1, kmxpbl(j,i), -1
-            zkv = m2p%za(j,i,k)
-            tkv = thvx(j,i,k)
-            vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
-            vvk = vvk + 1.0e-10_rkx
-            ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(thv10(j,i)*vvk)
-            ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
-          end do
-        end if
-      end do
-    else
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        if ( lunstb(j,i) ) then
-          ! estimate of convective velocity scale
-          xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
-          wsc = ustr(j,i)*xfmt
-          ! thermal temperature excess
-          therm = fak * hfxv(j,i)/wsc
-          tlv = thv10(j,i) + therm
-          ri(kz,j,i) = -egrav*therm*m2p%za(j,i,kz)/(thv10(j,i)*vv(j,i,kz))
-          ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
-          ! recompute richardson no. at other model levels
-          do k = kzm1, kmxpbl(j,i), -1
-            tkv = thvx(j,i,k)
-            ri(k,j,i) = egrav*(tkv-tlv)*m2p%za(j,i,k) / &
-               (thv10(j,i)*vv(j,i,k))
-            ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
-          end do
-        end if
-      end do
-    end if
+    ! recompute richardson no. at lowest model level injecting thermal excess
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      if ( lunstb(j,i) ) then
+        ! estimate of convective velocity scale
+        xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
+        wsc = ustr(j,i)*xfmt
+        ! thermal temperature excess
+        therm = fak * hfxv(j,i)/wsc
+        vvk = vv(j,i,k) + fak*ustr(j,i)**2
+        ri(kz,j,i) = max(minri,min(maxri, &
+                    -egrav*therm * m2p%za(j,i,kz)/(thv10(j,i)*vvk)))
+        !@acc loop seq
+        do k = kzm1, kmxpbl(j,i), -1
+          ri(k,j,i) = max(minri,min(maxri, &
+                    egrav*(thvx(j,i,k)-thvx(j,i,kz)-therm) * &
+                    m2p%za(j,i,k)/(thv10(j,i)*vv(j,i,k))))
+        end do
+      end if
+    end do
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       if ( lunstb(j,i) ) then

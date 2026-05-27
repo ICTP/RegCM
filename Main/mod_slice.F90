@@ -377,7 +377,7 @@ module mod_slice
       !$acc end kernels
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         do k = kzm1, 2, -1
-          if ( atms%za(j,i,k) > 4000.0 ) exit
+          if ( atms%za(j,i,k) > 6000.0 ) exit
           kmxpbl(j,i) = k
         end do
       end do
