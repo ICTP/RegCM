@@ -1285,13 +1285,13 @@ program mksurfdata
 #endif
 
   if ( have_rough ) then
-    write(stdout, *) 'Adding surface bareground roughness lenght...'
     allocate(var2d(jxsg,iysg))
     call mkrough('mksrf_rough.nc',xmask,var2d)
     call mypack(var2d,gcvar)
     istatus = nf90_put_var(ncid, iroughvar, gcvar)
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write z0')
     deallocate(var2d)
+    write(stdout, *) 'Created surface bareground roughness length...'
   end if
 
   allocate(var2d(jxsg,iysg))
