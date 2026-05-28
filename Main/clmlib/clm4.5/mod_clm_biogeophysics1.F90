@@ -175,6 +175,8 @@ module mod_clm_biogeophysics1
     real(rk8), pointer, contiguous :: z0qg(:)
     real(rk8), pointer, contiguous :: emv(:)    !vegetation emissivity
     real(rk8), pointer, contiguous :: z0m(:)    !momentum roughness length (m)
+    real(rk8), pointer, contiguous :: z0h(:)    !momentum roughness length (m)
+    real(rk8), pointer, contiguous :: z0q(:)    !momentum roughness length (m)
     real(rk8), pointer, contiguous :: displa(:) !displacement height (m)
     !roughness length over vegetation, momentum [m]
     real(rk8), pointer, contiguous :: z0mv(:)
@@ -315,6 +317,8 @@ module mod_clm_biogeophysics1
     htop          => clm3%g%l%c%p%pps%htop
     emv           => clm3%g%l%c%p%pps%emv
     z0m           => clm3%g%l%c%p%pps%z0m
+    z0h           => clm3%g%l%c%p%pps%z0h
+    z0q           => clm3%g%l%c%p%pps%z0q
     displa        => clm3%g%l%c%p%pps%displa
     z0mv          => clm3%g%l%c%p%pps%z0mv
     z0hv          => clm3%g%l%c%p%pps%z0hv
@@ -555,13 +559,13 @@ module mod_clm_biogeophysics1
       beta(c) = 1._rk8
       zii(c)  = 1000._rk8
       thv(c)  = forc_th(c)*(1._rk8+0.61_rk8*forc_q(c))
-
     end do ! (end of columns loop)
 
     ! Initialization
 
     do concurrent ( fp = 1:num_nolakep )
       p = filter_nolakep(fp)
+      c = pcolumn(p)
 
       ! Initial set (needed for history tape fields)
 
@@ -600,17 +604,23 @@ module mod_clm_biogeophysics1
 
       ! Roughness lengths over vegetation
 
-      z0m(p)    = z0mr(ivt(p)) * htop(p)
       displa(p) = displar(ivt(p)) * htop(p)
 
       if ( ityplun(l) == isturb ) then
         z0mv(p) = z_0_town(l)
       else
-        z0mv(p) = z0m(p)
+        if ( ivt(p) == 0 ) then
+          z0mv(p) = z0mg(c)
+        else
+          z0mv(p) = z0mr(ivt(p)) * htop(p)
+        end if
       end if
-      z0hv(p)   = z0mv(p)
-      z0qv(p)   = z0mv(p)
-    end do
+      z0hv(p) = z0mv(p)
+      z0qv(p) = z0mv(p)
+      z0m(p) = z0mv(p)
+      z0h(p) = z0hv(p)
+      z0q(p) = z0qv(p)
+     end do
 
     ! Make forcing height a pft-level quantity that is the atmospheric forcing
     ! height plus each pft's z0m+displa
@@ -626,9 +636,9 @@ module mod_clm_biogeophysics1
               forc_hgt_t_pft(p) = forc_hgt_t(g) + z0mg(c) + displa(p)
               forc_hgt_q_pft(p) = forc_hgt_q(g) + z0mg(c) + displa(p)
             else
-              forc_hgt_u_pft(p) = forc_hgt_u(g) + z0m(p) + displa(p)
-              forc_hgt_t_pft(p) = forc_hgt_t(g) + z0m(p) + displa(p)
-              forc_hgt_q_pft(p) = forc_hgt_q(g) + z0m(p) + displa(p)
+              forc_hgt_u_pft(p) = forc_hgt_u(g) + z0mv(p) + displa(p)
+              forc_hgt_t_pft(p) = forc_hgt_t(g) + z0mv(p) + displa(p)
+              forc_hgt_q_pft(p) = forc_hgt_q(g) + z0mv(p) + displa(p)
             end if
           else if ( ityplun(l) == istwet .or. ityplun(l) == istice ) then
             forc_hgt_u_pft(p) = forc_hgt_u(g) + z0mg(c)

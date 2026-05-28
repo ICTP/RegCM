@@ -145,10 +145,13 @@ module mod_clm_slakefluxes
     real(rk8), pointer, contiguous :: ust_lake(:)   ! friction velocity (m/s)
     ! roughness length over ground, momentum [m]
     real(rk8), pointer, contiguous :: z0mg_col(:)
+    real(rk8), pointer, contiguous :: z0m(:)
     ! roughness length over ground, sensible heat [m]
     real(rk8), pointer, contiguous :: z0hg_col(:)
+    real(rk8), pointer, contiguous :: z0h(:)
     ! roughness length over ground, latent heat [m]
     real(rk8), pointer, contiguous :: z0qg_col(:)
+    real(rk8), pointer, contiguous :: z0q(:)
     ! excess snowfall due to snow capping (mm H2O /s) [+]
     real(rk8), pointer, contiguous :: qflx_snwcp_ice(:)
     ! excess rainfall due to snow capping (mm H2O /s) [+]
@@ -301,6 +304,9 @@ module mod_clm_slakefluxes
     z0qg_col       => clm3%g%l%c%cps%z0qg
     lakedepth      => clm3%g%l%c%cps%lakedepth
     lakefetch      => clm3%g%l%c%cps%lakefetch
+    z0m            => clm3%g%l%c%p%pps%z0m
+    z0h            => clm3%g%l%c%p%pps%z0h
+    z0q            => clm3%g%l%c%p%pps%z0q
 #ifdef LCH4
     lake_raw       => clm3%g%l%c%cch4%lake_raw
 #endif
@@ -813,6 +819,9 @@ module mod_clm_slakefluxes
       qflx_snwcp_ice(p) = 0._rk8
       qflx_snwcp_liq(p) = 0._rk8
 
+      z0m(p) = z0mg(p)
+      z0h(p) = z0hg(p)
+      z0q(p) = z0qg(p)
     end do
   end subroutine SLakeFluxes
 

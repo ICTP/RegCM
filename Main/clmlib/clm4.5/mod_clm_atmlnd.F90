@@ -589,7 +589,15 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
       !$acc kernels
       clm_l2a%zom(:) = exp(clm_l2a%zom(:))
-      clm_l2a%zoh(:) = clm_l2a%zom(:)
+      tmp(:) = log(pptr%pps%z0h)
+      !$acc end kernels
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
+               tmp,clm_l2a%zoh,                         &
+               p2c_scale_type='unity',                  &
+               c2l_scale_type='unity',                  &
+               l2g_scale_type='unity')
+      !$acc kernels
+      clm_l2a%zoh(:) = exp(clm_l2a%zoh(:))
       !$acc end kernels
 
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,  &

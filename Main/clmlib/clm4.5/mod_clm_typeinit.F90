@@ -606,6 +606,8 @@ module mod_clm_typeinit
     allocate(pps%htop(ibeg:iend), source=0.0_rk8)
     allocate(pps%hbot(ibeg:iend), source=0.0_rk8)
     allocate(pps%z0m(ibeg:iend), source=nan_r8)
+    allocate(pps%z0h(ibeg:iend), source=nan_r8)
+    allocate(pps%z0q(ibeg:iend), source=nan_r8)
     allocate(pps%displa(ibeg:iend), source=nan_r8)
     allocate(pps%albd(ibeg:iend,1:numrad), source=nan_r8)
     allocate(pps%albi(ibeg:iend,1:numrad), source=nan_r8)

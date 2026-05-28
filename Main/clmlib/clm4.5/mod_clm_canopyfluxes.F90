@@ -120,10 +120,13 @@ module mod_clm_canopyfluxes
    real(rk8), pointer, contiguous :: thv(:)  ! virtual potential temperature (kelvin)
    ! roughness length over vegetation, momentum [m]
    real(rk8), pointer, contiguous :: z0mv(:)
+   real(rk8), pointer, contiguous :: z0m(:)
    ! roughness length over vegetation, sensible heat [m]
    real(rk8), pointer, contiguous :: z0hv(:)
+   real(rk8), pointer, contiguous :: z0h(:)
    ! roughness length over vegetation, latent heat [m]
    real(rk8), pointer, contiguous :: z0qv(:)
+   real(rk8), pointer, contiguous :: z0q(:)
    ! roughness length of ground, momentum [m]
    real(rk8), pointer, contiguous :: z0mg(:)
    real(rk8), pointer, contiguous :: dqgdT(:)  ! temperature derivative of "qg"
@@ -647,6 +650,9 @@ module mod_clm_canopyfluxes
    emv            => clm3%g%l%c%p%pps%emv
    t_veg          => clm3%g%l%c%p%pes%t_veg
    displa         => clm3%g%l%c%p%pps%displa
+   z0m            => clm3%g%l%c%p%pps%z0m
+   z0h            => clm3%g%l%c%p%pps%z0h
+   z0q            => clm3%g%l%c%p%pps%z0q
    z0mv           => clm3%g%l%c%p%pps%z0mv
    z0hv           => clm3%g%l%c%p%pps%z0hv
    z0qv           => clm3%g%l%c%p%pps%z0qv
@@ -977,6 +983,10 @@ module mod_clm_canopyfluxes
      z0mv(p)   = exp(egvf * log(z0mv(p)) + (1._rk8 - egvf) * log(z0mg(c)))
      z0hv(p)   = z0mv(p)
      z0qv(p)   = z0mv(p)
+     ! peek output
+     z0m(p)    = z0mv(p)
+     z0h(p)    = z0hv(p)
+     z0q(p)    = z0qv(p)
    end do
 
    found = .false.
