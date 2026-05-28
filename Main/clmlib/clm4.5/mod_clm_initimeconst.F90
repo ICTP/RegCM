@@ -19,7 +19,7 @@ module mod_clm_initimeconst
   use mod_clm_varcon, only : icol_shadewall, icol_road_perv
   use mod_clm_varcon, only : icol_road_imperv, zlak, dzlak
   use mod_clm_varcon, only : zsoi, dzsoi, zisoi, dzsoi_decomp
-  use mod_clm_varcon, only : pc, mu
+  use mod_clm_varcon, only : pc, mu, zlnd
   use mod_clm_varctl, only : fsurdat, ialblawr
   use mod_clm_varctl, only : fsnowoptics, fsnowaging
   use mod_clm_varsur, only : pctspec
@@ -88,6 +88,7 @@ module mod_clm_initimeconst
     real(rk8), pointer, contiguous :: thick_roof(:)    ! total thickness of urban roof
     real(rk8), pointer, contiguous :: lat(:)           ! gridcell latitude (radians)
 
+    real(rk8), pointer, contiguous :: z0mg0(:)    ! baregroud roughness lenght
     real(rk8), pointer, contiguous :: z(:,:)      ! layer depth (m)
     real(rk8), pointer, contiguous :: zi(:,:)     ! interface level below a "z" level (m)
     real(rk8), pointer, contiguous :: dz(:,:)     ! layer thickness depth (m)
@@ -244,6 +245,7 @@ module mod_clm_initimeconst
     real(rk8), pointer, contiguous :: clay3d(:,:)    ! read in - soil texture: percent clay
     real(rk8), pointer, contiguous :: organic3d(:,:) ! read in - organic matter: kg/m3
     real(rk8), pointer, contiguous :: gti(:)         ! read in - fmax
+    real(rk8), pointer, contiguous :: z0_in(:)       ! read in - z0 (optional)
 #ifdef LCH4
     !real(rk8), pointer, contiguous :: zwt0_in(:)     ! read in - zwt0
     !real(rk8), pointer, contiguous :: f0_in(:)       ! read in - f0
@@ -380,6 +382,7 @@ module mod_clm_initimeconst
     dz              => clm3%g%l%c%cps%dz
     zi              => clm3%g%l%c%cps%zi
     bsw             => clm3%g%l%c%cps%bsw
+    z0mg0           => clm3%g%l%c%cps%z0mg0
     watsat          => clm3%g%l%c%cps%watsat
     watfc           => clm3%g%l%c%cps%watfc
     watdry          => clm3%g%l%c%cps%watdry
@@ -499,6 +502,18 @@ module mod_clm_initimeconst
       call clm_readvar(ncid,'mxsoil_color',mxsoil_color)
     end if
 
+    if ( .not. clm_check_var(ncid,'z0') ) then
+      z0mg0 = zlnd
+    else
+      allocate(z0_in(begg:endg))
+      call clm_readvar(ncid,'z0',z0_in,gcomm_gridcell)
+      do concurrent ( c = begc:endc )
+        ! Set gridcell and landunit indices
+        g = cgridcell(c)
+        z0mg0(c) = z0_in(g)
+      end do
+      deallocate(z0_in)
+    end if
     ! Methane code parameters for finundated
 #ifdef LCH4
     if ( .not. fin_use_fsat ) then

@@ -580,22 +580,18 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
 !FAB: for roughness lenght perform a ln averaging instead of linear
       !$acc kernels
-      tmp(:) = pptr%pps%z0mv
+      tmp(:) = log(pptr%pps%z0m)
       !$acc end kernels
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
-               tmp,clm_l2a%zom,               &
+               tmp,clm_l2a%zom,                         &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
-      !clm_l2a%zom = exp(clm_l2a%zom)
-      !tmp(:) = log(pptr%pps%z0hv)
-      call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
-               tmp,clm_l2a%zoh,               &
-               p2c_scale_type='unity',                  &
-               c2l_scale_type='unity',                  &
-               l2g_scale_type='unity')
-      !clm_l2a%zoh = exp(clm_l2a%zoh)
-!
+      !$acc kernels
+      clm_l2a%zom(:) = exp(clm_l2a%zom(:))
+      clm_l2a%zoh(:) = clm_l2a%zom(:)
+      !$acc end kernels
+
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,  &
                pptr%pef%eflx_gnet,clm_l2a%eflx_gnet,     &
                p2c_scale_type='unity',                   &

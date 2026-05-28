@@ -2096,6 +2096,8 @@ module mod_clm_type
     !ground emissivity
     real(rk8), pointer, contiguous, dimension(:) :: emg => null()
     !roughness length over ground, momentum [m]
+    real(rk8), pointer, contiguous, dimension(:) :: z0mg0 => null()
+    !roughness length over ground, momentum [m]
     real(rk8), pointer, contiguous, dimension(:) :: z0mg => null()
     !roughness length over ground, sensible heat [m]
     real(rk8), pointer, contiguous, dimension(:) :: z0hg => null()

@@ -1594,6 +1594,7 @@ module mod_clm_typeinit
     allocate(cps%imelt(ibeg:iend,-nlevsno+1:nlevgrnd), source=bigint)
     allocate(cps%eff_porosity(ibeg:iend,nlevgrnd), source=spval)
     allocate(cps%emg(ibeg:iend), source=nan_r8)
+    allocate(cps%z0mg0(ibeg:iend), source=nan_r8)
     allocate(cps%z0mg(ibeg:iend), source=nan_r8)
     allocate(cps%z0hg(ibeg:iend), source=nan_r8)
     allocate(cps%z0qg(ibeg:iend), source=nan_r8)

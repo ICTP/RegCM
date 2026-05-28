@@ -595,6 +595,7 @@ module mod_ncout
       enable_srf_vars(srf_zo) = .true.
       enable_srf_vars(srf_totcf) = .true.
       enable_srf_vars(srf_wspd) = .true.
+      enable_srf_vars(srf_ustar) = .true.
       enable_srf_vars(srf_taux) = .true.
       enable_srf_vars(srf_tauy) = .true.
       enable_srf_vars(srf_psl) = .true.

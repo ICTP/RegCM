@@ -59,6 +59,7 @@ program mksurfdata
   use mod_mksoilcol
   use mod_mksoitex
   use mod_mkgdp
+  use mod_mkrough
   use mod_mkpeatf
   use mod_mkabm
   use mod_mkvocef
@@ -140,7 +141,7 @@ program mksurfdata
   integer(ik4) :: islopevar, istdvar, igdpvar, ipeatfvar, iabmvar
   integer(ik4) :: ief_btrvar, ief_crpvar, ief_fdtvar, ief_fetvar
   integer(ik4) :: ief_grsvar, ief_shrvar, iorganicvar, idepthvar
-  integer(ik4) :: ilndvar, iscvar, ilatvar, ilonvar, itopovar
+  integer(ik4) :: ilndvar, iscvar, ilatvar, ilonvar, itopovar, iroughvar
   integer(ik4), dimension(npu2d) :: iurb2d
   integer(ik4), dimension(npu3d) :: iurb3d
   integer(ik4), dimension(npu4d*2) :: iurb4d
@@ -199,7 +200,7 @@ program mksurfdata
   integer(ik4), pointer, contiguous, dimension(:) :: ijx => null( )
   integer(ik4), pointer, contiguous, dimension(:) :: landpoint => null( )
   logical, pointer, contiguous, dimension(:) :: pft_gt0 => null( )
-  logical :: subgrid
+  logical :: subgrid, have_rough
   integer(ik4), dimension(8) :: tval
   character (len=32) :: cdata
   character (len=5) :: czone
@@ -632,6 +633,16 @@ program mksurfdata
   istatus = nf90_put_att(ncid, ialbedovar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add albedo units')
 #endif
+
+  have_rough = do_roughness('mksrf_rough.nc')
+  if ( have_rough ) then
+    istatus = nf90_def_var(ncid, 'z0', regcm_vartype, idims(7),iroughvar)
+    call checkncerr(istatus,__FILE__,__LINE__,  'Error add var z0')
+    istatus = nf90_put_att(ncid, iroughvar, 'long_name', 'Roughness Lenght')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add z0 long_name')
+    istatus = nf90_put_att(ncid, iroughvar, 'units','m')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add z0 units')
+  end if
 
   istatus = nf90_def_var(ncid, 'gdp', regcm_vartype, idims(7),igdpvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var gdp')
@@ -1272,6 +1283,16 @@ program mksurfdata
 
   write(stdout,*) 'Created albedo informations...'
 #endif
+
+  if ( have_rough ) then
+    write(stdout, *) 'Adding surface bareground roughness lenght...'
+    allocate(var2d(jxsg,iysg))
+    call mkrough('mksrf_rough.nc',xmask,var2d)
+    call mypack(var2d,gcvar)
+    istatus = nf90_put_var(ncid, iroughvar, gcvar)
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write z0')
+    deallocate(var2d)
+  end if
 
   allocate(var2d(jxsg,iysg))
   call mkgdp('mksrf_gdp.nc',xmask,var2d)

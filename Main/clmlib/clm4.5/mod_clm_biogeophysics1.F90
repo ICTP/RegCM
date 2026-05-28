@@ -165,6 +165,8 @@ module mod_clm_biogeophysics1
     !intermediate variable (forc_t+0.0098*forc_hgt_t_pft)
     real(rk8), pointer, contiguous :: thm(:)
     real(rk8), pointer, contiguous :: thv(:)    !virtual potential temperature (kelvin)
+    !gridcell roughness length over ground, momentum [m]
+    real(rk8), pointer, contiguous :: z0mg0(:)
     !roughness length over ground, momentum [m]
     real(rk8), pointer, contiguous :: z0mg(:)
     !roughness length over ground, sensible heat [m]
@@ -283,6 +285,7 @@ module mod_clm_biogeophysics1
     t_grnd        => clm3%g%l%c%ces%t_grnd
     thv           => clm3%g%l%c%ces%thv
     z0hg          => clm3%g%l%c%cps%z0hg
+    z0mg0         => clm3%g%l%c%cps%z0mg0
     z0mg          => clm3%g%l%c%cps%z0mg
     z0qg          => clm3%g%l%c%cps%z0qg
     zii           => clm3%g%l%c%cps%zii
@@ -541,7 +544,7 @@ module mod_clm_biogeophysics1
       if ( frac_sno(c) > 0._rk8 ) then
         z0mg(c) = zsno
       else
-        z0mg(c) = zlnd
+        z0mg(c) = z0mg0(c)
       end if
       z0hg(c) = z0mg(c)            ! initial set only
       z0qg(c) = z0mg(c)            ! initial set only
