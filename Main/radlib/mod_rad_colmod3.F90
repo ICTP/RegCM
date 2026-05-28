@@ -504,11 +504,11 @@ module mod_rad_colmod3
       end if
     end do
     do concurrent ( n = rt%n1:rt%n2 )
-      rt%cld(kzp1,n) = max(temp(kz,n), cftotmax)
+      rt%cld(kzp1,n) = min(temp(kz,n), cftotmax)
     end do
     do concurrent( k = 2:kz, n = rt%n1:rt%n2 )
       ! Use Maximum Random Overlap assumption
-      rt%cld(k,n) = max((temp(k-1,n)+temp(k,n)) - &
+      rt%cld(k,n) = min((temp(k-1,n)+temp(k,n)) - &
                         (temp(k-1,n)*temp(k,n)), cftotmax)
     end do
     do concurrent ( n = rt%n1:rt%n2 )
