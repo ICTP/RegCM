@@ -800,7 +800,8 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%rah1,lms%rah1)
     call glb_l2c_ss(lndcomm,clm_l2a%br1,lms%br)
     !$acc kernels
-    clm_l2a%notused = sqrt(clm_l2a%taux**2+clm_l2a%tauy**2)/clm_a2l%forc_wind
+    clm_l2a%notused = 2.0_rkx * &
+        sqrt(clm_l2a%taux**2+clm_l2a%tauy**2)/clm_a2l%forc_wind
     !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
 
