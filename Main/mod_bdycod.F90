@@ -3932,128 +3932,128 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_ut%ns /= 0 ) then
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdii2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
           xg = gcx(ib)
           dg = gcd(ib)
-          fls0 = fg1(j,i,k)
-          fls1 = fg1(j-1,i,k)
-          fls2 = fg1(j+1,i,k)
-          fls3 = fg1(j,i-1,k)
-          fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fls0 = dg*fg1(j,i,k)
+          fls1 = dg*fg1(j-1,i,k)
+          fls2 = dg*fg1(j+1,i,k)
+          fls3 = xg*fg1(j,i-1,k)
+          fls4 = xg*fg1(j,i+1,k)
+          ffu(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ns /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idii2, k = 1:kz )
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
           xg = gcx(ib)
           dg = gcd(ib)
-          fls0 = fg2(j,i,k)
-          fls1 = fg2(j-1,i,k)
-          fls2 = fg2(j+1,i,k)
-          fls3 = fg2(j,i-1,k)
-          fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fls0 = dg*fg2(j,i,k)
+          fls1 = xg*fg2(j-1,i,k)
+          fls2 = xg*fg2(j+1,i,k)
+          fls3 = dg*fg2(j,i-1,k)
+          fls4 = dg*fg2(j,i+1,k)
+          ffv(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nn /= 0 ) then
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdii2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
           xg = gcx(ib)
           dg = gcd(ib)
-          fls0 = fg1(j,i,k)
-          fls1 = fg1(j-1,i,k)
-          fls2 = fg1(j+1,i,k)
-          fls3 = fg1(j,i-1,k)
-          fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fls0 = dg*fg1(j,i,k)
+          fls1 = dg*fg1(j-1,i,k)
+          fls2 = dg*fg1(j+1,i,k)
+          fls3 = xg*fg1(j,i-1,k)
+          fls4 = xg*fg1(j,i+1,k)
+          ffu(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nn /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idii2, k = 1:kz )
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
           xg = gcx(ib)
           dg = gcd(ib)
-          fls0 = fg2(j,i,k)
-          fls1 = fg2(j-1,i,k)
-          fls2 = fg2(j+1,i,k)
-          fls3 = fg2(j,i-1,k)
-          fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fls0 = dg*fg2(j,i,k)
+          fls1 = xg*fg2(j-1,i,k)
+          fls2 = xg*fg2(j+1,i,k)
+          fls3 = dg*fg2(j,i-1,k)
+          fls4 = dg*fg2(j,i+1,k)
+          ffv(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nw /= 0 ) then
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdii2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
           xg = gcx(ib)
           dg = gcd(ib)
-          fls0 = fg1(j,i,k)
-          fls1 = fg1(j-1,i,k)
-          fls2 = fg1(j+1,i,k)
-          fls3 = fg1(j,i-1,k)
-          fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fls0 = dg*fg1(j,i,k)
+          fls1 = dg*fg1(j-1,i,k)
+          fls2 = dg*fg1(j+1,i,k)
+          fls3 = xg*fg1(j,i-1,k)
+          fls4 = xg*fg1(j,i+1,k)
+          ffu(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nw /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idii2, k = 1:kz )
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
           xg = gcx(ib)
           dg = gcd(ib)
-          fls0 = fg2(j,i,k)
-          fls1 = fg2(j-1,i,k)
-          fls2 = fg2(j+1,i,k)
-          fls3 = fg2(j,i-1,k)
-          fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fls0 = dg*fg2(j,i,k)
+          fls1 = xg*fg2(j-1,i,k)
+          fls2 = xg*fg2(j+1,i,k)
+          fls3 = dg*fg2(j,i-1,k)
+          fls4 = dg*fg2(j,i+1,k)
+          ffv(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%ne /= 0 ) then
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdii2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
           xg = gcx(ib)
           dg = gcd(ib)
-          fls0 = fg1(j,i,k)
-          fls1 = fg1(j-1,i,k)
-          fls2 = fg1(j+1,i,k)
-          fls3 = fg1(j,i-1,k)
-          fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fls0 = dg*fg1(j,i,k)
+          fls1 = dg*fg1(j-1,i,k)
+          fls2 = dg*fg1(j+1,i,k)
+          fls3 = xg*fg1(j,i-1,k)
+          fls4 = xg*fg1(j,i+1,k)
+          ffu(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ne /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idii2, k = 1:kz )
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
           xg = gcx(ib)
           dg = gcd(ib)
-          fls0 = fg2(j,i,k)
-          fls1 = fg2(j-1,i,k)
-          fls2 = fg2(j+1,i,k)
-          fls3 = fg2(j,i-1,k)
-          fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fls0 = dg*fg2(j,i,k)
+          fls1 = xg*fg2(j-1,i,k)
+          fls2 = xg*fg2(j+1,i,k)
+          fls3 = dg*fg2(j,i-1,k)
+          fls4 = dg*fg2(j,i+1,k)
+          ffv(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     else
       if ( ba_ut%ns /= 0 ) then
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdii2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
@@ -4068,7 +4068,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_vt%ns /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idii2, k = 1:kz )
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
@@ -4083,7 +4083,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_ut%nn /= 0 ) then
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdii2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
@@ -4098,7 +4098,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_vt%nn /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idii2, k = 1:kz )
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
@@ -4113,7 +4113,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_ut%nw /= 0 ) then
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdii2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
@@ -4128,7 +4128,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_vt%nw /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idii2, k = 1:kz )
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
@@ -4143,7 +4143,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_ut%ne /= 0 ) then
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdii2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
@@ -4158,7 +4158,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_vt%ne /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idii2, k = 1:kz )
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
