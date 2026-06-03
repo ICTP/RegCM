@@ -43,7 +43,8 @@ module mod_che_interface
   public :: init_chem
   public :: cumtran
   public :: tractend2
-  public :: nudge_chi
+  public :: nudge_chiten
+  public :: monudgechi
   public :: chem_config
   public :: setup_che_bdycon
   public :: close_chbc
@@ -169,7 +170,7 @@ module mod_che_interface
     cba%nn = ba_cr%nn
     cba%ne = ba_cr%ne
     cba%nw = ba_cr%nw
-    cba%nsp = ba_cr%nsp
+    cba%nsp = ba_cr%nspx
 
     call assignpnt(wetdepflx,cwetdepflx)
     call assignpnt(drydepflx,cdrydepflx)

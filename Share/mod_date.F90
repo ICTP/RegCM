@@ -2244,7 +2244,7 @@ module mod_date
     end if
   end function time_of_day_is
 
-  character(len=16) function calendar_str(x) result(calstr)
+  character(len=24) function calendar_str(x) result(calstr)
     implicit none
     type (rcm_time_and_date), intent(in) :: x
     select case (x%calendar)

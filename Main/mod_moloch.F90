@@ -112,6 +112,16 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: tke => null( )
   real(rkx), dimension(:,:,:,:), pointer, contiguous :: qx => null( )
   real(rkx), dimension(:,:,:,:), pointer, contiguous :: trac => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: uten => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: vten => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tten => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: paiten => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qvten => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qcten => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qiten => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tketen => null( )
+  real(rkx), dimension(:,:,:,:), pointer, contiguous :: chiten => null( )
+  real(rkx), dimension(:,:,:,:), pointer, contiguous :: qxten => null( )
 
   public :: allocate_moloch, init_moloch, moloch
 
@@ -283,19 +293,29 @@ module mod_moloch
     call assignpnt(mo_atm%qx,qx)
     call assignpnt(mo_atm%qs,qsat)
     call assignpnt(mo_atm%qx,qv,iqv)
+    call assignpnt(mo_atm%uten,uten)
+    call assignpnt(mo_atm%vten,vten)
+    call assignpnt(mo_atm%tten,tten)
+    call assignpnt(mo_atm%paiten,paiten)
+    call assignpnt(mo_atm%qxten,qxten)
+    call assignpnt(mo_atm%qxten,qvten,iqv)
     if ( ipptls > 0 ) then
       call assignpnt(mo_atm%qx,qc,iqc)
+      call assignpnt(mo_atm%qxten,qcten,iqc)
       if ( ipptls > 1 ) then
         call assignpnt(mo_atm%qx,qi,iqi)
+        call assignpnt(mo_atm%qxten,qiten,iqi)
         call assignpnt(mo_atm%qx,qr,iqr)
         call assignpnt(mo_atm%qx,qs,iqs)
       end if
     end if
     if ( ibltyp == 2 ) then
       call assignpnt(mo_atm%tke,tke)
+      call assignpnt(mo_atm%tketen,tketen)
     end if
     if ( ichem == 1 ) then
       call assignpnt(mo_atm%trac,trac)
+      call assignpnt(mo_atm%chiten,chiten)
     end if
     if ( ifrayd == 1 ) then
       call xtoustag(zeta,zetau)
@@ -319,9 +339,9 @@ module mod_moloch
     end do
     lrotllr = (iproj == 'ROTLLR')
     jmin = jcross1
-    jmax = jcross2
+    jmax = jcross2-1
     imin = icross1
-    imax = icross2
+    imax = icross2-1
     if ( ma%bandflag ) then
       jmin = jcross1 - 2
       jmax = jcross2 + 2
@@ -346,6 +366,7 @@ module mod_moloch
     !real(rk8) :: jday
     integer(ik4) :: i, j, k, n, nadv
     integer(ik4) :: iconvec
+    logical :: do_apply_bdy
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
     integer(ik4), save :: idindx = 0
@@ -355,6 +376,8 @@ module mod_moloch
     dtstepa = dtsec / real(mo_nadv,rkx)
     dtsound = dtstepa / real(mo_nsound,rkx)
     iconvec = 0
+    do_apply_bdy = ( do_bdy .and. do_nudge .and. &
+                     moloch_realcase .and. irceideal == 0 )
     !@acc call nvtxStartRange("reset_tendencies")
     call reset_tendencies
     !@acc call nvtxEndRange
@@ -417,7 +440,7 @@ module mod_moloch
       end if
     end if
 
-    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
     end do
 
@@ -447,14 +470,26 @@ module mod_moloch
         end do
       end if
     end if
+    !
+    ! Lateral oundary condition
+    !
+    if ( do_apply_bdy ) then
+      !@acc call nvtxStartRange("boundary")
+      call boundary
+      !@acc call nvtxEndRange
+    end if
 
     do nadv = 1, mo_nadv
-
+      if ( do_apply_bdy ) then
+        call apply_bdy(dtstepa)
+      end if
       call sound(dtsound)
-
       call advection(dtstepa)
-
     end do ! Advection loop
+
+    if ( do_apply_bdy ) then
+      call reset_bdy( )
+    end if
 
     if ( do_filterpai ) then
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
@@ -470,13 +505,13 @@ module mod_moloch
 
     if ( do_fulleq ) then
       if ( do_filtertheta ) then
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           tetav(j,i,k) = tetav(j,i,k) - tf(j,i,k)
         end do
         !@acc call nvtxStartRange("filttheta")
         call filttheta
         !@acc call nvtxEndRange
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           tetav(j,i,k) = tetav(j,i,k) + tf(j,i,k)
         end do
       end if
@@ -525,7 +560,7 @@ module mod_moloch
 
     !jday = yeardayfrac(rcmtimer%idate)
 
-    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       zdgz = zeta(j,i,kz)*egrav
       lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
       lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
@@ -549,29 +584,6 @@ module mod_moloch
     end do
 #endif
     end do
-    !
-    ! Lateral/damping boundary condition
-    !
-    if ( do_bdy .and. do_nudge .and. &
-         moloch_realcase .and. irceideal == 0 ) then
-      !@acc call nvtxStartRange("boundary")
-      call boundary
-      !@acc call nvtxEndRange
-      if ( i_crm /= 1 ) then
-        if ( ifrayd == 1 ) then
-          call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
-          call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
-          call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
-          call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
-        end if
-      end if
-    else
-      if ( debug_level > 1 ) then
-        if ( myid == italk .and. irceideal == 0 ) then
-          write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
-        end if
-      end if
-    end if
     !
     ! Prepare fields to be used in physical parametrizations.
     !
@@ -644,71 +656,54 @@ module mod_moloch
   subroutine boundary
     implicit none
     integer(ik4) :: i, j, k, n
-    call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
     call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
     call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
-    call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( (iboudy == 1 .or. iboudy >= 5) .and. ichem == 1 ) then
       call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
-    if ( idiag > 0 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        ten0(j,i,k) = t(j,i,k)
-        qen0(j,i,k) = qv(j,i,k)
-      end do
-    end if
-    if ( ichem == 1 ) then
-      if ( ichdiag > 0 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-          chiten0(j,i,k,n) = trac(j,i,k,n)
-        end do
-      end if
-    end if
     if ( iboudy == 1 .or. iboudy >= 5 ) then
-      call nudge(iboudy,ps,xpsb)
-      call nudge(iboudy,u,v,xub,xvb)
-      call nudge(iboudy,t,xtb)
-      call nudge(iboudy,qv,xqb)
-      call nudge(iboudy,pai,xpaib)
+      call nudge(iboudy,u,v,uten,vten,xub,xvb)
+      call nudge(iboudy,tetav,tten,xthb)
+      call nudge(iboudy,qv,qvten,xqb)
+      call nudge(iboudy,pai,paiten,xpaib)
       if ( idiag > 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
-          qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
+          tdiag%bdy(j,i,k) = tten(j,i,k)
+          qdiag%bdy(j,i,k) = qvten(j,i,k)
         end do
       end if
       if ( is_present_qc( ) ) then
-        call nudge(iboudy,qc,xlb)
+        call nudge(iboudy,qc,qcten,xlb)
       end if
       if ( is_present_qi( ) ) then
-        call nudge(iboudy,qi,xib)
+        call nudge(iboudy,qi,qiten,xib)
       end if
       if ( ichem == 1 ) then
-        call nudge_chi(trac)
+        call monudgechi(trac,chiten)
         if ( ichdiag > 0 ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                          k = 1:kz, n = 1:ntr )
-            cbdydiag(j,i,k,n) = trac(j,i,k,n) - chiten0(j,i,k,n)
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+            cbdydiag(j,i,k,n) = chiten(j,i,k,n)
           end do
         end if
       end if
     else if ( iboudy == 4 ) then
-      call sponge(ps,xpsb)
-      call sponge(u,v,xub,xvb)
-      call sponge(t,xtb)
-      call sponge(qv,xqb)
-      call sponge(pai,xpaib)
+      call sponge(uten,vten,xub,xvb)
+      call sponge(tten,xthb)
+      call sponge(qvten,xqb)
+      call sponge(paiten,xpaib)
       if ( is_present_qc( ) ) then
-        call sponge(qc,xlb)
+        call sponge(qcten,xlb)
       end if
       if ( is_present_qi( ) ) then
-        call sponge(qi,xib)
+        call sponge(qiten,xib)
       end if
       if ( idiag > 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
-          qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
+          tdiag%bdy(j,i,k) = tten(j,i,k)
+          qdiag%bdy(j,i,k) = qvten(j,i,k)
         end do
       end if
     end if
@@ -935,25 +930,27 @@ module mod_moloch
     integer(ik4) :: j, i, k
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
+        zdiv2(j,ice1,k) = -zdiv2(j,ici1+1,k)
       end do
     end if
     if ( ma%has_bdytop ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+        zdiv2(j,ice2,k) = -zdiv2(j,ici2-1,k)
       end do
     end if
     if ( ma%has_bdyleft ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+        zdiv2(jce1,i,k) = -zdiv2(jci1+1,i,k)
       end do
     end if
     if ( ma%has_bdyright ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+        zdiv2(jce2,i,k) = -zdiv2(jci2-1,i,k)
       end do
     end if
+
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       p3d(j,i,k) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                 zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
@@ -1008,6 +1005,7 @@ module mod_moloch
     real(rkx) :: zrom1w, zwexpl, zqs, zdth, zu, zd, zrapp
     real(rkx) :: zcx, zcy, zfz
     real(rkx) :: zrom1u, zcor1u, zrom1v, zcor1v
+
     !@acc call nvtxStartRange("sound")
     dtrdx = dts/dx
     dtrdy = dts/dx
@@ -1187,7 +1185,7 @@ module mod_moloch
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
           zcor1u = coru(j,i) * dts * 0.25_rkx * &
-               (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                 (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
                      zfz * hx(j,i) * gzitakh(k) - &
@@ -1215,7 +1213,7 @@ module mod_moloch
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
           zcor1u = coru(j,i) * dts * 0.25_rkx * &
-               (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                 (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
                      zfz * hx(j,i) * gzitakh(k) - &
@@ -1258,24 +1256,25 @@ module mod_moloch
 
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
+        zdiv2(j,ice1,k) = -zdiv2(j,ici1+1,k)
       end do
     end if
     if ( ma%has_bdytop ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+        zdiv2(j,ice2,k) = -zdiv2(j,ici2-1,k)
       end do
     end if
     if ( ma%has_bdyleft ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+        zdiv2(jce1,i,k) = -zdiv2(jci1+1,i,k)
       end do
     end if
     if ( ma%has_bdyright ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+        zdiv2(jce2,i,k) = -zdiv2(jci2-1,i,k)
       end do
     end if
+
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
     ddamp = 0.125_rkx * (dx/dts)
@@ -1316,13 +1315,13 @@ module mod_moloch
     real(rkx), intent(in) :: dta
     integer(ik4) :: n
     real(rkx), pointer, contiguous, dimension(:,:,:) :: ptr => null( )
-    !@acc call nvtxStartRange("advection")
-    ! Compute U,V on cross points
 
+    !@acc call nvtxStartRange("advection")
+
+    ! Compute U,V on cross points
     call uvstagtox(u,v,ux,vx)
 
     ! Compute W (and TKE if required) on zita levels
-
     call wstagtox(w,wx)
 
     if ( ibltyp == 2 ) then
@@ -1649,28 +1648,28 @@ module mod_moloch
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
       s(j,i,k) = d_zero
     end do
-    do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
+    do concurrent ( j = jci1ga:jci2ga, i = ici1ga:ici2ga, k = 1:kz )
       zdiv2(j,i,k) = d_zero
     end do
     do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kzp1 )
       deltaw(j,i,k) = d_zero
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      mo_atm%tten(j,i,k) = d_zero
-      mo_atm%uten(j,i,k) = d_zero
-      mo_atm%vten(j,i,k) = d_zero
+      tten(j,i,k) = d_zero
+      uten(j,i,k) = d_zero
+      vten(j,i,k) = d_zero
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
-      mo_atm%qxten(j,i,k,n) = d_zero
+      qxten(j,i,k,n) = d_zero
     end do
     if ( ichem == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-        mo_atm%chiten(j,i,k,n) = d_zero
+        chiten(j,i,k,n) = d_zero
       end do
     end if
     if ( ibltyp == 2 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-        mo_atm%tketen(j,i,k) = d_zero
+        tketen(j,i,k) = d_zero
       end do
     end if
 
@@ -1722,14 +1721,14 @@ module mod_moloch
       if ( any(icup > 0) ) then
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            ten0(j,i,k) = mo_atm%tten(j,i,k)
-            qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            ten0(j,i,k) = tten(j,i,k)
+            qen0(j,i,k) = qxten(j,i,k,iqv)
           end do
         end if
         if ( ichem == 1 .and. ichdiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                           k = 1:kz, n = 1:ntr )
-            chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
+            chiten0(j,i,k,n) = chiten(j,i,k,n)
           end do
         end if
         !@acc call nvtxStartRange("cumulus")
@@ -1748,14 +1747,14 @@ module mod_moloch
         end if
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-            qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            tdiag%con(j,i,k) = tten(j,i,k) - ten0(j,i,k)
+            qdiag%con(j,i,k) = qxten(j,i,k,iqv) - qen0(j,i,k)
           end do
         end if
         if ( ichem == 1 .and. ichdiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                           k = 1:kz, n = 1:ntr )
-            cconvdiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
+            cconvdiag(j,i,k,n) = chiten(j,i,k,n) - chiten0(j,i,k,n)
           end do
         end if
       else
@@ -1765,8 +1764,8 @@ module mod_moloch
           !@acc call nvtxEndRange
           if ( idiag > 0 ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-              qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+              tdiag%con(j,i,k) = tten(j,i,k) - ten0(j,i,k)
+              qdiag%con(j,i,k) = qxten(j,i,k,iqv) - qen0(j,i,k)
             end do
           end if
         end if
@@ -1781,8 +1780,8 @@ module mod_moloch
       if ( ipptls > 0 ) then
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            ten0(j,i,k) = mo_atm%tten(j,i,k)
-            qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            ten0(j,i,k) = tten(j,i,k)
+            qen0(j,i,k) = qxten(j,i,k,iqv)
           end do
         end if
         ! Cumulus clouds
@@ -1807,8 +1806,8 @@ module mod_moloch
         !@acc call nvtxEndRange
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            tdiag%lsc(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-            qdiag%lsc(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            tdiag%lsc(j,i,k) = tten(j,i,k) - ten0(j,i,k)
+            qdiag%lsc(j,i,k) = qxten(j,i,k,iqv) - qen0(j,i,k)
           end do
         end if
       end if
@@ -1866,7 +1865,7 @@ module mod_moloch
       ! temperature tendency (deg/sec)
       !
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + heatrt(j,i,k)
+        tten(j,i,k) = tten(j,i,k) + heatrt(j,i,k)
       end do
       if ( idiag > 0 ) tdiag%rad = heatrt
     end if
@@ -1894,14 +1893,14 @@ module mod_moloch
       if ( ibltyp > 0 ) then
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            ten0(j,i,k) = mo_atm%tten(j,i,k)
-            qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            ten0(j,i,k) = tten(j,i,k)
+            qen0(j,i,k) = qxten(j,i,k,iqv)
           end do
         end if
         if ( ichem == 1 .and. ichdiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                           k = 1:kz, n = 1:ntr )
-            chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
+            chiten0(j,i,k,n) = chiten(j,i,k,n)
           end do
         end if
         !@acc call nvtxStartRange("pblscheme")
@@ -1909,14 +1908,14 @@ module mod_moloch
         !@acc call nvtxEndRange
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            tdiag%tbl(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-            qdiag%tbl(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            tdiag%tbl(j,i,k) = tten(j,i,k) - ten0(j,i,k)
+            qdiag%tbl(j,i,k) = qxten(j,i,k,iqv) - qen0(j,i,k)
           end do
         end if
         if ( ichem == 1 .and. ichdiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                           k = 1:kz, n = 1:ntr )
-            ctbldiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
+            ctbldiag(j,i,k,n) = chiten(j,i,k,n) - chiten0(j,i,k,n)
           end do
         end if
       end if
@@ -1926,17 +1925,15 @@ module mod_moloch
       if ( ipptls == 1 ) then
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            ten0(j,i,k) = mo_atm%tten(j,i,k)
-            qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            ten0(j,i,k) = tten(j,i,k)
+            qen0(j,i,k) = qxten(j,i,k,iqv)
           end do
         end if
         call condtq
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            tdiag%lsc(j,i,k) = tdiag%lsc(j,i,k) + &
-              mo_atm%tten(j,i,k) - ten0(j,i,k)
-            qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k) + &
-               mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            tdiag%lsc(j,i,k) = tdiag%lsc(j,i,k)+tten(j,i,k)-ten0(j,i,k)
+            qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k)+qxten(j,i,k,iqv)-qen0(j,i,k)
           end do
         end if
       end if
@@ -1951,31 +1948,31 @@ module mod_moloch
     ! Update status
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      t(j,i,k) = t(j,i,k) + dtsec * mo_atm%tten(j,i,k)
+      t(j,i,k) = t(j,i,k) + dtsec * tten(j,i,k)
     end do
     do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-      u(j,i,k) = u(j,i,k) + dtsec * mo_atm%uten(j,i,k)
+      u(j,i,k) = u(j,i,k) + dtsec * uten(j,i,k)
     end do
     do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-      v(j,i,k) = v(j,i,k) + dtsec * mo_atm%vten(j,i,k)
+      v(j,i,k) = v(j,i,k) + dtsec * vten(j,i,k)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
+      qx(j,i,k,iqv) = qx(j,i,k,iqv) + qxten(j,i,k,iqv)*dtsec
       qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                     k = 1:kz, n = iqfrst:nqx)
-      qx(j,i,k,n) = qx(j,i,k,n) + dtsec * mo_atm%qxten(j,i,k,n)
+      qx(j,i,k,n) = qx(j,i,k,n) + dtsec * qxten(j,i,k,n)
       if ( qx(j,i,k,n) < 0.0_rkx ) qx(j,i,k,n) = 0.0_rkx
     end do
     if ( ibltyp == 2 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-        tke(j,i,k) = max(tke(j,i,k) + dtsec * mo_atm%tketen(j,i,k),tkemin)
+        tke(j,i,k) = max(tke(j,i,k) + dtsec * tketen(j,i,k),tkemin)
       end do
     end if
     if ( ichem == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-        trac(j,i,k,n) = trac(j,i,k,n) + dtsec * mo_atm%chiten(j,i,k,n)
+        trac(j,i,k,n) = trac(j,i,k,n) + dtsec * chiten(j,i,k,n)
         if ( trac(j,i,k,n) < 0.0_rkx ) trac(j,i,k,n) = 0.0_rkx
       end do
     end if
@@ -2008,14 +2005,54 @@ module mod_moloch
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: wx
     integer(ik4) :: i, j, k
 
-    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kzm1 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kzm1 )
       wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
                   0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
     end do
-    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       wx(j,i,1)  = 0.5_rkx * (w(j,i,2)+w(j,i,1))
       wx(j,i,kz) = 0.5_rkx * (w(j,i,kzp1)+w(j,i,kz))
     end do
+    if ( ma%has_bdyleft ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        wx(jce1,i,k) = wx(jci1,i,k)
+      end do
+      if ( ma%has_bdybottom ) then
+        do concurrent ( k = 1:kz )
+          wx(jce1,ice1,k) = wx(jci1,ici1,k)
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do concurrent ( k = 1:kz )
+          wx(jce1,ice2,k) = wx(jci1,ici2,k)
+        end do
+      end if
+    end if
+    if ( ma%has_bdyright ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        wx(jce2,i,k) = wx(jci2,i,k)
+      end do
+      if ( ma%has_bdybottom ) then
+        do concurrent ( k = 1:kz )
+          wx(jce2,ice1,k) = wx(jci2,ici1,k)
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do concurrent ( k = 1:kz )
+          wx(jce2,ice2,k) = wx(jci2,ici2,k)
+        end do
+      end if
+    end if
+    if ( ma%has_bdybottom ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        wx(j,ici1,k) = wx(j,ici1,k)
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        wx(j,ici2,k) = wx(j,ici2,k)
+      end do
+    end if
   end subroutine wstagtox
 
   subroutine xtowstag(wx,w)
@@ -2049,7 +2086,6 @@ module mod_moloch
         u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
       end do
     end if
-
     if ( ma%has_bdyleft ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
         u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
@@ -2145,7 +2181,7 @@ module mod_moloch
     end if
     if ( ma%has_bdyright ) then
       do concurrent ( i = ice1:ice2, k = 1:kz )
-        ux(jce2,i,k) = 0.5_rkx*(u(jde2,i,k) + u(jdi2,i,k))
+        ux(jce2,i,k) = 0.5_rkx * (u(jde2,i,k)+u(jdi2,i,k))
       end do
     end if
 
@@ -2162,10 +2198,62 @@ module mod_moloch
     end if
     if ( ma%has_bdytop ) then
       do concurrent ( j = jce1:jce2, k = 1:kz )
-        vx(j,ice2,k) = 0.5_rkx*(v(j,ide2,k) + v(j,idi2,k))
+        vx(j,ice2,k) = 0.5_rkx * (v(j,ide2,k)+v(j,idi2,k))
       end do
     end if
   end subroutine uvstagtox
+
+  subroutine apply_bdy(dtb)
+    implicit none
+    real(rkx), intent(in) :: dtb
+    integer :: i, j, k, n
+
+    do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+      u(j,i,k) = u(j,i,k) + dtb * uten(j,i,k)
+    end do
+    do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+      v(j,i,k) = v(j,i,k) + dtb * vten(j,i,k)
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      tetav(j,i,k) = tetav(j,i,k) + dtb * tten(j,i,k)
+      pai(j,i,k) = pai(j,i,k) + dtb * paiten(j,i,k)
+      qv(j,i,k) = qv(j,i,k) + dtb * qvten(j,i,k)
+    end do
+    if ( is_present_qc( ) ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        qc(j,i,k) = qc(j,i,k) + dtb * qcten(j,i,k)
+      end do
+    end if
+    if ( is_present_qi( ) ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        qi(j,i,k) = qi(j,i,k) + dtb * qiten(j,i,k)
+      end do
+    end if
+    if ( ichem == 1 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+        trac(j,i,k,n) = trac(j,i,k,n) + chiten(j,i,k,n)*dtb
+      end do
+    end if
+  end subroutine apply_bdy
+
+  subroutine reset_bdy
+    implicit none
+    integer(ik4) :: i, j, k, n
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      uten(j,i,k) = 0.0_rkx
+      vten(j,i,k) = 0.0_rkx
+      tten(j,i,k) = 0.0_rkx
+      paiten(j,i,k) = 0.0_rkx
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
+      qxten(j,i,k,n) = 0.0_rkx
+    end do
+    if ( ichem == 1 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+        chiten(j,i,k,n) = 0.0_rkx
+      end do
+    end if
+  end subroutine reset_bdy
 
 end module mod_moloch
 

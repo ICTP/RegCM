@@ -634,10 +634,10 @@ module mod_pbl_holtbl
         coefe(j,i,kz) = d_zero
         coeff2(j,i,kz) = (m2p%vdatm(j,i,kz) - dt*alphak(j,i,kz)*vflxsf + &
              coef3*coeff2(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-      !
-      !   all coefficients have been computed, predict field and put it in
-      !   temporary work space tpred
-      !
+        !
+        !   all coefficients have been computed, predict field and put it in
+        !   temporary work space tpred
+        !
         tpred2(j,i,kz) = coeff2(j,i,kz)
         !$acc loop seq
         do k = kzm1, 1, -1

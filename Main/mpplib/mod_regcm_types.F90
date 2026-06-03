@@ -148,6 +148,7 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: uten => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: vten => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: paiten => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tketen => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxten => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten => null( )
@@ -361,7 +362,7 @@ module mod_regcm_types
     logical, pointer, contiguous, dimension(:,:) :: beast => null( )
     logical, pointer, contiguous, dimension(:,:) :: bwest => null( )
     integer(ik4) :: ns, nn, ne, nw
-    integer(ik4) :: nsp
+    integer(ik4) :: nspx, nspy
     integer(ik4), pointer, contiguous, dimension(:,:) :: ibnd => null( )
   end type bound_area
 

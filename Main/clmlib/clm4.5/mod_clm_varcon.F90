@@ -104,9 +104,9 @@ module mod_clm_varcon
   ! These are tunable constants from clm2_3
 
   ! Roughness length for soil [m]
-  real(rk8), public, parameter :: zlnd = 0.01_rk8
+  real(rk8), public, parameter :: zlnd = 0.00085_rk8
   ! Roughness length for snow [m]
-  real(rk8), public, parameter :: zsno = 0.0024_rk8
+  real(rk8), public, parameter :: zsno = 0.000775_rk8
   ! Drag coefficient for soil under canopy [-]
   real(rk8), public, parameter :: csoilc = 0.004_rk8
   ! Tuning factor to turn first layer T into surface T

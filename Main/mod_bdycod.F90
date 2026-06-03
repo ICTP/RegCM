@@ -98,7 +98,7 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg2 => null( )
   real(rkx) :: fnudge, gnudge, rdtbdy
-  real(rk8) :: jday
+  !real(rk8) :: jday
   integer(ik4) :: som_month
 #ifdef ASYNC_NETCDF
   integer(ik4), save :: bdyin_prefetch_steps = 1
@@ -275,7 +275,9 @@ module mod_bdycod
         xqb%b0(:,:,k) = qi(k)
       end do
       call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
-      call exchange(xpaib%b0,1,jce1,jce2,ice1,ice2,1,kz)
+      !$acc kernels
+      xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
+      !$acc end kernels
     else
       call fatal(__FILE__,__LINE__, &
         'Should never get here....')
@@ -373,7 +375,9 @@ module mod_bdycod
     else if ( idynamic == 3 ) then
       xpsb%b0 = ps
       call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
-      call exchange(xpaib%b0,1,jce1,jce2,ice1,ice2,1,kz)
+      !$acc kernels
+      xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
+      !$acc end kernels
     else
       call fatal(__FILE__,__LINE__, &
         'Should never get here....')
@@ -478,20 +482,26 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         fnudge = 0.1_rkx/dt2
+        if ( idynamic == 3 ) then
+          fnudge = fnudge * mo_nadv * mo_nsound
+        end if
       end if
       if ( bdy_dm > d_zero ) then
         gnudge = bdy_dm
       else
         ! The dxsq is simplified in below when dividing by dxsq
         gnudge = 0.02_rkx/dt2
-      end if
-      if ( idynamic == 3 ) then
-        fnudge = fnudge * mo_nadv * mo_nsound
-        gnudge = 0.0_rkx
+        if ( idynamic == 3 ) then
+          gnudge = gnudge * mo_nadv * mo_nsound
+        end if
       end if
       if ( myid == italk ) then
-        write(stdout, '(a,f12.6,a,f12.6)') &
+        write(stdout, '(a,f12.8,a,f12.8)') &
           ' Nudging coefficients F1=',fnudge,', F2=',gnudge
+      end if
+      if ( idynamic == 3 ) then
+        fnudge = fnudge/mo_nadv
+        gnudge = gnudge/mo_nadv
       end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
@@ -926,11 +936,16 @@ module mod_bdycod
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
-      jday = yeardayfrac(rcmtimer%idate)
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
+      !jday = yeardayfrac(rcmtimer%idate)
       call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
+      !$acc kernels
+      xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
+      xthb%b1(:,:,:) = (xtb%b1(:,:,:)*(d_one+ep1*xqb%b1(:,:,:)))/xpaib%b1(:,:,:)
+      !$acc end kernels
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
+                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
+      call timeint(xthb%b1,xthb%b0,xthb%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
 
@@ -1001,8 +1016,8 @@ module mod_bdycod
     logical :: prefetched
 #endif
     type (rcm_time_interval) :: tdif
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: u0, u1, &
-      v0, v1, t0, t1, q0, q1, l0, l1, i0, i1, pp0, pp1, ww0, ww1, pai0, pai1
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: u0, u1, v0, v1, &
+      t0, t1, q0, q1, th0, th1, l0, l1, i0, i1, pp0, pp1, ww0, ww1, pai0, pai1
     real(rkx), pointer, contiguous, dimension(:,:) :: ts0, ts1, ps0, ps1
     integer(ik4), pointer, contiguous, dimension(:,:) :: dom_ldmsk
     integer(ik4), pointer, contiguous, dimension(:,:,:) :: sub_ldmsk
@@ -1020,6 +1035,8 @@ module mod_bdycod
     v1 => xvb%b1
     t0 => xtb%b0
     t1 => xtb%b1
+    th0 => xthb%b0
+    th1 => xthb%b1
     q0 => xqb%b0
     q1 => xqb%b1
     l0 => xlb%b0
@@ -1076,6 +1093,7 @@ module mod_bdycod
       if ( idynamic == 3 ) then
         !$acc kernels
         pai0(:,:,:) = pai1(:,:,:)
+        th0(:,:,:) = th1(:,:,:)
         !$acc end kernels
       end if
     end if
@@ -1240,10 +1258,14 @@ module mod_bdycod
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
-      jday = yeardayfrac(rcmtimer%idate)
+      !jday = yeardayfrac(rcmtimer%idate)
       call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
+      !$acc kernels
+      xthb%b1(:,:,:) = (xtb%b1(:,:,:)*(d_one+ep1*xqb%b1(:,:,:)))/xpaib%b1(:,:,:)
+      !$acc end kernels
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
+                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
+      call timeint(xthb%b1,xthb%b0,xthb%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
     !
@@ -1861,6 +1883,7 @@ module mod_bdycod
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k)
+            mo_atm%tetav(jce1,i,k) = xthb%b0(jce1,i,k)
             mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
             mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k)
           end do
@@ -1878,6 +1901,7 @@ module mod_bdycod
         if ( ma%has_bdyright ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k)
+            mo_atm%tetav(jce2,i,k) = xthb%b0(jce2,i,k)
             mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
             mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k)
           end do
@@ -1895,6 +1919,7 @@ module mod_bdycod
         if ( ma%has_bdybottom ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k)
+            mo_atm%tetav(j,ice1,k) = xthb%b0(j,ice1,k)
             mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
             mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k)
           end do
@@ -1912,6 +1937,7 @@ module mod_bdycod
         if ( ma%has_bdytop ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k)
+            mo_atm%tetav(j,ice2,k) = xthb%b0(j,ice2,k)
             mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
             mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k)
           end do
@@ -2032,6 +2058,7 @@ module mod_bdycod
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
+            mo_atm%tetav(jce1,i,k) = xthb%b0(jce1,i,k) + xt*xthb%bt(jce1,i,k)
             mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
             mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k) + xt*xpaib%bt(jce1,i,k)
           end do
@@ -2049,6 +2076,7 @@ module mod_bdycod
         if ( ma%has_bdyright ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
+            mo_atm%tetav(jce2,i,k) = xthb%b0(jce2,i,k) + xt*xthb%bt(jce2,i,k)
             mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
             mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k) + xt*xpaib%bt(jce2,i,k)
           end do
@@ -2066,6 +2094,7 @@ module mod_bdycod
         if ( ma%has_bdybottom ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
+            mo_atm%tetav(j,ice1,k) = xthb%b0(j,ice1,k) + xt*xthb%bt(j,ice1,k)
             mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
             mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k) + xt*xpaib%bt(j,ice1,k)
           end do
@@ -2083,6 +2112,7 @@ module mod_bdycod
         if ( ma%has_bdytop ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
+            mo_atm%tetav(j,ice2,k) = xthb%b0(j,ice2,k) + xt*xthb%bt(j,ice2,k)
             mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
             mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k) + xt*xpaib%bt(j,ice2,k)
           end do
@@ -2931,10 +2961,10 @@ module mod_bdycod
 #endif
   end subroutine sponge4d
 
-  subroutine mosponge4d(f,bnd,m)
+  subroutine mosponge4d(ff,bnd,m)
     implicit none
     integer(ik4), intent(in) :: m
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ff
     type(v3dbound), intent(in) :: bnd
 
     integer(ik4) :: i, j, k, ib
@@ -2955,28 +2985,28 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bsouth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i,k,m) = f(j,i,k,m) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
+        ff(j,i,k,m) = (d_one-wgtx(ib))*bnd%bt(j,i,k)
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bnorth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i,k,m) = f(j,i,k,m) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
+        ff(j,i,k,m) = (d_one-wgtx(ib))*bnd%bt(j,i,k)
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bwest(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i,k,m) = f(j,i,k,m) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
+        ff(j,i,k,m) = (d_one-wgtx(ib))*bnd%bt(j,i,k)
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%beast(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i,k,m) = f(j,i,k,m) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
+        ff(j,i,k,m) = (d_one-wgtx(ib))*bnd%bt(j,i,k)
       end do
     end if
 #ifdef DEBUG
@@ -3047,10 +3077,10 @@ module mod_bdycod
 #endif
   end subroutine spongeuv
 
-  subroutine mospongeuv(fu,fv,bndu,bndv)
+  subroutine mospongeuv(ffu,ffv,bndu,bndv)
     implicit none
     type(v3dbound), intent(in) :: bndu, bndv
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: fu, fv
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ffu, ffv
     integer(ik4) :: i, j, k, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mospongeuv'
@@ -3069,56 +3099,56 @@ module mod_bdycod
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_ut%bsouth(j,i) ) cycle
         ib = ba_ut%ibnd(j,i)
-        fu(j,i,k) = fu(j,i,k) + (d_one-wgtx(ib))*bndu%bt(j,i,k)
+        ffu(j,i,k) = (d_one-wgtx(ib))*bndu%bt(j,i,k)
       end do
     end if
     if ( ba_vt%ns /= 0 ) then
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         if ( .not. ba_vt%bsouth(j,i) ) cycle
         ib = ba_vt%ibnd(j,i)
-        fv(j,i,k) = fv(j,i,k) + (d_one-wgtd(ib))*bndv%bt(j,i,k)
+        ffv(j,i,k) = (d_one-wgtd(ib))*bndv%bt(j,i,k)
       end do
     end if
     if ( ba_ut%nn /= 0 ) then
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_ut%bnorth(j,i) ) cycle
         ib = ba_ut%ibnd(j,i)
-        fu(j,i,k) = fu(j,i,k) + (d_one-wgtx(ib))*bndu%bt(j,i,k)
+        ffu(j,i,k) = (d_one-wgtx(ib))*bndu%bt(j,i,k)
       end do
     end if
     if ( ba_vt%nn /= 0 ) then
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         if ( .not. ba_vt%bnorth(j,i) ) cycle
         ib = ba_vt%ibnd(j,i)
-        fv(j,i,k) = fv(j,i,k) + (d_one-wgtd(ib))*bndv%bt(j,i,k)
+        ffv(j,i,k) = (d_one-wgtd(ib))*bndv%bt(j,i,k)
       end do
     end if
     if ( ba_ut%nw /= 0 ) then
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_ut%bwest(j,i) ) cycle
         ib = ba_ut%ibnd(j,i)
-        fu(j,i,k) = fu(j,i,k) + (d_one-wgtd(ib))*bndu%bt(j,i,k)
+        ffu(j,i,k) = (d_one-wgtd(ib))*bndu%bt(j,i,k)
       end do
     end if
     if ( ba_vt%nw /= 0 ) then
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         if ( .not. ba_vt%bwest(j,i) ) cycle
         ib = ba_vt%ibnd(j,i)
-        fv(j,i,k) = fv(j,i,k) + (d_one-wgtx(ib))*bndv%bt(j,i,k)
+        ffv(j,i,k) = (d_one-wgtx(ib))*bndv%bt(j,i,k)
       end do
     end if
     if ( ba_ut%ne /= 0 ) then
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_ut%beast(j,i) ) cycle
         ib = ba_ut%ibnd(j,i)
-        fu(j,i,k) = fu(j,i,k) + (d_one-wgtd(ib))*bndu%bt(j,i,k)
+        ffu(j,i,k) = (d_one-wgtd(ib))*bndu%bt(j,i,k)
       end do
     end if
     if ( ba_vt%ne /= 0 ) then
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         if ( .not. ba_vt%beast(j,i) ) cycle
         ib = ba_vt%ibnd(j,i)
-        fv(j,i,k) = fv(j,i,k) + (d_one-wgtx(ib))*bndv%bt(j,i,k)
+        ffv(j,i,k) = (d_one-wgtx(ib))*bndv%bt(j,i,k)
       end do
     end if
 #ifdef DEBUG
@@ -3179,10 +3209,10 @@ module mod_bdycod
 #endif
   end subroutine sponge3d
 
-  subroutine mosponge3d(f,bnd)
+  subroutine mosponge3d(ff,bnd)
     implicit none
     type(v3dbound), intent(in) :: bnd
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ff
     integer(ik4) :: i, j, k, ib
     integer(ik4) :: nk
 #ifdef DEBUG
@@ -3198,33 +3228,33 @@ module mod_bdycod
       return
     end if
 
-    nk = size(f,3)
+    nk = size(ff,3)
     if ( ba_cr%ns /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk )
         if ( .not. ba_cr%bsouth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i,k) = f(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
+        ff(j,i,k) = (d_one-wgtx(ib))*bnd%bt(j,i,k)
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk )
         if ( .not. ba_cr%bnorth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i,k) = f(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
+        ff(j,i,k) = (d_one-wgtx(ib))*bnd%bt(j,i,k)
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk )
         if ( .not. ba_cr%bwest(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i,k) = f(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
+        ff(j,i,k) = (d_one-wgtx(ib))*bnd%bt(j,i,k)
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk )
         if ( .not. ba_cr%beast(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i,k) = f(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
+        ff(j,i,k) = (d_one-wgtx(ib))*bnd%bt(j,i,k)
       end do
     end if
 #ifdef DEBUG
@@ -3282,10 +3312,10 @@ module mod_bdycod
 #endif
   end subroutine sponge2d
 
-  subroutine mosponge2d(f,bnd)
+  subroutine mosponge2d(ff,bnd)
     implicit none
     type(v2dbound), intent(in) :: bnd
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: ff
     integer(ik4) :: i, j, ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mosponge2d'
@@ -3303,28 +3333,28 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         if ( .not. ba_cr%bsouth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i) = f(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
+        ff(j,i) = (d_one-wgtx(ib))*bnd%bt(j,i)
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         if ( .not. ba_cr%bnorth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i) = f(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
+        ff(j,i) = (d_one-wgtx(ib))*bnd%bt(j,i)
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         if ( .not. ba_cr%bwest(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i) = f(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
+        ff(j,i) = (d_one-wgtx(ib))*bnd%bt(j,i)
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         if ( .not. ba_cr%beast(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        f(j,i) = f(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
+        ff(j,i) = (d_one-wgtx(ib))*bnd%bt(j,i)
       end do
     end if
 #ifdef DEBUG
@@ -3510,10 +3540,11 @@ module mod_bdycod
 #endif
   end subroutine nudge4d3d
 
-  subroutine monudge4d3d(ibdy,f,bnd,n)
+  subroutine monudge4d3d(ibdy,f,ff,bnd,n)
     implicit none
     integer(ik4), intent(in) :: ibdy, n
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ff
     type(v3dbound), intent(in) :: bnd
     real(rkx) :: xt
     integer(ik4) :: i, j, k, ib
@@ -3548,8 +3579,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
@@ -3563,8 +3593,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
@@ -3578,8 +3607,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
@@ -3593,8 +3621,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     else
@@ -3609,8 +3636,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
@@ -3624,8 +3650,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
@@ -3639,8 +3664,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
@@ -3654,8 +3678,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     end if
@@ -3877,14 +3900,15 @@ module mod_bdycod
 #endif
   end subroutine nudgeuv
 
-  subroutine monudgeuv(ibdy,fu,fv,bndu,bndv)
+  subroutine monudgeuv(ibdy,fu,fv,ffu,ffv,bndu,bndv)
     implicit none
     integer(ik4), intent(in) :: ibdy
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: fu, fv
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ffu, ffv
     type(v3dbound), intent(in) :: bndu, bndv
     real(rkx) :: xt
     integer(ik4) :: i, j, k, ib
-    real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
+    real(rkx) :: xf, xg, dg, fls0, fls1, fls2, fls3, fls4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudgeuv'
     integer(ik4), save :: idindx = 0
@@ -3902,7 +3926,6 @@ module mod_bdycod
     do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
       fg1(j,i,k) = (bndu%b0(j,i,k) + xt*bndu%bt(j,i,k)) - fu(j,i,k)
     end do
-
     do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
       fg2(j,i,k) = (bndv%b0(j,i,k) + xt*bndv%bt(j,i,k)) - fv(j,i,k)
     end do
@@ -3912,15 +3935,15 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = fcx(ib)
+          xf = fcd(ib)
           xg = gcx(ib)
+          dg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ffu(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ns /= 0 ) then
@@ -3928,29 +3951,29 @@ module mod_bdycod
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcx(ib)
+          dg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ffv(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nn /= 0 ) then
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = fcx(ib)
+          xf = fcd(ib)
           xg = gcx(ib)
+          dg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ffu(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nn /= 0 ) then
@@ -3958,14 +3981,14 @@ module mod_bdycod
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcx(ib)
+          dg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ffv(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nw /= 0 ) then
@@ -3973,29 +3996,29 @@ module mod_bdycod
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcx(ib)
+          dg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ffu(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nw /= 0 ) then
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = fcx(ib)
+          xf = fcd(ib)
           xg = gcx(ib)
+          dg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ffv(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%ne /= 0 ) then
@@ -4003,29 +4026,29 @@ module mod_bdycod
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcx(ib)
+          dg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          fu(j,i,k) = fu(j,i,k) + xf*fls0 -  &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ffu(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ne /= 0 ) then
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = fcx(ib)
+          xf = fcd(ib)
           xg = gcx(ib)
+          dg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          fv(j,i,k) = fv(j,i,k) + xf*fls0 -  &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ffv(j,i,k) = xf*fls0 - dg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     else
@@ -4033,15 +4056,15 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = hefc(ib,k)
+          xf = hefd(ib,k)
           xg = hegc(ib,k)
-          fls0 = fg1(j,i,k)
-          fls1 = fg1(j-1,i,k)
-          fls2 = fg1(j+1,i,k)
-          fls3 = fg1(j,i-1,k)
-          fls4 = fg1(j,i+1,k)
-          fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          dg = hegd(ib,k)
+          fls0 = dg*fg1(j,i,k)
+          fls1 = dg*fg1(j-1,i,k)
+          fls2 = dg*fg1(j+1,i,k)
+          fls3 = xg*fg1(j,i-1,k)
+          fls4 = xg*fg1(j,i+1,k)
+          ffu(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ns /= 0 ) then
@@ -4049,29 +4072,29 @@ module mod_bdycod
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
-          fls0 = fg2(j,i,k)
-          fls1 = fg2(j-1,i,k)
-          fls2 = fg2(j+1,i,k)
-          fls3 = fg2(j,i-1,k)
-          fls4 = fg2(j,i+1,k)
-          fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          xg = hegc(ib,k)
+          dg = hegd(ib,k)
+          fls0 = dg*fg2(j,i,k)
+          fls1 = xg*fg2(j-1,i,k)
+          fls2 = xg*fg2(j+1,i,k)
+          fls3 = dg*fg2(j,i-1,k)
+          fls4 = dg*fg2(j,i+1,k)
+          ffv(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nn /= 0 ) then
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = hefc(ib,k)
+          xf = hefd(ib,k)
           xg = hegc(ib,k)
-          fls0 = fg1(j,i,k)
-          fls1 = fg1(j-1,i,k)
-          fls2 = fg1(j+1,i,k)
-          fls3 = fg1(j,i-1,k)
-          fls4 = fg1(j,i+1,k)
-          fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          dg = hegd(ib,k)
+          fls0 = dg*fg1(j,i,k)
+          fls1 = dg*fg1(j-1,i,k)
+          fls2 = dg*fg1(j+1,i,k)
+          fls3 = xg*fg1(j,i-1,k)
+          fls4 = xg*fg1(j,i+1,k)
+          ffu(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nn /= 0 ) then
@@ -4079,14 +4102,14 @@ module mod_bdycod
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
-          fls0 = fg2(j,i,k)
-          fls1 = fg2(j-1,i,k)
-          fls2 = fg2(j+1,i,k)
-          fls3 = fg2(j,i-1,k)
-          fls4 = fg2(j,i+1,k)
-          fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          xg = hegc(ib,k)
+          dg = hegd(ib,k)
+          fls0 = dg*fg2(j,i,k)
+          fls1 = xg*fg2(j-1,i,k)
+          fls2 = xg*fg2(j+1,i,k)
+          fls3 = dg*fg2(j,i-1,k)
+          fls4 = dg*fg2(j,i+1,k)
+          ffv(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nw /= 0 ) then
@@ -4094,29 +4117,29 @@ module mod_bdycod
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
-          fls0 = fg1(j,i,k)
-          fls1 = fg1(j-1,i,k)
-          fls2 = fg1(j+1,i,k)
-          fls3 = fg1(j,i-1,k)
-          fls4 = fg1(j,i+1,k)
-          fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          xg = hegc(ib,k)
+          dg = hegd(ib,k)
+          fls0 = dg*fg1(j,i,k)
+          fls1 = dg*fg1(j-1,i,k)
+          fls2 = dg*fg1(j+1,i,k)
+          fls3 = xg*fg1(j,i-1,k)
+          fls4 = xg*fg1(j,i+1,k)
+          ffu(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nw /= 0 ) then
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = hefc(ib,k)
+          xf = hefd(ib,k)
           xg = hegc(ib,k)
-          fls0 = fg2(j,i,k)
-          fls1 = fg2(j-1,i,k)
-          fls2 = fg2(j+1,i,k)
-          fls3 = fg2(j,i-1,k)
-          fls4 = fg2(j,i+1,k)
-          fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          dg = hegd(ib,k)
+          fls0 = dg*fg2(j,i,k)
+          fls1 = xg*fg2(j-1,i,k)
+          fls2 = xg*fg2(j+1,i,k)
+          fls3 = dg*fg2(j,i-1,k)
+          fls4 = dg*fg2(j,i+1,k)
+          ffv(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%ne /= 0 ) then
@@ -4124,29 +4147,29 @@ module mod_bdycod
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
-          fls0 = fg1(j,i,k)
-          fls1 = fg1(j-1,i,k)
-          fls2 = fg1(j+1,i,k)
-          fls3 = fg1(j,i-1,k)
-          fls4 = fg1(j,i+1,k)
-          fu(j,i,k) = fu(j,i,k) + xf*fls0 -  &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          xg = hegc(ib,k)
+          dg = hegd(ib,k)
+          fls0 = dg*fg1(j,i,k)
+          fls1 = dg*fg1(j-1,i,k)
+          fls2 = dg*fg1(j+1,i,k)
+          fls3 = xg*fg1(j,i-1,k)
+          fls4 = xg*fg1(j,i+1,k)
+          ffu(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ne /= 0 ) then
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = hefc(ib,k)
+          xf = hefd(ib,k)
           xg = hegc(ib,k)
-          fls0 = fg2(j,i,k)
-          fls1 = fg2(j-1,i,k)
-          fls2 = fg2(j+1,i,k)
-          fls3 = fg2(j,i-1,k)
-          fls4 = fg2(j,i+1,k)
-          fv(j,i,k) = fv(j,i,k) + xf*fls0 -  &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          dg = hegd(ib,k)
+          fls0 = dg*fg2(j,i,k)
+          fls1 = xg*fg2(j-1,i,k)
+          fls2 = xg*fg2(j+1,i,k)
+          fls3 = dg*fg2(j,i-1,k)
+          fls4 = dg*fg2(j,i+1,k)
+          ffv(j,i,k) = xf*fls0 - (fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     end if
@@ -4156,10 +4179,11 @@ module mod_bdycod
 #endif
   end subroutine monudgeuv
 
-  subroutine monudge4d(ibdy,f,bnd,n1,n2)
+  subroutine monudge4d(ibdy,f,ff,bnd,n1,n2)
     implicit none
     integer(ik4), intent(in) :: ibdy, n1, n2
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ff
     type(v3dbound), intent(in) :: bnd
     integer(ik4) :: n
 #ifdef DEBUG
@@ -4174,7 +4198,7 @@ module mod_bdycod
       return
     end if
     do n = n1, n2
-      call monudge4d3d(ibdy,f,bnd,n)
+      call monudge4d3d(ibdy,f,ff,bnd,n)
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -4366,10 +4390,11 @@ module mod_bdycod
 #endif
   end subroutine nudge3d
 
-  subroutine monudge3d(ibdy,f,bnd)
+  subroutine monudge3d(ibdy,f,ff,bnd)
     implicit none
     integer(ik4), intent(in) :: ibdy
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ff
     type(v3dbound), intent(in) :: bnd
     real(rkx) :: xt
     integer(ik4) :: i, j, k, ns, nk, ib
@@ -4408,8 +4433,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k) = f(j,i,k) + xf*fls0 - &
-                     xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
@@ -4423,8 +4447,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k) = f(j,i,k) + xf*fls0 - &
-                     xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
@@ -4438,8 +4461,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k) = f(j,i,k) + xf*fls0 - &
-                     xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
@@ -4453,8 +4475,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k) = f(j,i,k) + xf*fls0 -  &
-                     xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     else
@@ -4469,8 +4490,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k) = f(j,i,k) + xf*fls0 - &
-                     xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
@@ -4484,8 +4504,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k) = f(j,i,k) + xf*fls0 - &
-                     xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
@@ -4499,8 +4518,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k) = f(j,i,k) + xf*fls0 - &
-                     xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
@@ -4514,8 +4532,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          f(j,i,k) = f(j,i,k) + xf*fls0 -  &
-                     xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     end if
@@ -4680,10 +4697,11 @@ module mod_bdycod
 #endif
   end subroutine nudge2d
 
-  subroutine monudge2d(ibdy,f,bnd)
+  subroutine monudge2d(ibdy,f,ff,bnd)
     implicit none
     integer(ik4), intent(in) :: ibdy
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: ff
     type(v2dbound), intent(in) :: bnd
     integer(ik4) :: i, j, ib
     real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
@@ -4719,7 +4737,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,1)
           fls3 = fg1(j,i-1,1)
           fls4 = fg1(j,i+1,1)
-          f(j,i) = f(j,i) + xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
@@ -4733,7 +4751,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,1)
           fls3 = fg1(j,i-1,1)
           fls4 = fg1(j,i+1,1)
-          f(j,i) = f(j,i) + xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
@@ -4747,7 +4765,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,1)
           fls3 = fg1(j,i-1,1)
           fls4 = fg1(j,i+1,1)
-          f(j,i) = f(j,i) + xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
@@ -4761,7 +4779,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,1)
           fls3 = fg1(j,i-1,1)
           fls4 = fg1(j,i+1,1)
-          f(j,i) = f(j,i) + xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     else
@@ -4776,7 +4794,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,1)
           fls3 = fg1(j,i-1,1)
           fls4 = fg1(j,i+1,1)
-          f(j,i) = f(j,i) + xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
@@ -4790,7 +4808,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,1)
           fls3 = fg1(j,i-1,1)
           fls4 = fg1(j,i+1,1)
-          f(j,i) = f(j,i) + xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
@@ -4804,7 +4822,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,1)
           fls3 = fg1(j,i-1,1)
           fls4 = fg1(j,i+1,1)
-          f(j,i) = f(j,i) + xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
@@ -4818,7 +4836,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,1)
           fls3 = fg1(j,i-1,1)
           fls4 = fg1(j,i+1,1)
-          f(j,i) = f(j,i) + xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          ff(j,i) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     end if

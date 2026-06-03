@@ -40,7 +40,7 @@ module mod_che_bdyco
   private
 
   public :: allocate_mod_che_bdyco, chem_bdyin, chem_bdyval
-  public :: nudge_chi, setup_che_bdycon
+  public :: nudge_chiten, setup_che_bdycon, monudgechi
   public :: che_init_bdy, chib0, chib1, chibt, ichbdy2trac, oxcl
 
   type(rcm_time_and_date), save :: chbdydate1, chbdydate2
@@ -69,11 +69,6 @@ module mod_che_bdyco
   end type cbound_area
   public :: cbound_area
   type(cbound_area), public :: cba
-
-  interface nudge_chi
-    module procedure nudge_chiten
-    module procedure monudgechi
-  end interface nudge_chi
 
   interface chem_bdyval
     module procedure chem_bdyval_coupled
@@ -977,9 +972,10 @@ module mod_che_bdyco
 #endif
   end subroutine nudge_chiten
 
-  subroutine monudgechi(f)
+  subroutine monudgechi(f,ff)
     implicit none
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ff
 
     real(rkx) :: xt, xf, xg
     real(rkx) :: fls0, fls1, fls2, fls3, fls4
@@ -1009,8 +1005,7 @@ module mod_che_bdyco
                 fls2 = fg(j+1,ici1,k) - fg(j+1,i,k)
                 fls3 = fg(j,ice1,k)   - fg(j,i-1,k)
                 fls4 = fg(j,ici1+1,k) - fg(j,i+1,k)
-                f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                        xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+                ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -1028,8 +1023,7 @@ module mod_che_bdyco
                 fls2 = fg(j+1,ici2,k) - fg(j+1,i,k)
                 fls3 = fg(j,ici2-1,k) - fg(j,i-1,k)
                 fls4 = fg(j,ice2,k) - fg(j,i+1,k)
-                f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+                ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -1047,8 +1041,7 @@ module mod_che_bdyco
                 fls2 = fg(jci2,i+1,k) - fg(j,i+1,k)
                 fls3 = fg(jci2-1,i,k) - fg(j-1,i,k)
                 fls4 = fg(jce2,i,k) - fg(j+1,i,k)
-                f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+                ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -1066,8 +1059,7 @@ module mod_che_bdyco
                 fls2 = fg(jci1,i+1,k) - fg(j,i+1,k)
                 fls3 = fg(jce1,i,k) - fg(j-1,i,k)
                 fls4 = fg(jci1+1,i,k) - fg(j+1,i,k)
-                f(j,i,k,n) = f(j,i,k,n) + xf*fls0 -  &
-                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+                ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -1097,8 +1089,7 @@ module mod_che_bdyco
               fls2 = fg(j+1,i,k)
               fls3 = fg(j,i-1,k)
               fls4 = fg(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+              ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -1116,8 +1107,7 @@ module mod_che_bdyco
               fls2 = fg(j+1,i,k)
               fls3 = fg(j,i-1,k)
               fls4 = fg(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+              ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -1135,8 +1125,7 @@ module mod_che_bdyco
               fls2 = fg(j+1,i,k)
               fls3 = fg(j,i-1,k)
               fls4 = fg(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+              ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -1154,8 +1143,7 @@ module mod_che_bdyco
               fls2 = fg(j+1,i,k)
               fls3 = fg(j,i-1,k)
               fls4 = fg(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 -  &
-                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+              ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do

@@ -470,7 +470,8 @@ module mod_ocn_zeng
       rah1(i) = rah1(i)/(vonkar * ustar)
       ! now feedback tskin in surface variables
       if ( .not. ldcsst ) then
-        tgbrd(i) = tgb(i) - 0.005_rkx * (sent(i)+lh+rlwf(i))/max(uv10,2.0)
+        !tgbrd(i) = tgb(i) - 0.005_rkx * (sent(i)+lh+rlwf(i))/max(uv10,2.0)
+        tgbrd(i) = tgb(i)
       else
         tgbrd(i) = tskin(i)
       end if
