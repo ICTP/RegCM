@@ -481,27 +481,25 @@ module mod_bdycod
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
-        fnudge = 0.1_rkx/dt2
         if ( idynamic == 3 ) then
-          fnudge = fnudge * mo_nadv
+          fnudge = 0.33333_rkx/dtsec
+        else
+          fnudge = 0.1_rkx/dt2
         end if
       end if
       if ( bdy_dm > d_zero ) then
         gnudge = bdy_dm
       else
         ! The dxsq is simplified in below when dividing by dxsq
-        gnudge = 0.02_rkx/dt2
         if ( idynamic == 3 ) then
-          gnudge = gnudge * mo_nadv
+          gnudge = 0.07777_rkx/dtsec
+        else
+          gnudge = 0.02_rkx/dt2
         end if
       end if
       if ( myid == italk ) then
         write(stdout, '(a,f12.8,a,f12.8)') &
           ' Nudging coefficients F1=',fnudge,', F2=',gnudge
-      end if
-      if ( idynamic == 3 ) then
-        fnudge = fnudge/mo_nadv
-        gnudge = gnudge/mo_nadv
       end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
@@ -943,6 +941,7 @@ module mod_bdycod
       xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
       xthb%b1(:,:,:) = (xtb%b1(:,:,:)*(d_one+ep1*xqb%b1(:,:,:)))/xpaib%b1(:,:,:)
       !$acc end kernels
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
       call timeint(xthb%b1,xthb%b0,xthb%bt, &
@@ -1263,6 +1262,7 @@ module mod_bdycod
       !$acc kernels
       xthb%b1(:,:,:) = (xtb%b1(:,:,:)*(d_one+ep1*xqb%b1(:,:,:)))/xpaib%b1(:,:,:)
       !$acc end kernels
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
       call timeint(xthb%b1,xthb%b0,xthb%bt, &
