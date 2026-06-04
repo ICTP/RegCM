@@ -652,7 +652,7 @@ program terrain
   end if
 
   ! Preliminary heavy smoothing of boundaries
-  if ( smthbdy ) call smthtr(htgrid,jx,iy,nspgx)
+  if ( smthbdy ) call smthtr(htgrid,jx,iy,nsmthbdy)
 
   ! Grell smoothing to eliminate 2 delx wave
   call smtdsmt(htgrid,jx,iy)

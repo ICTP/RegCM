@@ -69,6 +69,8 @@
                               ! Controls naming of input files
  lresamp = .false.,           ! Do a first resampling before interpolation
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
+ nsmthbdy = 5,                ! Number of points in the boundary for the
+                              ! elevation smoothing kernel (minimum 5)
  ismthlev = 1,                ! Smoothing level (additional 1-2-1 smoother)
  roidem = 0.70710678          ! Interpolation radius in ds unit for topography
  lclm45lake = .false.,        ! If CLM45, lakes are treated by CLM45

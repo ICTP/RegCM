@@ -320,6 +320,10 @@ module mod_write
           ncattribute_real8('radius_interpolation',roidem))
     call outstream_addatt(ncout, &
       ncattribute_logical('boundary_smoothing',smthbdy))
+    if ( smthbdy ) then
+      call outstream_addatt(ncout, &
+        ncattribute_integer('smoothing_npoints',nsmthbdy))
+    end if
     call outstream_addatt(ncout, &
       ncattribute_real8('minimum_h2o_pct_for_water',h2opct))
     call outstream_addatt(ncout, &

@@ -217,7 +217,7 @@ module mod_moloch
 #else
     call getmem(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
 #endif
-    call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
+    call getmem(zdiv2,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'moloch:zdiv2')
     call getmem(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem(wfw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wfw')
@@ -928,35 +928,13 @@ module mod_moloch
   subroutine divergence_filter( )
     implicit none
     integer(ik4) :: j, i, k
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
-      end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
-      end do
-    end if
-
-    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    call exchange_lrbt(zdiv2,1,jci1,jci2,ici1,ici2,1,kz)
+    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
       p3d(j,i,k) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                 zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
                    0.5_rkx * zdiv2(j,i,k)
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
       zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * xknu(k) * p3d(j,i,k)
     end do
   end subroutine divergence_filter
@@ -1254,57 +1232,35 @@ module mod_moloch
     integer(ik4) :: i, j, k
     real(rkx) :: ddamp
 
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
-      end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
-      end do
-    end if
-
-    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-
+    call exchange_lrbt(zdiv2,1,jci1,jci2,ici1,ici2,1,kz)
     ddamp = 0.125_rkx * (dx/dts)
     if ( lrotllr ) then
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 xknu(k)*ddamp*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 xknu(k)*ddamp*mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
     ! Horizontal diffusion
     ddamp = xdamp * 0.015625_rkx/dts
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
       p3d(j,i,k) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                 zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
                    0.5_rkx * zdiv2(j,i,k)
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
       zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p3d(j,i,k)
     end do
   end subroutine divdamp
@@ -1333,6 +1289,7 @@ module mod_moloch
     call wafone(ux,dta)
     call wafone(vx,dta)
     call wafone(wx,dta)
+
     call wafone(qv,dta)
     if ( ipptls > 0 ) then
       do n = iqfrst, nqx
@@ -1367,11 +1324,10 @@ module mod_moloch
     !@acc call nvtxEndRange
   end subroutine advection
 
-  subroutine wafone(pp,dta,pfac,pmin)
+  subroutine wafone(pp,dta)
     implicit none
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(inout) :: pp
     real(rkx), intent(in) :: dta
-    real(rkx), optional, intent(in) :: pfac, pmin
     integer(ik4) :: j, i, k
     real(rkx) :: dtrdx, dtrdy, dtrdz
     real(rkx), parameter :: wlow  = 0.0_rkx
@@ -1381,7 +1337,6 @@ module mod_moloch
     real(rkx) :: zrfmu, zrfmd
     real(rkx) :: zrfmn, zrfms
     real(rkx) :: zrfme, zrfmw
-    real(rkx) :: zfac, zmin
     integer(ik4) :: k1, k1p1
     integer(ik4) :: ih, ihm1
     integer(ik4) :: jh, jhm1
@@ -1391,13 +1346,6 @@ module mod_moloch
     dtrdz = dta/dzita
     if ( do_vadvtwice ) then
       dtrdz = 0.5_rkx * dtrdz
-    end if
-
-    if ( present(pfac) ) then
-      zfac = pfac
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        pp(j,i,k) = pp(j,i,k) * zfac
-      end do
     end if
 
     ! Vertical advection
@@ -1626,18 +1574,6 @@ module mod_moloch
                u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
         pp(j,i,k) = p0(j,i,k) + &
             mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
-      end do
-    end if
-
-    if ( present(pfac) ) then
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        pp(j,i,k) = pp(j,i,k) / zfac
-      end do
-    end if
-    if ( present(pmin) ) then
-      zmin = pmin
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        pp(j,i,k) = max(pp(j,i,k),zmin)
       end do
     end if
   end subroutine wafone
@@ -2017,31 +1953,11 @@ module mod_moloch
       do concurrent ( i = ici1:ici2, k = 1:kz )
         wx(jce1,i,k) = wx(jci1,i,k)
       end do
-      if ( ma%has_bdybottom ) then
-        do concurrent ( k = 1:kz )
-          wx(jce1,ice1,k) = wx(jci1,ici1,k)
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do concurrent ( k = 1:kz )
-          wx(jce1,ice2,k) = wx(jci1,ici2,k)
-        end do
-      end if
     end if
     if ( ma%has_bdyright ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
         wx(jce2,i,k) = wx(jci2,i,k)
       end do
-      if ( ma%has_bdybottom ) then
-        do concurrent ( k = 1:kz )
-          wx(jce2,ice1,k) = wx(jci2,ici1,k)
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do concurrent ( k = 1:kz )
-          wx(jce2,ice2,k) = wx(jci2,ici2,k)
-        end do
-      end if
     end if
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )

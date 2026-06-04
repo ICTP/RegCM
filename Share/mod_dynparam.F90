@@ -335,6 +335,7 @@ module mod_dynparam
   !     true  -> Perform extra smoothing in boundaries
 
   logical, public :: smthbdy
+  integer, public :: nsmthbdy
 
   ! Fudging for landuse and texture for grid and subgrid
 
@@ -496,10 +497,11 @@ module mod_dynparam
     namelist /molochparam/ mo_a0, mo_ztop, mo_h
     namelist /geoparam/ iproj, ds, ptop, clat, clon, plat,    &
       plon, cntri, cntrj, truelatl, truelath, i_band, i_crm
-    namelist /terrainparam/ domname, lresamp, smthbdy, lakedpth,   &
-      lsmoist, fudge_lnd, fudge_lnd_s, fudge_tex, fudge_tex_s,   &
-      fudge_lak, fudge_lak_s, h2opct, h2ohgt, ismthlev, dirter, &
-      inpter, moist_filename, tersrc, smsrc, roidem, lclm45lake
+    namelist /terrainparam/ domname, lresamp, smthbdy, nsmthbdy, &
+      lakedpth, lsmoist, fudge_lnd, fudge_lnd_s, fudge_tex,      &
+      fudge_tex_s, fudge_lak, fudge_lak_s, h2opct, h2ohgt,       &
+      ismthlev, dirter, inpter, moist_filename, tersrc, smsrc,   &
+      roidem, lclm45lake
     namelist /debugparam/ debug_level, dbgfrq
     namelist /boundaryparam/ nspgx, nspgd, high_nudge, &
       medium_nudge, low_nudge, bdy_nm, bdy_dm
@@ -725,6 +727,7 @@ module mod_dynparam
 
     lresamp = .false.
     smthbdy = .false.
+    nsmthbdy = 5
     h2ohgt = .true.
     h2opct = 50.0_rkx
     roidem = 0.5_rkx*sqrt(2.0_rkx)
@@ -736,6 +739,7 @@ module mod_dynparam
       ierr = 5
       return
     end if
+    if ( smthbdy .and. nsmthbdy < 5 ) nsmthbdy = 5
 
     ! Set convenient defaults for debug I/O parameters
     rewind(ipunit)

@@ -1439,7 +1439,7 @@ module mod_micro_nogtom
           !------------
           if ( ltklt0 ) then
             ! Snow Autoconversion rate follow Lin et al. 1983
-            if ( qi_incld > d_zero ) then
+            if ( qi_incld > activqx ) then
               alpha1 = dt*skconv*exp(0.025_rkx*tc)
               arg = (qi_incld/rlcritsnow)**2
               if ( arg < 25.0_rkx ) then
@@ -1465,7 +1465,7 @@ module mod_micro_nogtom
             ! liquid water saturation for T > 273K
             !---------------------------------------------
             qicetot = qxfg(iqqi)+qxfg(iqqs)
-            if ( qicetot > d_zero ) then
+            if ( qicetot > activqx ) then
               ! Calculate subsaturation
               ! qsice(k,j,i)-qxfg(iqqv),d_zero)
               subsat = max(qsmixv-qxfg(iqqv),d_zero)

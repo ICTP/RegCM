@@ -48,14 +48,14 @@ PROGRAM EMCRE
   REAL(DP),DIMENSION(:,:), ALLOCATABLE :: dhlatt  ! half longitude width  [deg]
 
   ! VARIABLES
-  INTEGER                         :: ismthlev
+  INTEGER                         :: ismthlev, nsmthbdy
   INTEGER                         :: status       ! status flag
   INTEGER                         :: ji, jj
   LOGICAL                         :: file_exists  ! checking existence of file
 
   LOGICAL :: smthbdy, lakedpth, fudge_lnd, fudge_lnd_s, fudge_tex, &
              fudge_lak_s, fudge_tex_s, fudge_lak, h2ohgt, lsmoist, &
-             lresamp
+             lresamp, lclm45lake
   REAL(DP) :: h2opct, roidem
   CHARACTER(len=64) :: domname
   CHARACTER(len=256) :: dirter, inpter, moist_filename
@@ -65,7 +65,8 @@ PROGRAM EMCRE
   namelist /terrainparam/ domname, lresamp, smthbdy, lakedpth,   &
      lsmoist, fudge_lnd, fudge_lnd_s, fudge_tex, fudge_tex_s,   &
      fudge_lak, fudge_lak_s, h2opct, h2ohgt, ismthlev, dirter, &
-     inpter, moist_filename, tersrc, smsrc, roidem
+     inpter, moist_filename, tersrc, smsrc, roidem, nsmthbdy, &
+     lclm45lake
 
   ! (1) READ COMMAND LINE
   NARG = COMMAND_ARGUMENT_COUNT()    ! number of arguments
