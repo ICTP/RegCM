@@ -454,7 +454,9 @@ module mod_lm_interface
     !@acc use nvtx
     implicit none
     integer(ik4) :: i, j, n, nn, ierr
+#ifndef CLM45
     real(rkx) :: wspd
+#endif
 #ifdef CLM
     if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
       r2cdoalb = .true.

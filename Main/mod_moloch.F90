@@ -930,22 +930,22 @@ module mod_moloch
     integer(ik4) :: j, i, k
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice1,k) = -zdiv2(j,ici1+1,k)
+        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
       end do
     end if
     if ( ma%has_bdytop ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice2,k) = -zdiv2(j,ici2-1,k)
+        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
       end do
     end if
     if ( ma%has_bdyleft ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce1,i,k) = -zdiv2(jci1+1,i,k)
+        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
       end do
     end if
     if ( ma%has_bdyright ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce2,i,k) = -zdiv2(jci2-1,i,k)
+        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
       end do
     end if
 
@@ -1256,22 +1256,22 @@ module mod_moloch
 
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice1,k) = -zdiv2(j,ici1+1,k)
+        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
       end do
     end if
     if ( ma%has_bdytop ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice2,k) = -zdiv2(j,ici2-1,k)
+        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
       end do
     end if
     if ( ma%has_bdyleft ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce1,i,k) = -zdiv2(jci1+1,i,k)
+        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
       end do
     end if
     if ( ma%has_bdyright ) then
       do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce2,i,k) = -zdiv2(jci2-1,i,k)
+        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
       end do
     end if
 
@@ -1468,12 +1468,12 @@ module mod_moloch
 
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        wz(j,ice1,k) = wz(j,ici1,k)
+        wz(j,ice1,k) = pp(j,ice1,k)
       end do
     end if
     if ( ma%has_bdytop ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        wz(j,ice2,k) = wz(j,ici2,k)
+        wz(j,ice2,k) = pp(j,ice2,k)
       end do
     end if
 
@@ -1512,13 +1512,13 @@ module mod_moloch
 
       if ( ma%has_bdyleft ) then
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          p0(jce1,i,k) = p0(jci1,i,k)
+          p0(jce1,i,k) = pp(jce1,i,k)
         end do
       end if
 
       if ( ma%has_bdyright ) then
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          p0(jce2,i,k) = p0(jci2,i,k)
+          p0(jce2,i,k) = pp(jce2,i,k)
         end do
       end if
 
@@ -1586,13 +1586,13 @@ module mod_moloch
 
       if ( ma%has_bdyleft ) then
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          p0(jce1,i,k) = p0(jci1,i,k)
+          p0(jce1,i,k) = pp(jce1,i,k)
         end do
       end if
 
       if ( ma%has_bdyright ) then
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          p0(jce2,i,k) = p0(jci2,i,k)
+          p0(jce2,i,k) = pp(jce2,i,k)
         end do
       end if
 
@@ -2045,12 +2045,12 @@ module mod_moloch
     end if
     if ( ma%has_bdybottom ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        wx(j,ici1,k) = wx(j,ici1,k)
+        wx(j,ice1,k) = wx(j,ici1,k)
       end do
     end if
     if ( ma%has_bdytop ) then
       do concurrent ( j = jci1:jci2, k = 1:kz )
-        wx(j,ici2,k) = wx(j,ici2,k)
+        wx(j,ice2,k) = wx(j,ici2,k)
       end do
     end if
   end subroutine wstagtox

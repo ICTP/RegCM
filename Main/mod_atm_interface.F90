@@ -384,7 +384,7 @@ module mod_atm_interface
       implicit none
       logical, intent(in) :: ldotx, ldoty
       type(bound_area), intent(inout) :: ba
-      integer(ik4) :: icx, icy
+      integer(ik4) :: jcx, icy
       integer(ik4) :: igbb1, igbb2, igbt1, igbt2
       integer(ik4) :: jgbl1, jgbl2, jgbr1, jgbr2
       integer(ik4) :: i, j, i1, i2, j1, j2
@@ -396,10 +396,10 @@ module mod_atm_interface
       call getmem(ba%bwest,jde1,jde2,ide1,ide2,'setup_boundaries:bwest')
 
       if ( ldotx ) then
-        icx = 0
+        jcx = 0
         ba%nspx = nspgd
       else
-        icx = 1
+        jcx = 1
         ba%nspx = nspgx
       end if
       if ( ldoty ) then
@@ -409,6 +409,7 @@ module mod_atm_interface
         icy = 1
         ba%nspy = nspgx
       end if
+
       ba%ibnd(:,:) = -1
       igbb1 = 2
       igbb2 = ba%nspy-1
@@ -416,8 +417,8 @@ module mod_atm_interface
       jgbl2 = ba%nspx-1
       igbt1 = iy-icy-ba%nspy+2
       igbt2 = iy-icy-1
-      jgbr1 = jx-icx-ba%nspx+2
-      jgbr2 = jx-icx-1
+      jgbr1 = jx-jcx-ba%nspx+2
+      jgbr2 = jx-jcx-1
       i1 = ide1
       i2 = ide2
       j1 = jde1
@@ -474,7 +475,7 @@ module mod_atm_interface
             if ( i >= igbt1 .and. i <= igbt2 ) then
               do j = j1, j2
                 if ( j >= jgbl1 .and. j <= jgbr2 ) then
-                  if ( j <= jgbl2 .and. (igbt2-i+2) >= j ) cycle
+                  if ( j <= jgbl2 .and. j <= (igbt2-i+2) ) cycle
                   if ( j >= jgbr1 .and. (igbt2-i) >= (jgbr2-j) ) cycle
                   ba%ibnd(j,i) = igbt2-i+2
                   ba%bnorth(j,i) = .true.
@@ -488,8 +489,7 @@ module mod_atm_interface
             if ( i < igbb1 .or. i > igbt2 ) cycle
             do j = j1, j2
               if ( j >= jgbl1 .and. j <= jgbl2 ) then
-                if ( i < igbb2 .and. j > i ) cycle
-                if ( i > igbt1 .and. j > (igbt2-i+2) ) cycle
+                if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle
                 ba%ibnd(j,i) = j-jgbl1+2
                 ba%bwest(j,i) = .true.
                 ba%nw = ba%nw+1
@@ -501,8 +501,7 @@ module mod_atm_interface
             if ( i < igbb1 .or. i > igbt2 ) cycle
             do j = j1, j2
               if ( j >= jgbr1 .and. j <= jgbr2 ) then
-                if ( i < igbb2 .and. (jgbr2-j+2) > i ) cycle
-                if ( i > igbt1 .and. (jgbr2-j) > (igbt2-i) ) cycle
+                if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle
                 ba%ibnd(j,i) = jgbr2-j+2
                 ba%beast(j,i) = .true.
                 ba%ne = ba%ne+1
