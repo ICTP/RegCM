@@ -71,7 +71,6 @@ module mod_params
     real(rkx) :: afracl, afracs, bb, cc, dlargc, dsmalc, dxtemc, &
                qk, qkp1, sig700, ssum, vqmax, wk, wkp1, xbot,   &
                xtop, xx, yy, mo_c1, mo_c2, dl, minfrq
-    real(rkx), dimension(kzp1) :: fak, fbk
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
     integer(ik4) :: i, j, k, kbase, ktop, ns
@@ -2441,8 +2440,6 @@ module mod_params
       mo_dzita = zita(kz)
       sigma = sigmazita(zita,mo_ztop)
       hsigma = sigmazita(zitah,mo_ztop)
-      fak = md_ak(zita,mo_ztop,mo_h)
-      fbk = md_bk(zita,mo_ztop,mo_a0)
       ak = md_ak(zitah,mo_ztop,mo_h)
       bk = md_bk(zitah,mo_ztop,mo_a0)
       do k = 1, kz
@@ -3359,20 +3356,12 @@ module mod_params
         real(rkx), intent(in) :: dt, dec
         newdt = int(dt/dec)*dec
         if ( ifshf ) then
-          do
-            if ( gcd_rec(int(newdt), int(secph)) < newdt ) then
-              newdt = newdt + dec
-              cycle
-            end if
-            exit
+          do while ( newdt > gcd_rec(int(newdt), int(secph)) )
+            newdt = newdt + dec
           end do
         else
-          do
-            if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
-              newdt = newdt + dec
-              cycle
-            end if
-            exit
+          do while ( newdt > gcd_rec(int(newdt), int(secpd)) )
+            newdt = newdt + dec
           end do
         end if
       end function check_against_outparams
