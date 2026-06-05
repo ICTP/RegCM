@@ -567,35 +567,24 @@ module mod_clm_params
         real(rkx), intent(in) :: dt, dec
         newdt = int(dt/dec)*dec
         if ( ifshf ) then
-          do
-            if ( gcd_rec(int(newdt), int(secph)) < newdt ) then
-              newdt = newdt + dec
-              cycle
-            end if
-            exit
+          do while ( newdt > gcd_rec(int(newdt), int(secph)) )
+            newdt = newdt + dec
           end do
         else
-          do
-            if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
-              newdt = newdt + dec
-              cycle
-            end if
-            exit
+          do while ( newdt > gcd_rec(int(newdt), int(secpd)) )
+            newdt = newdt + dec
           end do
         end if
       end function check_against_outparams
 
       subroutine compute_moloch_static
         implicit none
-        integer(ik4) :: i, j
-        real(rkx), dimension(kzp1) :: fak, fbk
+        integer(ik4) :: i, j, k
         call model_zitaf(zita,mo_ztop)
         call model_zitah(zitah,mo_ztop)
         mo_dzita = zita(kz)
         sigma = sigmazita(zita,mo_ztop)
         hsigma = sigmazita(zitah,mo_ztop)
-        fak = md_ak(zita,mo_ztop,mo_h)
-        fbk = md_bk(zita,mo_ztop,mo_a0)
         ak = md_ak(zitah,mo_ztop,mo_h)
         bk = md_bk(zitah,mo_ztop,mo_a0)
         do k = 1, kz
