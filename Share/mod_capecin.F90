@@ -58,6 +58,9 @@ module mod_capecin
   real(rkx) , dimension(jtb,itb) :: ttbl
 
   contains
+
+#include <pfesat.inc>
+
   !
   !
   !  getcape - a fortran90 subroutine to calculate Convective Available
@@ -344,8 +347,6 @@ module mod_capecin
     end do
 
     contains
-
-#include <pfesat.inc>
 
     pure real(rkx) function getdewp_new(tc,rh)
       implicit none
