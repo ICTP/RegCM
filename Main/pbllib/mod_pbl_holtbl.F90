@@ -339,7 +339,7 @@ module mod_pbl_holtbl
     ! compute Bulk Richardson Number (BRN)
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      !@acc loop seq
+      !$acc loop seq
       do k = kzm1, kmxpbl(j,i), -1
         ri(k,j,i) = max(minri,min(maxri,egrav*(thvx(j,i,k)-thvx(j,i,kz)) * &
                     m2p%za(j,i,k)/(thv10(j,i)*vv(j,i,k))))
@@ -371,7 +371,7 @@ module mod_pbl_holtbl
         vvk = vv(j,i,k) + fak*ustr(j,i)**2
         ri(kz,j,i) = max(minri,min(maxri, &
                     -egrav*therm * m2p%za(j,i,kz)/(thv10(j,i)*vvk)))
-        !@acc loop seq
+        !$acc loop seq
         do k = kzm1, kmxpbl(j,i), -1
           ri(k,j,i) = max(minri,min(maxri, &
                     egrav*(thvx(j,i,k)-thvx(j,i,kz)-therm) * &
