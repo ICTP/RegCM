@@ -394,8 +394,17 @@ module mod_clm_accflds
     t_ref2m_min_inst_r => clm3%g%l%c%p%pes%t_ref2m_min_inst_r
     plandunit        => clm3%g%l%c%p%landunit
     t10              => clm3%g%l%c%p%pes%t10
-    a10tmin          => clm3%g%l%c%p%pes%a10tmin
-    a5tmin           => clm3%g%l%c%p%pes%a5tmin
+    if ( crop_prog ) then
+      gdd0             => clm3%g%l%c%p%pps%gdd0
+      gdd8             => clm3%g%l%c%p%pps%gdd8
+      gdd10            => clm3%g%l%c%p%pps%gdd10
+      gddplant         => clm3%g%l%c%p%pps%gddplant
+      gddtsoi          => clm3%g%l%c%p%pps%gddtsoi
+      a10tmin          => clm3%g%l%c%p%pes%a10tmin
+      a5tmin           => clm3%g%l%c%p%pes%a5tmin
+      vf               => clm3%g%l%c%p%pps%vf
+      croplive         => clm3%g%l%c%p%pps%croplive
+    end if
 #if (defined CNDV)
     t_mo             => clm3%g%l%c%p%pdgvs%t_mo
     t_mo_min         => clm3%g%l%c%p%pdgvs%t_mo_min
@@ -406,18 +415,11 @@ module mod_clm_accflds
 #endif
     prec60           => clm3%g%l%c%p%pps%prec60
     prec10           => clm3%g%l%c%p%pps%prec10
-    gdd0             => clm3%g%l%c%p%pps%gdd0
-    gdd8             => clm3%g%l%c%p%pps%gdd8
-    gdd10            => clm3%g%l%c%p%pps%gdd10
-    gddplant         => clm3%g%l%c%p%pps%gddplant
-    gddtsoi          => clm3%g%l%c%p%pps%gddtsoi
-    vf               => clm3%g%l%c%p%pps%vf
     t_soisno         => clm3%g%l%c%ces%t_soisno
     h2osoi_liq       => clm3%g%l%c%cws%h2osoi_liq
     watsat           => clm3%g%l%c%cps%watsat
     dz               => clm3%g%l%c%cps%dz
     latdeg           => clm3%g%latdeg
-    croplive         => clm3%g%l%c%p%pps%croplive
     pcolumn          => clm3%g%l%c%p%column
     t_veg24          => clm3%g%l%c%p%pvs%t_veg24           ! (heald 04/06)
     t_veg240         => clm3%g%l%c%p%pvs%t_veg240          ! (heald 04/06)
@@ -891,8 +893,15 @@ module mod_clm_accflds
     t_ref2m_min_u      => clm3%g%l%c%p%pes%t_ref2m_min_u
     t_ref2m_min_r      => clm3%g%l%c%p%pes%t_ref2m_min_r
     t10              => clm3%g%l%c%p%pes%t10
-    a10tmin          => clm3%g%l%c%p%pes%a10tmin
-    a5tmin           => clm3%g%l%c%p%pes%a5tmin
+    if ( crop_prog ) then
+      a10tmin          => clm3%g%l%c%p%pes%a10tmin
+      a5tmin           => clm3%g%l%c%p%pes%a5tmin
+      gdd0             => clm3%g%l%c%p%pps%gdd0
+      gdd8             => clm3%g%l%c%p%pps%gdd8
+      gdd10            => clm3%g%l%c%p%pps%gdd10
+      gddplant         => clm3%g%l%c%p%pps%gddplant
+      gddtsoi          => clm3%g%l%c%p%pps%gddtsoi
+    end if
 #if (defined CNDV)
     t_mo             => clm3%g%l%c%p%pdgvs%t_mo
     prec365          => clm3%g%l%c%p%pdgvs%prec365
@@ -901,11 +910,6 @@ module mod_clm_accflds
 #endif
     prec60           => clm3%g%l%c%p%pps%prec60
     prec10           => clm3%g%l%c%p%pps%prec10
-    gdd0             => clm3%g%l%c%p%pps%gdd0
-    gdd8             => clm3%g%l%c%p%pps%gdd8
-    gdd10            => clm3%g%l%c%p%pps%gdd10
-    gddplant         => clm3%g%l%c%p%pps%gddplant
-    gddtsoi          => clm3%g%l%c%p%pps%gddtsoi
     ! heald (04/06): accumulated variables for VOC emissions
     t_veg24          => clm3%g%l%c%p%pvs%t_veg24
     t_veg240         => clm3%g%l%c%p%pvs%t_veg240
@@ -1001,7 +1005,7 @@ module mod_clm_accflds
       elai_p(p) = rbufslp(p)
     end do
 
-    if ( crop_prog )then
+    if ( crop_prog ) then
 
       call extract_accum_field ('GDD0', rbufslp, kkincr)
       do concurrent ( p = begp:endp )

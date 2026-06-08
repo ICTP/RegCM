@@ -2842,7 +2842,7 @@ module mod_clm_urban
              grav, pondmx_urban, rpi, rgas, &
              ht_wasteheat_factor, ac_wasteheat_factor, &
              wasteheat_limit
-    use mod_clm_frictionvelocity, only : FrictionVelocity, MoninObukIni
+    use mod_clm_frictionvelocity, only : FrictionVelocity
     use mod_clm_qsat, only : QSat
     use mod_clm_varpar, only : maxpatch_urb, nlevurb, nlevgrnd
     use mod_clm_atmlnd, only : clm_a2l
@@ -3367,7 +3367,7 @@ module mod_clm_urban
       ! Initialize Monin-Obukhov length and wind speed including
       ! convective velocity
 
-      call MoninObukIni(ur(l), thv_g(l), dthv, zldis(l), &
+      call MoninObukIni_new(ur(l), thv_g(l), dthv, zldis(l), &
                         z_0_town(l), um(l), bru(l), obu(l))
 
     end do
@@ -3982,6 +3982,54 @@ module mod_clm_urban
     end do
 
   end subroutine UrbanFluxes
+
+  pure subroutine MoninObukIni_new (ur, thv, dthv, zldis, z0m, um, rib, obu)
+    !$acc routine seq
+    use mod_clm_varcon, only : grav
+    implicit none
+    ! wind speed at reference height [m/s]
+    real(rk8), intent(in)  :: ur
+    ! virtual potential temperature (kelvin)
+    real(rk8), intent(in)  :: thv
+    ! diff of vir. poten. temp. between ref. height and surface
+    real(rk8), intent(in)  :: dthv
+    ! reference height "minus" zero displacement heght [m]
+    real(rk8), intent(in)  :: zldis
+    ! roughness length, momentum [m]
+    real(rk8), intent(in)  :: z0m
+    ! wind speed including the stability effect [m/s]
+    real(rk8), intent(out) :: um
+    ! bulk Richardson number
+    real(rk8), intent(out) :: rib
+    ! monin-obukhov length (m)
+    real(rk8), intent(out) :: obu
+
+    real(rk8) :: wc    ! convective velocity [m/s]
+    real(rk8) :: zeta  ! dimensionless height used in Monin-Obukhov theory
+
+    ! Initial values of u* and convective velocity
+
+    wc = 0.5_rk8
+    if ( dthv >= 0._rk8 ) then
+      um = max(ur,0.1_rk8)
+    else
+      um = sqrt(ur*ur+wc*wc)
+    end if
+    rib = grav*zldis*dthv/(thv*um*um)
+#if (defined PERGRO)
+    rib = 0._rk8
+#endif
+    if ( rib >= 0._rk8 ) then
+      ! neutral or stable
+      zeta = rib*log(zldis/z0m)/(1._rk8-5._rk8*min(rib,0.19_rk8))
+      zeta = min(2._rk8,max(zeta,0.01_rk8 ))
+    else
+      ! unstable
+      zeta = rib*log(zldis/z0m)
+      zeta = max(-100._rk8,min(zeta,-0.01_rk8 ))
+    end if
+    obu = zldis/zeta
+  end subroutine MoninObukIni_new
 
 end module mod_clm_urban
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

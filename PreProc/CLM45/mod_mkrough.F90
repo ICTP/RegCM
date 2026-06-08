@@ -62,7 +62,7 @@ module mod_mkrough
         if ( mask(j,i) < 0.5_rkx ) then
           rough(j,i) = h_missing_value
         else
-          rough(j,i) = max(d_zero,rough(j,i))
+          rough(j,i) = max(1.0e-5_rkx,rough(j,i))
         end if
       end do
     end do

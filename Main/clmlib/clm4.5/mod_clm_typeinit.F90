@@ -873,7 +873,7 @@ module mod_clm_typeinit
     allocate(pes%t_ref2m_max_inst_u(ibeg:iend), source=nan_r8)
     allocate(pes%t_ref2m_max_inst_r(ibeg:iend), source=nan_r8)
     allocate(pes%t10(ibeg:iend), source=spval)
-    if ( crop_prog )then
+    if ( crop_prog ) then
       allocate(pes%a10tmin(ibeg:iend), source=spval)
       allocate(pes%a5tmin(ibeg:iend), source=spval)
     end if

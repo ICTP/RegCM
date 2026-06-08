@@ -345,6 +345,8 @@ module mod_capecin
 
     contains
 
+#include <pfesat.inc>
+
     pure real(rkx) function getdewp_new(tc,rh)
       implicit none
       real(rkx), intent(in) :: tc, rh
@@ -852,8 +854,6 @@ module mod_capecin
       end do
 
       contains
-
-#include <pfesat.inc>
 
       subroutine table_fill( )
         implicit none
