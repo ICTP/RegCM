@@ -1034,20 +1034,27 @@ module mod_bdycod
     v1 => xvb%b1
     t0 => xtb%b0
     t1 => xtb%b1
-    th0 => xthb%b0
-    th1 => xthb%b1
     q0 => xqb%b0
     q1 => xqb%b1
-    l0 => xlb%b0
-    l1 => xlb%b1
-    i0 => xib%b0
-    i1 => xib%b1
-    pp0 => xppb%b0
-    pp1 => xppb%b1
-    ww0 => xwwb%b0
-    ww1 => xwwb%b1
-    pai0 => xpaib%b0
-    pai1 => xpaib%b1
+    if ( present_qc ) then
+      l0 => xlb%b0
+      l1 => xlb%b1
+    end if
+    if ( present_qi ) then
+      i0 => xib%b0
+      i1 => xib%b1
+    end if
+    if ( idynamic == 2 ) then
+      pp0 => xppb%b0
+      pp1 => xppb%b1
+      ww0 => xwwb%b0
+      ww1 => xwwb%b1
+    else if ( idynamic == 3 ) then
+      pai0 => xpaib%b0
+      pai1 => xpaib%b1
+      th0 => xthb%b0
+      th1 => xthb%b1
+    end if
     ts0 => xtsb%b0
     ts1 => xtsb%b1
     ps0 => xpsb%b0

@@ -941,8 +941,6 @@ module mod_lm_interface
     lm_swdiralb => lm%swdiralb
     lm_swdifalb => lm%swdifalb
     lm_ncprate => lm%ncprate
-    lm_wetdepflx => lm%wetdepflx
-    lm_drydepflx => lm%drydepflx
     lms_prcp => lms%prcp
     lms_sncv => lms%sncv
     lms_srnof => lms%srnof
@@ -965,13 +963,19 @@ module mod_lm_interface
     lms_sfice => lms%sfice
     lms_sw => lms%sw
 #ifndef CLM
-    lms_lakmsk => lms%lakmsk
-    lms_tlake => lms%tlake
+    if ( lakemod == 1 ) then
+      lms_lakmsk => lms%lakmsk
+      lms_tlake => lms%tlake
+    end if
 #endif
 #ifdef CLM45
     lms_hfso => lms%hfso
     lms_tsoi => lms%tsoi
 #endif
+    if ( ichem == 1 ) then
+      lm_wetdepflx => lm%wetdepflx
+      lm_drydepflx => lm%drydepflx
+    end if
 
     ! Fill accumulators
 
