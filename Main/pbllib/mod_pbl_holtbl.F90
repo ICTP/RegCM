@@ -368,7 +368,7 @@ module mod_pbl_holtbl
         wsc = ustr(j,i)*xfmt
         ! thermal temperature excess
         therm = fak * hfxv(j,i)/wsc
-        vvk = vv(j,i,k) + fak*ustr(j,i)**2
+        vvk = vv(j,i,kz) + fak*ustr(j,i)**2
         ri(kz,j,i) = max(minri,min(maxri, &
                     -egrav*therm * m2p%za(j,i,kz)/(thv10(j,i)*vvk)))
         !$acc loop seq
