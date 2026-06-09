@@ -849,6 +849,7 @@ module mod_atm_stub
                               xt*(xub%bt(j,i,kz) + xub%bt(j+1,i,kz)))
             vatm(j,i) = 0.50_rkx*(xvb%b0(j,i,kz) + xvb%b0(j,i+1,kz) + &
                               xt*(xvb%bt(j,i,kz) + xvb%bt(j,i+1,kz)))
+            zatm(j,i) = zeta(j,i)
           else
             psb = xpsb%b0(j,i) + xt*xpsb%bt(j,i)
             cell = ptop /psb
@@ -862,17 +863,13 @@ module mod_atm_stub
                                   xvb%b0(j,i+1,kz) + xvb%b0(j+1,i+1,kz) + &
                               xt*(xvb%bt(j,i,kz) + xvb%bt(j+1,i,kz) + &
                                   xvb%bt(j,i+1,kz) + xvb%bt(j+1,i+1,kz)))
+            zq = rovg * tatm(j,i) * log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+            zatm(j,i) = d_half*zq
           end if
           qvatm(j,i) = xqb%b0(j,i,kz) + xt*xqb%bt(j,i,kz)
           rho(j,i) = ps(j,i)/(rgas*tatm(j,i))
           thatm(j,i) = tatm(j,i) / (p00/patm(j,i))**rovcp
           tp(j,i) = tatm(j,i) / (ps(j,i)/patm(j,i))**rovcp
-          if ( idynamic == 3 ) then
-            zatm(j,i) = zeta(j,i)
-          else
-            zq = rovg * tatm(j,i) * log((sigma(kzp1)+cell)/(sigma(kz)+cell))
-            zatm(j,i) = d_half*zq
-          end if
         end do
       end do
       xbctime = xbctime + dtsrf

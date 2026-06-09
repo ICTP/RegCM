@@ -486,7 +486,7 @@ module mod_atm_interface
           end do
           ! West boundary
           do i = i1, i2
-            if ( i < igbb1 .or. i > igbt2 ) cycle
+            if ( i <= igbb1 .or. i >= igbt2 ) cycle
             do j = j1, j2
               if ( j >= jgbl1 .and. j <= jgbl2 ) then
                 if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle
@@ -498,7 +498,7 @@ module mod_atm_interface
           end do
           ! East boundary
           do i = i1, i2
-            if ( i < igbb1 .or. i > igbt2 ) cycle
+            if ( i <= igbb1 .or. i >= igbt2 ) cycle
             do j = j1, j2
               if ( j >= jgbr1 .and. j <= jgbr2 ) then
                 if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle

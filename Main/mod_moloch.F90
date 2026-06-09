@@ -48,7 +48,6 @@ module mod_moloch
   real(rkx), pointer, contiguous, dimension(:,:,:) :: s => null( )
   ! nonhydrostatic term in pressure gradient force
   ! tridiagonal inversion
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: wx => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: deltaw => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: tkex => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: wz => null( )
@@ -138,9 +137,6 @@ module mod_moloch
   logical, parameter :: do_vadvtwice    = .true.
   logical, parameter :: do_filterpai    = .false.
   logical, parameter :: do_filtertheta  = .false.
-#ifdef RCEMIP
-  logical, parameter :: do_gkfilter     = .false.
-#endif
   logical, parameter :: do_phys         = .true.
   logical, parameter :: do_convection   = .true.
   logical, parameter :: do_microphysics = .true.
@@ -158,48 +154,6 @@ module mod_moloch
   real(rkx) :: dzita
   integer(ik4) :: jmin, jmax, imin, imax
 
-#ifdef RCEMIP
-  ! real(rkx), parameter :: sigma = 0.5_rkx*sqrt(2.0_rkx)
-  ! do i = -2, 2
-  !   do j = -2, 2
-  !     kern(i+3,j+3) = (d_one/twopi)*exp(-(i*i+j*i)/(d_two*sigma**2))
-  !   end do
-  ! end do
-  ! kern = kern/sum(kern)
-  !real(rkx), parameter, dimension(5,5) :: kern = reshape(&
-  !       [ 1.0678874539336266E-004, 2.1449092885792707E-003, &
-  !         5.8304679428380487E-003, 2.1449092885792707E-003, &
-  !         1.0678874539336266E-004, &
-  !         2.1449092885792707E-003, 4.3081654712647119E-002, &
-  !         0.1171080791453356E-000, 4.3081654712647119E-002, &
-  !         2.1449092885792707E-003, &
-  !         5.8304679428380487E-003, 0.1171080791453356E-000, &
-  !         0.3183327635065094E-000, 0.1171080791453356E-000, &
-  !         5.8304679428380487E-003, &
-  !         2.1449092885792707E-003, 4.3081654712647119E-002, &
-  !         0.1171080791453356E-000, 4.3081654712647119E-002, &
-  !         2.1449092885792707E-003, &
-  !         1.0678874539336266E-004, 2.1449092885792707E-003, &
-  !         5.8304679428380487E-003, 2.1449092885792707E-003, &
-  !         1.0678874539336266E-004 ], [5,5])
-  real(rkx), parameter, dimension(5,5) :: kern = reshape(&
-         [ 1.2477641543232609E-002, 2.6415167354310421E-002, &
-           3.3917746268994867E-002, 2.6415167354310421E-002, &
-           1.2477641543232609E-002, &
-           2.6415167354310421E-002, 5.5920909727901751E-002, &
-           7.1803869414926613E-002, 5.5920909727901751E-002, &
-           2.6415167354310421E-002, &
-           3.3917746268994867E-002, 7.1803869414926613E-002, &
-           9.2197993345293314E-002, 7.1803869414926613E-002, &
-           3.3917746268994867E-002, &
-           2.6415167354310421E-002, 5.5920909727901751E-002, &
-           7.1803869414926613E-002, 5.5920909727901751E-002, &
-           2.6415167354310421E-002, &
-           1.2477641543232609E-002, 2.6415167354310421E-002, &
-           3.3917746268994867E-002, 2.6415167354310421E-002, &
-           1.2477641543232609E-002 ], [5,5])
-#endif
-
   contains
 
 #include <pfwsat.inc>
@@ -212,17 +166,12 @@ module mod_moloch
     call getmem(p3d,jdi1,jdi2,idi1,idi2,1,kz,'moloch:p3d')
     call getmem(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:dw')
     call getmem(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
-#ifdef RCEMIP
-    call getmem(wx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:wx')
-#else
-    call getmem(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
-#endif
     call getmem(zdiv2,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'moloch:zdiv2')
     call getmem(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem(wfw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wfw')
-    call getmem(zpby,jci1,jci2,ici1,ice2ga,1,kz,'moloch:zpby')
-    call getmem(zpbw,jci1,jce2ga,ici1,ici2,1,kz,'moloch:zpbw')
+    call getmem(zpby,jci1,jci2,ici1,ici2+1,1,kz,'moloch:zpby')
+    call getmem(zpbw,jci1,jci2+1,ici1,ici2,1,kz,'moloch:zpbw')
     call getmem(mx2,jde1,jde2,ide1,ide2,'moloch:mx2')
     call getmem(rmu,jde1ga,jde2ga,ide1,ide2,'moloch:rmu')
     call getmem(rmv,jde1,jde2,ide1ga,ide2ga,'moloch:rmv')
@@ -480,9 +429,7 @@ module mod_moloch
     end if
 
     do nadv = 1, mo_nadv
-      if ( do_apply_bdy ) then
-        call apply_bdy(dtstepa)
-      end if
+      call apply_bdy(dtstepa)
       call sound(dtsound)
       call advection(dtstepa)
     end do ! Advection loop
@@ -709,222 +656,6 @@ module mod_moloch
     end if
   end subroutine boundary
 
-#ifdef RCEMIP
-  subroutine gkfilter2d(f,irep)
-    implicit none
-    integer(ik4), intent(in) :: irep
-    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: f
-    real(rkx), allocatable, dimension(:,:) :: temp
-    integer(ik4) :: i, j, n
-
-    call exchange(f,2,jce1,jce2,ice1,ice2)
-    allocate(temp, mold=f)
-    temp(:,:) = f(:,:)
-    do n = 1, irep
-      do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
-        temp(j,i) = kern(1,1)*f(j-2,i-2) + &
-          kern(2,1)*f(j-1,i-2) + kern(3,1)*f(j,  i-2) + &
-          kern(4,1)*f(j+1,i-2) + kern(5,1)*f(j+2,i-2) + &
-          kern(1,2)*f(j-2,i-1) + kern(2,2)*f(j-1,i-1) + &
-          kern(3,2)*f(j,  i-1) + kern(4,2)*f(j+1,i-1) + &
-          kern(5,2)*f(j+2,i-1) + kern(1,3)*f(j-2,i  ) + &
-          kern(2,3)*f(j-1,i  ) + kern(3,3)*f(j,  i  ) + &
-          kern(4,3)*f(j+1,i  ) + kern(5,3)*f(j+2,i  ) + &
-          kern(1,4)*f(j-2,i+1) + kern(2,4)*f(j-1,i+1) + &
-          kern(3,4)*f(j,  i+1) + kern(4,4)*f(j+1,i+1) + &
-          kern(5,4)*f(j+2,i+1) + kern(1,5)*f(j-2,i+2) + &
-          kern(2,5)*f(j-1,i+2) + kern(3,5)*f(j,  i+2) + &
-          kern(4,5)*f(j+1,i+2) + kern(5,5)*f(j+2,i+2)
-      end do
-    end do
-    do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
-      f(j,i) = temp(j,i)
-    end do
-    deallocate(temp)
-  end subroutine gkfilter2d
-
-  subroutine gkfilter3d(f,irep)
-    implicit none
-    integer(ik4), intent(in) :: irep
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: f
-    real(rkx), allocatable, dimension(:,:,:) :: temp
-    integer(ik4) :: i, j, k, n
-
-    call exchange(f,2,jce1,jce2,ice1,ice2,1,kz)
-    allocate(temp, mold=f)
-    temp(:,:,:) = f(:,:,:)
-    do n = 1, irep
-      do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
-        temp(j,i,k) = kern(1,1)*f(j-2,i-2,k) + &
-          kern(2,1)*f(j-1,i-2,k) + kern(3,1)*f(j,  i-2,k) + &
-          kern(4,1)*f(j+1,i-2,k) + kern(5,1)*f(j+2,i-2,k) + &
-          kern(1,2)*f(j-2,i-1,k) + kern(2,2)*f(j-1,i-1,k) + &
-          kern(3,2)*f(j,  i-1,k) + kern(4,2)*f(j+1,i-1,k) + &
-          kern(5,2)*f(j+2,i-1,k) + kern(1,3)*f(j-2,i  ,k) + &
-          kern(2,3)*f(j-1,i  ,k) + kern(3,3)*f(j,  i  ,k) + &
-          kern(4,3)*f(j+1,i  ,k) + kern(5,3)*f(j+2,i  ,k) + &
-          kern(1,4)*f(j-2,i+1,k) + kern(2,4)*f(j-1,i+1,k) + &
-          kern(3,4)*f(j,  i+1,k) + kern(4,4)*f(j+1,i+1,k) + &
-          kern(5,4)*f(j+2,i+1,k) + kern(1,5)*f(j-2,i+2,k) + &
-          kern(2,5)*f(j-1,i+2,k) + kern(3,5)*f(j,  i+2,k) + &
-          kern(4,5)*f(j+1,i+2,k) + kern(5,5)*f(j+2,i+2,k)
-      end do
-    end do
-    do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
-      f(j,i,k) = temp(j,i,k)
-    end do
-    deallocate(temp)
-  end subroutine gkfilter3d
-
-  subroutine gkfilter4d(f,irep)
-    implicit none
-    integer(ik4), intent(in) :: irep
-    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: f
-    real(rkx), allocatable, dimension(:,:,:,:) :: temp
-    integer(ik4) :: i, j, k, n, m
-    call exchange(f,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    allocate(temp, mold=f)
-    temp(:,:,:,:) = f(:,:,:,:)
-    do m = 1, irep
-      do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz, n=1:nqx)
-        temp(j,i,k,n) = kern(1,1)*f(j-2,i-2,k,n) + &
-          kern(2,1)*f(j-1,i-2,k,n) + kern(3,1)*f(j,  i-2,k,n) + &
-          kern(4,1)*f(j+1,i-2,k,n) + kern(5,1)*f(j+2,i-2,k,n) + &
-          kern(1,2)*f(j-2,i-1,k,n) + kern(2,2)*f(j-1,i-1,k,n) + &
-          kern(3,2)*f(j,  i-1,k,n) + kern(4,2)*f(j+1,i-1,k,n) + &
-          kern(5,2)*f(j+2,i-1,k,n) + kern(1,3)*f(j-2,i  ,k,n) + &
-          kern(2,3)*f(j-1,i  ,k,n) + kern(3,3)*f(j,  i  ,k,n) + &
-          kern(4,3)*f(j+1,i  ,k,n) + kern(5,3)*f(j+2,i  ,k,n) + &
-          kern(1,4)*f(j-2,i+1,k,n) + kern(2,4)*f(j-1,i+1,k,n) + &
-          kern(3,4)*f(j,  i+1,k,n) + kern(4,4)*f(j+1,i+1,k,n) + &
-          kern(5,4)*f(j+2,i+1,k,n) + kern(1,5)*f(j-2,i+2,k,n) + &
-          kern(2,5)*f(j-1,i+2,k,n) + kern(3,5)*f(j,  i+2,k,n) + &
-          kern(4,5)*f(j+1,i+2,k,n) + kern(5,5)*f(j+2,i+2,k,n)
-      end do
-    end do
-    do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz, n=1:nqx)
-      f(j,i,k,n) = temp(j,i,k,n)
-    end do
-    deallocate(temp)
-  end subroutine gkfilter4d
-
-  subroutine gkfilteruv(u,v,irep)
-    implicit none
-    integer(ik4), intent(in) :: irep
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
-    real(rkx), allocatable, dimension(:,:,:) :: temp
-    integer(ik4) :: i, j, k, n
-
-    call exchange(u,2,jce1,jce2,ice1,ice2,1,kz)
-    allocate(temp, mold=u)
-    temp(:,:,:) = u(:,:,:)
-    do n = 1, irep
-      do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        temp(j,i,k) = kern(1,1)*u(j-2,i-2,k) + &
-          kern(2,1)*u(j-1,i-2,k) + kern(3,1)*u(j,  i-2,k) + &
-          kern(4,1)*u(j+1,i-2,k) + kern(5,1)*u(j+2,i-2,k) + &
-          kern(1,2)*u(j-2,i-1,k) + kern(2,2)*u(j-1,i-1,k) + &
-          kern(3,2)*u(j,  i-1,k) + kern(4,2)*u(j+1,i-1,k) + &
-          kern(5,2)*u(j+2,i-1,k) + kern(1,3)*u(j-2,i  ,k) + &
-          kern(2,3)*u(j-1,i  ,k) + kern(3,3)*u(j,  i  ,k) + &
-          kern(4,3)*u(j+1,i  ,k) + kern(5,3)*u(j+2,i  ,k) + &
-          kern(1,4)*u(j-2,i+1,k) + kern(2,4)*u(j-1,i+1,k) + &
-          kern(3,4)*u(j,  i+1,k) + kern(4,4)*u(j+1,i+1,k) + &
-          kern(5,4)*u(j+2,i+1,k) + kern(1,5)*u(j-2,i+2,k) + &
-          kern(2,5)*u(j-1,i+2,k) + kern(3,5)*u(j,  i+2,k) + &
-          kern(4,5)*u(j+1,i+2,k) + kern(5,5)*u(j+2,i+2,k)
-      end do
-    end do
-    do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      u(j,i,k) = temp(j,i,k)
-    end do
-    deallocate(temp)
-    call exchange(v,2,jce1,jce2,ice1,ice2,1,kz)
-    allocate(temp, mold=v)
-    temp(:,:,:) = v(:,:,:)
-    do n = 1, irep
-      do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        temp(j,i,k) = kern(1,1)*v(j-2,i-2,k) + &
-          kern(2,1)*v(j-1,i-2,k) + kern(3,1)*v(j,  i-2,k) + &
-          kern(4,1)*v(j+1,i-2,k) + kern(5,1)*v(j+2,i-2,k) + &
-          kern(1,2)*v(j-2,i-1,k) + kern(2,2)*v(j-1,i-1,k) + &
-          kern(3,2)*v(j,  i-1,k) + kern(4,2)*v(j+1,i-1,k) + &
-          kern(5,2)*v(j+2,i-1,k) + kern(1,3)*v(j-2,i  ,k) + &
-          kern(2,3)*v(j-1,i  ,k) + kern(3,3)*v(j,  i  ,k) + &
-          kern(4,3)*v(j+1,i  ,k) + kern(5,3)*v(j+2,i  ,k) + &
-          kern(1,4)*v(j-2,i+1,k) + kern(2,4)*v(j-1,i+1,k) + &
-          kern(3,4)*v(j,  i+1,k) + kern(4,4)*v(j+1,i+1,k) + &
-          kern(5,4)*v(j+2,i+1,k) + kern(1,5)*v(j-2,i+2,k) + &
-          kern(2,5)*v(j-1,i+2,k) + kern(3,5)*v(j,  i+2,k) + &
-          kern(4,5)*v(j+1,i+2,k) + kern(5,5)*v(j+2,i+2,k)
-      end do
-    end do
-    do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      v(j,i,k) = temp(j,i,k)
-    end do
-    deallocate(temp)
-  end subroutine gkfilteruv
-
-  subroutine filt3d(p,nu)
-    implicit none
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: p
-    real(rkx), intent(in) :: nu
-    integer(ik4) :: j, i, k
-
-    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
-      p3d(j,i,k) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
-                                p(j,i-1,k) + p(j,i+1,k)) - &
-                   0.5_rkx * p(j,i,k)
-    end do
-    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
-      p(j,i,k) = p(j,i,k) + nu * p3d(j,i,k)
-    end do
-  end subroutine filt3d
-
-  subroutine filtuv(u,v,nu)
-    implicit none
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: u, v
-    real(rkx), intent(in) :: nu
-    integer(ik4) :: j, i, k
-
-    do concurrent ( j = jdii1:jdii2, i = icii1:icii2, k = 1:kz )
-      p3d(j,i,k) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
-                                u(j,i-1,k) + u(j,i+1,k)) - &
-                   0.5_rkx * u(j,i,k)
-    end do
-    do concurrent ( j = jdii1:jdii2, i = icii1:icii2, k = 1:kz )
-      u(j,i,k) = u(j,i,k) + nu * p3d(j,i,k)
-    end do
-    do concurrent ( j = jcii1:jcii2, i = idii1:idii2, k = 1:kz )
-      p3d(j,i,k) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
-                                v(j,i-1,k) + v(j,i+1,k)) - &
-                   0.5_rkx * v(j,i,k)
-    end do
-    do concurrent ( j = jcii1:jcii2, i = idii1:idii2, k = 1:kz )
-      v(j,i,k) = v(j,i,k) + nu * p3d(j,i,k)
-    end do
-  end subroutine filtuv
-
-  subroutine filt4d(p,nu,n1,n2)
-    implicit none
-    real(rkx), pointer, contiguous, dimension(:,:,:,:), intent(inout) :: p
-    real(rkx), intent(in) :: nu
-    integer(ik4), intent(in) :: n1, n2
-    integer(ik4) :: j, i, k, n
-
-    do n = n1, n2
-      do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
-        p3d(j,i,k) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
-                                  p(j,i-1,k,n) + p(j,i+1,k,n)) - &
-                     0.5_rkx * p(j,i,k,n)
-      end do
-      do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
-        p(j,i,k,n) = p(j,i,k,n) + nu * p3d(j,i,k)
-      end do
-    end do
-  end subroutine filt4d
-#endif
-
   subroutine divergence_filter( )
     implicit none
     integer(ik4) :: j, i, k
@@ -1061,8 +792,8 @@ module mod_moloch
       end if
 
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
-                   dtrdz * (s(j,i,k) - s(j,i,k+1))
+        zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
+                  (s(j,i,k) - s(j,i,k+1))
       end do
 
       ! new w (implicit scheme) from Equation 19
@@ -1222,6 +953,7 @@ module mod_moloch
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       s(j,i,1) = d_zero
       s(j,i,kzp1) = d_zero
+      w(j,i,kzp1) = w(j,i,kz)
     end do
     !@acc call nvtxEndRange
   end subroutine sound
@@ -1277,9 +1009,7 @@ module mod_moloch
     ! Compute U,V on cross points
     call uvstagtox(u,v,ux,vx)
 
-    ! Compute W (and TKE if required) on zita levels
-    call wstagtox(w,wx)
-
+    ! Compute TKE if required on zita levels
     if ( ibltyp == 2 ) then
       call wstagtox(tke,tkex)
     end if
@@ -1288,7 +1018,6 @@ module mod_moloch
     call wafone(pai,dta)
     call wafone(ux,dta)
     call wafone(vx,dta)
-    call wafone(wx,dta)
 
     call wafone(qv,dta)
     if ( ipptls > 0 ) then
@@ -1307,18 +1036,11 @@ module mod_moloch
       end do
     end if
 
-#ifdef RCEMIP
-    if ( do_gkfilter ) then
-      call gkfilteruv(ux,vx,1)
-      call gkfilter3d(wx,1)
-    end if
-#endif
     ! Interpolate on staggered points
     call xtouvstag(ux,vx,u,v)
 
-    ! Back to half-levels
-    call xtowstag(wx,w)
     if ( ibltyp == 2 ) then
+      ! Back to half-levels
       call xtowstag(tkex,tke)
     end if
     !@acc call nvtxEndRange
@@ -1430,7 +1152,7 @@ module mod_moloch
     if ( lrotllr ) then
 
       ! Meridional advection
-      do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
         zamu = v(j,i,k) * dtrdy
         if ( zamu > d_zero ) then
           is = d_one
@@ -1474,7 +1196,7 @@ module mod_moloch
 
       ! Zonal advection
 
-      do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
         zamu = u(j,i,k) * mu(j,i) * dtrdx
         if ( zamu > d_zero ) then
           is = d_one
@@ -1505,7 +1227,7 @@ module mod_moloch
 
       ! Meridional advection
 
-      do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
         zamu = v(j,i,k) * rmv(j,i) * dtrdy
         if ( zamu > d_zero ) then
           is = d_one
@@ -1548,7 +1270,7 @@ module mod_moloch
 
       ! Zonal advection
 
-      do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
         zamu = u(j,i,k) * rmu(j,i) * dtrdx
         if ( zamu > d_zero ) then
           is = d_one
@@ -1941,34 +1663,14 @@ module mod_moloch
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: wx
     integer(ik4) :: i, j, k
 
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kzm1 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kzm1 )
       wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
                   0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       wx(j,i,1)  = 0.5_rkx * (w(j,i,2)+w(j,i,1))
       wx(j,i,kz) = 0.5_rkx * (w(j,i,kzp1)+w(j,i,kz))
     end do
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        wx(jce1,i,k) = wx(jci1,i,k)
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        wx(jce2,i,k) = wx(jci2,i,k)
-      end do
-    end if
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        wx(j,ice1,k) = wx(j,ici1,k)
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        wx(j,ice2,k) = wx(j,ici2,k)
-      end do
-    end if
   end subroutine wstagtox
 
   subroutine xtowstag(wx,w)

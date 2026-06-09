@@ -263,7 +263,8 @@ module mod_diffusion
   subroutine diffu_d(uten,vten,u,v)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten, vten
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vten
     integer(ik4) :: i, j, k
     integer(ik4) :: im1, im2, im3
     integer(ik4) :: jm1, jm2, jm3

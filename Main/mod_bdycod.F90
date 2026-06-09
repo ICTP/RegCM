@@ -482,7 +482,7 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.33333_rkx/dtsec
+          fnudge = 0.3_rkx/dt2
         else
           fnudge = 0.1_rkx/dt2
         end if
@@ -492,7 +492,7 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          gnudge = 0.07777_rkx/dtsec
+          gnudge = 0.09_rkx/dt2
         else
           gnudge = 0.02_rkx/dt2
         end if
@@ -1015,13 +1015,34 @@ module mod_bdycod
     logical :: prefetched
 #endif
     type (rcm_time_interval) :: tdif
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: u0, u1, v0, v1, &
-      t0, t1, q0, q1, th0, th1, l0, l1, i0, i1, pp0, pp1, ww0, ww1, pai0, pai1
-    real(rkx), pointer, contiguous, dimension(:,:) :: ts0, ts1, ps0, ps1
-    integer(ik4), pointer, contiguous, dimension(:,:) :: dom_ldmsk
-    integer(ik4), pointer, contiguous, dimension(:,:,:) :: sub_ldmsk
-    real(rkx), pointer, contiguous, dimension(:,:) :: dom_lndcat
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: sfice
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: u0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: u1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: v0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: v1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: t0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: t1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: q0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: q1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: th0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: th1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: l0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: l1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: i0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: i1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: pp0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: pp1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: ww0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: ww1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: pai0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: pai1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: ts0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: ts1 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: ps0 => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: ps1 => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:) :: dom_ldmsk => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: sub_ldmsk => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: dom_lndcat => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: sfice => null( )
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
     integer(ik4), save :: idindx = 0
