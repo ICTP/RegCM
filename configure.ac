@@ -575,7 +575,7 @@ if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
   if eval "test x$DEBUG = x1"; then
     OMPFLAGS=""
   else
-    OMPFLAGS="-qopenmp"
+    OMPFLAGS="-fiopenmp -fno-openmp-target-do-concurrent"
   fi
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
            -heap-arrays -qopt-report -fPIC"
