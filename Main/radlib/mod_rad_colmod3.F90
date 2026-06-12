@@ -218,7 +218,7 @@ module mod_rad_colmod3
     real(rk8) :: totci_l, totcl_l, totwv_l
     real(rk8) :: nc, aerc, lwc, kparam
     real(rk8) :: kabs, kabsi, kabsl, cldemis, arg
-    real(rk8) :: iwc, tempc, tcels, fsr, aiwc, biwc, desr
+    real(rk8) :: iwc, tempc, tcels, fsr, aiwc, biwc, desr, pnrml, weight
     !real(rk8) :: tpara
     real(rk8), parameter :: minus20 = 253.15_rk8
 #ifdef DEBUG
@@ -365,21 +365,21 @@ module mod_rad_colmod3
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
-    !
-    ! NB: orography types are specified in the following
-    !
+      !
+      ! NB: orography types are specified in the following
+      !
       rt%ioro(n) = m2r%ldmsk(j,i)
-    !
-    ! Copy data from atmosphere, compute cloud particle size and
-    ! fraction of ice and LW emissivity
-    !
-    ! Static informations
-    !
+      !
+      ! Copy data from atmosphere, compute cloud particle size and
+      ! fraction of ice and LW emissivity
+      !
+      ! Static informations
+      !
       rt%dlat(n) = m2r%xlat(j,i)
       rt%xptrop(n) = m2r%ptrop(j,i)
-    !
-    ! Albedoes and surface emissivity
-    !
+      !
+      ! Albedoes and surface emissivity
+      !
       rt%emiss(n)  = m2r%emiss(j,i)
       rt%adirsw(n) = m2r%aldirs(j,i)
       rt%adifsw(n) = m2r%aldifs(j,i)
@@ -387,9 +387,9 @@ module mod_rad_colmod3
       rt%adiflw(n) = m2r%aldifl(j,i)
       rt%asw(n)    = m2r%albvs(j,i)
       rt%alw(n)    = m2r%albvl(j,i)
-    !
-    ! Sun elevation
-    !
+      !
+      ! Sun elevation
+      !
       rt%czen(n) = m2r%coszrs(j,i)
     end do
     do concurrent ( n = rt%n1:rt%n2 )
@@ -491,28 +491,26 @@ module mod_rad_colmod3
     !
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
-      ! Convert liquid water content into liquid water path
-      rt%clwp(k,n) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
       ! O3 mass and volume mixing ratios
       rt%o3vmr(k,n) = 0.5_rk8*(o3prof(j,i,k+1)+o3prof(j,i,k))*(amd/amo3)
+      ! Convert liquid water content into liquid water path
+      rt%clwp(k,n) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
       ! Set a minimum clwp in the cloud of of 0.01 mm
       if ( rt%clwp(k,n) > 0.01_rk8 ) then
-        temp(k,n) = max(m2r%cldfrc(j,i,k),0.01_rkx)
+        temp(k,n) = m2r%cldfrc(j,i,k)
       else
         rt%clwp(k,n) = 0.0_rk8
         temp(k,n) = 0.0_rk8
       end if
     end do
     do concurrent ( n = rt%n1:rt%n2 )
-      rt%cld(kzp1,n) = min(temp(kz,n), cftotmax)
+      rt%cld(1,n) = 0.0_rk8
+      rt%cld(kzp1,n) = 0.0_rk8
     end do
     do concurrent( k = 2:kz, n = rt%n1:rt%n2 )
       ! Use Maximum Random Overlap assumption
       rt%cld(k,n) = min((temp(k-1,n)+temp(k,n)) - &
                         (temp(k-1,n)*temp(k,n)), cftotmax)
-    end do
-    do concurrent ( n = rt%n1:rt%n2 )
-      rt%cld(1,n) = 0.0_rk8
     end do
     if ( ncld > 0 ) then
       do concurrent ( k = kzp1-ncld:kzp1,  n = rt%n1:rt%n2 )
@@ -537,7 +535,7 @@ module mod_rad_colmod3
     if ( ichem == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, itr = 1:ntr )
         n = (j-jci1)+(i-ici1)*nj+1
-        aermmr(n,k,itr) = max(m2r%chiatms(j,i,k,itr),0.0_rkx)
+        aermmr(n,k,itr) = max(m2r%chiatms(j,i,k,itr),0.0_rk8)
       end do
     end if
     !
@@ -576,12 +574,13 @@ module mod_rad_colmod3
       ! g/m3, already account for cum and ls clouds
       if ( temp(k,n) > lowcld ) then
         lwc = (rt%ql(k,n)*rt%rho(k,n)*1000.0_rk8)/temp(k,n)
+        weight = max(0.0_rk8,min(lwc/8.5_rk8,1.0))
         if ( rt%ioro(n) == 1 ) then
           ! Effective liquid radius over land
-          rt%rel(k,n) = min(4.0_rk8 + 7.0_rk8*lwc,15.0_rk8)
+          rt%rel(k,n) = 4.0_rk8 + 7.0_rk8*weight
         else
           ! Effective liquid radius over ocean and sea ice
-          rt%rel(k,n) = min(5.5_rk8 + 9.5_rk8*lwc,18.0_rk8)
+          rt%rel(k,n) = 12.0_rk8 + 8.0_rk8*weight
         end if
         !
         ! Stengel, Fokke Meirink, Eliasson (2023)
@@ -595,9 +594,9 @@ module mod_rad_colmod3
         aiwc = 45.8966_rk8 * iwc**0.2214_rk8
         biwc = 0.7957_rk8 * iwc**0.2535_rk8
         desr = fsr*(aiwc+biwc*tempc)
-        desr = max(30.0_rk8,min(155.0_rk8,desr))
-        ! rei : ice effective drop size (microns)
-        rt%rei(k,n) = 0.64952_rk8*desr
+        desr = max(15.0_rk8,min(105.0_rk8,desr))
+        weight = max(0.0_rk8,min(iwc/5.0_rk8,1.0))
+        rt%rei(k,n) = 8.0_rk8 + weight * 0.64952_rk8*desr
       else
         ! filler for no clouds
         rt%rel(k,n) = 8.5_rk8

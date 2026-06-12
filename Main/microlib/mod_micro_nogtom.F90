@@ -221,12 +221,10 @@ module mod_micro_nogtom
   real(rkx), parameter :: onecf  = 0.99_rkx
 
 #ifdef SINGLE_PRECISION_REAL
-  real(rkx), parameter :: verylowqx = 1.0e-10_rkx
   real(rkx), parameter :: activqx = 1.0e-7_rkx
   ! initial mass of ice particle
   real(rkx), parameter :: iceinit = 1.e-9_rkx
 #else
-  real(rkx), parameter :: verylowqx = 1.0e-20_rkx
   real(rkx), parameter :: activqx = 1.0e-12_rkx
   ! initial mass of ice particle
   real(rkx), parameter :: iceinit = 1.e-12_rkx
@@ -834,13 +832,13 @@ module mod_micro_nogtom
           ! Evaporate very small amounts of liquid and ice
           !------------------------------------------------
 
-          if ( qx0(iqql) < verylowqx ) then
+          if ( qx0(iqql) < activqx ) then
             qsexp(iqqv,iqql) = qsexp(iqqv,iqql) + qx0(iqql)
             qsexp(iqql,iqqv) = qsexp(iqql,iqqv) - qx0(iqql)
             qxfg(iqql) = qxfg(iqql) - qx0(iqql)
             qxfg(iqqv) = qxfg(iqqv) + qx0(iqql)
           end if
-          if ( qx0(iqqi) < verylowqx ) then
+          if ( qx0(iqqi) < activqx ) then
             qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) + qx0(iqqi)
             qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) - qx0(iqqi)
             qxfg(iqqi) = qxfg(iqqi) - qx0(iqqi)

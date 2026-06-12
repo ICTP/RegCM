@@ -167,11 +167,11 @@ module mod_init
         call psc2psd(sfs%psb,sfs%psdotb)
         call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
       else
-        do concurrent ( j = jce1:jce2, i = ide1:ide2, k = 1:kz )
-          mo_atm%v(j,i,k) = xvb%b0(j,i,k)
-        end do
         do concurrent ( j = jde1:jde2, i = ice1:ice2, k = 1:kz )
           mo_atm%u(j,i,k) = xub%b0(j,i,k)
+        end do
+        do concurrent ( j = jce1:jce2, i = ide1:ide2, k = 1:kz )
+          mo_atm%v(j,i,k) = xvb%b0(j,i,k)
         end do
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%t(j,i,k) = xtb%b0(j,i,k)

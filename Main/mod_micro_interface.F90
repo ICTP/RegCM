@@ -48,9 +48,8 @@ module mod_micro_interface
   type(mod_2_micro) :: mo2mc
   type(micro_2_mod) :: mc2mo
 
-  real(rkx), pointer, contiguous, dimension(:,:) :: rh0 => null( )
-  real(rkx), pointer, contiguous, dimension(:,:) :: qtcrit => null( )
   ! rh0adj - Adjusted relative humidity threshold
+  real(rkx), pointer, contiguous, dimension(:,:) :: rh0 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: totc => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rh0adj => null( )
 
@@ -59,9 +58,7 @@ module mod_micro_interface
   real(rkx), parameter :: xchi = nchi-1
   real(rkx), parameter :: rchi = 1.0_rkx/xchi
 
-  logical, parameter :: do_cfscaling = .true.
-  real(rkx), parameter :: qccrit_lnd = 1.0e-9_rkx
-  real(rkx), parameter :: qccrit_oce = 5.0e-9_rkx
+  logical, parameter :: do_cfscaling = .false.
 
   public :: qck1, cgul, rh0, cevap, xcevap, caccr
 
@@ -122,7 +119,6 @@ module mod_micro_interface
       call allocate_mod_wdm7
     end if
     call getmem(rh0,jci1,jci2,ici1,ici2,'micro:rh0')
-    call getmem(qtcrit,jci1,jci2,ici1,ici2,'micro:qtcrit')
     call getmem(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
     do i = 1, nchi
       cf = real(i-1,rkx)*rchi
@@ -260,20 +256,16 @@ module mod_micro_interface
       end do
     end if
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      totc(j,i,k) = totc(j,i,k)/(d_one+totc(j,i,k))
-    end do
-
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      qtcrit(j,i) = mo2mc%ldmsk(j,i)*qccrit_lnd - &
-                   (mo2mc%ldmsk(j,i)-1)*qccrit_oce
+      ! Limit of moisture detected by satellite is 0.005 g/kg
+      if ( totc(j,i,k) < 5.0e-6_rkx ) totc(j,i,k) = 0.0_rkx
     end do
 
     select case ( icldfrac )
       case (0)
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           totc,mo2mc%rh,tc0,rh0,qtcrit,mc2mo%fcc)
+                           totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
       case (1)
-        call xuran_cldfrac(totc,mo2mc%qs,mo2mc%rh,qtcrit,mc2mo%fcc)
+        call xuran_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (2)
         call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%qvn,totc, &
                            mo2mc%qsn,mo2mc%qin,mo2mc%ldmsk,  &
@@ -281,14 +273,11 @@ module mod_micro_interface
       case (3)
         call gulisa_cldfrac(totc,mo2mc%z,mc2mo%fcc)
       case (4)
-        call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,rh0, &
-                             qtcrit,mc2mo%fcc)
+        call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,rh0,mc2mo%fcc)
       case (5)
-        call tompkins_cldfrac(mo2mc%rh,totc,mo2mc%phs,mo2mc%ps2, &
-                              qtcrit,mc2mo%fcc)
+        call tompkins_cldfrac(mo2mc%rh,totc,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case (6)
-        call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2, &
-                            qtcrit,mc2mo%fcc)
+        call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case (7)
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           if ( totc(j,i,k) * mo2mc%delz(j,i,k) > 1.0e-2_rkx ) then
@@ -310,6 +299,12 @@ module mod_micro_interface
                         max((d_one-mc2mo%fcc(j,i,k)),1.0e-5_rkx)**2
       end do
     end if
+
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      ! Transform in g/m^3
+      ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+      totc(j,i,k) = totc(j,i,k) * 1000.0_rkx * mo2mc%rho(j,i,k)
+    end do
 
     !------------------------------------------
     ! 1a. Determine Marine stratocumulus clouds
@@ -376,9 +371,8 @@ module mod_micro_interface
 #endif
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
           conv_exlwc = clwfromt(mo2mc%t(j,i,k))
-          exlwc = conv_exlwc*cldfra(j,i,k) + ls_exlwc
+          exlwc = conv_exlwc*cldfra(j,i,k) + totc(j,i,k)
           ! get overlap of clouds
           cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
           if ( cldfra(j,i,k) > lowcld ) then
@@ -407,9 +401,8 @@ module mod_micro_interface
           cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
           if ( cldfra(j,i,k) > lowcld ) then
-            exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
             ! NOTE : IN CLOUD HERE IS NEEDED !!!
-            exlwc = exlwc/cldfra(j,i,k)
+            exlwc = totc(j,i,k)/cldfra(j,i,k)
             ! Scaling for CF
             ! Implements CF scaling as in Liang GRL 32, 2005
             ! doi: 10.1029/2004GL022301

@@ -32,11 +32,10 @@ module mod_cloud_xuran
   ! This subroutine computes the fractional cloud fraction
   ! using the semi-empirical formula of Xu and Randall (1996, JAS)
   !
-  subroutine xuran_cldfrac(qc,qs,rh,qcrit,fcc)
+  subroutine xuran_cldfrac(qc,qs,rh,fcc)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: rh
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qc, qs
-    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: qcrit
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
     integer(ik4) :: i, j, k
     real(rkx), parameter :: parm_p = 0.25_rkx
@@ -49,19 +48,15 @@ module mod_cloud_xuran
     !-----------------------------------------
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      if ( qc(j,i,k) > qcrit(j,i) ) then
-        qcld = qc(j,i,k)
-        rhrng = max(0.0_rkx,min(1.0_rkx,rh(j,i,k)))
-        if ( rhrng > 0.99999 ) then
-          fcc(j,i,k) = d_one
-        else
-          botm = rhrng ** parm_p
-          rm = -min((parm_alpha0 * qcld) / &
-            ((d_one-rhrng)*qs(j,i,k))**parm_gamma,25.0_rkx)
-          fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
-        end if
+      qcld = qc(j,i,k)
+      rhrng = max(0.0_rkx,min(1.0_rkx,rh(j,i,k)))
+      if ( rhrng > 0.99999 ) then
+        fcc(j,i,k) = d_one
       else
-        fcc(j,i,k) = d_zero
+        botm = rhrng ** parm_p
+        rm = -min((parm_alpha0 * qcld) / &
+          ((d_one-rhrng)*qs(j,i,k))**parm_gamma,25.0_rkx)
+        fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
       end if
     end do
 

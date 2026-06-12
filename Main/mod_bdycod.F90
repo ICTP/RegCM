@@ -89,6 +89,7 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:) :: gcx => null( )
   real(rkx), pointer, contiguous, dimension(:) :: fcd => null( )
   real(rkx), pointer, contiguous, dimension(:) :: gcd => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: xdamp => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: hefc => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: hegc => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: hefd => null( )
@@ -109,6 +110,9 @@ module mod_bdycod
     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
       1.0e8_rkx, 10.0_rkx, 0.01_rkx ]        ! ncc, nc, nr
+
+  real(rkx), parameter :: xfac = 0.01_rkx
+  integer(ik4), parameter :: mo_sponge = 3
 
   interface timeint
     module procedure timeint2, timeint3
@@ -237,10 +241,12 @@ module mod_bdycod
       call intz1(ti,t,pi,p,ht,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
       call intz1(qi,r,pi,p,ht,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
       do k = 1, kz
+        !$acc kernels
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
         xtb%b0(:,:,k) = ti(k)
         xqb%b0(:,:,k) = qi(k)
+        !$acc end kernels
       end do
     else if ( idynamic == 2 ) then
       ! vertical interpolation for xub%b0,xvb%b0,xtb%b0,xqb%b0
@@ -252,10 +258,12 @@ module mod_bdycod
       call intz1(ti,t,zi,g,ht,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
       call intz1(qi,r,zi,g,ht,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
       do k = 1, kz
+        !$acc kernels
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
         xtb%b0(:,:,k) = ti(k)
         xqb%b0(:,:,k) = qi(k)
+        !$acc end kernels
       end do
       xppb%b0 = 0.0_rkx
       xwwb%b0 = 0.0_rkx
@@ -269,10 +277,12 @@ module mod_bdycod
       call intz1(ti,t,zi,g,ht,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
       call intz1(qi,r,zi,g,ht,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
       do k = 1, kz
+        !$acc kernels
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
         xtb%b0(:,:,k) = ti(k)
         xqb%b0(:,:,k) = qi(k)
+        !$acc end kernels
       end do
       call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       !$acc kernels
@@ -360,20 +370,28 @@ module mod_bdycod
     xtsb%b0 = ts
     qi = qi/(1.0_rkx-qi)
     do k = 1, kz
+      !$acc kernels
       xub%b0(:,:,k) = 0.0_rkx
       xvb%b0(:,:,k) = 0.0_rkx
       xtb%b0(:,:,k) = ti(k)
       xqb%b0(:,:,k) = qi(k)
+      !$acc end kernels
     end do
 
     if ( idynamic == 1 ) then
-      xpsb%b0 = ps * 0.001_rkx
+      !$acc kernels
+      xpsb%b0(:,:) = ps * 0.001_rkx
+      !$acc end kernels
     else if ( idynamic == 2 ) then
-      xpsb%b0 = ps * 0.001_rkx
-      xppb%b0 = 0.0_rkx
-      xwwb%b0 = 0.0_rkx
+      !$acc kernels
+      xpsb%b0(:,:) = ps * 0.001_rkx
+      xppb%b0(:,:,:) = 0.0_rkx
+      xwwb%b0(:,:,:) = 0.0_rkx
+      !$acc end kernels
     else if ( idynamic == 3 ) then
-      xpsb%b0 = ps
+      !$acc kernels
+      xpsb%b0(:,:) = ps
+      !$acc end kernels
       call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       !$acc kernels
       xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
@@ -451,7 +469,9 @@ module mod_bdycod
     end if
     call getmem(fg1,jde1ga,jde2ga,ide1ga,ide2ga,1,kzp1,'bdycon:fg1')
     call getmem(fg2,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:fg2')
-
+    if ( idynamic == 3 ) then
+      call getmem(xdamp,1,kz,'bdycon:xdamp')
+    end if
   end subroutine allocate_mod_bdycon
 
   subroutine setup_bdycon
@@ -482,7 +502,7 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.3_rkx/dt2
+          fnudge = 0.1_rkx/dtsec
         else
           fnudge = 0.1_rkx/dt2
         end if
@@ -492,7 +512,7 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          gnudge = 0.09_rkx/dt2
+          gnudge = 0.02_rkx/dtsec
         else
           gnudge = 0.02_rkx/dt2
         end if
@@ -558,6 +578,11 @@ module mod_bdycod
           hefd(n,k) = fnudge*xfun
           hegd(n,k) = gnudge*xfun
         end do
+      end do
+    end if
+    if ( idynamic == 3 ) then
+      do k = 1, kz
+        xdamp(k) = 1.0_rkx / ( 1.0_rkx + xfac*dt*hsigma(k)**2 )
       end do
     end if
 #ifdef DEBUG
@@ -685,15 +710,21 @@ module mod_bdycod
     end if
 
     if ( idynamic == 1 ) then
+      !$acc kernels
       xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
+      !$acc end kernels
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b0,psdot)
     else if ( idynamic == 2 ) then
+      !$acc kernels
       xpsb%b0(:,:) = atm0%ps(:,:) * d_r1000 ! Cb
       psdot(:,:) = atm0%psdot(jde1:jde2,ide1:ide2) * d_r1000
       xpsb%b1(:,:) = xpsb%b0(:,:)
+      !$acc end kernels
     else
+      !$acc kernels
       xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
+      !$acc end kernels
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
     end if
     !
@@ -803,11 +834,15 @@ module mod_bdycod
     ! Repeat for T2
     !
     if ( idynamic == 1 ) then
+      !$acc kernels
       xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+      !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
     else if ( idynamic == 3 ) then
+      !$acc kernels
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
+      !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
     end if
     !
@@ -941,7 +976,8 @@ module mod_bdycod
       xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
       xthb%b1(:,:,:) = (xtb%b1(:,:,:)*(d_one+ep1*xqb%b1(:,:,:)))/xpaib%b1(:,:,:)
       !$acc end kernels
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt, &
+                   jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
       call timeint(xthb%b1,xthb%b0,xthb%bt, &
@@ -1578,7 +1614,7 @@ module mod_bdycod
     implicit none
     integer(ik4) :: i, j, k, n
     real(rkx) :: qext, qint, qxint, qrat, windavg, tkeint
-    real(rkx) :: xt
+    real(rkx) :: xt, xbdy
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyval'
     integer(ik4), save :: idindx = 0
@@ -1869,6 +1905,14 @@ module mod_bdycod
             mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
           end do
         end if
+        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:mo_sponge )
+          xbdy = xub%b0(j,i,k) + xt*xub%bt(j,i,k)
+          mo_atm%u(j,i,k) = xbdy + (mo_atm%u(j,i,k) - xbdy) * xdamp(k)
+        end do
+        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:mo_sponge )
+          xbdy = xvb%b0(j,i,k) + xt*xvb%bt(j,i,k)
+          mo_atm%v(j,i,k) = xbdy + (mo_atm%v(j,i,k) - xbdy) * xdamp(k)
+        end do
       else
         if ( ma%has_bdyleft ) then
           do concurrent ( i = idi1:idi2, k = 1:kz )
@@ -1912,8 +1956,8 @@ module mod_bdycod
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k)
             mo_atm%tetav(jce1,i,k) = xthb%b0(jce1,i,k)
-            mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
             mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k)
+            mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
           end do
           if ( present_qc ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -1930,8 +1974,8 @@ module mod_bdycod
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k)
             mo_atm%tetav(jce2,i,k) = xthb%b0(jce2,i,k)
-            mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
             mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k)
+            mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
           end do
           if ( present_qc ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -1948,8 +1992,8 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k)
             mo_atm%tetav(j,ice1,k) = xthb%b0(j,ice1,k)
-            mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
             mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k)
+            mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
           end do
           if ( present_qc ) then
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -1966,8 +2010,8 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k)
             mo_atm%tetav(j,ice2,k) = xthb%b0(j,ice2,k)
-            mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
             mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k)
+            mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
           end do
           if ( present_qc ) then
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2087,8 +2131,8 @@ module mod_bdycod
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
             mo_atm%tetav(jce1,i,k) = xthb%b0(jce1,i,k) + xt*xthb%bt(jce1,i,k)
-            mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
             mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k) + xt*xpaib%bt(jce1,i,k)
+            mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
           end do
           if ( present_qc ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2105,8 +2149,8 @@ module mod_bdycod
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
             mo_atm%tetav(jce2,i,k) = xthb%b0(jce2,i,k) + xt*xthb%bt(jce2,i,k)
-            mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
             mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k) + xt*xpaib%bt(jce2,i,k)
+            mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
           end do
           if ( present_qc ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -2123,8 +2167,8 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
             mo_atm%tetav(j,ice1,k) = xthb%b0(j,ice1,k) + xt*xthb%bt(j,ice1,k)
-            mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
             mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k) + xt*xpaib%bt(j,ice1,k)
+            mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
           end do
           if ( present_qc ) then
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2141,8 +2185,8 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
             mo_atm%tetav(j,ice2,k) = xthb%b0(j,ice2,k) + xt*xthb%bt(j,ice2,k)
-            mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
             mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k) + xt*xpaib%bt(j,ice2,k)
+            mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
           end do
           if ( present_qc ) then
             do concurrent ( j = jce1:jce2, k = 1:kz )
@@ -2659,16 +2703,24 @@ module mod_bdycod
       if ( idynamic == 3 ) then
         if ( rcmtimer%start( ) ) then
           if ( ma%has_bdyleft ) then
-            mo_atm%tke(jce1,:,:) = tkemin ! East boundary
+            do concurrent ( i = ice1:ice2, k = 1:kzp1 )
+              mo_atm%tke(jce1,i,k) = tkemin ! East boundary
+            end do
           end if
           if ( ma%has_bdyright ) then
-            mo_atm%tke(jce2,:,:) = tkemin ! West boundary
+            do concurrent ( i = ice1:ice2, k = 1:kzp1 )
+              mo_atm%tke(jce2,i,k) = tkemin ! West boundary
+            end do
           end if
           if ( ma%has_bdytop ) then
-            mo_atm%tke(:,ice2,:) = tkemin  ! North boundary
+            do concurrent ( j = jce1:jce2, k = 1:kzp1 )
+              mo_atm%tke(j,ice2,k) = tkemin  ! North boundary
+            end do
           end if
           if ( ma%has_bdybottom ) then
-            mo_atm%tke(:,ice1,:) = tkemin  ! South boundary
+            do concurrent ( j = jce1:jce2, k = 1:kzp1 )
+              mo_atm%tke(j,ice1,k) = tkemin  ! South boundary
+            end do
           end if
         else
           ! if the boundary values and tendencies are not available,
@@ -2783,20 +2835,28 @@ module mod_bdycod
       else
         if ( rcmtimer%start( ) ) then
           if ( ma%has_bdyleft ) then
-            atm1%tke(jce1,:,:) = tkemin ! East boundary
-            atm2%tke(jce1,:,:) = tkemin ! East boundary
+            do concurrent ( i = ice1:ice2, k = 1:kzp1 )
+              atm1%tke(jce1,i,k) = tkemin ! East boundary
+              atm2%tke(jce1,i,k) = tkemin ! East boundary
+            end do
           end if
           if ( ma%has_bdyright ) then
-            atm1%tke(jce2,:,:) = tkemin ! West boundary
-            atm2%tke(jce2,:,:) = tkemin ! West boundary
+            do concurrent ( i = ice1:ice2, k = 1:kzp1 )
+              atm1%tke(jce2,i,k) = tkemin ! West boundary
+              atm2%tke(jce2,i,k) = tkemin ! West boundary
+            end do
           end if
           if ( ma%has_bdytop ) then
-            atm1%tke(:,ice2,:) = tkemin  ! North boundary
-            atm2%tke(:,ice2,:) = tkemin  ! North boundary
+            do concurrent ( j = jce1:jce2, k = 1:kzp1 )
+              atm1%tke(j,ice2,k) = tkemin  ! North boundary
+              atm2%tke(j,ice2,k) = tkemin  ! North boundary
+            end do
           end if
           if ( ma%has_bdybottom ) then
-            atm1%tke(:,ice1,:) = tkemin  ! South boundary
-            atm2%tke(:,ice1,:) = tkemin  ! South boundary
+            do concurrent ( j = jce1:jce2, k = 1:kzp1 )
+              atm1%tke(j,ice1,k) = tkemin  ! South boundary
+              atm2%tke(j,ice1,k) = tkemin  ! South boundary
+            end do
           end if
         else
           ! if the boundary values and tendencies are not available,
@@ -2808,8 +2868,10 @@ module mod_bdycod
           !
           if ( bdyflow ) then
             if ( ma%has_bdyleft ) then
-              atm1%tke(jce1,:,1) = tkemin ! West boundary
-              atm2%tke(jce1,:,1) = tkemin ! West boundary
+              do concurrent ( i = ice1:ice2 )
+                atm1%tke(jce1,i,1) = tkemin ! West boundary
+                atm2%tke(jce1,i,1) = tkemin ! West boundary
+              end do
               do concurrent ( i = ice1:ice2, k = 2:kz )
                 tkeint = atm1%tke(jci1,i,k+1)
                 windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k) + &
@@ -2825,8 +2887,10 @@ module mod_bdycod
             ! east boundary:
             !
             if ( ma%has_bdyright ) then
-              atm1%tke(jce2,:,1) = tkemin ! East boundary
-              atm2%tke(jce2,:,1) = tkemin ! East boundary
+              do concurrent ( i = ice1:ice2 )
+                atm1%tke(jce2,i,1) = tkemin ! East boundary
+                atm2%tke(jce2,i,1) = tkemin ! East boundary
+              end do
               do concurrent ( i = ice1:ice2, k = 2:kz )
                 tkeint = atm1%tke(jci2,i,k+1)
                 windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k) + &
@@ -2842,8 +2906,10 @@ module mod_bdycod
             ! south boundary:
             !
             if ( ma%has_bdybottom ) then
-              atm1%tke(:,ice1,1) = tkemin  ! South boundary
-              atm2%tke(:,ice1,1) = tkemin  ! South boundary
+              do concurrent ( j = jce1:jce2 )
+                atm1%tke(j,ice1,1) = tkemin  ! South boundary
+                atm2%tke(j,ice1,1) = tkemin  ! South boundary
+              end do
               do concurrent ( j = jci1:jci2, k = 2:kz )
                 tkeint = atm1%tke(j,ici1,k+1)
                 windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k) + &
@@ -2859,8 +2925,10 @@ module mod_bdycod
             ! north boundary:
             !
             if ( ma%has_bdytop ) then
-              atm1%tke(:,ice2,1) = tkemin  ! North boundary
-              atm2%tke(:,ice2,1) = tkemin  ! North boundary
+              do concurrent ( j = jce1:jce2 )
+                atm1%tke(j,ice2,1) = tkemin  ! North boundary
+                atm2%tke(j,ice2,1) = tkemin  ! North boundary
+              end do
               do concurrent ( j = jci1:jci2, k = 2:kz )
                 tkeint = atm1%tke(j,ici2,k+1)
                 windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k) + &
@@ -3936,11 +4004,11 @@ module mod_bdycod
 #endif
   end subroutine nudgeuv
 
-  subroutine monudgeuv(ibdy,fu,fv,ffu,ffv,bndu,bndv)
+  subroutine monudgeuv(ibdy,u,v,fu,fv,bndu,bndv)
     implicit none
     integer(ik4), intent(in) :: ibdy
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: u, v
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: fu, fv
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ffu, ffv
     type(v3dbound), intent(in) :: bndu, bndv
     real(rkx) :: xt
     integer(ik4) :: i, j, k, ib
@@ -3960,10 +4028,10 @@ module mod_bdycod
     xt = xbctime + dt
 
     do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
-      fg1(j,i,k) = (bndu%b0(j,i,k) + xt*bndu%bt(j,i,k)) - fu(j,i,k)
+      fg1(j,i,k) = (bndu%b0(j,i,k) + xt*bndu%bt(j,i,k)) - u(j,i,k)
     end do
     do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
-      fg2(j,i,k) = (bndv%b0(j,i,k) + xt*bndv%bt(j,i,k)) - fv(j,i,k)
+      fg2(j,i,k) = (bndv%b0(j,i,k) + xt*bndv%bt(j,i,k)) - v(j,i,k)
     end do
 
     if ( ibdy == 1 ) then
@@ -3978,7 +4046,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ns /= 0 ) then
@@ -3992,7 +4060,7 @@ module mod_bdycod
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nn /= 0 ) then
@@ -4006,7 +4074,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nn /= 0 ) then
@@ -4020,7 +4088,7 @@ module mod_bdycod
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nw /= 0 ) then
@@ -4034,7 +4102,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nw /= 0 ) then
@@ -4048,7 +4116,7 @@ module mod_bdycod
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%ne /= 0 ) then
@@ -4062,7 +4130,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ne /= 0 ) then
@@ -4076,7 +4144,7 @@ module mod_bdycod
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     else
@@ -4091,7 +4159,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ns /= 0 ) then
@@ -4105,7 +4173,7 @@ module mod_bdycod
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nn /= 0 ) then
@@ -4119,7 +4187,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nn /= 0 ) then
@@ -4133,7 +4201,7 @@ module mod_bdycod
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%nw /= 0 ) then
@@ -4147,7 +4215,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%nw /= 0 ) then
@@ -4161,7 +4229,7 @@ module mod_bdycod
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_ut%ne /= 0 ) then
@@ -4175,7 +4243,7 @@ module mod_bdycod
           fls2 = fg1(j+1,i,k)
           fls3 = fg1(j,i-1,k)
           fls4 = fg1(j,i+1,k)
-          ffu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fu(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
       if ( ba_vt%ne /= 0 ) then
@@ -4189,7 +4257,7 @@ module mod_bdycod
           fls2 = fg2(j+1,i,k)
           fls3 = fg2(j,i-1,k)
           fls4 = fg2(j,i+1,k)
-          ffv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+          fv(j,i,k) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
         end do
       end if
     end if
@@ -4417,7 +4485,7 @@ module mod_bdycod
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ff
     type(v3dbound), intent(in) :: bnd
     real(rkx) :: xt
-    integer(ik4) :: i, j, k, ns, nk, ib
+    integer(ik4) :: i, j, k, kk, ns, nk, ib
     real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudge3d'
@@ -4503,8 +4571,9 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk )
           if ( .not. ba_cr%bsouth(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
-          xf = hefc(ib,min(k,kz))
-          xg = hegc(ib,min(k,kz))
+          kk = min(k,kz)
+          xf = hefc(ib,kk)
+          xg = hegc(ib,kk)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4517,8 +4586,9 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk )
           if ( .not. ba_cr%bnorth(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
-          xf = hefc(ib,min(k,kz))
-          xg = hegc(ib,min(k,kz))
+          kk = min(k,kz)
+          xf = hefc(ib,kk)
+          xg = hegc(ib,kk)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4531,8 +4601,9 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk )
           if ( .not. ba_cr%bwest(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
-          xf = hefc(ib,min(k,kz))
-          xg = hegc(ib,min(k,kz))
+          kk = min(k,kz)
+          xf = hefc(ib,kk)
+          xg = hegc(ib,kk)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4545,8 +4616,9 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk )
           if ( .not. ba_cr%beast(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
-          xf = hefc(ib,min(k,kz))
-          xg = hegc(ib,min(k,kz))
+          kk = min(k,kz)
+          xf = hefc(ib,kk)
+          xg = hegc(ib,kk)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)

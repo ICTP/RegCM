@@ -416,9 +416,13 @@ module mod_atm_interface
       jgbl1 = 2
       jgbl2 = ba%nspx-1
       igbt1 = iy-icy-ba%nspy+2
-      igbt2 = iy-icy-1
+      igbt2 = iy-1-icy
       jgbr1 = jx-jcx-ba%nspx+2
-      jgbr2 = jx-jcx-1
+      jgbr2 = jx-1-jcx
+      if ( ma%bandflag ) then
+        jgbl1 = 1
+        jgbr2 = jx-jcx
+      end if
       i1 = ide1
       i2 = ide2
       j1 = jde1
@@ -486,10 +490,9 @@ module mod_atm_interface
           end do
           ! West boundary
           do i = i1, i2
-            if ( i <= igbb1 .or. i >= igbt2 ) cycle
             do j = j1, j2
+              if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle
               if ( j >= jgbl1 .and. j <= jgbl2 ) then
-                if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle
                 ba%ibnd(j,i) = j-jgbl1+2
                 ba%bwest(j,i) = .true.
                 ba%nw = ba%nw+1
@@ -498,10 +501,9 @@ module mod_atm_interface
           end do
           ! East boundary
           do i = i1, i2
-            if ( i <= igbb1 .or. i >= igbt2 ) cycle
             do j = j1, j2
+              if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle
               if ( j >= jgbr1 .and. j <= jgbr2 ) then
-                if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle
                 ba%ibnd(j,i) = jgbr2-j+2
                 ba%beast(j,i) = .true.
                 ba%ne = ba%ne+1

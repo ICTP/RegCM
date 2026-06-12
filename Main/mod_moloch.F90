@@ -429,12 +429,12 @@ module mod_moloch
     end if
 
     do nadv = 1, mo_nadv
-      call apply_bdy(dtstepa)
       call sound(dtsound)
       call advection(dtstepa)
     end do ! Advection loop
 
     if ( do_apply_bdy ) then
+      call apply_bdy(dtsec)
       call reset_bdy( )
     end if
 
@@ -951,8 +951,10 @@ module mod_moloch
       s(j,i,k) = (w(j,i,k) + s(j,i,k)) * fmzf(j,i,k)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      s(j,i,1) = d_zero
-      s(j,i,kzp1) = d_zero
+      s(j,i,1) = -s(j,i,2) * dts/3600.0_rkx
+      s(j,i,kzp1) = -s(j,i,kz) * dts/3600.0_rkx
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       w(j,i,kzp1) = w(j,i,kz)
     end do
     !@acc call nvtxEndRange

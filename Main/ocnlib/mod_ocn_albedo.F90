@@ -62,15 +62,15 @@ module mod_ocn_albedo
     call time_begin(subroutine_name,idindx)
 #endif
     do concurrent ( i = iocnbeg:iocnend )
+      wspd = min(max(um10(i),0.01_rkx),40.0_rkx)
+      czeta = min(max(czenith(i),0.0_rkx),1.0_rkx)
 #ifdef RCEMIP
-      wspd = um10(i)
       wfac = 2.95e-6_rkx * wspd**3.52_rkx
       swdiral(i) = 0.07_rkx + 0.22_rkx * wfac
       lwdiral(i) = 0.07_rkx
       swdifal(i) = 0.07_rkx + 0.11_rkx * wfac
       lwdifal(i) = 0.07_rkx
 #else
-      czeta = czenith(i)
       !
       !================================================================
       !       2.   get albedo
@@ -78,7 +78,6 @@ module mod_ocn_albedo
       !
       if ( mask(i) == 1 .or. mask(i) == 3 ) then
         if ( iwhitecap == 1 ) then
-          wspd = um10(i)
           ! Monahan and O'Muircheartaigh [1980]
           ! Fraction of whitecapping function of windspeed
           wfac = 2.95e-6_rkx * wspd**3.52_rkx
@@ -97,7 +96,6 @@ module mod_ocn_albedo
           albgsd = 0.05_rkx + 0.11_rkx * wfac
           albgld = 0.05_rkx
         else if ( iwhitecap == 2 ) then
-          wspd = um10(i)
           onemc = 1.0_rkx-czeta
           w0 = 180.0_rkx*(czeta**3)*onemc**2
           wfac = 3.84_rkx * 1.0e-6_rkx * wspd**3.41_rkx
