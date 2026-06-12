@@ -429,12 +429,12 @@ module mod_moloch
     end if
 
     do nadv = 1, mo_nadv
+      call apply_bdy(dtstepa)
       call sound(dtsound)
       call advection(dtstepa)
     end do ! Advection loop
 
     if ( do_apply_bdy ) then
-      call apply_bdy(dtsec)
       call reset_bdy( )
     end if
 
