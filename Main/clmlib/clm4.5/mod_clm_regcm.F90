@@ -807,9 +807,13 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
     ! For CLM45, we collect total fraction of ground emitting dust.
     call glb_l2c_ss(lndcomm,clm_l2a%vdustfrac,lms%wt)
+    !$acc kernels
     clm_l2a%notused = -clm_l2a%taux
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%taux)
+    !$acc kernels
     clm_l2a%notused = -clm_l2a%tauy
+    !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tauy)
     !$acc kernels
     clm_l2a%zom = max(clm_l2a%zom,1.0e-4_rk8)

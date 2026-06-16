@@ -3352,7 +3352,7 @@ module mod_clm_urban
 #if 1
     do concurrent ( fl = 1:num_urbanl )
 #else
-    do fl = 1,num_urbanl
+    do fl = 1, num_urbanl
 #endif
       l = filter_urbanl(fl)
       g = lgridcell(l)
@@ -3405,8 +3405,8 @@ module mod_clm_urban
       if ( num_urbanl > 0 ) then
         call FrictionVelocity(lbl, ubl, num_urbanl, filter_urbanl, &
                   z_d_town_loc, z_0_town_loc, z_0_town_loc, z_0_town_loc, &
-                  obu, iter, ur, um, ustar, &
-                  temp1, temp2, temp12m, temp22m, fm, landunit_index=.true.)
+                  obu, iter, ur, um, ustar, temp1, temp2, temp12m, &
+                  temp22m, fm, landunit_index=.true.)
       end if
 
       do concurrent ( fl = 1:num_urbanl )

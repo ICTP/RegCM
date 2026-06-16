@@ -3291,25 +3291,24 @@ module mod_params
       subroutine compute_moloch_static
         implicit none
         integer(ik4) :: i, j
-        call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
-        call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
-        do concurrent ( j = jdi1:jdi2, i = ice1:ice2 )
+        call exchange_lrbt(mddom%msfx,1,jde1,jde2,ide1,ide2)
+        call exchange_lrbt(mddom%msfu,1,jde1,jde2,ide1,ide2)
+        call exchange_lrbt(mddom%msfv,1,jde1,jde2,ide1,ide2)
+        do concurrent ( j = jdi1ga:jdi2ga, i = ice1:ice2 )
           mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &
-                           mddom%msfu(j,i) * rdx * regrav
+                           mddom%msfx(j,i) * rdx * regrav
         end do
         if ( iproj == 'ROTLLR' ) then
-          do concurrent ( j = jce1:jce2, i = idi1:idi2 )
+          do concurrent ( j = jce1:jce2, i = idi1ga:idi2ga )
             mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
                              rdx * regrav
           end do
         else
-          do concurrent ( j = jce1:jce2, i = idi1:idi2 )
+          do concurrent ( j = jce1:jce2, i = idi1ga:idi2ga )
             mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
-                             mddom%msfv(j,i) * rdx * regrav
+                             mddom%msfx(j,i) * rdx * regrav
           end do
         end if
-        call exchange_lr(mddom%hx,1,jde1,jde2,ice1,ice2)
-        call exchange_bt(mddom%hy,1,jce1,jce2,ide1,ide2)
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%zeta(j,i,k) = md_zeta(zitah(k), &
             mddom%ht(j,i),mo_ztop,mo_h,mo_a0)

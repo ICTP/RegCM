@@ -1242,6 +1242,20 @@ module mod_clm_soilhydrology
     do concurrent ( c = lbc:ubc )
       jtop(c) = 1
     end do
+    do concurrent ( c = lbc:ubc, j = 1:nlevsoi+1 )
+      if ( abs(amx(c,j)) < 1.e-20_rk8 ) then
+        amx(c,j) = sign(1.0e-20_rk8,amx(c,j))
+      end if
+      if ( abs(bmx(c,j)) < 1.e-20_rk8 ) then
+        bmx(c,j) = sign(1.0e-20_rk8,bmx(c,j))
+      end if
+      if ( abs(cmx(c,j)) < 1.e-20_rk8 ) then
+        cmx(c,j) = sign(1.0e-20_rk8,cmx(c,j))
+      end if
+      if ( abs(rmx(c,j)) < 1.e-20_rk8 ) then
+        rmx(c,j) = sign(1.0e-20_rk8,rmx(c,j))
+      end if
+    end do
     call Tridiagonal(lbc, ubc, 1, nlevsoi+1, jtop,      &
                      num_hydrologyc, filter_hydrologyc, &
                      amx, bmx, cmx, rmx, dwat2 )

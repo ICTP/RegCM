@@ -89,6 +89,7 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:) :: gcx => null( )
   real(rkx), pointer, contiguous, dimension(:) :: fcd => null( )
   real(rkx), pointer, contiguous, dimension(:) :: gcd => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: ddamp => null( )
   real(rkx), pointer, contiguous, dimension(:) :: xdamp => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: hefc => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: hegc => null( )
@@ -111,7 +112,8 @@ module mod_bdycod
       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
       1.0e8_rkx, 10.0_rkx, 0.01_rkx ]        ! ncc, nc, nr
 
-  real(rkx), parameter :: xfac = 0.01_rkx
+  real(rkx), parameter :: dfac = 0.01_rkx
+  real(rkx), parameter :: xfac = 0.005_rkx
   integer(ik4), parameter :: mo_sponge = 3
 
   interface timeint
@@ -470,6 +472,7 @@ module mod_bdycod
     call getmem(fg1,jde1ga,jde2ga,ide1ga,ide2ga,1,kzp1,'bdycon:fg1')
     call getmem(fg2,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:fg2')
     if ( idynamic == 3 ) then
+      call getmem(ddamp,1,kz,'bdycon:ddamp')
       call getmem(xdamp,1,kz,'bdycon:xdamp')
     end if
   end subroutine allocate_mod_bdycon
@@ -512,7 +515,7 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          gnudge = 0.06_rkx/dtsec
+          gnudge = 0.009_rkx/dtsec
         else
           gnudge = 0.02_rkx/dt2
         end if
@@ -582,6 +585,7 @@ module mod_bdycod
     end if
     if ( idynamic == 3 ) then
       do k = 1, kz
+        ddamp(k) = 1.0_rkx / ( 1.0_rkx + dfac*dt*hsigma(k)**2 )
         xdamp(k) = 1.0_rkx / ( 1.0_rkx + xfac*dt*hsigma(k)**2 )
       end do
     end if
@@ -1907,11 +1911,11 @@ module mod_bdycod
         end if
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:mo_sponge )
           xbdy = xub%b0(j,i,k) + xt*xub%bt(j,i,k)
-          mo_atm%u(j,i,k) = xbdy + (mo_atm%u(j,i,k) - xbdy) * xdamp(k)
+          mo_atm%u(j,i,k) = xbdy + (mo_atm%u(j,i,k) - xbdy) * ddamp(k)
         end do
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:mo_sponge )
           xbdy = xvb%b0(j,i,k) + xt*xvb%bt(j,i,k)
-          mo_atm%v(j,i,k) = xbdy + (mo_atm%v(j,i,k) - xbdy) * xdamp(k)
+          mo_atm%v(j,i,k) = xbdy + (mo_atm%v(j,i,k) - xbdy) * ddamp(k)
         end do
       else
         if ( ma%has_bdyleft ) then
@@ -2199,6 +2203,10 @@ module mod_bdycod
             end do
           end if
         end if
+        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:mo_sponge )
+          xbdy = xthb%b0(j,i,k) + xt*xthb%bt(j,i,k)
+          mo_atm%tetav(j,i,k) = xbdy+(mo_atm%tetav(j,i,k)-xbdy)*xdamp(k)
+        end do
       else
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
@@ -5122,12 +5130,30 @@ module mod_bdycod
       end do
     end do
     call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
+    call top_smooth(pai)
+    call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
   end subroutine paicompute
+
+  subroutine top_smooth(pai)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pai
+    integer(ik4) :: i, j, k
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:mo_sponge )
+      fg1(j,i,k) = 0.0625_rkx * ( 4.0_rkx * pai(j,i,k)  + &
+                  2.0_rkx * (pai(j,i+1,k)+pai(j,i-1,k)  + &
+                             pai(j+1,i,k)+pai(j-1,i,k)) + &
+            pai(j+1,i+1,k)+pai(j-1,i+1,k)+pai(j-1,i-1,k)+pai(j+1,i-1,k))
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:mo_sponge )
+      pai(j,i,k) = fg1(j,i,k)
+    end do
+  end subroutine top_smooth
 
   subroutine moloch_static_test1(xt,xq,xu,xv,xps,xts)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xps, xts
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xt, xq, xu, xv
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xt, xq
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) ::  xu, xv
     integer(ik4) :: i, j, k
     xts = stdt
     xps = stdpmb
