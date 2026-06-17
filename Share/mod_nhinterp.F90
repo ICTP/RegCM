@@ -649,90 +649,80 @@ module mod_nhinterp
             log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
         end do
       end do
-#ifdef STDPAR
-      do concurrent ( j = j1:j2, i = i1:i2 ) local(mdv,qdt)
-#else
-      !$acc parallel loop collapse(2) gang vector private(mdv,qdt)
       do i = i1, i2
-      do j = j1, j2
-#endif
-        if ( icrm /= 1 ) then
-          ip = min(i+1,i2)
-          im = max(i-1,i1)
-        else
-          if ( i == i2-1 ) then
-            ip = i2
-          else if ( i == i2 ) then
-            ip = i1
+        do j = j1, j2
+          if ( icrm /= 1 ) then
+            ip = min(i+1,i2)
+            im = max(i-1,i1)
           else
-            ip = i + 1
+            if ( i == i2-1 ) then
+              ip = i2
+            else if ( i == i2 ) then
+              ip = i1
+            else
+              ip = i + 1
+            end if
+            if ( i == i1+1 ) then
+              im = i1
+            else if ( i == i1 ) then
+              im = i2
+            else
+              im = i - 1
+            end if
           end if
-          if ( i == i1+1 ) then
-            im = i1
-          else if ( i == i1 ) then
-            im = i2
+          if ( iband /= 1 ) then
+            jp = min(j+1,j2)
+            jm = max(j-1,j1)
           else
-            im = i - 1
+            if ( j == j2-1 ) then
+              jp = j2
+            else if ( j == j2 ) then
+              jp = j1
+            else
+              jp = j + 1
+            end if
+            if ( j == j1+1 ) then
+              jm = j1
+            else if ( j == j1 ) then
+              jm = j2
+            else
+              jm = j - 1
+            end if
           end if
-        end if
-        if ( iband /= 1 ) then
-          jp = min(j+1,j2)
-          jm = max(j-1,j1)
-        else
-          if ( j == j2-1 ) then
-            jp = j2
-          else if ( j == j2 ) then
-            jp = j1
-          else
-            jp = j + 1
-          end if
-          if ( j == j1+1 ) then
-            jm = j1
-          else if ( j == j1 ) then
-            jm = j2
-          else
-            jm = j - 1
-          end if
-        end if
 
-        !$acc loop seq
-        do l = 1, kxs
-          ua = u(j ,i ,l) * psdot(j,i)  + &
-               u(j ,ip,l) * psdot(j,ip)
-          ub = u(jp, i,l) * psdot(jp,i) + &
-               u(jp,ip,l) * psdot(jp,ip)
-          va = v(j ,i ,l) * psdot(j,i)  + &
-               v(jp,i ,l) * psdot(jp,i)
-          vb = v(j ,ip,l) * psdot(j,ip) + &
-               v(jp,ip,l) * psdot(jp,ip)
-          mdv(l) = (ub - ua + vb - va) * dummy(j,i) / ps(j,i)
+          do l = 1, kxs
+            ua = u(j ,i ,l) * psdot(j,i)  + &
+                 u(j ,ip,l) * psdot(j,ip)
+            ub = u(jp, i,l) * psdot(jp,i) + &
+                 u(jp,ip,l) * psdot(jp,ip)
+            va = v(j ,i ,l) * psdot(j,i)  + &
+                 v(jp,i ,l) * psdot(jp,i)
+            vb = v(j ,ip,l) * psdot(j,ip) + &
+                 v(jp,ip,l) * psdot(jp,ip)
+            mdv(l) = (ub - ua + vb - va) * dummy(j,i) / ps(j,i)
+          end do
+          qdt(kxs+1) = d_zero
+          do l = kxs, 1, -1
+            qdt(l) = qdt(l+1) + mdv(l) * dsigma(l)
+          end do
+          do l = kxs+1, 1, -1
+            lp = min(l,kxs)
+            lm = max(l-1,1)
+            if ( l == kxs+1 ) lm = kxs-1
+            ubar = 0.125_rkx * (u(j ,i ,lm) + u(j ,ip,lm) + &
+                                u(jp,i ,lm) + u(jp,ip,lm) + &
+                                u(j ,i ,lp) + u(j ,ip,lp) + &
+                                u(jp,i ,lp) + u(jp,ip,lp))
+            vbar = 0.125_rkx * (v(j ,i ,lm) + v(j ,ip,lm) + &
+                                v(jp,i ,lm) + v(jp,ip,lm) + &
+                                v(j ,i ,lp) + v(j ,ip,lp) + &
+                                v(jp,i ,lp) + v(jp,ip,lp))
+            ! Calculate omega
+            omega(j,i,l) = ps(j,i) * qdt(l) + sigma(l) *  &
+                    ((ps(jp,i) - ps(jm,i)) * ubar + &
+                     (ps(j,ip) - ps(j,im)) * vbar) * dummy1(j,i)
+          end do
         end do
-        qdt(kxs+1) = d_zero
-        !$acc loop seq
-        do l = kxs, 1, -1
-          qdt(l) = qdt(l+1) + mdv(l) * dsigma(l)
-        end do
-        !$acc loop seq
-        do l = kxs+1, 1, -1
-          lp = min(l,kxs)
-          lm = max(l-1,1)
-          if ( l == kxs+1 ) lm = kxs-1
-          ubar = 0.125_rkx * (u(j ,i ,lm) + u(j ,ip,lm) + &
-                              u(jp,i ,lm) + u(jp,ip,lm) + &
-                              u(j ,i ,lp) + u(j ,ip,lp) + &
-                              u(jp,i ,lp) + u(jp,ip,lp))
-          vbar = 0.125_rkx * (v(j ,i ,lm) + v(j ,ip,lm) + &
-                              v(jp,i ,lm) + v(jp,ip,lm) + &
-                              v(j ,i ,lp) + v(j ,ip,lp) + &
-                              v(jp,i ,lp) + v(jp,ip,lp))
-          ! Calculate omega
-          omega(j,i,l) = ps(j,i) * qdt(l) + sigma(l) *  &
-                  ((ps(jp,i) - ps(jm,i)) * ubar + &
-                   (ps(j,ip) - ps(j,im)) * vbar) * dummy1(j,i)
-        end do
-#ifndef STDPAR
-      end do
-#endif
       end do
       !
       ! Remove signal from grid (need because interpolation in ATM)
@@ -742,23 +732,24 @@ module mod_nhinterp
       ! Vertical velocity from interpolated omega
       !
       do k = 2, kxs + 1
-        do concurrent ( j = j1:j2, i = i1:i2 )
-          l = 1
-          !$acc loop seq
-          do ll = 1, kxs
-            if (z(j,i,l+1) < z0(j,i,k)) exit
-            l = l + 1
+        do i = i1, i2
+          do j = j1, j2
+            l = 1
+            do ll = 1, kxs-1
+              if (z(j,i,l+1) < z0(j,i,k)) exit
+              l = l + 1
+            end do
+            zu = z(j,i,l)
+            zl = z(j,i,l+1)
+            omegau = omega(j,i,l)
+            omegal = omega(j,i,l+1)
+            wu = (z0(j,i,k) - zl) / (zu - zl)
+            wl = d_one - wu
+            omegan = omegau * wu + omegal * wl
+            rho = pr0(j,i,k) / rgas / t0(j,i,k)
+            ! W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
+            wtmp(j,i,k) = -d_1000 * omegan/rho * regrav
           end do
-          zu = z(j,i,l)
-          zl = z(j,i,l+1)
-          omegau = omega(j,i,l)
-          omegal = omega(j,i,l+1)
-          wu = (z0(j,i,k) - zl) / (zu - zl)
-          wl = d_one - wu
-          omegan = omegau * wu + omegal * wl
-          rho = pr0(j,i,k) / rgas / t0(j,i,k)
-          ! W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
-          wtmp(j,i,k) = -d_1000 * omegan/rho * regrav
         end do
       end do
       !$acc kernels
