@@ -236,7 +236,7 @@ module mod_micro_interface
     real(rkx), pointer, contiguous, &
       dimension(:,:,:), intent(inout) :: cldlwc, cldfra
     integer(ik4) :: i, j, k
-    real(rkx) :: ls_exlwc, conv_exlwc, exlwc
+    real(rkx) :: conv_exlwc, exlwc
     integer(ik4) :: ichi
 
     if ( ipptls > 1 ) then

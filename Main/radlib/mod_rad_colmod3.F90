@@ -218,7 +218,7 @@ module mod_rad_colmod3
     real(rk8) :: totci_l, totcl_l, totwv_l
     real(rk8) :: nc, aerc, lwc, kparam
     real(rk8) :: kabs, kabsi, kabsl, cldemis, arg
-    real(rk8) :: iwc, tempc, tcels, fsr, aiwc, biwc, desr, pnrml, weight
+    real(rk8) :: iwc, tempc, tcels, fsr, aiwc, biwc, desr, weight
     !real(rk8) :: tpara
     real(rk8), parameter :: minus20 = 253.15_rk8
 #ifdef DEBUG
@@ -574,7 +574,7 @@ module mod_rad_colmod3
       ! g/m3, already account for cum and ls clouds
       if ( temp(k,n) > lowcld ) then
         lwc = (rt%ql(k,n)*rt%rho(k,n)*1000.0_rk8)/temp(k,n)
-        weight = max(0.0_rk8,min(lwc/8.5_rk8,1.0))
+        weight = max(0.0_rk8,min(lwc/8.5_rk8,1.0_rk8))
         if ( rt%ioro(n) == 1 ) then
           ! Effective liquid radius over land
           rt%rel(k,n) = 4.0_rk8 + 7.0_rk8*weight
@@ -595,7 +595,7 @@ module mod_rad_colmod3
         biwc = 0.7957_rk8 * iwc**0.2535_rk8
         desr = fsr*(aiwc+biwc*tempc)
         desr = max(15.0_rk8,min(105.0_rk8,desr))
-        weight = max(0.0_rk8,min(iwc/5.0_rk8,1.0))
+        weight = max(0.0_rk8,min(iwc/5.0_rk8,1.0_rk8))
         rt%rei(k,n) = 8.0_rk8 + weight * 0.64952_rk8*desr
       else
         ! filler for no clouds

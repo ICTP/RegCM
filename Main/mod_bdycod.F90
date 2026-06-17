@@ -4960,7 +4960,8 @@ module mod_bdycod
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten, vten
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vten
     type(v3dbound), intent(in) :: ubnd, vbnd
     real(rkx) :: xt
     integer(ik4) :: i, j, k, maxk

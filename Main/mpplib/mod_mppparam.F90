@@ -3353,7 +3353,7 @@ module mod_mppparam
 
     !$acc data copy(ml) create(sdatax,sdatay,rdatax,rdatay)
     do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2, n = n1:n2 )
-      id = ((n-n1)*(k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      id = (((n-n1)*nk+(k-k1))*nex+iex-1)*tx + 1 + (i-i1)
       sdatax(id      ) = ml(j1+(iex-1),i,k,n)
       sdatax(id+sizex) = ml(j2-(iex-1),i,k,n)
     end do
@@ -3370,13 +3370,13 @@ module mod_mppparam
     end if
 #endif
     do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2, n = n1:n2 )
-      id = ((n-n1)*(k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      id = (((n-n1)*nk+(k-k1))*nex+iex-1)*tx + 1 + (i-i1)
       if ( do_lt ) ml(j1-iex,i,k,n) = rdatax(id      )
       if ( do_rt ) ml(j2+iex,i,k,n) = rdatax(id+sizex)
     end do
 
     do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2, n = n1:n2 )
-      id = ((n-n1)*(k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      id = (((n-n1)*nk+(k-k1))*nex+iex-1)*ty + 1 + (j-j1+lb)
       sdatay(id      ) = ml(j,i1+(iex-1),k,n)
       sdatay(id+sizey) = ml(j,i2-(iex-1),k,n)
     end do
@@ -3393,7 +3393,7 @@ module mod_mppparam
     end if
 #endif
     do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2, n = n1:n2 )
-      id = ((n-n1)*(k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      id = (((n-n1)*nk+(k-k1))*nex+iex-1)*ty + 1 + (j-j1+lb)
       if ( do_bt ) ml(j,i1-iex,k,n) = rdatay(id      )
       if ( do_tp ) ml(j,i2+iex,k,n) = rdatay(id+sizey)
     end do
@@ -3631,7 +3631,7 @@ module mod_mppparam
 
     !$acc data copy(ml) create(sdatax,sdatay,rdatax,rdatay)
     do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2, n = n1:n2 )
-      id = ((n-n1)*(k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      id = (((n-n1)*nk+(k-k1))*nex+iex-1)*tx + 1 + (i-i1)
       sdatax(id      ) = ml(j1+(iex-1),i,k,n)
       sdatax(id+sizex) = ml(j2-(iex-1),i,k,n)
     end do
@@ -3648,13 +3648,13 @@ module mod_mppparam
     end if
 #endif
     do concurrent ( i = i1:i2, iex = 1:nex, k = k1:k2, n = n1:n2 )
-      id = ((n-n1)*(k-k1)*nex+iex-1)*tx + 1 + (i-i1)
+      id = (((n-n1)*nk+(k-k1))*nex+iex-1)*tx + 1 + (i-i1)
       if ( do_lt ) ml(j1-iex,i,k,n) = rdatax(id      )
       if ( do_rt ) ml(j2+iex,i,k,n) = rdatax(id+sizex)
     end do
 
     do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2, n = n1:n2 )
-      id = ((n-n1)*(k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      id = (((n-n1)*nk+(k-k1))*nex+iex-1)*ty + 1 + (j-j1+lb)
       sdatay(id      ) = ml(j,i1+(iex-1),k,n)
       sdatay(id+sizey) = ml(j,i2-(iex-1),k,n)
     end do
@@ -3671,7 +3671,7 @@ module mod_mppparam
     end if
 #endif
     do concurrent ( j = j1-lb:j2+rb, iex = 1:nex, k = k1:k2, n = n1:n2 )
-      id = ((n-n1)*(k-k1)*nex+iex-1)*ty + 1 + (j-j1+lb)
+      id = (((n-n1)*nk+(k-k1))*nex+iex-1)*ty + 1 + (j-j1+lb)
       if ( do_bt ) ml(j,i1-iex,k,n) = rdatay(id      )
       if ( do_tp ) ml(j,i2+iex,k,n) = rdatay(id+sizey)
     end do

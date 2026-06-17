@@ -1160,7 +1160,7 @@ module mod_lm_interface
               tas = tas*rdnnsg
               ps = ps*rdnnsg
               es = pfesat(tas,ps)
-              qs = pfwsat(tas,ps)
+              qs = pfqsat(tas,ps)
               qas = lm_q2m(j,i)
               uas = lm_w10m(j,i)
               rh = min(max((qas/qs),d_zero),d_one)
@@ -1225,7 +1225,7 @@ module mod_lm_interface
             end do
             tas = tas*rdnnsg
             ps = ps*rdnnsg
-            qs = pfwsat(tas,ps)
+            qs = pfqsat(tas,ps)
             qas = lm_q2m(j,i)
             rh = min(max((qas/qs),d_zero),d_one)*100.0_rkx
             shf_twetb_out(j,i) = max(shf_twetb_out(j,i), &
@@ -1268,7 +1268,7 @@ module mod_lm_interface
               end do
               tas = tas*rdnnsg
               ps = ps*rdnnsg
-              qs = pfwsat(tas,ps)
+              qs = pfqsat(tas,ps)
               qas = lm_q2m(j,i)
               rh = min(max((qas/qs),d_zero),d_one)*100.0_rkx
               srf_twetb_out(j,i) = max(srf_twetb_out(j,i), &
@@ -1643,7 +1643,7 @@ module mod_lm_interface
               qas = lms_q2m(n,j,i)
               tas = lms_t2m(n,j,i)
               ps = lms_sfcp(n,j,i)
-              qs = pfwsat(tas,ps)
+              qs = pfqsat(tas,ps)
               srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1) + &
                             min(max((qas/qs),rhmin),rhmax)*d_100
             end do
@@ -1694,7 +1694,7 @@ module mod_lm_interface
             end do
             tas = tas*rdnnsg
             ps = ps*rdnnsg
-            qs = pfwsat(tas,ps)
+            qs = pfqsat(tas,ps)
             qas = lm_q2m(j,i)
             rh = min(max((qas/qs),d_zero),d_one)
             srf_htindx_out(j,i) = heatindex(tas,rh)
@@ -1951,7 +1951,7 @@ module mod_lm_interface
   end subroutine compute_maxgust
 
 #include <pfesat.inc>
-#include <pfwsat.inc>
+#include <pfqsat.inc>
 #include <pfesdt.inc>
 #include <evpt.inc>
 #include <wlh.inc>
