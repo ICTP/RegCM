@@ -551,16 +551,15 @@ module mod_rrtmg_driver
       end do
     end do
 
-    cld_int(:,:) = 0.0_rk8
-    do k = 1, kz
+    do n = 1, npr
+      cld_int(n,1) = 0.0_rk8
+      cld_int(n,kzp1) = 0.0_rk8
+    end do
+    do k = 2, kz
       do i = ici1, ici2
         do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
-          if ( clwp_int(n,k) > 0.0_rk8 ) then
-            cld_int(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
-            cld_int(n,k) = min(cld_int(n,k),cftotmax)
-          end if
+          cld_int(n,k) = max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k))
         end do
       end do
     end do
@@ -568,20 +567,11 @@ module mod_rrtmg_driver
     ! Calculate cloud parameters
     do n = 1, npr
       totcf(n) = 1.0_rk8
-      if ( luse_max_rnovl ) then
-        do k = 2, kzp1
-          totcf(n) = totcf(n) * &
-            (1.0001_rk8 - max(cld_int(n,k-1),cld_int(n,k)))/ &
-            (1.0001_rk8 - cld_int(n,k-1))
-        end do
-      else
-        do k = 1, kz
-          totcf(n) = totcf(n)*(1.0_rk8-cld_int(n,k))
-        end do
-      end if
+      do k = 2, kz
+        totcf(n) = totcf(n) * (1.0_rk8-cld_int(n,k))
+      end do
       totcf(n) = 1.0_rk8 - totcf(n)
     end do
-    !totcf(:) = 0.5_rk8 * ( totcf(:) + maxval(cld_int(:,:),2) )
     totwv(:) = 0.0_rk8
     totci(:) = 0.0_rk8
     totcl(:) = 0.0_rk8
@@ -1041,11 +1031,11 @@ module mod_rrtmg_driver
           ! care pressure is on bottom/toa grid
           !
           n = (j-jci1+1)+(i-ici1)*npj
-          cldf(n,k) = min(m2r%cldfrc(j,i,kj),real(cftotmax,rkx))
           clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
-          if ( clwp(n,k) > 0.0_rk8 ) then
-            cldf(n,k) = min(m2r%cldfrc(j,i,kj),real(cftotmax,rkx))
+          if ( clwp(n,k) < 0.001_rk8 ) then
+            cldf(n,k) = m2r%cldfrc(j,i,kj)
           else
+            clwp(n,k) = 0.0_rk8
             cldf(n,k) = 0.0_rk8
           end if
         end do

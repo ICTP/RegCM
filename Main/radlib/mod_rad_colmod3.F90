@@ -24,7 +24,6 @@ module mod_rad_colmod3
   use mod_runparams, only : ipptls, eccf, ichem, iindirect
   use mod_runparams, only : iqv, iqc, iqi, ncld, chtrname
   use mod_runparams, only : iclimaaer
-  use mod_runparams, only : cftotmax
   use mod_rad_radiation, only : radctl, radtype
   use mod_rad_common, only : gasabsnxt, gasabstot, gasemstot
   use mod_rad_common, only : o3prof, taucldsp, dosw, dolw, doabsems
@@ -508,12 +507,10 @@ module mod_rad_colmod3
       rt%cld(kzp1,n) = 0.0_rk8
     end do
     do concurrent( k = 2:kz, n = rt%n1:rt%n2 )
-      ! Use Maximum Random Overlap assumption
-      rt%cld(k,n) = min((temp(k-1,n)+temp(k,n)) - &
-                        (temp(k-1,n)*temp(k,n)), cftotmax)
+      rt%cld(k,n) = max(temp(k-1,n),temp(k,n))
     end do
     if ( ncld > 0 ) then
-      do concurrent ( k = kzp1-ncld:kzp1,  n = rt%n1:rt%n2 )
+      do concurrent ( k = kz-ncld:kz,  n = rt%n1:rt%n2 )
         rt%cld(k,n) = 0.0_rk8
       end do
     end if
@@ -524,8 +521,6 @@ module mod_rad_colmod3
     !     do k = 1, kz
     !       if ( rt%pint(k+1,n) < 40000.0_rk8 ) then
     !         rt%cld(k,n) = min(rt%cld(k,n),0.25_rk8)
-    !       else
-    !         rt%cld(k,n) = min(rt%cld(k,n),cftotmax)
     !       end if
     !     end do
     !   end do

@@ -263,7 +263,7 @@ module mod_micro_interface
     select case ( icldfrac )
       case (0)
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
+                           mo2mc%rh,tc0,rh0,mc2mo%fcc)
       case (1)
         call xuran_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (2)
@@ -326,7 +326,7 @@ module mod_micro_interface
     end if
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      mc2mo%fcc(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
+      mc2mo%fcc(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),cftotmax)
     end do
 
     !-----------------------------------------------------------------
@@ -344,7 +344,7 @@ module mod_micro_interface
       do j = jci1, jci2
 #endif
         ! get overlap of clouds
-        cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
+        cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
         if ( cldfra(j,i,k) > lowcld ) then
           ! Cloud Water Volume
           ! Apply the parameterisation based on temperature to the
@@ -374,7 +374,7 @@ module mod_micro_interface
           conv_exlwc = clwfromt(mo2mc%t(j,i,k))
           exlwc = conv_exlwc*cldfra(j,i,k) + totc(j,i,k)
           ! get overlap of clouds
-          cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
+          cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
           if ( cldfra(j,i,k) > lowcld ) then
             ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
             exlwc = exlwc/cldfra(j,i,k)
@@ -398,7 +398,7 @@ module mod_micro_interface
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           ! Cloud Water Volume
-          cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
+          cldfra(j,i,k) = mc2mo%fcc(j,i,k)
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
           if ( cldfra(j,i,k) > lowcld ) then
             ! NOTE : IN CLOUD HERE IS NEEDED !!!
@@ -424,56 +424,6 @@ module mod_micro_interface
 #include <clwfromt.inc>
 
   end subroutine cldfrac
-
-  pure real(rkx) function max_overlap(a)
-    implicit none
-    real(rkx), dimension(:), intent(in) :: a
-    max_overlap = maxval(a)
-  end function max_overlap
-
-  pure real(rkx) function min_overlap(a)
-    implicit none
-    real(rkx), dimension(:), intent(in) :: a
-    min_overlap = minval(a)
-  end function min_overlap
-
-  pure real(rkx) function mean_overlap(a)
-    implicit none
-    real(rkx), dimension(:), intent(in) :: a
-    mean_overlap = sum(a)/size(a)
-  end function mean_overlap
-
-  pure real(rkx) function random_overlap(a)
-    implicit none
-    real(rkx), dimension(:), intent(in) :: a
-    real(rkx) :: fac
-    integer :: i
-    fac = d_one
-    do i = 1, size(a)
-      fac = fac * (d_one-max(min(a(i),d_one),d_zero))
-    end do
-    random_overlap = d_one - fac
-  end function random_overlap
-
-  pure real(rkx) function max_random_overlap(a)
-    !$acc routine seq
-    implicit none
-    real(rkx), dimension(:), intent(in) :: a
-    real(rkx) :: fac
-    integer :: i
-    fac = d_one - a(1)
-    do i = 2, size(a)
-      fac = fac * (d_one-max(a(i-1),a(i)))/(d_one-a(i-1))
-    end do
-    max_random_overlap = d_one - fac
-  end function max_random_overlap
-
-  elemental real(rkx) function rov2(a,b)
-    !$acc routine seq
-    implicit none
-    real(rkx), intent(in) :: a, b
-    rov2 = max_random_overlap([a,b])
-  end function rov2
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !                                                                 c

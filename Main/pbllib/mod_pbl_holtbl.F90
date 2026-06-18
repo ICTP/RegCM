@@ -67,7 +67,7 @@ module mod_pbl_holtbl
   ! coef. of proportionality and lower % of bl in sfc layer
   real(rkx), parameter :: fak = 8.5_rkx
   real(rkx), parameter :: fakn = 7.2_rkx
-  real(rkx), parameter :: sffrac = 0.1_rkx
+  real(rkx), parameter :: sffrac = 0.10_rkx
   ! beta coefs. for momentum, stable conditions and heat
   real(rkx), parameter :: betam = 15.0_rkx
   real(rkx), parameter :: betas = 5.0_rkx
@@ -220,10 +220,10 @@ module mod_pbl_holtbl
       cgh(j,i,k) = 0.0_rkx
       ! eddy diffusivities for momentum, heat and moisture
       kvm(j,i,k) = kzm(j,i,k)
-      kvh(j,i,k) = kzm(j,i,k)
-      kvq(j,i,k) = kzm(j,i,k)
+      kvh(j,i,k) = kzm(j,i,k)/0.85_rkx
+      kvq(j,i,k) = kvh(j,i,k)
       if ( ichem == 1 ) then
-        kvc(j,i,k) = kzm(j,i,k)
+        kvc(j,i,k) = kvh(j,i,k)
       end if
     end do
 
@@ -249,24 +249,19 @@ module mod_pbl_holtbl
     ! value from the surface to the lowest model level.
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      ! Compute specific humidity
-      sh10 = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
-      ! "virtual" potential temperature
-      if ( lunstb(j,i) ) then
-        if ( m2p%ldmsk(j,i) == 1 ) then
-          thv10(j,i) = m2p%tg(j,i) * (d_one + ep1*sh10)
-        else
-          thv10(j,i) = m2p%tg(j,i) * &
-            (d_one + ep1*pfqsat(m2p%tg(j,i),m2p%patmf(j,i,kzp1)))
-        end if
+      if ( ifaholtth10 == 2 ) then
+        thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
+                     log(m2p%za(j,i,kz)*d_r10))
       else
-        ! first approximation for obhukov length
+        ! Compute specific humidity
+        if ( m2p%ldmsk(j,i) == 1 ) then
+          sh10 = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
+        else
+          sh10 = pfqsat(m2p%tg(j,i),m2p%patmf(j,i,kzp1))
+        end if
         if ( ifaholtth10 == 1 ) then
           thv10(j,i) = (0.25_rkx*m2p%thatm(j,i,kz) + &
-                       0.75_rkx*m2p%tg(j,i))*(d_one+ep1*sh10)
-        else if ( ifaholtth10 == 2 ) then
-          thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
-                     log(m2p%za(j,i,kz)*d_r10))
+                        0.75_rkx*m2p%tg(j,i))*(d_one+ep1*sh10)
         else
           thv10(j,i) = (d_half*(m2p%thatm(j,i,kz)+m2p%tg(j,i))) * &
                        (d_one + ep1*sh10)
@@ -275,8 +270,7 @@ module mod_pbl_holtbl
     end do
     do iter = 1, holtth10iter
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        oblen = -(thv10(j,i)*ustr(j,i)**3) / &
-          (gvk*(hfxv(j,i)+sign(1.e-10_rkx,hfxv(j,i))))
+        oblen = comp_obklen(thv10(j,i),ustr(j,i),hfxv(j,i))
         if ( oblen >= m2p%za(j,i,kz) ) then
           thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
              (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
@@ -298,7 +292,7 @@ module mod_pbl_holtbl
       else  if ( ifaholt  == 2 ) then
         thv10(j,i) = min(thv10(j,i),m2p%tg(j,i))  ! gtb add to minimize
       end if
-      ! obklen compute obukhov length
+      ! final value for obukhov length
       obklen(j,i) = comp_obklen(thv10(j,i),ustr(j,i),hfxv(j,i))
     end do
     !
@@ -476,7 +470,7 @@ module mod_pbl_holtbl
               pblk1 = fak1*zzhnew/(betas+zl)
               pblk2 = fak1*zzhnew2/(betas+zl)
             end if
-            pr = 1.0_rkx
+            pr = 0.72_rkx ! Molecular Prandtl number
           end if
           ! compute eddy diffusivities
           kvm(j,i,k) = max(pblk,kvm(j,i,k))

@@ -546,7 +546,7 @@ module mod_params
     zhnew_fac = 0.25_rkx
     ifaholt = 0
     ifaholtth10 = 2
-    holtth10iter = 1
+    holtth10iter = 3
     !
     ! slabocparam ;
     !
@@ -880,10 +880,10 @@ module mod_params
         write(stdout,*) 'Read cldparam OK'
 #endif
       end if
-      if ( cftotmax < 0.0 ) then
-        cftotmax = 0.1_rkx
-      else if ( cftotmax > 1.0_rkx ) then
-        cftotmax = 1.00_rkx
+      if ( cftotmax <= 0.0 .or. cftotmax > 1.0_rkx ) then
+        write(stderr, *) 'Error in settings: cftotmax = ',cftotmax
+        call fatal(__FILE__,__LINE__, &
+                     'MAXIMUM CLOUD FRACTION ERROR')
       end if
 
       if ( ipptls == 1 ) then

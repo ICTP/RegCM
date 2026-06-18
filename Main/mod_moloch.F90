@@ -88,8 +88,6 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: tf => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tvirt => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: zeta => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: zetau => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: zetav => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: u => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: v => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: w => null( )
@@ -166,7 +164,7 @@ module mod_moloch
     call getmem(p3d,jdi1,jdi2,idi1,idi2,1,kz,'moloch:p3d')
     call getmem(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:dw')
     call getmem(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
-    call getmem(zdiv2,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'moloch:zdiv2')
+    call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem(wfw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wfw')
@@ -191,10 +189,6 @@ module mod_moloch
     end if
     call getmem(ud,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'moloch:ud')
     call getmem(vd,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'moloch:vd')
-    if ( ifrayd == 1 ) then
-      call getmem(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
-      call getmem(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
-    end if
     if ( do_fulleq ) then
       call getmem(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
       call getmem(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
@@ -265,10 +259,6 @@ module mod_moloch
     if ( ichem == 1 ) then
       call assignpnt(mo_atm%trac,trac)
       call assignpnt(mo_atm%chiten,chiten)
-    end if
-    if ( ifrayd == 1 ) then
-      call xtoustag(zeta,zetau)
-      call xtovstag(zeta,zetav)
     end if
 #ifdef RCEMIP
     coru = 0.0_rkx
@@ -973,34 +963,74 @@ module mod_moloch
     real(rkx) :: ddamp
 
     call exchange_lrbt(zdiv2,1,jci1,jci2,ici1,ici2,1,kz)
+    if ( ma%has_bdybottom ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        zdiv2(j,ice1,k) = -0.5_rkx*zdiv2(j,ici1,k)
+      end do
+      if ( ma%has_bdyleft ) then
+        do concurrent ( k = 1:kz )
+          zdiv2(jce1,ice1,k) = -0.5_rkx*zdiv2(jci1,ici1,k)
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do concurrent ( k = 1:kz )
+          zdiv2(jce2,ice1,k) = -0.5_rkx*zdiv2(jci2,ici1,k)
+        end do
+      end if
+    end if
+    if ( ma%has_bdytop ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        zdiv2(j,ice2,k) = -0.5_rkx*zdiv2(j,ici2,k)
+      end do
+      if ( ma%has_bdyleft ) then
+        do concurrent ( k = 1:kz )
+          zdiv2(jce1,ice2,k) = -0.5_rkx*zdiv2(jci1,ici2,k)
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do concurrent ( k = 1:kz )
+          zdiv2(jce2,ice2,k) = -0.5_rkx*zdiv2(jci2,ici2,k)
+        end do
+      end if
+    end if
+    if ( ma%has_bdyleft ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        zdiv2(jce1,i,k) = -0.5_rkx*zdiv2(jci1,i,k)
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        zdiv2(jce2,i,k) = -0.5_rkx*zdiv2(jci2,i,k)
+      end do
+    end if
     ddamp = 0.125_rkx * (dx/dts)
     if ( lrotllr ) then
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 xknu(k)*ddamp*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 xknu(k)*ddamp*mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
     ! Horizontal diffusion
     ddamp = xdamp * 0.015625_rkx/dts
-    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       p3d(j,i,k) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                 zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
                    0.5_rkx * zdiv2(j,i,k)
     end do
-    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p3d(j,i,k)
     end do
   end subroutine divdamp
@@ -1696,50 +1726,6 @@ module mod_moloch
       fl(j,i,kz) = 0.5_rkx * (hl(j,i,kz)+hl(j,i,kzm1))
     end do
   end subroutine htozstag
-
-  subroutine xtoustag(ux,u)
-    implicit none
-    real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: ux
-    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u
-    integer(ik4) :: i, j, k
-
-    do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
-      u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
-                 0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
-    end do
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
-      end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
-      end do
-    end if
-  end subroutine xtoustag
-
-  subroutine xtovstag(vx,v)
-    implicit none
-    real(rkx), intent(in), dimension(:,:,:), pointer, contiguous :: vx
-    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: v
-    integer(ik4) :: i, j, k
-
-    do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
-      v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
-                 0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
-    end do
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
-      end do
-    end if
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        v(j,idi1,k) = 0.5_rkx * (vx(j,ici1,k)+vx(j,ice1,k))
-      end do
-    end if
-  end subroutine xtovstag
 
   subroutine xtouvstag(ux,vx,u,v)
     implicit none

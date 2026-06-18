@@ -95,7 +95,7 @@ module mod_rad_outrad
     integer(ik4) :: kh1, kh2, km1, km2, kl1, kl2
     integer(ik4) :: visband
     real(rk8) :: hif, mif, lof
-    real(rk8), parameter :: sm1 = 1.0001_rk8
+    real(rk8), parameter :: sm1 = 1.0_rk8
     !
     ! total heating rate in deg/s
     !
@@ -169,21 +169,17 @@ module mod_rad_outrad
           end if
         end do
         do k = kh1, kh2
-          hif = hif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                         (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
-
+          hif = hif*(1.0_rk8-max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)))
         end do
         do k = km1, km2
-          mif = mif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                         (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
+          mif = mif*(1.0_rk8-max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)))
         end do
         do k = kl1, kl2
-          lof = lof*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                         (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
+          lof = lof*(1.0_rk8-max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)))
         end do
-        rad_higcl_out(j,i) = real(rad_higcl_out(j,i) + d_one-hif,rkx)
-        rad_midcl_out(j,i) = real(rad_midcl_out(j,i) + d_one-mif,rkx)
-        rad_lowcl_out(j,i) = real(rad_lowcl_out(j,i) + d_one-lof,rkx)
+        rad_higcl_out(j,i) = real(rad_higcl_out(j,i) + d_one-hif, rkx)
+        rad_midcl_out(j,i) = real(rad_midcl_out(j,i) + d_one-mif, rkx)
+        rad_lowcl_out(j,i) = real(rad_lowcl_out(j,i) + d_one-lof, rkx)
       end do
     end if
 

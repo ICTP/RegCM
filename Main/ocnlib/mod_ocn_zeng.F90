@@ -113,10 +113,10 @@ module mod_ocn_zeng
       ! Get temperature from SST
       if ( ldcsst ) then
         sst(i) = tgb(i)
-        tsurf = (tskin(i) + 1.0_rkx/z995 * (tatm(i)-tskin(i)))
+        tsurf = tskin(i)
       else
         tgrd(i) = tgb(i)
-        tsurf = tgrd(i)
+        tsurf = tgrd(i) - 0.17_rkx
       end if
 
       rlv = wlh(tsurf)

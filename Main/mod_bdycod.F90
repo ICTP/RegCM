@@ -114,7 +114,7 @@ module mod_bdycod
 
   real(rkx), parameter :: dfac = 0.01_rkx
   real(rkx), parameter :: xfac = 0.005_rkx
-  integer(ik4), parameter :: mo_sponge = 3
+  integer(ik4) :: mo_sponge
 
   interface timeint
     module procedure timeint2, timeint3
@@ -500,6 +500,9 @@ module mod_bdycod
     ! DOI: 10.1175/1520-0493(1993)121<2814:DOASGR>2.0.CO;2
     !
     rdtbdy = d_one / dtbdys
+    if ( idynamic == 3 ) then
+      mo_sponge = kz/6
+    end if
     if ( iboudy == 1 .or. iboudy >= 5 ) then
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
@@ -515,7 +518,7 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          gnudge = 0.009_rkx/dtsec
+          gnudge = 0.005_rkx/dtsec
         else
           gnudge = 0.02_rkx/dt2
         end if

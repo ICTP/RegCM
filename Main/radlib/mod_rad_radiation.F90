@@ -5038,23 +5038,13 @@ module mod_rad_radiation
       !
       ! Compute Total Cloud fraction
       !
-      if ( luse_max_rnovl ) then
-        do concurrent ( n = rt%n1:rt%n2 )
-          rt%totcf(n) = 1.0_rk8
-          do k = 2, kzp1
-            rt%totcf(n) = rt%totcf(n) * &
-                   (1.0001_rk8 - max(rt%cld(k-1,n),rt%cld(k,n)))/ &
-                   (1.0001_rk8 - rt%cld(k-1,n))
-          end do
+      do concurrent ( n = rt%n1:rt%n2 )
+        rt%totcf(n) = 1.0_rk8
+        do k = 2, kz
+          rt%totcf(n) = rt%totcf(n) * (1.0_rk8-rt%cld(k,n))
         end do
-      else
-        do concurrent ( n = rt%n1:rt%n2 )
-          rt%totcf(n) = 1.0_rk8
-          do k = 2, kzp1
-            rt%totcf(n) = rt%totcf(n) * (1.0_rk8 - rt%cld(k,n))
-          end do
-        end do
-      end if
+        rt%totcf(n) = 1.0_rkx - rt%totcf(n)
+      end do
 
       do concurrent ( n = rt%n1:rt%n2 )
         !
@@ -5067,9 +5057,6 @@ module mod_rad_radiation
         rt%fsns(n) = rt%fsns(n)*1.0e-3_rk8
         rt%fsntc(n) = rt%fsntc(n)*1.0e-3_rk8
         rt%fsnsc(n) = rt%fsnsc(n)*1.0e-3_rk8
-        rt%totcf(n) = 1.0_rk8 - rt%totcf(n)
-        if ( rt%totcf(n) > 1.0_rk8 ) rt%totcf(n) = 1.0_rk8
-        if ( rt%totcf(n) < 0.0_rk8 ) rt%totcf(n) = 0.0_rk8
         !
         ! clear sky column partitioning for surface flux
         ! note : should be generalised to the whole column to be
