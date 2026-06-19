@@ -52,6 +52,7 @@ module mod_moloch
   real(rkx), pointer, contiguous, dimension(:,:,:) :: tkex => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: wz => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: mx2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rmx => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: rmu => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: rmv => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: p0 => null( )
@@ -164,13 +165,14 @@ module mod_moloch
     call getmem(p3d,jdi1,jdi2,idi1,idi2,1,kz,'moloch:p3d')
     call getmem(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:dw')
     call getmem(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
-    call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
+    call getmem(zdiv2,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'moloch:zdiv2')
     call getmem(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem(wfw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wfw')
     call getmem(zpby,jci1,jci2,ici1,ici2+1,1,kz,'moloch:zpby')
     call getmem(zpbw,jci1,jci2+1,ici1,ici2,1,kz,'moloch:zpbw')
     call getmem(mx2,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:mx2')
+    call getmem(rmx,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmx')
     call getmem(rmu,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmu')
     call getmem(rmv,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmv')
     call getmem(coru,jde1,jde2,ice1,ice2,'moloch:coru')
@@ -269,10 +271,12 @@ module mod_moloch
 #endif
     do concurrent ( j = jde1:jde2, i = ide1:ide2 )
       mx2(j,i) = mx(j,i) * mx(j,i)
+      rmx(j,i) = d_one/mx(j,i)
       rmu(j,i) = d_one/mu(j,i)
       rmv(j,i) = d_one/mv(j,i)
     end do
     call exchange_lrbt(mx2,1,jde1,jde2,ide1,ide2)
+    call exchange_lrbt(rmx,1,jde1,jde2,ide1,ide2)
     call exchange_lrbt(rmu,1,jde1,jde2,ide1,ide2)
     call exchange_lrbt(rmv,1,jde1,jde2,ide1,ide2)
     gzitak = gzita(zita,mo_ztop,mo_a0)
@@ -870,7 +874,6 @@ module mod_moloch
       call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
-
       if ( lrotllr ) then
         do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
           ud(j,i,k) = u(j,i,k) * rmu(j,i)
@@ -889,7 +892,7 @@ module mod_moloch
                  (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
-                     zfz * hx(j,i) * gzitakh(k) - &
+                     zfz * mu(j,i) * rmx(j,i) * hx(j,i) * gzitakh(k) - &
                      zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
         end do
         ! Equation 18
@@ -923,7 +926,7 @@ module mod_moloch
                  (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
-                     zfz * hx(j,i) * gzitakh(k) - &
+                     zfz * mu(j,i) * rmx(j,i) * hx(j,i) * gzitakh(k) - &
                      zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
         end do
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
@@ -936,7 +939,7 @@ module mod_moloch
                  (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
           ! Equation 18
           v(j,i,k) = v(j,i,k) - zcor1v - &
-                     zfz * hy(j,i) * gzitakh(k) -  &
+                     zfz * mv(j,i) * rmx(j,i) * hy(j,i) * gzitakh(k) - &
                      zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
         end do
       end if
@@ -963,74 +966,34 @@ module mod_moloch
     real(rkx) :: ddamp
 
     call exchange_lrbt(zdiv2,1,jci1,jci2,ici1,ici2,1,kz)
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice1,k) = -0.5_rkx*zdiv2(j,ici1,k)
-      end do
-      if ( ma%has_bdyleft ) then
-        do concurrent ( k = 1:kz )
-          zdiv2(jce1,ice1,k) = -0.5_rkx*zdiv2(jci1,ici1,k)
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do concurrent ( k = 1:kz )
-          zdiv2(jce2,ice1,k) = -0.5_rkx*zdiv2(jci2,ici1,k)
-        end do
-      end if
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice2,k) = -0.5_rkx*zdiv2(j,ici2,k)
-      end do
-      if ( ma%has_bdyleft ) then
-        do concurrent ( k = 1:kz )
-          zdiv2(jce1,ice2,k) = -0.5_rkx*zdiv2(jci1,ici2,k)
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do concurrent ( k = 1:kz )
-          zdiv2(jce2,ice2,k) = -0.5_rkx*zdiv2(jci2,ici2,k)
-        end do
-      end if
-    end if
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce1,i,k) = -0.5_rkx*zdiv2(jci1,i,k)
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce2,i,k) = -0.5_rkx*zdiv2(jci2,i,k)
-      end do
-    end if
     ddamp = 0.125_rkx * (dx/dts)
     if ( lrotllr ) then
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 xknu(k)*ddamp*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 xknu(k)*ddamp*mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
     ! Horizontal diffusion
     ddamp = xdamp * 0.015625_rkx/dts
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
       p3d(j,i,k) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                 zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
                    0.5_rkx * zdiv2(j,i,k)
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
       zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p3d(j,i,k)
     end do
   end subroutine divdamp

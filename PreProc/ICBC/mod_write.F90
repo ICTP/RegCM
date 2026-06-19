@@ -27,6 +27,7 @@ module mod_write
   use mod_vectutil
   use mod_stdio
   use mod_zita
+  use mod_lowpass
   implicit none
 
   private
@@ -246,6 +247,7 @@ module mod_write
       call getmem(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
       call getmem(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
     else if ( idynamic == 3 ) then
+      call lowpass_init(xlat,xlon)
       nvar2d = 10
       nvar3d = 4
       call getmem(psd0,1,jx,1,iy,'mod_write:psd0')
@@ -641,6 +643,10 @@ module mod_write
     if ( idynamic == 3 ) then
       ! Remember in this case ptop is zero!
       ps4 = ps4*d_10
+      do k = 1, kz
+        call lowpass_filter(u4(:,:,k))
+        call lowpass_filter(v4(:,:,k))
+      end do
     end if
 
     call outstream_addrec(ncout,idate)

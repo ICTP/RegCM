@@ -508,7 +508,7 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.3_rkx/dtsec
+          fnudge = 0.1_rkx/dtsec
         else
           fnudge = 0.1_rkx/dt2
         end if
@@ -518,7 +518,7 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          gnudge = 0.005_rkx/dtsec
+          gnudge = 0.02_rkx/dtsec
         else
           gnudge = 0.02_rkx/dt2
         end if

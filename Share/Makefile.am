@@ -25,7 +25,7 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.F90 mod_space.F90 mod_hgt.F90 \
                       mod_nchelper.F90 mod_vertint.F90 mod_spline.F90 \
                       mod_domain.F90 mod_intkinds.F90 mod_ncstream_types.F90 \
                       mod_async_netcdf.F90 mod_ncstream.F90 \
-                      mod_sunorbit.F90 mod_nhinterp.F90 \
+                      mod_sunorbit.F90 mod_nhinterp.F90 mod_lowpass.F90 \
                       mod_sigma.F90 mod_capecin.F90 mod_stdatm.F90 \
                       mod_rdldtr.F90 mod_intldtr.F90 mod_kdtree2_priority.F90 \
                       mod_kdtree2.F90 mod_earth.F90 mod_kdinterp.F90 \
@@ -52,6 +52,7 @@ clean-local:
 mod_capecin.o : mod_capecin.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_spline.o pfesat.inc
 mod_constants.o: mod_constants.F90 mod_realkinds.o
 mod_date.o: mod_date.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_message.o
+mod_lowpass.o : mod_lowpass.F90 mod_intkinds.o mod_realkinds.o mod_constants.F90 mod_memutil.o
 mod_domain.o: mod_domain.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_nchelper.o mod_stdio.o mod_message.o
 mod_dynparam.o: mod_dynparam.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o
 mod_ensemble.o: mod_ensemble.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_constants.o
