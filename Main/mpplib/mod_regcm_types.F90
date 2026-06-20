@@ -64,6 +64,8 @@ module mod_regcm_types
 
   type domain
     real(rkx), pointer, contiguous, dimension(:,:) :: ht => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: htu => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: htv => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: lndcat => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: lndtex => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: mask => null( )
@@ -144,6 +146,8 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:,:) :: zetaf => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: dz => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: fmz => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: rfmzu => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: rfmzv => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: fmzf => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: uten => null( )

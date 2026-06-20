@@ -1232,25 +1232,25 @@ module mod_params
       if ( dtrad < dt ) dtrad = dt
       if ( dtabem < dt ) dtabem = dt
 
-      dtsrf = int(dtsrf / dt) * dt
+      dtsrf = ceiling(dtsrf / dt) * dt
       do while ( mod(minfrq,dtsrf) > d_zero )
         dtsrf = dtsrf - dt
       end do
 
-      dtcum = int(dtcum / dt) * dt
+      dtcum = ceiling(dtcum / dt) * dt
       do while ( mod(minfrq,dtcum) > d_zero )
         dtcum = dtcum - dt
       end do
       dtcum = max(int(dtcum / (0.5_rkx*dtsrf)),1) * (0.5_rkx*dtsrf)
 
-      dtrad = int(dtrad / dt) * dt
+      dtrad = ceiling(dtrad / dt) * dt
       do while ( mod(minfrq,dtrad) > d_zero )
         dtrad = dtrad - dt
       end do
       dtrad = max(int(dtrad / (3.0_rkx*dtsrf)),1) * (3.0_rkx*dtsrf)
       dtabem = max(int(dtabem / (36_rkx*dtrad)),1) * (36.0_rkx*dtrad)
 
-      dtche = int(dtche / dt) * dt
+      dtche = ceiling(dtche / dt) * dt
 
       if ( iseaice == 1 ) then
         select case (ssttyp)
@@ -2157,11 +2157,13 @@ module mod_params
                             mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
                             mddom%coriol,mddom%snowam,mddom%smoist,        &
                             mddom%rmoist,mddom%rts,mddom%dhlake,           &
-                            base_state_ts0)
+                            base_state_ts0,mddom%htu,mddom%htv)
     end if
     if ( moloch_do_test_1 ) then
       ifrayd = 0
       mddom%ht = 0.0_rkx
+      mddom%htu = 0.0_rkx
+      mddom%htv = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
       mddom%mask = 0.0_rkx
@@ -2170,6 +2172,8 @@ module mod_params
       !mddom%ht(jde1:jde2,ide1:ide2) = 100.0_rkx * &
       !              abs(sin(mddom%xlat(jde1:jde2,ide1:ide2)*degrad))
       mddom%ht = 0.0_rkx
+      mddom%htu = 0.0_rkx
+      mddom%htv = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
       mddom%mask = 0.0_rkx
@@ -2419,7 +2423,12 @@ module mod_params
     do concurrent ( j = jde1:jde2, i = ide1:ide2 )
       mddom%ht(j,i)   = mddom%ht(j,i)*egrav
     end do
-    if ( idynamic /= 3 ) then
+    if ( idynamic == 3 ) then
+      do concurrent ( j = jde1:jde2, i = ide1:ide2 )
+        mddom%htu(j,i) = mddom%htu(j,i)*egrav
+        mddom%htv(j,i) = mddom%htv(j,i)*egrav
+      end do
+    else
       do concurrent ( j = jde1:jde2, i = ide1:ide2 )
         mddom%msfd(j,i) = d_one/mddom%msfd(j,i)
         mddom%msfx(j,i) = d_one/mddom%msfx(j,i)
@@ -3294,6 +3303,8 @@ module mod_params
         call exchange_lrbt(mddom%msfx,1,jde1,jde2,ide1,ide2)
         call exchange_lrbt(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_lrbt(mddom%msfv,1,jde1,jde2,ide1,ide2)
+        call exchange(mddom%htu,2,jde1,jde2,ide1,ide2)
+        call exchange(mddom%htv,2,jde1,jde2,ide1,ide2)
         do concurrent ( j = jdi1ga:jdi2ga, i = ice1:ice2 )
           mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &
                            mddom%msfx(j,i) * rdx * regrav
@@ -3315,6 +3326,14 @@ module mod_params
           mo_atm%fmz(j,i,k) = md_fmz(zitah(k), &
             mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
         end do
+        do concurrent ( j = jde1:jde2, i = ice1:ice2, k = 1:kz )
+          mo_atm%rfmzu(j,i,k) = d_one / md_fmz(zitah(k), &
+            mddom%htu(j,i),mo_ztop,mo_h,mo_a0)
+        end do
+        do concurrent ( j = jce1:jce2, i = ide1:ide2, k = 1:kz )
+          mo_atm%rfmzv(j,i,k) = d_one / md_fmz(zitah(k), &
+            mddom%htv(j,i),mo_ztop,mo_h,mo_a0)
+        end do
 #ifdef RCEMIP
         if ( myid == italk ) then
           write(stdout,'(a)') 'Vertical level height profile: '
@@ -3324,6 +3343,8 @@ module mod_params
         end if
 #endif
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(mo_atm%rfmzu,1,jde1,jde2,ice1,ice2,1,kz)
+        call exchange_lrbt(mo_atm%rfmzv,1,jce1,jce2,ide1,ide2,1,kz)
         call exchange_lrbt(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
           mo_atm%fmzf(j,i,k) = md_fmz(zita(k), &

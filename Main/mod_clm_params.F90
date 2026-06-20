@@ -372,13 +372,13 @@ module mod_clm_params
     call bcast(dirglob,256)
     call bcast(dirout,256)
     call bcast(domname,64)
-    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,            &
-                          mddom%mask,mddom%area,                         &
-                          mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,   &
-                          mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,   &
-                          mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
-                          mddom%coriol,mddom%snowam,mddom%smoist,        &
-                          mddom%rmoist,mddom%rts,mddom%dhlake,base_state_ts0)
+    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,              &
+                          mddom%mask,mddom%area,mddom%xlat,mddom%xlon,     &
+                          mddom%dlat,mddom%dlon,mddom%ulat,mddom%ulon,     &
+                          mddom%vlat,mddom%vlon,mddom%msfx,mddom%msfd,     &
+                          mddom%msfu,mddom%msfv,mddom%coriol,mddom%snowam, &
+                          mddom%smoist,mddom%rmoist,mddom%rts,mddom%dhlake,&
+                          base_state_ts0,mddom%htu,mddom%htv)
     call bcast(ptop)
     call bcast(xcone)
 

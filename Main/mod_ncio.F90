@@ -159,7 +159,8 @@ module mod_ncio
 
   subroutine read_domain_info(ht,lnd,tex,mask,area,xlat,xlon,dlat,dlon, &
                               ulat,ulon,vlat,vlon,msfx,msfd,msfu,msfv,  &
-                              coriol,snowam,smoist,rmoist,rts,hlake,ts0)
+                              coriol,snowam,smoist,rmoist,rts,hlake,ts0,&
+                              htu,htv)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ht
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lnd
@@ -184,6 +185,8 @@ module mod_ncio
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rmoist
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rts
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: hlake
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: htu
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: htv
     real(rkx), intent(out) :: ts0
     real(rkx), dimension(:,:), pointer, contiguous :: tempmoist
     character(len=256) :: dname
@@ -253,6 +256,10 @@ module mod_ncio
         msfv(jde1:jde2,ide1:ide2) = rspace
         call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
         msfx(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'topou',rspace,istart=istart,icount=icount)
+        htu(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'topov',rspace,istart=istart,icount=icount)
+        htv(jde1:jde2,ide1:ide2) = rspace
       else
         call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
         msfx(jde1:jde2,ide1:ide2) = rspace
@@ -265,6 +272,12 @@ module mod_ncio
           write(stdout,*) 'Applying perturbation to input dataset:'
         end if
         if ( lperturb_topo ) then
+          if ( idynamic == 3 ) then
+            write(stderr, *) 'Cannot apply perturbation to topography ', &
+                'in model for dynamic == 3.'
+            write(stderr, *) 'Apply it to the netcdf DOMAIN file.'
+            call fatal(__FILE__,__LINE__,'DOMAIN READ')
+          end if
           if ( myid == italk ) then
             write(stdout,'(a,f7.2,a)') 'Topo with value ', &
               perturb_frac_topo*d_100,'%'
@@ -385,6 +398,12 @@ module mod_ncio
           call read_var2d_static(idmin,'xmap',rspace, &
                                  istart=istart,icount=icount)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
+          call read_var2d_static(idmin,'topou',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,htu,jde1,jde2,ide1,ide2)
+          call read_var2d_static(idmin,'topov',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,htv,jde1,jde2,ide1,ide2)
         else
           call read_var2d_static(idmin,'xmap',rspace, &
                                  istart=istart,icount=icount)
@@ -395,6 +414,12 @@ module mod_ncio
         end if
         call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
         if ( ensemble_run ) then
+          if ( idynamic == 3 ) then
+            write(stderr, *) 'Cannot apply perturbation to topography ', &
+                'in model for dynamic == 3.'
+            write(stderr, *) 'Apply it to the netcdf DOMAIN file.'
+            call fatal(__FILE__,__LINE__,'DOMAIN READ')
+          end if
           if ( myid == italk ) then
             write(stdout,*) 'Applying perturbation to input dataset:'
           end if
@@ -480,6 +505,8 @@ module mod_ncio
           call grid_distribute(rspace,msfu,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfv,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
+          call grid_distribute(rspace,htu,jde1,jde2,ide1,ide2)
+          call grid_distribute(rspace,htv,jde1,jde2,ide1,ide2)
         else
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)

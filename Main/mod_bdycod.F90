@@ -501,14 +501,14 @@ module mod_bdycod
     !
     rdtbdy = d_one / dtbdys
     if ( idynamic == 3 ) then
-      mo_sponge = kz/6
+      mo_sponge = max(kz/6,1)
     end if
     if ( iboudy == 1 .or. iboudy >= 5 ) then
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.1_rkx/dtsec
+          fnudge = 0.6_rkx/dtsec
         else
           fnudge = 0.1_rkx/dt2
         end if
@@ -518,7 +518,7 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          gnudge = 0.02_rkx/dtsec
+          gnudge = 0.01_rkx/dtsec
         else
           gnudge = 0.02_rkx/dt2
         end if
@@ -588,8 +588,8 @@ module mod_bdycod
     end if
     if ( idynamic == 3 ) then
       do k = 1, kz
-        ddamp(k) = 1.0_rkx / ( 1.0_rkx + dfac*dt*hsigma(k)**2 )
-        xdamp(k) = 1.0_rkx / ( 1.0_rkx + xfac*dt*hsigma(k)**2 )
+        ddamp(k) = 1.0_rkx / ( 1.0_rkx + dfac*dtbdys*hsigma(k)**2 )
+        xdamp(k) = 1.0_rkx / ( 1.0_rkx + xfac*dtbdys*hsigma(k)**2 )
       end do
     end if
 #ifdef DEBUG
@@ -4050,8 +4050,8 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = fcx(ib)
-          xg = gcx(ib)
+          xf = fcd(ib)
+          xg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4064,8 +4064,8 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = fcx(ib)
-          xg = gcx(ib)
+          xf = fcd(ib)
+          xg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4078,8 +4078,8 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = fcx(ib)
-          xg = gcx(ib)
+          xf = fcd(ib)
+          xg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4092,8 +4092,8 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = fcx(ib)
-          xg = gcx(ib)
+          xf = fcd(ib)
+          xg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4106,8 +4106,8 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = fcx(ib)
-          xg = gcx(ib)
+          xf = fcd(ib)
+          xg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4120,8 +4120,8 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = fcx(ib)
-          xg = gcx(ib)
+          xf = fcd(ib)
+          xg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4134,8 +4134,8 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = fcx(ib)
-          xg = gcx(ib)
+          xf = fcd(ib)
+          xg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4148,8 +4148,8 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = fcx(ib)
-          xg = gcx(ib)
+          xf = fcd(ib)
+          xg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4163,8 +4163,8 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = hefc(ib,k)
-          xg = hegc(ib,k)
+          xf = hefd(ib,k)
+          xg = hegd(ib,k)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4177,8 +4177,8 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = hefc(ib,k)
-          xg = hegc(ib,k)
+          xf = hefd(ib,k)
+          xg = hegd(ib,k)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4191,8 +4191,8 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = hefc(ib,k)
-          xg = hegc(ib,k)
+          xf = hefd(ib,k)
+          xg = hegd(ib,k)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4205,8 +4205,8 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = hefc(ib,k)
-          xg = hegc(ib,k)
+          xf = hefd(ib,k)
+          xg = hegd(ib,k)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4219,8 +4219,8 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = hefc(ib,k)
-          xg = hegc(ib,k)
+          xf = hefd(ib,k)
+          xg = hegd(ib,k)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4233,8 +4233,8 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = hefc(ib,k)
-          xg = hegc(ib,k)
+          xf = hefd(ib,k)
+          xg = hegd(ib,k)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4247,8 +4247,8 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
-          xf = hefc(ib,k)
-          xg = hegc(ib,k)
+          xf = hefd(ib,k)
+          xg = hegd(ib,k)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4261,8 +4261,8 @@ module mod_bdycod
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
-          xf = hefc(ib,k)
-          xg = hegc(ib,k)
+          xf = hefd(ib,k)
+          xg = hegd(ib,k)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)

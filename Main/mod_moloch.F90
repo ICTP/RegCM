@@ -82,11 +82,11 @@ module mod_moloch
   real(rkx), dimension(:,:), pointer, contiguous :: ts => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: ht => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: fmz => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: rfmzu => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: rfmzv => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: fmzf => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: pai => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: pf => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tetav => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: tf => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tvirt => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: zeta => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: u => null( )
@@ -134,8 +134,6 @@ module mod_moloch
   logical, parameter :: do_bdy          = .true.
   logical, parameter :: do_divdamp      = .true.
   logical, parameter :: do_vadvtwice    = .true.
-  logical, parameter :: do_filterpai    = .false.
-  logical, parameter :: do_filtertheta  = .false.
   logical, parameter :: do_phys         = .true.
   logical, parameter :: do_convection   = .true.
   logical, parameter :: do_microphysics = .true.
@@ -200,12 +198,6 @@ module mod_moloch
       xknu(k) = xdamp + &
         (1.0_rkx-xdamp) * sin(0.5_rkx*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
-    if ( do_filterpai ) then
-      call getmem(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
-    end if
-    if ( do_filtertheta ) then
-      call getmem(tf,jce1,jce2,ice1,ice2,1,kz,'moloch:tf')
-    end if
   end subroutine allocate_moloch
 
   subroutine init_moloch
@@ -222,6 +214,8 @@ module mod_moloch
     call assignpnt(sfs%psa,ps)
     call assignpnt(sfs%tg,ts)
     call assignpnt(mo_atm%fmz,fmz)
+    call assignpnt(mo_atm%rfmzu,rfmzu)
+    call assignpnt(mo_atm%rfmzv,rfmzv)
     call assignpnt(mo_atm%fmzf,fmzf)
     call assignpnt(mo_atm%pai,pai)
     call assignpnt(mo_atm%tetav,tetav)
@@ -405,19 +399,6 @@ module mod_moloch
         end do
       end if
     end if
-
-    if ( do_filterpai ) then
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        pf(j,i,k) = pai(j,i,k)
-      end do
-    end if
-    if ( do_fulleq ) then
-      if ( do_filtertheta ) then
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          tf(j,i,k) = tetav(j,i,k)
-        end do
-      end if
-    end if
     !
     ! Lateral oundary condition
     !
@@ -428,39 +409,13 @@ module mod_moloch
     end if
 
     do nadv = 1, mo_nadv
-      call apply_bdy(dtstepa)
       call sound(dtsound)
       call advection(dtstepa)
+      call apply_bdy(dtstepa)
     end do ! Advection loop
 
     if ( do_apply_bdy ) then
       call reset_bdy( )
-    end if
-
-    if ( do_filterpai ) then
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        pai(j,i,k) = pai(j,i,k) - pf(j,i,k)
-      end do
-      !@acc call nvtxStartRange("filtpai")
-      call filtpai
-      !@acc call nvtxEndRange
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        pai(j,i,k) = pai(j,i,k) + pf(j,i,k)
-      end do
-    end if
-
-    if ( do_fulleq ) then
-      if ( do_filtertheta ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          tetav(j,i,k) = tetav(j,i,k) - tf(j,i,k)
-        end do
-        !@acc call nvtxStartRange("filttheta")
-        call filttheta
-        !@acc call nvtxEndRange
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          tetav(j,i,k) = tetav(j,i,k) + tf(j,i,k)
-        end do
-      end if
     end if
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -759,26 +714,18 @@ module mod_moloch
 
       if ( lrotllr ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
-          zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
-          zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
-          zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
-          zum = dtrdx * u(j,i,k)   * zrfmzum
-          zup = dtrdx * u(j+1,i,k) * zrfmzup
-          zvm = dtrdy * v(j,i,k)   * zrfmzvm * rmv(j,i)
-          zvp = dtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
+          zum = dtrdx * u(j,i,k)   * rfmzu(j,i,k)
+          zup = dtrdx * u(j+1,i,k) * rfmzu(j+1,i,k)
+          zvm = dtrdy * v(j,i,k)   * rfmzv(j,i,k)   * rmv(j,i)
+          zvp = dtrdy * v(j,i+1,k) * rfmzv(j,i+1,k) * rmv(j,i+1)
           zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
         end do
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
-          zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
-          zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
-          zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
-          zum = dtrdx * u(j,i,k)   * rmu(j,i)   * zrfmzum
-          zup = dtrdx * u(j+1,i,k) * rmu(j+1,i) * zrfmzup
-          zvm = dtrdy * v(j,i,k)   * rmv(j,i)   * zrfmzvm
-          zvp = dtrdy * v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
+          zum = dtrdx * u(j,i,k)   * rfmzu(j,i,k)   * rmu(j,i)
+          zup = dtrdx * u(j+1,i,k) * rfmzu(j+1,i,k) * rmu(j+1,i)
+          zvm = dtrdy * v(j,i,k)   * rfmzv(j,i,k)   * rmv(j,i)
+          zvp = dtrdy * v(j,i+1,k) * rfmzv(j,i+1,k) * rmv(j,i+1)
           zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
         end do
       end if
@@ -1174,8 +1121,8 @@ module mod_moloch
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
         zhxvts = dtrdy * rmv(j,i)   * mx(j,i)
-        zrfmn = zhxvtn * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-        zrfms = zhxvts * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+        zrfmn = zhxvtn * fmz(j,i,k) * rfmzv(j,i+1,k)
+        zrfms = zhxvts * fmz(j,i,k) * rfmzv(j,i,k)
         zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
         p0(j,i,k) = wz(j,i,k) + &
               (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
@@ -1217,8 +1164,8 @@ module mod_moloch
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         zcostx = dtrdx * mx(j,i)
-        zrfme = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-        zrfmw = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+        zrfmw = zcostx * fmz(j,i,k) * rfmzu(j,i,k)
+        zrfme = zcostx * fmz(j,i,k) * rfmzu(j+1,i,k)
         zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
         pp(j,i,k) = p0(j,i,k) + &
                zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
@@ -1247,8 +1194,8 @@ module mod_moloch
             ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zrfmn = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-        zrfms = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+        zrfmn = dtrdy * fmz(j,i,k) * rfmzu(j,i+1,k)
+        zrfms = dtrdy * fmz(j,i,k) * rfmzu(j,i,k)
         zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
                v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
         p0(j,i,k) = wz(j,i,k) + &
@@ -1291,8 +1238,8 @@ module mod_moloch
       end do
 
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zrfme = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-        zrfmw = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+        zrfmw = dtrdx * fmz(j,i,k) * rfmzu(j,i,k)
+        zrfme = dtrdx * fmz(j,i,k) * rfmzu(j+1,i,k)
         zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
                u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
         pp(j,i,k) = p0(j,i,k) + &

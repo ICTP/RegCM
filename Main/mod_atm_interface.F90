@@ -615,6 +615,8 @@ module mod_atm_interface
                                  ici1,ici2,1,kz,1,ntr,'atmstate:chiten')
       end if
       call getmem(atm%fmz,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:fmz')
+      call getmem(atm%rfmzu,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'atmstate:rfmzu')
+      call getmem(atm%rfmzv,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'atmstate:rfmzv')
       call getmem(atm%fmzf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:fmzf')
     end subroutine allocate_atmosphere
 
@@ -840,6 +842,8 @@ module mod_atm_interface
         call getmem(dom%vlon,jde1,jde2,ide1,ide2,'storage:vlon')
         call getmem(dom%coriou,jde1,jde2,ice1,ice2,'storage:fu')
         call getmem(dom%coriov,jce1,jce2,ide1,ide2,'storage:fv')
+        call getmem(dom%htu,jde1gb,jde2gb,ide1gb,ide2gb,'storage:htu')
+        call getmem(dom%htv,jde1gb,jde2gb,ide1gb,ide2gb,'storage:htv')
       else
         call getmem(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
         call getmem(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
