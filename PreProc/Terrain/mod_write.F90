@@ -102,8 +102,8 @@ module mod_write
       nvar2d = 15
       nvar3d = 7
     else if ( idynamic == 3 ) then
-      nvar2d = 19
-      nvar3d = 5
+      nvar2d = 21
+      nvar3d = 7
     end if
     allocate(v2dvar_base(nvar2d))
     allocate(v3dvar_base(nvar3d))
@@ -213,6 +213,14 @@ module mod_write
       v2dvar_base(19)%vunit = '1'
       v2dvar_base(19)%long_name = 'Map Factor on V Points'
       v2dvar_base(19)%standard_name = 'map_factor'
+      v2dvar_base(20)%vname = 'topou'
+      v2dvar_base(20)%vunit = 'm'
+      v2dvar_base(20)%long_name = 'Surface Model Elevation'
+      v2dvar_base(20)%standard_name = 'surface_altitude'
+      v2dvar_base(21)%vname = 'topov'
+      v2dvar_base(21)%vunit = 'm'
+      v2dvar_base(21)%long_name = 'Surface Model Elevation'
+      v2dvar_base(21)%standard_name = 'surface_altitude'
     else
       v2dvar_base(13)%vname = 'xmap'
       v2dvar_base(13)%vunit = '1'
@@ -241,6 +249,16 @@ module mod_write
       v3dvar_base(5)%long_name = 'Vertical factor'
       v3dvar_base(5)%standard_name = ''
       v3dvar_base(5)%axis = 'xyz'
+      v3dvar_base(6)%vname = 'zetau'
+      v3dvar_base(6)%vunit = 'm'
+      v3dvar_base(6)%long_name = 'Elevation above ground'
+      v3dvar_base(6)%standard_name = 'heigth'
+      v3dvar_base(6)%axis = 'xyz'
+      v3dvar_base(7)%vname = 'zetav'
+      v3dvar_base(7)%vunit = 'm'
+      v3dvar_base(7)%long_name = 'Elevation above ground'
+      v3dvar_base(7)%standard_name = 'heigth'
+      v3dvar_base(7)%axis = 'xyz'
     else if ( idynamic == 2 ) then
       v3dvar_base(4)%vname = 'pr0'
       v3dvar_base(4)%vunit = 'Pa'
@@ -267,10 +285,9 @@ module mod_write
   end subroutine setup_outvars
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
-                          xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,dmap, &
-                          umap,vmap,coriol,mask,htgrid,lndout,snowam,smoist, &
-                          rmoist,rts,dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,&
-                          ts0,zeta,fmz)
+         xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,dmap,umap,vmap,coriol, &
+         mask,htgrid,topou,topov,lndout,snowam,smoist,rmoist,rts,dpth,       &
+         texout,frac_tex,ps0,pr0,t0,rho0,z0,ts0,zeta,zetau,zetav,fmz)
     implicit none
     character (len=*), intent(in) :: fname
     logical, intent(in) :: lsub, lndfudge, texfudge, lakfudge
@@ -280,10 +297,13 @@ module mod_write
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: dlat, dlon
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ulat, ulon
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: vlat, vlon
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: xmap, dmap, coriol
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: xmap, dmap
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: umap, vmap
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: coriol
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: mask
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: htgrid, lndout
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: htgrid
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: topou, topov
+    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: lndout
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: snowam
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: smoist
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: dpth
@@ -297,6 +317,8 @@ module mod_write
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: rho0
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: z0
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zeta
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zetau
+    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zetav
     real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: fmz
     real(rkx), intent(in) :: ts0
 
@@ -419,8 +441,12 @@ module mod_write
       v2dvar_base(17)%rval => xmap
       v2dvar_base(18)%rval => umap
       v2dvar_base(19)%rval => vmap
+      v2dvar_base(20)%rval => topou
+      v2dvar_base(21)%rval => topov
       v3dvar_base(4)%rval => zeta
       v3dvar_base(5)%rval => fmz
+      v3dvar_base(6)%rval => zetau
+      v3dvar_base(7)%rval => zetav
     else
       v2dvar_base(13)%rval => xmap
       v2dvar_base(14)%rval => dmap

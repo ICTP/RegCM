@@ -88,7 +88,6 @@ module mod_cmip6
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: dv, du
   real(rkx), pointer, contiguous, dimension(:,:,:) :: hv, hu
-  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
 
   integer(ik4) :: nkin
 
@@ -915,16 +914,10 @@ module mod_cmip6
       end if
 
       if ( idynamic == 3 ) then
-        call getmem(topou,1,jx,1,iy,'cmip6:topou')
-        call getmem(topov,1,jx,1,iy,'cmip6:topov')
         call getmem(du,1,jx,1,iy,1,nkin,'cmip6:du')
         call getmem(dv,1,jx,1,iy,1,nkin,'cmip6:dv')
         call getmem(hu,1,jx,1,iy,1,nkin,'cmip6:hu')
         call getmem(hv,1,jx,1,iy,1,nkin,'cmip6:hv')
-        call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-        call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-        call ucrs2dot(topou,topogm,jx,iy,i_band)
-        call vcrs2dot(topov,topogm,jx,iy,i_crm)
       end if
 
       write (stdout,*) 'Read in Static fields OK'
@@ -1465,9 +1458,9 @@ module mod_cmip6
       if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-        call intz1(u4,uah,zud4,hu,topou,jx,iy,kz,nkin,0.6_rkx,0.2_rkx,0.2_rkx)
+        call intz1(u4,uah,zetau,hu,topou,jx,iy,kz,nkin,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-        call intz1(v4,vah,zvd4,hv,topov,jx,iy,kz,nkin,0.6_rkx,0.2_rkx,0.2_rkx)
+        call intz1(v4,vah,zetav,hv,topov,jx,iy,kz,nkin,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
         call intz1(t4,tah,z0,zgh,topogm,jx,iy,kz,nkin,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION

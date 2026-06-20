@@ -30,15 +30,25 @@ module mod_grid
 
   private
 
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat, xlon, dlat, dlon
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: ulat, ulon, vlat, vlon
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: topogm, mask, landuse
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat, xlon
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: dlat, dlon
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ulat, ulon
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: vlat, vlon
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: topogm, mask
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: topou
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: topov
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: landuse
   real(rkx), public, pointer, contiguous, dimension(:,:) :: msfx, msfd
   real(rkx), public, pointer, contiguous, dimension(:,:) :: pa, tlayer, za
   real(rkx), public, pointer, contiguous, dimension(:) :: sigmah
   real(rkx), public, pointer, contiguous, dimension(:) :: sigmaf
   real(rkx), public, pointer, contiguous, dimension(:) :: dsigma
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: pr0, t0, rho0, z0
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: pr0
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: t0
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: rho0
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: z0
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: zetau
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: zetav
   real(rkx), public, pointer, contiguous, dimension(:,:) :: ps0
 
   real(rkx), public :: delx
@@ -74,6 +84,8 @@ module mod_grid
       call getmem(ulon,1,nx,1,ny,'mod_grid:ulon')
       call getmem(vlat,1,nx,1,ny,'mod_grid:vlat')
       call getmem(vlon,1,nx,1,ny,'mod_grid:vlon')
+      call getmem(topou,1,nx,1,ny,'mod_grid:topou')
+      call getmem(topov,1,nx,1,ny,'mod_grid:topov')
     else
       call getmem(dlat,1,nx,1,ny,'mod_grid:dlat')
       call getmem(dlon,1,nx,1,ny,'mod_grid:dlon')
@@ -97,6 +109,8 @@ module mod_grid
       call getmem(t0,1,nx,1,ny,1,nz,'mod_write:t0')
     else if ( idynamic == 3 ) then
       call getmem(z0,1,nx,1,ny,1,nz,'mod_write:z0')
+      call getmem(zetau,1,nx,1,ny,1,nz,'mod_write:zetau')
+      call getmem(zetav,1,nx,1,ny,1,nz,'mod_write:zetav')
     end if
     call read_domain_info
   end subroutine init_grid
@@ -133,13 +147,15 @@ module mod_grid
     else if ( idynamic == 3 ) then
       call read_domain(incin,sigmaf,xlat,xlon,ulat=ulat,ulon=ulon, &
                        vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
-                       lndcat=landuse)
+                       lndcat=landuse,topou=topou,topov=topov)
       call model_zitah(zitah,mo_ztop)
       sigmah = sigmazita(zitah,mo_ztop)
       do k = 1, kz
         do i = 1, iy
           do j = 1, jx
             z0(j,i,k) = md_zeta_h(zitah(k),topogm(j,i),mo_ztop,mo_h,mo_a0)
+            zetau(j,i,k) = md_zeta_h(zitah(k),topou(j,i),mo_ztop,mo_h,mo_a0)
+            zetav(j,i,k) = md_zeta_h(zitah(k),topov(j,i),mo_ztop,mo_h,mo_a0)
           end do
         end do
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))

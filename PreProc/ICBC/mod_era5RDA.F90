@@ -56,7 +56,6 @@ module mod_era5rda
   real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u, h3u, h3v
   real(rkx), pointer, contiguous, dimension(:,:,:) :: uvar, vvar
   real(rkx), pointer, contiguous, dimension(:,:,:) :: hvar, qvar, tvar
-  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
 
   real(rkx), pointer, contiguous, dimension(:) :: glat
   real(rkx), pointer, contiguous, dimension(:) :: grev
@@ -142,8 +141,6 @@ module mod_era5rda
       call getmem(d3v,1,jx,1,iy,1,klev*2,'mod_era5:d3v')
       call getmem(h3u,1,jx,1,iy,1,klev,'mod_era5:h3u')
       call getmem(h3v,1,jx,1,iy,1,klev,'mod_era5:h3v')
-      call getmem(topou,1,jx,1,iy,'mod_era5:topou')
-      call getmem(topov,1,jx,1,iy,'mod_era5:topov')
     else
       call getmem(d3,1,jx,1,iy,1,klev*2,'mod_era5:d3')
     end if
@@ -225,12 +222,6 @@ module mod_era5rda
     tvar => b2(:,:,1:klev)
     hvar => b2(:,:,klev+1:2*klev)
     qvar => b2(:,:,2*klev+1:3*klev)
-    if ( idynamic == 3 ) then
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call ucrs2dot(topou,topogm,jx,iy,i_band)
-      call vcrs2dot(topov,topogm,jx,iy,i_crm)
-    end if
   end subroutine init_era5rda
 
   subroutine get_era5rda(idate)
@@ -299,9 +290,9 @@ module mod_era5rda
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zetau,h3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zetav,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
       call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION

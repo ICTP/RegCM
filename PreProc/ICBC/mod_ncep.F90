@@ -53,7 +53,6 @@ module mod_ncep
   real(rkx), pointer, contiguous, dimension(:,:,:) :: d3u
   real(rkx), pointer, contiguous, dimension(:,:,:) :: d3v
   real(rkx), pointer, contiguous, dimension(:,:,:) :: h3v, h3u
-  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
   !
   ! The data are packed into short integers (INTEGER*2).  The array
   ! work will be used to hold the packed integers.
@@ -181,8 +180,6 @@ module mod_ncep
       call getmem(d3v,1,jx,1,iy,1,klev*2,'mod_ncep:d3v')
       call getmem(h3u,1,jx,1,iy,1,klev,'mod_era5:h3u')
       call getmem(h3v,1,jx,1,iy,1,klev,'mod_era5:h3v')
-      call getmem(topou,1,jx,1,iy,'mod_era5:topou')
-      call getmem(topov,1,jx,1,iy,'mod_era5:topov')
     else
       call getmem(d3,1,jx,1,iy,1,klev*2,'mod_ncep:d3')
     end if
@@ -206,12 +203,6 @@ module mod_ncep
     tvar => b2(:,:,1:klev)
     hvar => b2(:,:,klev+1:2*klev)
     rhvar => b2(:,:,2*klev+1:3*klev)
-    if ( idynamic == 3 ) then
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call ucrs2dot(topou,topogm,jx,iy,i_band)
-      call vcrs2dot(topov,topogm,jx,iy,i_crm)
-    end if
   end subroutine init_ncep
 
   subroutine get_ncep(idate)
@@ -270,9 +261,9 @@ module mod_ncep
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zetau,h3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zetav,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
       call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION

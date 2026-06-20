@@ -55,9 +55,8 @@ module mod_nest
   real(rkx), pointer, contiguous, dimension(:) :: ak_in, bk_in
   real(rkx), pointer, contiguous, dimension(:,:) :: pstar_in
   real(rkx), pointer, contiguous, dimension(:,:) :: ts, ps, zs
-  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
 
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: t3, q3, z3, zud3, zvd3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: t3, q3, z3
   real(rkx), pointer, contiguous, dimension(:,:,:) :: u3, v3, p3, pd3, qc3, qi3
   real(rkx), pointer, contiguous, dimension(:,:,:) :: u3v, v3u
 
@@ -384,10 +383,6 @@ module mod_nest
       call getmem(qi3,1,jx,1,iy,1,kz_in,'mod_nest:qi3')
     end if
     if ( idynamic == 3 ) then
-      call getmem(topou,1,jx,1,iy,'mod_nest:topou')
-      call getmem(topov,1,jx,1,iy,'mod_nest:topov')
-      call getmem(zud3,1,jx,1,iy,1,kz_in,'mod_nest:zud3')
-      call getmem(zvd3,1,jx,1,iy,1,kz_in,'mod_nest:zvd3')
       call getmem(u3v,1,jx,1,iy,1,kz_in,'mod_nest:u3v')
       call getmem(v3u,1,jx,1,iy,1,kz_in,'mod_nest:v3u')
     else
@@ -433,10 +428,8 @@ module mod_nest
 
     if ( idynamic == 3 ) then
       call top2btm(z0)
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call ucrs2dot(topou,topogm,jx,iy,i_band)
-      call vcrs2dot(topov,topogm,jx,iy,i_crm)
+      call top2btm(zetau)
+      call top2btm(zetav)
     end if
 
   end subroutine init_nest
@@ -784,8 +777,6 @@ module mod_nest
       ps = ps4 + ptop
       call intp3(ts4,t3,p3,ps,0.0_rkx,0.05_rkx,0.05_rkx,jx,iy,kz_in)
     else
-      call ucrs2dot(zud3,z3,jx,iy,kz_in,i_band)
-      call vcrs2dot(zvd3,z3,jx,iy,kz_in,i_crm)
       call intz3(ts4,t3,z3,topogm,0.0_rkx,0.05_rkx,0.05_rkx,jx,iy,kz_in)
     end if
 
@@ -795,10 +786,10 @@ module mod_nest
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,zud3,topou,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zetau,z3,topou,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
       call top2btm(u4)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,zvd3,topov,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zetav,z3,topov,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
       call top2btm(v4)
 !$OMP SECTION
       call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,kz_in,0.6_rkx,0.85_rkx,0.5_rkx)

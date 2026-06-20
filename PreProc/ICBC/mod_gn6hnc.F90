@@ -95,7 +95,6 @@ module mod_gn6hnc
   real(rkx), pointer, contiguous, dimension(:,:,:) :: up, vp
   real(rkx), pointer, contiguous, dimension(:,:,:) :: hp, qp, tp
   real(rkx), pointer, contiguous, dimension(:,:,:) :: h3v, h3u
-  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
 
   ! Input space
   real(rkx) :: p0
@@ -840,8 +839,6 @@ module mod_gn6hnc
       call getmem(d3v,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3v')
       call getmem(h3u,1,jx,1,iy,1,npl,'mod_era5:h3u')
       call getmem(h3v,1,jx,1,iy,1,npl,'mod_era5:h3v')
-      call getmem(topou,1,jx,1,iy,'mod_era5:topou')
-      call getmem(topov,1,jx,1,iy,'mod_era5:topov')
     else
       call getmem(d3,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3')
     end if
@@ -928,12 +925,6 @@ module mod_gn6hnc
       end do
       pss = (pplev(npl)-pplev(1))/10.0_rkx ! mb -> cb
       pst = pplev(1)/10.0_rkx ! mb -> cb
-    end if
-    if ( idynamic == 3 ) then
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call ucrs2dot(topou,topogm,jx,iy,i_band)
-      call vcrs2dot(topov,topogm,jx,iy,i_crm)
     end if
 
     write (stdout,*) 'Read in Static fields OK'
@@ -1119,9 +1110,9 @@ module mod_gn6hnc
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3u,topou,jx,iy,kz,npl,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zetau,h3u,topou,jx,iy,kz,npl,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,npl,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zetav,h3v,topov,jx,iy,kz,npl,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
       call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,npl,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION

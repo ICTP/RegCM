@@ -22,23 +22,26 @@ module mod_maps
 
   public
 
-  real(rkx), pointer, contiguous, dimension(:,:) :: coriol, dlat, dlon,   &
-                   dmap, htgrid, lndout, mask, dpth, snowam, &
-                   smoist, texout, xlat, xlon, xmap, ps0,    &
-                   ulat, ulon, vlat, vlon, umap, vmap
+  real(rkx), pointer, contiguous, dimension(:,:) :: coriol, dlat, dlon,  &
+        dmap, htgrid, lndout, mask, dpth, snowam, smoist, texout, xlat,  &
+        xlon, xmap, ps0, ulat, ulon, vlat, vlon, umap, vmap, topou, topov
+  real(rkx), pointer, contiguous, dimension(:,:) :: ulnd, vlnd
   real(rkx), pointer, contiguous, dimension(:,:,:) :: frac_tex, rmoist, rts
   real(rkx), pointer, contiguous, dimension(:,:,:) :: pr0, t0, rho0, z0
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: zeta, fmz
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zeta, zetau, zetav, fmz
 
   real(rkx), pointer, contiguous, dimension(:,:) :: coriol_s, dlat_s, &
-                      dlon_s, dmap_s, htgrid_s, lndout_s, &
-                      mask_s, dpth_s, snowam_s, smoist_s, &
-                      texout_s, xlat_s, xlon_s, xmap_s,   &
-                      ulat_s, ulon_s, vlat_s, vlon_s,     &
-                      umap_s, vmap_s, ps0_s
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: frac_tex_s, rmoist_s, rts_s
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: pr0_s, t0_s, rho0_s, z0_s
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: zeta_s, fmz_s
+        dlon_s, dmap_s, htgrid_s, lndout_s, mask_s, dpth_s, snowam_s, &
+        smoist_s, texout_s, xlat_s, xlon_s, xmap_s, ulat_s, ulon_s,   &
+        vlat_s, vlon_s, umap_s, vmap_s, ps0_s, topou_s, topov_s
+  real(rkx), pointer, contiguous, dimension(:,:) :: ulnd_s, vlnd_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: frac_tex_s, rmoist_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rts_s, z0_s, t0_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pr0_s, rho0_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zeta_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zetau_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zetav_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: fmz_s
 
   real(rkx), pointer, contiguous, dimension(:) :: sigma
   real(rkx), pointer, contiguous, dimension(:) :: zita
@@ -78,7 +81,11 @@ module mod_maps
       call getmem(ak,1,kz+1,'maps:ak')
       call getmem(bk,1,kz+1,'maps:bk')
       call getmem(zeta,1,jx,1,iy,1,kz+1,'maps:zeta')
+      call getmem(zetau,1,jx,1,iy,1,kz+1,'maps:zetau')
+      call getmem(zetav,1,jx,1,iy,1,kz+1,'maps:zetav')
       call getmem(fmz,1,jx,1,iy,1,kz+1,'maps:fmz')
+      call getmem(ulnd,1,jx,1,iy,'maps:ulnd')
+      call getmem(vlnd,1,jx,1,iy,'maps:vlnd')
       call getmem(ulat,1,jx,1,iy,'maps:ulat')
       call getmem(ulon,1,jx,1,iy,'maps:ulon')
       call getmem(vlat,1,jx,1,iy,'maps:vlat')
@@ -86,6 +93,8 @@ module mod_maps
       call getmem(xmap,1,jx,1,iy,'maps:xmap')
       call getmem(umap,1,jx,1,iy,'maps:umap')
       call getmem(vmap,1,jx,1,iy,'maps:vmap')
+      call getmem(topou,1,jx,1,iy,'maps:vmap')
+      call getmem(topov,1,jx,1,iy,'maps:vmap')
     else
       call getmem(dmap,1,jx,1,iy,'maps:dmap')
       call getmem(xmap,1,jx,1,iy,'maps:xmap')
@@ -119,7 +128,11 @@ module mod_maps
     end if
     if ( idyn == 3 ) then
       call getmem(zeta_s,1,jxsg,1,iysg,1,kz+1,'maps:zeta_s')
+      call getmem(zetau_s,1,jxsg,1,iysg,1,kz+1,'maps:zetau_s')
+      call getmem(zetav_s,1,jxsg,1,iysg,1,kz+1,'maps:zetav_s')
       call getmem(fmz_s,1,jxsg,1,iysg,1,kz+1,'maps:fmz_s')
+      call getmem(ulnd_s,1,jxsg,1,iysg,'maps:ulnd_s')
+      call getmem(vlnd_s,1,jxsg,1,iysg,'maps:vlnd_s')
       call getmem(ulat_s,1,jxsg,1,iysg,'maps:ulat_s')
       call getmem(ulon_s,1,jxsg,1,iysg,'maps:ulon_s')
       call getmem(vlat_s,1,jxsg,1,iysg,'maps:vlat_s')
@@ -127,6 +140,8 @@ module mod_maps
       call getmem(xmap_s,1,jxsg,1,iysg,'maps:xmap_s')
       call getmem(umap_s,1,jxsg,1,iysg,'maps:umap_s')
       call getmem(vmap_s,1,jxsg,1,iysg,'maps:vmap_s')
+      call getmem(topou_s,1,jxsg,1,iysg,'maps:topou_s')
+      call getmem(topov_s,1,jxsg,1,iysg,'maps:topov_s')
     else
       call getmem(dmap_s,1,jxsg,1,iysg,'maps:dmap_s')
       call getmem(xmap_s,1,jxsg,1,iysg,'maps:xmap_s')

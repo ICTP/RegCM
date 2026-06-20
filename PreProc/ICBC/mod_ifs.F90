@@ -54,7 +54,6 @@ module mod_ifs
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qvar, tvar
   real(rkx), pointer, contiguous, dimension(:,:,:) :: clvar, civar
   real(rkx), pointer, contiguous, dimension(:,:,:) :: p_out, pd_out
-  real(rkx), pointer, contiguous, dimension(:,:) :: topou, topov
   real(rkx), pointer, contiguous, dimension(:,:) :: xps, skt, yts
   real(rkx), pointer, contiguous, dimension(:,:) :: xzs, yzs
   real(rkx), pointer, contiguous, dimension(:,:) :: ps, ts, zs, z1, t1
@@ -133,8 +132,6 @@ module mod_ifs
       call getmem(z3,1,jx,1,iy,1,klev,'mod_ifs:z3')
       call getmem(z3u,1,jx,1,iy,1,klev,'mod_ifs:z3u')
       call getmem(z3v,1,jx,1,iy,1,klev,'mod_ifs:z3v')
-      call getmem(topou,1,jx,1,iy,'mod_ifs:topou')
-      call getmem(topov,1,jx,1,iy,'mod_ifs:topov')
     else
       call getmem(d3,1,jx,1,iy,1,klev*2,'mod_ifs:d3')
     end if
@@ -223,12 +220,7 @@ module mod_ifs
     pvar => b2(:,:,2*klev+1:3*klev)
     clvar => b2(:,:,3*klev+1:4*klev)
     civar => b2(:,:,4*klev+1:5*klev)
-    if ( idynamic == 3 ) then
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call ucrs2dot(topou,topogm,jx,iy,i_band)
-      call vcrs2dot(topov,topogm,jx,iy,i_crm)
-    else if ( idynamic == 2 ) then
+    if ( idynamic == 2 ) then
       do k = 1, kz
         do i = 1, iy
           do j = 1, jx
@@ -327,9 +319,9 @@ module mod_ifs
 !$OMP SECTION
       call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION
-      call intz1(u4,u3,zud4,z3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zetau,z3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,z3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zetav,z3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
       call intz1(q4,q3,z0,z3,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION

@@ -39,9 +39,8 @@ module mod_write
   real(rkx), pointer, contiguous, dimension(:,:,:) :: q4, qc4, qi4
   real(rkx), pointer, contiguous, dimension(:,:,:) :: t4, u4, v4, z4
   real(rkx), pointer, contiguous, dimension(:,:,:) :: pp4, ww4, tv4, tvd4
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: zud4, zvd4
 
-  public :: ps4, pd4, ts4, q4, t4, u4, v4, pp4, ww4, zud4, zvd4
+  public :: ps4, pd4, ts4, q4, t4, u4, v4, pp4, ww4
   public :: qc4, qi4, z4, pr, ssr, strd, clt
   public :: init_output, close_output, dispose_output, newfile, writef
   public :: init_houtput, newhfile, writehf
@@ -251,8 +250,6 @@ module mod_write
       nvar2d = 10
       nvar3d = 4
       call getmem(psd0,1,jx,1,iy,'mod_write:psd0')
-      call getmem(zud4,1,jx,1,iy,1,kz,'mod_write:zud4')
-      call getmem(zvd4,1,jx,1,iy,1,kz,'mod_write:zvd4')
     end if
     if ( qli_present ) then
       nvar3d = nvar3d + 2

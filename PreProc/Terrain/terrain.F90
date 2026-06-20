@@ -291,6 +291,12 @@ program terrain
     write(stdout,*)'Static DEM data successfully read in'
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
                 values,topo_interp_method,rdem=roidem)
+    if ( idynamic == 3 ) then
+      call interp(dsnsg,jxsg,iysg,ulat_s,ulon_s,topou_s, &
+                  values,topo_interp_method,rdem=roidem)
+      call interp(dsnsg,jxsg,iysg,vlat_s,vlon_s,topov_s, &
+                  values,topo_interp_method,rdem=roidem)
+    end if
     call relmem(values)
     write(stdout,*)'Interpolated DEM on SUBGRID'
 
@@ -303,6 +309,14 @@ program terrain
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,lndout_s,values, &
                 class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
     call filter1plakes(jxsg,iysg,lndout_s)
+    if ( idynamic == 3 ) then
+      call interp(dsnsg,jxsg,iysg,ulat_s,ulon_s,ulnd_s,values, &
+                  class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
+      call filter1plakes(jxsg,iysg,ulnd_s)
+      call interp(dsnsg,jxsg,iysg,vlat_s,vlon_s,vlnd_s,values, &
+                  class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
+      call filter1plakes(jxsg,iysg,vlnd_s)
+    end if
     call relmem(values)
     write(stdout,*)'Interpolated landcover on SUBGRID'
 
@@ -389,27 +403,29 @@ program terrain
       end do
     end do
 
-    write (char_lnd,f99001) trim(dirter), pthsep, trim(domname), &
-           '_LANDUSE', nsg
-    call lndfudge(fudge_lnd_s,lndout_s,jxsg,iysg,trim(char_lnd))
-    write (char_tex,f99001) trim(dirter), pthsep, trim(domname), &
-           '_TEXTURE', nsg
-    allocate(tmptex(jxsg,iysg))
-    tmptex(:,:) = texout_s(:,:)
-    call texfudge(fudge_tex_s,texout_s,lndout_s,jxsg,iysg,trim(char_tex))
-    do i = 1, iysg
-      do j = 1, jxsg
-        ! Swap percentages of the old class and the new requested
-        if ( texout_s(j,i) /= tmptex(j,i) ) then
-          tswap = frac_tex_s(j,i,int(tmptex(j,i)))
-          frac_tex_s(j,i,int(tmptex(j,i))) = &
-                  frac_tex_s(j,i,int(texout_s(j,i)))
-          frac_tex_s(j,i,int(texout_s(j,i))) = tswap
-        end if
+    if ( idynamic /= 3 ) then
+      write (char_lnd,f99001) trim(dirter), pthsep, trim(domname), &
+             '_LANDUSE', nsg
+      call lndfudge(fudge_lnd_s,lndout_s,jxsg,iysg,trim(char_lnd))
+      write (char_tex,f99001) trim(dirter), pthsep, trim(domname), &
+             '_TEXTURE', nsg
+      allocate(tmptex(jxsg,iysg))
+      tmptex(:,:) = texout_s(:,:)
+      call texfudge(fudge_tex_s,texout_s,lndout_s,jxsg,iysg,trim(char_tex))
+      do i = 1, iysg
+        do j = 1, jxsg
+          ! Swap percentages of the old class and the new requested
+          if ( texout_s(j,i) /= tmptex(j,i) ) then
+            tswap = frac_tex_s(j,i,int(tmptex(j,i)))
+            frac_tex_s(j,i,int(tmptex(j,i))) = &
+                    frac_tex_s(j,i,int(texout_s(j,i)))
+            frac_tex_s(j,i,int(texout_s(j,i))) = tswap
+          end if
+        end do
       end do
-    end do
-    deallocate(tmptex)
-    write(stdout,*) 'Fudging data (if requested) succeeded'
+      deallocate(tmptex)
+      write(stdout,*) 'Fudging data (if requested) succeeded'
+    end if
 
   end if
   !
@@ -500,6 +516,12 @@ program terrain
   write(stdout,*)'Static DEM data successfully read in'
   call interp(ds,jx,iy,xlat,xlon,htgrid,values, &
               topo_interp_method,rdem=roidem)
+  if ( idynamic == 3 ) then
+    call interp(ds,jx,iy,ulat,ulon,topou,values, &
+                topo_interp_method,rdem=roidem)
+    call interp(ds,jx,iy,vlat,vlon,topov,values, &
+                topo_interp_method,rdem=roidem)
+  end if
   call relmem(values)
   write(stdout,*)'Interpolated DEM on model GRID'
 
@@ -517,6 +539,14 @@ program terrain
   call interp(ds,jx,iy,xlat,xlon,lndout,values, &
               class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
   call filter1plakes(jx,iy,lndout)
+  if ( idynamic == 3 ) then
+    call interp(ds,jx,iy,ulat,ulon,ulnd,values, &
+                class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
+    call filter1plakes(jx,iy,ulnd)
+    call interp(ds,jx,iy,vlat,vlon,vlnd,values, &
+                class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
+    call filter1plakes(jx,iy,vlnd)
+  end if
   call relmem(values)
   write(stdout,*)'Interpolated landcover on model GRID'
 
@@ -602,34 +632,52 @@ program terrain
     end do
   end do
 
-  write (char_lnd,f99002) trim(dirter), pthsep, trim(domname),'_LANDUSE'
-  call lndfudge(fudge_lnd,lndout,jx,iy,trim(char_lnd))
-  write (char_tex,f99002) trim(dirter), pthsep, trim(domname),'_TEXTURE'
-  allocate(tmptex(jx,iy))
-  tmptex(:,:) = texout(:,:)
-  call texfudge(fudge_tex,texout,lndout,jx,iy,trim(char_tex))
-  do i = 1, iy
-    do j = 1, jx
-      ! Swap percentages of the old class and the new requested
-      if ( texout(j,i) /= tmptex(j,i) ) then
-        tswap = frac_tex(j,i,int(tmptex(j,i)))
-        frac_tex(j,i,int(tmptex(j,i))) = frac_tex(j,i,int(texout(j,i)))
-        frac_tex(j,i,int(texout(j,i))) = tswap
-      end if
+  if ( idynamic /= 3 ) then
+    write (char_lnd,f99002) trim(dirter), pthsep, trim(domname),'_LANDUSE'
+    call lndfudge(fudge_lnd,lndout,jx,iy,trim(char_lnd))
+    write (char_tex,f99002) trim(dirter), pthsep, trim(domname),'_TEXTURE'
+    allocate(tmptex(jx,iy))
+    tmptex(:,:) = texout(:,:)
+    call texfudge(fudge_tex,texout,lndout,jx,iy,trim(char_tex))
+    do i = 1, iy
+      do j = 1, jx
+        ! Swap percentages of the old class and the new requested
+        if ( texout(j,i) /= tmptex(j,i) ) then
+          tswap = frac_tex(j,i,int(tmptex(j,i)))
+          frac_tex(j,i,int(tmptex(j,i))) = frac_tex(j,i,int(texout(j,i)))
+          frac_tex(j,i,int(texout(j,i))) = tswap
+        end if
+      end do
     end do
-  end do
-  deallocate(tmptex)
+    deallocate(tmptex)
+  end if
 
 #ifdef CLM45
   if ( lclm45lake ) then
     where ( lndout > 13.5_rkx .and. lndout < 14.5_rkx )
       lndout = 8.0_rkx
     end where
+    if ( idynamic == 3 ) then
+      where ( ulnd > 13.5_rkx .and. ulnd < 14.5_rkx )
+        ulnd = 8.0_rkx
+      end where
+      where ( vlnd > 13.5_rkx .and. vlnd < 14.5_rkx )
+        vlnd = 8.0_rkx
+      end where
+    end if
   end if
 #endif
   where ( lndout > 14.5_rkx .and. lndout < 15.5_rkx .and. htgrid < 0.0_rkx )
     htgrid = 0.0_rkx
   end where
+  if ( idynamic == 3 ) then
+    where ( ulnd > 14.5_rkx .and. ulnd < 15.5_rkx .and. topou < 0.0_rkx )
+      topou = 0.0_rkx
+    end where
+    where ( vlnd > 14.5_rkx .and. vlnd < 15.5_rkx .and. topov < 0.0_rkx )
+      topov = 0.0_rkx
+    end where
+  end if
   where ( lndout > 13.5_rkx .and. lndout < 15.5_rkx )
     mask = 0.0_rkx
   elsewhere
@@ -653,21 +701,41 @@ program terrain
 
   ! Preliminary heavy smoothing of boundaries
   if ( smthbdy ) call smthtr(htgrid,jx,iy,nsmthbdy)
-
   ! Grell smoothing to eliminate 2 delx wave
   call smtdsmt(htgrid,jx,iy)
-
   ! Smoothing using 1-2-1 smoother
   do ism = 1, ismthlev
     call smth121(htgrid,jx,iy)
   end do
-
   if ( .not. h2ohgt ) then
     where ( lndout > 14.5_rkx .and. &
             lndout < 15.5_rkx .and. &
             htgrid > 0.0_rkx )
       htgrid = 0.0_rkx
     end where
+  end if
+  if ( idynamic == 3 ) then
+    ! Preliminary heavy smoothing of boundaries
+    if ( smthbdy ) call smthtr(topou,jx,iy,nsmthbdy)
+    if ( smthbdy ) call smthtr(topov,jx,iy,nsmthbdy)
+    ! Grell smoothing to eliminate 2 delx wave
+    call smtdsmt(htgrid,jx,iy)
+    call smtdsmt(topov,jx,iy)
+    ! Smoothing using 1-2-1 smoother
+    do ism = 1, ismthlev
+      call smth121(topou,jx,iy)
+      call smth121(topov,jx,iy)
+    end do
+    if ( .not. h2ohgt ) then
+      where ( ulnd > 14.5_rkx .and. ulnd < 15.5_rkx .and. &
+              topou > 0.0_rkx )
+        topou = 0.0_rkx
+      end where
+      where ( vlnd > 14.5_rkx .and. vlnd < 15.5_rkx .and. &
+              topov > 0.0_rkx )
+        topov = 0.0_rkx
+      end where
+    end if
   end if
 
   if ( ibndry ) then
@@ -713,12 +781,37 @@ program terrain
     end if
   end if
 
-  if ( lakedpth ) then
-    write (char_lak,f99002) trim(dirter), pthsep, trim(domname), &
-             '_LAK'
-    call lakfudge(fudge_lak,dpth,lndout,jx,iy,trim(char_lak))
+  if ( idynamic == 3 ) then
+    if ( ibndry ) then
+      do j = 1, jx
+        topou(j,1) = topou(j,2)
+        topou(j,iy-1) = topou(j,iy-2)
+        topou(j,iy) = topou(j,iy-1)
+        topov(j,1) = topov(j,2)
+        topov(j,iy-1) = topov(j,iy-2)
+        topov(j,iy) = topov(j,iy-1)
+      end do
+      if ( i_band /= 1 ) then
+        do i = 2, iy-1
+          topou(1,i) = topou(2,i)
+          topou(jx-1,i) = topou(jx-2,i)
+          topou(jx,i) = topou(jx-1,i)
+          topov(1,i) = topov(2,i)
+          topov(jx-1,i) = topov(jx-2,i)
+          topov(jx,i) = topov(jx-1,i)
+        end do
+      end if
+    end if
   end if
-  write(stdout,*) 'Fudging data (if requested) succeeded'
+
+  if ( idynamic == 3 ) then
+    if ( lakedpth ) then
+      write (char_lak,f99002) trim(dirter), pthsep, trim(domname), &
+               '_LAK'
+      call lakfudge(fudge_lak,dpth,lndout,jx,iy,trim(char_lak))
+    end if
+    write(stdout,*) 'Fudging data (if requested) succeeded'
+  end if
 
   if ( nsg > 1 ) then
 #ifdef CLM45
@@ -726,6 +819,14 @@ program terrain
       where ( lndout_s > 13.5_rkx .and. lndout_s < 14.5_rkx )
         lndout_s = 8.0_rkx
       end where
+      if ( idynamic == 3 ) then
+        where ( ulnd_s > 13.5_rkx .and. ulnd_s < 14.5_rkx )
+          ulnd_s = 8.0_rkx
+        end where
+        where ( vlnd_s > 13.5_rkx .and. vlnd_s < 14.5_rkx )
+          vlnd_s = 8.0_rkx
+        end where
+      end if
     end if
 #endif
     where ( lndout_s > 14.5_rkx .and. &
@@ -733,6 +834,17 @@ program terrain
             htgrid_s < 0.0_rkx )
       htgrid_s = 0.0_rkx
     end where
+    if ( idynamic == 3 ) then
+      where ( ulnd_s > 14.5_rkx .and. ulnd_s < 15.5_rkx .and. &
+              topou_s < 0.0_rkx )
+        topou_s = 0.0_rkx
+      end where
+      where ( vlnd_s > 14.5_rkx .and. vlnd_s < 15.5_rkx .and. &
+              topov_s < 0.0_rkx )
+        topov_s = 0.0_rkx
+      end where
+    end if
+
     where ( lndout_s > 13.5_rkx .and. lndout_s < 15.5_rkx )
       mask_s = 0.0_rkx
     elsewhere
@@ -749,12 +861,10 @@ program terrain
 
     ! Grell smoothing to eliminate 2 delx wave
     call smtdsmt(htgrid_s,jxsg,iysg)
-
     ! Smoothing using 1-2-1 smoother
     do ism = 1, ismthlev
       call smth121(htgrid_s,jxsg,iysg)
     end do
-
     if ( .not. h2ohgt ) then
       where ( lndout_s > 14.5_rkx .and. &
               lndout_s < 15.5_rkx .and. &
@@ -762,11 +872,14 @@ program terrain
         htgrid_s = 0.0_rkx
       end where
     end if
-    if ( lakedpth ) then
-      write (char_lak,f99001) trim(dirter), pthsep, trim(domname), &
-               '_LAK', nsg
-      call lakfudge(fudge_lak_s,dpth_s,lndout_s,jxsg,iysg, &
-                    trim(char_lak))
+
+    if ( idynamic /= 3 ) then
+      if ( lakedpth ) then
+        write (char_lak,f99001) trim(dirter), pthsep, trim(domname), &
+                 '_LAK', nsg
+        call lakfudge(fudge_lak_s,dpth_s,lndout_s,jxsg,iysg, &
+                      trim(char_lak))
+      end if
     end if
     if ( lsmoist ) then
       where ( mask_s < 1.0_rkx )
@@ -819,6 +932,29 @@ program terrain
       end if
     end if
 
+    if ( idynamic == 3 ) then
+      if ( ibndry ) then
+        do j = 1, jxsg
+          topou_s(j,1) = topou_s(j,2)
+          topou_s(j,iysg-1) = topou_s(j,iysg-2)
+          topou_s(j,iysg) = topou_s(j,iysg-1)
+          topov_s(j,1) = topov_s(j,2)
+          topov_s(j,iysg-1) = topov_s(j,iysg-2)
+          topov_s(j,iysg) = topov_s(j,iysg-1)
+        end do
+        if ( i_band /= 1 ) then
+          do i = 2, iysg-1
+            topou_s(1,i) = topou_s(2,i)
+            topou_s(jxsg-1,i) = topou_s(jxsg-2,i)
+            topou_s(jxsg,i) = topou_s(jxsg-1,i)
+            topov_s(1,i) = topov_s(2,i)
+            topov_s(jxsg-1,i) = topov_s(jxsg-2,i)
+            topov_s(jxsg,i) = topov_s(jxsg-1,i)
+          end do
+        end if
+      end if
+    end if
+
     if ( idynamic == 2 ) then
       ts0 = base_state_temperature(1,iysg,1,jxsg,xlat_s)
       call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
@@ -832,6 +968,8 @@ program terrain
         do i = 1, iysg
           do j = 1, jxsg
             zeta_s(j,i,k) = md_zeta_h(zita(k),htgrid_s(j,i),mo_ztop,mo_h,mo_a0)
+            zetau_s(j,i,k) = md_zeta_h(zita(k),topou_s(j,i),mo_ztop,mo_h,mo_a0)
+            zetav_s(j,i,k) = md_zeta_h(zita(k),topov_s(j,i),mo_ztop,mo_h,mo_a0)
             fmz_s(j,i,k) = md_fmz_h(zita(k),htgrid_s(j,i),mo_ztop,mo_h,mo_a0)
           end do
         end do
@@ -840,12 +978,13 @@ program terrain
 
     write (outname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
-    call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s,   &
-                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,ulat_s,    &
-                      ulon_s,vlat_s,vlon_s,xmap_s,dmap_s,umap_s,vmap_s,     &
-                      coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,smoist_s,  &
-                      rmoist_s,rts_s,dpth_s,texout_s,frac_tex_s,ps0_s,pr0_s,&
-                      t0_s,rho0_s,z0_s,ts0,zeta_s,fmz_s)
+    call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s, &
+                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,ulat_s,  &
+                      ulon_s,vlat_s,vlon_s,xmap_s,dmap_s,umap_s,vmap_s,   &
+                      coriol_s,mask_s,htgrid_s,topou_s,topov_s,lndout_s,  &
+                      snowam_s,smoist_s,rmoist_s,rts_s,dpth_s,texout_s,   &
+                      frac_tex_s,ps0_s,pr0_s,t0_s,rho0_s,z0_s,ts0,zeta_s, &
+                      zetau_s,zetav_s,fmz_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
@@ -893,6 +1032,8 @@ program terrain
       do i = 1, iy
         do j = 1, jx
           zeta(j,i,k) = md_zeta_h(zita(k),htgrid(j,i),mo_ztop,mo_h,mo_a0)
+          zetau(j,i,k) = md_zeta_h(zita(k),topou(j,i),mo_ztop,mo_h,mo_a0)
+          zetav(j,i,k) = md_zeta_h(zita(k),topov(j,i),mo_ztop,mo_h,mo_a0)
           fmz(j,i,k) = md_fmz_h(zita(k),htgrid(j,i),mo_ztop,mo_h,mo_a0)
         end do
       end do
@@ -927,9 +1068,9 @@ program terrain
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
                     sigma,xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,   &
-                    dmap,umap,vmap,coriol,mask,htgrid,lndout,snowam,      &
-                    smoist,rmoist,rts,dpth,texout,frac_tex,ps0,pr0,t0,    &
-                    rho0,z0,ts0,zeta,fmz)
+                    dmap,umap,vmap,coriol,mask,htgrid,topou,topov,lndout, &
+                    snowam,smoist,rmoist,rts,dpth,texout,frac_tex,ps0,pr0,&
+                    t0,rho0,z0,ts0,zeta,zetau,zetav,fmz)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then

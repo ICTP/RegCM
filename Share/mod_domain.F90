@@ -99,7 +99,7 @@ module mod_domain
   subroutine read_domain_array_double(ncid,sigma,xlat,xlon,dlat,dlon, &
                                       ulat,ulon,vlat,vlon,ht,mask,    &
                                       lndcat,msfx,msfd,coriol,snowam, &
-                                      hlake,lsubgrid)
+                                      hlake,topou,topov,lsubgrid)
     implicit none
     integer(ik4), intent(in) :: ncid
     real(rk8), pointer, contiguous, dimension(:), intent(inout) :: sigma
@@ -119,6 +119,8 @@ module mod_domain
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: coriol
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: snowam
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: hlake
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: topou
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: topov
     logical, intent(in), optional :: lsubgrid
     logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
@@ -152,12 +154,14 @@ module mod_domain
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
     if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,has_snow)
     if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
+    if ( present(topou) ) call read_var2d_static(ncid,'topou',topou)
+    if ( present(topov) ) call read_var2d_static(ncid,'topov',topov)
   end subroutine read_domain_array_double
 
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon, &
                                       ulat,ulon,vlat,vlon,ht,mask,    &
                                       lndcat,msfx,msfd,coriol,snowam, &
-                                      hlake,lsubgrid)
+                                      hlake,topou,topov,lsubgrid)
     implicit none
     integer(ik4), intent(in) :: ncid
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: sigma
@@ -177,6 +181,8 @@ module mod_domain
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: coriol
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: snowam
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: hlake
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: topou
+    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: topov
     logical, intent(in), optional :: lsubgrid
     logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
@@ -210,6 +216,8 @@ module mod_domain
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
     if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,has_snow)
     if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
+    if ( present(topou) ) call read_var2d_static(ncid,'topou',topou)
+    if ( present(topov) ) call read_var2d_static(ncid,'topov',topov)
   end subroutine read_domain_array_single
 
   subroutine read_reference_state(ncid,ps0,pr0,t0,rho0,ts0)
