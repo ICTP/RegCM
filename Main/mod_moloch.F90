@@ -690,6 +690,22 @@ module mod_moloch
       call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
       call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
 
+      if ( lrotllr ) then
+        do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
+          ud(j,i,k) = u(j,i,k) * rmu(j,i)
+        end do
+        do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
+          vd(j,i,k) = v(j,i,k)
+        end do
+      else
+        do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
+          ud(j,i,k) = u(j,i,k) * rmu(j,i)
+        end do
+        do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
+          vd(j,i,k) = v(j,i,k) * rmv(j,i)
+        end do
+      end if
+
       ! partial definition of the generalized vertical velocity
 
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -822,12 +838,6 @@ module mod_moloch
       call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
       if ( lrotllr ) then
-        do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
-          ud(j,i,k) = u(j,i,k) * rmu(j,i)
-        end do
-        do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
-          vd(j,i,k) = v(j,i,k)
-        end do
         ! Equation 17
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           zcx = dtrdx * mu(j,i)
@@ -857,12 +867,6 @@ module mod_moloch
                      zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
         end do
       else
-        do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
-          ud(j,i,k) = u(j,i,k) * rmu(j,i)
-        end do
-        do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
-          vd(j,i,k) = v(j,i,k) * rmv(j,i)
-        end do
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           zcx = dtrdx * mu(j,i)
           zfz = egrav * dts + 0.25_rkx * &
