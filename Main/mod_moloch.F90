@@ -849,7 +849,7 @@ module mod_moloch
                  (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
-                     zfz * mu(j,i) * rmx(j,i) * hx(j,i) * gzitakh(k) - &
+                     zfz * hx(j,i) * gzitakh(k) - &
                      zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
         end do
         ! Equation 18
@@ -877,7 +877,7 @@ module mod_moloch
                  (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
-                     zfz * mu(j,i) * rmx(j,i) * hx(j,i) * gzitakh(k) - &
+                     zfz * hx(j,i) * gzitakh(k) - &
                      zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
         end do
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
@@ -890,7 +890,7 @@ module mod_moloch
                  (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
           ! Equation 18
           v(j,i,k) = v(j,i,k) - zcor1v - &
-                     zfz * mv(j,i) * rmx(j,i) * hy(j,i) * gzitakh(k) - &
+                     zfz * hy(j,i) * gzitakh(k) - &
                      zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
         end do
       end if

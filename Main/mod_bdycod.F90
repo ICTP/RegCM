@@ -112,6 +112,7 @@ module mod_bdycod
       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
       1.0e8_rkx, 10.0_rkx, 0.01_rkx ]        ! ncc, nc, nr
 
+  logical, parameter :: do_sponge_layer = .false.
   real(rkx), parameter :: dfac = 0.01_rkx
   real(rkx), parameter :: xfac = 0.005_rkx
   integer(ik4) :: mo_sponge
@@ -471,7 +472,7 @@ module mod_bdycod
     end if
     call getmem(fg1,jde1ga,jde2ga,ide1ga,ide2ga,1,kzp1,'bdycon:fg1')
     call getmem(fg2,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:fg2')
-    if ( idynamic == 3 ) then
+    if ( idynamic == 3 .and. do_sponge_layer ) then
       call getmem(ddamp,1,kz,'bdycon:ddamp')
       call getmem(xdamp,1,kz,'bdycon:xdamp')
     end if
@@ -508,7 +509,7 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.2_rkx/dtsec
+          fnudge = 0.1_rkx/dtsec
         else
           fnudge = 0.1_rkx/dt2
         end if
@@ -518,7 +519,7 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          gnudge = 0.04_rkx/dtsec
+          gnudge = 0.02_rkx/dtsec
         else
           gnudge = 0.02_rkx/dt2
         end if
@@ -586,7 +587,7 @@ module mod_bdycod
         end do
       end do
     end if
-    if ( idynamic == 3 ) then
+    if ( idynamic == 3 .and. do_sponge_layer ) then
       do k = 1, kz
         ddamp(k) = 1.0_rkx / ( 1.0_rkx + dfac*dtbdys*hsigma(k)**2 )
         xdamp(k) = 1.0_rkx / ( 1.0_rkx + xfac*dtbdys*hsigma(k)**2 )
@@ -1912,14 +1913,16 @@ module mod_bdycod
             mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
           end do
         end if
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:mo_sponge )
-          xbdy = xub%b0(j,i,k) + xt*xub%bt(j,i,k)
-          mo_atm%u(j,i,k) = xbdy + (mo_atm%u(j,i,k) - xbdy) * ddamp(k)
-        end do
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:mo_sponge )
-          xbdy = xvb%b0(j,i,k) + xt*xvb%bt(j,i,k)
-          mo_atm%v(j,i,k) = xbdy + (mo_atm%v(j,i,k) - xbdy) * ddamp(k)
-        end do
+        if ( do_sponge_layer ) then
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:mo_sponge )
+            xbdy = xub%b0(j,i,k) + xt*xub%bt(j,i,k)
+            mo_atm%u(j,i,k) = xbdy + (mo_atm%u(j,i,k) - xbdy) * ddamp(k)
+          end do
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:mo_sponge )
+            xbdy = xvb%b0(j,i,k) + xt*xvb%bt(j,i,k)
+            mo_atm%v(j,i,k) = xbdy + (mo_atm%v(j,i,k) - xbdy) * ddamp(k)
+          end do
+        end if
       else
         if ( ma%has_bdyleft ) then
           do concurrent ( i = idi1:idi2, k = 1:kz )
@@ -2206,10 +2209,12 @@ module mod_bdycod
             end do
           end if
         end if
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:mo_sponge )
-          xbdy = xthb%b0(j,i,k) + xt*xthb%bt(j,i,k)
-          mo_atm%tetav(j,i,k) = xbdy+(mo_atm%tetav(j,i,k)-xbdy)*xdamp(k)
-        end do
+        if ( do_sponge_layer ) then
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:mo_sponge )
+            xbdy = xthb%b0(j,i,k) + xt*xthb%bt(j,i,k)
+            mo_atm%tetav(j,i,k) = xbdy+(mo_atm%tetav(j,i,k)-xbdy)*xdamp(k)
+          end do
+        end if
       else
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )

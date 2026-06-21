@@ -3306,33 +3306,32 @@ module mod_params
         call exchange(mddom%htu,2,jde1,jde2,ide1,ide2)
         call exchange(mddom%htv,2,jde1,jde2,ide1,ide2)
         do concurrent ( j = jdi1ga:jdi2ga, i = ice1:ice2 )
-          mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &
-                           mddom%msfx(j,i) * rdx * regrav
+          mddom%hx(j,i) = (mddom%ht(j,i) * mddom%msfx(j,i) - &
+                  mddom%ht(j-1,i) * mddom%msfx(j-1,i)) * rdx * regrav
         end do
         if ( iproj == 'ROTLLR' ) then
           do concurrent ( j = jce1:jce2, i = idi1ga:idi2ga )
-            mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
-                             rdx * regrav
+            mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * rdx * regrav
           end do
         else
           do concurrent ( j = jce1:jce2, i = idi1ga:idi2ga )
-            mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
-                             mddom%msfx(j,i) * rdx * regrav
+            mddom%hy(j,i) = (mddom%ht(j,i) * mddom%msfx(j,i) - &
+                  mddom%ht(j,i-1) * mddom%msfx(j,i-1)) * rdx * regrav
           end do
         end if
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%zeta(j,i,k) = md_zeta(zitah(k), &
-            mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
+                      mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
           mo_atm%fmz(j,i,k) = md_fmz(zitah(k), &
-            mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
+                      mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
         end do
         do concurrent ( j = jde1:jde2, i = ice1:ice2, k = 1:kz )
           mo_atm%rfmzu(j,i,k) = d_one / md_fmz(zitah(k), &
-            mddom%htu(j,i),mo_ztop,mo_h,mo_a0)
+                    mddom%htu(j,i),mo_ztop,mo_h,mo_a0)
         end do
         do concurrent ( j = jce1:jce2, i = ide1:ide2, k = 1:kz )
           mo_atm%rfmzv(j,i,k) = d_one / md_fmz(zitah(k), &
-            mddom%htv(j,i),mo_ztop,mo_h,mo_a0)
+                    mddom%htv(j,i),mo_ztop,mo_h,mo_a0)
         end do
 #ifdef RCEMIP
         if ( myid == italk ) then
