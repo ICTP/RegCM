@@ -509,7 +509,7 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.1_rkx/dtsec
+          fnudge = dtsec/dtbdys/max(nspgx,nspgd)
         else
           fnudge = 0.1_rkx/dt2
         end if
@@ -519,7 +519,7 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          gnudge = 0.02_rkx/dtsec
+          gnudge = 4.0_rkx*(dtsec/dtbdys/max(nspgx,nspgd)/ds)
         else
           gnudge = 0.02_rkx/dt2
         end if
@@ -4029,6 +4029,7 @@ module mod_bdycod
     real(rkx) :: xt
     integer(ik4) :: i, j, k, ib
     real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
+    real(rkx), parameter :: xdcorr = 0.05_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudgeuv'
     integer(ik4), save :: idindx = 0
@@ -4056,7 +4057,7 @@ module mod_bdycod
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcd(ib) * xdcorr
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4070,7 +4071,7 @@ module mod_bdycod
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcd(ib) * xdcorr
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4084,7 +4085,7 @@ module mod_bdycod
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcd(ib) * xdcorr
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4098,7 +4099,7 @@ module mod_bdycod
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcd(ib) * xdcorr
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4112,7 +4113,7 @@ module mod_bdycod
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcd(ib) * xdcorr
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4126,7 +4127,7 @@ module mod_bdycod
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcd(ib) * xdcorr
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4140,7 +4141,7 @@ module mod_bdycod
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcd(ib) * xdcorr
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4154,7 +4155,7 @@ module mod_bdycod
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib)
+          xg = gcd(ib) * xdcorr
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4169,7 +4170,7 @@ module mod_bdycod
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
+          xg = hegd(ib,k) * xdcorr
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4183,7 +4184,7 @@ module mod_bdycod
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
+          xg = hegd(ib,k) * xdcorr
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4197,7 +4198,7 @@ module mod_bdycod
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
+          xg = hegd(ib,k) * xdcorr
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4211,7 +4212,7 @@ module mod_bdycod
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
+          xg = hegd(ib,k) * xdcorr
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4225,7 +4226,7 @@ module mod_bdycod
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
+          xg = hegd(ib,k) * xdcorr
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4239,7 +4240,7 @@ module mod_bdycod
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
+          xg = hegd(ib,k) * xdcorr
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4253,7 +4254,7 @@ module mod_bdycod
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
+          xg = hegd(ib,k) * xdcorr
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4267,7 +4268,7 @@ module mod_bdycod
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k)
+          xg = hegd(ib,k) * xdcorr
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
