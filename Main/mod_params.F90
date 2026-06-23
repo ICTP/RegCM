@@ -3305,16 +3305,16 @@ module mod_params
         call exchange_lrbt(mddom%msfv,1,jde1,jde2,ide1,ide2)
         call exchange(mddom%htu,2,jde1,jde2,ide1,ide2)
         call exchange(mddom%htv,2,jde1,jde2,ide1,ide2)
-        do concurrent ( j = jdi1ga:jdi2ga, i = ice1:ice2 )
+        do concurrent ( j = jdi1ga:jdi2ga, i = ici1:ice2 )
           mddom%hx(j,i) = (mddom%ht(j,i) * mddom%msfx(j,i) - &
                   mddom%ht(j-1,i) * mddom%msfx(j-1,i)) * rdx * regrav
         end do
         if ( iproj == 'ROTLLR' ) then
-          do concurrent ( j = jce1:jce2, i = idi1ga:idi2ga )
+          do concurrent ( j = jci1:jce2, i = idi1ga:idi2ga )
             mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * rdx * regrav
           end do
         else
-          do concurrent ( j = jce1:jce2, i = idi1ga:idi2ga )
+          do concurrent ( j = jci1:jce2, i = idi1ga:idi2ga )
             mddom%hy(j,i) = (mddom%ht(j,i) * mddom%msfx(j,i) - &
                   mddom%ht(j,i-1) * mddom%msfx(j,i-1)) * rdx * regrav
           end do

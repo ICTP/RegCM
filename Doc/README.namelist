@@ -89,6 +89,7 @@
  dirter = 'input/',           ! Output directory for terrain files
  inpter = 'globdata/',        ! Input directory for SURFACE dataset
  tersrc = 'GMTED',            ! Select GMTED or GTOPO DEM data
+ texsrc = 'GLZB',             ! Select GLZB or HWSD as texture dataset
  smsrc  = 'ESACCI',           ! Select ESACCI or CPC surface soil moisture
                               ! when lsmoist option is True
  moist_filename = 'moist.nc', ! Read initial moisture and snow from this file

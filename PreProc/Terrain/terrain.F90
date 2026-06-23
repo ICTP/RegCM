@@ -366,10 +366,10 @@ program terrain
       call relmem(values)
       write(stdout,*)'Interpolated soil moisture on SUBGRID'
     end if
-    call read_ncglob(trim(inpter)//pthsep//'SURFACE'//              &
-                     pthsep//'GLZB_SOIL_30s.nc','soiltype',         &
-                     ntypec_s,class_resamp_method,i_band,           &
-                     xlat_s,xlon_s,grdlnma,grdlnmn,grdltma,grdltmn, &
+    call read_ncglob(trim(inpter)//pthsep//'SURFACE'//                &
+                     pthsep//trim(texsrc)//'_SOIL_30s.nc','soiltype', &
+                     ntypec_s,class_resamp_method,i_band,             &
+                     xlat_s,xlon_s,grdlnma,grdlnmn,grdltma,grdltmn,   &
                      nlatin,nlonin,values)
     write(stdout,*)'Static texture data successfully read in'
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,texout_s,values, &
@@ -596,10 +596,10 @@ program terrain
     write(stdout,*)'Interpolated soil moisture on model GRID'
   end if
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'//          &
-                   pthsep//'GLZB_SOIL_30s.nc','soiltype',     &
-                   ntypec,class_resamp_method,i_band,         &
-                   xlat,xlon,grdlnma,grdlnmn,grdltma,grdltmn, &
-                   nlatin,nlonin,values)
+                   pthsep//trim(texsrc)//'_SOIL_30s.nc',      &
+                   'soiltype',ntypec,class_resamp_method,     &
+                   i_band,xlat,xlon,grdlnma,grdlnmn,grdltma,  &
+                   grdltmn,nlatin,nlonin,values)
   write(stdout,*)'Static texture data successfully read in'
   call interp(ds,jx,iy,xlat,xlon,texout,values, &
               class_interp_method,ibnty=2,h2opct=h2opct,rdem=roidem)

@@ -406,7 +406,7 @@ module mod_dynparam
   character(len=256), public :: dirglob, inpglob
   character(len=256), public :: dirout
   character(len=256), public :: moist_filename
-  character(len=8)  , public :: tersrc, smsrc
+  character(len=8)  , public :: tersrc, texsrc, smsrc
 #ifdef NETCDF4_HDF5
   integer(ik4), public :: iomode = ior(nf90_clobber, nf90_netcdf4)
 #else
@@ -501,7 +501,7 @@ module mod_dynparam
       lakedpth, lsmoist, fudge_lnd, fudge_lnd_s, fudge_tex,      &
       fudge_tex_s, fudge_lak, fudge_lak_s, h2opct, h2ohgt,       &
       ismthlev, dirter, inpter, moist_filename, tersrc, smsrc,   &
-      roidem, lclm45lake
+      texsrc, roidem, lclm45lake
     namelist /debugparam/ debug_level, dbgfrq
     namelist /boundaryparam/ nspgx, nspgd, high_nudge, &
       medium_nudge, low_nudge, bdy_nm, bdy_dm
@@ -723,6 +723,7 @@ module mod_dynparam
     dirglob = '../../Input'
     moist_filename = 'moist.nc'
     tersrc = 'GMTED'
+    texsrc = 'GLZB'
     smsrc = 'ESACCI'
 
     lresamp = .false.

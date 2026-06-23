@@ -59,14 +59,14 @@ PROGRAM EMCRE
   REAL(DP) :: h2opct, roidem
   CHARACTER(len=64) :: domname
   CHARACTER(len=256) :: dirter, inpter, moist_filename
-  CHARACTER(len=8) :: tersrc, smsrc
+  CHARACTER(len=8) :: tersrc, texsrc, smsrc
   CHARACTER(len=1) :: pthsep='/'
   INTEGER :: ipunit = 101
-  namelist /terrainparam/ domname, lresamp, smthbdy, lakedpth,   &
-     lsmoist, fudge_lnd, fudge_lnd_s, fudge_tex, fudge_tex_s,   &
+  namelist /terrainparam/ domname, lresamp, smthbdy, lakedpth, &
+     lsmoist, fudge_lnd, fudge_lnd_s, fudge_tex, fudge_tex_s,  &
      fudge_lak, fudge_lak_s, h2opct, h2ohgt, ismthlev, dirter, &
-     inpter, moist_filename, tersrc, smsrc, roidem, nsmthbdy, &
-     lclm45lake
+     inpter, moist_filename, tersrc, texsrc, smsrc, roidem,    &
+     nsmthbdy, lclm45lake
 
   ! (1) READ COMMAND LINE
   NARG = COMMAND_ARGUMENT_COUNT()    ! number of arguments
