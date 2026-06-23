@@ -130,7 +130,6 @@ module mod_moloch
 #endif
   real(rkx), parameter :: xdamp = 0.0625_rkx
 
-  logical, parameter :: do_fulleq       = .true.
   logical, parameter :: do_bdy          = .true.
   logical, parameter :: do_divdamp      = .true.
   logical, parameter :: do_vadvtwice    = .true.
@@ -140,6 +139,7 @@ module mod_moloch
   logical, parameter :: do_radiation    = .true.
   logical, parameter :: do_surface      = .true.
   logical, parameter :: do_pbl          = .true.
+  logical :: do_fulleq = .true.
   logical :: do_nudge = .true.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
@@ -295,6 +295,7 @@ module mod_moloch
       imax = icross2 + 2
     end if
     do_nudge = ( iboudy == 1 .or. iboudy >= 4 )
+    do_fulleq = all( icup > 0 )
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -624,38 +625,6 @@ module mod_moloch
     end do
   end subroutine divergence_filter
 
-  subroutine filtpai
-    implicit none
-    integer(ik4) :: j, i, k
-
-    call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      p3d(j,i,k) = 0.125_rkx * (pai(j-1,i,k) + pai(j+1,i,k) + &
-                                pai(j,i-1,k) + pai(j,i+1,k)) - &
-                   0.5_rkx * pai(j,i,k)
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      pai(j,i,k) = pai(j,i,k) + nupaitq * p3d(j,i,k)
-    end do
-  end subroutine filtpai
-
-  subroutine filttheta
-    implicit none
-    integer(ik4) :: j, i, k
-
-    call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
-
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      p3d(j,i,k) = 0.125_rkx * (tetav(j-1,i,k) + tetav(j+1,i,k) + &
-                                tetav(j,i-1,k) + tetav(j,i+1,k)) - &
-                   0.5_rkx * tetav(j,i,k)
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      tetav(j,i,k) = tetav(j,i,k) + nupaitq * p3d(j,i,k)
-    end do
-  end subroutine filttheta
-
   subroutine sound(dts)
     !@acc use nvtx
     implicit none
@@ -663,7 +632,6 @@ module mod_moloch
     integer(ik4) :: i, j, k, nsound
     real(rkx) :: dtrdx, dtrdy, dtrdz, zcs2
     real(rkx), dimension(jci1:jci2,ici1:ici2,2:kzp1) :: wwkw
-    real(rkx) :: zrfmzum, zrfmzvm, zrfmzup, zrfmzvp
     real(rkx) :: zum, zup, zvm, zvp, zuh, zvh
     real(rkx) :: zrom1w, zwexpl, zqs, zdth, zu, zd, zrapp
     real(rkx) :: zcx, zcy, zfz
@@ -823,8 +791,8 @@ module mod_moloch
                      4.2_rkx * qwltot(j,i,k) +   &
                      2.1_rkx * qwitot(j,i,k)))
           end do
+          call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
         end if
-        call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
       end if
 
       if ( mo_divfilter ) call divergence_filter( )
