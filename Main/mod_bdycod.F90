@@ -113,6 +113,7 @@ module mod_bdycod
       1.0e8_rkx, 10.0_rkx, 0.01_rkx ]        ! ncc, nc, nr
 
   logical, parameter :: do_sponge_layer = .false.
+  logical, parameter :: do_top_smooth = .false.
   real(rkx), parameter :: dfac = 0.01_rkx
   real(rkx), parameter :: xfac = 0.005_rkx
   integer(ik4) :: mo_sponge
@@ -5140,8 +5141,10 @@ module mod_bdycod
       end do
     end do
     call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
-    call top_smooth(pai)
-    call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( do_top_smooth ) then
+      call top_smooth(pai)
+      call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
   end subroutine paicompute
 
   subroutine top_smooth(pai)
