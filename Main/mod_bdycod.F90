@@ -89,8 +89,6 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:) :: gcx => null( )
   real(rkx), pointer, contiguous, dimension(:) :: fcd => null( )
   real(rkx), pointer, contiguous, dimension(:) :: gcd => null( )
-  real(rkx), pointer, contiguous, dimension(:) :: ddamp => null( )
-  real(rkx), pointer, contiguous, dimension(:) :: xdamp => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: hefc => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: hegc => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: hefd => null( )
@@ -99,6 +97,8 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:) :: wgtx => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zsm => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: temp => null( )
   real(rkx) :: fnudge, gnudge, rdtbdy
   !real(rk8) :: jday
   integer(ik4) :: som_month
@@ -111,12 +111,6 @@ module mod_bdycod
     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
       1.0e8_rkx, 10.0_rkx, 0.01_rkx ]        ! ncc, nc, nr
-
-  logical, parameter :: do_sponge_layer = .false.
-  logical, parameter :: do_top_smooth = .false.
-  real(rkx), parameter :: dfac = 0.01_rkx
-  real(rkx), parameter :: xfac = 0.005_rkx
-  integer(ik4) :: mo_sponge
 
   interface timeint
     module procedure timeint2, timeint3
@@ -288,7 +282,7 @@ module mod_bdycod
         xqb%b0(:,:,k) = qi(k)
         !$acc end kernels
       end do
-      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
       !$acc kernels
       xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
       !$acc end kernels
@@ -396,7 +390,7 @@ module mod_bdycod
       !$acc kernels
       xpsb%b0(:,:) = ps
       !$acc end kernels
-      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
       !$acc kernels
       xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
       !$acc end kernels
@@ -470,13 +464,28 @@ module mod_bdycod
         call getmem(wvi,ide1ga,ide2ga,1,kz,'bdycon:wvi')
       end if
       call getmem(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
+    else
+      if ( ma%has_bdytop ) then
+        call getmem(nve,jce1ga,jce2ga,1,kz,'bdycon:nve')
+        call getmem(nue,jde1ga,jde2ga,1,kz,'bdycon:nue')
+      end if
+      if ( ma%has_bdybottom ) then
+        call getmem(sve,jce1ga,jce2ga,1,kz,'bdycon:sve')
+        call getmem(sue,jde1ga,jde2ga,1,kz,'bdycon:sve')
+      end if
+      if ( ma%has_bdyright ) then
+        call getmem(eue,ice1ga,ice2ga,1,kz,'bdycon:eue')
+        call getmem(eve,ide1ga,ide2ga,1,kz,'bdycon:eve')
+      end if
+      if ( ma%has_bdyleft ) then
+        call getmem(wue,ice1ga,ice2ga,1,kz,'bdycon:wue')
+        call getmem(wve,ide1ga,ide2ga,1,kz,'bdycon:wve')
+      end if
+      call getmem(zsm,jce1,jce2,ice1,ice2,1,kz,'bdycon:zsm')
+      call getmem(temp,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:temp')
     end if
     call getmem(fg1,jde1ga,jde2ga,ide1ga,ide2ga,1,kzp1,'bdycon:fg1')
     call getmem(fg2,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:fg2')
-    if ( idynamic == 3 .and. do_sponge_layer ) then
-      call getmem(ddamp,1,kz,'bdycon:ddamp')
-      call getmem(xdamp,1,kz,'bdycon:xdamp')
-    end if
   end subroutine allocate_mod_bdycon
 
   subroutine setup_bdycon
@@ -502,15 +511,13 @@ module mod_bdycod
     ! DOI: 10.1175/1520-0493(1993)121<2814:DOASGR>2.0.CO;2
     !
     rdtbdy = d_one / dtbdys
-    if ( idynamic == 3 ) then
-      mo_sponge = max(kz/6,1)
-    end if
     if ( iboudy == 1 .or. iboudy >= 5 ) then
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = dtsec/dtbdys/max(nspgx,nspgd)
+          !fnudge = dtsec/dtbdys/max(nspgx,nspgd)
+          fnudge = 0.1_rkx/dtsec
         else
           fnudge = 0.1_rkx/dt2
         end if
@@ -520,7 +527,8 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          gnudge = 4.0_rkx*(dtsec/dtbdys/max(nspgx,nspgd)/ds)
+          !gnudge = 4.0_rkx*(dtsec/dtbdys/max(nspgx,nspgd)/ds)
+          gnudge = 0.02_rkx/dtsec
         else
           gnudge = 0.02_rkx/dt2
         end if
@@ -588,12 +596,6 @@ module mod_bdycod
         end do
       end do
     end if
-    if ( idynamic == 3 .and. do_sponge_layer ) then
-      do k = 1, kz
-        ddamp(k) = 1.0_rkx / ( 1.0_rkx + dfac*dtbdys*hsigma(k)**2 )
-        xdamp(k) = 1.0_rkx / ( 1.0_rkx + xfac*dtbdys*hsigma(k)**2 )
-      end do
-    end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -617,6 +619,10 @@ module mod_bdycod
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
+    if ( idynamic == 3 ) then
+      call smooth(mo_atm%zeta,zsm,jce1,jce2,ice1,ice2,1,kz,jx-1,iy-1,4)
+    end if
 
     dom_ldmsk => mddom%ldmsk
     dom_lndcat => mddom%lndcat
@@ -735,6 +741,8 @@ module mod_bdycod
       xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
+      call smooth(xub%b0,xub%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
+      call smooth(xvb%b0,xvb%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
     end if
     !
     ! Calculate P* on dot points
@@ -853,6 +861,8 @@ module mod_bdycod
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
+      call smooth(xub%b1,xub%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
+      call smooth(xvb%b1,xvb%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
     end if
     !
     ! Couple pressure u,v,t,q
@@ -979,8 +989,8 @@ module mod_bdycod
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
       !jday = yeardayfrac(rcmtimer%idate)
-      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
-      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
+      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b1,zsm,xtb%b1,xqb%b1,xpaib%b1)
       !$acc kernels
       xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
       xthb%b1(:,:,:) = (xtb%b1(:,:,:)*(d_one+ep1*xqb%b1(:,:,:)))/xpaib%b1(:,:,:)
@@ -1278,6 +1288,8 @@ module mod_bdycod
       ps1(:,:) = ps1(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
+      call smooth(xub%b1,xub%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
+      call smooth(xvb%b1,xvb%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
     end if
     !
     ! Couple pressure u,v,t,q
@@ -1331,7 +1343,7 @@ module mod_bdycod
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
       !jday = yeardayfrac(rcmtimer%idate)
-      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
+      call paicompute(xpsb%b1,zsm,xtb%b1,xqb%b1,xpaib%b1)
       !$acc kernels
       xthb%b1(:,:,:) = (xtb%b1(:,:,:)*(d_one+ep1*xqb%b1(:,:,:)))/xpaib%b1(:,:,:)
       !$acc end kernels
@@ -1623,7 +1635,7 @@ module mod_bdycod
     implicit none
     integer(ik4) :: i, j, k, n
     real(rkx) :: qext, qint, qxint, qrat, windavg, tkeint
-    real(rkx) :: xt, xbdy
+    real(rkx) :: xt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyval'
     integer(ik4), save :: idindx = 0
@@ -1884,44 +1896,42 @@ module mod_bdycod
       if ( idynamic == 3 ) then
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ice1:ice2, k = 1:kz )
-            mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
+            wue(i,k) = (xub%b0(jde1,i,k) + &
+              xt*xub%bt(jde1,i,k)) - mo_atm%u(jde1,i,k)
           end do
           do concurrent ( i = ide1:ide2, k = 1:kz )
-            mo_atm%v(jce1,i,k) = xvb%b0(jce1,i,k) + xt*xvb%bt(jce1,i,k)
+            wve(i,k) = (xvb%b0(jce1,i,k) + &
+              xt*xvb%bt(jce1,i,k)) - mo_atm%v(jce1,i,k)
           end do
         end if
         if ( ma%has_bdyright ) then
           do concurrent ( i = ice1:ice2, k = 1:kz )
-            mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
+            eue(i,k) = (xub%b0(jde2,i,k) + &
+              xt*xub%bt(jde2,i,k)) - mo_atm%u(jde2,i,k)
           end do
           do concurrent ( i = ide1:ide2, k = 1:kz )
-            mo_atm%v(jce2,i,k) = xvb%b0(jce2,i,k) + xt*xvb%bt(jce2,i,k)
+            eve(i,k) = (xvb%b0(jce2,i,k) + &
+              xt*xvb%bt(jce2,i,k)) - mo_atm%v(jce2,i,k)
           end do
         end if
         if ( ma%has_bdybottom ) then
           do concurrent ( j = jde1:jde2, k = 1:kz )
-            mo_atm%u(j,ice1,k) = xub%b0(j,ice1,k) + xt*xub%bt(j,ice1,k)
+            sue(j,k) = (xub%b0(j,ice1,k) + &
+              xt*xub%bt(j,ice1,k)) - mo_atm%u(j,ice1,k)
           end do
           do concurrent ( j = jce1:jce2, k = 1:kz )
-            mo_atm%v(j,ide1,k) = xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k)
+            sve(j,k) = (xvb%b0(j,ide1,k) + &
+              xt*xvb%bt(j,ide1,k)) - mo_atm%v(j,ide1,k)
           end do
         end if
         if ( ma%has_bdytop ) then
           do concurrent ( j = jde1:jde2, k = 1:kz )
-            mo_atm%u(j,ice2,k) = xub%b0(j,ice2,k) + xt*xub%bt(j,ice2,k)
+            nue(j,k) = (xub%b0(j,ice2,k) + &
+              xt*xub%bt(j,ice2,k)) - mo_atm%u(j,ice2,k)
           end do
           do concurrent ( j = jce1:jce2, k = 1:kz )
-            mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
-          end do
-        end if
-        if ( do_sponge_layer ) then
-          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:mo_sponge )
-            xbdy = xub%b0(j,i,k) + xt*xub%bt(j,i,k)
-            mo_atm%u(j,i,k) = xbdy + (mo_atm%u(j,i,k) - xbdy) * ddamp(k)
-          end do
-          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:mo_sponge )
-            xbdy = xvb%b0(j,i,k) + xt*xvb%bt(j,i,k)
-            mo_atm%v(j,i,k) = xbdy + (mo_atm%v(j,i,k) - xbdy) * ddamp(k)
+            nve(j,k) = (xvb%b0(j,ide2,k) + &
+              xt*xvb%bt(j,ide2,k)) - mo_atm%v(j,ide2,k)
           end do
         end if
       else
@@ -2209,12 +2219,6 @@ module mod_bdycod
               mo_atm%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k) + xt*xib%bt(j,ice2,k)
             end do
           end if
-        end if
-        if ( do_sponge_layer ) then
-          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:mo_sponge )
-            xbdy = xthb%b0(j,i,k) + xt*xthb%bt(j,i,k)
-            mo_atm%tetav(j,i,k) = xbdy+(mo_atm%tetav(j,i,k)-xbdy)*xdamp(k)
-          end do
         end if
       else
         if ( ma%has_bdyleft ) then
@@ -4030,7 +4034,6 @@ module mod_bdycod
     real(rkx) :: xt
     integer(ik4) :: i, j, k, ib
     real(rkx) :: xf, xg, fls0, fls1, fls2, fls3, fls4
-    real(rkx), parameter :: xdcorr = 0.05_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudgeuv'
     integer(ik4), save :: idindx = 0
@@ -4058,7 +4061,7 @@ module mod_bdycod
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib) * xdcorr
+          xg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4072,7 +4075,7 @@ module mod_bdycod
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib) * xdcorr
+          xg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4086,7 +4089,7 @@ module mod_bdycod
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib) * xdcorr
+          xg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4100,7 +4103,7 @@ module mod_bdycod
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib) * xdcorr
+          xg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4114,7 +4117,7 @@ module mod_bdycod
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib) * xdcorr
+          xg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4128,7 +4131,7 @@ module mod_bdycod
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib) * xdcorr
+          xg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4142,7 +4145,7 @@ module mod_bdycod
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib) * xdcorr
+          xg = gcd(ib)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4156,7 +4159,7 @@ module mod_bdycod
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = fcd(ib)
-          xg = gcd(ib) * xdcorr
+          xg = gcd(ib)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4171,7 +4174,7 @@ module mod_bdycod
           if ( .not. ba_ut%bsouth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k) * xdcorr
+          xg = hegd(ib,k)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4185,7 +4188,7 @@ module mod_bdycod
           if ( .not. ba_vt%bsouth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k) * xdcorr
+          xg = hegd(ib,k)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4199,7 +4202,7 @@ module mod_bdycod
           if ( .not. ba_ut%bnorth(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k) * xdcorr
+          xg = hegd(ib,k)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4213,7 +4216,7 @@ module mod_bdycod
           if ( .not. ba_vt%bnorth(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k) * xdcorr
+          xg = hegd(ib,k)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4227,7 +4230,7 @@ module mod_bdycod
           if ( .not. ba_ut%bwest(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k) * xdcorr
+          xg = hegd(ib,k)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4241,7 +4244,7 @@ module mod_bdycod
           if ( .not. ba_vt%bwest(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k) * xdcorr
+          xg = hegd(ib,k)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -4255,7 +4258,7 @@ module mod_bdycod
           if ( .not. ba_ut%beast(j,i) ) cycle
           ib = ba_ut%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k) * xdcorr
+          xg = hegd(ib,k)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
@@ -4269,7 +4272,7 @@ module mod_bdycod
           if ( .not. ba_vt%beast(j,i) ) cycle
           ib = ba_vt%ibnd(j,i)
           xf = hefd(ib,k)
-          xg = hegd(ib,k) * xdcorr
+          xg = hegd(ib,k)
           fls0 = fg2(j,i,k)
           fls1 = fg2(j-1,i,k)
           fls2 = fg2(j+1,i,k)
@@ -5141,26 +5144,7 @@ module mod_bdycod
       end do
     end do
     call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
-    if ( do_top_smooth ) then
-      call top_smooth(pai)
-      call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
-    end if
   end subroutine paicompute
-
-  subroutine top_smooth(pai)
-    implicit none
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pai
-    integer(ik4) :: i, j, k
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:mo_sponge )
-      fg1(j,i,k) = 0.0625_rkx * ( 4.0_rkx * pai(j,i,k)  + &
-                  2.0_rkx * (pai(j,i+1,k)+pai(j,i-1,k)  + &
-                             pai(j+1,i,k)+pai(j-1,i,k)) + &
-            pai(j+1,i+1,k)+pai(j-1,i+1,k)+pai(j-1,i-1,k)+pai(j+1,i-1,k))
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:mo_sponge )
-      pai(j,i,k) = fg1(j,i,k)
-    end do
-  end subroutine top_smooth
 
   subroutine moloch_static_test1(xt,xq,xu,xv,xps,xts)
     implicit none
@@ -5279,6 +5263,35 @@ module mod_bdycod
       v(k) = swap(kk)
     end do
   end subroutine invert_top_bottom
+
+  subroutine smooth(f,fs,j1,j2,i1,i2,k1,k2,jmax,imax,nsmooth)
+    implicit none
+    real(rkx), pointer, dimension(:,:,:), contiguous, intent(in) :: f
+    real(rkx), pointer, dimension(:,:,:), contiguous, intent(inout) :: fs
+    integer(ik4), intent(in) :: i1, i2, j1, j2, k1, k2, jmax, imax, nsmooth
+    integer :: i, j, k, n, im, ip, jm, jp
+
+    do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
+      temp(j,i,k) = f(j,i,k)
+    end do
+    call exchange(temp,1,j1,j2,i1,i2,k1,k2)
+    do n = 1, nsmooth
+      do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
+        im = max(i-1,1)
+        ip = min(i+1,imax)
+        jm = max(j-1,1)
+        jp = min(j+1,jmax)
+        fs(j,i,k) = 0.0625_rkx * ( 4.0_rkx * temp(j,i,k) + &
+                2.0_rkx * (temp(j,ip,k) + temp(j,im,k) + &
+                           temp(jp,i,k) + temp(jm,i,k)) + &
+                temp(jp,ip,k) + temp(jm,ip,k) + temp(jm,im,k) + temp(jp,im,k))
+      end do
+      do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
+        temp(j,i,k) = fs(j,i,k)
+      end do
+      if ( n < nsmooth ) call exchange(temp,1,j1,j2,i1,i2,1,kz)
+    end do
+  end subroutine smooth
 
 end module mod_bdycod
 

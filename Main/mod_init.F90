@@ -973,27 +973,10 @@ module mod_init
         mo_atm%qs(j,i,k) = pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k))
         mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas*mo_atm%t(j,i,k))
       end do
-      if ( ipptls > 0 ) then
-        if ( ipptls > 1 ) then
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
-                       (d_one + ep1*mo_atm%qx(j,i,k,iqv) - &
-                        mo_atm%qx(j,i,k,iqc) - mo_atm%qx(j,i,k,iqi) - &
-                        mo_atm%qx(j,i,k,iqr) - mo_atm%qx(j,i,k,iqs))
-          end do
-        else
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
-                               (d_one + ep1*mo_atm%qx(j,i,k,iqv) - &
-                                mo_atm%qx(j,i,k,iqc))
-          end do
-        end if
-      else
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
-                             (d_one + ep1*mo_atm%qx(j,i,k,iqv))
-        end do
-      end if
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+                           (d_one + ep1*mo_atm%qx(j,i,k,iqv))
+      end do
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)
       end do
