@@ -214,7 +214,7 @@ module mod_init
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
                            (d_one + ep1*mo_atm%qx(j,i,k,iqv))
-          mo_atm%pai(j,i,k) = xpaib%b0(j,i,k)
+          mo_atm%tetav(j,i,k) = mo_atm%tvirt(j,i,k)/mo_atm%pai(j,i,k)
         end do
         ! Compute pressure and density
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
@@ -976,6 +976,7 @@ module mod_init
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
                            (d_one + ep1*mo_atm%qx(j,i,k,iqv))
+        mo_atm%tetav(j,i,k) = mo_atm%tvirt(j,i,k)/mo_atm%pai(j,i,k)
       end do
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)

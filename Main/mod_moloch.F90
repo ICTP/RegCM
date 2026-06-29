@@ -333,20 +333,11 @@ module mod_moloch
     do i = ice1, ice2
     do j = jce1, jce2
 #endif
-      p(j,i,k) = (pai(j,i,k)**cpovr) * p00
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
 #ifndef STDPAR_FIXED
     end do
     end do
 #endif
-    end do
-
-    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
-    end do
-
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
     end do
 
     if ( do_fulleq ) then
@@ -401,8 +392,16 @@ module mod_moloch
 
     do nadv = 1, mo_nadv
       call apply_bdy(dtstepa)
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
+        tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
+      end do
       call sound(dtsound)
       call advection(dtstepa)
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
+        t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
+      end do
     end do ! Advection loop
 
     if ( do_apply_bdy ) then
@@ -410,8 +409,6 @@ module mod_moloch
     end if
 
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
-      t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
       p(j,i,k) = (pai(j,i,k)**cpovr) * p00
       rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
     end do
@@ -531,14 +528,14 @@ module mod_moloch
     integer(ik4) :: i, j, k, n
     call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
     call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
-    call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( (iboudy == 1 .or. iboudy >= 5) .and. ichem == 1 ) then
       call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
     if ( iboudy == 1 .or. iboudy >= 5 ) then
       call nudge(iboudy,u,v,uten,vten,xub,xvb)
-      call nudge(iboudy,tetav,tten,xthb)
+      call nudge(iboudy,t,tten,xtb)
       call nudge(iboudy,qv,qvten,xqb)
       if ( idiag > 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -562,7 +559,7 @@ module mod_moloch
       end if
     else if ( iboudy == 4 ) then
       call sponge(uten,vten,xub,xvb)
-      call sponge(tten,xthb)
+      call sponge(tten,xtb)
       call sponge(qvten,xqb)
       if ( is_present_qc( ) ) then
         call sponge(qcten,xlb)
@@ -1671,41 +1668,7 @@ module mod_moloch
     implicit none
     real(rkx), intent(in) :: dtb
     integer :: i, j, k, n
-    real(rkx) :: bdfac
 
-    bdfac = dtb/dtsec
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ice1:ice2, k = 1:kz )
-        u(jde1,i,k) = u(jde1,i,k) + wue(i,k) * bdfac
-      end do
-      do concurrent ( i = ide1:ide2, k = 1:kz )
-        v(jce1,i,k) = v(jce1,i,k) + wve(i,k) * bdfac
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ice1:ice2, k = 1:kz )
-        u(jde2,i,k) = u(jde2,i,k) + eue(i,k) * bdfac
-      end do
-      do concurrent ( i = ide1:ide2, k = 1:kz )
-        v(jce2,i,k) = v(jce2,i,k) + eve(i,k) * bdfac
-      end do
-    end if
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jde1:jde2, k = 1:kz )
-        u(j,ice1,k) = u(j,ice1,k) + sue(j,k) * bdfac
-      end do
-      do concurrent ( j = jce1:jce2, k = 1:kz )
-        v(j,ide1,k) = v(j,ide1,k) + sve(j,k) * bdfac
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jde1:jde2, k = 1:kz )
-        u(j,ice2,k) = u(j,ice2,k) + nue(j,k) * bdfac
-      end do
-      do concurrent ( j = jce1:jce2, k = 1:kz )
-        v(j,ide2,k) = v(j,ide2,k) + nve(j,k) * bdfac
-      end do
-    end if
     do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
       u(j,i,k) = u(j,i,k) + dtb * uten(j,i,k)
     end do
@@ -1713,8 +1676,7 @@ module mod_moloch
       v(j,i,k) = v(j,i,k) + dtb * vten(j,i,k)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      tetav(j,i,k) = tetav(j,i,k) + dtb * tten(j,i,k)
-      pai(j,i,k) = pai(j,i,k) + dtb * paiten(j,i,k)
+      t(j,i,k) = t(j,i,k) + dtb * tten(j,i,k)
       qv(j,i,k) = qv(j,i,k) + dtb * qvten(j,i,k)
     end do
     if ( is_present_qc( ) ) then

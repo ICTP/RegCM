@@ -282,10 +282,7 @@ module mod_bdycod
         xqb%b0(:,:,k) = qi(k)
         !$acc end kernels
       end do
-      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
-      !$acc kernels
-      xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
-      !$acc end kernels
+      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,mo_atm%pai)
     else
       call fatal(__FILE__,__LINE__, &
         'Should never get here....')
@@ -390,10 +387,7 @@ module mod_bdycod
       !$acc kernels
       xpsb%b0(:,:) = ps
       !$acc end kernels
-      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
-      !$acc kernels
-      xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
-      !$acc end kernels
+      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,mo_atm%pai)
     else
       call fatal(__FILE__,__LINE__, &
         'Should never get here....')
@@ -465,22 +459,6 @@ module mod_bdycod
       end if
       call getmem(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
     else
-      if ( ma%has_bdytop ) then
-        call getmem(nve,jce1ga,jce2ga,1,kz,'bdycon:nve')
-        call getmem(nue,jde1ga,jde2ga,1,kz,'bdycon:nue')
-      end if
-      if ( ma%has_bdybottom ) then
-        call getmem(sve,jce1ga,jce2ga,1,kz,'bdycon:sve')
-        call getmem(sue,jde1ga,jde2ga,1,kz,'bdycon:sve')
-      end if
-      if ( ma%has_bdyright ) then
-        call getmem(eue,ice1ga,ice2ga,1,kz,'bdycon:eue')
-        call getmem(eve,ide1ga,ide2ga,1,kz,'bdycon:eve')
-      end if
-      if ( ma%has_bdyleft ) then
-        call getmem(wue,ice1ga,ice2ga,1,kz,'bdycon:wue')
-        call getmem(wve,ide1ga,ide2ga,1,kz,'bdycon:wve')
-      end if
       call getmem(zsm,jce1,jce2,ice1,ice2,1,kz,'bdycon:zsm')
       call getmem(temp,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:temp')
     end if
@@ -741,6 +719,7 @@ module mod_bdycod
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
       call smooth(xub%b0,xub%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
       call smooth(xvb%b0,xvb%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
+      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,mo_atm%pai)
     end if
     !
     ! Calculate P* on dot points
@@ -987,18 +966,8 @@ module mod_bdycod
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
       !jday = yeardayfrac(rcmtimer%idate)
-      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
-      call paicompute(xpsb%b1,zsm,xtb%b1,xqb%b1,xpaib%b1)
-      !$acc kernels
-      xthb%b0(:,:,:) = (xtb%b0(:,:,:)*(d_one+ep1*xqb%b0(:,:,:)))/xpaib%b0(:,:,:)
-      xthb%b1(:,:,:) = (xtb%b1(:,:,:)*(d_one+ep1*xqb%b1(:,:,:)))/xpaib%b1(:,:,:)
-      !$acc end kernels
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
-      call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
-                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
-      call timeint(xthb%b1,xthb%b0,xthb%bt, &
-                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
 
 #ifdef ASYNC_NETCDF
@@ -1076,8 +1045,6 @@ module mod_bdycod
     real(rkx), pointer, contiguous, dimension(:,:,:) :: t1 => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: q0 => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: q1 => null( )
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: th0 => null( )
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: th1 => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: l0 => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: l1 => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: i0 => null( )
@@ -1086,8 +1053,6 @@ module mod_bdycod
     real(rkx), pointer, contiguous, dimension(:,:,:) :: pp1 => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: ww0 => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: ww1 => null( )
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: pai0 => null( )
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: pai1 => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: ts0 => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: ts1 => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: ps0 => null( )
@@ -1123,11 +1088,6 @@ module mod_bdycod
       pp1 => xppb%b1
       ww0 => xwwb%b0
       ww1 => xwwb%b1
-    else if ( idynamic == 3 ) then
-      pai0 => xpaib%b0
-      pai1 => xpaib%b1
-      th0 => xthb%b0
-      th1 => xthb%b1
     end if
     ts0 => xtsb%b0
     ts1 => xtsb%b1
@@ -1170,12 +1130,6 @@ module mod_bdycod
       !$acc kernels
       ps0(:,:) = ps1(:,:)
       !$acc end kernels
-      if ( idynamic == 3 ) then
-        !$acc kernels
-        pai0(:,:,:) = pai1(:,:,:)
-        th0(:,:,:) = th1(:,:,:)
-        !$acc end kernels
-      end if
     end if
 
     if ( update_slabocn ) then
@@ -1341,15 +1295,7 @@ module mod_bdycod
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
       !jday = yeardayfrac(rcmtimer%idate)
-      call paicompute(xpsb%b1,zsm,xtb%b1,xqb%b1,xpaib%b1)
-      !$acc kernels
-      xthb%b1(:,:,:) = (xtb%b1(:,:,:)*(d_one+ep1*xqb%b1(:,:,:)))/xpaib%b1(:,:,:)
-      !$acc end kernels
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
-      call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
-                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
-      call timeint(xthb%b1,xthb%b0,xthb%bt, &
-                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
     !
     ! Update ground temperature on Ocean/Lakes
@@ -1894,42 +1840,34 @@ module mod_bdycod
       if ( idynamic == 3 ) then
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ice1:ice2, k = 1:kz )
-            wue(i,k) = (xub%b0(jde1,i,k) + &
-              xt*xub%bt(jde1,i,k)) - mo_atm%u(jde1,i,k)
+            mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
           end do
           do concurrent ( i = ide1:ide2, k = 1:kz )
-            wve(i,k) = (xvb%b0(jce1,i,k) + &
-              xt*xvb%bt(jce1,i,k)) - mo_atm%v(jce1,i,k)
+            mo_atm%v(jce1,i,k) = xvb%b0(jce1,i,k) + xt*xvb%bt(jce1,i,k)
           end do
         end if
         if ( ma%has_bdyright ) then
           do concurrent ( i = ice1:ice2, k = 1:kz )
-            eue(i,k) = (xub%b0(jde2,i,k) + &
-              xt*xub%bt(jde2,i,k)) - mo_atm%u(jde2,i,k)
+            mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
           end do
           do concurrent ( i = ide1:ide2, k = 1:kz )
-            eve(i,k) = (xvb%b0(jce2,i,k) + &
-              xt*xvb%bt(jce2,i,k)) - mo_atm%v(jce2,i,k)
+            mo_atm%v(jce2,i,k) = xvb%b0(jce2,i,k) + xt*xvb%bt(jce2,i,k)
           end do
         end if
         if ( ma%has_bdybottom ) then
           do concurrent ( j = jde1:jde2, k = 1:kz )
-            sue(j,k) = (xub%b0(j,ice1,k) + &
-              xt*xub%bt(j,ice1,k)) - mo_atm%u(j,ice1,k)
+            mo_atm%u(j,ice1,k) = xub%b0(j,ice1,k) + xt*xub%bt(j,ice1,k)
           end do
           do concurrent ( j = jce1:jce2, k = 1:kz )
-            sve(j,k) = (xvb%b0(j,ide1,k) + &
-              xt*xvb%bt(j,ide1,k)) - mo_atm%v(j,ide1,k)
+            mo_atm%v(j,ide1,k) = xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k)
           end do
         end if
         if ( ma%has_bdytop ) then
           do concurrent ( j = jde1:jde2, k = 1:kz )
-            nue(j,k) = (xub%b0(j,ice2,k) + &
-              xt*xub%bt(j,ice2,k)) - mo_atm%u(j,ice2,k)
+            mo_atm%u(j,ice2,k) = xub%b0(j,ice2,k) + xt*xub%bt(j,ice2,k)
           end do
           do concurrent ( j = jce1:jce2, k = 1:kz )
-            nve(j,k) = (xvb%b0(j,ide2,k) + &
-              xt*xvb%bt(j,ide2,k)) - mo_atm%v(j,ide2,k)
+            mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
           end do
         end if
       else
@@ -1974,7 +1912,6 @@ module mod_bdycod
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k)
-            mo_atm%tetav(jce1,i,k) = xthb%b0(jce1,i,k)
             mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
           end do
           if ( present_qc ) then
@@ -1991,7 +1928,6 @@ module mod_bdycod
         if ( ma%has_bdyright ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k)
-            mo_atm%tetav(jce2,i,k) = xthb%b0(jce2,i,k)
             mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
           end do
           if ( present_qc ) then
@@ -2008,7 +1944,6 @@ module mod_bdycod
         if ( ma%has_bdybottom ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k)
-            mo_atm%tetav(j,ice1,k) = xthb%b0(j,ice1,k)
             mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
           end do
           if ( present_qc ) then
@@ -2025,7 +1960,6 @@ module mod_bdycod
         if ( ma%has_bdytop ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k)
-            mo_atm%tetav(j,ice2,k) = xthb%b0(j,ice2,k)
             mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
           end do
           if ( present_qc ) then
@@ -2145,7 +2079,6 @@ module mod_bdycod
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
-            mo_atm%tetav(jce1,i,k) = xthb%b0(jce1,i,k) + xt*xthb%bt(jce1,i,k)
             mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
           end do
           if ( present_qc ) then
@@ -2162,7 +2095,6 @@ module mod_bdycod
         if ( ma%has_bdyright ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
-            mo_atm%tetav(jce2,i,k) = xthb%b0(jce2,i,k) + xt*xthb%bt(jce2,i,k)
             mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
           end do
           if ( present_qc ) then
@@ -2179,7 +2111,6 @@ module mod_bdycod
         if ( ma%has_bdybottom ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
-            mo_atm%tetav(j,ice1,k) = xthb%b0(j,ice1,k) + xt*xthb%bt(j,ice1,k)
             mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
           end do
           if ( present_qc ) then
@@ -2196,7 +2127,6 @@ module mod_bdycod
         if ( ma%has_bdytop ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
-            mo_atm%tetav(j,ice2,k) = xthb%b0(j,ice2,k) + xt*xthb%bt(j,ice2,k)
             mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
           end do
           if ( present_qc ) then
@@ -4987,7 +4917,8 @@ module mod_bdycod
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: z
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten, vten
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: uten
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: vten
     real(rkx), intent(in) :: sval
     integer(ik4) :: i, j, k, maxk
     maxk = min(kzp1,rayndamp)
