@@ -2236,6 +2236,8 @@ module mod_params
     if ( idynamic == 2 ) then
       call allocate_v3dbound(xppb,kz,cross)
       call allocate_v3dbound(xwwb,kzp1,cross)
+    else if ( idynamic == 3 ) then
+      call allocate_v3dbound(xpaib,kz,cross)
     end if
 
     if ( myid == italk ) then

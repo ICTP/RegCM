@@ -529,6 +529,7 @@ module mod_moloch
     call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
     call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
     call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( (iboudy == 1 .or. iboudy >= 5) .and. ichem == 1 ) then
       call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
@@ -536,6 +537,7 @@ module mod_moloch
     if ( iboudy == 1 .or. iboudy >= 5 ) then
       call nudge(iboudy,u,v,uten,vten,xub,xvb)
       call nudge(iboudy,t,tten,xtb)
+      call nudge(iboudy,pai,paiten,xpaib)
       call nudge(iboudy,qv,qvten,xqb)
       if ( idiag > 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -560,6 +562,7 @@ module mod_moloch
     else if ( iboudy == 4 ) then
       call sponge(uten,vten,xub,xvb)
       call sponge(tten,xtb)
+      call sponge(paiten,xtb)
       call sponge(qvten,xqb)
       if ( is_present_qc( ) ) then
         call sponge(qcten,xlb)
@@ -1678,6 +1681,7 @@ module mod_moloch
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       t(j,i,k) = t(j,i,k) + dtb * tten(j,i,k)
       qv(j,i,k) = qv(j,i,k) + dtb * qvten(j,i,k)
+      pai(j,i,k) = pai(j,i,k) + dtb * paiten(j,i,k)
     end do
     if ( is_present_qc( ) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )

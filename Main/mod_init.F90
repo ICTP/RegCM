@@ -175,6 +175,7 @@ module mod_init
         end do
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%t(j,i,k) = xtb%b0(j,i,k)
+          mo_atm%pai(j,i,k) = xpaib%b0(j,i,k)
           mo_atm%qx(j,i,k,iqv) = xqb%b0(j,i,k)
         end do
         if ( ipptls > 1 ) then

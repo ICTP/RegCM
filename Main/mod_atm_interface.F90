@@ -43,7 +43,7 @@ module mod_atm_interface
   type(qendiag), public :: qdiag
   type(surfstate), public :: sfs
   type(slice), public :: atms
-  type(v3dbound), public :: xtb, xqb, xub, xvb, xppb, xwwb
+  type(v3dbound), public :: xtb, xqb, xub, xvb, xppb, xwwb, xpaib
   type(v3dbound), public :: xlb, xib
   type(v2dbound), public :: xpsb, xtsb
   type(bound_area), public :: ba_cr, ba_dt, ba_ut, ba_vt
