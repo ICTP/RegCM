@@ -346,7 +346,7 @@ module mod_params
     rayhd = 10000.0_rkx
     mo_nadv = 3
     mo_nsound = 5
-    mo_divfilter = .true.
+    mo_divfilter = .false.
     mo_anu2 = 0.6_rkx
     mo_nzfilt = kz/3
     !

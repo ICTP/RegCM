@@ -130,7 +130,6 @@ module mod_moloch
 #endif
   real(rkx), parameter :: xdamp = 0.0625_rkx
 
-  logical, parameter :: do_diff_zdiv    = .false.
   logical, parameter :: do_bdy          = .true.
   logical, parameter :: do_divdamp      = .true.
   logical, parameter :: do_vadvtwice    = .true.
@@ -390,23 +389,19 @@ module mod_moloch
       !@acc call nvtxEndRange
     end if
 
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+      tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
+      tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
+    end do
     do nadv = 1, mo_nadv
-      call apply_bdy(dtstepa)
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
-        tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
-      end do
       call sound(dtsound)
       call advection(dtstepa)
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
-        t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
-      end do
     end do ! Advection loop
 
-    if ( do_apply_bdy ) then
-      call reset_bdy( )
-    end if
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
+      t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
+    end do
 
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       p(j,i,k) = (pai(j,i,k)**cpovr) * p00
@@ -871,18 +866,6 @@ module mod_moloch
       do concurrent ( j = jce1:jce2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 xknu(k)*ddamp*mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
-      end do
-    end if
-    if ( do_diff_zdiv ) then
-      ! Horizontal diffusion
-      ddamp = xdamp * 0.015625_rkx/dts
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        p3d(j,i,k) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
-                                  zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                     0.5_rkx * zdiv2(j,i,k)
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p3d(j,i,k)
       end do
     end if
   end subroutine divdamp
@@ -1497,6 +1480,7 @@ module mod_moloch
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       t(j,i,k) = t(j,i,k) + dtsec * tten(j,i,k)
+      pai(j,i,k) = pai(j,i,k) + dtsec * paiten(j,i,k)
     end do
     do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
       u(j,i,k) = u(j,i,k) + dtsec * uten(j,i,k)
@@ -1666,58 +1650,6 @@ module mod_moloch
       end do
     end if
   end subroutine uvstagtox
-
-  subroutine apply_bdy(dtb)
-    implicit none
-    real(rkx), intent(in) :: dtb
-    integer :: i, j, k, n
-
-    do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-      u(j,i,k) = u(j,i,k) + dtb * uten(j,i,k)
-    end do
-    do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-      v(j,i,k) = v(j,i,k) + dtb * vten(j,i,k)
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      t(j,i,k) = t(j,i,k) + dtb * tten(j,i,k)
-      qv(j,i,k) = qv(j,i,k) + dtb * qvten(j,i,k)
-      pai(j,i,k) = pai(j,i,k) + dtb * paiten(j,i,k)
-    end do
-    if ( is_present_qc( ) ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        qc(j,i,k) = qc(j,i,k) + dtb * qcten(j,i,k)
-      end do
-    end if
-    if ( is_present_qi( ) ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        qi(j,i,k) = qi(j,i,k) + dtb * qiten(j,i,k)
-      end do
-    end if
-    if ( ichem == 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-        trac(j,i,k,n) = trac(j,i,k,n) + chiten(j,i,k,n)*dtb
-      end do
-    end if
-  end subroutine apply_bdy
-
-  subroutine reset_bdy
-    implicit none
-    integer(ik4) :: i, j, k, n
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      uten(j,i,k) = 0.0_rkx
-      vten(j,i,k) = 0.0_rkx
-      tten(j,i,k) = 0.0_rkx
-      paiten(j,i,k) = 0.0_rkx
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
-      qxten(j,i,k,n) = 0.0_rkx
-    end do
-    if ( ichem == 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-        chiten(j,i,k,n) = 0.0_rkx
-      end do
-    end if
-  end subroutine reset_bdy
 
 end module mod_moloch
 
