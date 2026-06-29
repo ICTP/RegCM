@@ -597,7 +597,7 @@ module mod_bdycod
 #endif
 
     if ( idynamic == 3 ) then
-      call smooth(mo_atm%zeta,zsm,jce1,jce2,ice1,ice2,1,kz,jx-1,iy-1,4)
+      call smooth(mo_atm%zeta,zsm,jce1,jce2,ice1,ice2,1,kz,jx-1,iy-1,1)
     end if
 
     dom_ldmsk => mddom%ldmsk
@@ -717,8 +717,8 @@ module mod_bdycod
       xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
-      call smooth(xub%b0,xub%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
-      call smooth(xvb%b0,xvb%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
+      call smooth(xub%b0,xub%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
+      call smooth(xvb%b0,xvb%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
       call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
     end if
     !
@@ -838,8 +838,8 @@ module mod_bdycod
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
-      call smooth(xub%b1,xub%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
-      call smooth(xvb%b1,xvb%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
+      call smooth(xub%b1,xub%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
+      call smooth(xvb%b1,xvb%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
       call paicompute(xpsb%b1,zsm,xtb%b1,xqb%b1,xpaib%b1)
     end if
     !
@@ -1252,8 +1252,8 @@ module mod_bdycod
       ps1(:,:) = ps1(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
-      call smooth(xub%b1,xub%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
-      call smooth(xvb%b1,xvb%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,3)
+      call smooth(xub%b1,xub%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
+      call smooth(xvb%b1,xvb%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
       call paicompute(xpsb%b1,zsm,xtb%b1,xqb%b1,xpaib%b1)
     end if
     !
