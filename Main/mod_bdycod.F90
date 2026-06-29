@@ -516,8 +516,7 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          !fnudge = dtsec/dtbdys/max(nspgx,nspgd)
-          fnudge = 0.1_rkx/dtsec
+          fnudge = 0.25_rkx*dtsec/dtbdys/max(nspgx,nspgd)
         else
           fnudge = 0.1_rkx/dt2
         end if
@@ -527,8 +526,7 @@ module mod_bdycod
       else
         ! The dxsq is simplified in below when dividing by dxsq
         if ( idynamic == 3 ) then
-          !gnudge = 4.0_rkx*(dtsec/dtbdys/max(nspgx,nspgd)/ds)
-          gnudge = 0.02_rkx/dtsec
+          gnudge = 0.25_rkx*(dtsec/dtbdys/max(nspgx,nspgd)/dx)
         else
           gnudge = 0.02_rkx/dt2
         end if
@@ -1977,7 +1975,6 @@ module mod_bdycod
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k)
             mo_atm%tetav(jce1,i,k) = xthb%b0(jce1,i,k)
-            mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k)
             mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
           end do
           if ( present_qc ) then
@@ -1995,7 +1992,6 @@ module mod_bdycod
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k)
             mo_atm%tetav(jce2,i,k) = xthb%b0(jce2,i,k)
-            mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k)
             mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
           end do
           if ( present_qc ) then
@@ -2013,7 +2009,6 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k)
             mo_atm%tetav(j,ice1,k) = xthb%b0(j,ice1,k)
-            mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k)
             mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
           end do
           if ( present_qc ) then
@@ -2031,7 +2026,6 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k)
             mo_atm%tetav(j,ice2,k) = xthb%b0(j,ice2,k)
-            mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k)
             mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
           end do
           if ( present_qc ) then
@@ -2152,7 +2146,6 @@ module mod_bdycod
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
             mo_atm%tetav(jce1,i,k) = xthb%b0(jce1,i,k) + xt*xthb%bt(jce1,i,k)
-            mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k) + xt*xpaib%bt(jce1,i,k)
             mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
           end do
           if ( present_qc ) then
@@ -2170,7 +2163,6 @@ module mod_bdycod
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
             mo_atm%tetav(jce2,i,k) = xthb%b0(jce2,i,k) + xt*xthb%bt(jce2,i,k)
-            mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k) + xt*xpaib%bt(jce2,i,k)
             mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
           end do
           if ( present_qc ) then
@@ -2188,7 +2180,6 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
             mo_atm%tetav(j,ice1,k) = xthb%b0(j,ice1,k) + xt*xthb%bt(j,ice1,k)
-            mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k) + xt*xpaib%bt(j,ice1,k)
             mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
           end do
           if ( present_qc ) then
@@ -2206,7 +2197,6 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
             mo_atm%tetav(j,ice2,k) = xthb%b0(j,ice2,k) + xt*xthb%bt(j,ice2,k)
-            mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k) + xt*xpaib%bt(j,ice2,k)
             mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
           end do
           if ( present_qc ) then

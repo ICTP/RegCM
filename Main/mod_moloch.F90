@@ -400,6 +400,7 @@ module mod_moloch
     end if
 
     do nadv = 1, mo_nadv
+      call apply_bdy(dtstepa)
       call sound(dtsound)
       call advection(dtstepa)
     end do ! Advection loop
@@ -531,7 +532,6 @@ module mod_moloch
     call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
     call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
     call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( (iboudy == 1 .or. iboudy >= 5) .and. ichem == 1 ) then
       call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
@@ -540,7 +540,6 @@ module mod_moloch
       call nudge(iboudy,u,v,uten,vten,xub,xvb)
       call nudge(iboudy,tetav,tten,xthb)
       call nudge(iboudy,qv,qvten,xqb)
-      call nudge(iboudy,pai,paiten,xpaib)
       if ( idiag > 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           tdiag%bdy(j,i,k) = tten(j,i,k)
@@ -565,7 +564,6 @@ module mod_moloch
       call sponge(uten,vten,xub,xvb)
       call sponge(tten,xthb)
       call sponge(qvten,xqb)
-      call sponge(paiten,xpaib)
       if ( is_present_qc( ) ) then
         call sponge(qcten,xlb)
       end if
@@ -617,13 +615,14 @@ module mod_moloch
       wwkw(j,i,kzp1) = d_zero
     end do
 
+    if ( .not. do_fulleq ) then
+      call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
+
     !  sound waves
 
     do nsound = 1, mo_nsound
 
-      call apply_bdy(dts)
-
-      call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
       call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
 
@@ -767,7 +766,7 @@ module mod_moloch
       if ( mo_divfilter ) call divergence_filter( )
 
       ! horizontal momentum equations
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
       end do
 
