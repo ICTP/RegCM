@@ -95,7 +95,6 @@ module mod_rad_outrad
     integer(ik4) :: kh1, kh2, km1, km2, kl1, kl2
     integer(ik4) :: visband
     real(rk8) :: hif, mif, lof
-    real(rk8), parameter :: sm1 = 1.0_rk8
     !
     ! total heating rate in deg/s
     !

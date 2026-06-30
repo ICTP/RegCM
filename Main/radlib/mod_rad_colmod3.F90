@@ -568,30 +568,38 @@ module mod_rad_colmod3
       !
       ! g/m3, already account for cum and ls clouds
       if ( temp(k,n) > lowcld ) then
-        lwc = (rt%ql(k,n)*rt%rho(k,n)*1000.0_rk8)/temp(k,n)
-        weight = max(0.0_rk8,min(lwc/8.5_rk8,1.0_rk8))
-        if ( rt%ioro(n) == 1 ) then
-          ! Effective liquid radius over land
-          rt%rel(k,n) = 4.0_rk8 + 7.0_rk8*weight
+        if ( rt%ql(k,n) > 1.0E-12_rk8 ) then
+          lwc = (rt%ql(k,n)*rt%rho(k,n)*1000.0_rk8)/temp(k,n)
+          weight = max(0.0_rk8,min(lwc/8.5_rk8,1.0_rk8))
+          if ( rt%ioro(n) == 1 ) then
+            ! Effective liquid radius over land
+            rt%rel(k,n) = 4.0_rk8 + 7.0_rk8*weight
+          else
+            ! Effective liquid radius over ocean and sea ice
+            rt%rel(k,n) = 12.0_rk8 + 8.0_rk8*weight
+          end if
         else
-          ! Effective liquid radius over ocean and sea ice
-          rt%rel(k,n) = 12.0_rk8 + 8.0_rk8*weight
+          rt%rel(k,n) = 8.5_rk8
         end if
         !
         ! Stengel, Fokke Meirink, Eliasson (2023)
         ! On the Temperature Dependence of the Cloud Ice Particle Effective
         ! Radius - A Satellite Perspective
         !
-        iwc = (rt%qi(k,n)*rt%rho(k,n)*1000.0_rk8)/temp(k,n)
-        tempc = rt%t(k,n) - 83.15_rk8
-        tcels = tempc - tzero
-        fsr = 1.2351_rk8 + 0.0105_rk8 * tcels
-        aiwc = 45.8966_rk8 * iwc**0.2214_rk8
-        biwc = 0.7957_rk8 * iwc**0.2535_rk8
-        desr = fsr*(aiwc+biwc*tempc)
-        desr = max(15.0_rk8,min(105.0_rk8,desr))
-        weight = max(0.0_rk8,min(iwc/5.0_rk8,1.0_rk8))
-        rt%rei(k,n) = 8.0_rk8 + weight * 0.64952_rk8*desr
+        if ( rt%qi(k,n) > 1.0E-12_rk8 ) then
+          iwc = (rt%qi(k,n)*rt%rho(k,n)*1000.0_rk8)/temp(k,n)
+          tempc = rt%t(k,n) - 83.15_rk8
+          tcels = tempc - tzero
+          fsr = 1.2351_rk8 + 0.0105_rk8 * tcels
+          aiwc = 45.8966_rk8 * iwc**0.2214_rk8
+          biwc = 0.7957_rk8 * iwc**0.2535_rk8
+          desr = fsr*(aiwc+biwc*tempc)
+          desr = max(15.0_rk8,min(105.0_rk8,desr))
+          weight = max(0.0_rk8,min(iwc/5.0_rk8,1.0_rk8))
+          rt%rei(k,n) = 8.0_rk8 + weight * 0.64952_rk8*desr
+        else
+          rt%rei(k,n) = 20.0_rk8
+        end if
       else
         ! filler for no clouds
         rt%rel(k,n) = 8.5_rk8

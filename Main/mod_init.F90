@@ -116,13 +116,6 @@ module mod_init
               atm1%qx(j,i,k,iqc) = xlb%b0(j,i,k)
               atm2%qx(j,i,k,iqc) = xlb%b0(j,i,k)
             end do
-          else
-#ifndef RCEMIP
-            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-              atm1%qx(j,i,k,iqc) = minqc*xpsb%b0(j,i)
-              atm2%qx(j,i,k,iqc) = minqc*xpsb%b0(j,i)
-            end do
-#endif
           end if
           if ( ipptls > 1 ) then
             if ( is_present_qi( ) ) then
@@ -130,13 +123,6 @@ module mod_init
                 atm1%qx(j,i,k,iqi) = xib%b0(j,i,k)
                 atm2%qx(j,i,k,iqi) = xib%b0(j,i,k)
               end do
-            else
-#ifndef RCEMIP
-              do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-                atm1%qx(j,i,k,iqi) = minqc*xpsb%b0(j,i)
-                atm2%qx(j,i,k,iqi) = minqc*xpsb%b0(j,i)
-              end do
-#endif
             end if
           end if
         end if
@@ -183,32 +169,16 @@ module mod_init
             do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
               mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
             end do
-          else
-#ifndef RCEMIP
-            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-              mo_atm%qx(j,i,k,iqc) = minqc
-            end do
-#endif
           end if
           if ( is_present_qi( ) ) then
             do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
               mo_atm%qx(j,i,k,iqi) = xib%b0(j,i,k)
             end do
-          else
-#ifndef RCEMIP
-            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-              mo_atm%qx(j,i,k,iqi) = minqc
-            end do
-#endif
           end if
         else if ( ipptls == 1 ) then
           if ( is_present_qc( ) ) then
             do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
               mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
-            end do
-          else
-            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-              mo_atm%qx(j,i,k,iqc) = minqc
             end do
           end if
         end if
@@ -232,7 +202,8 @@ module mod_init
         end do
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           ! Remove excessive supersaturation
-          mo_atm%qx(j,i,k,iqv) = min(mo_atm%qx(j,i,k,iqv),mo_atm%qs(j,i,k))
+          mo_atm%qx(j,i,k,iqv) = min(mo_atm%qx(j,i,k,iqv), &
+                        1.001_rkx*mo_atm%qs(j,i,k))
         end do
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)

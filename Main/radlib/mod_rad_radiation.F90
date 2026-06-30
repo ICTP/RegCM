@@ -514,8 +514,6 @@ module mod_rad_radiation
   real(rk8), parameter :: c31 = 3.0e-5_rk8
   real(rk8), parameter :: cfa1 = 0.61_rk8
 
-  logical :: luse_max_rnovl = .true.
-
 #ifdef SINGLE_PRECISION_REAL
   real(rk8), parameter :: mxarg = 16.0_rk8
 #else

@@ -553,10 +553,10 @@ module mod_pbl_holtbl
         coefe(j,i,kz) = d_zero
         coeff1(j,i,kz) = (m2p%udatm(j,i,kz) - dt*alphak(j,i,kz)*uflxsf + &
              coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-      !
-      !   all coefficients have been computed, predict field and put it in
-      !   temporary work space tpred
-      !
+        !
+        ! All coefficients have been computed, predict field and put it in
+        ! temporary work space tpred
+        !
         tpred1(j,i,kz) = coeff1(j,i,kz)
         !$acc loop seq
         do k = kzm1, 1, -1
@@ -629,8 +629,8 @@ module mod_pbl_holtbl
         coeff2(j,i,kz) = (m2p%vdatm(j,i,kz) - dt*alphak(j,i,kz)*vflxsf + &
              coef3*coeff2(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
         !
-        !   all coefficients have been computed, predict field and put it in
-        !   temporary work space tpred
+        ! All coefficients have been computed, predict field and put it in
+        ! temporary work space tpred
         !
         tpred2(j,i,kz) = coeff2(j,i,kz)
         !$acc loop seq
@@ -714,10 +714,10 @@ module mod_pbl_holtbl
              coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
         coeff2(j,i,kz) = (m2p%vdatm(j,i,kz) - dt*alphak(j,i,kz)*vflxsf + &
              coef3*coeff2(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-      !
-      !   all coefficients have been computed, predict field and put it in
-      !   temporary work space tpred
-      !
+        !
+        ! All coefficients have been computed, predict field and put it in
+        ! temporary work space tpred
+        !
         tpred1(j,i,kz) = coeff1(j,i,kz)
         tpred2(j,i,kz) = coeff2(j,i,kz)
         !$acc loop seq
@@ -782,10 +782,10 @@ module mod_pbl_holtbl
       coeff1(j,i,kz) = (m2p%thatm(j,i,kz) + &
            dt*alphak(j,i,kz)*rcpd*m2p%hfx(j,i) + &
            coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-    !
-    !   all coefficients have been computed, predict field and put it in
-    !   temporary work space tpred
-    !
+      !
+      ! All coefficients have been computed, predict field and put it in
+      ! temporary work space tpred
+      !
       tpred1(j,i,kz) = coeff1(j,i,kz)
       !$acc loop seq
       do k = kzm1, 1, -1
@@ -845,10 +845,10 @@ module mod_pbl_holtbl
       coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqv) +  &
            dt*alphak(j,i,kz)*m2p%qfx(j,i) +  &
            coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-    !
-    !   all coefficients have been computed, predict field and put it in
-    !   temporary work space tpred
-    !
+      !
+      ! All coefficients have been computed, predict field and put it in
+      ! temporary work space tpred
+      !
       tpred1(j,i,kz) = coeff1(j,i,kz)
       !$acc loop seq
       do k = kzm1, 1, -1
@@ -892,26 +892,38 @@ module mod_pbl_holtbl
       coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3 = d_zero
       coefe(j,i,1) = coef1/coef2
-      coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2
+      if ( m2p%qxatm(j,i,1,iqc) > 1.0E-12_rkx ) then
+        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2
+      else
+        coeff1(j,i,1) = 0.0_rkx
+      end if
       !$acc loop seq
       do k = 2, kzm1
         coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
         coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3 = dt*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
-        coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqc) + &
-             coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
+        if ( m2p%qxatm(j,i,k,iqc) > 1.0E-12_rkx ) then
+          coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqc) + &
+               coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
+        else
+          coeff1(j,i,k) = 0.0_rkx
+        end if
       end do
       coef1 = d_zero
       coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
       coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqc) + &
-           coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-    !
-    !   all coefficients have been computed, predict field and put it in
-    !   temporary work space tpred
-    !
+      if ( m2p%qxatm(j,i,kz,iqc) > 1.0E-12_rkx ) then
+        coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqc) + &
+             coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
+      else
+        coeff1(j,i,kz) = 0.0_rkx
+      end if
+      !
+      ! All coefficients have been computed, predict field and put it in
+      ! temporary work space tpred
+      !
       tpred1(j,i,kz) = coeff1(j,i,kz)
       !$acc loop seq
       do k = kzm1, 1, -1
@@ -950,26 +962,38 @@ module mod_pbl_holtbl
         coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
         coef3 = d_zero
         coefe(j,i,1) = coef1/coef2
-        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2
+        if ( m2p%qxatm(j,i,1,iqi) > 1.0E-12 ) then
+          coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2
+        else
+          coeff1(j,i,1) = 0.0_rkx
+        end if
         !$acc loop seq
         do k = 2, kzm1
           coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
           coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
           coef3 = dt*alphak(j,i,k)*betak(j,i,k)
           coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
-          coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqi) + &
-               coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
+          if ( m2p%qxatm(j,i,k,iqi) > 1.0E-12 ) then
+            coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqi) + &
+                 coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
+          else
+            coeff1(j,i,k) = 0.0_rkx
+          end if
         end do
         coef1 = d_zero
         coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
         coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
         coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqi) + &
-             coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-      !
-      !   all coefficients have been computed, predict field and put it in
-      !   temporary work space tpred
-      !
+        if ( m2p%qxatm(j,i,kz,iqi) > 1.0E-12 ) then
+          coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqi) + &
+               coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
+        else
+          coeff1(j,i,kz) = 0.0_rkx
+        end if
+        !
+        ! All coefficients have been computed, predict field and put it in
+        ! temporary work space tpred
+        !
         tpred1(j,i,kz) = coeff1(j,i,kz)
         !$acc loop seq
         do k = kzm1, 1, -1
@@ -1098,8 +1122,8 @@ module mod_pbl_holtbl
                coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
           if ( abs(coeff1(j,i,kz)) < dlowval ) coeff1(j,i,kz) = d_zero
           !
-          !     all coefficients have been computed, predict field and put
-          !     it in temporary work space tpred1
+          ! All coefficients have been computed, predict field and put
+          ! it in temporary work space tpred1
           !
           tpred1(j,i,kz) = coeff1(j,i,kz)
           !$acc loop seq
