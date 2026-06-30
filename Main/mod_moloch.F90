@@ -668,21 +668,12 @@ module mod_moloch
       call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
       call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
 
-      if ( lrotllr ) then
-        do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
-          ud(j,i,k) = u(j,i,k) * rmu(j,i)
-        end do
-        do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
-          vd(j,i,k) = v(j,i,k)
-        end do
-      else
-        do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
-          ud(j,i,k) = u(j,i,k) * rmu(j,i)
-        end do
-        do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
-          vd(j,i,k) = v(j,i,k) * rmv(j,i)
-        end do
-      end if
+      do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
+        ud(j,i,k) = u(j,i,k)
+      end do
+      do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
+        vd(j,i,k) = v(j,i,k)
+      end do
 
       ! partial definition of the generalized vertical velocity
 
@@ -823,8 +814,7 @@ module mod_moloch
               (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-          zcor1u = coru(j,i) * dts * 0.25_rkx * mu(j,i) * &
-                 (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+          zcor1u = coru(j,i) * dts * 0.25_rkx * vd(j,i,k)
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
                      zfz * hx(j,i) * gzitakh(k) - &
@@ -837,8 +827,7 @@ module mod_moloch
               (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-          zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                 (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+          zcor1v = corv(j,i) * dts * 0.25_rkx * ud(j,i,k)
           ! Equation 18
           v(j,i,k) = v(j,i,k) - zcor1v - &
                      zfz * hy(j,i) * gzitakh(k) -  &
@@ -851,8 +840,7 @@ module mod_moloch
               (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-          zcor1u = coru(j,i) * dts * 0.25_rkx * mu(j,i) * &
-                 (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+          zcor1u = coru(j,i) * dts * 0.25_rkx * vd(j,i,k)
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
                      zfz * hx(j,i) * gzitakh(k) - &
@@ -864,8 +852,7 @@ module mod_moloch
               (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-          zcor1v = corv(j,i) * dts * 0.25_rkx * mv(j,i) * &
-                 (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+          zcor1v = corv(j,i) * dts * 0.25_rkx * ud(j,i,k)
           ! Equation 18
           v(j,i,k) = v(j,i,k) - zcor1v - &
                      zfz * hy(j,i) * gzitakh(k) - &
