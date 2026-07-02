@@ -2520,7 +2520,7 @@ module mod_params
       call compute_moloch_static
     end if
 
-    if ( iboudy < 0 .or. iboudy > 6 ) then
+    if ( iboudy < 0 .or. iboudy > 7 ) then
       call fatal(__FILE__,__LINE__, &
                  'UNSUPPORTED BDY SCHEME.')
     end if
@@ -2961,6 +2961,8 @@ module mod_params
         write(stdout,*) 'Relaxation boundary conditions (exponential method)'
       else if ( iboudy == 6 ) then
         write(stdout,*) 'Relaxation boundary conditions (sinusoidal method)'
+      else if ( iboudy == 7 ) then
+        write(stdout,*) 'Relaxation boundary conditions (Lehmann optimal)'
       end if
 
       if ( idynamic /= 3 ) then

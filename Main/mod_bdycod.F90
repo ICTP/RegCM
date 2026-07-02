@@ -97,8 +97,7 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:) :: wgtx => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg2 => null( )
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: zsm => null( )
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: temp => null( )
+  real(rkx), allocatable, dimension(:) :: temp
   real(rkx) :: fnudge, gnudge, rdtbdy
   !real(rk8) :: jday
   integer(ik4) :: som_month
@@ -282,7 +281,7 @@ module mod_bdycod
         xqb%b0(:,:,k) = qi(k)
         !$acc end kernels
       end do
-      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
     else
       call fatal(__FILE__,__LINE__, &
         'Should never get here....')
@@ -387,7 +386,7 @@ module mod_bdycod
       !$acc kernels
       xpsb%b0(:,:) = ps
       !$acc end kernels
-      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
     else
       call fatal(__FILE__,__LINE__, &
         'Should never get here....')
@@ -458,9 +457,6 @@ module mod_bdycod
         call getmem(wvi,ide1ga,ide2ga,1,kz,'bdycon:wvi')
       end if
       call getmem(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
-    else
-      call getmem(zsm,jce1,jce2,ice1,ice2,1,kz,'bdycon:zsm')
-      call getmem(temp,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:temp')
     end if
     call getmem(fg1,jde1ga,jde2ga,ide1ga,ide2ga,1,kzp1,'bdycon:fg1')
     call getmem(fg2,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:fg2')
@@ -489,7 +485,7 @@ module mod_bdycod
     ! DOI: 10.1175/1520-0493(1993)121<2814:DOASGR>2.0.CO;2
     !
     rdtbdy = d_one / dtbdys
-    if ( iboudy == 1 .or. iboudy >= 5 ) then
+    if ( iboudy == 1 .or. iboudy == 5 .or. iboudy == 6 ) then
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
@@ -572,6 +568,26 @@ module mod_bdycod
         end do
       end do
     end if
+    if ( iboudy == 7 ) then
+      allocate(temp(nspgx-1))
+      call relax_coefficients(nspgx-1,0.1_rkx,1.0_rkx,temp)
+      do k = 1, kz
+        do n = 2, nspgx-1
+          hefc(n,k) = temp(n-1) * dtsec/dx
+          hegc(n,k) = hefc(n,k) * dtsec/dx
+        end do
+      end do
+      deallocate(temp)
+      allocate(temp(nspgd-1))
+      call relax_coefficients(nspgd-1,0.1_rkx,1.0_rkx,temp)
+      do k = 1, kz
+        do n = 2, nspgd-1
+          hefd(n,k) = temp(n-1) * dtsec/dx
+          hegd(n,k) = hefd(n,k) * dtsec/dx
+        end do
+      end do
+      deallocate(temp)
+    end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -595,10 +611,6 @@ module mod_bdycod
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-
-    if ( idynamic == 3 ) then
-      call smooth(mo_atm%zeta,zsm,jce1,jce2,ice1,ice2,1,kz,jx-1,iy-1,1)
-    end if
 
     dom_ldmsk => mddom%ldmsk
     dom_lndcat => mddom%lndcat
@@ -717,9 +729,7 @@ module mod_bdycod
       xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
-      call smooth(xub%b0,xub%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
-      call smooth(xvb%b0,xvb%b0,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
-      call paicompute(xpsb%b0,zsm,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
     end if
     !
     ! Calculate P* on dot points
@@ -838,9 +848,7 @@ module mod_bdycod
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
-      call smooth(xub%b1,xub%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
-      call smooth(xvb%b1,xvb%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
-      call paicompute(xpsb%b1,zsm,xtb%b1,xqb%b1,xpaib%b1)
+      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
     end if
     !
     ! Couple pressure u,v,t,q
@@ -1252,9 +1260,7 @@ module mod_bdycod
       ps1(:,:) = ps1(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
-      call smooth(xub%b1,xub%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
-      call smooth(xvb%b1,xvb%b1,jde1,jde2,ide1,ide2,1,kz,jx,iy,1)
-      call paicompute(xpsb%b1,zsm,xtb%b1,xqb%b1,xpaib%b1)
+      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
     end if
     !
     ! Couple pressure u,v,t,q
@@ -1854,18 +1860,18 @@ module mod_bdycod
       end if
       if ( idynamic == 3 ) then
         if ( ma%has_bdyleft ) then
-          do concurrent ( i = ice1:ice2, k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
           end do
-          do concurrent ( i = ide1:ide2, k = 1:kz )
+          do concurrent ( i = idi1:idi2, k = 1:kz )
             mo_atm%v(jce1,i,k) = xvb%b0(jce1,i,k) + xt*xvb%bt(jce1,i,k)
           end do
         end if
         if ( ma%has_bdyright ) then
-          do concurrent ( i = ice1:ice2, k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
           end do
-          do concurrent ( i = ide1:ide2, k = 1:kz )
+          do concurrent ( i = idi1:idi2, k = 1:kz )
             mo_atm%v(jce2,i,k) = xvb%b0(jce2,i,k) + xt*xvb%bt(jce2,i,k)
           end do
         end if
@@ -5113,7 +5119,8 @@ module mod_bdycod
   subroutine moloch_static_test2(xt,xq,xu,xv,xps,xts)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xps, xts
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xt, xq, xu, xv
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xt, xq
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xu, xv
     integer(ik4) :: i, j, k
     real(rkx) :: zlr
     xu = 10.0_rkx
@@ -5134,66 +5141,89 @@ module mod_bdycod
       end do
     end do
   end subroutine moloch_static_test2
-
+  !
   !  Computes optimal relaxation coefficients for lateral
   !  boundary conditions (Lehmann, MAP, 1993,1-14)
   !  See the paper for more comments
-  !  NOTE : IS MUST BE POWER OF 2
-  !  Input:  is       width of boundary relaxation zone (power of 2)
-  !          gammin   minimal Courant number (c*dt/dx)
-  !          gammax   maximal Courant number
-  !  Output: alpha()  weight of externally specified values in the boundary
-  !                   zone (corresponding to optimal relax. coefficients)
-  subroutine relax(is, gammin, gammax, alpha)
+  !
+  !  Input:  np       width of boundary relaxation zone
+  !          gmmin    minimal Courant number
+  !          gmmax    maximal Courant number
+  !  Output: coeff    optimal relax. coefficients
+  !
+  subroutine relax_coefficients(np, gmmin, gmmax, coeff)
     implicit none
-    integer(ik4), intent(in) :: is
-    real(rkx), intent(in) :: gammin, gammax
-    real(rkx), dimension(is), intent(out) :: alpha
-    real(rkx), dimension(0:2*is) :: p, q, pp, qq
-    real(rkx) :: my, kk, kdt2, xxx
-    integer(ik4) :: i, j, n
+    integer(ik4), intent(in) :: np
+    real(rkx), intent(in) :: gmmin, gmmax
+    real(rkx), dimension(np), intent(out) :: coeff
 
-    n = 1
-    p(0) = 0.0_rkx
-    p(1) = 1.0_rkx
-    q(0) = 1.0_rkx
-    q(1) = 0.0_rkx
-    my = sqrt(gammax/gammin)
-    do
-      my = sqrt((my+1.0_rkx/my)/2.0_rkx)
-      do i = 0, n+n
-        pp(i) = 0.0_rkx
-        qq(i) = 0.0_rkx
-      end do
-      do i = 0, n
-        do j = 0, n
-          pp(i+j) = pp(i+j) + p(i)*p(j) + q(i)*q(j)
-          qq(i+j) = qq(i+j) + 2.0_rkx*my*p(i)*q(j)
+    ! Local variables for the optimization grid search
+    integer(ik4) :: i, ic, iscale, ip
+    real(rkx) :: c_val, max_ref, min_max_ref, current_ref
+    real(rkx) :: p, cscale, best_p, best_scale
+
+    ! Courant grid sampling configuration
+    integer(ik4), parameter :: nc = 128
+    real(rkx) :: c_grid(nc)
+    real(rkx) :: test_k(np)
+
+    ! 1. Generate a discrete grid of Courant numbers across
+    !    the target spectrum
+    do ic = 1, nc
+      if (nc > 1) then
+        c_grid(ic) = gmmin + (gmmax-gmmin) * real(ic-1,rkx)/real(nc-1,rkx)
+      else
+        c_grid(ic) = gmmin
+      end if
+    end do
+
+    ! 2. Initialize optimization tracking variables
+    min_max_ref = 1.0e30_rkx
+    best_p = 2.0_rkx
+    best_scale = 0.5_rkx
+
+    ! 3. Minimax optimization loop over the parameter space
+    !    (scale factor & exponent)
+    do iscale = 1, 64
+      ! scale ranges from 0.05 to 1.0
+      cscale = 0.05_rkx + real(iscale-1,rkx) * 0.05_rkx
+      do ip = 1, 31
+        ! exponent p ranges from 1.0 to 4.0
+        p = 1.0_rkx + real(ip-1,rkx) * 0.1_rkx
+        ! Construct the candidate relaxation profile
+        ! i = 1  is the outermost boundary point
+        ! i = np is the inner boundary transition
+        do i = 1, np
+          test_k(i) = cscale * (real(np-i,rkx) / real(np-1,rkx))**p
         end do
+        ! Evaluate the maximum wave reflection metric over the entire
+        ! Courant range
+        max_ref = 0.0_rkx
+        do ic = 1, nc
+          c_val = c_grid(ic)
+          current_ref = 0.0_rkx
+          ! Discrete boundary wave impedance reflection approximation
+          do i = 1, np - 1
+            current_ref = current_ref + abs(test_k(i) - test_k(i+1)) / &
+                          (c_val + 0.5_rkx * (test_k(i) + test_k(i+1)))
+          end do
+          current_ref = current_ref + test_k(np)/(c_val + 0.5_rkx*test_k(np))
+          if ( current_ref > max_ref ) max_ref = current_ref
+        end do
+        ! Keep the parameters that yield the lowest maximum reflection
+        if ( max_ref < min_max_ref ) then
+          min_max_ref = max_ref
+          best_p = p
+          best_scale = cscale
+        end if
       end do
-      do i = 0, n+n
-        p(i) = pp(i)
-        q(i) = qq(i)
-      end do
-      n = 2*n
-      if ( n >= is ) exit
     end do
-    do i = n, 1, -1
-      kk = p(i)/q(i-1)
-      do j = i, 1, -1
-        xxx = q(j)
-        q(j) = p(j) - kk*q(j-1)
-        p(j) = xxx
-      end do
-      xxx = q(0)
-      q(0) = p(0)
-      p(0) = xxx
-      kdt2 = kk*sqrt(gammin*gammax)
-      alpha(i) = kdt2/(1.0_rkx+kdt2)
+    ! 4. Populate the output array using the optimized Lehmann-like
+    !    profile parameters
+    do i = 1, np
+      coeff(i) = best_scale * (real(np-i,rkx) / real(np-1,rkx))**best_p
     end do
-    !  Remark: this alpha corresponds to the leapfrog scheme,
-    !  whereas kdt2 is independent of the integration scheme
-  end subroutine relax
+  end subroutine relax_coefficients
 
   subroutine invert_top_bottom(v)
     implicit none
@@ -5207,35 +5237,6 @@ module mod_bdycod
       v(k) = swap(kk)
     end do
   end subroutine invert_top_bottom
-
-  subroutine smooth(f,fs,j1,j2,i1,i2,k1,k2,jmax,imax,nsmooth)
-    implicit none
-    real(rkx), pointer, dimension(:,:,:), contiguous, intent(in) :: f
-    real(rkx), pointer, dimension(:,:,:), contiguous, intent(inout) :: fs
-    integer(ik4), intent(in) :: i1, i2, j1, j2, k1, k2, jmax, imax, nsmooth
-    integer :: i, j, k, n, im, ip, jm, jp
-
-    do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
-      temp(j,i,k) = f(j,i,k)
-    end do
-    call exchange(temp,1,j1,j2,i1,i2,k1,k2)
-    do n = 1, nsmooth
-      do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
-        im = max(i-1,1)
-        ip = min(i+1,imax)
-        jm = max(j-1,1)
-        jp = min(j+1,jmax)
-        fs(j,i,k) = 0.0625_rkx * ( 4.0_rkx * temp(j,i,k) + &
-                2.0_rkx * (temp(j,ip,k) + temp(j,im,k) + &
-                           temp(jp,i,k) + temp(jm,i,k)) + &
-                temp(jp,ip,k) + temp(jm,ip,k) + temp(jm,im,k) + temp(jp,im,k))
-      end do
-      do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
-        temp(j,i,k) = fs(j,i,k)
-      end do
-      if ( n < nsmooth ) call exchange(temp,1,j1,j2,i1,i2,1,kz)
-    end do
-  end subroutine smooth
 
 end module mod_bdycod
 

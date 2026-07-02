@@ -166,8 +166,8 @@ module mod_moloch
     call getmem(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
     call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
-    call getmem(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
-    call getmem(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
+    call getmem(wz,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:wz')
+    call getmem(p0,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:p0')
     call getmem(wfw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wfw')
     call getmem(zpby,jci1,jci2,ici1,ici2+1,1,kz,'moloch:zpby')
     call getmem(zpbw,jci1,jci2+1,ici1,ici2,1,kz,'moloch:zpbw')
@@ -189,8 +189,8 @@ module mod_moloch
         call getmem(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'moloch:chiten0')
       end if
     end if
-    call getmem(ud,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'moloch:ud')
-    call getmem(vd,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'moloch:vd')
+    call getmem(ud,jde1,jde2,ice1,ice2,1,kz,'moloch:ud')
+    call getmem(vd,jce1,jce2,ide1,ide2,1,kz,'moloch:vd')
     if ( do_fulleq ) then
       call getmem(qwltot,jce1,jce2,ice1,ice2,1,kz,'moloch:qwltot')
       call getmem(qwitot,jce1,jce2,ice1,ice2,1,kz,'moloch:qwitot')
@@ -665,24 +665,15 @@ module mod_moloch
 
     do nsound = 1, mo_nsound
 
-      call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
-      call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
+      call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
+      call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
 
-      if ( lrotllr ) then
-        do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
-          ud(j,i,k) = u(j,i,k) * rmu(j,i)
-        end do
-        do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
-          vd(j,i,k) = v(j,i,k)
-        end do
-      else
-        do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
-          ud(j,i,k) = u(j,i,k) * rmu(j,i)
-        end do
-        do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
-          vd(j,i,k) = v(j,i,k) * rmv(j,i)
-        end do
-      end if
+      do concurrent ( j = jde1:jde2, i = ice1:ice2, k = 1:kz )
+        ud(j,i,k) = u(j,i,k)
+      end do
+      do concurrent ( j = jce1:jce2, i = ide1:ide2, k = 1:kz )
+        vd(j,i,k) = v(j,i,k)
+      end do
 
       ! partial definition of the generalized vertical velocity
 
@@ -823,8 +814,7 @@ module mod_moloch
               (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-          zcor1u = coru(j,i) * dts * 0.25_rkx * mu(j,i) * &
-                 (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+          zcor1u = coru(j,i) * dts * vd(j,i,k)
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
                      zfz * hx(j,i) * gzitakh(k) - &
@@ -837,8 +827,7 @@ module mod_moloch
               (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-          zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                 (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+          zcor1v = corv(j,i) * dts * ud(j,i,k)
           ! Equation 18
           v(j,i,k) = v(j,i,k) - zcor1v - &
                      zfz * hy(j,i) * gzitakh(k) -  &
@@ -851,8 +840,7 @@ module mod_moloch
               (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-          zcor1u = coru(j,i) * dts * 0.25_rkx * mu(j,i) * &
-                 (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+          zcor1u = coru(j,i) * dts * vd(j,i,k)
           ! Equation 17
           u(j,i,k) = u(j,i,k) + zcor1u - &
                      zfz * hx(j,i) * gzitakh(k) - &
@@ -864,8 +852,7 @@ module mod_moloch
               (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                deltaw(j,i,k)   + deltaw(j,i,k+1))
           zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-          zcor1v = corv(j,i) * dts * 0.25_rkx * mv(j,i) * &
-                 (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+          zcor1v = corv(j,i) * dts * ud(j,i,k)
           ! Equation 18
           v(j,i,k) = v(j,i,k) - zcor1v - &
                      zfz * hy(j,i) * gzitakh(k) - &
@@ -896,20 +883,20 @@ module mod_moloch
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
     ddamp = 0.125_rkx * (dx/dts)
     if ( lrotllr ) then
-      do concurrent ( j = jdi1:jdi2, i = ice1:ice2, k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jce1:jce2, i = idi1:idi2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 xknu(k)*ddamp*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
-      do concurrent ( j = jdi1:jdi2, i = ice1:ice2, k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jce1:jce2, i = idi1:idi2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 xknu(k)*ddamp*mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
@@ -1025,6 +1012,7 @@ module mod_moloch
     end do
 
     if ( do_vadvtwice ) then
+
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
         zamu = s(j,i,k+1) * dtrdz
         if ( zamu >= d_zero ) then
@@ -1053,176 +1041,334 @@ module mod_moloch
         wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + &
                                 wfw(j,i,k+1)*zrfmd + zdv
       end do
+
     end if
 
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        wz(j,ice1,k) = wz(j,ici1,k)
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        wz(j,ice2,k) = wz(j,ici2,k)
-      end do
-    end if
+    if ( mo_advturn ) then ! First turn : meridional first, zonal next
 
-    call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
+      if ( ma%has_bdybottom ) then
+        do concurrent ( j = jci1:jci2, k = 1:kz )
+          wz(j,ice1,k) = wz(j,ici1,k)
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do concurrent ( j = jci1:jci2, k = 1:kz )
+          wz(j,ice2,k) = wz(j,ici2,k)
+        end do
+      end if
+      call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
-    if ( lrotllr ) then
+      if ( lrotllr ) then
 
-      ! Meridional advection
-      do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
-        zamu = v(j,i,k) * dtrdy
-        if ( zamu > d_zero ) then
-          is = d_one
-          ih = i-1
-        else
-          is = -d_one
-          ih = min(i+1,imax)
+        ! Meridional advection
+        do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
+          zamu = v(j,i,k) * dtrdy
+          if ( zamu > d_zero ) then
+            is = d_one
+            ih = i-1
+          else
+            is = -d_one
+            ih = min(i+1,imax)
+          end if
+          ihm1 = max(ih-1,imin)
+          zzden = wz(j,i,k)-wz(j,i-1,k)
+          zzden = sign(max(abs(zzden),minden),zzden)
+          r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
+          b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+          zphi = is + zamu*b - is*b
+          zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
+              ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
+          zhxvts = dtrdy * rmv(j,i)   * mx(j,i)
+          zrfmn = zhxvtn * fmz(j,i,k) * rfmzv(j,i+1,k)
+          zrfms = zhxvts * fmz(j,i,k) * rfmzv(j,i,k)
+          zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
+          p0(j,i,k) = wz(j,i,k) + &
+                (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
+        end do
+
+        if ( ma%has_bdyleft ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            p0(jce1,i,k) = p0(jci1,i,k)
+          end do
         end if
-        ihm1 = max(ih-1,imin)
-        zzden = wz(j,i,k)-wz(j,i-1,k)
-        zzden = sign(max(abs(zzden),minden),zzden)
-        r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
-        b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-        zphi = is + zamu*b - is*b
-        zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
-            ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
-        zhxvts = dtrdy * rmv(j,i)   * mx(j,i)
-        zrfmn = zhxvtn * fmz(j,i,k) * rfmzv(j,i+1,k)
-        zrfms = zhxvts * fmz(j,i,k) * rfmzv(j,i,k)
-        zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
-        p0(j,i,k) = wz(j,i,k) + &
-              (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
-      end do
+        if ( ma%has_bdyright ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            p0(jce2,i,k) = p0(jci2,i,k)
+          end do
+        end if
+        call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
+
+        ! Zonal advection
+        do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
+          zamu = u(j,i,k) * mu(j,i) * dtrdx
+          if ( zamu > d_zero ) then
+            is = d_one
+            jh = j-1
+          else
+            is = -d_one
+            jh = min(j+1,jmax)
+          end if
+          jhm1 = max(jh-1,jmin)
+          zzden = p0(j,i,k)-p0(j-1,i,k)
+          zzden = sign(max(abs(zzden),minden),zzden)
+          r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
+          b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+          zphi = is + zamu*b - is*b
+          zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
+                 ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zcostx = dtrdx * mx(j,i)
+          zrfmw = zcostx * fmz(j,i,k) * rfmzu(j,i,k)
+          zrfme = zcostx * fmz(j,i,k) * rfmzu(j+1,i,k)
+          zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
+          pp(j,i,k) = p0(j,i,k) + &
+                 zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
+        end do
+
+      else ! Not the ROTLLR projection
+
+        ! Meridional advection
+        do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
+          zamu = v(j,i,k) * mv(j,i) * dtrdy
+          if ( zamu > d_zero ) then
+            is = d_one
+            ih = i-1
+          else
+            is = -d_one
+            ih = min(i+1,imax)
+          end if
+          ihm1 = max(ih-1,imin)
+          zzden = wz(j,i,k)-wz(j,i-1,k)
+          zzden = sign(max(abs(zzden),minden),zzden)
+          r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
+          b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+          zphi = is + zamu*b - is*b
+          zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
+              ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zrfmn = dtrdy * fmz(j,i,k) * rfmzu(j,i+1,k)
+          zrfms = dtrdy * fmz(j,i,k) * rfmzu(j,i,k)
+          zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
+                 v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
+          p0(j,i,k) = wz(j,i,k) + &
+            mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
+        end do
+
+        if ( ma%has_bdyleft ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            p0(jce1,i,k) = p0(jci1,i,k)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            p0(jce2,i,k) = p0(jci2,i,k)
+          end do
+        end if
+        call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
+
+        ! Zonal advection
+        do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
+          zamu = u(j,i,k) * mu(j,i) * dtrdx
+          if ( zamu > d_zero ) then
+            is = d_one
+             jh = j-1
+          else
+            is = -d_one
+            jh = min(j+1,jmax)
+          end if
+          jhm1 = max(jh-1,jmin)
+          zzden = p0(j,i,k)-p0(j-1,i,k)
+          zzden = sign(max(abs(zzden),minden),zzden)
+          r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
+          b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+          zphi = is + zamu*b - is*b
+          zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
+                 ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zrfmw = dtrdx * fmz(j,i,k) * rfmzu(j,i,k)
+          zrfme = dtrdx * fmz(j,i,k) * rfmzu(j+1,i,k)
+          zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
+                 u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
+          pp(j,i,k) = p0(j,i,k) + &
+              mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
+        end do
+
+      end if
+
+    else ! Second turn : zonal first, meridional next
 
       if ( ma%has_bdyleft ) then
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          p0(jce1,i,k) = p0(jci1,i,k)
+          wz(jce1,i,k) = wz(jci1,i,k)
         end do
       end if
-
       if ( ma%has_bdyright ) then
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          p0(jce2,i,k) = p0(jci2,i,k)
+          wz(jce2,i,k) = wz(jci2,i,k)
         end do
       end if
+      call exchange_lr(wz,2,jce1,jce2,ici1,ici2,1,kz)
 
-      call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
+      if ( lrotllr ) then
 
-      ! Zonal advection
-
-      do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
-        zamu = u(j,i,k) * mu(j,i) * dtrdx
-        if ( zamu > d_zero ) then
-          is = d_one
-          jh = j-1
-        else
-          is = -d_one
-          jh = min(j+1,jmax)
-        end if
-        jhm1 = max(jh-1,jmin)
-        zzden = p0(j,i,k)-p0(j-1,i,k)
-        zzden = sign(max(abs(zzden),minden),zzden)
-        r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
-        b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-        zphi = is + zamu*b - is*b
-        zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
-               ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zcostx = dtrdx * mx(j,i)
-        zrfmw = zcostx * fmz(j,i,k) * rfmzu(j,i,k)
-        zrfme = zcostx * fmz(j,i,k) * rfmzu(j+1,i,k)
-        zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
-        pp(j,i,k) = p0(j,i,k) + &
-               zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
-      end do
-
-    else
-
-      ! Meridional advection
-
-      do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
-        zamu = v(j,i,k) * mv(j,i) * dtrdy
-        if ( zamu > d_zero ) then
-          is = d_one
-          ih = i-1
-        else
-          is = -d_one
-          ih = min(i+1,imax)
-        end if
-        ihm1 = max(ih-1,imin)
-        zzden = wz(j,i,k)-wz(j,i-1,k)
-        zzden = sign(max(abs(zzden),minden),zzden)
-        r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
-        b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-        zphi = is + zamu*b - is*b
-        zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
-            ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zrfmn = dtrdy * fmz(j,i,k) * rfmzu(j,i+1,k)
-        zrfms = dtrdy * fmz(j,i,k) * rfmzu(j,i,k)
-        zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
-               v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
-        p0(j,i,k) = wz(j,i,k) + &
-          mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
-      end do
-
-      if ( ma%has_bdyleft ) then
-        do concurrent ( i = ici1:ici2, k = 1:kz )
-          p0(jce1,i,k) = p0(jci1,i,k)
+        ! Zonal advection
+        do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
+          zamu = u(j,i,k) * mu(j,i) * dtrdx
+          if ( zamu > d_zero ) then
+            is = d_one
+            jh = j-1
+          else
+            is = -d_one
+            jh = min(j+1,jmax)
+          end if
+          jhm1 = max(jh-1,jmin)
+          zzden = wz(j,i,k)-wz(j-1,i,k)
+          zzden = sign(max(abs(zzden),minden),zzden)
+          r = (wz(jh,i,k)-wz(jhm1,i,k))/zzden
+          b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+          zphi = is + zamu*b - is*b
+          zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
+                 ((d_one+zphi)*wz(j-1,i,k) + (d_one-zphi)*wz(j,i,k))
         end do
-      end if
-
-      if ( ma%has_bdyright ) then
-        do concurrent ( i = ici1:ici2, k = 1:kz )
-          p0(jce2,i,k) = p0(jci2,i,k)
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zcostx = dtrdx * mx(j,i)
+          zrfmw = zcostx * fmz(j,i,k) * rfmzu(j,i,k)
+          zrfme = zcostx * fmz(j,i,k) * rfmzu(j+1,i,k)
+          zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
+          p0(j,i,k) = wz(j,i,k) + &
+                 zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
         end do
-      end if
 
-      call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
-
-      ! Zonal advection
-
-      do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
-        zamu = u(j,i,k) * mu(j,i) * dtrdx
-        if ( zamu > d_zero ) then
-          is = d_one
-          jh = j-1
-        else
-          is = -d_one
-          jh = min(j+1,jmax)
+        if ( ma%has_bdybottom ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            p0(j,ice1,k) = p0(j,ici1,k)
+          end do
         end if
-        jhm1 = max(jh-1,jmin)
-        zzden = p0(j,i,k)-p0(j-1,i,k)
-        zzden = sign(max(abs(zzden),minden),zzden)
-        r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
-        b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-        zphi = is + zamu*b - is*b
-        zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
-               ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
-      end do
+        if ( ma%has_bdytop ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            p0(j,ice2,k) = p0(j,ici2,k)
+          end do
+        end if
+        call exchange_bt(p0,2,jci1,jci2,ice1,ice2,1,kz)
 
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zrfmw = dtrdx * fmz(j,i,k) * rfmzu(j,i,k)
-        zrfme = dtrdx * fmz(j,i,k) * rfmzu(j+1,i,k)
-        zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
-               u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
-        pp(j,i,k) = p0(j,i,k) + &
-            mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
-      end do
-    end if
+        ! Meridional advection
+        do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
+          zamu = v(j,i,k) * dtrdy
+          if ( zamu > d_zero ) then
+            is = d_one
+            ih = i-1
+          else
+            is = -d_one
+            ih = min(i+1,imax)
+          end if
+          ihm1 = max(ih-1,imin)
+          zzden = p0(j,i,k)-p0(j,i-1,k)
+          zzden = sign(max(abs(zzden),minden),zzden)
+          r = (p0(j,ih,k)-p0(j,ihm1,k))/zzden
+          b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+          zphi = is + zamu*b - is*b
+          zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
+              ((d_one+zphi)*p0(j,i-1,k) + (d_one-zphi)*p0(j,i,k))
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
+          zhxvts = dtrdy * rmv(j,i)   * mx(j,i)
+          zrfmn = zhxvtn * fmz(j,i,k) * rfmzv(j,i+1,k)
+          zrfms = zhxvts * fmz(j,i,k) * rfmzv(j,i,k)
+          zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
+          pp(j,i,k) = p0(j,i,k) + &
+                (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
+        end do
+
+      else ! Not the ROTLLR projection
+
+        ! Zonal advection
+        do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
+          zamu = u(j,i,k) * mu(j,i) * dtrdx
+          if ( zamu > d_zero ) then
+            is = d_one
+             jh = j-1
+          else
+            is = -d_one
+            jh = min(j+1,jmax)
+          end if
+          jhm1 = max(jh-1,jmin)
+          zzden = wz(j,i,k)-wz(j-1,i,k)
+          zzden = sign(max(abs(zzden),minden),zzden)
+          r = (wz(jh,i,k)-wz(jhm1,i,k))/zzden
+          b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+          zphi = is + zamu*b - is*b
+          zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
+                 ((d_one+zphi)*wz(j-1,i,k) + (d_one-zphi)*wz(j,i,k))
+        end do
+
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zrfmw = dtrdx * fmz(j,i,k) * rfmzu(j,i,k)
+          zrfme = dtrdx * fmz(j,i,k) * rfmzu(j+1,i,k)
+          zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
+                 u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
+          p0(j,i,k) = wz(j,i,k) + &
+              mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
+        end do
+
+        if ( ma%has_bdybottom ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            p0(j,ice1,k) = p0(j,ici1,k)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            p0(j,ice2,k) = p0(j,ici2,k)
+          end do
+        end if
+        call exchange_bt(p0,2,jci1,jci2,ice1,ice2,1,kz)
+
+        ! Meridional advection
+        do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
+          zamu = v(j,i,k) * mv(j,i) * dtrdy
+          if ( zamu > d_zero ) then
+            is = d_one
+            ih = i-1
+          else
+            is = -d_one
+            ih = min(i+1,imax)
+          end if
+          ihm1 = max(ih-1,imin)
+          zzden = p0(j,i,k)-p0(j,i-1,k)
+          zzden = sign(max(abs(zzden),minden),zzden)
+          r = (p0(j,ih,k)-p0(j,ihm1,k))/zzden
+          b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+          zphi = is + zamu*b - is*b
+          zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
+              ((d_one+zphi)*p0(j,i-1,k) + (d_one-zphi)*p0(j,i,k))
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zrfmn = dtrdy * fmz(j,i,k) * rfmzu(j,i+1,k)
+          zrfms = dtrdy * fmz(j,i,k) * rfmzu(j,i,k)
+          zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
+                 v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
+          pp(j,i,k) = p0(j,i,k) + &
+            mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
+        end do
+
+      end if ! Not ROTTLR
+
+    end if ! Turnation
+
+    mo_advturn = (.not. mo_advturn)
+
   end subroutine wafone
 
   subroutine reset_tendencies
     implicit none
     integer(ik4) :: i, j, k, n
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
       s(j,i,k) = d_zero
     end do
     do concurrent ( j = jci1ga:jci2ga, i = ici1ga:ici2ga, k = 1:kz )

@@ -709,6 +709,10 @@ class CordexDataset(Dataset):
         newattr = CORDEX_CMIP6_DEFINITIONS['source_id'][ICTP_Model]
         newattr.update({
             'Conventions': CORDEX_CMIP6_DEFINITIONS['CV']['Conventions'],
+            'title': (regcm_file.institute_id+' '+ICTP_Model+
+                      ' downscaling of '+global_model+' '+driving_expid+
+                      ' for '+ list(CORDEX_CMIP6_DEFINITIONS['project_id'])[0]+
+                      ' '+xdomain),
             'comment': regcm_file.regcm_model_name+' CORDEX {} run'.format(xdomain),
             'note': 'Regular production', #This will be different for every simulation
             'contact': simulation.mail,

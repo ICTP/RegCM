@@ -1995,6 +1995,17 @@ module mod_savefile
       else
         mo_turn = .false.
       end if
+#ifdef PNETCDF
+      ncstatus = nf90mpi_get_att(ncid,nf90_global,'mo_advturn',imoturn)
+#else
+      ncstatus = nf90_get_att(ncid,nf90_global,'mo_advturn',imoturn)
+#endif
+      call check_ok(__FILE__,__LINE__,'Cannot get attribute mo_advturn')
+      if ( imoturn == 1 ) then
+        mo_advturn = .true.
+      else
+        mo_advturn = .false.
+      end if
     end if
     if ( debug_level > 0 ) then
       ! Do no give any error. User may have increased debug just now.
@@ -2144,6 +2155,14 @@ module mod_savefile
       ncstatus = nf90_put_att(ncid,nf90_global,'mo_turn',imoturn)
 #endif
       call check_ok(__FILE__,__LINE__,'Cannot save mo_turn')
+      imoturn = 0
+      if ( mo_advturn ) imoturn = 1
+#ifdef PNETCDF
+      ncstatus = nf90mpi_put_att(ncid,nf90_global,'mo_advturn',imoturn)
+#else
+      ncstatus = nf90_put_att(ncid,nf90_global,'mo_advturn',imoturn)
+#endif
+      call check_ok(__FILE__,__LINE__,'Cannot save mo_advturn')
     end if
     if ( debug_level > 0 ) then
 #ifdef PNETCDF
