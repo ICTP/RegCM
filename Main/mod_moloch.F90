@@ -168,9 +168,9 @@ module mod_moloch
     call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem(wz,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem(p0,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:p0')
-    call getmem(wfw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wfw')
-    call getmem(zpby,jci1,jci2,ici1,ici2+1,1,kz,'moloch:zpby')
-    call getmem(zpbw,jci1,jci2+1,ici1,ici2,1,kz,'moloch:zpbw')
+    call getmem(wfw,jce1,jce2,ice1,ice2,1,kzp1,'moloch:wfw')
+    call getmem(zpby,jce1,jce2,ici1,ici2+1,1,kz,'moloch:zpby')
+    call getmem(zpbw,jci1,jci2+1,ice1,ice2,1,kz,'moloch:zpbw')
     call getmem(mx2,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:mx2')
     call getmem(rmx,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmx')
     call getmem(rmu,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmu')
@@ -283,9 +283,9 @@ module mod_moloch
     end do
     lrotllr = (iproj == 'ROTLLR')
     jmin = jcross1
-    jmax = jcross2-1
+    jmax = jcross2
     imin = icross1
-    imax = icross2-1
+    imax = icross2
     if ( ma%bandflag ) then
       jmin = jcross1 - 2
       jmax = jcross2 + 2
@@ -711,7 +711,7 @@ module mod_moloch
           zup = dtrdx * u(j+1,i,k) * rfmzu(j+1,i,k) * rmu(j+1,i)
           zvm = dtrdy * v(j,i,k)   * rfmzv(j,i,k)   * rmv(j,i)
           zvp = dtrdy * v(j,i+1,k) * rfmzv(j,i+1,k) * rmv(j,i+1)
-          zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
+          zdiv2(j,i,k) = fmz(j,i,k) * mx2(j,i) * ((zup-zum) + (zvp-zvm))
         end do
       end if
 
@@ -977,12 +977,12 @@ module mod_moloch
     end if
 
     ! Vertical advection
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       wfw(j,i,1) = d_zero
       wfw(j,i,kzp1) = d_zero
     end do
 
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzm1 )
       zamu = s(j,i,k+1) * dtrdz
       if ( zamu >= d_zero ) then
         is = d_one
@@ -1003,7 +1003,7 @@ module mod_moloch
       wfw(j,i,k+1) = 0.5_rkx * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
                                              (d_one-zphi)*pp(j,i,k))
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
       zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
       zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
@@ -1013,7 +1013,7 @@ module mod_moloch
 
     if ( do_vadvtwice ) then
 
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzm1 )
         zamu = s(j,i,k+1) * dtrdz
         if ( zamu >= d_zero ) then
           is = d_one
@@ -1034,7 +1034,7 @@ module mod_moloch
         wfw(j,i,k+1) = 0.5_rkx * s(j,i,k+1) * &
           ((d_one+zphi)*wz(j,i,k+1) + (d_one-zphi)*wz(j,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
         zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
         zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
@@ -1046,22 +1046,12 @@ module mod_moloch
 
     if ( mo_advturn ) then ! First turn : meridional first, zonal next
 
-      if ( ma%has_bdybottom ) then
-        do concurrent ( j = jci1:jci2, k = 1:kz )
-          wz(j,ice1,k) = wz(j,ici1,k)
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do concurrent ( j = jci1:jci2, k = 1:kz )
-          wz(j,ice2,k) = wz(j,ici2,k)
-        end do
-      end if
-      call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
+      call exchange_bt(wz,2,jce1,jce2,ice1,ice2,1,kz)
 
       if ( lrotllr ) then
 
         ! Meridional advection
-        do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ici1:ici2+1, k = 1:kz )
           zamu = v(j,i,k) * dtrdy
           if ( zamu > d_zero ) then
             is = d_one
@@ -1079,7 +1069,7 @@ module mod_moloch
           zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
               ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
         end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
           zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
           zhxvts = dtrdy * rmv(j,i)   * mx(j,i)
           zrfmn = zhxvtn * fmz(j,i,k) * rfmzv(j,i+1,k)
@@ -1089,16 +1079,6 @@ module mod_moloch
                 (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
         end do
 
-        if ( ma%has_bdyleft ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            p0(jce1,i,k) = p0(jci1,i,k)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            p0(jce2,i,k) = p0(jci2,i,k)
-          end do
-        end if
         call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 
         ! Zonal advection
@@ -1132,7 +1112,7 @@ module mod_moloch
       else ! Not the ROTLLR projection
 
         ! Meridional advection
-        do concurrent ( j = jci1:jci2, i = ici1:ici2+1, k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ici1:ici2+1, k = 1:kz )
           zamu = v(j,i,k) * mv(j,i) * dtrdy
           if ( zamu > d_zero ) then
             is = d_one
@@ -1150,7 +1130,7 @@ module mod_moloch
           zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
               ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
         end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
           zrfmn = dtrdy * fmz(j,i,k) * rfmzu(j,i+1,k)
           zrfms = dtrdy * fmz(j,i,k) * rfmzu(j,i,k)
           zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
@@ -1159,16 +1139,6 @@ module mod_moloch
             mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
         end do
 
-        if ( ma%has_bdyleft ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            p0(jce1,i,k) = p0(jci1,i,k)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            p0(jce2,i,k) = p0(jci2,i,k)
-          end do
-        end if
         call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 
         ! Zonal advection
@@ -1203,22 +1173,12 @@ module mod_moloch
 
     else ! Second turn : zonal first, meridional next
 
-      if ( ma%has_bdyleft ) then
-        do concurrent ( i = ici1:ici2, k = 1:kz )
-          wz(jce1,i,k) = wz(jci1,i,k)
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do concurrent ( i = ici1:ici2, k = 1:kz )
-          wz(jce2,i,k) = wz(jci2,i,k)
-        end do
-      end if
-      call exchange_lr(wz,2,jce1,jce2,ici1,ici2,1,kz)
+      call exchange_lr(wz,2,jce1,jce2,ice1,ice2,1,kz)
 
       if ( lrotllr ) then
 
         ! Zonal advection
-        do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jci1:jci2+1, i = ice1:ice2, k = 1:kz )
           zamu = u(j,i,k) * mu(j,i) * dtrdx
           if ( zamu > d_zero ) then
             is = d_one
@@ -1236,7 +1196,7 @@ module mod_moloch
           zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
                  ((d_one+zphi)*wz(j-1,i,k) + (d_one-zphi)*wz(j,i,k))
         end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ice1:ice2, k = 1:kz )
           zcostx = dtrdx * mx(j,i)
           zrfmw = zcostx * fmz(j,i,k) * rfmzu(j,i,k)
           zrfme = zcostx * fmz(j,i,k) * rfmzu(j+1,i,k)
@@ -1245,16 +1205,6 @@ module mod_moloch
                  zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
         end do
 
-        if ( ma%has_bdybottom ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            p0(j,ice1,k) = p0(j,ici1,k)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            p0(j,ice2,k) = p0(j,ici2,k)
-          end do
-        end if
         call exchange_bt(p0,2,jci1,jci2,ice1,ice2,1,kz)
 
         ! Meridional advection
@@ -1289,7 +1239,7 @@ module mod_moloch
       else ! Not the ROTLLR projection
 
         ! Zonal advection
-        do concurrent ( j = jci1:jci2+1, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jci1:jci2+1, i = ice1:ice2, k = 1:kz )
           zamu = u(j,i,k) * mu(j,i) * dtrdx
           if ( zamu > d_zero ) then
             is = d_one
@@ -1308,7 +1258,7 @@ module mod_moloch
                  ((d_one+zphi)*wz(j-1,i,k) + (d_one-zphi)*wz(j,i,k))
         end do
 
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ice1:ice2, k = 1:kz )
           zrfmw = dtrdx * fmz(j,i,k) * rfmzu(j,i,k)
           zrfme = dtrdx * fmz(j,i,k) * rfmzu(j+1,i,k)
           zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
@@ -1317,16 +1267,6 @@ module mod_moloch
               mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
         end do
 
-        if ( ma%has_bdybottom ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            p0(j,ice1,k) = p0(j,ici1,k)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            p0(j,ice2,k) = p0(j,ici2,k)
-          end do
-        end if
         call exchange_bt(p0,2,jci1,jci2,ice1,ice2,1,kz)
 
         ! Meridional advection
