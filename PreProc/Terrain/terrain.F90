@@ -720,6 +720,7 @@ program terrain
     if ( smthbdy ) call smthtr(topov,jx,iy,nsmthbdy)
     ! Grell smoothing to eliminate 2 delx wave
     call smtdsmt(htgrid,jx,iy)
+    call smtdsmt(topou,jx,iy)
     call smtdsmt(topov,jx,iy)
     ! Smoothing using 1-2-1 smoother
     do ism = 1, ismthlev
