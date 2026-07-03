@@ -664,7 +664,8 @@ module mod_bdycod
 
     if ( idynamic == 2 ) then
       call read_icbc(nhbh0%ps,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0, &
-                     xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
+                     xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0,&
+                     xpaib%b0)
 
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
@@ -675,8 +676,9 @@ module mod_bdycod
         end do
       end if
     else if ( idynamic == 3 ) then
-      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0, &
-                     xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
+      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,  &
+                     xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0,&
+                     xpaib%b0)
       if ( moloch_do_test_1 ) then
         call moloch_static_test1(xtb%b0,xqb%b0,xub%b0,xvb%b0,xpsb%b0,xtsb%b0)
       end if
@@ -693,8 +695,9 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0, &
-                     xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
+      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,  &
+                     xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0,&
+                     xpaib%b0)
     end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
@@ -736,7 +739,6 @@ module mod_bdycod
       xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
-      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
     end if
     !
     ! Calculate P* on dot points
@@ -769,6 +771,8 @@ module mod_bdycod
       call couple(xwwb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%b0,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b0,1,jce1,jce2,ice1,ice2,1,kzp1)
+    else if ( idynamic == 3 ) then
+      call exchange(xpaib%b0,1,jce1,jce2,ice1,ice2,1,kz)
     end if
 
     bdydate2 = bdydate2 + intbdy
@@ -788,7 +792,8 @@ module mod_bdycod
 
     if ( idynamic == 2 ) then
       call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,&
+                     xpaib%b1)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           nhbh1%ps(j,i) = nhbh1%ps(j,i) * d_r10 - ptop
@@ -798,8 +803,9 @@ module mod_bdycod
         end do
       end if
     else if ( idynamic == 3 ) then
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,  &
+                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,&
+                     xpaib%b1)
       if ( moloch_do_test_1 ) then
         call moloch_static_test1(xtb%b1,xqb%b1,xub%b1,xvb%b1,xpsb%b1,xtsb%b1)
       end if
@@ -816,8 +822,9 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,  &
+                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,&
+                     xpaib%b1)
     end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
@@ -855,7 +862,6 @@ module mod_bdycod
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
-      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
     end if
     !
     ! Couple pressure u,v,t,q
@@ -887,6 +893,8 @@ module mod_bdycod
       call couple(xwwb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
+    else if ( idynamic == 3 ) then
+      call exchange(xpaib%b1,1,jce1,jce2,ice1,ice2,1,kz)
     end if
 
     if ( rcmtimer%start( ) ) then
@@ -1185,11 +1193,12 @@ module mod_bdycod
 #ifdef ASYNC_NETCDF
       call consume_icbc_prefetch(bdydate2,nhbh1%ps,xtsb%b1, &
                      mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1, &
-                     xlb%b1,xib%b1,xppb%b1,xwwb%b1,prefetched)
+                     xlb%b1,xib%b1,xppb%b1,xwwb%b1,xpaib%b1,prefetched)
       if ( .not. prefetched ) then
 #endif
         call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                       xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+                       xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,&
+                       xpaib%b1)
 #ifdef ASYNC_NETCDF
       end if
 #endif
@@ -1205,11 +1214,12 @@ module mod_bdycod
 #ifdef ASYNC_NETCDF
       call consume_icbc_prefetch(bdydate2,xpsb%b1,xtsb%b1, &
                      mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1, &
-                     xlb%b1,xib%b1,xppb%b1,xwwb%b1,prefetched)
+                     xlb%b1,xib%b1,xppb%b1,xwwb%b1,xpaib%b1,prefetched)
       if ( .not. prefetched ) then
 #endif
-        call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                       xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+        call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,  &
+                       xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,&
+                       xpaib%b1)
 #ifdef ASYNC_NETCDF
       end if
 #endif
@@ -1232,11 +1242,12 @@ module mod_bdycod
 #ifdef ASYNC_NETCDF
       call consume_icbc_prefetch(bdydate2,xpsb%b1,xtsb%b1, &
                      mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1, &
-                     xlb%b1,xib%b1,xppb%b1,xwwb%b1,prefetched)
+                     xlb%b1,xib%b1,xppb%b1,xwwb%b1,xpaib%b1,prefetched)
       if ( .not. prefetched ) then
 #endif
-        call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                       xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+        call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,  &
+                       xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,&
+                       xpaib%b1)
 #ifdef ASYNC_NETCDF
       end if
 #endif
@@ -1267,7 +1278,6 @@ module mod_bdycod
       ps1(:,:) = ps1(:,:)*d_100
       !$acc end kernels
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
-      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
     end if
     !
     ! Couple pressure u,v,t,q
@@ -1299,6 +1309,8 @@ module mod_bdycod
       call couple(xwwb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
+    else if ( idynamic == 3 ) then
+      call exchange(xpaib%b1,1,jce1,jce2,ice1,ice2,1,kz)
     end if
 
     ! Linear time interpolation
@@ -4755,7 +4767,11 @@ module mod_bdycod
       tv1 = t(j,i,kz) * (d_one + ep1*q(j,i,kz))
       tv2 = t(j,i,kz-1) * (d_one + ep1*q(j,i,kz-1))
       lrt = (tv2-tv1)/(z(j,i,kz-1)-z(j,i,kz))
-      lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+      if ( lrt > govcp ) then
+        lrt = govcp
+      else if ( lrt < -0.005_rkx ) then
+        lrt = 0.5_rkx*lrt - 0.5_rkx*lrate
+      end if
       tv = tv1 - 0.5_rkx*z(j,i,kz)*lrt
       zz = d_one/(rgas*tv)
       p = ps(j,i) * exp(-zdelta*zz)

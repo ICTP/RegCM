@@ -341,6 +341,7 @@ module mod_lm_interface
     call assignpnt(sfs%rah1,lm%rah1)
     call assignpnt(sfs%br,lm%br)
     call assignpnt(sfs%q2m,lm%q2m)
+    call assignpnt(sfs%t2m,lm%t2m)
     call assignpnt(sfs%dtrnof,lm%dtrnof)
     call assignpnt(zpbl,lm%hpbl)
     call assignpnt(pptc,lm%cprate)
@@ -532,6 +533,7 @@ module mod_lm_interface
     lm%rah1 = sum(lms%rah1,1)*rdnnsg
     lm%br = sum(lms%br,1)*rdnnsg
     lm%q2m = sum(lms%q2m,1)*rdnnsg
+    lm%t2m = sum(lms%t2m,1)*rdnnsg
     lm%w10m = sum(lms%w10m,1)*rdnnsg
     lm%zo = sum(lms%zo,1)*rdnnsg
     lm%tgbb = sum(lms%tgbb,1)*rdnnsg
@@ -876,6 +878,7 @@ module mod_lm_interface
     real(rkx), pointer, contiguous :: lm_hairat(:,:) => null( )
     real(rkx), pointer, contiguous :: lm_hpbl(:,:) => null( )
     real(rkx), pointer, contiguous :: lm_q2m(:,:) => null( )
+    real(rkx), pointer, contiguous :: lm_t2m(:,:) => null( )
     real(rkx), pointer, contiguous :: lm_w10m(:,:) => null( )
     real(rkx), pointer, contiguous :: lm_u10m(:,:) => null( )
     real(rkx), pointer, contiguous :: lm_v10m(:,:) => null( )
@@ -930,6 +933,7 @@ module mod_lm_interface
     lm_hairat => lm%hairat
     lm_hpbl => lm%hpbl
     lm_q2m => lm%q2m
+    lm_t2m => lm%t2m
     lm_w10m => lm%w10m
     lm_u10m => lm%u10m
     lm_v10m => lm%v10m
@@ -1620,12 +1624,9 @@ module mod_lm_interface
         end if
         if ( associated(srf_t2m_out) ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            xsum = d_zero
-            !$acc loop seq
-            do ns = 1, nnsg
-              xsum = xsum + lms_t2m(ns,j,i)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+              srf_t2m_out(j,i,1) = lm_t2m(j,i)
             end do
-            srf_t2m_out(j,i,1) = xsum*rdnnsg
           end do
         end if
         if ( associated(srf_q2m_out) ) then

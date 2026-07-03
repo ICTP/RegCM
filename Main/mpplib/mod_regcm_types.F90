@@ -298,6 +298,7 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:) :: qfx => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: tgbb => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: q2m => null( )
+    real(rkx), pointer, contiguous, dimension(:,:) :: t2m => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: uvdrag => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: ustar => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: u10m => null( )
@@ -538,6 +539,7 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:) :: u10m => null( )   ! sfs%u10m
     real(rkx), pointer, contiguous, dimension(:,:) :: v10m => null( )   ! sfs%v10m
     real(rkx), pointer, contiguous, dimension(:,:) :: q2m => null( )    ! sfs%q2m
+    real(rkx), pointer, contiguous, dimension(:,:) :: t2m => null( )    ! sfs%t2m
     real(rkx), pointer, contiguous, dimension(:,:) :: rhox => null( )   ! rhox2d
     real(rkx), pointer, contiguous, dimension(:,:) :: rswf => null( )   ! fsw
     real(rkx), pointer, contiguous, dimension(:,:) :: rlwf => null( )   ! flw

@@ -928,6 +928,7 @@ module mod_atm_interface
       end if
       call getmem(sfs%br,jci1,jci2,ici1,ici2,'surf:br')
       call getmem(sfs%q2m,jci1,jci2,ici1,ici2,'surf:q2m')
+      call getmem(sfs%t2m,jci1,jci2,ici1,ici2,'surf:t2m')
       call getmem(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
       call getmem(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
       call getmem(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')

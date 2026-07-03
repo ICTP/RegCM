@@ -81,6 +81,7 @@ module mod_moloch
   real(rkx), dimension(:,:), pointer, contiguous :: hy => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: ps => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: ts => null( )
+  real(rkx), dimension(:,:), pointer, contiguous :: t2m => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: ht => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: fmz => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: rfmzu => null( )
@@ -89,7 +90,7 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: pai => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tetav => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tvirt => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: zeta => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: z => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: u => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: v => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: w => null( )
@@ -215,6 +216,7 @@ module mod_moloch
     call assignpnt(mddom%ht,ht)
     call assignpnt(sfs%psa,ps)
     call assignpnt(sfs%tg,ts)
+    call assignpnt(sfs%t2m,t2m)
     call assignpnt(mo_atm%fmz,fmz)
     call assignpnt(mo_atm%rfmzu,rfmzu)
     call assignpnt(mo_atm%rfmzv,rfmzv)
@@ -227,7 +229,7 @@ module mod_moloch
     call assignpnt(mo_atm%vx,vx)
     call assignpnt(mo_atm%w,w)
     call assignpnt(mo_atm%tvirt,tvirt)
-    call assignpnt(mo_atm%zeta,zeta)
+    call assignpnt(mo_atm%zeta,z)
     call assignpnt(mo_atm%p,p)
     call assignpnt(mo_atm%t,t)
     call assignpnt(mo_atm%rho,rho)
@@ -307,7 +309,7 @@ module mod_moloch
     implicit none
     real(rkx) :: dtsound, dtstepa, dtphy1, dtphy2
     real(rkx) :: maxps, minps, pmax, pmin
-    real(rkx) :: fice, zdgz, lrt, tv
+    real(rkx) :: fice
     !real(rk8) :: jday
     integer(ik4) :: i, j, k, n, nadv
     integer(ik4) :: iconvec
@@ -384,14 +386,7 @@ module mod_moloch
       rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
     end do
 
-    !jday = yeardayfrac(rcmtimer%idate)
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      zdgz = zeta(j,i,kz)*egrav
-      lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
-      lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-      tv = tvirt(j,i,kz) - 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
-      ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
-    end do
+    call extrapolate_pressure( )
 
     !@acc call nvtxStartRange("uvstagtox")
     call uvstagtox(u,v,ux,vx)
@@ -799,7 +794,7 @@ module mod_moloch
       if ( mo_divfilter ) call divergence_filter( )
 
       ! horizontal momentum equations
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
       end do
 
@@ -1774,6 +1769,18 @@ module mod_moloch
       end do
     end if
   end subroutine uvstagtox
+
+  subroutine extrapolate_pressure( )
+    implicit none
+    real(rkx) :: p2m, t_up, t_low
+    integer(ik4) :: i, j
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      t_up = 0.5_rkx * (t(j,i,kz) + t2m(j,i))
+      t_low = 0.5_rkx * (t2m(j,i) + ts(j,i))
+      p2m = p(j,i,kz) * exp(govr*((z(j,i,kz)-2.0_rkx))/t_up)
+      ps(j,i) = p2m * exp(govr * 2.0_rkx/t_low)
+    end do
+  end subroutine extrapolate_pressure
 
 end module mod_moloch
 

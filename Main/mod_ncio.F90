@@ -124,6 +124,7 @@ module mod_ncio
     real(rkx), pointer, contiguous, dimension(:,:,:) :: qi => null()
     real(rkx), pointer, contiguous, dimension(:,:,:) :: pp => null()
     real(rkx), pointer, contiguous, dimension(:,:,:) :: ww => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: pai => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: wtop => null()
   end type icbc_prefetch_slot
 
@@ -868,6 +869,9 @@ module mod_ncio
       icount(3) = 1
       call enqueue_icbc_prefetch_read(icbc_ivar(9), &
         icbc_prefetch%wtop_flat,istart(1:3),icount(1:3),failed)
+    else if ( idynamic == 3 ) then
+      call enqueue_icbc_prefetch_read(icbc_ivar(7),icbc_prefetch%pai_flat, &
+        istart,icount,failed)
     end if
     if ( failed .and. icbc_prefetch%nitems == 0 ) then
       call release_icbc_prefetch(.false.)
@@ -875,7 +879,7 @@ module mod_ncio
   end subroutine prefetch_icbc
 
   subroutine consume_icbc_prefetch(idate,ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww, &
-      consumed)
+      pai,consumed)
     implicit none
     type(rcm_time_and_date), intent(in) :: idate
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
@@ -889,6 +893,7 @@ module mod_ncio
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qi
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pp
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ww
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pai
     logical, intent(out) :: consumed
     integer(ik4) :: pending, status
 
@@ -903,7 +908,7 @@ module mod_ncio
     call async_netcdf_counter_wait(icbc_prefetch%counter,status)
     if ( status == nf90_noerr ) then
       ibcrec = icbc_prefetch%record
-      call copy_prefetched_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
+      call copy_prefetched_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww,pai)
       consumed = .true.
     end if
     call release_icbc_prefetch(.false.)
@@ -983,6 +988,8 @@ module mod_ncio
       call map_prefetch_3d(icbc_prefetch%ww_flat,icbc_prefetch%ww,offset,n3)
       call map_prefetch_2d(icbc_prefetch%wtop_flat,icbc_prefetch%wtop, &
         offset,n2)
+    else if ( idynamic == 3 ) then
+      call map_prefetch_3d(icbc_prefetch%pai_flat,icbc_prefetch%pai,offset,n3)
     end if
   end subroutine map_icbc_prefetch_buffers
 
@@ -1067,15 +1074,17 @@ module mod_ncio
     nullify(icbc_prefetch%qc_flat,icbc_prefetch%qi_flat)
     nullify(icbc_prefetch%pp_flat,icbc_prefetch%ww_flat)
     nullify(icbc_prefetch%wtop_flat)
+    nullify(icbc_prefetch%pai_flat)
     nullify(icbc_prefetch%ps,icbc_prefetch%ts)
     nullify(icbc_prefetch%u,icbc_prefetch%v)
     nullify(icbc_prefetch%t,icbc_prefetch%qv)
     nullify(icbc_prefetch%qc,icbc_prefetch%qi)
     nullify(icbc_prefetch%pp,icbc_prefetch%ww)
     nullify(icbc_prefetch%wtop)
+    nullify(icbc_prefetch%pai)
   end subroutine clear_icbc_prefetch_pointers
 
-  subroutine copy_prefetched_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
+  subroutine copy_prefetched_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww,pai)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ts
@@ -1088,10 +1097,11 @@ module mod_ncio
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qi
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pp
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ww
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pai
     real(rkx), pointer, contiguous, dimension(:,:) :: psbuf, tsbuf, wtopbuf
     real(rkx), pointer, contiguous, dimension(:,:,:) :: ubuf, vbuf, tbuf
     real(rkx), pointer, contiguous, dimension(:,:,:) :: qvbuf, qcbuf, qibuf
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: ppbuf, wwbuf
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: ppbuf, wwbuf, paibuf
     integer(ik4) :: i, j, k
     real(rkx) :: told, pold, rhold, satvp, tnew, pnew
 
@@ -1106,6 +1116,7 @@ module mod_ncio
     ppbuf => icbc_prefetch%pp
     wwbuf => icbc_prefetch%ww
     wtopbuf => icbc_prefetch%wtop
+    paibuf => icbc_prefetch%pai
 
     if ( ensemble_run ) then
       if ( lperturb_ps ) then
@@ -1221,6 +1232,11 @@ module mod_ncio
       !$acc kernels deviceptr(wtopbuf)
       ww(jce1:jce2,ice1:ice2,1) = &
         wtopbuf(jce1:jce2,ice1:ice2)
+      !$acc end kernels
+    else if ( idynamic == 3 ) then
+      !$acc kernels deviceptr(paibuf)
+      pai(jce1:jce2,ice1:ice2,1:kz) = &
+        paibuf(jce1:jce2,ice1:ice2,1:kz)
       !$acc end kernels
     end if
 
@@ -1362,12 +1378,9 @@ module mod_ncio
       call check_ok(__FILE__,__LINE__,'variable w miss', 'ICBC FILE')
       istatus = nf90_inq_varid(ibcin, 'wtop', icbc_ivar(9))
       call check_ok(__FILE__,__LINE__,'variable wtop miss', 'ICBC FILE')
-    else
-      istatus = nf90_inq_varid(ibcin, 'pp', icbc_ivar(7))
-      if ( istatus == nf90_noerr ) then
-        write(stderr,*) 'ERROR: Hydrostatic core and non-hydrostatic ICBC !'
-        call fatal(__FILE__,__LINE__,'ICBC READ')
-      end if
+    else if ( idynamic == 3 ) then
+      istatus = nf90_inq_varid(ibcin, 'pai', icbc_ivar(7))
+      call check_ok(__FILE__,__LINE__,'variable pai miss', 'ICBC FILE')
     end if
     istatus = nf90_inq_varid(ibcin, 'qc', icbc_ivar(10))
     if ( istatus == nf90_noerr ) then
@@ -1560,7 +1573,7 @@ module mod_ncio
     clmbcrec = clmbcrec + 1
   end subroutine read_clmbc
 
-  subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
+  subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww,pai)
     !@acc use nvtx
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ps
@@ -1574,6 +1587,7 @@ module mod_ncio
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: qi
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pp
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ww
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: pai
 
     integer(ik4), dimension(4) :: istart, icount
     integer(ik4) :: i, j, k
@@ -1716,6 +1730,12 @@ module mod_ncio
         !$acc kernels deviceptr(rspace2)
         ww(jce1:jce2,ice1:ice2,1) = rspace2(jce1:jce2,ice1:ice2)
         !$acc end kernels
+      else if ( idynamic == 3 ) then
+        istatus = nf90_get_var(ibcin,icbc_ivar(7),rspace3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable pai read error', 'ICBC FILE')
+        !$acc kernels deviceptr(rspace3)
+        pai(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+        !$acc end kernels
       end if
       !@acc call nvtxEndRange
     else
@@ -1842,6 +1862,11 @@ module mod_ncio
                         'variable wtop read error', 'ICBC FILE')
           call grid_distribute(rspace2,tempwtop,jce1,jce2,ice1,ice2)
           ww(jce1:jce2,ice1:ice2,1) = tempwtop(jce1:jce2,ice1:ice2)
+        else if ( idynamic == 3 ) then
+          istatus = nf90_get_var(ibcin,icbc_ivar(7),rspace3,istart,icount)
+          call check_ok(__FILE__,__LINE__, &
+                        'variable pai read error', 'ICBC FILE')
+          call grid_distribute(rspace3,pai,jce1,jce2,ice1,ice2,1,kz)
         end if
       else
         call grid_distribute(rspace2,ps,jce1,jce2,ice1,ice2)
@@ -1862,6 +1887,8 @@ module mod_ncio
           ww(jce1:jce2,ice1:ice2,2:kzp1) = tempw(jce1:jce2,ice1:ice2,1:kz)
           call grid_distribute(rspace2,tempwtop,jce1,jce2,ice1,ice2)
           ww(jce1:jce2,ice1:ice2,1) = tempwtop(jce1:jce2,ice1:ice2)
+        else if ( idynamic == 3 ) then
+          call grid_distribute(rspace3,pai,jce1,jce2,ice1,ice2,1,kz)
         end if
       end if
     end if

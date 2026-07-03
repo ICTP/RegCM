@@ -37,8 +37,8 @@ module mod_atm_stub
   type(domain_subgrid), public :: mdsub
   type(surfstate), public :: sfs
 
-  type(v3dbound), public :: xtb, xqb, xub, xvb, xlb, xib, xppb, xwwb
-  type(v2dbound), public :: xpsb, xtsb, xpaib
+  type(v3dbound), public :: xtb, xqb, xub, xvb, xlb, xib, xppb, xwwb, xpaib
+  type(v2dbound), public :: xpsb, xtsb
 
   type(lm_exchange), public :: lm
   type(lm_state), public :: lms
@@ -412,6 +412,7 @@ module mod_atm_stub
       call getmem(sfs%rah1,jci1,jci2,ici1,ici2,'surf:rah1')
       call getmem(sfs%br,jci1,jci2,ici1,ici2,'surf:br')
       call getmem(sfs%q2m,jci1,jci2,ici1,ici2,'surf:q2m')
+      call getmem(sfs%t2m,jci1,jci2,ici1,ici2,'surf:t2m')
       call getmem(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
       call getmem(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
       call getmem(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')
@@ -442,7 +443,7 @@ module mod_atm_stub
       call allocate_v3dbound(xib,kz,dot)
       call allocate_v3dbound(xvb,kz,dot)
       if ( idynamic == 3 ) then
-        call allocate_v2dbound(xpaib,cross)
+        call allocate_v3dbound(xpaib,kz,cross)
       end if
       if ( idynamic == 3 ) then
         call getmem(zeta,jce1,jce2,ice1,ice2,'lm:zeta')
@@ -609,6 +610,7 @@ module mod_atm_stub
       call assignpnt(sfs%rah1,lm%rah1)
       call assignpnt(sfs%br,lm%br)
       call assignpnt(sfs%q2m,lm%q2m)
+      call assignpnt(sfs%t2m,lm%t2m)
       call assignpnt(pptc,lm%cprate)
       call assignpnt(pptnc,lm%ncprate)
       call assignpnt(coszrs,lm%zencos)
@@ -660,7 +662,7 @@ module mod_atm_stub
       end if
 
       call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0, &
-                     xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
+                     xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0,xpaib%b0)
 
       if ( myid == italk ) then
         appdat = tochar(bdydate1)
@@ -697,7 +699,7 @@ module mod_atm_stub
       end if
 
       call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1, &
-                     xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+                     xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,xpaib%b1)
 
       if ( myid == italk ) then
         write (stdout,*) 'READY  BC from     ', &
@@ -727,9 +729,7 @@ module mod_atm_stub
       call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
       if ( idynamic == 3 ) then
-        call paicompute(xpsb%b0,xtb%b0,xqb%b0,xpaib%b0)
-        call paicompute(xpsb%b1,xtb%b1,xqb%b1,xpaib%b1)
-        call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1,jce2,ice1,ice2)
+        call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lr(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
         call exchange_bt(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
       else
@@ -769,7 +769,7 @@ module mod_atm_stub
       xtsb%b0(:,:) = xtsb%b1(:,:)
       xpsb%b0(:,:) = xpsb%b1(:,:)
       if ( idynamic == 3 ) then
-        xpaib%b0(:,:) = xpaib%b1(:,:)
+        xpaib%b0(:,:,:) = xpaib%b1(:,:,:)
       end if
 
       bdydate2 = bdydate2 + intbdy
@@ -787,7 +787,7 @@ module mod_atm_stub
         end if
       end if
       call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1, &
-                     xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
+                     xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,xpaib%b1)
 
       if ( idynamic == 3 ) then
         xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
@@ -809,9 +809,7 @@ module mod_atm_stub
       call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
 
       if ( idynamic == 3 ) then
-        call paicompute(xpsb%b0,xtb%b0,xqb%b0,xpaib%b0)
-        call paicompute(xpsb%b1,xtb%b1,xqb%b1,xpaib%b1)
-        call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1,jce2,ice1,ice2)
+        call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lr(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
         call exchange_bt(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
       else
@@ -843,7 +841,7 @@ module mod_atm_stub
           tatm(j,i) = xtb%b0(j,i,kz) + xt*xtb%bt(j,i,kz)
           if ( idynamic == 3 ) then
             ps(j,i) = xpsb%b0(j,i) + xt*xpsb%bt(j,i)
-            psb = xpaib%b0(j,i) + xt*xpaib%bt(j,i)
+            psb = xpaib%b0(j,i,kz) + xt*xpaib%bt(j,i,kz)
             patm(j,i) = (psb**cpovr) * p00
             uatm(j,i) = 0.50_rkx*(xub%b0(j,i,kz) + xub%b0(j+1,i,kz) + &
                               xt*(xub%bt(j,i,kz) + xub%bt(j+1,i,kz)))
@@ -902,27 +900,6 @@ module mod_atm_stub
         end do
       end do
     end subroutine timeint3
-
-  subroutine paicompute(xpsb,xtb,xqb,xpaib)
-    implicit none
-    real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: xpsb
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: xtb, xqb
-    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: xpaib
-    real(rkx) :: p, tv, zz1, zz2, zlr
-    integer(ik4) :: i, j
-    ! Hydrostatic initialization of pai
-    do i = ice1, ice2
-      do j = jce1, jce2
-        zz1 = zeta(j,i)
-        zlr = stdlrate(yeardayfrac(rcmtimer%idate),dayspy,mddom%xlat(j,i))
-        ! zlr = -lrate
-        tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz)) + d_half * zz1 * zlr
-        zz2 = egrav/(rgas*tv)
-        p = xpsb(j,i) * exp(-zz1*zz2)
-        xpaib(j,i) = (p/p00)**rovcp
-      end do
-    end do
-  end subroutine paicompute
 
 end module mod_atm_stub
 

@@ -1584,6 +1584,7 @@ module mod_output
           rah_io = sfs%rah1
           br_io = sfs%br
           q2m_io = sfs%q2m
+          t2m_io = sfs%t2m
           u10m_io = sfs%u10m
           v10m_io = sfs%v10m
           w10m_io = sfs%w10m
@@ -1767,6 +1768,7 @@ module mod_output
           call grid_collect(sfs%rah1,rah_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%br,br_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%q2m,q2m_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sfs%t2m,t2m_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%u10m,u10m_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%v10m,v10m_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%w10m,w10m_io,jci1,jci2,ici1,ici2)

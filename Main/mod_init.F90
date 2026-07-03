@@ -519,6 +519,7 @@ module mod_init
         sfs%rah1 = rah_io
         sfs%br = br_io
         sfs%q2m = q2m_io
+        sfs%t2m = t2m_io
         sfs%u10m = u10m_io
         sfs%v10m = v10m_io
         sfs%w10m = w10m_io
@@ -712,6 +713,7 @@ module mod_init
         call grid_distribute(rah_io,sfs%rah1,jci1,jci2,ici1,ici2)
         call grid_distribute(br_io,sfs%br,jci1,jci2,ici1,ici2)
         call grid_distribute(q2m_io,sfs%q2m,jci1,jci2,ici1,ici2)
+        call grid_distribute(t2m_io,sfs%t2m,jci1,jci2,ici1,ici2)
         call grid_distribute(u10m_io,sfs%u10m,jci1,jci2,ici1,ici2)
         call grid_distribute(v10m_io,sfs%v10m,jci1,jci2,ici1,ici2)
         call grid_distribute(w10m_io,sfs%w10m,jci1,jci2,ici1,ici2)
