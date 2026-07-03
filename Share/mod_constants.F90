@@ -43,6 +43,8 @@ module mod_constants
   real(rkx), parameter :: onet = d_one/d_three
   real(rkx), parameter :: twot = d_two/d_three
   real(rkx), parameter :: fourt = d_four/d_three
+  real(rkx), parameter :: sqrt2 = sqrt(2.0_rkx)
+  real(rkx), parameter :: rsqrt2 = 1.0_rkx/sqrt2
 
   ! Angles degrees : Operations must be always performed double precision
   real(rk8), parameter :: deg00  = 0.0_rk8
@@ -228,6 +230,7 @@ module mod_constants
   real(rkx), parameter :: rovg  = rgas/egrav
   real(rkx), parameter :: govr  = egrav/rgas
   real(rkx), parameter :: gdry  = -egrav/cpd
+  real(rkx), parameter :: govcp = egrav/cpd
   real(rkx), parameter :: hcratio = cpv*rcpd
   real(rkx), parameter :: hcrm1 = hcratio - d_one
   real(rkx), parameter :: rhoh2o = 1000.0_rkx

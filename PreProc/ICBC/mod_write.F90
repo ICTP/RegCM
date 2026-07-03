@@ -28,6 +28,7 @@ module mod_write
   use mod_stdio
   use mod_zita
   use mod_lowpass
+  use mod_wavelet
   implicit none
 
   private
@@ -39,6 +40,7 @@ module mod_write
   real(rkx), pointer, contiguous, dimension(:,:,:) :: q4, qc4, qi4
   real(rkx), pointer, contiguous, dimension(:,:,:) :: t4, u4, v4, z4
   real(rkx), pointer, contiguous, dimension(:,:,:) :: pp4, ww4, tv4, tvd4
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pai4
 
   public :: ps4, pd4, ts4, q4, t4, u4, v4, pp4, ww4
   public :: qc4, qi4, z4, pr, ssr, strd, clt
@@ -249,8 +251,8 @@ module mod_write
     else if ( idynamic == 3 ) then
       if ( apply_filter ) call lowpass_init(xlat,xlon)
       nvar2d = 10
-      nvar3d = 4
-      call getmem(psd0,1,jx,1,iy,'mod_write:psd0')
+      nvar3d = 5
+      call getmem(pai4,1,jx,1,iy,1,kz,'mod_write:pai4')
     end if
     if ( qli_present ) then
       nvar3d = nvar3d + 2
@@ -361,6 +363,11 @@ module mod_write
       v3dvar_icbc(i3i+3)%lrecords = .true.
     end if
     if ( idynamic == 3 ) then
+      v3dvar_icbc(i3i)%vname = 'pai'
+      v3dvar_icbc(i3i)%vunit = '1'
+      v3dvar_icbc(i3i)%long_name = 'Exner Function'
+      v3dvar_icbc(i3i)%standard_name = 'dimensionless_exner_function'
+      v3dvar_icbc(i3i)%lrecords = .true.
       v2dvar_icbc(7)%vname = 'ulon'
       v2dvar_icbc(7)%vunit = 'degrees_east'
       v2dvar_icbc(7)%long_name = 'Longitude on U Points'
@@ -548,6 +555,7 @@ module mod_write
       v3dvar_icbc(i3i+3)%rval => pp4
     end if
     if ( idynamic == 3 ) then
+      v3dvar_icbc(i3i)%rval => pai4
       v2dvar_icbc(7)%rval => ulon
       v2dvar_icbc(8)%rval => ulat
       v2dvar_icbc(9)%rval => vlon
@@ -647,6 +655,7 @@ module mod_write
           call lowpass_filter(v4(:,:,k))
         end do
       end if
+      call pai_compute(jx,iy,kz,ps4,z0,t4,q4,pai4)
     end if
 
     call outstream_addrec(ncout,idate)
@@ -659,6 +668,60 @@ module mod_write
       call outstream_writevar(ncout,v3dvar_icbc(ivar))
     end do
   end subroutine writef
+
+  subroutine pai_compute(nx,ny,nz,ps,z,t,q,pai)
+    implicit none
+    integer(ik4), intent(in) :: nx, ny, nz
+    real(rkx), dimension(nx,ny), intent(in) :: ps
+    real(rkx), dimension(nx,ny,nz), intent(in) :: z, t, q
+    real(rkx), dimension(nx,ny,nz), intent(out) :: pai
+    integer(ik4) :: i, j, k
+    real(rkx), dimension(nx,ny) :: hgt, fb, fbc
+    real(rkx) :: tv1, tv2, lrt, tv, zz, zb, p, zdelta, paikp1
+    real(rk8) :: pfsum, ppsum, mp, mf, xg, nn
+
+    ! Hydrostatic initialization of pai
+    do i = 1, ny
+      do j = 1, nx
+        zdelta = z(j,i,nz)*egrav
+        tv1 = t(j,i,nz) * (d_one + ep1*q(j,i,nz))
+        tv2 = t(j,i,nz-1) * (d_one + ep1*q(j,i,nz-1))
+        lrt = (tv2-tv1)/(z(j,i,nz-1)-z(j,i,nz))
+        if ( lrt > govcp ) then
+          lrt = govcp
+        else if ( lrt < -0.005_rkx ) then
+          lrt = 0.5_rkx*lrt - 0.5_rkx*lrate
+        end if
+        tv = tv1 - 0.5_rkx*z(j,i,nz)*lrt
+        zz = d_one/(rgas*tv)
+        p = ps(j,i) * 100.0_rkx * exp(-zdelta*zz)
+        paikp1 = (p/p00)**rovcp
+        pai(j,i,nz) = paikp1
+        do k = nz-1, 1, -1
+          tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
+          tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
+          zb = d_two*egrav*mo_dzita/(fmz0(j,i,k+1)*cpd) + tv1 - tv2
+          zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
+          paikp1 = -paikp1 / (d_two * tv2) * (zb - zdelta)
+          pai(j,i,k) = paikp1
+        end do
+      end do
+    end do
+    nn = real(nx*ny, rk8)
+    do k = 1, kz
+      hgt(:,:) = p00 * (pai(:,:,k)**cpovr)
+      ppsum = sum(hgt*hgt)
+      mp = sum(hgt)/nn
+      mf = sum(pai(:,:,k))/nn
+      pfsum = sum(hgt(:,:) * pai(:,:,k))
+      ! Covariance(hgt,pai)/Variance(hgt)
+      xg = (pfsum - nn * mp * mf) / (ppsum - nn * mp * mp)
+      ! Decouple, remove noise, recouple
+      fb(:,:) = pai(:,:,k) - xg * hgt(:,:)
+      call wavelet_denoise(nx,ny,fb,fbc,0.002_rkx/ds)
+      pai(:,:,k) = fbc(:,:) + xg * hgt(:,:)
+    end do
+  end subroutine pai_compute
 
 end module mod_write
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

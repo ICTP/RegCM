@@ -47,11 +47,12 @@ module mod_grid
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: t0
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: rho0
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: z0
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: fmz0
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: zetau
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: zetav
   real(rkx), public, pointer, contiguous, dimension(:,:) :: ps0
 
-  real(rkx), public :: delx
+  real(rkx), public :: delx, mo_dzita
   integer(ik4), public :: i0, i1, j0, j1
   real(rkx), public :: lat0, lat1, lon0, lon1, ts0
 
@@ -109,6 +110,7 @@ module mod_grid
       call getmem(t0,1,nx,1,ny,1,nz,'mod_write:t0')
     else if ( idynamic == 3 ) then
       call getmem(z0,1,nx,1,ny,1,nz,'mod_write:z0')
+      call getmem(fmz0,1,nx,1,ny,1,nz+1,'mod_write:fmz0')
       call getmem(zetau,1,nx,1,ny,1,nz,'mod_write:zetau')
       call getmem(zetav,1,nx,1,ny,1,nz,'mod_write:zetav')
     end if
@@ -132,6 +134,7 @@ module mod_grid
     integer(ik4) :: incin
     character(len=256) :: fname
     integer(ik4) :: i, j, k
+    real(rkx), dimension(kzp1) :: zitaf
     real(rkx), dimension(kz) :: zitah
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
@@ -148,6 +151,8 @@ module mod_grid
       call read_domain(incin,sigmaf,xlat,xlon,ulat=ulat,ulon=ulon, &
                        vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
                        lndcat=landuse,topou=topou,topov=topov)
+      mo_dzita = mo_ztop/real(kz,rkx)
+      call model_zitaf(zitaf,mo_ztop)
       call model_zitah(zitah,mo_ztop)
       sigmah = sigmazita(zitah,mo_ztop)
       do k = 1, kz
@@ -159,6 +164,13 @@ module mod_grid
           end do
         end do
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))
+      end do
+      do k = 1, kzp1
+        do i = 1, iy
+          do j = 1, jx
+            fmz0(j,i,k) = md_fmz_h(zitaf(k),topogm(j,i),mo_ztop,mo_h,mo_a0)
+          end do
+        end do
       end do
     else
       call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,ht=topogm, &
