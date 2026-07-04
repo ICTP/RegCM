@@ -794,7 +794,7 @@ module mod_moloch
       if ( mo_divfilter ) call divergence_filter( )
 
       ! horizontal momentum equations
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
       end do
 
