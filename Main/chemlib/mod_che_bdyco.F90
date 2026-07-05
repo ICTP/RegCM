@@ -40,13 +40,14 @@ module mod_che_bdyco
   private
 
   public :: allocate_mod_che_bdyco, chem_bdyin, chem_bdyval
-  public :: nudge_chiten, setup_che_bdycon, monudgechi
+  public :: nudge_chiten, monudge_chiten, setup_che_bdycon
   public :: che_init_bdy, chib0, chib1, chibt, ichbdy2trac, oxcl
 
   type(rcm_time_and_date), save :: chbdydate1, chbdydate2
 
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chib0, chib1, chibt, oxcl
   real(rkx), pointer, contiguous, dimension(:,:) :: cefc, cegc
+  real(rkx), pointer, contiguous, dimension(:) :: fcx
   integer(ik4), pointer, contiguous, dimension(:) :: ichbdy2trac
   !
   ! Boundary conditions arrays
@@ -54,6 +55,8 @@ module mod_che_bdyco
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chebdy
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg
 
+  real(rkx), parameter :: vscale = 1.0_rkx
+  real(rkx), parameter :: outflow = 0.1_rkx
   integer(ik4), parameter :: max_input_tracers = 50
   integer(ik4), parameter :: noxcl = 5
 
@@ -94,9 +97,14 @@ module mod_che_bdyco
       call getmem(chibt,jde1ga,jde2ga,ide1ga,ide2ga, &
                           1,kz,1,ntr,'mod_che_bdyco:chibt')
     end if
-    call getmem(cefc,1,nspgx,1,kz,'che_bdyco:fcx')
-    call getmem(cegc,1,nspgx,1,kz,'che_bdyco:fcx')
-    call getmem(fg,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'che_bdyco:fg')
+    if ( idynamic /= 3 ) then
+      call getmem(cefc,1,nspgx,1,kz,'che_bdyco:cefc')
+      call getmem(cegc,1,nspgx,1,kz,'che_bdyco:cegc')
+      call getmem(fg,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'che_bdyco:fg')
+    else
+      call getmem(fcx,1,nspgx,'che_bdyco:fcx')
+      call getmem(fg,jci1,jci2,ici1,ici2,1,kz,'che_bdyco:fg')
+    end if
   end subroutine allocate_mod_che_bdyco
 
   subroutine che_init_bdy
@@ -972,99 +980,31 @@ module mod_che_bdyco
 #endif
   end subroutine nudge_chiten
 
-  subroutine monudgechi(f,ff)
+  pure real(rkx) function adaptive(unorm, n) result(alpha)
     implicit none
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: f
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ff
+    real(rkx), intent(in) :: unorm
+    integer(ik4), intent(in) :: n
 
-    real(rkx) :: xt, xf, xg
-    real(rkx) :: fls0, fls1, fls2, fls3, fls4
+    alpha = fcx(n) * 0.5_rkx * &
+      ((1.0_rkx + outflow) - (1.0_rkx - outflow) * tanh(unorm/vscale))
+  end function adaptive
 
+  subroutine monudge_chiten(cfa,f,ud,vd,ften)
+    implicit none
+    real(rkx), intent(in) :: cfa
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: ud, vd
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
+    real(rkx) :: xt
     integer(ik4) :: i, j, k, n, ib
+    real(rkx) :: xf
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'monudgechi'
+    character(len=dbgslen) :: subroutine_name = 'monudge_chiten'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    if ( ichebdy == 0 ) then
-      do n = 1, ntr
-        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
-          fg(j,i,k) = f(j,i,k,n)
-        end do
-        if ( cba%ns /= 0 ) then
-          do k = 1, kz
-            do i = ici1, ici2
-              do j = jci1, jci2
-                if ( .not. cba%bsouth(j,i) ) cycle
-                ib = cba%ibnd(j,i)
-                xf = cefc(ib,k)
-                xg = cegc(ib,k)
-                fls0 = fg(j-1,ici1,k) - fg(j,i,k)
-                fls1 = fg(j-1,ici1,k) - fg(j-1,i,k)
-                fls2 = fg(j+1,ici1,k) - fg(j+1,i,k)
-                fls3 = fg(j,ice1,k)   - fg(j,i-1,k)
-                fls4 = fg(j,ici1+1,k) - fg(j,i+1,k)
-                ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-              end do
-            end do
-          end do
-        end if
-        if ( cba%nn /= 0 ) then
-          do k = 1, kz
-            do i = ici1, ici2
-              do j = jci1, jci2
-                if ( .not. cba%bnorth(j,i) ) cycle
-                ib = cba%ibnd(j,i)
-                xf = cefc(ib,k)
-                xg = cegc(ib,k)
-                fls0 = fg(j,ici2,k) - fg(j,i,k)
-                fls1 = fg(j-1,ici2,k) - fg(j-1,i,k)
-                fls2 = fg(j+1,ici2,k) - fg(j+1,i,k)
-                fls3 = fg(j,ici2-1,k) - fg(j,i-1,k)
-                fls4 = fg(j,ice2,k) - fg(j,i+1,k)
-                ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-              end do
-            end do
-          end do
-        end if
-        if ( cba%nw /= 0 ) then
-          do k = 1, kz
-            do i = ici1, ici2
-              do j = jci1, jci2
-                if ( .not. cba%bwest(j,i) ) cycle
-                ib = cba%ibnd(j,i)
-                xf = cefc(ib,k)
-                xg = cegc(ib,k)
-                fls0 = fg(jci2,i,k) - fg(j,i,k)
-                fls1 = fg(jci2-1,i-1,k) - fg(j,i-1,k)
-                fls2 = fg(jci2,i+1,k) - fg(j,i+1,k)
-                fls3 = fg(jci2-1,i,k) - fg(j-1,i,k)
-                fls4 = fg(jce2,i,k) - fg(j+1,i,k)
-                ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-              end do
-            end do
-          end do
-        end if
-        if ( cba%ne /= 0 ) then
-          do k = 1, kz
-            do i = ici1, ici2
-              do j = jci1, jci2
-                if ( .not. cba%beast(j,i) ) cycle
-                ib = cba%ibnd(j,i)
-                xf = cefc(ib,k)
-                xg = cegc(ib,k)
-                fls0 = fg(jci1,i,k) - fg(j,i,k)
-                fls1 = fg(jci1,i-1,k) - fg(j,i-1,k)
-                fls2 = fg(jci1,i+1,k) - fg(j,i+1,k)
-                fls3 = fg(jce1,i,k) - fg(j-1,i,k)
-                fls4 = fg(jci1+1,i,k) - fg(j+1,i,k)
-                ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-              end do
-            end do
-          end do
-        end if
-      end do
+    if ( .not. cba%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
@@ -1072,120 +1012,92 @@ module mod_che_bdyco
     end if
 
     xt = xbctime + dt
+
     do n = 1, ntr
-      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
-        fg(j,i,k) = (chib0(j,i,k,n) + xt*chibt(j,i,k,n)) - f(j,i,k,n)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        fg(j,i,k) = (chib0(j,i,k,n)+xt*chibt(j,i,k,n)) - f(j,i,k,n)
       end do
       if ( cba%ns /= 0 ) then
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              if ( .not. cba%bsouth(j,i) ) cycle
-              ib = cba%ibnd(j,i)
-              xf = cefc(ib,k)
-              xg = cegc(ib,k)
-              fls0 = fg(j,i,k)
-              fls1 = fg(j-1,i,k)
-              fls2 = fg(j+1,i,k)
-              fls3 = fg(j,i-1,k)
-              fls4 = fg(j,i+1,k)
-              ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          if ( .not. cba%bsouth(j,i) ) cycle
+          ib = cba%ibnd(j,i)
+          xf = cfa * adaptive(-vd(j,1,k),ib)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf)
         end do
       end if
       if ( cba%nn /= 0 ) then
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              if ( .not. cba%bnorth(j,i) ) cycle
-              ib = cba%ibnd(j,i)
-              xf = cefc(ib,k)
-              xg = cegc(ib,k)
-              fls0 = fg(j,i,k)
-              fls1 = fg(j-1,i,k)
-              fls2 = fg(j+1,i,k)
-              fls3 = fg(j,i-1,k)
-              fls4 = fg(j,i+1,k)
-              ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          if ( .not. cba%bnorth(j,i) ) cycle
+          ib = cba%ibnd(j,i)
+          xf = cfa * adaptive(vd(j,iy,k),ib)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf)
         end do
       end if
       if ( cba%nw /= 0 ) then
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              if ( .not. cba%bwest(j,i) ) cycle
-              ib = cba%ibnd(j,i)
-              xf = cefc(ib,k)
-              xg = cegc(ib,k)
-              fls0 = fg(j,i,k)
-              fls1 = fg(j-1,i,k)
-              fls2 = fg(j+1,i,k)
-              fls3 = fg(j,i-1,k)
-              fls4 = fg(j,i+1,k)
-              ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          if ( .not. cba%bwest(j,i) ) cycle
+          ib = cba%ibnd(j,i)
+          xf = cfa * adaptive(-ud(1,i,k),ib)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf)
         end do
       end if
       if ( cba%ne /= 0 ) then
-        do k = 1, kz
-          do i = ici1, ici2
-            do j = jci1, jci2
-              if ( .not. cba%beast(j,i) ) cycle
-              ib = cba%ibnd(j,i)
-              xf = cefc(ib,k)
-              xg = cegc(ib,k)
-              fls0 = fg(j,i,k)
-              fls1 = fg(j-1,i,k)
-              fls2 = fg(j+1,i,k)
-              fls3 = fg(j,i-1,k)
-              fls4 = fg(j,i+1,k)
-              ff(j,i,k,n) = xf*fls0 - xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          if ( .not. cba%beast(j,i) ) cycle
+          ib = cba%ibnd(j,i)
+          xf = cfa * adaptive(ud(jx,i,k),ib)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf)
         end do
       end if
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end subroutine monudgechi
+  end subroutine monudge_chiten
 
   subroutine setup_che_bdycon
     implicit none
     integer(ik4) :: n, k
-    real(rkx) :: fnudge, gnudge
+    real(rkx) :: fnudge, gnudge, xfun
     real(rkx), dimension(kz) :: anudgh
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
-    if ( bdy_nm > d_zero ) then
-      fnudge = bdy_nm
-    else
-      fnudge = 0.1_rkx/dt2
-    end if
-    if ( bdy_dm > d_zero ) then
-      gnudge = bdy_dm
-    else
-      gnudge = 0.02_rkx/dt2
-    end if
-    call exponential_nudging(anudgh)
-    do k = 1, kz
-      do n = 2, nspgx-1
-        cefc(n,k) = fnudge*xfune(n,anudgh(k))
-        cegc(n,k) = gnudge*xfune(n,anudgh(k))
+    if ( idynamic == 3 ) then
+      do n = 1, nspgx
+        xfun = real(nspgx-n,rkx)/real(nspgx,rkx)
+        fcx(n) = 0.05_rkx * rdt * &
+          (1.0_rkx - (cos(0.5_rkx * mathpi * xfun))**2)
       end do
-    end do
+    else
+      if ( bdy_nm > d_zero ) then
+        fnudge = bdy_nm
+      else
+        fnudge = 0.1_rkx/dt2
+      end if
+      if ( bdy_dm > d_zero ) then
+        gnudge = bdy_dm
+      else
+        gnudge = 0.02_rkx/dt2
+      end if
+      call exponential_nudging(anudgh)
+      do k = 1, kz
+        do n = 2, nspgx-1
+          cefc(n,k) = fnudge*xfune(n,anudgh(k))
+          cegc(n,k) = gnudge*xfune(n,anudgh(k))
+        end do
+      end do
+    end if
+
     contains
+
       pure real(rkx) function xfune(mm,an)
         implicit none
         integer(ik4), intent(in) :: mm
         real(rkx), intent(in) :: an
         xfune = exp(-real(mm-2,rkx)/an)
       end function xfune
+
   end subroutine setup_che_bdycon
 
 end module mod_che_bdyco

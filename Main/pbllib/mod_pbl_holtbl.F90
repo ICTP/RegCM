@@ -115,16 +115,18 @@ module mod_pbl_holtbl
     call getmem(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
     call getmem(dza,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:dza')
     call getmem(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
-    call getmem(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
-    call getmem(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
     call getmem(coefe,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coefe')
     call getmem(coeff1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff1')
     call getmem(coeff2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff2')
     call getmem(tpred1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred1')
     call getmem(tpred2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred2')
-    call getmem(akzz1,jci1ga,jci2,ici1ga,ici2,1,kz,'mod_holtbl:akzz1')
-    call getmem(akzz2,jci1ga,jci2,ici1ga,ici2,1,kz,'mod_holtbl:akzz2')
-    call getmem(uvdrage,jci1ga,jci2,ici1ga,ici2,'mod_holtbl:uvdrage')
+    call getmem(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
+    call getmem(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
+    if ( idynamic /= 3 ) then
+      call getmem(akzz1,jci1ga,jci2,ici1ga,ici2,1,kz,'mod_holtbl:akzz1')
+      call getmem(akzz2,jci1ga,jci2,ici1ga,ici2,1,kz,'mod_holtbl:akzz2')
+      call getmem(uvdrage,jci1ga,jci2,ici1ga,ici2,'mod_holtbl:uvdrage')
+    end if
     if ( ichem == 1 ) then
       call getmem(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')
     end if
@@ -483,30 +485,14 @@ module mod_pbl_holtbl
       end do
     end do
 
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-      akzz1(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      akzz2(j,i,k) = hydf(j,i,k)
-    end do
-
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      uvdrage(j,i) = m2p%uvdrag(j,i)
-    end do
-
-    call exchange_lb(akzz1,1,jci1,jci2,ici1,ici2,1,kz)
-    call exchange_lb(akzz2,1,jci1,jci2,ici1,ici2,1,kz)
-    call exchange_lb(uvdrage,1,jci1,jci2,ici1,ici2)
-
     if ( idynamic == 3 ) then
-      !
-      !   calculate coefficients at dot points for u
-      !
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 2:kz )
-        betak(j,i,k) = 0.5_rkx * (akzz1(j-1,i,k)+akzz1(j,i,k))
+
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        alphak(j,i,k) = hydf(j,i,k)
       end do
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
-        alphak(j,i,k) = 0.5_rkx * (akzz2(j-1,i,k)+akzz2(j,i,k))
+
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
+        betak(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
       end do
       !
       ! start now procedure for implicit diffusion calculations
@@ -523,92 +509,18 @@ module mod_pbl_holtbl
       !
       ! Atmosphere top
 #ifdef STDPAR_FIXED
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
 #else
       !$acc parallel loop collapse(2) gang vector
       do i = ici1, ici2
-      do j = jdii1, jdii2
-#endif
-        coef1 = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3 = d_zero
-        coefe(j,i,1) = coef1/coef2
-        coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2
-        ! top to bottom
-        !$acc loop seq
-        do k = 2, kzm1
-          coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3 = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
-          coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
-               coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
-        end do
-        ! Nearest to surface
-        coef1 = d_zero
-        coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
-        drgdot = 0.5_rkx * (uvdrage(j-1,i)+uvdrage(j,i))
-        uflxsf = drgdot*m2p%udatm(j,i,kz)
-        coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%udatm(j,i,kz) - dt*alphak(j,i,kz)*uflxsf + &
-             coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-        !
-        ! All coefficients have been computed, predict field and put it in
-        ! temporary work space tpred
-        !
-        tpred1(j,i,kz) = coeff1(j,i,kz)
-        !$acc loop seq
-        do k = kzm1, 1, -1
-          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-        end do
-#ifndef STDPAR_FIXED
-      end do
-#endif
-      end do
-      !
-      !   calculate tendency due to vertical diffusion using temporary
-      !   predicted field
-      !
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
-        p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
-                          (tpred1(j,i,k)-m2p%udatm(j,i,k))*rdt
-      end do
-      !
-      !   calculate coefficients at dot points for v wind
-      !
-      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 2:kz )
-        betak(j,i,k) = 0.5_rkx * (akzz1(j,i-1,k)+akzz1(j,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
-        alphak(j,i,k) = 0.5_rkx * (akzz2(j,i-1,k)+akzz2(j,i,k))
-      end do
-      !
-      ! start now procedure for implicit diffusion calculations
-      ! performed separately for wind (dot points)
-      ! and temperature and water vapor (cross points)
-      ! countergradient term is not included in the implicit diffusion
-      ! scheme its effect is included as in the old explicit scheme
-      ! calculations assume fluxes positive upward, so the sign in front
-      ! of uflxsf and vflxsf has been changed in the various terms
-      !
-      ! wind components
-      !
-      ! first compute coefficients of the tridiagonal matrix
-      !
-      ! Atmosphere top
-#ifdef STDPAR_FIXED
-      do concurrent ( j = jci1:jci2, i = idii1:idii2 )
-#else
-      !$acc parallel loop collapse(2) gang vector
-      do i = idii1, idii2
       do j = jci1, jci2
 #endif
         coef1 = dt*alphak(j,i,1)*betak(j,i,2)
         coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
         coef3 = d_zero
         coefe(j,i,1) = coef1/coef2
-        coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2
+        coeff1(j,i,1) = m2p%uxatm(j,i,1)/coef2
+        coeff2(j,i,1) = m2p%vxatm(j,i,1)/coef2
         ! top to bottom
         !$acc loop seq
         do k = 2, kzm1
@@ -616,25 +528,31 @@ module mod_pbl_holtbl
           coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
           coef3 = dt*alphak(j,i,k)*betak(j,i,k)
           coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
-          coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
+          coeff1(j,i,k) = (m2p%uxatm(j,i,k) + &
+               coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
+          coeff2(j,i,k) = (m2p%vxatm(j,i,k) + &
                coef3*coeff2(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
         end do
         ! Nearest to surface
         coef1 = d_zero
         coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
         coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
-        drgdot = 0.5_rkx * (uvdrage(j,i-1)+uvdrage(j,i))
-        vflxsf = drgdot*m2p%vdatm(j,i,kz)
+        uflxsf = m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)
+        vflxsf = m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)
         coefe(j,i,kz) = d_zero
-        coeff2(j,i,kz) = (m2p%vdatm(j,i,kz) - dt*alphak(j,i,kz)*vflxsf + &
+        coeff1(j,i,kz) = (m2p%uxatm(j,i,kz) - dt*alphak(j,i,kz)*uflxsf + &
+             coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
+        coeff2(j,i,kz) = (m2p%vxatm(j,i,kz) - dt*alphak(j,i,kz)*vflxsf + &
              coef3*coeff2(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
         !
         ! All coefficients have been computed, predict field and put it in
         ! temporary work space tpred
         !
+        tpred1(j,i,kz) = coeff1(j,i,kz)
         tpred2(j,i,kz) = coeff2(j,i,kz)
         !$acc loop seq
         do k = kzm1, 1, -1
+          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
           tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
         end do
 #ifndef STDPAR_FIXED
@@ -645,12 +563,29 @@ module mod_pbl_holtbl
       !   calculate tendency due to vertical diffusion using temporary
       !   predicted field
       !
-      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
+                          (tpred1(j,i,k)-m2p%uxatm(j,i,k))*rdt
         p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
-                          (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt
+                          (tpred2(j,i,k)-m2p%vxatm(j,i,k))*rdt
       end do
 
     else
+
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
+        akzz1(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        akzz2(j,i,k) = hydf(j,i,k)
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        uvdrage(j,i) = m2p%uvdrag(j,i)
+      end do
+
+      call exchange_lb(akzz1,1,jci1,jci2,ici1,ici2,1,kz)
+      call exchange_lb(akzz2,1,jci1,jci2,ici1,ici2,1,kz)
+      call exchange_lb(uvdrage,1,jci1,jci2,ici1,ici2)
+
       !
       !   calculate coefficients at dot points for u and v wind
       !

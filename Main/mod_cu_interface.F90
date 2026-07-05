@@ -114,12 +114,11 @@ module mod_cu_interface
       call allocate_mod_cu_bm
     end if
     if ( any(icup == 4) .or. any(icup == 5) ) then
-      if ( idynamic == 3 ) then
-        call getmem(utend,jdi1gb,jdi2gb,ici1,ici2,1,kz,'pbl_common:utend')
-        call getmem(vtend,jci1,jci2,idi1gb,idi2gb,1,kz,'pbl_common:vtend')
-      else
+      if ( idynamic /= 3 ) then
         call getmem(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
         call getmem(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
+        call getmem(utenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:utenx')
+        call getmem(vtenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:vtenx')
       end if
     end if
     if ( any(icup == 4) ) then
@@ -128,8 +127,6 @@ module mod_cu_interface
     if ( any(icup == 5) ) then
       if ( iconv /= 4 ) call init_convect_tables
       call allocate_mod_cu_tiedtke
-      call getmem(utenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:utenx')
-      call getmem(vtenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:vtenx')
     end if
     if ( any(icup == 6) ) then
       call allocate_mod_cu_kf
@@ -183,16 +180,16 @@ module mod_cu_interface
       call assignpnt(mo_atm%vten,m2c%vten)
       if ( ichem == 1 ) call assignpnt(mo_atm%chiten,m2c%chiten)
       call assignpnt(mo_atm%tten,c2m%tten)
+      call assignpnt(mo_atm%qxten,c2m%qxten)
       call assignpnt(mo_atm%uten,c2m%uten)
       call assignpnt(mo_atm%vten,c2m%vten)
-      call assignpnt(mo_atm%qxten,c2m%qxten)
       if ( ichem == 1 ) call assignpnt(mo_atm%chiten,c2m%chiten)
     else
+      call assignpnt(utenx,m2c%uten)
+      call assignpnt(vtenx,m2c%vten)
       call assignpnt(aten%t,m2c%tten,pc_physic)
       call assignpnt(aten%qx,m2c%qxten,pc_physic)
       call assignpnt(aten%qx,m2c%dynqx,pc_dynamic)
-      call assignpnt(aten%u,m2c%uten,pc_physic)
-      call assignpnt(aten%v,m2c%vten,pc_physic)
       if ( ichem == 1 ) call assignpnt(aten%chi,m2c%chiten,pc_physic)
       ! OUTPUT
       call assignpnt(aten%t,c2m%tten,pc_physic)
@@ -281,26 +278,14 @@ module mod_cu_interface
           cu_vten(:,:,:) = d_zero
           !$acc end kernels
           if ( any(icup == 5) ) then
-            if ( idynamic == 3 ) then
-              do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-                utend(j,i,k) = m2c%uten(j,i,k)
-              end do
-              do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-                vtend(j,i,k) = m2c%vten(j,i,k)
-              end do
-              call uvtentotenx(utend,vtend,utenx,vtenx)
-            else
+            if ( idynamic /= 3 ) then
               do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
-                utend(j,i,k) = m2c%uten(j,i,k)
-                vtend(j,i,k) = m2c%vten(j,i,k)
+                utend(j,i,k) = aten%u(j,i,k,pc_physic)
+                vtend(j,i,k) = aten%v(j,i,k,pc_physic)
               end do
               call uvdot2cross(utend,vtend,utenx,vtenx)
             end if
           end if
-          !$acc kernels
-          utend(:,:,:) = d_zero
-          vtend(:,:,:) = d_zero
-          !$acc end kernels
         end if
         !$acc kernels
         cu_qten(:,:,:,:) = d_zero
@@ -374,7 +359,7 @@ module mod_cu_interface
             case (4)
               call cupemandrv(m2c)
             case (5)
-              call tiedtkedrv(m2c,utenx,vtenx)
+              call tiedtkedrv(m2c)
             case (6)
               call kfdrv(m2c)
           end select
@@ -385,7 +370,7 @@ module mod_cu_interface
             case (4)
               call cupemandrv(m2c)
             case (5)
-              call tiedtkedrv(m2c,utenx,vtenx)
+              call tiedtkedrv(m2c)
             case (6)
               call kfdrv(m2c)
           end select
@@ -395,7 +380,7 @@ module mod_cu_interface
             case (4)
               call cupemandrv(m2c)
             case (5)
-              call tiedtkedrv(m2c,utenx,vtenx)
+              call tiedtkedrv(m2c)
             case (6)
               call kfdrv(m2c)
           end select
@@ -404,9 +389,7 @@ module mod_cu_interface
         ! Update output wind cumulus tendencies (cross to dot points)
 
         if ( any(icup == 5) .or. any(icup == 4) ) then
-          if ( idynamic == 3 ) then
-            call tenxtouvten(cu_uten,cu_vten,utend,vtend)
-          else
+          if ( idynamic /= 3 ) then
             call uvcross2dot(cu_uten,cu_vten,utend,vtend)
           end if
         end if
@@ -445,11 +428,9 @@ module mod_cu_interface
         end do
 
         if ( any(icup == 5) .or. any(icup == 4) ) then
-          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-            c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)
-          end do
-          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-            c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+            c2m%uten(j,i,k) = c2m%uten(j,i,k) + cu_uten(j,i,k)
+            c2m%vten(j,i,k) = c2m%vten(j,i,k) + cu_vten(j,i,k)
           end do
         end if
 

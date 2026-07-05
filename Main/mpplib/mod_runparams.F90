@@ -180,7 +180,6 @@ module mod_runparams
   logical, parameter, public :: moloch_do_test_2 = .false.
   real(rkx), public :: mo_dzita, mo_anu2
   logical, public :: mo_divfilter = .false.
-  logical, public :: mo_turn = .false.
   logical, public :: mo_advturn = .true.
   integer(ik4), public :: mo_nzfilt
   integer(ik4), public :: mo_nadv

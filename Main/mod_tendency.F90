@@ -439,7 +439,7 @@ module mod_tendency
           call raydamp(atm0%zd,atm2%u,atm2%v,uten,vten,d_zero)
           call raydamp(atm0%z,atm2%pp,ppten,d_zero)
         else
-          call raydamp(atm0%zd,atm2%u,atm2%v,uten,vten,xub,xvb)
+          call raydamp(atm0%zd,atm2%u,atm2%v,uten,vten,dub,dvb)
           call raydamp(atm0%z,atm2%pp,ppten,xppb)
         end if
         call raydamp(atm0%zf,atm2%w,wten,d_zero)
@@ -1375,7 +1375,7 @@ module mod_tendency
         end if
         call nudge(iboudy,atm2%t,xtb,tdyn)
         call nudge(iboudy,atm2%qx,xqb,qxdyn,iqv)
-        call nudge(iboudy,atm2%u,atm2%v,xub,xvb,udyn,vdyn)
+        call nudge(iboudy,atm2%u,atm2%v,dub,dvb,udyn,vdyn)
         if ( is_present_qc( ) ) then
           call nudge(iboudy,atm2%qx,xlb,qxdyn,iqc)
         end if
@@ -1393,7 +1393,7 @@ module mod_tendency
       else if ( iboudy == 4 ) then
         call sponge(xtb,tten)
         call sponge(xqb,qxten,iqv)
-        call sponge(xub,xvb,uten,vten)
+        call sponge(dub,dvb,uten,vten)
         if ( is_present_qc( ) ) then
           call sponge(xlb,qxten,iqc)
         end if

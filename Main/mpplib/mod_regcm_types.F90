@@ -735,10 +735,10 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )       ! aten%t
     real(rkx), pointer, contiguous, dimension(:,:,:) :: uten => null( )       ! aten%u
     real(rkx), pointer, contiguous, dimension(:,:,:) :: vten => null( )       ! aten%v
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: utend => null( )      ! aten%u
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: vtend => null( )      ! aten%v
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxten => null( )    ! aten%qx
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tketen => null( )     ! aten%tke
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: uxten => null( )      ! uxten%u
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vxten => null( )      ! uxten%v
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten => null( )   ! chiten
     real(rkx), pointer, contiguous, dimension(:,:,:) :: remdrd => null( )     ! remdrd
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tkepbl => null( )     ! MYJ pbl

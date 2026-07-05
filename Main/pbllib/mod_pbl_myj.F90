@@ -476,8 +476,8 @@ module mod_pbl_myj
         ! compute primary variable tendencies
         !
         do k = 1, kz
-          p2m%uxten(j,i,k) = (uk(k)-m2p%uxatm(j,i,k))*rdtturbl
-          p2m%vxten(j,i,k) = (vk(k)-m2p%vxatm(j,i,k))*rdtturbl
+          p2m%uten(j,i,k) = p2m%uten(j,i,k)+(uk(k)-m2p%uxatm(j,i,k))*rdtturbl
+          p2m%vten(j,i,k) = p2m%vten(j,i,k)+(vk(k)-m2p%vxatm(j,i,k))*rdtturbl
         end do
       end do
     end do main_integration

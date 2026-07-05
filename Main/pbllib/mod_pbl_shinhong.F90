@@ -264,8 +264,8 @@ module mod_pbl_shinhong
           ibin = (i-ici1)*nj+(j-jci1+1)
           p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
             (rpfac(ibin)*ttnp(ibin,kk)/pi2d(ibin,kk))
-          p2m%uxten(j,i,k) = p2m%uxten(j,i,k)+(rpfac(ibin)*utnp(ibin,kk))
-          p2m%vxten(j,i,k) = p2m%vxten(j,i,k)+(rpfac(ibin)*vtnp(ibin,kk))
+          p2m%uten(j,i,k) = p2m%uten(j,i,k)+(rpfac(ibin)*utnp(ibin,kk))
+          p2m%vten(j,i,k) = p2m%vten(j,i,k)+(rpfac(ibin)*vtnp(ibin,kk))
           p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
             (rpfac(ibin)*qtnp(ibin,kk))
           p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &

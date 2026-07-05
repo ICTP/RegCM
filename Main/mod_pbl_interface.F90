@@ -77,12 +77,7 @@ module mod_pbl_interface
       call init_shinhong_pbl
     end if
     if ( ibltyp > 1 ) then
-      if ( idynamic == 3 ) then
-        call getmem(utenx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'pbl_common:utenx')
-        call getmem(vtenx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'pbl_common:vtenx')
-        call getmem(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
-        call getmem(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
-      else
+      if ( idynamic /= 3 ) then
         call getmem(utenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:utenx')
         call getmem(vtenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:vtenx')
         call getmem(utend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:utend')
@@ -166,8 +161,10 @@ module mod_pbl_interface
       call assignpnt(mo_atm%chiten,p2m%chiten)
     else
       call assignpnt(aten%t,p2m%tten,pc_physic)
-      call assignpnt(aten%u,p2m%uten,pc_physic)
-      call assignpnt(aten%v,p2m%vten,pc_physic)
+      call assignpnt(utenx,p2m%uten)
+      call assignpnt(vtenx,p2m%vten)
+      call assignpnt(aten%u,p2m%utend,pc_physic)
+      call assignpnt(aten%v,p2m%vtend,pc_physic)
       call assignpnt(aten%qx,p2m%qxten,pc_physic)
       if ( ibltyp == 2 ) then
         call assignpnt(aten%tke,p2m%tketen,pc_physic)
@@ -178,8 +175,6 @@ module mod_pbl_interface
       end if
       call assignpnt(aten%chi,p2m%chiten,pc_physic)
     end if
-    call assignpnt(utenx,p2m%uxten)
-    call assignpnt(vtenx,p2m%vxten)
     call assignpnt(remdrd,p2m%remdrd)
     call assignpnt(zpbl,p2m%zpbl)
     call assignpnt(kpbl,p2m%kpbl)
@@ -194,87 +189,39 @@ module mod_pbl_interface
       case (1)
         call holtbl(m2p,p2m)
       case (2)
-        utenx = d_zero
-        vtenx = d_zero
-        utend = d_zero
-        vtend = d_zero
         call uwtcm(m2p,p2m)
-        if ( idynamic == 3 ) then
-          call tenxtouvten(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
-          end do
-          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
-          end do
-        else
+        if ( idynamic /= 3 ) then
           call uvcross2dot(utenx,vtenx,utend,vtend)
           do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
-            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
-            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
+            p2m%utend(j,i,k) = p2m%utend(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+            p2m%vtend(j,i,k) = p2m%vtend(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
           end do
         end if
       case (3)
-        utenx = d_zero
-        vtenx = d_zero
-        utend = d_zero
-        vtend = d_zero
         call pbl_gfs(m2p,p2m)
-        if ( idynamic == 3 ) then
-          call tenxtouvten(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
-          end do
-          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
-          end do
-        else
+        if ( idynamic /= 3 ) then
           call uvcross2dot(utenx,vtenx,utend,vtend)
           do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
-            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
-            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
+            p2m%utend(j,i,k) = p2m%utend(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+            p2m%vtend(j,i,k) = p2m%vtend(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
           end do
         end if
       case (4)
-        utenx = d_zero
-        vtenx = d_zero
-        utend = d_zero
-        vtend = d_zero
         call myjpbl(m2p,p2m)
-        if ( idynamic == 3 ) then
-          call tenxtouvten(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
-          end do
-          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
-          end do
-        else
+        if ( idynamic /= 3 ) then
           call uvcross2dot(utenx,vtenx,utend,vtend)
           do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
-            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
-            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
+            p2m%utend(j,i,k) = p2m%utend(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+            p2m%vtend(j,i,k) = p2m%vtend(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
           end do
         end if
       case (5)
-        utenx = d_zero
-        vtenx = d_zero
-        utend = d_zero
-        vtend = d_zero
         call shinhong_pbl(m2p,p2m)
-        if ( idynamic == 3 ) then
-          call tenxtouvten(utenx,vtenx,utend,vtend)
-          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
-          end do
-          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
-          end do
-        else
+        if ( idynamic /= 3 ) then
           call uvcross2dot(utenx,vtenx,utend,vtend)
           do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
-            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
-            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
+            p2m%utend(j,i,k) = p2m%utend(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+            p2m%vtend(j,i,k) = p2m%vtend(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
           end do
         end if
       case default

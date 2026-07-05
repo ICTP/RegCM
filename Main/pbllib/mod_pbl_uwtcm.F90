@@ -705,8 +705,8 @@ module mod_pbl_uwtcm
         p2m%tten(j,i,k) = p2m%tten(j,i,k)+rpfac*((thx(k)-thxs(k))*exnerhl(k))
         p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv)+rpfac*(qx(k)-qxs(k))
         p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc)+rpfac*(qcx(k)-qcxs(k))
-        p2m%uxten(j,i,k) = (ux(k)-uxs(k))*rdt
-        p2m%vxten(j,i,k) = (vx(k)-vxs(k))*rdt
+        p2m%uten(j,i,k) = p2m%uten(j,i,k) + (ux(k)-uxs(k))*rdt
+        p2m%vten(j,i,k) = p2m%vten(j,i,k) + (vx(k)-vxs(k))*rdt
         ! Momentum diffusivity
         uwstate%kzm(j,i,k) = kzm(k)
         ! Scalar diffusivity

@@ -2220,10 +2220,7 @@ module mod_params
     ! Calculate boundary areas per processor
     !
     call setup_boundaries(cross,cross,ba_cr)
-    if ( idynamic == 3 ) then
-      call setup_boundaries(dot,cross,ba_ut)
-      call setup_boundaries(cross,dot,ba_vt)
-    else
+    if ( idynamic /= 3 ) then
       call setup_boundaries(dot,dot,ba_dt)
     end if
 
@@ -2231,13 +2228,15 @@ module mod_params
     call allocate_v2dbound(xtsb,cross)
     call allocate_v3dbound(xtb,kz,cross)
     call allocate_v3dbound(xqb,kz,cross)
-    call allocate_v3dbound(xub,kz,dot)
-    call allocate_v3dbound(xvb,kz,dot)
+    call allocate_v3dbound(dub,kz,dot)
+    call allocate_v3dbound(dvb,kz,dot)
     if ( idynamic == 2 ) then
       call allocate_v3dbound(xppb,kz,cross)
       call allocate_v3dbound(xwwb,kzp1,cross)
     else if ( idynamic == 3 ) then
       call allocate_v3dbound(xpaib,kz,cross)
+      call allocate_v3dbound(xub,kz,cross)
+      call allocate_v3dbound(xvb,kz,cross)
     end if
 
     if ( myid == italk ) then

@@ -37,7 +37,7 @@ module mod_atm_stub
   type(domain_subgrid), public :: mdsub
   type(surfstate), public :: sfs
 
-  type(v3dbound), public :: xtb, xqb, xub, xvb, xlb, xib, xppb, xwwb, xpaib
+  type(v3dbound), public :: xtb, xqb, dub, dvb, xlb, xib, xppb, xwwb, xpaib
   type(v2dbound), public :: xpsb, xtsb
 
   type(lm_exchange), public :: lm
@@ -438,10 +438,10 @@ module mod_atm_stub
       call allocate_v2dbound(xtsb,cross)
       call allocate_v3dbound(xtb,kz,cross)
       call allocate_v3dbound(xqb,kz,cross)
-      call allocate_v3dbound(xub,kz,dot)
-      call allocate_v3dbound(xlb,kz,dot)
-      call allocate_v3dbound(xib,kz,dot)
-      call allocate_v3dbound(xvb,kz,dot)
+      call allocate_v3dbound(xlb,kz,cross)
+      call allocate_v3dbound(xib,kz,cross)
+      call allocate_v3dbound(dub,kz,dot)
+      call allocate_v3dbound(dvb,kz,dot)
       if ( idynamic == 3 ) then
         call allocate_v3dbound(xpaib,kz,cross)
       end if
@@ -661,7 +661,7 @@ module mod_atm_stub
         call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
 
-      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0, &
+      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,dub%b0,dvb%b0,xtb%b0, &
                      xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0,xpaib%b0)
 
       if ( myid == italk ) then
@@ -675,12 +675,12 @@ module mod_atm_stub
 
       if ( idynamic == 3 ) then
         xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
-        call exchange_lr(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange_bt(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_lr(dub%b0,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_bt(dvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
       else
         xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
-        call exchange(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dub%b0,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
       end if
 
       bdydate2 = bdydate2 + intbdy
@@ -698,7 +698,7 @@ module mod_atm_stub
         end if
       end if
 
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1, &
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,dub%b1,dvb%b1,xtb%b1, &
                      xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,xpaib%b1)
 
       if ( myid == italk ) then
@@ -712,29 +712,29 @@ module mod_atm_stub
       !
       if ( idynamic == 3 ) then
         xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
-        call exchange_lr(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange_bt(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_lr(dub%b1,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_bt(dvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
       else
         xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
-        call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dub%b1,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
       end if
       !
       ! Calculate time varying component
       !
-      call timeint(xub%b1,xub%b0,xub%bt,jde1,jde2,ide1,ide2,1,kz)
-      call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(dub%b1,dub%b0,dub%bt,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(dvb%b1,dvb%b0,dvb%bt,jde1,jde2,ide1,ide2,1,kz)
       call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
       call timeint(xqb%b1,xqb%b0,xqb%bt,jce1,jce2,ice1,ice2,1,kz)
       call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
       if ( idynamic == 3 ) then
         call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1,jce2,ice1,ice2,1,kz)
-        call exchange_lr(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange_bt(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_lr(dub%bt,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_bt(dvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
       else
-        call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dub%bt,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
       end if
 
       if ( rcmtimer%start( ) ) then
@@ -762,8 +762,8 @@ module mod_atm_stub
 
       xbctime = d_zero
 
-      xub%b0(:,:,:) = xub%b1(:,:,:)
-      xvb%b0(:,:,:) = xvb%b1(:,:,:)
+      dub%b0(:,:,:) = dub%b1(:,:,:)
+      dvb%b0(:,:,:) = dvb%b1(:,:,:)
       xtb%b0(:,:,:) = xtb%b1(:,:,:)
       xqb%b0(:,:,:) = xqb%b1(:,:,:)
       xtsb%b0(:,:) = xtsb%b1(:,:)
@@ -786,35 +786,35 @@ module mod_atm_stub
           call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
         end if
       end if
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1, &
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,dub%b1,dvb%b1,xtb%b1, &
                      xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1,xpaib%b1)
 
       if ( idynamic == 3 ) then
         xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
-        call exchange_lr(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange_bt(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_lr(dub%b1,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_bt(dvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
       else
         xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
-        call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dub%b1,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
       end if
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
 
       ! Linear time interpolation
 
-      call timeint(xub%b1,xub%b0,xub%bt,jde1,jde2,ide1,ide2,1,kz)
-      call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(dub%b1,dub%b0,dub%bt,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(dvb%b1,dvb%b0,dvb%bt,jde1,jde2,ide1,ide2,1,kz)
       call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
       call timeint(xqb%b1,xqb%b0,xqb%bt,jce1,jce2,ice1,ice2,1,kz)
       call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
 
       if ( idynamic == 3 ) then
         call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1,jce2,ice1,ice2,1,kz)
-        call exchange_lr(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange_bt(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_lr(dub%bt,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_bt(dvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
       else
-        call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dub%bt,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(dvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
       end if
 
       if ( myid == italk ) then
@@ -843,24 +843,24 @@ module mod_atm_stub
             ps(j,i) = xpsb%b0(j,i) + xt*xpsb%bt(j,i)
             psb = xpaib%b0(j,i,kz) + xt*xpaib%bt(j,i,kz)
             patm(j,i) = (psb**cpovr) * p00
-            uatm(j,i) = 0.50_rkx*(xub%b0(j,i,kz) + xub%b0(j+1,i,kz) + &
-                              xt*(xub%bt(j,i,kz) + xub%bt(j+1,i,kz)))
-            vatm(j,i) = 0.50_rkx*(xvb%b0(j,i,kz) + xvb%b0(j,i+1,kz) + &
-                              xt*(xvb%bt(j,i,kz) + xvb%bt(j,i+1,kz)))
+            uatm(j,i) = 0.50_rkx*(dub%b0(j,i,kz) + dub%b0(j+1,i,kz) + &
+                              xt*(dub%bt(j,i,kz) + dub%bt(j+1,i,kz)))
+            vatm(j,i) = 0.50_rkx*(dvb%b0(j,i,kz) + dvb%b0(j,i+1,kz) + &
+                              xt*(dvb%bt(j,i,kz) + dvb%bt(j,i+1,kz)))
             zatm(j,i) = zeta(j,i)
           else
             psb = xpsb%b0(j,i) + xt*xpsb%bt(j,i)
             cell = ptop /psb
             ps(j,i) = (psb + ptop)*d_1000
             patm(j,i) = (hsigma(kz)*psb + ptop)*d_1000
-            uatm(j,i) = 0.25_rkx*(xub%b0(j,i,kz) + xub%b0(j+1,i,kz) + &
-                                  xub%b0(j,i+1,kz) + xub%b0(j+1,i+1,kz) + &
-                              xt*(xub%bt(j,i,kz) + xub%bt(j+1,i,kz) + &
-                                  xub%bt(j,i+1,kz) + xub%bt(j+1,i+1,kz)))
-            vatm(j,i) = 0.25_rkx*(xvb%b0(j,i,kz) + xvb%b0(j+1,i,kz) + &
-                                  xvb%b0(j,i+1,kz) + xvb%b0(j+1,i+1,kz) + &
-                              xt*(xvb%bt(j,i,kz) + xvb%bt(j+1,i,kz) + &
-                                  xvb%bt(j,i+1,kz) + xvb%bt(j+1,i+1,kz)))
+            uatm(j,i) = 0.25_rkx*(dub%b0(j,i,kz) + dub%b0(j+1,i,kz) + &
+                                  dub%b0(j,i+1,kz) + dub%b0(j+1,i+1,kz) + &
+                              xt*(dub%bt(j,i,kz) + dub%bt(j+1,i,kz) + &
+                                  dub%bt(j,i+1,kz) + dub%bt(j+1,i+1,kz)))
+            vatm(j,i) = 0.25_rkx*(dvb%b0(j,i,kz) + dvb%b0(j+1,i,kz) + &
+                                  dvb%b0(j,i+1,kz) + dvb%b0(j+1,i+1,kz) + &
+                              xt*(dvb%bt(j,i,kz) + dvb%bt(j+1,i,kz) + &
+                                  dvb%bt(j,i+1,kz) + dvb%bt(j+1,i+1,kz)))
             zq = rovg * tatm(j,i) * log((sigma(kzp1)+cell)/(sigma(kz)+cell))
             zatm(j,i) = d_half*zq
           end if

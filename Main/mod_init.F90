@@ -99,10 +99,10 @@ module mod_init
       !
       if ( idynamic < 3 ) then
         do concurrent ( j = jde1:jde2, i = ide1:ide2, k = 1:kz )
-          atm1%u(j,i,k) = xub%b0(j,i,k)
-          atm1%v(j,i,k) = xvb%b0(j,i,k)
-          atm2%u(j,i,k) = xub%b0(j,i,k)
-          atm2%v(j,i,k) = xvb%b0(j,i,k)
+          atm1%u(j,i,k) = dub%b0(j,i,k)
+          atm1%v(j,i,k) = dvb%b0(j,i,k)
+          atm2%u(j,i,k) = dub%b0(j,i,k)
+          atm2%v(j,i,k) = dvb%b0(j,i,k)
         end do
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           atm1%t(j,i,k) = xtb%b0(j,i,k)
@@ -154,10 +154,10 @@ module mod_init
         call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
       else
         do concurrent ( j = jde1:jde2, i = ice1:ice2, k = 1:kz )
-          mo_atm%u(j,i,k) = xub%b0(j,i,k)
+          mo_atm%u(j,i,k) = dub%b0(j,i,k)
         end do
         do concurrent ( j = jce1:jce2, i = ide1:ide2, k = 1:kz )
-          mo_atm%v(j,i,k) = xvb%b0(j,i,k)
+          mo_atm%v(j,i,k) = dvb%b0(j,i,k)
         end do
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%t(j,i,k) = xtb%b0(j,i,k)

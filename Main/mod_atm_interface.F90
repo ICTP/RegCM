@@ -43,10 +43,11 @@ module mod_atm_interface
   type(qendiag), public :: qdiag
   type(surfstate), public :: sfs
   type(slice), public :: atms
+  type(v3dbound), public :: dub, dvb
   type(v3dbound), public :: xtb, xqb, xub, xvb, xppb, xwwb, xpaib
   type(v3dbound), public :: xlb, xib
   type(v2dbound), public :: xpsb, xtsb
-  type(bound_area), public :: ba_cr, ba_dt, ba_ut, ba_vt
+  type(bound_area), public :: ba_cr, ba_dt
   type(reference_atmosphere), public :: atm0
   type(mass_divergence), public :: mdv
   type(nhboundhelp), public :: nhbh0, nhbh1
@@ -547,9 +548,15 @@ module mod_atm_interface
       integer(ik4), intent(in) :: ke
       logical, intent(in) :: ldot
       if ( ldot ) then
-        call getmem(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b0')
-        call getmem(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b1')
-        call getmem(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:bt')
+        if ( idynamic == 3 ) then
+          call getmem(xb%b0,jde1gb,jde2gb,ide1gb,ide2gb,1,ke,'v3dbound:b0')
+          call getmem(xb%b1,jde1gb,jde2gb,ide1gb,ide2gb,1,ke,'v3dbound:b1')
+          call getmem(xb%bt,jde1gb,jde2gb,ide1gb,ide2gb,1,ke,'v3dbound:bt')
+        else
+          call getmem(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b0')
+          call getmem(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b1')
+          call getmem(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:bt')
+        end if
       else
         call getmem(xb%b0,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:b0')
         call getmem(xb%b1,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:b1')
@@ -600,8 +607,8 @@ module mod_atm_interface
       call getmem(atm%qs,jce1,jce2,ice1,ice2,1,kz,'atmstate:qs')
 
       call getmem(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
-      call getmem(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
-      call getmem(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:vten')
+      call getmem(atm%uten,jci1,jci2,ici1,ici2,1,kz,'atmstate:uten')
+      call getmem(atm%vten,jci1,jci2,ici1,ici2,1,kz,'atmstate:vten')
       call getmem(atm%paiten,jci1,jci2,idi1,idi2,1,kz,'atmstate:paiten')
       call getmem(atm%qxten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qxten')
       if ( ibltyp == 2 ) then

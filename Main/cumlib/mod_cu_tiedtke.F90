@@ -187,11 +187,9 @@ module mod_cu_tiedtke
   !
   ! This subroutines calls cucall
   !
-  subroutine tiedtkedrv(m2c,uxten,vxten)
+  subroutine tiedtkedrv(m2c)
     implicit none
     type(mod_2_cum), intent(in) :: m2c
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: uxten
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: vxten
     integer(ik4) :: i, j, k, n, ii
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
@@ -272,8 +270,8 @@ module mod_cu_tiedtke
       pverv(ii,k) = avg_ww(j,i,k)
       pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
       pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
-      pvom(ii,k)  = uxten(j,i,k)
-      pvol(ii,k)  = vxten(j,i,k)
+      pvom(ii,k)  = m2c%uten(j,i,k)
+      pvol(ii,k)  = m2c%vten(j,i,k)
       ! scheme diagnostic output - tendencies due to convection
       pxtec(ii,k) = d_zero ! detrained cloud water tendency
       pqtec(ii,k) = d_zero ! detrained humidity tendency
@@ -408,8 +406,8 @@ module mod_cu_tiedtke
       if ( ktype(ii) > 0 ) then
         i = imap(ii)
         j = jmap(ii)
-        cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
-        cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
+        cu_uten(j,i,k) = pvom(ii,k) - m2c%uten(j,i,k)
+        cu_vten(j,i,k) = pvol(ii,k) - m2c%vten(j,i,k)
         cu_qdetr(j,i,k) = zlude(ii,k)*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
         cu_raincc(j,i,k) = pmflxr(ii,k)
       end if
