@@ -1415,11 +1415,10 @@ module mod_params
       nspgx = max(6,nspgx)
     end if
     if ( idynamic == 3 ) then
-      if ( nspgd /= nspgx ) then
-        if ( myid == italk ) then
-          write(stderr,*) 'Using nspgx value for nspgd in MOLOCH code'
-        end if
-        nspgd = nspgx
+      nspgx = 11
+      nspgd = 11
+      if ( myid == italk ) then
+        write(stdout,*) 'Using nspgx == 11 in MOLOCH code'
       end if
     end if
 
