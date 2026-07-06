@@ -51,6 +51,7 @@ module mod_bdycod
   public :: bdyin_prefetch
 #endif
   public :: sponge, nudge, monudge, setup_bdycon, raydamp
+  public :: spectral_nudge
   public :: is_present_qc, is_present_qi
 
   !
@@ -97,8 +98,15 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:) :: wgtx => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: zn1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cn1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: cn2 => null( )
   real(rkx), allocatable, dimension(:) :: temp
-  real(rkx) :: fnudge, gnudge, rtb
+  integer(ik4) :: km, lm
+  real(rkx), pointer, dimension(:,:), contiguous :: bvx, bvy
+  real(rkx), pointer, dimension(:,:), contiguous :: sxg, syg
+  real(rkx), pointer, dimension(:,:), contiguous :: sx, sy
+  real(rkx) :: fnudge, gnudge, rtb, cn0
   !real(rk8) :: jday
   integer(ik4) :: som_month
 #ifdef ASYNC_NETCDF
@@ -415,6 +423,9 @@ module mod_bdycod
     if ( idynamic == 3 ) then
       call getmem(fcx,1,nspgx,'bdycon:fcx')
       call getmem(fg1,jci1,jci2,ici1,ici2,1,kz,'bdycon:fg1')
+      call getmem(zn1,jce1,jce2,ice1,ice2,'bdycon:zn1')
+      call getmem(cn1,jce1,jce2,ice1,ice2,1,kz,'bdycon:cn1')
+      call getmem(cn2,jce1,jce2,ice1,ice2,'bdycon:cn2')
     else
       if ( iboudy == 1 .or. idynamic == 2 ) then
         call getmem(fcx,2,nspgx-1,'bdycon:fcx')
@@ -494,6 +505,7 @@ module mod_bdycod
           fcx(n) = 1.0_rkx - cos(halfpi*xfun)**2
         end do
       end if
+      if ( mo_spectral_nudging ) call lowpass_init( )
     else
       if ( iboudy == 1 .or. iboudy == 5 .or. iboudy == 6 ) then
         if ( bdy_nm > d_zero ) then
@@ -4281,6 +4293,114 @@ module mod_bdycod
       coeff(i) = (coeff(i)-coeff(np))/(coeff(1)-coeff(np))
     end do
   end subroutine relax_coefficients
+
+  subroutine lowpass_init
+    implicit none
+    real(rkx), dimension(:), allocatable :: px, py
+    real(rkx) :: dx, dy
+    integer(ik4) :: i, j, k, l
+    integer(ik4), parameter :: theoretical_max_fraction = 40
+
+    km = njcross/theoretical_max_fraction
+    lm = nicross/theoretical_max_fraction
+
+    dx = mathpi/real(njcross-1,rkx)
+    dy = mathpi/real(nicross-1,rkx)
+
+    allocate(px(2*km), py(2*lm))
+    call getmem(bvx,jce1,jce2,1,2*km,'lowpass::bvx')
+    call getmem(bvy,ice1,ice2,1,2*km,'lowpass::bvy')
+    call getmem(sx,ice1,ice2,1,2*km,'lowpass::sx')
+    call getmem(sy,jce1,jce2,1,2*km,'lowpass::sy')
+    call getmem(sxg,1,nicross,1,2*km,'lowpass::sxg')
+    call getmem(syg,1,njcross,1,2*km,'lowpass::syg')
+    do k = 1, 2*km
+      px(k) = exp(-(real(k,rkx)/real(km,rkx))**2)
+    end do
+    do l = 1, 2*lm
+      py(l) = exp(-(real(l,rkx)/real(lm,rkx))**2)
+    end do
+    do k = 1, 2*km
+      do j = jce1, jce2
+        bvx(j,k) = sqrt(2.0_rkx/real(njcross-1,rkx)*px(k))*sin(k*(j-2)*dx)
+      end do
+    end do
+    do l = 1, 2*lm
+      do i = ice1, ice2
+        bvy(i,l) = sqrt(2.0_rkx/real(nicross-1,rkx)*py(l))*sin(l*(i-2)*dy)
+      end do
+    end do
+    deallocate(px,py)
+    cn0 = 1.0_rkx/min(15000.0_rkx,dtbdys)
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+      cn1(j,i,k) = min((mo_atm%zeta(j,i,k)/1500.0_rkx)**2, 1.0_rkx)
+    end do
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+      cn2(j,i) = max(1.0_rkx - mddom%ht(j,i)/25000.0_rkx, 0.0_rkx)
+    end do
+  end subroutine lowpass_init
+
+  subroutine lowpass_filter(f)
+    implicit none
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
+    integer(ik4) :: i, j, k, l
+
+    do k = 1, 2*km
+      do i = ice1, ice2
+        sx(i,k) = 0.0_rkx
+        do j = jci1, jci2
+          sx(i,k) = sx(i,k) + f(j,i)*bvx(j,k)
+        end do
+      end do
+    end do
+    call row_reduce(sx,sxg,ice1,ice2)
+    f(:,:) = 0.0_rkx
+    do k = 1, 2*km
+      do i = ice1, ice2
+        do j = jce1, jce2
+          f(j,i) = f(j,i) + sxg(i,k)*bvx(j,k)
+        end do
+      end do
+    end do
+    do l = 1, 2*lm
+      do j = jce1, jce2
+        sy(j,l) = 0.
+        do i = ici1, ici2
+          sy(j,l) = sy(j,l) + f(j,i)*bvy(i,l)
+        end do
+      end do
+    end do
+    call column_reduce(sy,syg,jce1,jce2)
+    f(:,:) = 0.0_rkx
+    do l = 1, 2*lm
+      do i = ice1, ice2
+        do j = jce1, jce2
+          f(j,i) = f(j,i) + syg(j,l)*bvy(i,l)
+        end do
+      end do
+    end do
+  end subroutine lowpass_filter
+
+  subroutine spectral_nudge(f,bnd,ften)
+    implicit none
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
+    type(v3dbound), intent(in) :: bnd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
+    real(rkx) :: xt
+    integer(ik4) :: i, j, k
+
+    xt = xbctime + dt
+
+    do k = 1, kz-3
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+        zn1(j,i) = (bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)) - f(j,i,k)
+      end do
+      call lowpass_filter(zn1)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        ften(j,i,k) = ften(j,i,k) + cn0*cn1(j,i,k)*cn2(j,i)*zn1(j,i)*rdt
+      end do
+    end do
+  end subroutine spectral_nudge
 
   subroutine invert_top_bottom(v)
     implicit none

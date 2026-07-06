@@ -3257,20 +3257,22 @@ module mod_ncout
 
         ! Buffer Zone Control relaxation + diffusion term params
 
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('boundary_nspgx',nspgx))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('boundary_nspgd',nspgd))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('boundary_high_nudge',high_nudge))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('boundary_medium_nudge',medium_nudge))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('boundary_low_nudge',low_nudge))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('boundary_nm',bdy_nm))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('boundary_dm',bdy_dm))
+        if ( idynamic /= 3 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('boundary_nspgx',nspgx))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('boundary_nspgd',nspgd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('boundary_high_nudge',high_nudge))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('boundary_medium_nudge',medium_nudge))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('boundary_low_nudge',low_nudge))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('boundary_nm',bdy_nm))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('boundary_dm',bdy_dm))
+        end if
 
         ! Perturbation control for ensembles
 
@@ -3422,17 +3424,17 @@ module mod_ncout
                     ncattribute_real8('rayleigh_hd',rayhd))
           end if
         end if
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('lateral_boundary_condition_scheme',iboudy))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('semi_lagrangian_advection_scheme',isladvec))
-        if ( isladvec == 1 ) then
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('quasi_monotonic_sl_scheme',iqmsl))
-        end if
         if ( idynamic /= 3 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('diffusion_scheme',idiffu))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('lateral_boundary_condition_scheme',iboudy))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('semi_lagrangian_advection_scheme',isladvec))
+          if ( isladvec == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_integer('quasi_monotonic_sl_scheme',iqmsl))
+          end if
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))

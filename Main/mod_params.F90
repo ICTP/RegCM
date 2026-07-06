@@ -2309,10 +2309,12 @@ module mod_params
       end if
 
       write(stdout,*) 'Physical Parameterizations'
-      write(stdout,'(a,i2)') '  Lateral Boundary conditions : ', iboudy
-      write(stdout,'(a,i2)') '  Semi-Lagrangian Advection   : ', isladvec
-      if ( isladvec == 1 ) then
-        write(stdout,'(a,i2)') '  QMSL algorithm used         : ', iqmsl
+      if ( idynamic /= 3 ) then
+        write(stdout,'(a,i2)') '  Lateral Boundary conditions : ', iboudy
+        write(stdout,'(a,i2)') '  Semi-Lagrangian Advection   : ', isladvec
+        if ( isladvec == 1 ) then
+          write(stdout,'(a,i2)') '  QMSL algorithm used         : ', iqmsl
+        end if
       end if
       if ( any(icup == -1) ) then
         icup(:) = -1
@@ -2347,11 +2349,13 @@ module mod_params
       write(stdout,*) 'Boundary Pameterizations'
       write(stdout,'(a,i3)') '  Num. of bndy points cross  : ', nspgx
       write(stdout,'(a,i3)') '  Num. of bndy points dot    : ', nspgd
-      write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge
-      write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge
-      write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge
-      write(stdout,'(a,f9.6)') '  Nm paramter                : ', bdy_nm
-      write(stdout,'(a,f9.6)') '  Dm paramter                : ', bdy_dm
+      if ( idynamic /= 3 ) then
+        write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge
+        write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge
+        write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge
+        write(stdout,'(a,f9.6)') '  Nm paramter                : ', bdy_nm
+        write(stdout,'(a,f9.6)') '  Dm paramter                : ', bdy_dm
+      end if
 #endif
 #ifdef CLM
       write(stdout,*) 'CLM Pameterizations'
@@ -2505,11 +2509,6 @@ module mod_params
       call allocate_mod_slabocean
       call init_slabocean(sfs,mddom%lndcat,fsw,flw,mddom%xlon,mddom%xlat)
     end if
-    !
-    ! Setup Boundary condition routines.
-    !
-    call setup_bdycon
-    if ( ichem == 1 ) call setup_che_bdycon
 
     if ( idynamic == 2 ) then
       call make_reference_atmosphere
@@ -2517,6 +2516,11 @@ module mod_params
     else if ( idynamic == 3 ) then
       call compute_moloch_static
     end if
+    !
+    ! Setup Boundary condition routines.
+    !
+    call setup_bdycon
+    if ( ichem == 1 ) call setup_che_bdycon
 
     if ( iboudy < 0 .or. iboudy > 7 ) then
       call fatal(__FILE__,__LINE__, &

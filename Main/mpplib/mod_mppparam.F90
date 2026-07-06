@@ -64,6 +64,8 @@ module mod_mppparam
   public :: set_nproc, broadcast_params
 
   integer(ik4) :: cartesian_communicator
+  integer(ik4) :: cartesian_row_communicator
+  integer(ik4) :: cartesian_column_communicator
   !integer(ik4) :: node_local_communicator
   integer(ik4) :: ccid, ccio
 
@@ -515,6 +517,14 @@ module mod_mppparam
     module procedure cross2dot3d
   end interface cross2dot
 
+  interface column_reduce
+    module procedure real8_column_reduce
+  end interface column_reduce
+
+  interface row_reduce
+    module procedure real8_row_reduce
+  end interface row_reduce
+
   type(model_area), public :: ma
 
   real(rk8), pointer, contiguous, dimension(:) :: r8vector1
@@ -563,6 +573,7 @@ module mod_mppparam
   public :: bcast, sumall, maxall, minall, meanall
   public :: gather_r, gather_i
   public :: allgather_r, allgather_i
+  public :: row_reduce, column_reduce
   public :: reorder_subgrid, reorder_glb_subgrid, reorder_add_subgrid
   public :: input_reorder
   public :: trueforall
@@ -1240,6 +1251,7 @@ module mod_mppparam
     logical, dimension(2) :: dim_period
     integer(ik4), dimension(2) :: isearch
     integer(ik4) :: imaxcpus, imax1, imax2, imiss
+    integer(ik4) :: row_color, col_color
     integer(ik4) :: maximum_buffer_size
     data dim_period /.false.,.false./
 
@@ -1439,6 +1451,24 @@ module mod_mppparam
       !if ( mpierr /= mpi_success ) then
       !  call fatal(__FILE__,__LINE__,'mpi_comm_size error.')
       !end if
+#endif
+
+      row_color = myid - (myid/cpus_per_dim(2))*cpus_per_dim(2)
+      col_color = myid / cpus_per_dim(2)
+
+      call mpi_comm_split(cartesian_communicator, row_color, &
+                          nproc, cartesian_row_communicator, mpierr)
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_comm_split error.')
+      end if
+#endif
+      call mpi_comm_split(cartesian_communicator, col_color, &
+                          nproc, cartesian_column_communicator, mpierr)
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_comm_spli error.')
+      end if
 #endif
 
       if ( myid == iocpu ) ccio = ccid
@@ -20575,6 +20605,38 @@ module mod_mppparam
     implicit none
     cc = cartesian_communicator
   end function get_cartcomm
+
+  subroutine real8_column_reduce(m,g,j1,j2)
+    implicit none
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: m
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: g
+    integer(ik4), intent(in) :: j1,j2
+    integer(ik4) :: nk
+    nk = size(m,2)
+    call mpi_allreduce(m,g,nk*(j2-j1+1),mpi_real8,mpi_sum,&
+                       cartesian_column_communicator, mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+  end subroutine real8_column_reduce
+
+  subroutine real8_row_reduce(m,g,i1,i2)
+    implicit none
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: m
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: g
+    integer(ik4), intent(in) :: i1,i2
+    integer(ik4) :: nk
+    nk = size(m,2)
+    call mpi_allreduce(m,g,nk*(i2-i1+1),mpi_real8,mpi_sum,&
+                       cartesian_row_communicator, mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+  end subroutine real8_row_reduce
 
 end module mod_mppparam
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

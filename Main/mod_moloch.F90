@@ -83,7 +83,7 @@ module mod_moloch
   real(rkx), dimension(:,:), pointer, contiguous :: ts => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: t2m => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: ht => null( )
-  real(rkx), dimension(:,:), pointer, contiguous :: ddamp => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: ddamp => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: fmz => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: rfmzu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: rfmzv => null( )
@@ -135,6 +135,7 @@ module mod_moloch
 
   logical, parameter :: do_bdy          = .true.
   logical, parameter :: do_divdamp      = .true.
+  logical, parameter :: do_divfilter    = .true.
   logical, parameter :: do_vadvtwice    = .true.
   logical, parameter :: do_phys         = .true.
   logical, parameter :: do_convection   = .true.
@@ -150,8 +151,8 @@ module mod_moloch
   logical :: lrotllr
 
   ! Base damping coefficients
-  real(rkx), parameter :: dcoff = 0.0625_rkx
-  real(rkx), parameter :: xdamp = 0.125_rkx
+  real(rkx), parameter :: dcoff = 0.125_rkx
+  real(rkx), parameter :: xdamp = 0.0625_rkx
 
   real(rkx) :: dzita
   integer(ik4) :: jmin, jmax, imin, imax
@@ -182,7 +183,7 @@ module mod_moloch
     call getmem(rmv,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmv')
     call getmem(coru,jde1,jde2,ice1,ice2,'moloch:coru')
     call getmem(corv,jce1,jce2,ide1,ide2,'moloch:corv')
-    call getmem(ddamp,jce1ga,jce2ga,ice1ga,ice2ga,'moloch:ddamp')
+    call getmem(ddamp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:ddamp')
     if ( ibltyp == 2 ) then
       call getmem(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
     end if
@@ -204,14 +205,14 @@ module mod_moloch
     ! Smooth sin vertical profile 1 top -> xdamp ground
     call getmem(xknu,1,kz,'moloch:xknu')
     do concurrent ( k = 1:kz )
-      xknu(k) = 0.5_rkx + xdamp + &
-        (3.0_rkx*xdamp) * sin(halfpi*(1.0_rkx-real(k-1,rkx)/kzm1))
+      xknu(k) = xdamp + &
+        (1.0_rkx-xdamp) * sin(halfpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
   end subroutine allocate_moloch
 
   subroutine init_moloch
     implicit none
-    integer(ik4) :: i, j
+    integer(ik4) :: i, j, k
     real(rkx) :: xfun
     call assignpnt(mddom%msfu,mu)
     call assignpnt(mddom%msfv,mv)
@@ -280,19 +281,19 @@ module mod_moloch
       rmu(j,i) = d_one/mu(j,i)
       rmv(j,i) = d_one/mv(j,i)
     end do
-    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-      ddamp(j,i) = dcoff * dx
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+      ddamp(j,i,k) = xknu(k) * dx
       if ( ( j < nspgx .or. j > jcross2-nspgx+1 ) .or. &
            ( i < nspgx .or. i > icross2-nspgx+1 ) ) then
         xfun = real(nspgx-ba_cr%ibnd(j,i),rkx)/real(nspgx,rkx)
-        ddamp(j,i) = 5.0_rkx*dcoff*dx * (1.0_rkx-(cos(halfpi*xfun)**2))
+        ddamp(j,i,k) = 2.25_rkx*xknu(k)*dx * (1.0_rkx-(cos(halfpi*xfun)**2))
       end if
     end do
     call exchange_lrbt(mx2,1,jde1,jde2,ide1,ide2)
     call exchange_lrbt(rmx,1,jde1,jde2,ide1,ide2)
     call exchange_lrbt(rmu,1,jde1,jde2,ide1,ide2)
     call exchange_lrbt(rmv,1,jde1,jde2,ide1,ide2)
-    call exchange_lrbt(ddamp,1,jce1,jce2,ice1,ice2)
+    call exchange_lrbt(ddamp,1,jce1,jce2,ice1,ice2,1,kz)
     gzitak = gzita(zita,mo_ztop,mo_a0)
     gzitakh = gzita(zitah,mo_ztop,mo_a0)
     dzita = mo_dzita
@@ -559,9 +560,10 @@ module mod_moloch
     implicit none
     integer(ik4) :: i, j, k, n
     ! Newtonian factor
-    real(rkx), parameter :: cfac = 1.0_rkx/3600.0_rkx ! hour-1
+    real(rkx), parameter :: cfac = 1.0_rkx/10800.0_rkx ! 3 hour-1
     ! Mass nudging asymmetry
-    real(rkx), parameter :: asym = 0.30_rkx
+    real(rkx), parameter :: asym = 0.90_rkx
+    real(rkx), save :: tspectral = 0.0_rkx
 
     if ( idiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -579,6 +581,14 @@ module mod_moloch
     call monudge(cfac,t,u,v,xtb,tten)
     call monudge(asym*cfac,pai,u,v,xpaib,paiten)
     call monudge(cfac,qv,u,v,xqb,qvten)
+    if ( mo_spectral_nudging ) then
+      tspectral = tspectral + dtsec
+      if ( int(mod(tspectral,dtrad)) == 0 ) then
+        call spectral_nudge(t,xtb,tten)
+        call spectral_nudge(ux,xub,uten)
+        call spectral_nudge(vx,xvb,vten)
+      end if
+    end if
     if ( idiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         tdiag%bdy(j,i,k) = tten(j,i,k) - ten0(j,i,k)
@@ -611,7 +621,7 @@ module mod_moloch
                    0.5_rkx * zdiv2(j,i,k)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * xknu(k) * p3d(j,i,k)
+      zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * p3d(j,i,k)
     end do
   end subroutine divergence_filter
 
@@ -691,7 +701,7 @@ module mod_moloch
       end if
 
       if ( do_divdamp ) then
-        call divdamp(dts)
+        call divdamp( )
       end if
 
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
@@ -771,7 +781,9 @@ module mod_moloch
         end if
       end if
 
-      if ( mo_divfilter ) call divergence_filter( )
+      if ( do_divfilter ) then
+        call divergence_filter( )
+      end if
 
       ! horizontal momentum equations
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -849,30 +861,28 @@ module mod_moloch
     !@acc call nvtxEndRange
   end subroutine sound
 
-  subroutine divdamp(dts)
+  subroutine divdamp
     implicit none
-    real(rkx), intent(in) :: dts
     integer(ik4) :: i, j, k
-    real(rkx) :: rdts, xdam
+    real(rkx) :: xdam
 
-    rdts = 1.0_rkx / dts
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
     if ( lrotllr ) then
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = xknu(k) * rdts * 0.5_rkx * (ddamp(j-1,i)+ddamp(j,i))
+        xdam = rdt * 0.5_rkx * (ddamp(j-1,i,k)+ddamp(j,i,k))
         u(j,i,k) = u(j,i,k) + xdam * mu(j,i) * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        xdam = xknu(k) * rdts * 0.5_rkx * (ddamp(j,i-1)+ddamp(j,i))
+        xdam = rdt * 0.5_rkx * (ddamp(j,i-1,k)+ddamp(j,i,k))
         v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = xknu(k) * rdts * 0.5_rkx * (ddamp(j-1,i)+ddamp(j,i))
+        xdam = rdt * 0.5_rkx * (ddamp(j-1,i,k)+ddamp(j,i,k))
         u(j,i,k) = u(j,i,k) + xdam * mu(j,i) * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        xdam = xknu(k) * rdts * 0.5_rkx * (ddamp(j,i-1)+ddamp(j,i))
+        xdam = rdt * 0.5_rkx * (ddamp(j,i-1,k)+ddamp(j,i,k))
         v(j,i,k) = v(j,i,k) + xdam * mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
