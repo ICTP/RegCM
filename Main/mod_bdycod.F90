@@ -115,7 +115,7 @@ module mod_bdycod
   real(rkx), parameter :: max_courant = 0.75_rkx
   real(rkx), parameter :: vscale = 1.0_rkx
   real(rkx), parameter :: outflow = 0.1_rkx
-  logical, parameter :: lehmann = .true.
+  logical, parameter :: lehmann = .false.
 
   interface timeint
     module procedure timeint2, timeint3
@@ -488,11 +488,10 @@ module mod_bdycod
     if ( idynamic == 3 ) then
       if ( lehmann ) then
         call relax_coefficients(nspgx-1,min_courant,max_courant,fcx)
-        fcx(:) = fcx(:) * rdt
       else
         do n = 1, nspgx
           xfun = real(nspgx-n,rkx)/real(nspgx,rkx)
-          fcx(n) = rdt * (1.0_rkx-(cos(halfpi*xfun))**2)
+          fcx(n) = 1.0_rkx - cos(halfpi*xfun)**2
         end do
       end if
     else
@@ -4374,7 +4373,7 @@ module mod_bdycod
         if ( .not. ba_cr%bsouth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
         xf = cfa * adaptive(-vd(j,1,k),ib)
-        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf)
+        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf) * rdt
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
@@ -4382,7 +4381,7 @@ module mod_bdycod
         if ( .not. ba_cr%bnorth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
         xf = cfa * adaptive(vd(j,iy,k),ib)
-        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf)
+        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf) * rdt
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
@@ -4390,7 +4389,7 @@ module mod_bdycod
         if ( .not. ba_cr%bwest(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
         xf = cfa * adaptive(-ud(1,i,k),ib)
-        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf)
+        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf) * rdt
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
@@ -4398,7 +4397,7 @@ module mod_bdycod
         if ( .not. ba_cr%beast(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
         xf = cfa * adaptive(ud(jx,i,k),ib)
-        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf)
+        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf) * rdt
       end do
     end if
 #ifdef DEBUG

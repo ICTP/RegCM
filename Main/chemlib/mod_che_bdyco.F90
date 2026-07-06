@@ -1022,7 +1022,7 @@ module mod_che_bdyco
           if ( .not. cba%bsouth(j,i) ) cycle
           ib = cba%ibnd(j,i)
           xf = cfa * adaptive(-vd(j,1,k),ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf) * rdt
         end do
       end if
       if ( cba%nn /= 0 ) then
@@ -1030,7 +1030,7 @@ module mod_che_bdyco
           if ( .not. cba%bnorth(j,i) ) cycle
           ib = cba%ibnd(j,i)
           xf = cfa * adaptive(vd(j,iy,k),ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf) * rdt
         end do
       end if
       if ( cba%nw /= 0 ) then
@@ -1038,7 +1038,7 @@ module mod_che_bdyco
           if ( .not. cba%bwest(j,i) ) cycle
           ib = cba%ibnd(j,i)
           xf = cfa * adaptive(-ud(1,i,k),ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf) * rdt
         end do
       end if
       if ( cba%ne /= 0 ) then
@@ -1046,7 +1046,7 @@ module mod_che_bdyco
           if ( .not. cba%beast(j,i) ) cycle
           ib = cba%ibnd(j,i)
           xf = cfa * adaptive(ud(jx,i,k),ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf) * rdt
         end do
       end if
     end do
@@ -1066,8 +1066,7 @@ module mod_che_bdyco
     if ( idynamic == 3 ) then
       do n = 1, nspgx
         xfun = real(nspgx-n,rkx)/real(nspgx,rkx)
-        fcx(n) = 0.05_rkx * rdt * &
-          (1.0_rkx - (cos(0.5_rkx * mathpi * xfun))**2)
+        fcx(n) = 1.0_rkx - cos(halfpi*xfun)**2
       end do
     else
       if ( bdy_nm > d_zero ) then

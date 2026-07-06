@@ -69,25 +69,23 @@ module mod_lowpass
   subroutine lowpass_filter(f)
     implicit none
     real(rkx), dimension(:,:), intent(inout) :: f
-    real(rkx), dimension(:,:), allocatable :: x, sx, sy
+    real(rkx), dimension(:,:), allocatable :: sx, sy
     integer(ik4) :: i, j, k, l
 
     allocate(sx(nlat,2*km), sy(nlon,2*lm))
-    allocate(x(nlon,nlat))
-    x(:,:) = f(:,:)
     do k = 1, 2*km
       do j = 1, nlat
         sx(j,k) = 0.0_rkx
         do i = 2, nlon-1
-          sx(j,k) = sx(j,k) + x(i,j)*bvx(i,k)
+          sx(j,k) = sx(j,k) + f(i,j)*bvx(i,k)
         end do
       end do
     end do
-    x(:,:) = 0.0_rkx
+    f(:,:) = 0.0_rkx
     do k = 1, 2*km
       do j = 1, nlat
         do i = 1, nlon
-          x(i,j) = x(i,j) + sx(j,k)*bvx(i,k)
+          f(i,j) = f(i,j) + sx(j,k)*bvx(i,k)
         end do
       end do
     end do
@@ -95,19 +93,18 @@ module mod_lowpass
       do i = 1, nlon  ! y-transform
         sy(i,l) = 0.
         do j = 2, nlat-1
-          sy(i,l) = sy(i,l) + x(i,j)*bvy(j,l)
+          sy(i,l) = sy(i,l) + f(i,j)*bvy(j,l)
         end do
       end do
     end do
-    x(:,:) = 0.0_rkx
+    f(:,:) = 0.0_rkx
     do l = 1, 2*lm
       do j = 1, nlat
         do i = 1, nlon
-          x(i,j) = x(i,j) + sy(i,l)*bvy(j,l)
+          f(i,j) = f(i,j) + sy(i,l)*bvy(j,l)
         end do
       end do
     end do
-    f(:,:) = f(:,:) - 0.250_rkx * (f(:,:)-x(:,:))
     deallocate(x,sx,sy)
   end subroutine lowpass_filter
 

@@ -54,7 +54,6 @@ module mod_write
   type(ncvariable2d_mixed), allocatable, save, dimension(:) :: v2dvar_icbc
   type(ncvariable3d_mixed), allocatable, save, dimension(:) :: v3dvar_icbc
   logical :: qli_present = .false.
-  logical, parameter :: apply_filter = .false.
 
   contains
 
@@ -249,7 +248,6 @@ module mod_write
       call getmem(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
       call getmem(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
     else if ( idynamic == 3 ) then
-      if ( apply_filter ) call lowpass_init(xlat,xlon)
       nvar2d = 10
       nvar3d = 5
       call getmem(pai4,1,jx,1,iy,1,kz,'mod_write:pai4')
@@ -649,12 +647,6 @@ module mod_write
     if ( idynamic == 3 ) then
       ! Remember in this case ptop is zero!
       ps4 = ps4*d_10
-      if ( apply_filter ) then
-        do k = 1, kz
-          call lowpass_filter(u4(:,:,k))
-          call lowpass_filter(v4(:,:,k))
-        end do
-      end if
       call pai_compute(jx,iy,kz,ps4,z0,t4,q4,pai4)
     end if
 
