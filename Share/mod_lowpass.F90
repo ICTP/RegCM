@@ -105,7 +105,7 @@ module mod_lowpass
         end do
       end do
     end do
-    deallocate(x,sx,sy)
+    deallocate(sx,sy)
   end subroutine lowpass_filter
 
 end module mod_lowpass
