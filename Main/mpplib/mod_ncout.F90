@@ -3403,9 +3403,11 @@ module mod_ncout
                   ncattribute_integer('sound_timestep_factor',mo_nsound))
           if ( mo_divfilter ) then
             call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_logical('divergence_filtering',mo_divfilter))
+                    ncattribute_logical('divergence_diffusion',mo_divfilter))
+          end if
+          if ( mo_divdamp ) then
             call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_real8('divergence_filtering_factor',mo_anu2))
+                    ncattribute_logical('divergence_damping',mo_divdamp))
           end if
           if ( mo_nzfilt > 0 ) then
             call outstream_addatt(outstream(i)%ncout(j), &

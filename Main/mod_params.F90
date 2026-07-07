@@ -116,7 +116,7 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr, nhbet, nhxkd,       &
       ifrayd, rayndamp, rayalpha0, rayhd, itopnudge,  &
-      mo_divfilter, mo_anu2, mo_nadv, mo_nsound, mo_nzfilt
+      mo_divfilter, mo_divdamp, mo_nadv, mo_nsound, mo_nzfilt
 
     namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw,    &
       iceflglw, liqflglw, icld, irng, imcica, nradfo, rrtm_extend
@@ -347,7 +347,7 @@ module mod_params
     mo_nadv = 3
     mo_nsound = 5
     mo_divfilter = .false.
-    mo_anu2 = 0.6_rkx
+    mo_divdamp = .false.
     mo_nzfilt = kz/3
     !
     ! Rrtm radiation param ;
@@ -1386,7 +1386,7 @@ module mod_params
       end if
       ! Moloch paramters here
       call bcast(mo_divfilter)
-      call bcast(mo_anu2)
+      call bcast(mo_divdamp)
       call bcast(mo_nzfilt)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
@@ -1408,18 +1408,6 @@ module mod_params
     else
       call bcast(nsplit)
       call bcast(lstand)
-    end if
-
-    if ( iboudy == 4 ) then
-      nspgd = max(6,nspgd)
-      nspgx = max(6,nspgx)
-    end if
-    if ( idynamic == 3 ) then
-      nspgx = 11
-      nspgd = 11
-      if ( myid == italk ) then
-        write(stdout,*) 'Using nspgx == 11 in MOLOCH code'
-      end if
     end if
 
     ! Check if really do output
@@ -2156,7 +2144,8 @@ module mod_params
                             mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
                             mddom%coriol,mddom%snowam,mddom%smoist,        &
                             mddom%rmoist,mddom%rts,mddom%dhlake,           &
-                            base_state_ts0,mddom%htu,mddom%htv)
+                            base_state_ts0,mddom%htu,mddom%htv,            &
+                            mddom%rlat,mddom%rlon)
     end if
     if ( moloch_do_test_1 ) then
       ifrayd = 0
@@ -2218,6 +2207,20 @@ module mod_params
     !
     ! Calculate boundary areas per processor
     !
+    if ( idynamic == 3 ) then
+      nspgx = max(5, nint(20.0_rkx * (ds**(-0.35_rkx))))
+      nspgd = nspgx
+      if ( myid == italk ) then
+        write(stdout,'(a,f7.3,a)') ' Resolution of ',ds,' km.'
+        write(stdout,'(a,i3,a)') ' Using nspgx = ',nspgx,' in MOLOCH code'
+      end if
+    else
+      if ( iboudy == 4 ) then
+        nspgd = max(6,nspgd)
+        nspgx = max(6,nspgx)
+      end if
+    end if
+
     call setup_boundaries(cross,cross,ba_cr)
     if ( idynamic /= 3 ) then
       call setup_boundaries(dot,dot,ba_dt)
@@ -2522,9 +2525,11 @@ module mod_params
     call setup_bdycon
     if ( ichem == 1 ) call setup_che_bdycon
 
-    if ( iboudy < 0 .or. iboudy > 7 ) then
-      call fatal(__FILE__,__LINE__, &
-                 'UNSUPPORTED BDY SCHEME.')
+    if ( idynamic /= 3 ) then
+      if ( iboudy < 0 .or. iboudy > 6 ) then
+        call fatal(__FILE__,__LINE__, &
+                   'UNSUPPORTED BDY SCHEME.')
+      end if
     end if
 
     if ( myid == italk ) then
@@ -2949,25 +2954,23 @@ module mod_params
       write(stdout,'(a,f5.0,a)') &
         ' The radiation is computed every ',dtrad/60.0_rkx,' minutes.'
 
-      if ( iboudy == 0 ) then
-        write(stdout,*) 'The lateral boundary conditions are fixed.'
-      else if ( iboudy == 1 ) then
-        write(stdout,*) 'Relaxation boundary conditions (linear method)'
-      else if ( iboudy == 2 ) then
-        write(stdout,*) 'Time dependent boundary conditions are used.'
-      else if ( iboudy == 3 ) then
-        write(stdout,*) 'Inflow/outflow boundary conditions are used.'
-      else if ( iboudy == 4 ) then
-        write(stdout,*) 'Sponge boundary conditions are used.'
-      else if ( iboudy == 5 ) then
-        write(stdout,*) 'Relaxation boundary conditions (exponential method)'
-      else if ( iboudy == 6 ) then
-        write(stdout,*) 'Relaxation boundary conditions (sinusoidal method)'
-      else if ( iboudy == 7 ) then
-        write(stdout,*) 'Relaxation boundary conditions (Lehmann optimal)'
-      end if
-
       if ( idynamic /= 3 ) then
+        if ( iboudy == 0 ) then
+          write(stdout,*) 'The lateral boundary conditions are fixed.'
+        else if ( iboudy == 1 ) then
+          write(stdout,*) 'Relaxation boundary conditions (linear method)'
+        else if ( iboudy == 2 ) then
+          write(stdout,*) 'Time dependent boundary conditions are used.'
+        else if ( iboudy == 3 ) then
+          write(stdout,*) 'Inflow/outflow boundary conditions are used.'
+        else if ( iboudy == 4 ) then
+          write(stdout,*) 'Sponge boundary conditions are used.'
+        else if ( iboudy == 5 ) then
+          write(stdout,*) 'Relaxation boundary conditions (exponential method)'
+        else if ( iboudy == 6 ) then
+          write(stdout,*) 'Relaxation boundary conditions (sinusoidal method)'
+        end if
+
         write(stdout,'(a,7x,a,11x,a,6x,a,7x,a,7x,a,9x,a)') '# k','sigma','a',&
           'dsigma','twt(1)','twt(2)','qcon'
 

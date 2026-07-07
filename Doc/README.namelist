@@ -481,8 +481,8 @@
  mo_nadv = 3,       ! Number of advection loops for phisics loop
  mo_nsound = 5,     ! Number of sound loops for advection loop
  mo_nzfilt = 3,     ! # of top levels where W filter is active (default kz/5)
- mod_divfilter = .false. ! Do divergence filtering
- mo_anu2 = 0.6,          ! Moloch factor for divergence filtering
+ mo_divfilter = .false. ! Do horizontal divergence diffusion
+ mo_divdamp = .false.   ! Do damping of divergence
  /
 !
 ! Hydrostatic core option

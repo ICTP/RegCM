@@ -994,7 +994,7 @@ module mod_projections
     real(rkx), intent(in) :: xlat, xlon
     real(rkx) :: ri, rj
     call llij_rl(pj,xlat,xlon,ri,rj)
-    xmap = real(1.0_rk8/cos(degrad_r8*(pj%p%rlat0+(rj-1)*pj%p%dlat)),rkx)
+    xmap = real(1.0_rk8/cos(degrad_r8*(pj%p%rlat0+(rj-1.0_rk8)*pj%p%dlat)),rkx)
   end function fac_rl
 
   pure elemental real(rkx) function fac_lc(pj,lat) result(xmap)

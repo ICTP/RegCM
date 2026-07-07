@@ -161,7 +161,7 @@ module mod_ncio
   subroutine read_domain_info(ht,lnd,tex,mask,area,xlat,xlon,dlat,dlon, &
                               ulat,ulon,vlat,vlon,msfx,msfd,msfu,msfv,  &
                               coriol,snowam,smoist,rmoist,rts,hlake,ts0,&
-                              htu,htv)
+                              htu,htv,rlat,rlon)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ht
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lnd
@@ -188,6 +188,8 @@ module mod_ncio
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: hlake
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: htu
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: htv
+    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: rlat
+    real(rkx), pointer, contiguous, dimension(:), intent(inout) :: rlon
     real(rkx), intent(out) :: ts0
     real(rkx), dimension(:,:), pointer, contiguous :: tempmoist
     character(len=256) :: dname
@@ -233,6 +235,10 @@ module mod_ncio
       call read_var1d_static(idmin,'kz',sigma,lerror)
       if ( .not. lerror ) then
         call read_var1d_static(idmin,'sigma',sigma)
+      end if
+      if ( idynamic == 3 ) then
+        call read_var1d_static(idmin,'rlat',rlat,lerror)
+        call read_var1d_static(idmin,'rlon',rlon,lerror)
       end if
       call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
       xlat(jde1:jde2,ide1:ide2) = rspace
@@ -369,6 +375,12 @@ module mod_ncio
           call read_var1d_static(idmin,'sigma',sigma)
         end if
         call bcast(sigma)
+        if ( idynamic == 3 ) then
+          call read_var1d_static(idmin,'rlat',rlat,lerror)
+          call read_var1d_static(idmin,'rlon',rlon,lerror)
+          call bcast(rlat)
+          call bcast(rlon)
+        end if
         call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
@@ -494,6 +506,10 @@ module mod_ncio
         call bcast(replacemoist)
         call bcast(replacetemp)
         call bcast(sigma)
+        if ( idynamic == 3 ) then
+          call bcast(rlat)
+          call bcast(rlon)
+        end if
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)

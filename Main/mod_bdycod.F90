@@ -27,6 +27,7 @@ module mod_bdycod
   use mod_runparams
   use mod_regcm_types
   use mod_mppparam
+  use mod_mpmessage
   use mod_memutil
   use mod_atm_interface
   use mod_pbl_interface, only : tkemin
@@ -101,7 +102,6 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:,:) :: zn1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: cn1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: cn2 => null( )
-  real(rkx), allocatable, dimension(:) :: temp
   integer(ik4) :: km, lm
   real(rkx), pointer, dimension(:,:), contiguous :: bvx, bvy
   real(rkx), pointer, dimension(:,:), contiguous :: sxg, syg
@@ -118,12 +118,6 @@ module mod_bdycod
     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
       1.0e8_rkx, 10.0_rkx, 0.01_rkx ]        ! ncc, nc, nr
-
-  real(rkx), parameter :: min_courant = 0.1_rkx
-  real(rkx), parameter :: max_courant = 0.75_rkx
-  real(rkx), parameter :: vscale = 1.0_rkx
-  real(rkx), parameter :: outflow = 0.1_rkx
-  logical, parameter :: lehmann = .false.
 
   interface timeint
     module procedure timeint2, timeint3
@@ -497,13 +491,25 @@ module mod_bdycod
     !
     rtb = d_one / dtbdys
     if ( idynamic == 3 ) then
-      if ( lehmann ) then
-        call relax_coefficients(nspgx-1,min_courant,max_courant,fcx)
+      if ( mo_lehmann ) then
+        fcx(1) = 1.0_rkx
+        call relax_coefficients(nspgx-1,0.1_rkx,0.7_rkx,fcx(2:))
       else
-        do n = 1, nspgx
-          xfun = real(nspgx-n,rkx)/real(nspgx,rkx)
-          fcx(n) = 1.0_rkx - cos(halfpi*xfun)**2
-        end do
+        if ( nspgx > 10 ) then
+          do n = 1, nspgx
+            xfun = real(nspgx-n+1,rkx)/real(nspgx,rkx)
+            fcx(n) = 1.0_rkx - cos(halfpi*xfun)**2
+          end do
+        else
+          nb2 = 2.0_rkx + 0.2_rkx * real(nspgx-5,rkx)
+          do n = 1, nspgx
+            xfun = real(nspgx-n+1,rkx)/real(nspgx,rkx)
+            fcx(n) = 1.0_rkx * xfun**nb2
+          end do
+        end if
+      end if
+      if ( myid == 0 ) then
+        call vprntv(fcx,nspgx,'Boundary coefficients  ')
       end if
       if ( mo_spectral_nudging ) call lowpass_init( )
     else
@@ -581,26 +587,6 @@ module mod_bdycod
             hegd(n,k) = gnudge*xfun
           end do
         end do
-      end if
-      if ( iboudy == 7 ) then
-        allocate(temp(nspgx))
-        call relax_coefficients(nspgx,min_courant,max_courant,temp)
-        do k = 1, kz
-          do n = 2, nspgx-1
-            hefc(n,k) = fnudge * temp(n)
-            hegc(n,k) = gnudge * temp(n)
-          end do
-        end do
-        deallocate(temp)
-        allocate(temp(nspgd))
-        call relax_coefficients(nspgd,min_courant,max_courant,temp)
-        do k = 1, kz
-          do n = 2, nspgd-1
-            hefd(n,k) = fnudge * temp(n)
-            hegd(n,k) = gnudge * temp(n)
-          end do
-        end do
-        deallocate(temp)
       end if
     end if
 #ifdef DEBUG
@@ -4206,93 +4192,6 @@ module mod_bdycod
       end do
     end do
   end subroutine moloch_static_test2
-  !
-  !  Computes optimal relaxation coefficients for lateral
-  !  boundary conditions (Lehmann, MAP, 1993,1-14)
-  !  See the paper for more comments
-  !
-  !  Input:  np       width of boundary relaxation zone
-  !          gmmin    minimal Courant number
-  !          gmmax    maximal Courant number
-  !  Output: coeff    optimal relax. coefficients
-  !
-  subroutine relax_coefficients(np, gmmin, gmmax, coeff)
-    implicit none
-    integer(ik4), intent(in) :: np
-    real(rkx), intent(in) :: gmmin, gmmax
-    real(rkx), dimension(np), intent(out) :: coeff
-
-    ! Local variables for the optimization grid search
-    integer(ik4) :: i, ic, iscale, ip
-    real(rkx) :: c_val, max_ref, min_max_ref, current_ref
-    real(rkx) :: p, cscale, best_p, best_scale
-
-    ! Courant grid sampling configuration
-    integer(ik4), parameter :: nc = 128
-    real(rkx) :: c_grid(nc)
-    real(rkx) :: test_k(np)
-
-    ! 1. Generate a discrete grid of Courant numbers across
-    !    the target spectrum
-    do ic = 1, nc
-      if (nc > 1) then
-        c_grid(ic) = gmmin + (gmmax-gmmin) * real(ic-1,rkx)/real(nc-1,rkx)
-      else
-        c_grid(ic) = gmmin
-      end if
-    end do
-
-    ! 2. Initialize optimization tracking variables
-    min_max_ref = 1.0e30_rkx
-    best_p = 2.0_rkx
-    best_scale = 0.5_rkx
-
-    ! 3. Minimax optimization loop over the parameter space
-    !    (scale factor & exponent)
-    do iscale = 1, 64
-      ! scale ranges from 0.05 to 1.0
-      cscale = 0.05_rkx + real(iscale-1,rkx) * 0.05_rkx
-      do ip = 1, 31
-        ! exponent p ranges from 1.0 to 4.0
-        p = 1.0_rkx + real(ip-1,rkx) * 0.1_rkx
-        ! Construct the candidate relaxation profile
-        ! i = 1  is the outermost boundary point
-        ! i = np is the inner boundary transition
-        do i = 1, np
-          test_k(i) = cscale * (real(np-i,rkx) / real(np-1,rkx))**p
-        end do
-        ! Evaluate the maximum wave reflection metric over the entire
-        ! Courant range
-        max_ref = 0.0_rkx
-        do ic = 1, nc
-          c_val = c_grid(ic)
-          current_ref = 0.0_rkx
-          ! Discrete boundary wave impedance reflection approximation
-          do i = 1, np - 1
-            current_ref = current_ref + abs(test_k(i) - test_k(i+1)) / &
-                          (c_val + 0.5_rkx * (test_k(i) + test_k(i+1)))
-          end do
-          current_ref = current_ref + test_k(np)/(c_val + 0.5_rkx*test_k(np))
-          if ( current_ref > max_ref ) max_ref = current_ref
-        end do
-        ! Keep the parameters that yield the lowest maximum reflection
-        if ( max_ref < min_max_ref ) then
-          min_max_ref = max_ref
-          best_p = p
-          best_scale = cscale
-        end if
-      end do
-    end do
-    ! 4. Populate the output array using the optimized Lehmann-like
-    !    profile parameters
-    do i = 1, np
-      coeff(i) = best_scale * (real(np-i,rkx) / real(np-1,rkx))**best_p
-    end do
-    ! 5. Normalization
-    do i = 1, np
-      coeff(i) = (coeff(i)-coeff(np))/(coeff(1)-coeff(np))
-    end do
-  end subroutine relax_coefficients
 
   subroutine lowpass_init
     implicit none
@@ -4301,8 +4200,8 @@ module mod_bdycod
     integer(ik4) :: i, j, k, l
     integer(ik4), parameter :: theoretical_max_fraction = 40
 
-    km = njcross/theoretical_max_fraction
-    lm = nicross/theoretical_max_fraction
+    km = max(njcross/theoretical_max_fraction,4)
+    lm = max(nicross/theoretical_max_fraction,4)
 
     dx = mathpi/real(njcross-1,rkx)
     dy = mathpi/real(nicross-1,rkx)
@@ -4312,8 +4211,8 @@ module mod_bdycod
     call getmem(bvy,ice1,ice2,1,2*km,'lowpass::bvy')
     call getmem(sx,ice1,ice2,1,2*km,'lowpass::sx')
     call getmem(sy,jce1,jce2,1,2*km,'lowpass::sy')
-    call getmem(sxg,1,nicross,1,2*km,'lowpass::sxg')
-    call getmem(syg,1,njcross,1,2*km,'lowpass::syg')
+    call getmem(sxg,ice1,ice2,1,2*km,'lowpass::sxg')
+    call getmem(syg,jce1,jce2,1,2*km,'lowpass::syg')
     do k = 1, 2*km
       px(k) = exp(-(real(k,rkx)/real(km,rkx))**2)
     end do
@@ -4451,19 +4350,10 @@ module mod_bdycod
     end if
   end subroutine uvstagtox
 
-  pure real(rkx) function adaptive(unorm, n) result(alpha)
-    implicit none
-    real(rkx), intent(in) :: unorm
-    integer(ik4), intent(in) :: n
-    alpha = fcx(n) * 0.5_rkx * &
-      ((1.0_rkx + outflow) - (1.0_rkx - outflow) * tanh(unorm/vscale))
-  end function adaptive
-
-  subroutine monudge(cfa,f,ud,vd,bnd,ften)
+  subroutine monudge(cfa,f,bnd,ften)
     implicit none
     real(rkx), intent(in) :: cfa
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: ud, vd
     type(v3dbound), intent(in) :: bnd
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
     real(rkx) :: xt
@@ -4492,32 +4382,32 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bsouth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = cfa * adaptive(-vd(j,1,k),ib)
-        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf) * rdt
+        xf = cfa * fcx(ib)
+        ften(j,i,k) = ften(j,i,k) + xf/(1.0_rkx+xf)*fg1(j,i,k)*rdt
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bnorth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = cfa * adaptive(vd(j,iy,k),ib)
-        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf) * rdt
+        xf = cfa * fcx(ib)
+        ften(j,i,k) = ften(j,i,k) + xf/(1.0_rkx+xf)*fg1(j,i,k)*rdt
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bwest(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = cfa * adaptive(-ud(1,i,k),ib)
-        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf) * rdt
+        xf = cfa * fcx(ib)
+        ften(j,i,k) = ften(j,i,k) + xf/(1.0_rkx+xf)*fg1(j,i,k)*rdt
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%beast(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = cfa * adaptive(ud(jx,i,k),ib)
-        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)/(1.0_rkx+xf) * rdt
+        xf = cfa * fcx(ib)
+        ften(j,i,k) = ften(j,i,k) + xf/(1.0_rkx+xf)*fg1(j,i,k)*rdt
       end do
     end if
 #ifdef DEBUG

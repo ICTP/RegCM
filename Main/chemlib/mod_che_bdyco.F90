@@ -980,19 +980,9 @@ module mod_che_bdyco
 #endif
   end subroutine nudge_chiten
 
-  pure real(rkx) function adaptive(unorm, n) result(alpha)
-    implicit none
-    real(rkx), intent(in) :: unorm
-    integer(ik4), intent(in) :: n
-
-    alpha = fcx(n) * 0.5_rkx * &
-      ((1.0_rkx + outflow) - (1.0_rkx - outflow) * tanh(unorm/vscale))
-  end function adaptive
-
-  subroutine monudge_chiten(cfa,f,ud,vd,ften)
+  subroutine monudge_chiten(cfa,f,ften)
     implicit none
     real(rkx), intent(in) :: cfa
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: ud, vd
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
     real(rkx) :: xt
@@ -1017,36 +1007,37 @@ module mod_che_bdyco
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         fg(j,i,k) = (chib0(j,i,k,n)+xt*chibt(j,i,k,n)) - f(j,i,k,n)
       end do
+
       if ( cba%ns /= 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           if ( .not. cba%bsouth(j,i) ) cycle
           ib = cba%ibnd(j,i)
-          xf = cfa * adaptive(-vd(j,1,k),ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf) * rdt
+          xf = cfa * fcx(ib)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf/(1.0_rkx+xf)*fg(j,i,k) * rdt
         end do
       end if
       if ( cba%nn /= 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           if ( .not. cba%bnorth(j,i) ) cycle
           ib = cba%ibnd(j,i)
-          xf = cfa * adaptive(vd(j,iy,k),ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf) * rdt
+          xf = cfa * fcx(ib)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf/(1.0_rkx+xf)*fg(j,i,k) * rdt
         end do
       end if
       if ( cba%nw /= 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           if ( .not. cba%bwest(j,i) ) cycle
           ib = cba%ibnd(j,i)
-          xf = cfa * adaptive(-ud(1,i,k),ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf) * rdt
+          xf = cfa * fcx(ib)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf/(1.0_rkx+xf)*fg(j,i,k) * rdt
         end do
       end if
       if ( cba%ne /= 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           if ( .not. cba%beast(j,i) ) cycle
           ib = cba%ibnd(j,i)
-          xf = cfa * adaptive(ud(jx,i,k),ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k)/(1.0_rkx+xf) * rdt
+          xf = cfa * fcx(ib)
+          ften(j,i,k,n) = ften(j,i,k,n) + xf/(1.0_rkx+xf)*fg(j,i,k) * rdt
         end do
       end if
     end do
@@ -1058,16 +1049,29 @@ module mod_che_bdyco
   subroutine setup_che_bdycon
     implicit none
     integer(ik4) :: n, k
-    real(rkx) :: fnudge, gnudge, xfun
+    real(rkx) :: fnudge, gnudge, xfun, nb2
     real(rkx), dimension(kz) :: anudgh
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
     if ( idynamic == 3 ) then
-      do n = 1, nspgx
-        xfun = real(nspgx-n,rkx)/real(nspgx,rkx)
-        fcx(n) = 1.0_rkx - cos(halfpi*xfun)**2
-      end do
+      if ( mo_lehmann ) then
+        fcx(1) = 1.0_rkx
+        call relax_coefficients(nspgx-1,0.1_rkx,0.7_rkx,fcx(2:))
+      else
+        if ( nspgx > 10 ) then
+          do n = 1, nspgx
+            xfun = real(nspgx-n+1,rkx)/real(nspgx,rkx)
+            fcx(n) = 1.0_rkx - cos(halfpi*xfun)**2
+          end do
+        else
+          nb2 = 2.0_rkx + 0.2_rkx * real(nspgx-5,rkx)
+          do n = 1, nspgx
+            xfun = real(nspgx-n+1,rkx)/real(nspgx,rkx)
+            fcx(n) = 1.0_rkx * xfun**nb2
+          end do
+        end if
+      end if
     else
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm

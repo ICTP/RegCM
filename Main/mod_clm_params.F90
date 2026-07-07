@@ -378,7 +378,8 @@ module mod_clm_params
                           mddom%vlat,mddom%vlon,mddom%msfx,mddom%msfd,     &
                           mddom%msfu,mddom%msfv,mddom%coriol,mddom%snowam, &
                           mddom%smoist,mddom%rmoist,mddom%rts,mddom%dhlake,&
-                          base_state_ts0,mddom%htu,mddom%htv)
+                          base_state_ts0,mddom%htu,mddom%htv,mddom%rlat,   &
+                          mddom%rlon)
     call bcast(ptop)
     call bcast(xcone)
 

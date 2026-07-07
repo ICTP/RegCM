@@ -178,10 +178,12 @@ module mod_runparams
   ! Moloch
   logical, parameter, public :: moloch_do_test_1 = .false.
   logical, parameter, public :: moloch_do_test_2 = .false.
-  real(rkx), public :: mo_dzita, mo_anu2
+  real(rkx), public :: mo_dzita
   logical, public :: mo_divfilter = .false.
+  logical, public :: mo_divdamp = .false.
   logical, public :: mo_advturn = .true.
   logical, public :: mo_spectral_nudging = .true.
+  logical, public :: mo_lehmann = .true.
   integer(ik4), public :: mo_nzfilt
   integer(ik4), public :: mo_nadv
   integer(ik4), public :: mo_nsound
@@ -547,6 +549,7 @@ module mod_runparams
   public :: allocate_mod_runparams
   public :: iswater, isocean, islake
   public :: exponential_nudging
+  public :: adaptive, relax_coefficients
 
   contains
 
@@ -620,6 +623,104 @@ module mod_runparams
     end function findwhere
 
   end subroutine exponential_nudging
+
+  pure real(rkx) function adaptive(fcx, unorm, n) result(alpha)
+    implicit none
+    real(rkx), dimension(:), intent(in) :: fcx
+    real(rkx), intent(in) :: unorm
+    integer(ik4), intent(in) :: n
+    real(rkx), parameter :: vscale = 1.0_rkx
+    real(rkx), parameter :: outflow = 0.1_rkx
+    alpha = fcx(n) * 0.5_rkx * &
+      ((1.0_rkx + outflow) - (1.0_rkx - outflow) * tanh(unorm/vscale))
+  end function adaptive
+  !
+  !  Computes optimal relaxation coefficients for lateral
+  !  boundary conditions (Lehmann, MAP, 1993,1-14)
+  !  See the paper for more comments
+  !
+  !  Input:  np       width of boundary relaxation zone
+  !          gmmin    minimal Courant number
+  !          gmmax    maximal Courant number
+  !  Output: coeff    optimal relax. coefficients
+  !
+  subroutine relax_coefficients(np, gmmin, gmmax, coeff)
+    implicit none
+    integer(ik4), intent(in) :: np
+    real(rkx), intent(in) :: gmmin, gmmax
+    real(rkx), dimension(np), intent(out) :: coeff
+
+    ! Local variables for the optimization grid search
+    integer(ik4) :: i, ic, iscale, ip
+    real(rkx) :: c_val, max_ref, min_max_ref, current_ref
+    real(rkx) :: p, cscale, best_p, best_scale
+
+    ! Courant grid sampling configuration
+    integer(ik4), parameter :: nc = 128
+    real(rkx) :: c_grid(nc)
+    real(rkx) :: test_k(np)
+
+    ! 1. Generate a discrete grid of Courant numbers across
+    !    the target spectrum
+    do ic = 1, nc
+      if (nc > 1) then
+        c_grid(ic) = gmmin + (gmmax-gmmin) * real(ic-1,rkx)/real(nc-1,rkx)
+      else
+        c_grid(ic) = gmmin
+      end if
+    end do
+
+    ! 2. Initialize optimization tracking variables
+    min_max_ref = 1.0e30_rkx
+    best_p = 2.0_rkx
+    best_scale = 0.5_rkx
+
+    ! 3. Minimax optimization loop over the parameter space
+    !    (scale factor & exponent)
+    do iscale = 1, 64
+      ! scale ranges from 0.05 to 1.0
+      cscale = 0.05_rkx + real(iscale-1,rkx) * 0.05_rkx
+      do ip = 1, 31
+        ! exponent p ranges from 1.0 to 4.0
+        p = 1.0_rkx + real(ip-1,rkx) * 0.1_rkx
+        ! Construct the candidate relaxation profile
+        ! i = 1  is the outermost boundary point
+        ! i = np is the inner boundary transition
+        do i = 1, np
+          test_k(i) = cscale * (real(np-i,rkx) / real(np-1,rkx))**p
+        end do
+        ! Evaluate the maximum wave reflection metric over the entire
+        ! Courant range
+        max_ref = 0.0_rkx
+        do ic = 1, nc
+          c_val = c_grid(ic)
+          current_ref = 0.0_rkx
+          ! Discrete boundary wave impedance reflection approximation
+          do i = 1, np - 1
+            current_ref = current_ref + abs(test_k(i) - test_k(i+1)) / &
+                          (c_val + 0.5_rkx * (test_k(i) + test_k(i+1)))
+          end do
+          current_ref = current_ref + test_k(np)/(c_val + 0.5_rkx*test_k(np))
+          if ( current_ref > max_ref ) max_ref = current_ref
+        end do
+        ! Keep the parameters that yield the lowest maximum reflection
+        if ( max_ref < min_max_ref ) then
+          min_max_ref = max_ref
+          best_p = p
+          best_scale = cscale
+        end if
+      end do
+    end do
+    ! 4. Populate the output array using the optimized Lehmann-like
+    !    profile parameters
+    do i = 1, np
+      coeff(i) = best_scale * (real(np-i,rkx) / real(np-1,rkx))**best_p
+    end do
+    ! 5. Normalization
+    do i = 1, np
+      coeff(i) = (coeff(i)-coeff(np))/(coeff(1)-coeff(np))
+    end do
+  end subroutine relax_coefficients
 
 end module mod_runparams
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
