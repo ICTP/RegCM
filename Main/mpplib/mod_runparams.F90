@@ -716,10 +716,6 @@ module mod_runparams
     do i = 1, np
       coeff(i) = best_scale * (real(np-i,rkx) / real(np-1,rkx))**best_p
     end do
-    ! 5. Normalization
-    do i = 1, np
-      coeff(i) = (coeff(i)-coeff(np))/(coeff(1)-coeff(np))
-    end do
   end subroutine relax_coefficients
 
 end module mod_runparams
