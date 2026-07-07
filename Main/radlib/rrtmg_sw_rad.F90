@@ -74,11 +74,11 @@ module rrtmg_sw_rad
 ! --------- Modules ---------
 
       use parkind, only : im => kind_im, rb => kind_rb
-      use mod_intkinds, only : ik4
       use rrsw_vsn
       use mcica_subcol_gen_sw, only: mcica_subcol_sw
       use rrtmg_sw_cldprmc, only: cldprmc_sw
 #ifdef DEBUG
+      use mod_intkinds, only : ik4
       use mod_service, only : time_begin, time_end, dbgslen
 #endif
 ! *** Move the required call to rrtmg_sw_ini below and the following
