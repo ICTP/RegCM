@@ -183,7 +183,7 @@ module mod_runparams
   logical, public :: mo_divdamp = .true.
   logical, public :: mo_advturn = .true.
   logical, public :: mo_spectral_nudging = .true.
-  logical, public :: mo_lehmann = .true.
+  logical, public :: mo_lehmann = .false.
   integer(ik4), public :: mo_nzfilt
   integer(ik4), public :: mo_nadv
   integer(ik4), public :: mo_nsound

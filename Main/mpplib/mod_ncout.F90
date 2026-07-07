@@ -3257,9 +3257,9 @@ module mod_ncout
 
         ! Buffer Zone Control relaxation + diffusion term params
 
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('boundary_nspgx',nspgx))
         if ( idynamic /= 3 ) then
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('boundary_nspgx',nspgx))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('boundary_nspgd',nspgd))
           call outstream_addatt(outstream(i)%ncout(j), &
