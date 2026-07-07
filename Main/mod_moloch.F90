@@ -874,7 +874,7 @@ module mod_moloch
     real(rkx), intent(in) :: dta
     integer(ik4) :: i, j, k, n
     real(rkx), pointer, contiguous, dimension(:,:,:) :: ptr => null( )
-    real(rkx) :: tanx, tany
+    real(rkx) :: tanx, tany, dlat
 
     !@acc call nvtxStartRange("advection")
 
@@ -914,7 +914,8 @@ module mod_moloch
 
     if ( lrotllr ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        tanx = sin(0.5_rkx*(rlat(i+1)+rlat(i)))*mu(j,i)*rearthrad
+        dlat = degrad * 0.5_rkx * (rlat(i)+rlat(i+1))
+        tanx = sin(dlat)*mu(j,i)*rearthrad
         ux(j,i,k) = ux(j,i,k) + ux(j,i,k) * vx(j,i,k) * tanx * dta
         vx(j,i,k) = vx(j,i,k) - ux(j,i,k) * ux(j,i,k) * tanx * dta
       end do
@@ -1604,14 +1605,15 @@ module mod_moloch
     implicit none
     real(rkx), intent(in) :: dtinc
     integer(ik4) :: i, j, k, n
-    real(rkx) :: tanx, tany
+    real(rkx) :: dlat, tanx, tany
     !@acc call nvtxStartRange("status_update")
 
     ! Correct curvature
 
     if ( lrotllr ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        tanx = sin(0.5_rkx*(rlat(i+1)+rlat(i)))*mu(j,i)*rearthrad
+        dlat = degrad * 0.5_rkx * (rlat(i)+rlat(i+1))
+        tanx = sin(dlat)*mu(j,i)*rearthrad
         uten(j,i,k) = uten(j,i,k) + uten(j,i,k) * vten(j,i,k) * tanx
         vten(j,i,k) = vten(j,i,k) - uten(j,i,k) * uten(j,i,k) * tanx
       end do
