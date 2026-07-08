@@ -83,7 +83,7 @@ distclean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 chem_icbc.o : chem_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_date.o mod_dynparam.o mod_space.o mod_memutil.o mod_nchelper.o mod_domain.o mod_grid.o mod_ncstream_types.o mod_ncstream.o mod_wrtoxd.o mod_header.o mod_ch_icbc.o mod_ch_icbc_clim.o mod_ox_icbc.o mod_ae_icbc.o mod_ch_cams.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
-pgw_icbc.o : pgw_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_vertint.o mod_date.o mod_vectutil.o
+pgw_icbc.o : pgw_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_vertint.o mod_date.o mod_vectutil.o mod_zita.o mod_wavelet.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 pgwbc.o : pgwbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_grid.o mod_date.o mod_pgw.o mod_write.o mod_projections.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
