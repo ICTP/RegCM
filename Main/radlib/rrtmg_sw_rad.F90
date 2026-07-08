@@ -77,6 +77,10 @@ module rrtmg_sw_rad
       use rrsw_vsn
       use mcica_subcol_gen_sw, only: mcica_subcol_sw
       use rrtmg_sw_cldprmc, only: cldprmc_sw
+#ifdef DEBUG
+      use mod_intkinds, only : ik4
+      use mod_service, only : time_begin, time_end, dbgslen
+#endif
 ! *** Move the required call to rrtmg_sw_ini below and the following
 ! use association to GCM initialization area ***
 !      use rrtmg_sw_init, only: rrtmg_sw_ini
@@ -561,6 +565,11 @@ module rrtmg_sw_rad
       real(kind=rb) :: svar_f_bnd(jpband)     ! Solar variability facular multiplier (by band)
       real(kind=rb) :: svar_s_bnd(jpband)     ! Solar variability sunspot multiplier (by band)
       real(kind=rb) :: svar_i_bnd(jpband)     ! Solar variability baseline irradiance multiplier (by band)
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'rrtmg_sw'
+      integer(ik4) :: indx = 0
+      call time_begin(subroutine_name,indx)
+#endif
 
 
 ! Initializations
@@ -932,6 +941,10 @@ module rrtmg_sw_rad
 
 ! End longitude loop
       enddo
+
+#ifdef DEBUG
+      call time_end(subroutine_name,indx)
+#endif
 
       end subroutine rrtmg_sw
 

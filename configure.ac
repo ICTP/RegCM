@@ -511,10 +511,30 @@ AM_CONDITIONAL(COMPILER_GNU, [ test -z "${FCPROG##gfortran*}" -o \
 AM_CONDITIONAL(COMPILER_NAG, [ test -z "${FCPROG##nagfor}" ] )
 AM_CONDITIONAL(COMPILER_G95, [ test -z "${FCPROG##g95*}" ] )
 AM_CONDITIONAL(COMPILER_SUN, [ test -z "${FCPROG##sunf9*}" ] )
-AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
-                                    -z "${FCPROG##nvf9*}" -o \
-                                    -z "${FCPROG##pgfortran*}" -o \
-                                    -z "${FCPROG##nvfortran*}" ] )
+# FCPROG alone only catches direct nvfortran/pgf90 invocations. A generic MPI
+# wrapper name (e.g. HPC-X's "mpifort") also fronts nvfortran but doesn't
+# match any of those patterns, so fall back to probing the wrapper's own
+# --version banner for the underlying compiler identity.
+case "$FCPROG" in
+  pgf9*|nvf9*|pgfortran*|nvfortran*)
+    is_pgi_family=yes
+    ;;
+  xlf200*|bgxlf200*|ftn*|gfortran*|\/gfortran*|scorep|nagfor|g95*|sunf9*)
+    # Already matched by one of the vendor-specific AM_CONDITIONALs above
+    # (IBM/Cray/GNU/NAG/G95/SUN) -- don't let the generic --version probe
+    # below also claim it for PGI/NVHPC just because its banner happens to
+    # mention "nvfortran" (e.g. Cray CPE fronting an NVIDIA backend).
+    is_pgi_family=no
+    ;;
+  *)
+    if $FC --version 2>/dev/null | grep -qiE "nvfortran|pgf9[0-9]|pgfortran"; then
+      is_pgi_family=yes
+    else
+      is_pgi_family=no
+    fi
+    ;;
+esac
+AM_CONDITIONAL(COMPILER_PGI, [ test "x$is_pgi_family" = "xyes" ])
 AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
                                       -z "${FCPROG##impif*}" -o \
                                       -z "${FCPROG##mpiifort*}" ] )
