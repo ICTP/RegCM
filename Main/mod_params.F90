@@ -1857,6 +1857,12 @@ module mod_params
       call bcast(lmftrac)
       call bcast(lmfsmooth)
       call bcast(lmfwstar)
+      call bcast(istochastic)
+      if ( istochastic == 1 ) then
+        call bcast(rad_sigma)
+        call bcast(rad_min)
+        call bcast(rad_max)
+      end if
     end if
 
     if ( any(icup == 6) ) then
