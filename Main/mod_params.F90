@@ -988,6 +988,16 @@ module mod_params
           write(stdout,*) 'Resetting kf_tkemax to 3 m2 s-2'
           kf_tkemax = 3.0_rkx
         end if
+
+        if ( istochastic == 1 ) then
+          rewind(ipunit)
+          read (ipunit, nml=kfstochastic, iostat=iretval, err=113)
+          if ( iretval /= 0 ) then
+            write(stdout*) 'No kfstochastic namelist'
+            write(stdout*) 'Setting KF radius to deterministic'
+            istochastic = 0
+          end if 
+        end if
       end if
       if ( iocnflx < 0 .or. iocnflx > 3 ) then
         call fatal(__FILE__,__LINE__, &
