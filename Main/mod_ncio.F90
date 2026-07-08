@@ -113,6 +113,7 @@ module mod_ncio
     real(rkx), pointer, contiguous, dimension(:) :: qi_flat => null()
     real(rkx), pointer, contiguous, dimension(:) :: pp_flat => null()
     real(rkx), pointer, contiguous, dimension(:) :: ww_flat => null()
+    real(rkx), pointer, contiguous, dimension(:) :: pai_flat => null()
     real(rkx), pointer, contiguous, dimension(:) :: wtop_flat => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: ps => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: ts => null()

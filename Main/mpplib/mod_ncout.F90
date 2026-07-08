@@ -3257,9 +3257,9 @@ module mod_ncout
 
         ! Buffer Zone Control relaxation + diffusion term params
 
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('boundary_nspgx',nspgx))
         if ( idynamic /= 3 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('boundary_nspgx',nspgx))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('boundary_nspgd',nspgd))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -3272,6 +3272,9 @@ module mod_ncout
             ncattribute_real8('boundary_nm',bdy_nm))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('boundary_dm',bdy_dm))
+        else
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('boundary_points',nspgx-2))
         end if
 
         ! Perturbation control for ensembles

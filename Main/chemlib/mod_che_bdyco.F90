@@ -1013,7 +1013,7 @@ module mod_che_bdyco
           if ( .not. cba%bsouth(j,i) ) cycle
           ib = cba%ibnd(j,i)
           xf = cfa * fcx(ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf/(1.0_rkx+xf)*fg(j,i,k) * rdt
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k) * rdt
         end do
       end if
       if ( cba%nn /= 0 ) then
@@ -1021,7 +1021,7 @@ module mod_che_bdyco
           if ( .not. cba%bnorth(j,i) ) cycle
           ib = cba%ibnd(j,i)
           xf = cfa * fcx(ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf/(1.0_rkx+xf)*fg(j,i,k) * rdt
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k) * rdt
         end do
       end if
       if ( cba%nw /= 0 ) then
@@ -1029,7 +1029,7 @@ module mod_che_bdyco
           if ( .not. cba%bwest(j,i) ) cycle
           ib = cba%ibnd(j,i)
           xf = cfa * fcx(ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf/(1.0_rkx+xf)*fg(j,i,k) * rdt
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k) * rdt
         end do
       end if
       if ( cba%ne /= 0 ) then
@@ -1037,7 +1037,7 @@ module mod_che_bdyco
           if ( .not. cba%beast(j,i) ) cycle
           ib = cba%ibnd(j,i)
           xf = cfa * fcx(ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf/(1.0_rkx+xf)*fg(j,i,k) * rdt
+          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k) * rdt
         end do
       end if
     end do
@@ -1049,29 +1049,15 @@ module mod_che_bdyco
   subroutine setup_che_bdycon
     implicit none
     integer(ik4) :: n, k
-    real(rkx) :: fnudge, gnudge, xfun, nb2
+    real(rkx) :: fnudge, gnudge
     real(rkx), dimension(kz) :: anudgh
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
     if ( idynamic == 3 ) then
-      if ( mo_lehmann ) then
-        fcx(1) = 1.0_rkx
-        call relax_coefficients(nspgx-1,0.1_rkx,0.7_rkx,fcx(2:))
-      else
-        if ( nspgx > 10 ) then
-          do n = 1, nspgx
-            xfun = real(nspgx-n+1,rkx)/real(nspgx,rkx)
-            fcx(n) = 1.0_rkx - cos(halfpi*xfun)**2
-          end do
-        else
-          nb2 = 2.0_rkx + 0.2_rkx * real(nspgx-5,rkx)
-          do n = 1, nspgx
-            xfun = real(nspgx-n+1,rkx)/real(nspgx,rkx)
-            fcx(n) = 1.0_rkx * xfun**nb2
-          end do
-        end if
-      end if
+      fcx(1) = 1.0_rkx
+      fcx(nspgx) = 0.0_rkx
+      call relax_coefficients(nspgx-2,0.1_rkx,0.7_rkx,fcx(2:nspgx-1))
     else
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm

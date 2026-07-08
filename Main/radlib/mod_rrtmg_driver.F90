@@ -41,6 +41,9 @@ module mod_rrtmg_driver
   use mod_mpmessage
   use mod_runparams
   use mod_regcm_types
+#ifdef DEBUG
+  use mod_service, only : time_begin, time_end, dbgslen
+#endif
 
   implicit none
 
@@ -371,6 +374,11 @@ module mod_rrtmg_driver
     integer(ik4), parameter :: idrv = 0
     integer(ik4), parameter :: iaer = 10
     integer(ik4), parameter :: isolvar = -1
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'rrtmg_driver'
+    integer(ik4) :: indx = 0
+    call time_begin(subroutine_name,indx)
+#endif
 
     ! from water path and cloud radius / tauc_LW is not requested
     tauc_lw(:,:,:) = 1.0e-10_rk8
@@ -596,6 +604,9 @@ module mod_rrtmg_driver
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,     &
                 tauasc3d,gtota3d,dzr,o3,outtaucl,outtauci,          &
                 asaeradfo,asaeradfos,asaerlwfo,asaerlwfos,r2m,m2r)
+#ifdef DEBUG
+    call time_end(subroutine_name,indx)
+#endif
 
   end subroutine rrtmg_driver
 

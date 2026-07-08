@@ -73,7 +73,7 @@ module mod_params
                xtop, xx, yy, mo_c1, mo_c2, dl, minfrq
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
-    integer(ik4) :: i, j, k, kbase, ktop, ns
+    integer(ik4) :: i, j, k, kbase, ktop, ns, isp
     integer(ik8) :: mdate0, mdate1, mdate2
     integer(ik4) :: hspan, ipunit
     integer(ik4) :: n, len_path
@@ -2208,11 +2208,18 @@ module mod_params
     ! Calculate boundary areas per processor
     !
     if ( idynamic == 3 ) then
-      nspgx = max(5, nint(20.0_rkx * (ds**(-0.35_rkx))))
+      nspgx = min(max(6, nint(20.0_rkx * (ds**(-0.35_rkx)))+1),34)
+      isp = 1
+      do while (isp < nspgx-2 )
+        isp = isp * 2
+      end do
+      nspgx = isp+2
       nspgd = nspgx
       if ( myid == italk ) then
         write(stdout,'(a,f7.3,a)') ' Resolution of ',ds,' km.'
-        write(stdout,'(a,i3,a)') ' Using nspgx = ',nspgx,' in MOLOCH code'
+        write(stdout,'(a,i2,a)') ' Using nspgx = ',nspgx,' in MOLOCH code'
+        write(stdout,'(a,i2,a)') ' Boundary effect on ',nspgx-2, &
+          ' point in the output files.'
       end if
     else
       if ( iboudy == 4 ) then

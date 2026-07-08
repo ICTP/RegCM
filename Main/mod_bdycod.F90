@@ -491,25 +491,11 @@ module mod_bdycod
     !
     rtb = d_one / dtbdys
     if ( idynamic == 3 ) then
-      if ( mo_lehmann ) then
-        fcx(1) = 1.0_rkx
-        call relax_coefficients(nspgx-1,0.1_rkx,0.7_rkx,fcx(2:))
-      else
-        if ( nspgx > 10 ) then
-          do n = 1, nspgx
-            xfun = real(nspgx-n+1,rkx)/real(nspgx,rkx)
-            fcx(n) = 1.0_rkx - cos(halfpi*xfun)**2
-          end do
-        else
-          nb2 = 2.0_rkx + 0.2_rkx * real(nspgx-5,rkx)
-          do n = 1, nspgx
-            xfun = real(nspgx-n+1,rkx)/real(nspgx,rkx)
-            fcx(n) = 1.0_rkx * xfun**nb2
-          end do
-        end if
-      end if
+      fcx(1) = 1.0_rkx
+      fcx(nspgx) = 0.0_rkx
+      call relax_coefficients(nspgx-2,0.1_rkx,0.7_rkx,fcx(2:nspgx-1))
       if ( myid == 0 ) then
-        call vprntv(fcx,nspgx,'Boundary coefficients  ')
+        call vprntv(fcx(2:nspgx-1),nspgx-2,'Boundary coefficients')
       end if
       if ( mo_spectral_nudging ) call lowpass_init( )
     else
@@ -4383,7 +4369,7 @@ module mod_bdycod
         if ( .not. ba_cr%bsouth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
         xf = cfa * fcx(ib)
-        ften(j,i,k) = ften(j,i,k) + xf/(1.0_rkx+xf)*fg1(j,i,k)*rdt
+        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)*rdt
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
@@ -4391,7 +4377,7 @@ module mod_bdycod
         if ( .not. ba_cr%bnorth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
         xf = cfa * fcx(ib)
-        ften(j,i,k) = ften(j,i,k) + xf/(1.0_rkx+xf)*fg1(j,i,k)*rdt
+        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)*rdt
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
@@ -4407,7 +4393,7 @@ module mod_bdycod
         if ( .not. ba_cr%beast(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
         xf = cfa * fcx(ib)
-        ften(j,i,k) = ften(j,i,k) + xf/(1.0_rkx+xf)*fg1(j,i,k)*rdt
+        ften(j,i,k) = ften(j,i,k) + xf*fg1(j,i,k)*rdt
       end do
     end if
 #ifdef DEBUG

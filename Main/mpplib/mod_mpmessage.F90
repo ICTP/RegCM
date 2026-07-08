@@ -63,7 +63,7 @@ module mod_mpmessage
     end if
     if ( kk > 0 ) then
       write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-      write(stdout,myf) a(n-kk+1:)
+      write(stdout,myf) a(n-kk+2:)
     end if
   end subroutine vprntv_r8
 
@@ -89,7 +89,7 @@ module mod_mpmessage
     end if
     if ( kk > 0 ) then
       write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-      write(stdout,myf) a(n-kk+1:)
+      write(stdout,myf) a(n-kk+2:)
     end if
   end subroutine vprntv_r4
 
@@ -115,7 +115,7 @@ module mod_mpmessage
     end if
     if ( kk > 0 ) then
       write(myf,'(a,i1,a)') '(2x,',kk,'i8)'
-      write(stdout,myf) a(n-kk+1:)
+      write(stdout,myf) a(n-kk+2:)
     end if
   end subroutine iprntv
 !
@@ -143,7 +143,7 @@ module mod_mpmessage
       end if
       if ( kk > 0 ) then
         write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-        write(stdout,myf) a(n1-kk+1:,k2)
+        write(stdout,myf) a(n1-kk+2:,k2)
       end if
       write(stdout,*) '## '
     end do
@@ -173,7 +173,7 @@ module mod_mpmessage
       end if
       if ( kk > 0 ) then
         write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-        write(stdout,myf) a(n1-kk+1:,k2)
+        write(stdout,myf) a(n1-kk+2:,k2)
       end if
       write(stdout,*) '## '
     end do

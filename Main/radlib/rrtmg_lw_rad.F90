@@ -73,9 +73,13 @@
 
 ! -------- Modules --------
       use parkind, only : im => kind_im, rb => kind_rb
+      use mod_intkinds, only : ik4
       use rrlw_vsn
       use mcica_subcol_gen_lw, only: mcica_subcol_lw
       use rrtmg_lw_cldprmc, only: cldprmc
+#ifdef DEBUG
+      use mod_service, only : time_begin, time_end, dbgslen
+#endif
 ! *** Move the required call to rrtmg_lw_ini below and the following
 ! use association to the GCM initialization area ***
 !      use rrtmg_lw_init, only: rrtmg_lw_ini
@@ -450,6 +454,11 @@
                                               ! with respect to surface temperature
       real(kind=rb) :: dtotuclfl_dt(0:nlay+1) ! change in clear sky upward longwave flux (w/m2/k)
                                               ! with respect to surface temperature
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'rrtmg_lw'
+      integer(ik4) :: indx = 0
+      call time_begin(subroutine_name,indx)
+#endif
 
 !
 ! Initializations
@@ -674,6 +683,10 @@
 
 ! End longitude/column loop
       enddo
+
+#ifdef DEBUG
+      call time_end(subroutine_name,indx)
+#endif
 
       end subroutine rrtmg_lw
 

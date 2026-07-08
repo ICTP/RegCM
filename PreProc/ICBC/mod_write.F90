@@ -27,7 +27,6 @@ module mod_write
   use mod_vectutil
   use mod_stdio
   use mod_zita
-  use mod_lowpass
   use mod_wavelet
   implicit none
 
