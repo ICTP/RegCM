@@ -61,12 +61,14 @@ program pgw_icbc
   integer(ik4) , dimension(7) :: pgw_ivar
   integer(ik4) , dimension(8) :: icbc_ivar
   character(len=256) :: prgname , icbcfile , pgwfile
-  real(rkx) , pointer , dimension(:) :: plev , sigma , ak , bk
+  real(rkx) , pointer , dimension(:) :: plev , sigma
   real(rkx) , pointer , dimension(:) :: sigmar
   real(rkx) , pointer , dimension(:) :: dsigma , sigmaf
-  real(rkx) , pointer , dimension(:,:) :: ps , pd , ts , topo , xmap , ps0
-  real(rkx) , pointer , dimension(:,:,:) :: z0 , p0 , t0 , p
-  real(rkx) , pointer , dimension(:,:,:) :: u , v , t , q , pp , ww
+  real(rkx) , pointer , dimension(:) :: zitah, zitaf
+  real(rkx) , pointer , dimension(:,:) :: ps , pspa, pd , ts , ps0
+  real(rkx) , pointer , dimension(:,:) :: topo , xmap
+  real(rkx) , pointer , dimension(:,:,:) :: z0 , fmz0, p0 , t0 , p
+  real(rkx) , pointer , dimension(:,:,:) :: u , v , t , q , pp , ww, pai
   real(rkx) , pointer , dimension(:,:) :: bps , ps1 , ps2 , ps3
   real(rkx) , pointer , dimension(:,:) :: bts , ts1 , ts2 , ts3
   real(rkx) , pointer , dimension(:,:,:) :: bu , u1 , u2 , u3
@@ -81,6 +83,7 @@ program pgw_icbc
   real(rkx) :: ds , pss , pst , ptop
   real(rkx) , dimension(1) :: nctime
   real(rkx) :: w1 , w2 , w3 , fm , hm
+  real(rkx) :: mo_ztop, mo_dzita, mo_h, mo_a0
   integer(ik4) :: year , im2 , day , hour , im1 , im3
 
 #ifdef PNETCDF
@@ -215,6 +218,7 @@ program pgw_icbc
   call getmem1d(sigma,1,kz,'pgw_icbc:sigma')
   call getmem2d(topo,1,jx,1,iy,'pgw_icbc:topo')
   call getmem2d(ps,1,jx,1,iy,'pgw_icbc:ps')
+  call getmem2d(pspa,1,jx,1,iy,'pgw_icbc:pspa')
   call getmem2d(ts,1,jx,1,iy,'pgw_icbc:ts')
   call getmem3d(u,1,jx,1,iy,1,kz,'pgw_icbc:u')
   call getmem3d(v,1,jx,1,iy,1,kz,'pgw_icbc:v')
@@ -223,8 +227,7 @@ program pgw_icbc
   if ( idynamic == 1 ) then
     call getmem1d(sigmar,1,npgwlev,'pgw_icbc:sigmar')
     call getmem2d(pd,1,jx,1,iy,'pgw_icbc:pd')
-  end if
-  if ( idynamic == 2 ) then
+  else if ( idynamic == 2 ) then
     call getmem1d(sigmaf,1,kz+1,'pgw_icbc:sigmaf')
     call getmem1d(dsigma,1,kz,'pgw_icbc:dsigma')
     call getmem2d(xmap,1,jx,1,iy,'pgw_icbc:xmap')
@@ -235,11 +238,15 @@ program pgw_icbc
     call getmem3d(t0,1,jx,1,iy,1,kz,'pgw_icbc:t0')
     call getmem3d(pp,1,jx,1,iy,1,kz,'pgw_icbc:pp')
     call getmem3d(ww,1,jx,1,iy,1,kz,'pgw_icbc:ww')
-  end if
-  if ( idynamic == 3 ) then
+  else if ( idynamic == 3 ) then
+    call getmem1d(zitaf,1,kz+1,'pgw_icbc:zitaf')
+    call getmem1d(zitah,1,kz,'pgw_icbc:zitah')
     call getmem3d(z0,1,jx,1,iy,1,kz,'pgw_icbc:z0')
-    call getmem1d(ak,1,kz,'pgw_icbc:ak')
-    call getmem1d(bk,1,kz,'pgw_icbc:bk')
+    call getmem3d(p,1,jx,1,iy,1,kz,'pgw_icbc:p')
+    call getmem3d(pai,1,jx,1,iy,1,kz,'pgw_icbc:pai')
+    call getmem3d(fmz0,1,jx,1,iy,1,kz+1,'pgw_icbc:fmz0')
+  else
+    stop
   end if
 
   ierr = nf90_inq_varid(pgwin, 'plev', ivarid)
@@ -255,18 +262,29 @@ program pgw_icbc
   ierr = nf90_get_var(icbcin,ivarid,topo)
   call check_ok(__FILE__,__LINE__,'variable topo read error', 'ICBC FILE')
   if ( idynamic == 3 ) then
-    ierr = nf90_inq_varid(icbcin, 'a', ivarid)
-    call check_ok(__FILE__,__LINE__,'variable a miss', 'ICBC FILE')
-    ierr = nf90_get_var(icbcin,ivarid,ak)
-    call check_ok(__FILE__,__LINE__,'variable a read error', 'ICBC FILE')
-    ierr = nf90_inq_varid(icbcin, 'b', ivarid)
-    call check_ok(__FILE__,__LINE__,'variable b miss', 'ICBC FILE')
-    ierr = nf90_get_var(icbcin,ivarid,bk)
-    call check_ok(__FILE__,__LINE__,'variable b read error', 'ICBC FILE')
+    ierr = nf90_get_att(icbcin, nf90_global, 'zita_height_top', mo_ztop)
+    call check_ok(__FILE__,__LINE__,'attribute zita_height_top miss', &
+                  'ICBC FILE')
+    ierr = nf90_get_att(icbcin, nf90_global, 'zita_atmosphere_h', mo_h)
+    call check_ok(__FILE__,__LINE__,'attribute zita_atmosphere_h miss', &
+                  'ICBC FILE')
+    ierr = nf90_get_att(icbcin, nf90_global, 'zita_factor_a0', mo_a0)
+    call check_ok(__FILE__,__LINE__,'attribute zita_factor_a0 miss', &
+                  'ICBC FILE')
+    mo_dzita = mo_ztop/real(kz,rkx)
+    call model_zitaf(zitaf,mo_ztop)
+    call model_zitah(zitah,mo_ztop)
     do k = 1 , kz
       do i = 1 , iy
         do j = 1 , jx
-          z0(j,i,k) = topo(j,i)*(bk(k)-1.0_rkx) + ak(k)
+           z0(j,i,k) = md_zeta_h(zitah(k),topo(j,i),mo_ztop,mo_h,mo_a0)
+        end do
+      end do
+    end do
+    do k = 1, kz+1
+      do i = 1, iy
+        do j = 1, jx
+          fmz0(j,i,k) = md_fmz_h(zitaf(k),topo(j,i),mo_ztop,mo_h,mo_a0)
         end do
       end do
     end do
@@ -356,8 +374,8 @@ program pgw_icbc
     end if
 
     write(stdout,* ) 'Processing time record ', n
-    write(stdout,* ) 'Weights : ',w1,w2,w3
-    write(stdout,* ) 'pieces : ',n,hm,fm
+    write(stdout,'(a,3f8.3)') 'Weights : ',w1,w2,w3
+    write(stdout,'(a,i4,2f8.3)') 'pieces : ',n,hm,fm
 
     bps = w1*ps1 + w2*ps2 + w3*ps3
     bts = w1*ts1 + w2*ts2 + w3*ts3
@@ -366,7 +384,7 @@ program pgw_icbc
     bt = w1*t1 + w2*t2 + w3*t3
     bq = w1*q1 + w2*q2 + w3*q3
 
-    call read_icbc(n,ps,ts,u,v,t,q,pp,ww)
+    call read_icbc(n,ps,pspa,ts,u,v,t,q,pp,ww,pai)
 
     ps = (ps + bps/100.0_rkx)
     ts = ts + bts
@@ -388,14 +406,14 @@ program pgw_icbc
       q = q + bias
       ps = ps + ptop
     else if ( idynamic == 2 ) then
-      p = (p0 + pp)/100.0_rkx
-      call intlinreg(bias,bu,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      p = (p0 + pp)
+      call intlinreg(bias,bu,pspa,plev,1,jx,1,iy,npgwlev,p,kz)
       u = u + bias
-      call intlinreg(bias,bv,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      call intlinreg(bias,bv,pspa,plev,1,jx,1,iy,npgwlev,p,kz)
       v = v + bias
-      call intlinreg(bias,bt,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      call intlinreg(bias,bt,pspa,plev,1,jx,1,iy,npgwlev,p,kz)
       t = t + bias
-      call intlinreg(bias,bq,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      call intlinreg(bias,bq,pspa,plev,1,jx,1,iy,npgwlev,p,kz)
       q = q + bias
       ps = (ps - ptop)/10.0_rkx
       call crs2dot(pd,ps,jx,iy,0,0)
@@ -405,9 +423,17 @@ program pgw_icbc
       call compute_pp(sigmaf,t,q,ps,ps0,p0,t0,pp)
       ps = ps / 100.0_rkx
     else ! if ( idynamic == 3 ) then
-
+      pspa = ps*100.0_rkx
+      p = (pai**cpovr) * p00
+      call intlinreg(bias,bu,pspa,plev,1,jx,1,iy,npgwlev,p,kz)
+      u = u + bias
+      call intlinreg(bias,bv,pspa,plev,1,jx,1,iy,npgwlev,p,kz)
+      v = v + bias
+      call intlinreg(bias,bt,pspa,plev,1,jx,1,iy,npgwlev,p,kz)
+      t = t + bias
+      call intlinreg(bias,bq,pspa,plev,1,jx,1,iy,npgwlev,p,kz)
+      q = q + bias
     end if
-
     call write_icbc(n,ps,ts,u,v,t,q,pp,ww)
   end do
 
@@ -488,10 +514,11 @@ program pgw_icbc
     !call check_ok(__FILE__,__LINE__,'variable z read error', 'PGWBC FILE')
   end subroutine read_pgw
 
-  subroutine read_icbc(irec,ps,ts,u,v,t,q,pp,ww)
+  subroutine read_icbc(irec,ps,pspa,ts,u,v,t,q,pp,ww,pai)
     implicit none
     integer(ik4) , intent(in) :: irec
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: pspa
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ts
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
@@ -499,6 +526,7 @@ program pgw_icbc
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: q
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pp
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ww
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pai
     integer(ik4) , dimension(4) :: istart , icount
 
     istart(1) = 1
@@ -509,6 +537,7 @@ program pgw_icbc
     icount(3) = 1
     ierr = nf90_get_var(icbcin,icbc_ivar(1),ps,istart(1:3),icount(1:3))
     call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
+    pspa = ps * 100.0_rkx
     ierr = nf90_get_var(icbcin,icbc_ivar(2),ts,istart(1:3),icount(1:3))
     call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
     istart(1) = 1
@@ -532,6 +561,8 @@ program pgw_icbc
       call check_ok(__FILE__,__LINE__,'variable pp read error', 'ICBC FILE')
       ierr = nf90_get_var(icbcin,icbc_ivar(8),ww,istart,icount)
       call check_ok(__FILE__,__LINE__,'variable ww read error', 'ICBC FILE')
+    else
+      call paicompute(jx,iy,kz,pspa,z0,t,q,pai)
     end if
   end subroutine read_icbc
 
@@ -555,9 +586,9 @@ program pgw_icbc
     icount(2) = iy
     icount(3) = 1
     ierr = nf90_put_var(icbcin,icbc_ivar(1),ps,istart(1:3),icount(1:3))
-    call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
+    call check_ok(__FILE__,__LINE__,'variable ps write error', 'ICBC FILE')
     ierr = nf90_put_var(icbcin,icbc_ivar(2),ts,istart(1:3),icount(1:3))
-    call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
+    call check_ok(__FILE__,__LINE__,'variable ts write error', 'ICBC FILE')
     istart(1) = 1
     istart(2) = 1
     istart(3) = 1
@@ -567,18 +598,18 @@ program pgw_icbc
     icount(3) = kz
     icount(4) = 1
     ierr = nf90_put_var(icbcin,icbc_ivar(3),u,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
+    call check_ok(__FILE__,__LINE__,'variable u write error', 'ICBC FILE')
     ierr = nf90_put_var(icbcin,icbc_ivar(4),v,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
+    call check_ok(__FILE__,__LINE__,'variable v write error', 'ICBC FILE')
     ierr = nf90_put_var(icbcin,icbc_ivar(5),t,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
+    call check_ok(__FILE__,__LINE__,'variable t write error', 'ICBC FILE')
     ierr = nf90_put_var(icbcin,icbc_ivar(6),q,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable q read error', 'ICBC FILE')
+    call check_ok(__FILE__,__LINE__,'variable q write error', 'ICBC FILE')
     if ( idynamic == 2 ) then
       ierr = nf90_put_var(icbcin,icbc_ivar(7),pp,istart,icount)
-      call check_ok(__FILE__,__LINE__,'variable pp read error', 'ICBC FILE')
+      call check_ok(__FILE__,__LINE__,'variable pp write error', 'ICBC FILE')
       ierr = nf90_put_var(icbcin,icbc_ivar(8),ww,istart,icount)
-      call check_ok(__FILE__,__LINE__,'variable ww read error', 'ICBC FILE')
+      call check_ok(__FILE__,__LINE__,'variable ww write error', 'ICBC FILE')
     end if
   end subroutine write_icbc
 
@@ -735,6 +766,120 @@ program pgw_icbc
       end do
     end do
   end subroutine compute_pp
+
+  subroutine paicompute(jx,iy,kz,ps,z,t,q,pai)
+    implicit none
+    integer , intent(in) :: jx, iy, kz
+    real(rkx) , dimension(:,:) , intent(in) :: ps
+    real(rkx) , dimension(:,:,:) , intent(in) :: z , t , q
+    real(rkx) , dimension(:,:,:) , intent(inout) :: pai
+    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz , lrt
+    integer(ik4) :: i , j , k
+    ! Hydrostatic initialization of pai
+    do i = 1, iy
+      do j = 1, jx
+        zdelta = z(j,i,kz)*egrav
+        tv1 = t(j,i,kz) * (d_one + ep1*q(j,i,kz))
+        tv2 = t(j,i,kz-1) * (d_one + ep1*q(j,i,kz-1))
+        lrt = (tv2-tv1)/(z(j,i,kz-1)-z(j,i,kz))
+        lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+        tv = tv1 - 0.5_rkx*z(j,i,kz)*lrt
+        zz = d_one/(rgas*tv)
+        p = ps(j,i) * exp(-zdelta*zz)
+        pai(j,i,kz) = (p/p00)**rovcp
+      end do
+    end do
+    do k = kz-1 , 1 , -1
+      do i = 1, iy
+        do j = 1, jx
+          tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
+          tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
+          zb = d_two*egrav*mo_dzita/(fmz0(j,i,k+1)*cpd) + tv1 - tv2
+          zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
+          pai(j,i,k) = -pai(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
+        end do
+      end do
+    end do
+  end subroutine paicompute
+
+  subroutine model_zitah(zitah,ztop)
+    real(rkx), intent(in) :: ztop
+    real(rkx), intent(out), dimension(:) :: zitah
+    real(rkx) :: dz
+    integer :: kz, k
+    kz = size(zitah)
+    dz = ztop/real(kz,rkx)
+    zitah(kz) = dz*0.5_rkx
+    do k = kz-1, 1, -1
+      zitah(k) = zitah(k+1) + dz
+    end do
+  end subroutine model_zitah
+
+  subroutine model_zitaf(zitaf,ztop)
+    implicit none
+    real(rkx), intent(in) :: ztop
+    real(rkx), intent(out), dimension(:) :: zitaf
+    real(rkx) :: dz
+    integer :: kzp1, kz, k
+    kzp1 = size(zitaf)
+    kz = kzp1-1
+    dz = ztop/real(kz,rkx)
+    zitaf(kzp1) = 0.0_rkx
+    do k = kz, 1, -1
+      zitaf(k) = zitaf(k+1) + dz
+    end do
+  end subroutine model_zitaf
+
+  pure real(rkx) elemental function zfz(ztop,zh)
+    implicit none
+    real(rkx), intent(in) :: ztop, zh
+    zfz = ztop/(exp(ztop/zh)-1.0_rkx)
+  end function zfz
+
+  pure real(rkx) elemental function bzita(zita,ztop,zh)
+    implicit none
+    real(rkx), intent(in) :: zita, ztop, zh
+    bzita = zfz(ztop,zh)*(exp(zita/zh)-1.0_rkx)
+  end function bzita
+
+  pure real(rkx) elemental function bzitap(zita,ztop,zh)
+    implicit none
+    real(rkx), intent(in) :: zita, ztop, zh
+    bzitap = zfz(ztop,zh)*exp(zita/zh)/zh
+  end function bzitap
+
+  pure real(rkx) elemental function gzita(zita,ztop,a0)
+    implicit none
+    real(rkx), intent(in) :: zita, ztop, a0
+    real(rkx) :: ratio
+    ratio = zita/ztop
+    gzita = ((0.0_rkx - 1.0_rkx * a0) * ratio**1 - &
+             (3.0_rkx - 2.0_rkx * a0) * ratio**2 + &
+             (2.0_rkx - 1.0_rkx * a0) * ratio**3) + 1.0_rkx
+  end function gzita
+
+  pure real(rkx) elemental function gzitap(zita,ztop,a0)
+    implicit none
+    real(rkx), intent(in) :: zita, ztop, a0
+    real(rkx) :: ratio
+    ratio = zita/ztop
+    gzitap = ((0.0_rkx - 1.0_rkx * a0) * ratio**0 - &
+              (6.0_rkx - 4.0_rkx * a0) * ratio**1 + &
+              (6.0_rkx - 3.0_rkx * a0) * ratio**2) / ztop
+  end function gzitap
+
+  pure real(rkx) function md_zeta_h(zita,orog,ztop,zh,a0)
+    implicit none
+    real(rkx), intent(in) :: zita, orog, ztop, zh, a0
+    md_zeta_h = orog*(gzita(zita,ztop,a0)-1.0_rkx) + bzita(zita,ztop,zh)
+  end function md_zeta_h
+
+  pure real(rkx) function md_fmz_h(zita,orog,ztop,zh,a0)
+    implicit none
+    real(rkx), intent(in) :: zita, orog, ztop, zh, a0
+    ! Equation 9
+    md_fmz_h = 1.0_rkx/(gzitap(zita,ztop,a0)*orog + bzitap(zita,ztop,zh))
+  end function md_fmz_h
 
 end program pgw_icbc
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
