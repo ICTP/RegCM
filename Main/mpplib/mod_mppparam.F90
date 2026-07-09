@@ -519,10 +519,12 @@ module mod_mppparam
 
   interface column_reduce
     module procedure real8_column_reduce
+    module procedure real4_column_reduce
   end interface column_reduce
 
   interface row_reduce
     module procedure real8_row_reduce
+    module procedure real4_row_reduce
   end interface row_reduce
 
   type(model_area), public :: ma
@@ -20622,6 +20624,22 @@ module mod_mppparam
 #endif
   end subroutine real8_column_reduce
 
+  subroutine real4_column_reduce(m,g,j1,j2)
+    implicit none
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: m
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: g
+    integer(ik4), intent(in) :: j1,j2
+    integer(ik4) :: nk
+    nk = size(m,2)
+    call mpi_allreduce(m,g,nk*(j2-j1+1),mpi_real4,mpi_sum,&
+                       cartesian_column_communicator, mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+  end subroutine real4_column_reduce
+
   subroutine real8_row_reduce(m,g,i1,i2)
     implicit none
     real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: m
@@ -20637,6 +20655,22 @@ module mod_mppparam
     end if
 #endif
   end subroutine real8_row_reduce
+
+  subroutine real4_row_reduce(m,g,i1,i2)
+    implicit none
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: m
+    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: g
+    integer(ik4), intent(in) :: i1,i2
+    integer(ik4) :: nk
+    nk = size(m,2)
+    call mpi_allreduce(m,g,nk*(i2-i1+1),mpi_real4,mpi_sum,&
+                       cartesian_row_communicator, mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+  end subroutine real4_row_reduce
 
 end module mod_mppparam
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
