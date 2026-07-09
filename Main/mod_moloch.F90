@@ -1175,12 +1175,17 @@ module mod_moloch
     !
     call uvstagtox(u,v,ux,vx)
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      p(j,i,k) = (pai(j,i,k)**cpovr) * p00
       tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
-      t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
+      p(j,i,k) = (pai(j,i,k)**cpovr) * p00
+    end do
+
+    call tvirt_to_temp( )
+
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
     end do
+
     call extrapolate_surface_pressure( )
 
     if ( idiag > 0 ) then
@@ -1488,10 +1493,10 @@ module mod_moloch
       end do
     end if
 
+    call temp_to_tvirt( )
+
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
       tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
-      p(j,i,k) = (pai(j,i,k)**cpovr) * p00
       rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
     end do
@@ -1638,6 +1643,48 @@ module mod_moloch
       ps(j,i) = p2m * exp(govr * 2.0_rkx/t_low)
     end do
   end subroutine extrapolate_surface_pressure
+
+  subroutine temp_to_tvirt( )
+    implicit none
+    integer(ik4) :: i, j, k
+    if ( ipptls > 0 ) then
+      if ( ipptls > 1 ) then
+        do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+          tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - &
+             qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
+        end do
+      else
+        do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+          tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - qc(j,i,k))
+        end do
+      end if
+    else
+      do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+        tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
+      end do
+    end if
+  end subroutine temp_to_tvirt
+
+  subroutine tvirt_to_temp( )
+    implicit none
+    integer(ik4) :: i, j, k
+    if ( ipptls > 0 ) then
+      if ( ipptls > 1 ) then
+        do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+          t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - &
+             qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
+        end do
+      else
+        do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+          t(j,i,k) = tvirt(j,i,k) * (d_one + ep1*qv(j,i,k) - qc(j,i,k))
+        end do
+      end if
+    else
+      do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+        t(j,i,k) = tvirt(j,i,k) * (d_one + ep1*qv(j,i,k))
+      end do
+    end if
+  end subroutine tvirt_to_temp
 
 end module mod_moloch
 
