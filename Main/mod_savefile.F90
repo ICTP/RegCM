@@ -1936,7 +1936,7 @@ module mod_savefile
     integer(ik4), intent(out) :: ncid
     integer(ik4) :: imode
     character (len=11) :: ctemp
-    integer(ik4) :: ical, imoturn
+    integer(ik4) :: ical
     type (rcm_time_and_date) :: idatex
     real(rk8) :: rtmp
     imode = nf90_nowrite
@@ -1989,19 +1989,6 @@ module mod_savefile
     ncstatus = nf90_get_att(ncid,nf90_global,'solcon',solcon)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot get attribute solcon')
-    if ( idynamic == 3 ) then
-#ifdef PNETCDF
-      ncstatus = nf90mpi_get_att(ncid,nf90_global,'mo_advturn',imoturn)
-#else
-      ncstatus = nf90_get_att(ncid,nf90_global,'mo_advturn',imoturn)
-#endif
-      call check_ok(__FILE__,__LINE__,'Cannot get attribute mo_advturn')
-      if ( imoturn == 1 ) then
-        mo_advturn = .true.
-      else
-        mo_advturn = .false.
-      end if
-    end if
     if ( debug_level > 0 ) then
       ! Do no give any error. User may have increased debug just now.
 #ifdef PNETCDF
@@ -2115,7 +2102,6 @@ module mod_savefile
     type (rcm_time_and_date), intent(in) :: idate
     integer(ik4), intent(in) :: ncid
     character (len=11) :: ctemp
-    integer(ik4) :: imoturn
     ctemp = tochar10(idate)
 #ifdef PNETCDF
     ncstatus = nf90mpi_put_att(ncid,nf90_global,'idatex',ctemp)
@@ -2141,18 +2127,8 @@ module mod_savefile
     ncstatus = nf90_put_att(ncid,nf90_global,'solcon',solcon)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot save solcon')
-    if ( idynamic == 3 ) then
-      imoturn = 0
-      if ( mo_advturn ) imoturn = 1
-#ifdef PNETCDF
-      ncstatus = nf90mpi_put_att(ncid,nf90_global,'mo_advturn',imoturn)
-#else
-      ncstatus = nf90_put_att(ncid,nf90_global,'mo_advturn',imoturn)
-#endif
-      call check_ok(__FILE__,__LINE__,'Cannot save mo_advturn')
-    end if
     if ( debug_level > 0 ) then
-#ifdef PNETCDF
+#ifdef dvPNETCDF
       ncstatus = nf90mpi_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))
 #else
       ncstatus = nf90_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))

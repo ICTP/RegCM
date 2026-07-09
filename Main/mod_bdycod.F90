@@ -3922,9 +3922,8 @@ module mod_bdycod
     end if
   end subroutine uvstagtox
 
-  subroutine monudge(cfa,f,bnd)
+  subroutine monudge(f,bnd)
     implicit none
-    real(rkx), intent(in) :: cfa
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
     real(rkx) :: x0, x1
@@ -3950,7 +3949,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bsouth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = cfa * fcx(ib)
+        xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3959,7 +3958,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bnorth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = cfa * fcx(ib)
+        xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3968,7 +3967,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bwest(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = cfa * fcx(ib)
+        xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3977,7 +3976,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%beast(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = cfa * fcx(ib)
+        xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
