@@ -154,7 +154,6 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: uten => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: vten => null( )
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: paiten => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tketen => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxten => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten => null( )
@@ -348,13 +347,11 @@ module mod_regcm_types
   type v3dbound
     real(rkx), pointer, contiguous, dimension(:,:,:) :: b0 => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: b1 => null( )
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: bt => null( )
   end type v3dbound
 
   type v2dbound
     real(rkx), pointer, contiguous, dimension(:,:) :: b0 => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: b1 => null( )
-    real(rkx), pointer, contiguous, dimension(:,:) :: bt => null( )
   end type v2dbound
 
   type nhboundhelp

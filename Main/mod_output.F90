@@ -260,9 +260,6 @@ module mod_output
         end if
         if ( associated(atm_u_out) .and. associated(atm_v_out) ) then
           if ( idynamic == 3 ) then
-            on_device = .true.
-            call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
-            on_device = .false.
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_u_out(j,i,k) = mo_atm%ux(j,i,k)
               atm_v_out(j,i,k) = mo_atm%vx(j,i,k)
@@ -2044,50 +2041,6 @@ module mod_output
     end do
   end subroutine wstagtox
 
-  subroutine uvstagtox(u,v,ux,vx)
-    implicit none
-    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
-    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
-    integer(ik4) :: i, j, k
-
-    call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
-    call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)
-
-    ! Compute U-wind on T points
-
-    do concurrent ( j = jci1:jci2, i = ice1:ice2, k = 1:kz )
-      ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
-                  0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
-    end do
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ice1:ice2, k = 1:kz )
-        ux(jce1,i,k) = d_half * (u(jde1,i,k)+u(jdi1,i,k))
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ice1:ice2, k = 1:kz )
-        ux(jce2,i,k) = d_half*(u(jde2,i,k) + u(jdi2,i,k))
-      end do
-    end if
-
-    ! Compute V-wind on T points
-
-    do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
-      vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
-                  0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
-    end do
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jce1:jce2, k = 1:kz )
-        vx(j,ice1,k) = d_half * (v(j,ide1,k)+v(j,idi1,k))
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jce1:jce2, k = 1:kz )
-        vx(j,ice2,k) = d_half*(v(j,ide2,k) + v(j,idi2,k))
-      end do
-    end if
-  end subroutine uvstagtox
-
   subroutine windcompute(pj,u,v,h)
     implicit none
     type(regcm_projection), intent(in) :: pj
@@ -2097,7 +2050,6 @@ module mod_output
     integer(ik4) :: i, j, k
     if ( associated(u) .and. associated(v) ) then
       if ( idynamic == 3 ) then
-        call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
         do i = ici1, ici2
           do j = jci1, jci2
             zz = mo_atm%zeta(j,i,kz)

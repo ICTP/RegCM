@@ -80,10 +80,6 @@ module mod_atm_stub
   public :: setup_model_indexes
   public :: init_bdy, bdyin, atmval
 
-  interface timeint
-    module procedure timeint2, timeint3
-  end interface timeint
-
   contains
 
     subroutine setup_model_indexes
@@ -296,11 +292,9 @@ module mod_atm_stub
       if ( ldot ) then
         call getmem(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b0')
         call getmem(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b1')
-        call getmem(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:bt')
       else
         call getmem(xb%b0,jce1,jce2,ice1,ice2,1,ke,'v3dbound:b0')
         call getmem(xb%b1,jce1,jce2,ice1,ice2,1,ke,'v3dbound:b1')
-        call getmem(xb%bt,jce1,jce2,ice1,ice2,1,ke,'v3dbound:bt')
       end if
     end subroutine allocate_v3dbound
 
@@ -311,11 +305,9 @@ module mod_atm_stub
       if ( ldot ) then
         call getmem(xb%b0,jde1,jde2,ide1,ide2,'v2dbound:b0')
         call getmem(xb%b1,jde1,jde2,ide1,ide2,'v2dbound:b1')
-        call getmem(xb%bt,jde1,jde2,ide1,ide2,'v2dbound:bt')
       else
         call getmem(xb%b0,jce1,jce2,ice1,ice2,'v2dbound:b0')
         call getmem(xb%b1,jce1,jce2,ice1,ice2,'v2dbound:b1')
-        call getmem(xb%bt,jce1,jce2,ice1,ice2,'v2dbound:bt')
       end if
     end subroutine allocate_v2dbound
 
@@ -719,23 +711,6 @@ module mod_atm_stub
         call exchange(dub%b1,1,jde1,jde2,ide1,ide2,1,kz)
         call exchange(dvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
       end if
-      !
-      ! Calculate time varying component
-      !
-      call timeint(dub%b1,dub%b0,dub%bt,jde1,jde2,ide1,ide2,1,kz)
-      call timeint(dvb%b1,dvb%b0,dvb%bt,jde1,jde2,ide1,ide2,1,kz)
-      call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
-      call timeint(xqb%b1,xqb%b0,xqb%bt,jce1,jce2,ice1,ice2,1,kz)
-      call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
-      if ( idynamic == 3 ) then
-        call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1,jce2,ice1,ice2,1,kz)
-        call exchange_lr(dub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange_bt(dvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
-      else
-        call exchange(dub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(dvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
-      end if
 
       if ( rcmtimer%start( ) ) then
         do i = ici1, ici2
@@ -798,24 +773,6 @@ module mod_atm_stub
         call exchange(dub%b1,1,jde1,jde2,ide1,ide2,1,kz)
         call exchange(dvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
       end if
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
-
-      ! Linear time interpolation
-
-      call timeint(dub%b1,dub%b0,dub%bt,jde1,jde2,ide1,ide2,1,kz)
-      call timeint(dvb%b1,dvb%b0,dvb%bt,jde1,jde2,ide1,ide2,1,kz)
-      call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
-      call timeint(xqb%b1,xqb%b0,xqb%bt,jce1,jce2,ice1,ice2,1,kz)
-      call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
-
-      if ( idynamic == 3 ) then
-        call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1,jce2,ice1,ice2,1,kz)
-        call exchange_lr(dub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange_bt(dvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
-      else
-        call exchange(dub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(dvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
-      end if
 
       if ( myid == italk ) then
         write (stdout,*) 'READY  BC from     ', &
@@ -832,39 +789,40 @@ module mod_atm_stub
     subroutine atmval
       implicit none
       integer(ik4) :: i, j
-      real(rkx) :: psb, cell, zq, xt
+      real(rkx) :: psb, cell, zq, x0, x1
 
-      xt = xbctime
+      x1 = xbctime * rdtbdy
+      x0 = 1.0_rkx - x1
 
       do i = ici1, ici2
         do j = jci1, jci2
-          tatm(j,i) = xtb%b0(j,i,kz) + xt*xtb%bt(j,i,kz)
+          tatm(j,i) = x0*xtb%b0(j,i,kz) + x1*xtb%b1(j,i,kz)
           if ( idynamic == 3 ) then
-            ps(j,i) = xpsb%b0(j,i) + xt*xpsb%bt(j,i)
-            psb = xpaib%b0(j,i,kz) + xt*xpaib%bt(j,i,kz)
+            ps(j,i) = x0*xpsb%b0(j,i) + x1*xpsb%b1(j,i)
+            psb = x0*xpaib%b0(j,i,kz) + x1*xpaib%b1(j,i,kz)
             patm(j,i) = (psb**cpovr) * p00
-            uatm(j,i) = 0.50_rkx*(dub%b0(j,i,kz) + dub%b0(j+1,i,kz) + &
-                              xt*(dub%bt(j,i,kz) + dub%bt(j+1,i,kz)))
-            vatm(j,i) = 0.50_rkx*(dvb%b0(j,i,kz) + dvb%b0(j,i+1,kz) + &
-                              xt*(dvb%bt(j,i,kz) + dvb%bt(j,i+1,kz)))
+            uatm(j,i) = 0.50_rkx*(x0*(dub%b0(j,i,kz) + dub%b0(j+1,i,kz)) + &
+                                  x1*(dub%b1(j,i,kz) + dub%b1(j+1,i,kz)))
+            vatm(j,i) = 0.50_rkx*(x0*(dvb%b0(j,i,kz) + dvb%b0(j,i+1,kz)) + &
+                                  x1*(dvb%b1(j,i,kz) + dvb%b1(j,i+1,kz)))
             zatm(j,i) = zeta(j,i)
           else
-            psb = xpsb%b0(j,i) + xt*xpsb%bt(j,i)
+            psb = x0*xpsb%b0(j,i) + x1*xpsb%b1(j,i)
             cell = ptop /psb
             ps(j,i) = (psb + ptop)*d_1000
             patm(j,i) = (hsigma(kz)*psb + ptop)*d_1000
-            uatm(j,i) = 0.25_rkx*(dub%b0(j,i,kz) + dub%b0(j+1,i,kz) + &
-                                  dub%b0(j,i+1,kz) + dub%b0(j+1,i+1,kz) + &
-                              xt*(dub%bt(j,i,kz) + dub%bt(j+1,i,kz) + &
-                                  dub%bt(j,i+1,kz) + dub%bt(j+1,i+1,kz)))
-            vatm(j,i) = 0.25_rkx*(dvb%b0(j,i,kz) + dvb%b0(j+1,i,kz) + &
-                                  dvb%b0(j,i+1,kz) + dvb%b0(j+1,i+1,kz) + &
-                              xt*(dvb%bt(j,i,kz) + dvb%bt(j+1,i,kz) + &
-                                  dvb%bt(j,i+1,kz) + dvb%bt(j+1,i+1,kz)))
+            uatm(j,i) = 0.25_rkx*(x0*(dub%b0(j,i,kz) + dub%b0(j+1,i,kz) + &
+                                      dub%b0(j,i+1,kz) + dub%b0(j+1,i+1,kz)) + &
+                                  x1*(dub%b1(j,i,kz) + dub%b1(j+1,i,kz) + &
+                                      dub%b1(j,i+1,kz) + dub%b1(j+1,i+1,kz)))
+            vatm(j,i) = 0.25_rkx*(x0*(dvb%b0(j,i,kz) + dvb%b0(j+1,i,kz) + &
+                                      dvb%b0(j,i+1,kz) + dvb%b0(j+1,i+1,kz)) + &
+                                  x1*(dvb%b1(j,i,kz) + dvb%b1(j+1,i,kz) + &
+                                      dvb%b1(j,i+1,kz) + dvb%b1(j+1,i+1,kz)))
             zq = rovg * tatm(j,i) * log((sigma(kzp1)+cell)/(sigma(kz)+cell))
             zatm(j,i) = d_half*zq
           end if
-          qvatm(j,i) = xqb%b0(j,i,kz) + xt*xqb%bt(j,i,kz)
+          qvatm(j,i) = x0*xqb%b0(j,i,kz) + x1*xqb%b1(j,i,kz)
           rho(j,i) = ps(j,i)/(rgas*tatm(j,i))
           thatm(j,i) = tatm(j,i) / (p00/patm(j,i))**rovcp
           tp(j,i) = tatm(j,i) / (ps(j,i)/patm(j,i))**rovcp
@@ -872,34 +830,6 @@ module mod_atm_stub
       end do
       xbctime = xbctime + dtsrf
     end subroutine atmval
-
-    subroutine timeint2(a,b,c,j1,j2,i1,i2)
-      implicit none
-      real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: a, b
-      real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: c
-      integer(ik4), intent(in) :: j1, j2, i1, i2
-      integer(ik4) :: i, j
-      do i = i1, i2
-        do j = j1, j2
-          c(j,i) = (a(j,i)-b(j,i))*rdtbdy
-        end do
-      end do
-    end subroutine timeint2
-
-    subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2)
-      implicit none
-      real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: a, b
-      real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: c
-      integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
-      integer(ik4) :: i, j, k
-      do k = k1, k2
-        do i = i1, i2
-          do j = j1, j2
-            c(j,i,k) = (a(j,i,k)-b(j,i,k))*rdtbdy
-          end do
-        end do
-      end do
-    end subroutine timeint3
 
 end module mod_atm_stub
 

@@ -41,11 +41,11 @@ module mod_che_bdyco
 
   public :: allocate_mod_che_bdyco, chem_bdyin, chem_bdyval
   public :: nudge_chiten, monudge_chiten, setup_che_bdycon
-  public :: che_init_bdy, chib0, chib1, chibt, ichbdy2trac, oxcl
+  public :: che_init_bdy, chib0, chib1, ichbdy2trac, oxcl
 
   type(rcm_time_and_date), save :: chbdydate1, chbdydate2
 
-  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chib0, chib1, chibt, oxcl
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chib0, chib1, oxcl
   real(rkx), pointer, contiguous, dimension(:,:) :: cefc, cegc
   real(rkx), pointer, contiguous, dimension(:) :: fcx
   integer(ik4), pointer, contiguous, dimension(:) :: ichbdy2trac
@@ -53,7 +53,6 @@ module mod_che_bdyco
   ! Boundary conditions arrays
   !
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chebdy
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: fg
 
   real(rkx), parameter :: vscale = 1.0_rkx
   real(rkx), parameter :: outflow = 0.1_rkx
@@ -94,16 +93,12 @@ module mod_che_bdyco
                     1,max_input_tracers,'che_bdyco:chebdy')
       call getmem(chib1,jde1ga,jde2ga,ide1ga,ide2ga, &
                           1,kz,1,ntr,'mod_che_bdyco:chib1')
-      call getmem(chibt,jde1ga,jde2ga,ide1ga,ide2ga, &
-                          1,kz,1,ntr,'mod_che_bdyco:chibt')
     end if
     if ( idynamic /= 3 ) then
       call getmem(cefc,1,nspgx,1,kz,'che_bdyco:cefc')
       call getmem(cegc,1,nspgx,1,kz,'che_bdyco:cegc')
-      call getmem(fg,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'che_bdyco:fg')
     else
       call getmem(fcx,1,nspgx,'che_bdyco:fcx')
-      call getmem(fg,jci1,jci2,ici1,ici2,1,kz,'che_bdyco:fg')
     end if
   end subroutine allocate_mod_che_bdyco
 
@@ -272,18 +267,6 @@ module mod_che_bdyco
       end if
       call exchange(chib0,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      !
-      ! Calculate time varying component
-      !
-      do n = 1, ntr
-        do k = 1, kz
-          do i = ice1ga, ice2ga
-            do j = jce1ga, jce2ga
-              chibt(j,i,k,n) = (chib1(j,i,k,n)-chib0(j,i,k,n))/dtbdys
-            end do
-          end do
-        end do
-      end do
 
       ! handle oxc lima
 
@@ -386,15 +369,6 @@ module mod_che_bdyco
         end do
       end if
       call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      do n = 1, ntr
-        do k = 1, kz
-          do i = ice1ga, ice2ga
-            do j = jce1ga, jce2ga
-              chibt(j,i,k,n) = (chib1(j,i,k,n)-chib0(j,i,k,n))/dtbdys
-            end do
-          end do
-        end do
-      end do
       ! handle oxidant climatology
       if ( ioxclim == 1 ) then
         call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,noxcl)
@@ -417,14 +391,14 @@ module mod_che_bdyco
   subroutine chem_bdyval_uncoupled(u,v)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: u, v
-    real(rkx) :: xt, windavg, trint
+    real(rkx) :: x0, x1, windavg, trint
     integer(ik4) :: itr, i, j, k, n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyval_uncoupled'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    xt = xbctime + dt
+
     if ( ichebdy == 0 ) then
       !
       ! flux dependent bdy
@@ -516,11 +490,14 @@ module mod_che_bdyco
     ! for chemistry relaxation towrds
     ! time dependant boundary conditions is considered
 
+    x1 = (xbctime + dt)/dtbdys
+    x0 = 1.0_rkx - x1
+
     if ( ma%has_bdyleft ) then
       do n = 1, ntr
         do k = 1, kz
           do i = ici1, ici2
-            chemt(jce1,i,k,n) = chib0(jce1,i,k,n) + xt*chibt(jce1,i,k,n)
+            chemt(jce1,i,k,n) = x0*chib0(jce1,i,k,n) + x1*chib1(jce1,i,k,n)
           end do
         end do
       end do
@@ -529,7 +506,7 @@ module mod_che_bdyco
       do n = 1, ntr
         do k = 1, kz
           do i = ici1, ici2
-            chemt(jce2,i,k,n) = chib0(jce2,i,k,n) + xt*chibt(jce2,i,k,n)
+            chemt(jce2,i,k,n) = x0*chib0(jce2,i,k,n) + x1*chib1(jce2,i,k,n)
           end do
         end do
       end do
@@ -538,7 +515,7 @@ module mod_che_bdyco
       do n = 1, ntr
         do k = 1, kz
           do j = jce1, jce2
-            chemt(j,ice1,k,n) = chib0(j,ice1,k,n) + xt*chibt(j,ice1,k,n)
+            chemt(j,ice1,k,n) = x0*chib0(j,ice1,k,n) + x1*chib1(j,ice1,k,n)
           end do
         end do
       end do
@@ -547,7 +524,7 @@ module mod_che_bdyco
       do n = 1, ntr
         do k = 1, kz
           do j = jce1, jce2
-            chemt(j,ice2,k,n) = chib0(j,ice2,k,n) + xt*chibt(j,ice2,k,n)
+            chemt(j,ice2,k,n) = x0*chib0(j,ice2,k,n) + x1*chib1(j,ice2,k,n)
           end do
         end do
       end do
@@ -564,14 +541,14 @@ module mod_che_bdyco
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: eue, eui
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: nve, nvi
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: sve, svi
-    real(rkx) :: xt, windavg, trint
+    real(rkx) :: x0, x1, windavg, trint
     integer(ik4) :: itr, i, j, k, n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyval_coupled'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    xt = xbctime + dt
+
     if ( rcmtimer%integrating( ) ) then
       !
       ! West boundary
@@ -711,11 +688,14 @@ module mod_che_bdyco
     ! for chemistry relaxation towrds
     ! time dependant boundary conditions is considered
 
+    x1 = (xbctime + dt)/dtbdys
+    x0 = 1.0_rkx - x1
+
     if ( ma%has_bdyleft ) then
       do n = 1, ntr
         do k = 1, kz
           do i = ici1, ici2
-            chia(jce1,i,k,n) = chib0(jce1,i,k,n) + xt*chibt(jce1,i,k,n)
+            chia(jce1,i,k,n) = x0*chib0(jce1,i,k,n) + x1*chib1(jce1,i,k,n)
           end do
         end do
       end do
@@ -724,7 +704,7 @@ module mod_che_bdyco
       do n = 1, ntr
         do k = 1, kz
           do i = ici1, ici2
-            chia(jce2,i,k,n) = chib0(jce2,i,k,n) + xt*chibt(jce2,i,k,n)
+            chia(jce2,i,k,n) = x0*chib0(jce2,i,k,n) + x1*chib1(jce2,i,k,n)
           end do
         end do
       end do
@@ -733,7 +713,7 @@ module mod_che_bdyco
       do n = 1, ntr
         do k = 1, kz
           do j = jce1, jce2
-            chia(j,ice1,k,n) = chib0(j,ice1,k,n) + xt*chibt(j,ice1,k,n)
+            chia(j,ice1,k,n) = x0*chib0(j,ice1,k,n) + x1*chib1(j,ice1,k,n)
           end do
         end do
       end do
@@ -742,7 +722,7 @@ module mod_che_bdyco
       do n = 1, ntr
         do k = 1, kz
           do j = jce1, jce2
-            chia(j,ice2,k,n) = chib0(j,ice2,k,n) + xt*chibt(j,ice2,k,n)
+            chia(j,ice2,k,n) = x0*chib0(j,ice2,k,n) + x1*chib1(j,ice2,k,n)
           end do
         end do
       end do
@@ -789,7 +769,7 @@ module mod_che_bdyco
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
 
-    real(rkx) :: xt, xf, xg
+    real(rkx) :: x0, x1, xf, xg
     real(rkx) :: fls0, fls1, fls2, fls3, fls4
 
     integer(ik4) :: i, j, k, n, ib
@@ -890,7 +870,9 @@ module mod_che_bdyco
       return
     end if
 
-    xt = xbctime + dt
+    x1 = (xbctime + dt)/dtbdys
+    x0 = 1.0_rkx - x1
+
     if ( cba%ns /= 0 ) then
       do n = 1, ntr
         do k = 1, kz
@@ -900,11 +882,11 @@ module mod_che_bdyco
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
               xg = cegc(ib,k)
-              fls0 = (chib0(j,i,k,n)  +xt*chibt(j,i,k,n))   - f(j,i,k,n)
-              fls1 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
-              fls2 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
-              fls3 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
-              fls4 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
+              fls0 = (x0*chib0(j,i,k,n)  +x1*chib1(j,i,k,n))   - f(j,i,k,n)
+              fls1 = (x0*chib0(j-1,i,k,n)+x1*chib1(j-1,i,k,n)) - f(j-1,i,k,n)
+              fls2 = (x0*chib0(j+1,i,k,n)+x1*chib1(j+1,i,k,n)) - f(j+1,i,k,n)
+              fls3 = (x0*chib0(j,i-1,k,n)+x1*chib1(j,i-1,k,n)) - f(j,i-1,k,n)
+              fls4 = (x0*chib0(j,i+1,k,n)+x1*chib1(j,i+1,k,n)) - f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
@@ -921,11 +903,11 @@ module mod_che_bdyco
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
               xg = cegc(ib,k)
-              fls0 = (chib0(j,i,k,n)  +xt*chibt(j,i,k,n))   - f(j,i,k,n)
-              fls1 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
-              fls2 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
-              fls3 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
-              fls4 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
+              fls0 = (x0*chib0(j,i,k,n)  +x1*chib1(j,i,k,n))   - f(j,i,k,n)
+              fls1 = (x0*chib0(j-1,i,k,n)+x1*chib1(j-1,i,k,n)) - f(j-1,i,k,n)
+              fls2 = (x0*chib0(j+1,i,k,n)+x1*chib1(j+1,i,k,n)) - f(j+1,i,k,n)
+              fls3 = (x0*chib0(j,i-1,k,n)+x1*chib1(j,i-1,k,n)) - f(j,i-1,k,n)
+              fls4 = (x0*chib0(j,i+1,k,n)+x1*chib1(j,i+1,k,n)) - f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                        xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
@@ -942,11 +924,11 @@ module mod_che_bdyco
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
               xg = cegc(ib,k)
-              fls0 = (chib0(j,i,k,n)  +xt*chibt(j,i,k,n))   - f(j,i,k,n)
-              fls1 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
-              fls2 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
-              fls3 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
-              fls4 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
+              fls0 = (x0*chib0(j,i,k,n)  +x1*chib1(j,i,k,n))   - f(j,i,k,n)
+              fls1 = (x0*chib0(j,i-1,k,n)+x1*chib1(j,i-1,k,n)) - f(j,i-1,k,n)
+              fls2 = (x0*chib0(j,i+1,k,n)+x1*chib1(j,i+1,k,n)) - f(j,i+1,k,n)
+              fls3 = (x0*chib0(j-1,i,k,n)+x1*chib1(j-1,i,k,n)) - f(j-1,i,k,n)
+              fls4 = (x0*chib0(j+1,i,k,n)+x1*chib1(j+1,i,k,n)) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                        xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
@@ -963,11 +945,11 @@ module mod_che_bdyco
               ib = cba%ibnd(j,i)
               xf = cefc(ib,k)
               xg = cegc(ib,k)
-              fls0 = (chib0(j,i,k,n)  +xt*chibt(j,i,k,n))   - f(j,i,k,n)
-              fls1 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
-              fls2 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
-              fls3 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
-              fls4 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
+              fls0 = (x0*chib0(j,i,k,n)  +x1*chib1(j,i,k,n))   - f(j,i,k,n)
+              fls1 = (x0*chib0(j,i-1,k,n)+x1*chib1(j,i-1,k,n)) - f(j,i-1,k,n)
+              fls2 = (x0*chib0(j,i+1,k,n)+x1*chib1(j,i+1,k,n)) - f(j,i+1,k,n)
+              fls3 = (x0*chib0(j-1,i,k,n)+x1*chib1(j-1,i,k,n)) - f(j-1,i,k,n)
+              fls4 = (x0*chib0(j+1,i,k,n)+x1*chib1(j+1,i,k,n)) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 -  &
                        xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
@@ -980,12 +962,11 @@ module mod_che_bdyco
 #endif
   end subroutine nudge_chiten
 
-  subroutine monudge_chiten(cfa,f,ften)
+  subroutine monudge_chiten(cfa,f)
     implicit none
     real(rkx), intent(in) :: cfa
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
-    real(rkx) :: xt
+    real(rkx) :: x0, x1, fext
     integer(ik4) :: i, j, k, n, ib
     real(rkx) :: xf
 #ifdef DEBUG
@@ -1001,46 +982,45 @@ module mod_che_bdyco
       return
     end if
 
-    xt = xbctime + dt
+    x1 = (xbctime + dt)/dtbdys
+    x0 = 1.0_rkx - x1
 
-    do n = 1, ntr
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        fg(j,i,k) = (chib0(j,i,k,n)+xt*chibt(j,i,k,n)) - f(j,i,k,n)
+    if ( cba%ns /= 0 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+        if ( .not. cba%bsouth(j,i) ) cycle
+        ib = cba%ibnd(j,i)
+        xf = cfa * fcx(ib)
+        fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
+        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
       end do
-
-      if ( cba%ns /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          if ( .not. cba%bsouth(j,i) ) cycle
-          ib = cba%ibnd(j,i)
-          xf = cfa * fcx(ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k) * rdt
-        end do
-      end if
-      if ( cba%nn /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          if ( .not. cba%bnorth(j,i) ) cycle
-          ib = cba%ibnd(j,i)
-          xf = cfa * fcx(ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k) * rdt
-        end do
-      end if
-      if ( cba%nw /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          if ( .not. cba%bwest(j,i) ) cycle
-          ib = cba%ibnd(j,i)
-          xf = cfa * fcx(ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k) * rdt
-        end do
-      end if
-      if ( cba%ne /= 0 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          if ( .not. cba%beast(j,i) ) cycle
-          ib = cba%ibnd(j,i)
-          xf = cfa * fcx(ib)
-          ften(j,i,k,n) = ften(j,i,k,n) + xf*fg(j,i,k) * rdt
-        end do
-      end if
-    end do
+    end if
+    if ( cba%nn /= 0 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+        if ( .not. cba%bnorth(j,i) ) cycle
+        ib = cba%ibnd(j,i)
+        xf = cfa * fcx(ib)
+        fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
+        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
+      end do
+    end if
+    if ( cba%nw /= 0 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+        if ( .not. cba%bwest(j,i) ) cycle
+        ib = cba%ibnd(j,i)
+        xf = cfa * fcx(ib)
+        fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
+        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
+      end do
+    end if
+    if ( cba%ne /= 0 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+        if ( .not. cba%beast(j,i) ) cycle
+        ib = cba%ibnd(j,i)
+        xf = cfa * fcx(ib)
+        fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
+        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
+      end do
+    end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -1057,7 +1037,7 @@ module mod_che_bdyco
     if ( idynamic == 3 ) then
       fcx(1) = 1.0_rkx
       fcx(nspgx) = 0.0_rkx
-      call relax_coefficients(nspgx-2,0.1_rkx,0.7_rkx,fcx(2:nspgx-1))
+      call relax_coefficients(nspgx-2,0.1_rkx,1.0_rkx,fcx(2:nspgx-1))
     else
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm

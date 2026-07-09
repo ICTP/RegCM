@@ -493,6 +493,7 @@ module mod_atm_interface
           do i = i1, i2
             do j = j1, j2
               if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle
+              if ( i < igbb1 .or. i > igbt2 ) cycle
               if ( j >= jgbl1 .and. j <= jgbl2 ) then
                 ba%ibnd(j,i) = j-jgbl1+2
                 ba%bwest(j,i) = .true.
@@ -504,6 +505,7 @@ module mod_atm_interface
           do i = i1, i2
             do j = j1, j2
               if ( ba%bnorth(j,i) .or. ba%bsouth(j,i) ) cycle
+              if ( i < igbb1 .or. i > igbt2 ) cycle
               if ( j >= jgbr1 .and. j <= jgbr2 ) then
                 ba%ibnd(j,i) = jgbr2-j+2
                 ba%beast(j,i) = .true.
@@ -551,16 +553,13 @@ module mod_atm_interface
         if ( idynamic == 3 ) then
           call getmem(xb%b0,jde1gb,jde2gb,ide1gb,ide2gb,1,ke,'v3dbound:b0')
           call getmem(xb%b1,jde1gb,jde2gb,ide1gb,ide2gb,1,ke,'v3dbound:b1')
-          call getmem(xb%bt,jde1gb,jde2gb,ide1gb,ide2gb,1,ke,'v3dbound:bt')
         else
           call getmem(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b0')
           call getmem(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b1')
-          call getmem(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:bt')
         end if
       else
         call getmem(xb%b0,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:b0')
         call getmem(xb%b1,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:b1')
-        call getmem(xb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:bt')
       end if
     end subroutine allocate_v3dbound
 
@@ -571,11 +570,9 @@ module mod_atm_interface
       if ( ldot ) then
         call getmem(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:b0')
         call getmem(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:b1')
-        call getmem(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:bt')
       else
         call getmem(xb%b0,jce1ga,jce2ga,ice1ga,ice2ga,'v2dbound:b0')
         call getmem(xb%b1,jce1ga,jce2ga,ice1ga,ice2ga,'v2dbound:b1')
-        call getmem(xb%bt,jce1ga,jce2ga,ice1ga,ice2ga,'v2dbound:bt')
       end if
     end subroutine allocate_v2dbound
 
@@ -609,7 +606,6 @@ module mod_atm_interface
       call getmem(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
       call getmem(atm%uten,jci1,jci2,ici1,ici2,1,kz,'atmstate:uten')
       call getmem(atm%vten,jci1,jci2,ici1,ici2,1,kz,'atmstate:vten')
-      call getmem(atm%paiten,jci1,jci2,idi1,idi2,1,kz,'atmstate:paiten')
       call getmem(atm%qxten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qxten')
       if ( ibltyp == 2 ) then
         call getmem(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')

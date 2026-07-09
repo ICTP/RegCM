@@ -213,7 +213,7 @@ module mod_regcm_interface
       call output
     else
       call output
-      call bdyval
+      if ( idynamic /= 3 ) call bdyval
     end if
     !
     ! Clean up and logging
