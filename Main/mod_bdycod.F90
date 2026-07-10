@@ -3802,7 +3802,7 @@ module mod_bdycod
       end do
     end do
     deallocate(px,py)
-    cn0 = dtrad/dtbdys
+    cn0 = 2.0_rkx * dtrad/dtbdys
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       cn1(j,i) = cn0 * max(1.0_rkx - mddom%ht(j,i)/25000.0_rkx, 0.0_rkx)
     end do
@@ -3930,10 +3930,9 @@ module mod_bdycod
                           jcross2,icross2,nspgx,ud,vd,unx)
   end subroutine moupdate_norm
 
-  subroutine monudge(f,bnd,unorm)
+  subroutine monudge(f,bnd)
     implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: unorm
     type(v3dbound), intent(in) :: bnd
     real(rkx) :: x0, x1
     integer(ik4) :: i, j, k, ib
@@ -3958,7 +3957,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bsouth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = adaptive(fcx(ib),unorm(j,i,k))
+        xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3967,7 +3966,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bnorth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = adaptive(fcx(ib),unorm(j,i,k))
+        xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3976,7 +3975,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bwest(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = adaptive(fcx(ib),unorm(j,i,k))
+        xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3985,7 +3984,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%beast(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = adaptive(fcx(ib),unorm(j,i,k))
+        xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do

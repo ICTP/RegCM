@@ -457,20 +457,19 @@ module mod_moloch
         call mospectral_nudge(vx,xvb)
       end if
     end if
-    call moupdate_norm(u,v,p3d)
-    call monudge(ux,xub,p3d)
-    call monudge(vx,xvb,p3d)
-    call monudge(t,xtb,p3d)
-    call monudge(pai,xpaib,p3d)
-    call monudge(qv,xqb,p3d)
+    call monudge(ux,xub)
+    call monudge(vx,xvb)
+    call monudge(t,xtb)
+    call monudge(pai,xpaib)
+    call monudge(qv,xqb)
     if ( is_present_qc( ) ) then
-      call monudge(qc,xlb,p3d)
+      call monudge(qc,xlb)
     end if
     if ( is_present_qi( ) ) then
-      call monudge(qi,xib,p3d)
+      call monudge(qi,xib)
     end if
     if ( ichem == 1 ) then
-      call monudge_chiten(trac,p3d)
+      call monudge_chiten(trac)
     end if
 
     if ( idiag > 0 ) then
