@@ -52,7 +52,7 @@ module mod_bdycod
   public :: bdyin_prefetch
 #endif
   public :: sponge, nudge, monudge, setup_bdycon, raydamp
-  public :: spectral_nudge
+  public :: moupdate_norm, mospectral_nudge
   public :: is_present_qc, is_present_qi
 
   !
@@ -3802,7 +3802,7 @@ module mod_bdycod
       end do
     end do
     deallocate(px,py)
-    cn0 = 1.0_rkx/min(15000.0_rkx,dtbdys)
+    cn0 = dtrad/dtbdys
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       cn1(j,i) = cn0 * max(1.0_rkx - mddom%ht(j,i)/25000.0_rkx, 0.0_rkx)
     end do
@@ -3852,7 +3852,7 @@ module mod_bdycod
     end do
   end subroutine lowpass_filter
 
-  subroutine spectral_nudge(f,bnd)
+  subroutine mospectral_nudge(f,bnd)
     implicit none
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
@@ -3871,7 +3871,7 @@ module mod_bdycod
         f(j,i,k) = f(j,i,k) - cn2(j,i,k)*zn1(j,i)
       end do
     end do
-  end subroutine spectral_nudge
+  end subroutine mospectral_nudge
 
   subroutine invert_top_bottom(v)
     implicit none
@@ -3922,9 +3922,18 @@ module mod_bdycod
     end if
   end subroutine uvstagtox
 
-  subroutine monudge(f,bnd)
+  subroutine moupdate_norm(ud,vd,unx)
+    implicit none
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: ud, vd
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: unx
+    call outward_velocity(jci1,jci2,ici1,ici2,1,kz, &
+                          jcross2,icross2,nspgx,ud,vd,unx)
+  end subroutine moupdate_norm
+
+  subroutine monudge(f,bnd,unorm)
     implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: unorm
     type(v3dbound), intent(in) :: bnd
     real(rkx) :: x0, x1
     integer(ik4) :: i, j, k, ib
@@ -3949,7 +3958,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bsouth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = fcx(ib)
+        xf = adaptive(fcx(ib),unorm(j,i,k))
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3958,7 +3967,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bnorth(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = fcx(ib)
+        xf = adaptive(fcx(ib),unorm(j,i,k))
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3967,7 +3976,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%bwest(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = fcx(ib)
+        xf = adaptive(fcx(ib),unorm(j,i,k))
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3976,7 +3985,7 @@ module mod_bdycod
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( .not. ba_cr%beast(j,i) ) cycle
         ib = ba_cr%ibnd(j,i)
-        xf = fcx(ib)
+        xf = adaptive(fcx(ib),unorm(j,i,k))
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do

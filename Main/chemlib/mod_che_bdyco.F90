@@ -962,9 +962,10 @@ module mod_che_bdyco
 #endif
   end subroutine nudge_chiten
 
-  subroutine monudge_chiten(f)
+  subroutine monudge_chiten(f,unorm)
     implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: unorm
     real(rkx) :: x0, x1, fext
     integer(ik4) :: i, j, k, n, ib
     real(rkx) :: xf
@@ -988,7 +989,7 @@ module mod_che_bdyco
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
         if ( .not. cba%bsouth(j,i) ) cycle
         ib = cba%ibnd(j,i)
-        xf = fcx(ib)
+        xf = adaptive(fcx(ib),unorm(j,i,k))
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
         f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
       end do
@@ -997,7 +998,7 @@ module mod_che_bdyco
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
         if ( .not. cba%bnorth(j,i) ) cycle
         ib = cba%ibnd(j,i)
-        xf = fcx(ib)
+        xf = adaptive(fcx(ib),unorm(j,i,k))
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
         f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
       end do
@@ -1006,7 +1007,7 @@ module mod_che_bdyco
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
         if ( .not. cba%bwest(j,i) ) cycle
         ib = cba%ibnd(j,i)
-        xf = fcx(ib)
+        xf = adaptive(fcx(ib),unorm(j,i,k))
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
         f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
       end do
@@ -1015,7 +1016,7 @@ module mod_che_bdyco
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
         if ( .not. cba%beast(j,i) ) cycle
         ib = cba%ibnd(j,i)
-        xf = fcx(ib)
+        xf = adaptive(fcx(ib),unorm(j,i,k))
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
         f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
       end do

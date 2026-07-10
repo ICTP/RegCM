@@ -549,6 +549,8 @@ module mod_runparams
   public :: iswater, isocean, islake
   public :: exponential_nudging
   public :: relax_coefficients
+  public :: outward_velocity
+  public :: adaptive
 
   contains
 
@@ -687,6 +689,61 @@ module mod_runparams
       coeff(i) = kdt2/(1.0_rkx+kdt2)
     end do
   end subroutine relax_coefficients
+
+  subroutine outward_velocity(j1,j2,i1,i2,k1,k2,jmax,imax,nspg,u,v,unorm)
+    implicit none
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
+    integer(ik4), intent(in) :: jmax, imax
+    integer(ik4), intent(in) :: nspg
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in)  :: u, v
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: unorm
+    integer(ik4) :: i, j, k
+    real(rkx) :: nx, ny, norm_mag
+    real(rkx) :: nx_unit, ny_unit
+
+    do concurrent ( j = j1:j2, i = i1:i2 )
+      nx = 0.0_rkx
+      ny = 0.0_rkx
+      if ( j <= nspg ) then
+        ! West Edge: Outward direction is West (-1.0)
+        ! Weight drops to 0 as we move toward the interior interface
+        nx = -1.0_rkx * (1.0_rkx - real(j-1,rkx)/real(nspg,rkx))
+      else if ( j > jmax - nspg ) then
+        ! East Edge: Outward direction is East (+1.0)
+        nx = 1.0_rkx * (1.0_rkx - real(jmax-j,rkx)/real(nspg,rkx))
+      end if
+      if ( i <= nspg ) then
+        ! South Edge: Outward direction is South (-1.0)
+        ny = -1.0_rkx * (1.0_rkx - real(i-1,rkx)/real(nspg,rkx))
+      else if ( i > imax - nspg ) then
+        ! North Edge: Outward direction is North (+1.0)
+        ny = 1.0_rkx * (1.0_rkx - real(imax-i,rkx)/real(nspg,rkx))
+      end if
+      norm_mag = sqrt(nx**2+ny**2)
+      if ( norm_mag > 1.0E-10_rkx ) then
+        nx_unit = nx / norm_mag
+        ny_unit = ny / norm_mag
+        do k = k1, k2
+          unorm(j,i,k) = 0.5_rkx * (u(j,i,k)+u(j+1,i,k)) * nx_unit + &
+                         0.5_rkx * (v(j,i,k)+v(j,i+1,k)) * ny_unit
+        end do
+      else
+        do k = k1, k2
+          unorm(j,i,k) = 0.0_rkx
+        end do
+      end if
+    end do
+  end subroutine outward_velocity
+
+  pure real(rkx) function adaptive(coeff,unorm) result(cnew)
+    implicit none
+    real(rkx), intent(in) :: coeff, unorm
+    real(rkx), parameter :: outflow = 0.1_rkx
+    real(rkx), parameter :: vscale = 2.0_rkx
+
+    cnew = coeff * (0.5_rkx * &
+      ((1.0_rkx+outflow) - (1.0_rkx-outflow)*tanh(unorm/vscale)))
+  end function adaptive
 
 end module mod_runparams
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -452,24 +452,25 @@ module mod_moloch
     if ( mo_spectral_nudging ) then
       tspectral = tspectral + dtsec
       if ( int(mod(tspectral,dtrad)) == 0 ) then
-        call spectral_nudge(t,xtb)
-        call spectral_nudge(ux,xub)
-        call spectral_nudge(vx,xvb)
+        call mospectral_nudge(t,xtb)
+        call mospectral_nudge(ux,xub)
+        call mospectral_nudge(vx,xvb)
       end if
     end if
-    call monudge(ux,xub)
-    call monudge(vx,xvb)
-    call monudge(t,xtb)
-    call monudge(pai,xpaib)
-    call monudge(qv,xqb)
+    call moupdate_norm(u,v,p3d)
+    call monudge(ux,xub,p3d)
+    call monudge(vx,xvb,p3d)
+    call monudge(t,xtb,p3d)
+    call monudge(pai,xpaib,p3d)
+    call monudge(qv,xqb,p3d)
     if ( is_present_qc( ) ) then
-      call monudge(qc,xlb)
+      call monudge(qc,xlb,p3d)
     end if
     if ( is_present_qi( ) ) then
-      call monudge(qi,xib)
+      call monudge(qi,xib,p3d)
     end if
     if ( ichem == 1 ) then
-      call monudge_chiten(trac)
+      call monudge_chiten(trac,p3d)
     end if
 
     if ( idiag > 0 ) then
@@ -809,7 +810,7 @@ module mod_moloch
     if ( lrotllr ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         dlat = degrad * 0.5_rkx * (rlat(i)+rlat(i+1))
-        tanx = sin(dlat)*mu(j,i)*rearthrad
+        tanx = sin(dlat)*mx(j,i)*rearthrad
         ux(j,i,k) = ux(j,i,k) + ux(j,i,k) * vx(j,i,k) * tanx * dta
         vx(j,i,k) = vx(j,i,k) - ux(j,i,k) * ux(j,i,k) * tanx * dta
       end do
