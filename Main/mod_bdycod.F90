@@ -3770,10 +3770,11 @@ module mod_bdycod
     real(rkx), dimension(:), allocatable :: px, py
     real(rkx) :: dx, dy
     integer(ik4) :: i, j, k, l
-    real(rkx), parameter :: cutoff_wavelength_km = 1500.0_rkx
+    real(rkx), parameter :: cutoff_wavelength_lon_km = 750.0_rkx
+    real(rkx), parameter :: cutoff_wavelength_lat_km = 500.0_rkx
 
-    km = max(nint((njcross*ds)/cutoff_wavelength_km),1)
-    lm = max(nint((nicross*ds)/cutoff_wavelength_km),1)
+    km = max(nint((njcross*ds)/cutoff_wavelength_lon_km),2)
+    lm = max(nint((nicross*ds)/cutoff_wavelength_lat_km),1)
 
     dx = mathpi/real(njcross-1,rkx)
     dy = mathpi/real(nicross-1,rkx)
