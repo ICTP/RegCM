@@ -153,7 +153,6 @@ module mod_moloch
   ! Base damping coefficients
   real(rkx), parameter :: dcoff = 0.125_rkx
   real(rkx), parameter :: ddamp = 0.1_rkx
-  real(rkx), parameter :: bfac = 5.0_rkx
 
   real(rkx) :: rdzita
   integer(ik4) :: jmin, jmax, imin, imax
@@ -738,51 +737,27 @@ module mod_moloch
     implicit none
     real(rkx), intent(in) :: dts
     integer(ik4) :: i, j, k
-    real(rkx) :: xdam, rdts
+    real(rkx) :: xdam, dxrdt
 
-    rdts = 1.0_rkx/dts
+    dxrdt = dcoff * dx/dts
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
     if ( lrotllr ) then
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = rdts * dcoff * xknu(k) * dx
-        if ( (j >= nspgx .and. j <= nspgx+2) .or. &
-             (i >= nspgx .and. i <= nspgx+2) .or. &
-             (j >= jcross2-nspgx-3 .and. j < jcross2-nspgx) .or. &
-             (i >= icross2-nspgx-3 .and. i < icross2-nspgx) ) then
-          xdam = xdam * bfac
-        end if
-        u(j,i,k) = u(j,i,k) + xdam * mu(j,i) * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
+        xdam = dxrdt * xknu(k) * rmu(j,i)
+        u(j,i,k) = u(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        xdam = rdts * dcoff * xknu(k) * dx
-        if ( (j >= nspgx .and. j <= nspgx+2) .or. &
-             (i >= nspgx .and. i <= nspgx+2) .or. &
-             (j >= jcross2-nspgx-3 .and. j < jcross2-nspgx) .or. &
-             (i >= icross2-nspgx-3 .and. i < icross2-nspgx) ) then
-          xdam = xdam * bfac
-        end if
+        xdam = dxrdt * xknu(k)
         v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = rdts * dcoff * xknu(k) * dx
-        if ( (j >= nspgx .and. j <= nspgx+2) .or. &
-             (i >= nspgx .and. i <= nspgx+2) .or. &
-             (j >= jcross2-nspgx-3 .and. j < jcross2-nspgx) .or. &
-             (i >= icross2-nspgx-3 .and. i < icross2-nspgx) ) then
-          xdam = xdam * bfac
-        end if
-        u(j,i,k) = u(j,i,k) + xdam * mu(j,i) * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
+        xdam = dxrdt * xknu(k) * rmu(j,i)
+        u(j,i,k) = u(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        xdam = rdts * dcoff * xknu(k) * dx
-        if ( (j >= nspgx .and. j <= nspgx+2) .or. &
-             (i >= nspgx .and. i <= nspgx+2) .or. &
-             (j >= jcross2-nspgx-3 .and. j < jcross2-nspgx) .or. &
-             (i >= icross2-nspgx-3 .and. i < icross2-nspgx) ) then
-          xdam = xdam * bfac
-        end if
-        v(j,i,k) = v(j,i,k) + xdam * mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+        xdam = dxrdt * xknu(k) * rmv(j,i)
+        v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
   end subroutine divdamp

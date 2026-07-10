@@ -3813,7 +3813,7 @@ module mod_bdycod
       end do
     end do
     deallocate(px,py)
-    cn0 = 2.0_rkx * dtrad/dtbdys
+    cn0 = dtrad/dtbdys
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       cn1(j,i) = cn0 * max(1.0_rkx - mddom%ht(j,i)/25000.0_rkx, 0.0_rkx)
     end do
@@ -3879,8 +3879,6 @@ module mod_bdycod
       end do
       call lowpass_filter(zn1)
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        if ( j < nspgx .or. j > jcross2-nspgx+1 ) cycle
-        if ( i < nspgx .or. i > icross2-nspgx+1 ) cycle
         f(j,i,k) = f(j,i,k) - cn2(j,i,k)*zn1(j,i)
       end do
     end do
