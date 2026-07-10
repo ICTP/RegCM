@@ -3770,10 +3770,10 @@ module mod_bdycod
     real(rkx), dimension(:), allocatable :: px, py
     real(rkx) :: dx, dy
     integer(ik4) :: i, j, k, l
-    integer(ik4), parameter :: theoretical_max_fraction = 40
+    real(rkx), parameter :: cutoff_wavelength_km = 1500.0_rkx
 
-    km = max(njcross/theoretical_max_fraction,4)
-    lm = max(nicross/theoretical_max_fraction,4)
+    km = max(nint((njcross*ds)/cutoff_wavelength_km),1)
+    lm = max(nint((nicross*ds)/cutoff_wavelength_km),1)
 
     dx = mathpi/real(njcross-1,rkx)
     dy = mathpi/real(nicross-1,rkx)

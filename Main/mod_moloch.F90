@@ -140,19 +140,19 @@ module mod_moloch
   logical, parameter :: do_radiation    = .true.
   logical, parameter :: do_surface      = .true.
   logical, parameter :: do_pbl          = .true.
-  logical, parameter :: do_fulleq       = .false.
+  logical, parameter :: do_fulleq       = .true.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
   logical :: lrotllr
 
   logical :: do_apply_bdy = .true.
-  logical :: do_divdamp   = .false.
-  logical :: do_divfilter = .false.
+  logical :: do_divdamp   = .true.
+  logical :: do_divfilter = .true.
 
   ! Base damping coefficients
   real(rkx), parameter :: dcoff = 0.125_rkx
-  real(rkx), parameter :: xdamp = 0.1_rkx
+  real(rkx), parameter :: ddamp = 0.1_rkx
 
   real(rkx) :: rdzita
   integer(ik4) :: jmin, jmax, imin, imax
@@ -205,7 +205,7 @@ module mod_moloch
     end if
     call getmem(xknu,1,kz,'moloch:xknu')
     do concurrent ( k = 1:kz )
-      xknu(k) = (xdamp + (1.0_rkx-xdamp)/(k+2.0_rkx))
+      xknu(k) = (ddamp + (1.0_rkx-ddamp)/(k+2.0_rkx))
     end do
   end subroutine allocate_moloch
 
