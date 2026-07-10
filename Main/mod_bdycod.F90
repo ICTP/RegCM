@@ -3970,7 +3970,7 @@ module mod_bdycod
         ib = ba_cr%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
+        f(j,i,k) = (f(j,i,k) + xf*fext)/(1.0_rkx+xf)
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
@@ -3979,7 +3979,7 @@ module mod_bdycod
         ib = ba_cr%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
+        f(j,i,k) = (f(j,i,k) + xf*fext)/(1.0_rkx+xf)
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
@@ -3988,7 +3988,7 @@ module mod_bdycod
         ib = ba_cr%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
+        f(j,i,k) = (f(j,i,k) + xf*fext)/(1.0_rkx+xf)
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
@@ -3997,7 +3997,7 @@ module mod_bdycod
         ib = ba_cr%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
+        f(j,i,k) = (f(j,i,k) + xf*fext)/(1.0_rkx+xf)
       end do
     end if
 #ifdef DEBUG

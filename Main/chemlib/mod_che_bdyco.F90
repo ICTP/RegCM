@@ -990,7 +990,7 @@ module mod_che_bdyco
         ib = cba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
-        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
+        f(j,i,k,n) = (f(j,i,k,n) + xf*fext)/(1.0_rkx+xf)
       end do
     end if
     if ( cba%nn /= 0 ) then
@@ -999,7 +999,7 @@ module mod_che_bdyco
         ib = cba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
-        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
+        f(j,i,k,n) = (f(j,i,k,n) + xf*fext)/(1.0_rkx+xf)
       end do
     end if
     if ( cba%nw /= 0 ) then
@@ -1008,7 +1008,7 @@ module mod_che_bdyco
         ib = cba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
-        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
+        f(j,i,k,n) = (f(j,i,k,n) + xf*fext)/(1.0_rkx+xf)
       end do
     end if
     if ( cba%ne /= 0 ) then
@@ -1017,7 +1017,7 @@ module mod_che_bdyco
         ib = cba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
-        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
+        f(j,i,k,n) = (f(j,i,k,n) + xf*fext)/(1.0_rkx+xf)
       end do
     end if
 #ifdef DEBUG
