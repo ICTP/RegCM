@@ -3770,11 +3770,21 @@ module mod_bdycod
     real(rkx), dimension(:), allocatable :: px, py
     real(rkx) :: dx, dy
     integer(ik4) :: i, j, k, l
-    real(rkx), parameter :: cutoff_wavelength_lon_km = 750.0_rkx
-    real(rkx), parameter :: cutoff_wavelength_lat_km = 500.0_rkx
+    real(rkx), parameter :: cutoff_wavelength_lon_km = 1500.0_rkx
+    real(rkx), parameter :: cutoff_wavelength_lat_km = 1000.0_rkx
 
-    km = max(nint((njcross*ds)/cutoff_wavelength_lon_km),2)
+    km = max(nint((njcross*ds)/cutoff_wavelength_lon_km),1)
     lm = max(nint((nicross*ds)/cutoff_wavelength_lat_km),1)
+
+    if ( myid == 0 ) then
+      write(stdout, '(a)') ' Spectral nudging active.'
+      dx = min((njcross*ds)/2,cutoff_wavelength_lon_km)
+      dy = min((nicross*ds),cutoff_wavelength_lat_km)
+      write(stdout, '(a,f8.2,a)') &
+        '  Wavelenght cutoff for longitudinal waves : ',dx,' km'
+      write(stdout, '(a,f8.2,a)') &
+        '  Wavelenght cutoff for latitudinal waves  : ',dy,' km'
+    end if
 
     dx = mathpi/real(njcross-1,rkx)
     dy = mathpi/real(nicross-1,rkx)
@@ -3869,6 +3879,8 @@ module mod_bdycod
       end do
       call lowpass_filter(zn1)
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        if ( j < nspgx .or. j > jcross2-nspgx+1 ) cycle
+        if ( i < nspgx .or. i > icross2-nspgx+1 ) cycle
         f(j,i,k) = f(j,i,k) - cn2(j,i,k)*zn1(j,i)
       end do
     end do

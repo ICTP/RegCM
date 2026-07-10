@@ -153,6 +153,7 @@ module mod_moloch
   ! Base damping coefficients
   real(rkx), parameter :: dcoff = 0.125_rkx
   real(rkx), parameter :: ddamp = 0.1_rkx
+  real(rkx), parameter :: bfac = 5.0_rkx
 
   real(rkx) :: rdzita
   integer(ik4) :: jmin, jmax, imin, imax
@@ -744,19 +745,43 @@ module mod_moloch
     if ( lrotllr ) then
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         xdam = rdts * dcoff * xknu(k) * dx
+        if ( (j >= nspgx .and. j <= nspgx+2) .or. &
+             (i >= nspgx .and. i <= nspgx+2) .or. &
+             (j >= jcross2-nspgx-3 .and. j < jcross2-nspgx) .or. &
+             (i >= icross2-nspgx-3 .and. i < icross2-nspgx) ) then
+          xdam = xdam * bfac
+        end if
         u(j,i,k) = u(j,i,k) + xdam * mu(j,i) * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         xdam = rdts * dcoff * xknu(k) * dx
+        if ( (j >= nspgx .and. j <= nspgx+2) .or. &
+             (i >= nspgx .and. i <= nspgx+2) .or. &
+             (j >= jcross2-nspgx-3 .and. j < jcross2-nspgx) .or. &
+             (i >= icross2-nspgx-3 .and. i < icross2-nspgx) ) then
+          xdam = xdam * bfac
+        end if
         v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         xdam = rdts * dcoff * xknu(k) * dx
+        if ( (j >= nspgx .and. j <= nspgx+2) .or. &
+             (i >= nspgx .and. i <= nspgx+2) .or. &
+             (j >= jcross2-nspgx-3 .and. j < jcross2-nspgx) .or. &
+             (i >= icross2-nspgx-3 .and. i < icross2-nspgx) ) then
+          xdam = xdam * bfac
+        end if
         u(j,i,k) = u(j,i,k) + xdam * mu(j,i) * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         xdam = rdts * dcoff * xknu(k) * dx
+        if ( (j >= nspgx .and. j <= nspgx+2) .or. &
+             (i >= nspgx .and. i <= nspgx+2) .or. &
+             (j >= jcross2-nspgx-3 .and. j < jcross2-nspgx) .or. &
+             (i >= icross2-nspgx-3 .and. i < icross2-nspgx) ) then
+          xdam = xdam * bfac
+        end if
         v(j,i,k) = v(j,i,k) + xdam * mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
@@ -815,8 +840,8 @@ module mod_moloch
       end do
     else
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        tanx = (mx(j-1,i)-mx(j,i))*rdx
-        tany = (mx(j,i-1)-mx(j,i))*rdx
+        tanx = (mu(j-1,i)-mu(j,i))*rdx
+        tany = (mv(j,i-1)-mv(j,i))*rdx
         ux(j,i,k) = ux(j,i,k) + ux(j,i,k) * vx(j,i,k) * tanx * dta
         vx(j,i,k) = vx(j,i,k) - ux(j,i,k) * ux(j,i,k) * tany * dta
       end do
