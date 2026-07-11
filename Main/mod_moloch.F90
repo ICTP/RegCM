@@ -449,6 +449,8 @@ module mod_moloch
       end do
     end if
 
+    call bdyval
+
     if ( mo_spectral_nudging ) then
       tspectral = tspectral + dtsec
       if ( int(mod(tspectral,dtrad)) == 0 ) then
@@ -518,7 +520,9 @@ module mod_moloch
     dtrdz = dts*rdzita
     zcs2 = dtrdz**2*rdrcv
 
-    call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( .not. do_fulleq ) then
+      call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
 
     !  sound waves
 
@@ -1173,7 +1177,6 @@ module mod_moloch
     !
     ! Update "physical variables" to register change
     !
-    call uvstagtox(u,v,ux,vx)
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
       p(j,i,k) = (pai(j,i,k)**cpovr) * p00
@@ -1483,7 +1486,8 @@ module mod_moloch
     end do
     if ( ibltyp == 2 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-        tke(j,i,k) = max(tke(j,i,k) + dtinc * tketen(j,i,k),tkemin)
+        tke(j,i,k) = tke(j,i,k) + dtinc * tketen(j,i,k)
+        if ( tke(j,i,k) < tkemin ) tke(j,i,k) = tkemin
       end do
     end if
     if ( ichem == 1 ) then
@@ -1676,12 +1680,12 @@ module mod_moloch
         end do
       else
         do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
-          t(j,i,k) = tvirt(j,i,k) * (d_one + ep1*qv(j,i,k) - qc(j,i,k))
+          t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - qc(j,i,k))
         end do
       end if
     else
       do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
-        t(j,i,k) = tvirt(j,i,k) * (d_one + ep1*qv(j,i,k))
+        t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
       end do
     end if
   end subroutine tvirt_to_temp

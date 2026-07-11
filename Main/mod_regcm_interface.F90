@@ -308,7 +308,7 @@ module mod_regcm_interface
         ! fill up the boundary values for xxb and xxa variables:
         !
         if ( irceideal /= 1 ) then
-          call bdyval
+          if ( idynamic /= 3 ) call bdyval
         end if
       end if
       !
