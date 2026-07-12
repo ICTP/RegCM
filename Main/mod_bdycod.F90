@@ -100,8 +100,7 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg2 => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: zn1 => null( )
-  real(rkx), pointer, contiguous, dimension(:,:) :: cn1 => null( )
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: cn2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: cnudge => null( )
   integer(ik4) :: km, lm
   real(rkx), pointer, dimension(:,:), contiguous :: bvx, bvy
   real(rkx), pointer, dimension(:,:), contiguous :: sxg, syg
@@ -411,8 +410,7 @@ module mod_bdycod
     if ( idynamic == 3 ) then
       call getmem(fcx,1,nspgx,'bdycon:fcx')
       call getmem(zn1,jce1,jce2,ice1,ice2,'bdycon:zn1')
-      call getmem(cn1,jce1,jce2,ice1,ice2,'bdycon:cn1')
-      call getmem(cn2,jce1,jce2,ice1,ice2,1,kz,'bdycon:cn2')
+      call getmem(cnudge,jce1,jce2,ice1,ice2,1,kz,'bdycon:cnudge')
     else
       if ( iboudy == 1 .or. idynamic == 2 ) then
         call getmem(fcx,2,nspgx-1,'bdycon:fcx')
@@ -3814,11 +3812,11 @@ module mod_bdycod
     end do
     deallocate(px,py)
     cn0 = dtrad/dtbdys
-    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-      cn1(j,i) = cn0 * max(1.0_rkx - mddom%ht(j,i)/25000.0_rkx, 0.0_rkx)
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
+      cnudge(j,i,k) = cn0 * min((mo_atm%zeta(j,i,k)/mo_h)**2, 1.0_rkx)
     end do
-    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      cn2(j,i,k) = cn1(j,i) * min((mo_atm%zeta(j,i,k)/1500.0_rkx)**2, 1.0_rkx)
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+      cnudge(j,i,1) = 5.0_rkx * cn0
     end do
   end subroutine lowpass_init
 
@@ -3879,7 +3877,7 @@ module mod_bdycod
       end do
       call lowpass_filter(zn1)
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        f(j,i,k) = f(j,i,k) - cn2(j,i,k)*zn1(j,i)
+        f(j,i,k) = f(j,i,k) - cnudge(j,i,k)*zn1(j,i)
       end do
     end do
   end subroutine mospectral_nudge

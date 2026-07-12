@@ -344,10 +344,10 @@ module mod_params
     rayndamp = 5
     rayalpha0 = 1.0_rkx/86400.0_rkx
     rayhd = 10000.0_rkx
-    mo_nadv = 3
+    mo_nadv = 2
     mo_nsound = 5
-    mo_divfilter = .false.
-    mo_divdamp = .false.
+    mo_divfilter = .true.
+    mo_divdamp = .true.
     mo_nzfilt = kz/3
     !
     ! Rrtm radiation param ;
