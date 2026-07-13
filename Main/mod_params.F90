@@ -158,7 +158,9 @@ module mod_params
 
     namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
       kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate,        &
-      kf_wthreshold
+      kf_wthreshold, istochastic
+
+    namelist /kfstochastic/ rad_sigma, rad_min, rad_max
 
     namelist /chemparam/ chemsimtype, ichremlsc, ichremcvc, ichdrdepo, &
       ichcumtra, ichsolver, idirect, iindirect, ichdustemd,           &
@@ -527,6 +529,9 @@ module mod_params
     kf_tkemax = 5.0_rkx   ! Maximum turbolent kinetic energy in sub cloud layer
     kf_min_dtcape = 1800.0_rkx ! Consumption time of CAPE low limit
     kf_max_dtcape = 3600.0_rkx ! Consumption time of CAPE high limit
+    rad_sigma = 0.0_rkx ! Deterministic
+    rad_min = 1000.0_rkx ! Temporal number (Needs revision)
+    rad_max = 2000.0_rkx ! Temporal number (Needs revision)
     !
     ! uwparam ;
     ! Original settings from Travis O'Brian
@@ -981,6 +986,16 @@ module mod_params
         if ( kf_tkemax < 3.0_rkx ) then
           write(stdout,*) 'Resetting kf_tkemax to 3 m2 s-2'
           kf_tkemax = 3.0_rkx
+        end if
+
+        if ( istochastic == 1 ) then
+          rewind(ipunit)
+          read (ipunit, nml=kfstochastic, iostat=iretval, err=113)
+          if ( iretval /= 0 ) then
+            write(stdout*) 'No kfstochastic namelist'
+            write(stdout*) 'Setting KF radius to deterministic'
+            istochastic = 0
+          end if 
         end if
       end if
       if ( iocnflx < 0 .or. iocnflx > 3 ) then
@@ -1840,6 +1855,12 @@ module mod_params
       call bcast(lmftrac)
       call bcast(lmfsmooth)
       call bcast(lmfwstar)
+      call bcast(istochastic)
+      if ( istochastic == 1 ) then
+        call bcast(rad_sigma)
+        call bcast(rad_min)
+        call bcast(rad_max)
+      end if
     end if
 
     if ( any(icup == 6) ) then

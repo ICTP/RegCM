@@ -23,6 +23,7 @@ module mod_cu_kf
   use mod_constants, only : d_zero, d_one, d_half, d_two
   use mod_constants, only : d_10, d_100, d_1000, dlowval
   use mod_memutil
+  use mod_mppparam 
   use mod_dynparam
   use mod_stdio
   use mod_regcm_types
@@ -34,6 +35,7 @@ module mod_cu_kf
   use mod_runparams, only : kf_dpp, kf_min_dtcape, kf_max_dtcape
   use mod_runparams, only : kf_tkemax, kf_wthreshold
   use mod_runparams, only : k2_const, kfac_shal, kfac_deep
+  use mod_runparams, only : istochastic, rad_sigma, rad_min, rad_max
   use mod_runparams, only : ichem
   use mod_service
 
@@ -110,6 +112,10 @@ module mod_cu_kf
   subroutine allocate_mod_cu_kf
     implicit none
     integer(ik4) :: ii, i, j
+    integer(ik4) :: nseed
+    integer(ik4), dimension(:), allocatable :: seed
+    integer(ik8) :: sclock
+ 
     nipoi = 0
     do i = ici1, ici2
       do j = jci1, jci2
@@ -167,6 +173,16 @@ module mod_cu_kf
       call getmem(tpart_v,1,kz,1,nipoi,'mod_cu_kf:tpart_v')
       call getmem(tpart_h,1,kz,1,nipoi,'mod_cu_kf:tpart_h')
     end if
+
+    if ( istochastic == 1 ) then
+      call random_seed(size = nseed)
+      allocate(seed(nseed))
+      call system_clock(sclock)
+      seed(:) = int(sclock) + 37*[(i-1,i=1,nseed)]
+      call random_seed(put = seed)
+    end if
+    end if 
+
   end subroutine allocate_mod_cu_kf
 
   subroutine kfdrv(m2c)
