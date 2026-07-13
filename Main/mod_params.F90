@@ -993,8 +993,8 @@ module mod_params
           rewind(ipunit)
           read (ipunit, nml=kfstochastic, iostat=iretval, err=113)
           if ( iretval /= 0 ) then
-            write(stdout*) 'No kfstochastic namelist'
-            write(stdout*) 'Setting KF radius to deterministic'
+            write(stdout,*) 'No kfstochastic namelist'
+            write(stdout,*) 'Setting KF radius to deterministic'
             istochastic = 0
           end if 
         end if
