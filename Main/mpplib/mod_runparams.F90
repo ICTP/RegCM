@@ -374,7 +374,6 @@ module mod_runparams
   real(rkx), public :: kf_tkemax
   real(rkx), public :: kf_wthreshold
 
-  integer(ik4), public :: istochastic = 0 
   real(rkx), public :: rad_sigma ! spread of the lognormal
   real(rkx), public :: rad_min ! lower truncation of rad
   real(rkx), public :: rad_max ! upper truncation of rad
