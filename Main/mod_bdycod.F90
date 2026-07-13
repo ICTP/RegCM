@@ -3820,11 +3820,8 @@ module mod_bdycod
     end do
     deallocate(px,py)
     cn0 = dtrad/dtbdys
-    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       cnudge(j,i,k) = cn0 * min((mo_atm%zeta(j,i,k)/mo_h)**2, 1.0_rkx)
-    end do
-    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-      cnudge(j,i,1) = 5.0_rkx * cn0
     end do
   end subroutine lowpass_init
 
