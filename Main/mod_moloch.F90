@@ -69,7 +69,7 @@ module mod_moloch
   real(rkx), dimension(:), pointer, contiguous :: gzitak => null( )
   real(rkx), dimension(:), pointer, contiguous :: gzitakh => null( )
   real(rkx), dimension(:), pointer, contiguous :: xknu => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: p3d => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: laplacian => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
@@ -153,6 +153,7 @@ module mod_moloch
   ! Base damping coefficients
   real(rkx), parameter :: dcoff = 0.125_rkx
   real(rkx), parameter :: ddamp = 0.1_rkx
+  real(rkx) :: numax
 
   real(rkx) :: rdzita
   integer(ik4) :: jmin, jmax, imin, imax
@@ -168,7 +169,7 @@ module mod_moloch
     integer(ik4) :: k
     call getmem(gzitak,1,kzp1,'moloch:gzitak')
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
-    call getmem(p3d,jdi1,jdi2,idi1,idi2,1,kz,'moloch:p3d')
+    call getmem(laplacian,jdi1,jdi2,idi1,idi2,1,kz,'moloch:laplacian')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
     call getmem(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
@@ -204,6 +205,7 @@ module mod_moloch
       call getmem(qwitot,jce1,jce2,ice1,ice2,1,kz,'moloch:qwitot')
     end if
     call getmem(xknu,1,kz,'moloch:xknu')
+    numax = 0.25_rkx*dx*dx*rdt
     do concurrent ( k = 1:kz )
       xknu(k) = (ddamp + (1.0_rkx-ddamp)/(k+2.0_rkx))
     end do
@@ -493,17 +495,21 @@ module mod_moloch
     !@acc call nvtxEndRange
   end subroutine boundary
 
-  subroutine divergence_diffusion( )
+  subroutine divergence_diffusion(dts)
     implicit none
     integer(ik4) :: j, i, k
+    real(rkx), intent(in) :: dts
+
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      p3d(j,i,k) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
-                                zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                   0.5_rkx * zdiv2(j,i,k)
+      laplacian(j,i,k) = &
+       rdx**2 * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) - 2.0_rkx * zdiv2(j,i,k)) + &
+       rdx**2 * (zdiv2(j,i-1,k) + zdiv2(j,i+1,k) - 2.0_rkx * zdiv2(j,i,k))
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * p3d(j,i,k)
+      if ( j > nspgx+2 .or. j < jcross2+nspgx-1 ) cycle
+      if ( i > nspgx+2 .or. i < icross2+nspgx-1 ) cycle
+      zdiv2(j,i,k) = zdiv2(j,i,k) + dts * numax * xknu(k) * laplacian(j,i,k)
     end do
   end subroutine divergence_diffusion
 
@@ -587,7 +593,7 @@ module mod_moloch
         call divergence_damping(dts)
       end if
       if ( do_divfilter ) then
-        call divergence_diffusion( )
+        call divergence_diffusion(dts)
       end if
 
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
