@@ -183,7 +183,6 @@ module mod_runparams
   logical, public :: mo_divfilter = .true.
   logical, public :: mo_divdamp = .true.
   logical, public :: mo_spectral_nudging = .true.
-  integer(ik4), public :: mo_nzfilt
   integer(ik4), public :: mo_nadv
   integer(ik4), public :: mo_nsound
 
@@ -203,6 +202,7 @@ module mod_runparams
   logical, public :: rcm_megan_enabled
 #endif
   integer(ik4), public :: iboudy, ichem, ipgf, ipptls
+  integer(ik4), public :: istochastic = 0
   ! usefull flags for chemistry
   integer(ik4), public :: iaerosol, igaschem, ioxclim, iisoropia
   character(len=6), pointer, contiguous, dimension(:), public :: chtrname
@@ -307,7 +307,6 @@ module mod_runparams
   real(rkx), public :: epmax_ocn
   real(rkx), public :: epmax_lnd
   integer(ik4), public :: minorig
-  integer(ik4), public :: istochastic = 0
 
   real(rkx), public :: sigs_min
   real(rkx), public :: sigs_max

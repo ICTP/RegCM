@@ -177,8 +177,8 @@ module mod_moloch
     call getmem(p0,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:p0')
     call getmem(wfw,jce1,jce2,ice1,ice2,1,kzp1,'moloch:wfw')
     call getmem(wx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:wx')
-    call getmem(zpby,jce1,jce2,ici1,ici2+1,1,kz,'moloch:zpby')
-    call getmem(zpbw,jci1,jci2+1,ice1,ice2,1,kz,'moloch:zpbw')
+    call getmem(zpby,jce1,jce2,ici1,ice2ga,1,kz,'moloch:zpby')
+    call getmem(zpbw,jci1,jce2ga,ice1,ice2,1,kz,'moloch:zpbw')
     call getmem(mx2,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:mx2')
     call getmem(rmx,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmx')
     call getmem(rmu,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmu')
@@ -449,7 +449,26 @@ module mod_moloch
       end do
     end if
 
+    ! Update external boundary point
+
     call bdyval
+
+    ! Davies boundary condition on internal point
+
+    call morelax(ux,xub)
+    call morelax(vx,xvb)
+    call morelax(t,xtb)
+    call morelax(pai,xpaib)
+    call morelax(qv,xqb)
+    if ( is_present_qc( ) ) then
+      call morelax(qc,xlb)
+    end if
+    if ( is_present_qi( ) ) then
+      call morelax(qi,xib)
+    end if
+    if ( ichem == 1 ) then
+      call morelax_chiten(trac)
+    end if
 
     if ( mo_spectral_nudging ) then
       tspectral = tspectral + dtsec
@@ -458,20 +477,6 @@ module mod_moloch
         call mospectral_nudge(ux,xub)
         call mospectral_nudge(vx,xvb)
       end if
-    end if
-    call monudge(ux,xub)
-    call monudge(vx,xvb)
-    call monudge(t,xtb)
-    call monudge(pai,xpaib)
-    call monudge(qv,xqb)
-    if ( is_present_qc( ) ) then
-      call monudge(qc,xlb)
-    end if
-    if ( is_present_qi( ) ) then
-      call monudge(qi,xib)
-    end if
-    if ( ichem == 1 ) then
-      call monudge_chiten(trac)
     end if
 
     if ( idiag > 0 ) then
@@ -540,7 +545,7 @@ module mod_moloch
 
       ! partial definition of the generalized vertical velocity
 
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
         zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
         s(j,i,kzp1) = -0.5_rkx * (zuh+zvh)
@@ -549,7 +554,7 @@ module mod_moloch
 
       ! Equation 10, generalized vertical velocity
 
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
         zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
               (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
         zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
@@ -579,17 +584,20 @@ module mod_moloch
       end if
 
       if ( do_divdamp ) then
-        call divdamp(dts)
+        call divergence_damping(dts)
+      end if
+      if ( do_divfilter ) then
+        call divergence_diffusion( )
       end if
 
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
                   (s(j,i,k) - s(j,i,k+1))
       end do
 
       ! new w (implicit scheme) from Equation 19
 
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         do k = kz, 2, -1
           deltaw(j,i,k) = -w(j,i,k)
           ! explicit w:
@@ -625,16 +633,14 @@ module mod_moloch
       end do
 
       ! 2nd loop for the tridiagonal inversion
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         do k = 2, kz
           w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
           deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
         end do
       end do
 
-      ! new Exner function (Equation 19)
-
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
                   (w(j,i,k) - w(j,i,k+1))
       end do
@@ -657,11 +663,8 @@ module mod_moloch
         end if
       end if
 
-      if ( do_divfilter ) then
-        call divergence_diffusion( )
-      end if
+      ! new Exner function (Equation 19)
 
-      ! horizontal momentum equations
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
       end do
@@ -669,9 +672,11 @@ module mod_moloch
       call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
+      ! horizontal momentum equations
+
       if ( lrotllr ) then
         ! Equation 17
-        do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           zcx = dtrdx * mu(j,i)
           zfz = egrav * dts + 0.25_rkx * &
               (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
@@ -684,7 +689,7 @@ module mod_moloch
                      zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
         end do
         ! Equation 18
-        do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           zcy = dtrdy
           zfz = egrav * dts + 0.25_rkx * &
               (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
@@ -697,7 +702,7 @@ module mod_moloch
                      zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
         end do
       else
-        do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
+        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           zcx = dtrdx * mu(j,i)
           zfz = egrav * dts + 0.25_rkx * &
               (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
@@ -709,7 +714,7 @@ module mod_moloch
                      zfz * hx(j,i) * gzitakh(k) - &
                      zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
         end do
-        do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           zcy = dtrdy * mv(j,i)
           zfz = egrav * dts + 0.25_rkx * &
               (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
@@ -727,17 +732,17 @@ module mod_moloch
 
     ! complete computation of generalized vertical velocity
     ! Complete Equation 10
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
       s(j,i,k) = (w(j,i,k) + s(j,i,k)) * fmzf(j,i,k)
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       s(j,i,1) = 0.0_rkx
       s(j,i,kzp1) = 0.0_rkx
     end do
     !@acc call nvtxEndRange
   end subroutine sound
 
-  subroutine divdamp(dts)
+  subroutine divergence_damping(dts)
     implicit none
     real(rkx), intent(in) :: dts
     integer(ik4) :: i, j, k
@@ -764,7 +769,7 @@ module mod_moloch
         v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
-  end subroutine divdamp
+  end subroutine divergence_damping
 
   subroutine advection(dta)
     !@acc use nvtx
@@ -851,8 +856,8 @@ module mod_moloch
     real(rkx) :: zrfmn, zrfms
     real(rkx) :: zrfme, zrfmw
     integer(ik4) :: k1, k1p1
-    integer(ik4) :: ih, ihm1, it2
-    integer(ik4) :: jh, jhm1, jr2
+    integer(ik4) :: ih, ihm1
+    integer(ik4) :: jh, jhm1
 
     dtrdx = dta*rdx
     dtrdy = dta*rdx
@@ -862,12 +867,12 @@ module mod_moloch
     end if
 
     ! Vertical advection
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       wfw(j,i,1) = d_zero
       wfw(j,i,kzp1) = d_zero
     end do
 
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzm1 )
       zamu = s(j,i,k+1) * dtrdz
       if ( zamu >= d_zero ) then
         is = d_one
@@ -888,7 +893,7 @@ module mod_moloch
       wfw(j,i,k+1) = 0.5_rkx * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
                                              (d_one-zphi)*pp(j,i,k))
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
       zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
       zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
@@ -898,7 +903,7 @@ module mod_moloch
 
     if ( do_vadvtwice ) then
 
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzm1 )
         zamu = s(j,i,k+1) * dtrdz
         if ( zamu >= d_zero ) then
           is = d_one
@@ -919,7 +924,7 @@ module mod_moloch
         wfw(j,i,k+1) = 0.5_rkx * s(j,i,k+1) * &
           ((d_one+zphi)*wz(j,i,k+1) + (d_one-zphi)*wz(j,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
         zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
         zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
@@ -929,45 +934,12 @@ module mod_moloch
 
     end if
 
-    it2 = ici2+1
-    jr2 = jci2+1
-    if ( ma%has_bdybottom ) then
-      do k = 1 , kz
-        do j = jci1 , jci2
-          wz(j,ice1,k) = pp(j,ice1,k)
-        end do
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      it2 = ice2
-      do k = 1 , kz
-        do j = jci1 , jci2
-          wz(j,ice2,k) = pp(j,ice2,k)
-        end do
-      end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          wz(jce1,i,k) = pp(jce1,i,k)
-        end do
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      jr2 = jce2
-      do k = 1 , kz
-        do i = ici1 , ici2
-          wz(jce2,i,k) = pp(jce2,i,k)
-        end do
-      end do
-    end if
-
     call exchange_bt(wz,2,jce1,jce2,ice1,ice2,1,kz)
 
     if ( lrotllr ) then
 
       ! Meridional advection
-      do concurrent ( j = jce1:jce2, i = ici1:it2, k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ici1:ice2ga, k = 1:kz )
         zamu = v(j,i,k) * dtrdy
         if ( zamu > d_zero ) then
           is = d_one
@@ -999,7 +971,7 @@ module mod_moloch
 
       ! Zonal advection
 
-      do concurrent ( j = jci1:jr2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
         zamu = u(j,i,k) * mu(j,i) * dtrdx
         if ( zamu > d_zero ) then
           is = d_one
@@ -1029,7 +1001,7 @@ module mod_moloch
     else ! Not the ROTLLR projection
 
       ! Meridional advection
-      do concurrent ( j = jce1:jce2, i = ici1:it2, k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ici1:ice2ga, k = 1:kz )
         zamu = v(j,i,k) * mv(j,i) * dtrdy
         if ( zamu > d_zero ) then
           is = d_one
@@ -1059,7 +1031,7 @@ module mod_moloch
       call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 
       ! Zonal advection
-      do concurrent ( j = jci1:jr2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
         zamu = u(j,i,k) * mu(j,i) * dtrdx
         if ( zamu > d_zero ) then
           is = d_one

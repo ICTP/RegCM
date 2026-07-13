@@ -44,7 +44,7 @@ module mod_che_interface
   public :: cumtran
   public :: tractend2
   public :: nudge_chiten
-  public :: monudge_chiten
+  public :: morelax_chiten
   public :: chem_config
   public :: setup_che_bdycon
   public :: close_chbc

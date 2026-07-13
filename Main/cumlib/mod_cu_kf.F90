@@ -24,7 +24,7 @@ module mod_cu_kf
   use mod_constants, only : d_10, d_100, d_1000, dlowval
   use mod_constants, only : mathpi
   use mod_memutil
-  use mod_mppparam 
+  use mod_mppparam
   use mod_dynparam
   use mod_stdio
   use mod_regcm_types
@@ -116,7 +116,7 @@ module mod_cu_kf
     integer(ik4) :: nseed
     integer(ik4), dimension(:), allocatable :: seed
     integer(ik8) :: sclock
- 
+
     nipoi = 0
     do i = ici1, ici2
       do j = jci1, jci2

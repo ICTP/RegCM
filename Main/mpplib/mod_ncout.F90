@@ -3399,6 +3399,16 @@ module mod_ncout
                       ncattribute_real8('rayleigh_hd',rayhd))
             end if
           end if
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('diffusion_scheme',idiffu))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('lateral_boundary_condition_scheme',iboudy))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('semi_lagrangian_advection_scheme',isladvec))
+          if ( isladvec == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_integer('quasi_monotonic_sl_scheme',iqmsl))
+          end if
         else
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('advection_timestep_factor',mo_nadv))
@@ -3411,34 +3421,6 @@ module mod_ncout
           if ( mo_divdamp ) then
             call outstream_addatt(outstream(i)%ncout(j), &
                     ncattribute_logical('divergence_damping',mo_divdamp))
-          end if
-          if ( mo_nzfilt > 0 ) then
-            call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_integer('top_w_filtering_layers',mo_nzfilt))
-          end if
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_integer('rayleigh_damping',ifrayd))
-          if ( ifrayd == 1 ) then
-            call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_integer('rayleigh_ndamp',rayndamp))
-            call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_real8('rayleigh_alpha0',rayalpha0))
-            call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_real8('rayleigh_zetad',rayzd))
-            call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_real8('rayleigh_hd',rayhd))
-          end if
-        end if
-        if ( idynamic /= 3 ) then
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('diffusion_scheme',idiffu))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('lateral_boundary_condition_scheme',iboudy))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('semi_lagrangian_advection_scheme',isladvec))
-          if ( isladvec == 1 ) then
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_integer('quasi_monotonic_sl_scheme',iqmsl))
           end if
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
