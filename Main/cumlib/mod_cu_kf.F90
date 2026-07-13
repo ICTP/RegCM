@@ -179,7 +179,7 @@ module mod_cu_kf
       call random_seed(size = nseed)
       allocate(seed(nseed))
       call system_clock(sclock)
-      seed(:) = int(sclock) + 37*[(i-1,i=1,nseed)]
+      seed(:) = int(sclock) + 37*[(i-1,i=1,nseed)] + myid*104729 ! Independent stream for each rank
       call random_seed(put = seed)
     end if
     end if 
