@@ -694,6 +694,19 @@ module mod_cu_kf
           else
             rad = 1000.0_rkx + 1000.0_rkx * wkl/0.1_rkx
           end if
+
+          ! For istochastic = 1, the ramp value becomes the median of a lognormal
+          ! rad is drawn from this distribution 
+
+          if ( istochastic = 1 ) then
+            call random_number(u1)
+            call random_number(u2)
+            u1 = max(u1, dlowval)
+            zdev = sqrt(-2.0_rkx*log(u1))*cos(d_two*mathpi*u2)
+            rad = rad * exp(rad_sigma*zdev)
+            rad = min(max(rad, rad_min), rad_max)
+           end if
+
           !
           ! Compute updraft properties
           !
