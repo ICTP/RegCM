@@ -202,6 +202,7 @@ module mod_runparams
   logical, public :: rcm_megan_enabled
 #endif
   integer(ik4), public :: iboudy, ichem, ipgf, ipptls
+  integer(ik4), public :: istochastic = 0
   ! usefull flags for chemistry
   integer(ik4), public :: iaerosol, igaschem, ioxclim, iisoropia
   character(len=6), pointer, contiguous, dimension(:), public :: chtrname
@@ -306,7 +307,6 @@ module mod_runparams
   real(rkx), public :: epmax_ocn
   real(rkx), public :: epmax_lnd
   integer(ik4), public :: minorig
-  integer(ik4), public :: istochastic = 0
 
   real(rkx), public :: sigs_min
   real(rkx), public :: sigs_max
@@ -373,7 +373,6 @@ module mod_runparams
   real(rkx), public :: kf_tkemax
   real(rkx), public :: kf_wthreshold
 
-  integer(ik4), public :: istochastic = 0 
   real(ik4), public :: rad_sigma ! spread of the lognormal
   real(ik4), public :: rad_min ! lower truncation of rad
   real(ik4), public :: rad_max ! upper truncation of rad
