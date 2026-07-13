@@ -116,7 +116,7 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr, nhbet, nhxkd,       &
       ifrayd, rayndamp, rayalpha0, rayhd, itopnudge,  &
-      mo_divfilter, mo_divdamp, mo_nadv, mo_nsound, mo_nzfilt
+      mo_divfilter, mo_divdamp, mo_nadv, mo_nsound
 
     namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw,    &
       iceflglw, liqflglw, icld, irng, imcica, nradfo, rrtm_extend
@@ -344,11 +344,10 @@ module mod_params
     rayndamp = 5
     rayalpha0 = 1.0_rkx/86400.0_rkx
     rayhd = 10000.0_rkx
-    mo_nadv = 2
+    mo_nadv = 3
     mo_nsound = 5
     mo_divfilter = .true.
     mo_divdamp = .true.
-    mo_nzfilt = kz/3
     !
     ! Rrtm radiation param ;
     !
@@ -1387,7 +1386,6 @@ module mod_params
       ! Moloch paramters here
       call bcast(mo_divfilter)
       call bcast(mo_divdamp)
-      call bcast(mo_nzfilt)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
       call bcast(ifrayd)

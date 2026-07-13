@@ -86,6 +86,8 @@ module mod_init
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    real(rk8) :: np, meanz
+    real(rk8), dimension(kz) :: gmeanz
     !
     ! For an initial run -- not a restart
     !
@@ -1009,20 +1011,23 @@ module mod_init
     ! Initialize the Surface Model
     !
     if ( idynamic == 3 ) then
-      if ( mo_nzfilt > 0 ) then
-        ! Sponge layer at the top of the atmosphere
-        zfilt = (kzp1-mo_nzfilt)*mo_dzita
-        do k = 1, kz
-          if ( k > mo_nzfilt ) then
-            ffilt(k) = d_zero
-          else
-            zzi = (mo_dzita*(kzp1-k)-zfilt)/(mo_ztop-zfilt)
-            ffilt(k) = mo_zfilt_fac*sin(d_half*mathpi*zzi)**2
-          end if
+      np = real((jcross2-jcross1+1)*(icross2-icross1+1),rk8)
+      do k = 1, kz
+        meanz = 0.0_rkx
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          meanz = meanz + real(mo_atm%zeta(j,i,k),rk8)/np
         end do
-      else
-        ffilt(:) = d_zero
-      end if
+        call sumall(meanz,gmeanz(k))
+      end do
+      ! Sponge layer at the top of the atmosphere
+      do k = 1, kz
+        if ( gmeanz(k) < mo_h ) then
+          ffilt(k) = d_zero
+        else
+          zzi = (gmeanz(k)-mo_h)/(mo_ztop-mo_h)
+          ffilt(k) = mo_zfilt_fac*sin(d_half*mathpi*zzi)**2
+        end if
+      end do
     end if
     call initialize_surface_model
     if ( idynamic /= 3 ) then

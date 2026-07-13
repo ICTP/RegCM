@@ -100,7 +100,7 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg2 => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: zn1 => null( )
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: cnudge => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: cnudge => null( )
   integer(ik4) :: km, lm
   real(rkx), pointer, dimension(:,:), contiguous :: bvx, bvy
   real(rkx), pointer, dimension(:,:), contiguous :: sxg, syg
@@ -410,7 +410,7 @@ module mod_bdycod
     if ( idynamic == 3 ) then
       call getmem(fcx,1,nspgx,'bdycon:fcx')
       call getmem(zn1,jce1,jce2,ice1,ice2,'bdycon:zn1')
-      call getmem(cnudge,jce1,jce2,ice1,ice2,1,kz,'bdycon:cnudge')
+      call getmem(cnudge,1,kz,'bdycon:cnudge')
     else
       if ( iboudy == 1 .or. idynamic == 2 ) then
         call getmem(fcx,2,nspgx-1,'bdycon:fcx')
@@ -3778,6 +3778,7 @@ module mod_bdycod
     integer(ik4) :: i, j, k, l
     real(rkx), parameter :: cutoff_wavelength_lon_km = 1500.0_rkx
     real(rkx), parameter :: cutoff_wavelength_lat_km = 1000.0_rkx
+    real(rk8) :: meanz, gmeanz, np
 
     km = max(nint((njcross*ds)/cutoff_wavelength_lon_km),1)
     lm = max(nint((nicross*ds)/cutoff_wavelength_lat_km),1)
@@ -3820,8 +3821,14 @@ module mod_bdycod
     end do
     deallocate(px,py)
     cn0 = dtrad/dtbdys
-    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      cnudge(j,i,k) = cn0 * min((mo_atm%zeta(j,i,k)/mo_h)**2, 1.0_rkx)
+    np = real((jcross2-jcross1+1)*(icross2-icross1+1),rk8)
+    do k = 1, kz
+      meanz = 0.0_rkx
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+         meanz = meanz + real(mo_atm%zeta(j,i,k),rk8)/np
+      end do
+      call sumall(meanz,gmeanz)
+      cnudge(k) = cn0 * min((real(gmeanz,rkx)/mo_h)**2, 1.0_rkx)
     end do
   end subroutine lowpass_init
 
@@ -3882,7 +3889,7 @@ module mod_bdycod
       end do
       call lowpass_filter(zn1)
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        f(j,i,k) = f(j,i,k) - cnudge(j,i,k)*zn1(j,i)
+        f(j,i,k) = f(j,i,k) - cnudge(k)*zn1(j,i)
       end do
     end do
   end subroutine mospectral_nudge

@@ -584,7 +584,10 @@ module mod_moloch
       end if
 
       if ( do_divdamp ) then
-        call divdamp(dts)
+        call divergence_damping(dts)
+      end if
+      if ( do_divfilter ) then
+        call divergence_diffusion( )
       end if
 
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
@@ -658,10 +661,6 @@ module mod_moloch
           end do
           call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
         end if
-      end if
-
-      if ( do_divfilter ) then
-        call divergence_diffusion( )
       end if
 
       ! new Exner function (Equation 19)
@@ -743,7 +742,7 @@ module mod_moloch
     !@acc call nvtxEndRange
   end subroutine sound
 
-  subroutine divdamp(dts)
+  subroutine divergence_damping(dts)
     implicit none
     real(rkx), intent(in) :: dts
     integer(ik4) :: i, j, k
@@ -770,7 +769,7 @@ module mod_moloch
         v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
-  end subroutine divdamp
+  end subroutine divergence_damping
 
   subroutine advection(dta)
     !@acc use nvtx
