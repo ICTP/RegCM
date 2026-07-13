@@ -449,7 +449,26 @@ module mod_moloch
       end do
     end if
 
+    ! Update external boundary point
+
     call bdyval
+
+    ! Davies boundary condition on internal point
+
+    call morelax(ux,xub)
+    call morelax(vx,xvb)
+    call morelax(t,xtb)
+    call morelax(pai,xpaib)
+    call morelax(qv,xqb)
+    if ( is_present_qc( ) ) then
+      call morelax(qc,xlb)
+    end if
+    if ( is_present_qi( ) ) then
+      call morelax(qi,xib)
+    end if
+    if ( ichem == 1 ) then
+      call morelax_chiten(trac)
+    end if
 
     if ( mo_spectral_nudging ) then
       tspectral = tspectral + dtsec
@@ -458,20 +477,6 @@ module mod_moloch
         call mospectral_nudge(ux,xub)
         call mospectral_nudge(vx,xvb)
       end if
-    end if
-    call monudge(ux,xub)
-    call monudge(vx,xvb)
-    call monudge(t,xtb)
-    call monudge(pai,xpaib)
-    call monudge(qv,xqb)
-    if ( is_present_qc( ) ) then
-      call monudge(qc,xlb)
-    end if
-    if ( is_present_qi( ) ) then
-      call monudge(qi,xib)
-    end if
-    if ( ichem == 1 ) then
-      call monudge_chiten(trac)
     end if
 
     if ( idiag > 0 ) then

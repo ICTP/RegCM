@@ -40,7 +40,7 @@ module mod_che_bdyco
   private
 
   public :: allocate_mod_che_bdyco, chem_bdyin, chem_bdyval
-  public :: nudge_chiten, monudge_chiten, setup_che_bdycon
+  public :: nudge_chiten, morelax_chiten, setup_che_bdycon
   public :: che_init_bdy, chib0, chib1, ichbdy2trac, oxcl
 
   type(rcm_time_and_date), save :: chbdydate1, chbdydate2
@@ -962,14 +962,14 @@ module mod_che_bdyco
 #endif
   end subroutine nudge_chiten
 
-  subroutine monudge_chiten(f)
+  subroutine morelax_chiten(f)
     implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
     real(rkx) :: x0, x1, fext
     integer(ik4) :: i, j, k, n, ib
     real(rkx) :: xf
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'monudge_chiten'
+    character(len=dbgslen) :: subroutine_name = 'morelax_chiten'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
@@ -990,7 +990,7 @@ module mod_che_bdyco
         ib = cba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
-        f(j,i,k,n) = (f(j,i,k,n) + xf*fext)/(1.0_rkx+xf)
+        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
       end do
     end if
     if ( cba%nn /= 0 ) then
@@ -999,7 +999,7 @@ module mod_che_bdyco
         ib = cba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
-        f(j,i,k,n) = (f(j,i,k,n) + xf*fext)/(1.0_rkx+xf)
+        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
       end do
     end if
     if ( cba%nw /= 0 ) then
@@ -1008,7 +1008,7 @@ module mod_che_bdyco
         ib = cba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
-        f(j,i,k,n) = (f(j,i,k,n) + xf*fext)/(1.0_rkx+xf)
+        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
       end do
     end if
     if ( cba%ne /= 0 ) then
@@ -1017,13 +1017,13 @@ module mod_che_bdyco
         ib = cba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*chib0(j,i,k,n)+x1*chib1(j,i,k,n))
-        f(j,i,k,n) = (f(j,i,k,n) + xf*fext)/(1.0_rkx+xf)
+        f(j,i,k,n) = (1.0_rkx-xf) * f(j,i,k,n) + xf*fext
       end do
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end subroutine monudge_chiten
+  end subroutine morelax_chiten
 
   subroutine setup_che_bdycon
     implicit none

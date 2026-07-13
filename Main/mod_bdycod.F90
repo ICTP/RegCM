@@ -51,7 +51,7 @@ module mod_bdycod
 #ifdef ASYNC_NETCDF
   public :: bdyin_prefetch
 #endif
-  public :: sponge, nudge, monudge, setup_bdycon, raydamp
+  public :: sponge, nudge, morelax, setup_bdycon, raydamp
   public :: moupdate_norm, mospectral_nudge
   public :: is_present_qc, is_present_qi
 
@@ -1594,6 +1594,8 @@ module mod_bdycod
         end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           mo_atm%t(jce1,i,k) = x0*xtb%b0(jce1,i,k)+x1*xtb%b1(jce1,i,k)
+          mo_atm%ux(jce1,i,k) = x0*xub%b0(jce1,i,k)+x1*xub%b1(jce1,i,k)
+          mo_atm%vx(jce1,i,k) = x0*xvb%b0(jce1,i,k)+x1*xvb%b1(jce1,i,k)
           mo_atm%pai(jce1,i,k) = x0*xpaib%b0(jce1,i,k)+x1*xpaib%b1(jce1,i,k)
           mo_atm%qx(jce1,i,k,iqv) = x0*xqb%b0(jce1,i,k)+x1*xqb%b1(jce1,i,k)
         end do
@@ -1646,6 +1648,8 @@ module mod_bdycod
         end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           mo_atm%t(jce2,i,k) = x0*xtb%b0(jce2,i,k)+x1*xtb%b1(jce2,i,k)
+          mo_atm%ux(jce2,i,k) = x0*xub%b0(jce2,i,k)+x1*xub%b1(jce2,i,k)
+          mo_atm%vx(jce2,i,k) = x0*xvb%b0(jce2,i,k)+x1*xvb%b1(jce2,i,k)
           mo_atm%pai(jce2,i,k) = x0*xpaib%b0(jce2,i,k)+x1*xpaib%b1(jce2,i,k)
           mo_atm%qx(jce2,i,k,iqv) = x0*xqb%b0(jce2,i,k)+x1*xqb%b1(jce2,i,k)
         end do
@@ -1698,6 +1702,8 @@ module mod_bdycod
         end do
         do concurrent ( j = jce1:jce2, k = 1:kz )
           mo_atm%t(j,ice1,k) = x0*xtb%b0(j,ice1,k)+x1*xtb%b1(j,ice1,k)
+          mo_atm%ux(j,ice1,k) = x0*xub%b0(j,ice1,k)+x1*xub%b1(j,ice1,k)
+          mo_atm%vx(j,ice1,k) = x0*xvb%b0(j,ice1,k)+x1*xvb%b1(j,ice1,k)
           mo_atm%pai(j,ice1,k) = x0*xpaib%b0(j,ice1,k)+x1*xpaib%b1(j,ice1,k)
           mo_atm%qx(j,ice1,k,iqv) = x0*xqb%b0(j,ice1,k)+x1*xqb%b1(j,ice1,k)
         end do
@@ -1750,6 +1756,8 @@ module mod_bdycod
         end do
         do concurrent ( j = jce1:jce2, k = 1:kz )
           mo_atm%t(j,ice2,k) = x0*xtb%b0(j,ice2,k)+x1*xtb%b1(j,ice2,k)
+          mo_atm%ux(j,ice2,k) = x0*xub%b0(j,ice2,k)+x1*xub%b1(j,ice2,k)
+          mo_atm%vx(j,ice2,k) = x0*xvb%b0(j,ice2,k)+x1*xvb%b1(j,ice2,k)
           mo_atm%pai(j,ice2,k) = x0*xpaib%b0(j,ice2,k)+x1*xpaib%b1(j,ice2,k)
           mo_atm%qx(j,ice2,k,iqv) = x0*xqb%b0(j,ice2,k)+x1*xqb%b1(j,ice2,k)
         end do
@@ -3939,7 +3947,7 @@ module mod_bdycod
                           jcross2,icross2,nspgx,ud,vd,unx)
   end subroutine moupdate_norm
 
-  subroutine monudge(f,bnd)
+  subroutine morelax(f,bnd)
     implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
@@ -3947,7 +3955,7 @@ module mod_bdycod
     integer(ik4) :: i, j, k, ib
     real(rkx) :: xf, fext
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'monudge'
+    character(len=dbgslen) :: subroutine_name = 'morelax'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
@@ -3968,7 +3976,7 @@ module mod_bdycod
         ib = ba_cr%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (f(j,i,k) + xf*fext)/(1.0_rkx+xf)
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
@@ -3977,7 +3985,7 @@ module mod_bdycod
         ib = ba_cr%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (f(j,i,k) + xf*fext)/(1.0_rkx+xf)
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
@@ -3986,7 +3994,7 @@ module mod_bdycod
         ib = ba_cr%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (f(j,i,k) + xf*fext)/(1.0_rkx+xf)
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
@@ -3995,13 +4003,13 @@ module mod_bdycod
         ib = ba_cr%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (f(j,i,k) + xf*fext)/(1.0_rkx+xf)
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end subroutine monudge
+  end subroutine morelax
 
 end module mod_bdycod
 
