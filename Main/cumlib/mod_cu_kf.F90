@@ -697,7 +697,7 @@ module mod_cu_kf
           ! For istochastic = 1, the ramp value becomes the median of a lognormal
           ! rad is drawn from this distribution 
 
-          if ( istochastic = 1 ) then
+          if ( istochastic == 1 ) then
             call random_number(u1)
             call random_number(u2)
             u1 = max(u1, dlowval)
