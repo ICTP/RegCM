@@ -2250,6 +2250,9 @@ module mod_params
     call setup_boundaries(cross,cross,ba_cr)
     if ( idynamic /= 3 ) then
       call setup_boundaries(dot,dot,ba_dt)
+    else
+      call setup_boundaries(dot,cross,ba_ud)
+      call setup_boundaries(cross,dot,ba_vd)
     end if
 
     call allocate_v2dbound(xpsb,cross)
@@ -2263,8 +2266,6 @@ module mod_params
       call allocate_v3dbound(xwwb,kzp1,cross)
     else if ( idynamic == 3 ) then
       call allocate_v3dbound(xpaib,kz,cross)
-      call allocate_v3dbound(xub,kz,cross)
-      call allocate_v3dbound(xvb,kz,cross)
     end if
 
     if ( myid == italk ) then

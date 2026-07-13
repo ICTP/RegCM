@@ -409,7 +409,7 @@ module mod_bdycod
     implicit none
     if ( idynamic == 3 ) then
       call getmem(fcx,1,nspgx,'bdycon:fcx')
-      call getmem(zn1,jce1,jce2,ice1,ice2,'bdycon:zn1')
+      call getmem(zn1,jde1,jde2,ide1,ide2,'bdycon:zn1')
       call getmem(cnudge,1,kz,'bdycon:cnudge')
     else
       if ( iboudy == 1 .or. idynamic == 2 ) then
@@ -944,18 +944,6 @@ module mod_bdycod
         end do
       end if
     end if
-    !
-    ! Calculate time varying component
-    !
-    if ( idynamic == 3 ) then
-      call uvstagtox(dub%b0,dvb%b0,xub%b0,xvb%b0)
-      call uvstagtox(dub%b1,dvb%b1,xub%b1,xvb%b1)
-      call exchange(xub%b0,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xub%b1,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xvb%b0,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xvb%b1,1,jce1,jce2,ice1,ice2,1,kz)
-    end if
-
 #ifdef ASYNC_NETCDF
     call init_bdyin_prefetch()
 #endif
@@ -1275,16 +1263,6 @@ module mod_bdycod
     else if ( idynamic == 3 ) then
       call exchange(xpaib%b1,1,jce1,jce2,ice1,ice2,1,kz)
     end if
-
-    ! Linear time interpolation
-    if ( idynamic == 3 ) then
-      call uvstagtox(dub%b0,dvb%b0,xub%b0,xvb%b0)
-      call uvstagtox(dub%b1,dvb%b1,xub%b1,xvb%b1)
-      call exchange(xub%b0,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xub%b1,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xvb%b0,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xvb%b1,1,jce1,jce2,ice1,ice2,1,kz)
-    end if
     !
     ! Update ground temperature on Ocean/Lakes
     !
@@ -1594,8 +1572,6 @@ module mod_bdycod
         end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           mo_atm%t(jce1,i,k) = x0*xtb%b0(jce1,i,k)+x1*xtb%b1(jce1,i,k)
-          mo_atm%ux(jce1,i,k) = x0*xub%b0(jce1,i,k)+x1*xub%b1(jce1,i,k)
-          mo_atm%vx(jce1,i,k) = x0*xvb%b0(jce1,i,k)+x1*xvb%b1(jce1,i,k)
           mo_atm%pai(jce1,i,k) = x0*xpaib%b0(jce1,i,k)+x1*xpaib%b1(jce1,i,k)
           mo_atm%qx(jce1,i,k,iqv) = x0*xqb%b0(jce1,i,k)+x1*xqb%b1(jce1,i,k)
         end do
@@ -1615,7 +1591,7 @@ module mod_bdycod
           qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
           windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
           if ( windavg > d_zero ) then
-            mo_atm%qx(jce1,i,k,n) = qxbval(n)
+            mo_atm%qx(jce1,i,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(jce1,i,k,n) = qxint
           end if
@@ -1648,8 +1624,6 @@ module mod_bdycod
         end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           mo_atm%t(jce2,i,k) = x0*xtb%b0(jce2,i,k)+x1*xtb%b1(jce2,i,k)
-          mo_atm%ux(jce2,i,k) = x0*xub%b0(jce2,i,k)+x1*xub%b1(jce2,i,k)
-          mo_atm%vx(jce2,i,k) = x0*xvb%b0(jce2,i,k)+x1*xvb%b1(jce2,i,k)
           mo_atm%pai(jce2,i,k) = x0*xpaib%b0(jce2,i,k)+x1*xpaib%b1(jce2,i,k)
           mo_atm%qx(jce2,i,k,iqv) = x0*xqb%b0(jce2,i,k)+x1*xqb%b1(jce2,i,k)
         end do
@@ -1669,7 +1643,7 @@ module mod_bdycod
           qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
           windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
           if ( windavg < d_zero ) then
-            mo_atm%qx(jce2,i,k,n) = qxbval(n)
+            mo_atm%qx(jce2,i,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(jce2,i,k,n) = qxint
           end if
@@ -1702,8 +1676,6 @@ module mod_bdycod
         end do
         do concurrent ( j = jce1:jce2, k = 1:kz )
           mo_atm%t(j,ice1,k) = x0*xtb%b0(j,ice1,k)+x1*xtb%b1(j,ice1,k)
-          mo_atm%ux(j,ice1,k) = x0*xub%b0(j,ice1,k)+x1*xub%b1(j,ice1,k)
-          mo_atm%vx(j,ice1,k) = x0*xvb%b0(j,ice1,k)+x1*xvb%b1(j,ice1,k)
           mo_atm%pai(j,ice1,k) = x0*xpaib%b0(j,ice1,k)+x1*xpaib%b1(j,ice1,k)
           mo_atm%qx(j,ice1,k,iqv) = x0*xqb%b0(j,ice1,k)+x1*xqb%b1(j,ice1,k)
         end do
@@ -1723,7 +1695,7 @@ module mod_bdycod
           qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
           windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
           if ( windavg > d_zero ) then
-            mo_atm%qx(j,ice1,k,n) = qxbval(n)
+            mo_atm%qx(j,ice1,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(j,ice1,k,n) = qxint
           end if
@@ -1756,8 +1728,6 @@ module mod_bdycod
         end do
         do concurrent ( j = jce1:jce2, k = 1:kz )
           mo_atm%t(j,ice2,k) = x0*xtb%b0(j,ice2,k)+x1*xtb%b1(j,ice2,k)
-          mo_atm%ux(j,ice2,k) = x0*xub%b0(j,ice2,k)+x1*xub%b1(j,ice2,k)
-          mo_atm%vx(j,ice2,k) = x0*xvb%b0(j,ice2,k)+x1*xvb%b1(j,ice2,k)
           mo_atm%pai(j,ice2,k) = x0*xpaib%b0(j,ice2,k)+x1*xpaib%b1(j,ice2,k)
           mo_atm%qx(j,ice2,k,iqv) = x0*xqb%b0(j,ice2,k)+x1*xqb%b1(j,ice2,k)
         end do
@@ -1777,7 +1747,7 @@ module mod_bdycod
           qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
           windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
           if ( windavg < d_zero ) then
-            mo_atm%qx(j,ice2,k,n) = qxbval(n)
+            mo_atm%qx(j,ice2,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(j,ice2,k,n) = qxint
           end if
@@ -3797,12 +3767,12 @@ module mod_bdycod
     dy = mathpi/real(nicross-1,rkx)
 
     allocate(px(2*km), py(2*lm))
-    call getmem(bvx,jce1,jce2,1,2*km,'lowpass::bvx')
-    call getmem(bvy,ice1,ice2,1,2*km,'lowpass::bvy')
-    call getmem(sx,ice1,ice2,1,2*km,'lowpass::sx')
-    call getmem(sy,jce1,jce2,1,2*km,'lowpass::sy')
-    call getmem(sxg,ice1,ice2,1,2*km,'lowpass::sxg')
-    call getmem(syg,jce1,jce2,1,2*km,'lowpass::syg')
+    call getmem(bvx,jde1,jde2,1,2*km,'lowpass::bvx')
+    call getmem(bvy,ide1,ide2,1,2*km,'lowpass::bvy')
+    call getmem(sx,ide1,ide2,1,2*km,'lowpass::sx')
+    call getmem(sy,jde1,jde2,1,2*km,'lowpass::sy')
+    call getmem(sxg,ide1,ide2,1,2*km,'lowpass::sxg')
+    call getmem(syg,jde1,jde2,1,2*km,'lowpass::syg')
     do k = 1, 2*km
       px(k) = exp(-(real(k,rkx)/real(km,rkx))**2)
     end do
@@ -3810,18 +3780,18 @@ module mod_bdycod
       py(l) = exp(-(real(l,rkx)/real(lm,rkx))**2)
     end do
     do k = 1, 2*km
-      do j = jce1, jce2
-        bvx(j,k) = sqrt(2.0_rkx/real(njcross-1,rkx)*px(k))*sin(k*(j-2)*dx)
+      do j = jde1, jde2
+        bvx(j,k) = sqrt(2.0_rkx/real(jxm1,rkx)*px(k))*sin(k*(j-2)*dx)
       end do
     end do
     do l = 1, 2*lm
-      do i = ice1, ice2
-        bvy(i,l) = sqrt(2.0_rkx/real(nicross-1,rkx)*py(l))*sin(l*(i-2)*dy)
+      do i = ide1, ide2
+        bvy(i,l) = sqrt(2.0_rkx/real(iym1,rkx)*py(l))*sin(l*(i-2)*dy)
       end do
     end do
     deallocate(px,py)
     cn0 = dtrad/dtbdys
-    np = real((jcross2-jcross1+1)*(icross2-icross1+1),rk8)
+    np = real(jx*iy,rk8)
     do k = 1, kz
       meanz = 0.0_rkx
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
@@ -3832,49 +3802,51 @@ module mod_bdycod
     end do
   end subroutine lowpass_init
 
-  subroutine lowpass_filter(f)
+  subroutine lowpass_filter(j1,j2,i1,i2,jj1,jj2,ii1,ii2,f)
     implicit none
+    integer(ik4), intent(in) :: j1, j2, i1, i2, jj1, jj2, ii1, ii2
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
     integer(ik4) :: i, j, k, l
 
     do k = 1, 2*km
-      do i = ice1, ice2
+      do i = i1, i2
         sx(i,k) = 0.0_rkx
-        do j = jci1, jci2
+        do j = jj1, jj2
           sx(i,k) = sx(i,k) + f(j,i)*bvx(j,k)
         end do
       end do
     end do
-    call row_reduce(sx,sxg,ice1,ice2)
+    call row_reduce(sx,sxg,i1,i2)
     f(:,:) = 0.0_rkx
     do k = 1, 2*km
-      do i = ice1, ice2
-        do j = jce1, jce2
+      do i = i1, i2
+        do j = j1, j2
           f(j,i) = f(j,i) + sxg(i,k)*bvx(j,k)
         end do
       end do
     end do
     do l = 1, 2*lm
-      do j = jce1, jce2
+      do j = j1, j2
         sy(j,l) = 0.
-        do i = ici1, ici2
+        do i = ii1, ii2
           sy(j,l) = sy(j,l) + f(j,i)*bvy(i,l)
         end do
       end do
     end do
-    call column_reduce(sy,syg,jce1,jce2)
+    call column_reduce(sy,syg,j1,j2)
     f(:,:) = 0.0_rkx
     do l = 1, 2*lm
-      do i = ice1, ice2
-        do j = jce1, jce2
+      do i = i1, i2
+        do j = j1, j2
           f(j,i) = f(j,i) + syg(j,l)*bvy(i,l)
         end do
       end do
     end do
   end subroutine lowpass_filter
 
-  subroutine mospectral_nudge(f,bnd)
+  subroutine mospectral_nudge(j1,j2,i1,i2,jj1,jj2,ii1,ii2,f,bnd)
     implicit none
+    integer(ik4), intent(in) :: j1, j2, i1, i2, jj1, jj2, ii1, ii2
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
     type(v3dbound), intent(in) :: bnd
     real(rkx) :: x0, x1
@@ -3883,12 +3855,12 @@ module mod_bdycod
     x1 = (xbctime + dt)/dtbdys
     x0 = 1.0_rkx - x1
 
-    do k = 1, kz-3
-      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+    do k = 1, kz
+      do concurrent ( j = j1:j2, i = i1:i2 )
         zn1(j,i) = f(j,i,k) - (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
       end do
-      call lowpass_filter(zn1)
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      call lowpass_filter(j1,j2,i1,i2,jj1,jj2,ii1,ii2,zn1)
+      do concurrent ( j = jj1:jj2, i = ii1:ii2 )
         f(j,i,k) = f(j,i,k) - cnudge(k)*zn1(j,i)
       end do
     end do
@@ -3951,9 +3923,11 @@ module mod_bdycod
                           jcross2,icross2,nspgx,ud,vd,unx)
   end subroutine moupdate_norm
 
-  subroutine morelax(f,bnd)
+  subroutine morelax(j1,j2,i1,i2,ba,f,bnd)
     implicit none
+    integer(ik4) :: j1, j2, i1, i2
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
+    type(bound_area), intent(in) :: ba
     type(v3dbound), intent(in) :: bnd
     real(rkx) :: x0, x1
     integer(ik4) :: i, j, k, ib
@@ -3964,7 +3938,7 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 
-    if ( .not. ba_cr%havebound ) then
+    if ( .not. ba%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
@@ -3974,37 +3948,37 @@ module mod_bdycod
     x1 = (xbctime + dt)/dtbdys
     x0 = 1.0_rkx - x1
 
-    if ( ba_cr%ns /= 0 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        if ( .not. ba_cr%bsouth(j,i) ) cycle
-        ib = ba_cr%ibnd(j,i)
+    if ( ba%ns /= 0 ) then
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+        if ( .not. ba%bsouth(j,i) ) cycle
+        ib = ba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
     end if
-    if ( ba_cr%nn /= 0 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        if ( .not. ba_cr%bnorth(j,i) ) cycle
-        ib = ba_cr%ibnd(j,i)
+    if ( ba%nn /= 0 ) then
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+        if ( .not. ba%bnorth(j,i) ) cycle
+        ib = ba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
     end if
-    if ( ba_cr%nw /= 0 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        if ( .not. ba_cr%bwest(j,i) ) cycle
-        ib = ba_cr%ibnd(j,i)
+    if ( ba%nw /= 0 ) then
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+        if ( .not. ba%bwest(j,i) ) cycle
+        ib = ba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
     end if
-    if ( ba_cr%ne /= 0 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        if ( .not. ba_cr%beast(j,i) ) cycle
-        ib = ba_cr%ibnd(j,i)
+    if ( ba%ne /= 0 ) then
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+        if ( .not. ba%beast(j,i) ) cycle
+        ib = ba%ibnd(j,i)
         xf = fcx(ib)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext

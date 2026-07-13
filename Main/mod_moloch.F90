@@ -457,16 +457,16 @@ module mod_moloch
 
     ! Davies boundary condition on internal point
 
-    call morelax(ux,xub)
-    call morelax(vx,xvb)
-    call morelax(t,xtb)
-    call morelax(pai,xpaib)
-    call morelax(qv,xqb)
+    call morelax(jdi1,jdi2,ici1,ici2,ba_ud,u,dub)
+    call morelax(jci1,jci2,idi1,idi2,ba_vd,v,dvb)
+    call morelax(jci1,jci2,ici1,ici2,ba_cr,t,xtb)
+    call morelax(jci1,jci2,ici1,ici2,ba_cr,pai,xpaib)
+    call morelax(jci1,jci2,ici1,ici2,ba_cr,qv,xqb)
     if ( is_present_qc( ) ) then
-      call morelax(qc,xlb)
+      call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,xlb)
     end if
     if ( is_present_qi( ) ) then
-      call morelax(qi,xib)
+      call morelax(jci1,jci2,ici1,ici2,ba_cr,qi,xib)
     end if
     if ( ichem == 1 ) then
       call morelax_chiten(trac)
@@ -475,9 +475,9 @@ module mod_moloch
     if ( mo_spectral_nudging ) then
       tspectral = tspectral + dtsec
       if ( int(mod(tspectral,dtrad)) == 0 ) then
-        call mospectral_nudge(t,xtb)
-        call mospectral_nudge(ux,xub)
-        call mospectral_nudge(vx,xvb)
+        call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci1,ici1,ici2,t,xtb)
+        call mospectral_nudge(jde1,jde2,ice1,ice2,jdi1,jdi2,ici1,ici2,ud,dub)
+        call mospectral_nudge(jce1,jce2,ide1,ide2,jci1,jci2,idi1,idi2,vd,dvb)
       end if
     end if
 
@@ -492,6 +492,7 @@ module mod_moloch
         cbdydiag(j,i,k,n) = trac(j,i,k,n) - chiten0(j,i,k,n)
       end do
     end if
+    call uvstagtox(u,v,ux,vx)
     !@acc call nvtxEndRange
   end subroutine boundary
 

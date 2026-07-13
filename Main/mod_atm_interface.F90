@@ -44,10 +44,10 @@ module mod_atm_interface
   type(surfstate), public :: sfs
   type(slice), public :: atms
   type(v3dbound), public :: dub, dvb
-  type(v3dbound), public :: xtb, xqb, xub, xvb, xppb, xwwb, xpaib
+  type(v3dbound), public :: xtb, xqb, xppb, xwwb, xpaib
   type(v3dbound), public :: xlb, xib
   type(v2dbound), public :: xpsb, xtsb
-  type(bound_area), public :: ba_cr, ba_dt
+  type(bound_area), public :: ba_cr, ba_dt, ba_ud, ba_vd
   type(reference_atmosphere), public :: atm0
   type(mass_divergence), public :: mdv
   type(nhboundhelp), public :: nhbh0, nhbh1
