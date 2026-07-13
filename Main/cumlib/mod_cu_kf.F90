@@ -22,6 +22,7 @@ module mod_cu_kf
   use mod_constants, only : cpd, rcpd, wlhv, wlhf, p00, cpw, cpv
   use mod_constants, only : d_zero, d_one, d_half, d_two
   use mod_constants, only : d_10, d_100, d_1000, dlowval
+  use mod_constants, only : mathpi
   use mod_memutil
   use mod_mppparam 
   use mod_dynparam
