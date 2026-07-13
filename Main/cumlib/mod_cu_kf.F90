@@ -704,7 +704,7 @@ module mod_cu_kf
             zdev = sqrt(-2.0_rkx*log(u1))*cos(d_two*mathpi*u2)
             rad = rad * exp(rad_sigma*zdev)
             rad = min(max(rad, rad_min), rad_max)
-           end if
+          end if
 
           !
           ! Compute updraft properties
