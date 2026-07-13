@@ -417,6 +417,7 @@ module mod_cu_kf
     logical :: iprnt
     real(rkx) :: qslcl, rhlcl, dqssdt    !jfb
     integer(ik4), parameter :: maxiter = 10
+    real(rkx) :: u1, u2, zdev
 
     kl = kte
     kx = kte
