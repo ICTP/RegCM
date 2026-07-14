@@ -1651,13 +1651,14 @@ module mod_moloch
 
   subroutine extrapolate_surface_pressure( )
     implicit none
-    real(rkx) :: p2m, t_up, t_low
+    real(rkx) :: zz1, zdgz, zh
     integer(ik4) :: i, j
+    zh = 0.5_rkx*mo_dzita
+    zz1 = -egrav * mo_h * bzita(zh,mo_ztop,mo_h) * &
+                 log(1.0_rkx - zh / mo_h)
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      t_up = 0.5_rkx * (t(j,i,kz) + t2m(j,i))
-      t_low = 0.5_rkx * (t2m(j,i) + ts(j,i))
-      p2m = p(j,i,kz) * exp(govr*((z(j,i,kz)-2.0_rkx))/t_up)
-      ps(j,i) = p2m * exp(govr * 2.0_rkx/t_low)
+     zdgz = ht(j,i) * (gzita(zh,mo_ztop,mo_a0) - 1.0_rkx) + zz1
+     ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tvirt(j,i,kz)))
     end do
   end subroutine extrapolate_surface_pressure
 

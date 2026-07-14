@@ -31,7 +31,7 @@ module mod_zita
   end interface zita_interp
 
   public :: model_zitaf, model_zitah, zitasigma, sigmazita
-  public :: md_zeta, md_zeta_h, md_fmz, md_fmz_h, gzita
+  public :: md_zeta, md_zeta_h, md_fmz, md_fmz_h, bzita, gzita
   public :: md_ak, md_bk
   public :: zita_interp
 
