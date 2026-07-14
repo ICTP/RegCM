@@ -331,6 +331,7 @@ module mod_moloch
     iconvec = 0
 
     call reset_tendencies
+
     !
     ! Dynamical core - update status variables to new timestep
     !
@@ -350,12 +351,6 @@ module mod_moloch
           write(stdout,*) 'WARNING: Physical package disabled!!!'
         end if
       end if
-    end if
-    !
-    ! Compute lateral boundary condition relaxation
-    !
-    if ( do_apply_bdy ) then
-      call boundary
     end if
     !
     ! Update status adding extra terms
@@ -1185,6 +1180,14 @@ module mod_moloch
       call advection(dta)
 
     end do ! Advection loop
+
+    !
+    ! Compute lateral boundary condition relaxation
+    !
+    if ( do_apply_bdy ) then
+      call boundary
+    end if
+
     !
     ! ############################################
     !
@@ -1651,7 +1654,7 @@ module mod_moloch
 
   subroutine extrapolate_surface_pressure( )
     implicit none
-    real(rkx) :: zz1, zdgz, zh
+    real(rkx) :: zdgz, zh
     integer(ik4) :: i, j
     zh = 0.5_rkx*mo_dzita
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )

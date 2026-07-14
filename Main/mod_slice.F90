@@ -138,7 +138,9 @@ module mod_slice
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                       k = 1:kz, n = iqfrst:nqx )
-        atms%qxb3d(j,i,k,n) = max(atms%qxb3d(j,i,k,n),d_zero)
+        if ( atms%qxb3d(j,i,k,n) < 1.0E-20_rkx) then
+          atms%qxb3d(j,i,k,n) = d_zero
+        end if
       end do
       if ( ichem == 1 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )

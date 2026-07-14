@@ -115,7 +115,7 @@ module mod_bdycod
   real(rkx), parameter, dimension(10) :: qxbval = &
     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
-      1.0e8_rkx, 10.0_rkx, 0.01_rkx ]        ! ncc, nc, nr
+      1.0e10_rkx, 100.0_rkx, 0.01_rkx ]      ! ncc, nc, nr
 
   interface nudge
     module procedure nudge4d
@@ -461,8 +461,12 @@ module mod_bdycod
   subroutine setup_bdycon
     implicit none
     real(rkx), dimension(kz) :: anudge
-    real(rkx) :: xfun, nb2
+    real(rkx) :: xfun, nb2, c1, c2
     integer(ik4) :: n, k
+    ! Using Supposedly maximum Jet Stream velocity
+    ! Note: The maximum at surface registered is 113 m/s
+    !   (Tropical Cyclone Olivia on Barrow Island on April 10, 1996)
+    real(rkx), parameter :: speedlimit = 130.0_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
     integer(ik4), save :: idindx = 0
@@ -484,7 +488,10 @@ module mod_bdycod
     if ( idynamic == 3 ) then
       fcx(1) = 1.0_rkx
       fcx(nspgx) = 0.0_rkx
-      call relax_coefficients(nspgx-2,0.1_rkx,1.0_rkx,fcx(2:nspgx-1))
+      c1 = sqrt(d_two)*speedlimit*dtsec/dx/real(mo_nadv,rkx)
+      c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*313.16_rkx)* &
+              dtsec/dx/real(mo_nadv,rkx)/real(mo_nsound,rkx)
+      call relax_coefficients(nspgx-2,0.0077_rkx,max(c1,c2),fcx(2:nspgx-1))
       if ( myid == 0 ) then
         call vprntv(fcx(2:nspgx-1),nspgx-2,'Boundary coefficients')
       end if
@@ -3747,7 +3754,7 @@ module mod_bdycod
     real(rkx) :: dx, dy
     integer(ik4) :: i, j, k, l
     real(rkx), parameter :: cutoff_wavelength_lon_km = 1500.0_rkx
-    real(rkx), parameter :: cutoff_wavelength_lat_km = 1000.0_rkx
+    real(rkx), parameter :: cutoff_wavelength_lat_km =  750.0_rkx
     real(rk8) :: meanz, gmeanz, np
 
     km = max(nint((njcross*ds)/cutoff_wavelength_lon_km),1)
@@ -3768,11 +3775,11 @@ module mod_bdycod
 
     allocate(px(2*km), py(2*lm))
     call getmem(bvx,jde1,jde2,1,2*km,'lowpass::bvx')
-    call getmem(bvy,ide1,ide2,1,2*km,'lowpass::bvy')
+    call getmem(bvy,ide1,ide2,1,2*lm,'lowpass::bvy')
     call getmem(sx,ide1,ide2,1,2*km,'lowpass::sx')
-    call getmem(sy,jde1,jde2,1,2*km,'lowpass::sy')
+    call getmem(sy,jde1,jde2,1,2*lm,'lowpass::sy')
     call getmem(sxg,ide1,ide2,1,2*km,'lowpass::sxg')
-    call getmem(syg,jde1,jde2,1,2*km,'lowpass::syg')
+    call getmem(syg,jde1,jde2,1,2*lm,'lowpass::syg')
     do k = 1, 2*km
       px(k) = exp(-(real(k,rkx)/real(km,rkx))**2)
     end do

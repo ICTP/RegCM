@@ -181,7 +181,7 @@ module mod_cu_kf
       call system_clock(sclock)
       seed(:) = int(sclock) + 37*[(i-1,i=1,nseed)] + myid*104729 ! Independent stream for each rank
       call random_seed(put = seed)
-    end if 
+    end if
 
   end subroutine allocate_mod_cu_kf
 
@@ -695,7 +695,7 @@ module mod_cu_kf
           end if
 
           ! For istochastic = 1, the ramp value becomes the median of a lognormal
-          ! rad is drawn from this distribution 
+          ! rad is drawn from this distribution
 
           if ( istochastic == 1 ) then
             call random_number(u1)

@@ -79,13 +79,13 @@ module mod_init
     real(rkx) :: zzi, zdgz, zh
     real(rkx), dimension(kzp1) :: ozprnt
     real(rkx), dimension(:,:,:), pointer :: tccn => null( )
+    real(rk8) :: np, meanz
+    real(rk8), dimension(kz) :: gmeanz
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    real(rk8) :: np, meanz
-    real(rk8), dimension(kz) :: gmeanz
     !
     ! For an initial run -- not a restart
     !
@@ -153,10 +153,10 @@ module mod_init
         call psc2psd(sfs%psb,sfs%psdotb)
         call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
       else
-        do concurrent ( j = jde1:jde2, i = ice1:ice2, k = 1:kz )
+        do concurrent ( j = jde1gb:jde2gb, i = ice1ga:ice2ga, k = 1:kz )
           mo_atm%u(j,i,k) = dub%b0(j,i,k)
         end do
-        do concurrent ( j = jce1:jce2, i = ide1:ide2, k = 1:kz )
+        do concurrent ( j = jce1ga:jce2ga, i = ide1gb:ide2gb, k = 1:kz )
           mo_atm%v(j,i,k) = dvb%b0(j,i,k)
         end do
         call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
