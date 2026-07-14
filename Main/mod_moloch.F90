@@ -1654,10 +1654,8 @@ module mod_moloch
     real(rkx) :: zz1, zdgz, zh
     integer(ik4) :: i, j
     zh = 0.5_rkx*mo_dzita
-    zz1 = -egrav * mo_h * bzita(zh,mo_ztop,mo_h) * &
-                 log(1.0_rkx - zh / mo_h)
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-     zdgz = ht(j,i) * (gzita(zh,mo_ztop,mo_a0) - 1.0_rkx) + zz1
+     zdgz = egrav*md_zeta(zh,ht(j,i),mo_ztop,mo_h,mo_a0)
      ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tvirt(j,i,kz)))
     end do
   end subroutine extrapolate_surface_pressure

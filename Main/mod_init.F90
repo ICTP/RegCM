@@ -60,8 +60,6 @@ module mod_init
   public :: init
 
   real(rkx), parameter :: mo_zfilt_fac = 0.8_rkx
-  real(rkx), parameter :: tlp = 50.0_rkx
-  real(rkx), parameter :: ts00 = 288.0_rkx
 
   contains
 
@@ -78,7 +76,7 @@ module mod_init
     implicit none
     integer(ik4) :: i, j, k, n
     real(rkx) :: rdnnsg
-    real(rkx) :: zzi, zfilt
+    real(rkx) :: zzi, zdgz, zh
     real(rkx), dimension(kzp1) :: ozprnt
     real(rkx), dimension(:,:,:), pointer :: tccn => null( )
 #ifdef DEBUG
@@ -196,8 +194,11 @@ module mod_init
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas* mo_atm%t(j,i,k))
         end do
+        zh = 0.5_rkx*mo_dzita
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-          sfs%psa(j,i) = xpsb%b0(j,i)
+          zdgz = egrav*md_zeta(zh,mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
+          sfs%psa(j,i) = mo_atm%p(j,i,kz) * &
+                exp(zdgz/(rgas*mo_atm%tvirt(j,i,kz)))
         end do
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%qs(j,i,k) = pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k))
