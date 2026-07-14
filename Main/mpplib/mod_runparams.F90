@@ -373,9 +373,9 @@ module mod_runparams
   real(rkx), public :: kf_tkemax
   real(rkx), public :: kf_wthreshold
 
-  real(ik4), public :: rad_sigma ! spread of the lognormal
-  real(ik4), public :: rad_min ! lower truncation of rad
-  real(ik4), public :: rad_max ! upper truncation of rad
+  real(rkx), public :: rad_sigma ! spread of the lognormal
+  real(rkx), public :: rad_min ! lower truncation of rad
+  real(rkx), public :: rad_max ! upper truncation of rad
 
   ! Tweak Global data
 

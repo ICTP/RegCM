@@ -22,6 +22,7 @@ module mod_cu_kf
   use mod_constants, only : cpd, rcpd, wlhv, wlhf, p00, cpw, cpv
   use mod_constants, only : d_zero, d_one, d_half, d_two
   use mod_constants, only : d_10, d_100, d_1000, dlowval
+  use mod_constants, only : mathpi
   use mod_memutil
   use mod_mppparam
   use mod_dynparam
@@ -178,9 +179,9 @@ module mod_cu_kf
       call random_seed(size = nseed)
       allocate(seed(nseed))
       call system_clock(sclock)
-      seed(:) = int(sclock) + 37*[(i-1,i=1,nseed)]
+      seed(:) = int(sclock) + 37*[(i-1,i=1,nseed)] + myid*104729 ! Independent stream for each rank
       call random_seed(put = seed)
-    end if
+    end if 
 
   end subroutine allocate_mod_cu_kf
 
@@ -415,6 +416,7 @@ module mod_cu_kf
     logical :: iprnt
     real(rkx) :: qslcl, rhlcl, dqssdt    !jfb
     integer(ik4), parameter :: maxiter = 10
+    real(rkx) :: u1, u2, zdev
 
     kl = kte
     kx = kte
@@ -691,6 +693,19 @@ module mod_cu_kf
           else
             rad = 1000.0_rkx + 1000.0_rkx * wkl/0.1_rkx
           end if
+
+          ! For istochastic = 1, the ramp value becomes the median of a lognormal
+          ! rad is drawn from this distribution 
+
+          if ( istochastic == 1 ) then
+            call random_number(u1)
+            call random_number(u2)
+            u1 = max(u1, dlowval)
+            zdev = sqrt(-2.0_rkx*log(u1))*cos(d_two*mathpi*u2)
+            rad = rad * exp(rad_sigma*zdev)
+            rad = min(max(rad, rad_min), rad_max)
+          end if
+
           !
           ! Compute updraft properties
           !
