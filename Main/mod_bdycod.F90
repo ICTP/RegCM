@@ -3879,42 +3879,6 @@ module mod_bdycod
     end do
   end subroutine invert_top_bottom
 
-  subroutine uvstagtox(u,v,ux,vx)
-    implicit none
-    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
-    real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
-    integer(ik4) :: i, j, k
-
-    do concurrent ( j = jci1:jci2, i = ice1:ice2, k = 1:kz )
-      ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
-                  0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
-    end do
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ice1:ice2, k = 1:kz )
-        ux(jce1,i,k) = 0.5_rkx * (u(jde1,i,k)+u(jdi1,i,k))
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ice1:ice2, k = 1:kz )
-        ux(jce2,i,k) = 0.5_rkx * (u(jde2,i,k)+u(jdi2,i,k))
-      end do
-    end if
-    do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
-      vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
-                  0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
-    end do
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jce1:jce2, k = 1:kz )
-        vx(j,ice1,k) = 0.5_rkx * (v(j,ide1,k)+v(j,idi1,k))
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jce1:jce2, k = 1:kz )
-        vx(j,ice2,k) = 0.5_rkx * (v(j,ide2,k)+v(j,idi2,k))
-      end do
-    end if
-  end subroutine uvstagtox
-
   subroutine moupdate_norm(ud,vd,unx)
     implicit none
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: ud, vd
