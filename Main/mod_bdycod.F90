@@ -1601,6 +1601,9 @@ module mod_bdycod
           else
             mo_atm%qx(jce1,i,k,n) = qxint
           end if
+          if ( mo_atm%qx(jce1,i,k,n) < 1.0E-12_rkx ) then
+            mo_atm%qx(jce1,i,k,n) = 0.0_rkx
+          end if
         end do
         if ( ibltyp == 2 ) then
           do concurrent ( i = ici1:ici2 )
@@ -1652,6 +1655,9 @@ module mod_bdycod
             mo_atm%qx(jce2,i,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(jce2,i,k,n) = qxint
+          end if
+          if ( mo_atm%qx(jce2,i,k,n) < 1.0E-12_rkx ) then
+            mo_atm%qx(jce2,i,k,n) = 0.0_rkx
           end if
         end do
         if ( ibltyp == 2 ) then
@@ -1705,6 +1711,9 @@ module mod_bdycod
           else
             mo_atm%qx(j,ice1,k,n) = qxint
           end if
+          if ( mo_atm%qx(j,ice1,k,n) < 1.0E-12_rkx ) then
+            mo_atm%qx(j,ice1,k,n) = 0.0_rkx
+          end if
         end do
         if ( ibltyp == 2 ) then
           do concurrent ( j = jce1:jce2 )
@@ -1756,6 +1765,9 @@ module mod_bdycod
             mo_atm%qx(j,ice2,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(j,ice2,k,n) = qxint
+          end if
+          if ( mo_atm%qx(j,ice2,k,n) < 1.0E-12_rkx ) then
+            mo_atm%qx(j,ice2,k,n) = 0.0_rkx
           end if
         end do
         if ( ibltyp == 2 ) then

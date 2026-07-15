@@ -334,15 +334,30 @@ module mod_moloch
 
     !
     ! Dynamical core - update status variables to new timestep
+    ! Status variables : tetav, pai, ud, vd, qx, qs
+    ! Update variables : t, ux, vx
     !
     call dynamical_core(dtstepa,dtsound)
 
     !
     ! Compute lateral boundary condition relaxation
+    ! Status variables : t, pai, ud, vd, qx
+    ! Update variables : t, pai, tvirt, tetav, ux, vx, qx
     !
     if ( do_apply_bdy ) then
       call boundary
     end if
+
+    !
+    ! Update variables : p, rho, qs, ps
+    !
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+      p(j,i,k) = (pai(j,i,k)**cpovr) * p00
+      rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
+      qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
+    end do
+
+    call extrapolate_surface_pressure( )
 
     !@acc call nvtxStartRange("mkslice")
     call mkslice
@@ -361,6 +376,8 @@ module mod_moloch
     end if
     !
     ! Update status adding extra terms
+    ! Status variables : t, p, ux, vx, qx
+    ! Recomputes       : pai, tetav, ud, vd, qx, qs
     !
     call status_update(dtsec)
     !
@@ -494,7 +511,15 @@ module mod_moloch
         cbdydiag(j,i,k,n) = trac(j,i,k,n) - chiten0(j,i,k,n)
       end do
     end if
+
     call uvstagtox(u,v,ux,vx)
+
+    call temp_to_tvirt( )
+
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+      tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
+    end do
+
     !@acc call nvtxEndRange
   end subroutine boundary
 
@@ -1195,17 +1220,9 @@ module mod_moloch
     !
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
-      p(j,i,k) = (pai(j,i,k)**cpovr) * p00
     end do
 
     call tvirt_to_temp( )
-
-    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
-      qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
-    end do
-
-    call extrapolate_surface_pressure( )
 
     if ( idiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
