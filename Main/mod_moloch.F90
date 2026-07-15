@@ -337,6 +337,13 @@ module mod_moloch
     !
     call dynamical_core(dtstepa,dtsound)
 
+    !
+    ! Compute lateral boundary condition relaxation
+    !
+    if ( do_apply_bdy ) then
+      call boundary
+    end if
+
     !@acc call nvtxStartRange("mkslice")
     call mkslice
     !@acc call nvtxEndRange
@@ -1180,13 +1187,6 @@ module mod_moloch
       call advection(dta)
 
     end do ! Advection loop
-
-    !
-    ! Compute lateral boundary condition relaxation
-    !
-    if ( do_apply_bdy ) then
-      call boundary
-    end if
 
     !
     ! ############################################

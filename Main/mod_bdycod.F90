@@ -461,12 +461,10 @@ module mod_bdycod
   subroutine setup_bdycon
     implicit none
     real(rkx), dimension(kz) :: anudge
-    real(rkx) :: xfun, nb2, c1, c2
+    real(rkx) :: xfun, nb2, cflmin, cflmax
     integer(ik4) :: n, k
-    ! Using Supposedly maximum Jet Stream velocity
-    ! Note: The maximum at surface registered is 113 m/s
-    !   (Tropical Cyclone Olivia on Barrow Island on April 10, 1996)
-    real(rkx), parameter :: speedlimit = 130.0_rkx
+    ! Using Supposedly maximum velocity
+    real(rkx), parameter, dimension(2) :: speedlimit = [ 300.0_rkx, 10.0_rkx ]
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
     integer(ik4), save :: idindx = 0
@@ -486,13 +484,14 @@ module mod_bdycod
     !
     rtb = d_one / dtbdys
     if ( idynamic == 3 ) then
-      fcx(1) = 1.0_rkx
-      fcx(nspgx) = 0.0_rkx
-      c1 = sqrt(d_two)*speedlimit*dtsec/dx/real(mo_nadv,rkx)
-      c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*313.16_rkx)* &
-              dtsec/dx/real(mo_nadv,rkx)/real(mo_nsound,rkx)
-      call relax_coefficients(nspgx-2,0.0077_rkx,max(c1,c2),fcx(2:nspgx-1))
+      fcx(1) = 1.0_rkx      ! External solution updated in bdyval
+      fcx(nspgx) = 0.0_rkx  ! Internal solution computed
+      cflmax = min(0.999_rkx,(speedlimit(1)*(dtsec/real(mo_nadv,rkx)))/dx)
+      cflmin = max(0.001_rkx,(speedlimit(2)*(dtsec/real(mo_nadv,rkx)))/dx)
+      !call relax_coefficients(nspgx-2,cflmin,cflmax,fcx(2:nspgx-1))
+      call relax_coefficients(nspgx-2,0.01_rkx,1.0_rkx,fcx(2:nspgx-1))
       if ( myid == 0 ) then
+        write(stdout, '(a,2f12.4)') ' Computed cfl range: ', cflmin, cflmax
         call vprntv(fcx(2:nspgx-1),nspgx-2,'Boundary coefficients')
       end if
       if ( mo_spectral_nudging ) call lowpass_init( )
