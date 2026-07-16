@@ -520,7 +520,7 @@ module mod_bdycod
         if ( myid == 0 ) then
           write(stdout, '(a,2f12.4)') ' Lehman optimal boundary'
           write(stdout, '(a,2f12.4)') ' Computed cfl range: ', cflmin, cflmax
-          call vprntv(hefc(2:nspgx-1,1),nspgx-2,'Boundary coefficients')
+          call vprntv(hefc(2:nspgx-1,1),nspgx-2,'Boundary coefficients : ')
         end if
         do k = 2, kz
           hefc(2:nspgx-1,k) = hefc(2:nspgx-1,1)
@@ -529,7 +529,7 @@ module mod_bdycod
         call exponential_nudging(anudge)
         do k = 1, kz
           do n = 2, nspgx-1
-            hefc(n,k) = exp(-(real(n-1,rkx)))*anudge(k)
+            hefc(n,k) = exp(-(real(n-1,rkx)/anudge(k)))
           end do
         end do
       end if
