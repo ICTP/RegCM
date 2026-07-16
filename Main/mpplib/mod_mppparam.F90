@@ -1676,6 +1676,7 @@ module mod_mppparam
     call bcast(dbgfrq)
     call bcast(inpglob,256)
 
+    call bcast(bdy_use_lehmann)
     call bcast(nspgx)
     call bcast(nspgd)
     call bcast(high_nudge)

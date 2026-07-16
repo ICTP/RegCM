@@ -502,6 +502,9 @@
 ! Buffer Zone Control relaxation + diffusion term
 !
  &boundaryparam
+ bdy_use_lehmann = .false., ! Use Lehmann optimal coefficients instead
+              ! of the exponential relaxation. Valid only for idynamic == 3.
+              ! The parameters below are therefore discarded.
  nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
               ! the boundary sponge or relaxation boundary conditions.
  nspgd  = 12, ! nspgd-1 represent the number of dot point slices on 

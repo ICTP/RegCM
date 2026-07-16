@@ -73,7 +73,7 @@ module mod_params
                xtop, xx, yy, mo_c1, mo_c2, dl, minfrq
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
-    integer(ik4) :: i, j, k, kbase, ktop, ns, isp
+    integer(ik4) :: i, j, k, kbase, ktop, ns
     integer(ik8) :: mdate0, mdate1, mdate2
     integer(ik4) :: hspan, ipunit
     integer(ik4) :: n, len_path
@@ -91,12 +91,12 @@ module mod_params
     namelist /timeparam/ dtrad, dtsrf, dtcum, dtche, dtabem, dt
 
     namelist /outparam/ prestr, ifsave, ifatm, ifrad, ifsrf, ifsub, &
-      iflak, ifshf, ifsts, ifchem, ifopt, outnwf, savfrq, atmfrq, &
-      srffrq, subfrq, lakfrq, radfrq, chemfrq ,optfrq, dirout,       &
-      uvrotate, enable_atm_vars, enable_srf_vars, enable_rad_vars,    &
-      enable_sub_vars, enable_sts_vars, enable_lak_vars,               &
-      enable_opt_vars, enable_che_vars, enable_shf_vars,               &
-      lsync, idiag, icosp, ifcordex, chechgact,                      &
+      iflak, ifshf, ifsts, ifchem, ifopt, outnwf, savfrq, atmfrq,   &
+      srffrq, subfrq, lakfrq, radfrq, chemfrq ,optfrq, dirout,      &
+      uvrotate, enable_atm_vars, enable_srf_vars, enable_rad_vars,  &
+      enable_sub_vars, enable_sts_vars, enable_lak_vars,            &
+      enable_opt_vars, enable_che_vars, enable_shf_vars,            &
+      lsync, idiag, icosp, ifcordex, chechgact,                     &
       do_parallel_netcdf_in, do_parallel_netcdf_out
 
     namelist /physicsparam/ ibltyp, iboudy, isladvec, iqmsl,       &
@@ -109,13 +109,13 @@ module mod_params
       irceideal, year_offset, radclimpath, ioasiscpl, lconst2050
 
     namelist /dynparam/ gnu1, gnu2, diffu_hgtf, ckh, adyndif, &
-      upstream_mode, uoffc, stability_enhance, t_extrema,      &
+      upstream_mode, uoffc, stability_enhance, t_extrema,     &
       q_rel_extrema
 
     namelist /hydroparam/ nsplit, lstand
 
-    namelist /nonhydroparam/ ifupr, nhbet, nhxkd,       &
-      ifrayd, rayndamp, rayalpha0, rayhd, itopnudge,  &
+    namelist /nonhydroparam/ ifupr, nhbet, nhxkd,    &
+      ifrayd, rayndamp, rayalpha0, rayhd, itopnudge, &
       mo_divfilter, mo_divdamp, mo_nadv, mo_nsound
 
     namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw,    &
@@ -128,32 +128,32 @@ module mod_params
     namelist /subexparam/ qck1land, qck1oce, gulland, guloce,  &
       cevaplnd, cevapoce, caccrlnd, caccroce, conf
 
-    namelist /microparam/ stats, budget_compute, nssopt,  &
-      iautoconv, vfqr, vfqi, vfqs, auto_rate_khair,     &
+    namelist /microparam/ stats, budget_compute, nssopt, &
+      iautoconv, vfqr, vfqi, vfqs, auto_rate_khair,      &
       auto_rate_kessl, auto_rate_klepi, rkconv, skconv,  &
       rcovpmin, rpecons, rcldiff
 
-    namelist /grellparam/ igcc, shrmin, shrmax, edtmin, &
-      edtmax, edtmino, edtmaxo, edtminx, edtmaxx, pbcmax,    &
-      mincld, htmin, htmax, skbmax, dtauc, shrmin_ocn,        &
-      shrmax_ocn, edtmin_ocn, edtmax_ocn, edtmino_ocn,           &
+    namelist /grellparam/ igcc, shrmin, shrmax, edtmin,   &
+      edtmax, edtmino, edtmaxo, edtminx, edtmaxx, pbcmax, &
+      mincld, htmin, htmax, skbmax, dtauc, shrmin_ocn,    &
+      shrmax_ocn, edtmin_ocn, edtmax_ocn, edtmino_ocn,    &
       edtmaxo_ocn, edtminx_ocn, edtmaxx_ocn
 
     namelist /emanparam/ minorig, elcrit_ocn, elcrit_lnd, tlcrit, &
-      entp, sigd, sigs, omtrain, omtsnow, coeffr, coeffs, cu, &
-      betae, dtmax, alphae, damp, epmax_ocn, epmax_lnd,         &
+      entp, sigd, sigs, omtrain, omtsnow, coeffr, coeffs, cu,     &
+      betae, dtmax, alphae, damp, epmax_ocn, epmax_lnd,           &
       istochastic
 
     namelist /emanstochastic/ epmax_lnd_min, epmax_lnd_max, &
-      elcrit_lnd_min, elcrit_lnd_max,                       &
-      sigs_min, sigs_max, sigd_min, sigd_max
+      elcrit_lnd_min, elcrit_lnd_max, sigs_min, sigs_max,   &
+      sigd_min, sigd_max
 
     namelist /tiedtkeparam/ iconv, entrmax, entrdd, entrpen_lnd, &
-      entrpen_ocn, entrscv, entrmid, cprcon, detrpen_lnd,       &
-      detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, rcpec_lnd,     &
-      rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd,      &
-      revap_lnd, revap_ocn, cmtcape, lmfpen, lmfmid, lmfdd,    &
-      lepcld, lmfdudv, lmfscv, lmfuvdis, lmftrac, lmfsmooth,   &
+      entrpen_ocn, entrscv, entrmid, cprcon, detrpen_lnd,        &
+      detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, rcpec_lnd,      &
+      rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd,       &
+      revap_lnd, revap_ocn, cmtcape, lmfpen, lmfmid, lmfdd,      &
+      lepcld, lmfdudv, lmfscv, lmfuvdis, lmftrac, lmfsmooth,     &
       lmfwstar
 
     namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
@@ -163,8 +163,8 @@ module mod_params
     namelist /kfstochastic/ rad_sigma, rad_min, rad_max
 
     namelist /chemparam/ chemsimtype, ichremlsc, ichremcvc, ichdrdepo, &
-      ichcumtra, ichsolver, idirect, iindirect, ichdustemd,           &
-      ichdiag, ichsursrc, ichebdy, rdstemfac, ichjphcld, ichbion,    &
+      ichcumtra, ichsolver, idirect, iindirect, ichdustemd,            &
+      ichdiag, ichsursrc, ichebdy, rdstemfac, ichjphcld, ichbion,      &
       ismoke, rocemfac, ichlinox, isnowdark, ichdustparam, ichecold,   &
       carb_aging_control
 
@@ -216,8 +216,8 @@ module mod_params
       sst_restore_timescale, mixed_layer_depth
 
     namelist /tweakparam/ itweak_temperature, itweak_solar_irradiance, &
-            itweak_sst, itweak_greenhouse_gases, temperature_tweak,   &
-            sst_tweak, solar_tweak, gas_tweak_factors
+             itweak_sst, itweak_greenhouse_gases, temperature_tweak,   &
+             sst_tweak, solar_tweak, gas_tweak_factors
 
 #ifdef DEBUG
     call time_begin(subroutine_name,idindx)
@@ -1946,7 +1946,6 @@ module mod_params
       ntr = aerclima_ntr
       nbin = aerclima_nbin
     end if
-
     !
     ! ALLOCATE NEEDED SPACE
     !
@@ -2222,28 +2221,17 @@ module mod_params
            ' Courant number of horizontal sound waves = ', mo_c2
       end if
     end if
-
     !
     ! Calculate boundary areas per processor
     !
     if ( idynamic == 3 ) then
-      nspgx = min(max(6, nint(20.0_rkx * (ds**(-0.35_rkx)))+1),34)
-      isp = 1
-      do while (isp < nspgx-2 )
-        isp = isp * 2
-      end do
-      nspgx = isp+2
-      nspgd = nspgx
       if ( myid == italk ) then
-        write(stdout,'(a,f7.3,a)') ' Resolution of ',ds,' km.'
         write(stdout,'(a,i2,a)') ' Using nspgx = ',nspgx,' in MOLOCH code'
         write(stdout,'(a,i2,a)') ' Boundary effect on ',nspgx-2, &
           ' point in the output files.'
-      end if
-    else
-      if ( iboudy == 4 ) then
-        nspgd = max(6,nspgd)
-        nspgx = max(6,nspgx)
+        if ( bdy_use_lehmann ) then
+          write(stdout,'(a)') ' Using Lehmann boundary optimal coefficients.'
+        end if
       end if
     end if
 

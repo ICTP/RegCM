@@ -1,4 +1,4 @@
-!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!*rdb::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !    This file is part of ICTP RegCM.
 !
@@ -52,7 +52,7 @@ module mod_bdycod
   public :: bdyin_prefetch
 #endif
   public :: sponge, nudge, morelax, setup_bdycon, raydamp
-  public :: moupdate_norm, mospectral_nudge
+  public :: mospectral_nudge, motopnudge
   public :: is_present_qc, is_present_qi
 
   !
@@ -66,9 +66,6 @@ module mod_bdycod
   public :: wve, wvi, eve, evi
   public :: sue, sui, nue, nui
   public :: sve, svi, nve, nvi
-  ! fnudge : are the coefficients for the newtonian term.
-  ! gnydge : are the coefficients for the diffusion term.
-  public :: fnudge, gnudge
   !
   real(rkx), pointer, contiguous, dimension(:,:) :: sue => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: sui => null( )
@@ -87,6 +84,7 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:,:) :: eve => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: evi => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: psdot => null( )
+
   real(rkx), pointer, contiguous, dimension(:) :: fcx => null( )
   real(rkx), pointer, contiguous, dimension(:) :: gcx => null( )
   real(rkx), pointer, contiguous, dimension(:) :: fcd => null( )
@@ -99,19 +97,28 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:) :: wgtx => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg1 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg2 => null( )
-  real(rkx), pointer, contiguous, dimension(:,:) :: zn1 => null( )
+
   real(rkx), pointer, contiguous, dimension(:) :: cnudge => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: wnudge => null( )
+
   integer(ik4) :: km, lm
+  real(rkx) :: cn0
+  real(rkx), pointer, contiguous, dimension(:,:) :: zn1 => null( )
   real(rkx), pointer, dimension(:,:), contiguous :: bvx, bvy
   real(rkx), pointer, dimension(:,:), contiguous :: sxg, syg
   real(rkx), pointer, dimension(:,:), contiguous :: sx, sy
-  real(rkx) :: fnudge, gnudge, rtb, cn0
+
+  real(rkx) :: fnudge, gnudge, rtb
   integer(ik4) :: som_month
+
 #ifdef ASYNC_NETCDF
   integer(ik4), save :: bdyin_prefetch_steps = 1
   logical, save :: bdyin_prefetch_steps_initialized = .false.
 #endif
 
+  integer(ik4) :: nztop
+  real(rkx), parameter :: zztop = 15000.0_rkx
+  real(rkx), pointer, dimension(:), contiguous :: gmeanz
   real(rkx), parameter, dimension(10) :: qxbval = &
     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
@@ -408,9 +415,11 @@ module mod_bdycod
   subroutine allocate_mod_bdycon
     implicit none
     if ( idynamic == 3 ) then
-      call getmem(fcx,1,nspgx,'bdycon:fcx')
+      call getmem(hefc,1,nspgx,1,kz,'bdycon:hefc')
       call getmem(zn1,jde1,jde2,ide1,ide2,'bdycon:zn1')
       call getmem(cnudge,1,kz,'bdycon:cnudge')
+      call getmem(wnudge,1,kz,'bdycon:wnudge')
+      call getmem(gmeanz,1,kz,'bdycon:gmeanz')
     else
       if ( iboudy == 1 .or. idynamic == 2 ) then
         call getmem(fcx,2,nspgx-1,'bdycon:fcx')
@@ -462,7 +471,8 @@ module mod_bdycod
     implicit none
     real(rkx), dimension(kz) :: anudge
     real(rkx) :: xfun, nb2, cflmin, cflmax
-    integer(ik4) :: n, k
+    real(rk8) :: meanz, np, mpmeanz
+    integer(ik4) :: i, j, k, n
     ! Using Supposedly maximum velocity
     real(rkx), parameter, dimension(2) :: speedlimit = [ 300.0_rkx, 10.0_rkx ]
 #ifdef DEBUG
@@ -482,19 +492,55 @@ module mod_bdycod
     ! Article in Monthly Weather Review · October 1993
     ! DOI: 10.1175/1520-0493(1993)121<2814:DOASGR>2.0.CO;2
     !
-    rtb = d_one / dtbdys
+
+    rtb = d_one/dtbdys
+
     if ( idynamic == 3 ) then
-      fcx(1) = 1.0_rkx      ! External solution updated in bdyval
-      fcx(nspgx) = 0.0_rkx  ! Internal solution computed
-      cflmax = min(0.999_rkx,(speedlimit(1)*(dtsec/real(mo_nadv,rkx)))/dx)
-      cflmin = max(0.001_rkx,(speedlimit(2)*(dtsec/real(mo_nadv,rkx)))/dx)
-      !call relax_coefficients(nspgx-2,cflmin,cflmax,fcx(2:nspgx-1))
-      call relax_coefficients(nspgx-2,0.01_rkx,1.0_rkx,fcx(2:nspgx-1))
-      if ( myid == 0 ) then
-        write(stdout, '(a,2f12.4)') ' Computed cfl range: ', cflmin, cflmax
-        call vprntv(fcx(2:nspgx-1),nspgx-2,'Boundary coefficients')
+      np = real(jx*iy,rk8)
+      nztop = 1
+      do k = 1, kz
+        meanz = 0.0_rkx
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          meanz = meanz + real(mo_atm%zeta(j,i,k),rk8)/np
+        end do
+        call sumall(meanz,mpmeanz)
+        gmeanz(k) = real(mpmeanz,rkx)
+        if ( gmeanz(k) > zztop ) then
+          nztop = nztop + 1
+        end if
+      end do
+      do k = 1, kz
+        hefc(1,k) = 1.0_rkx      ! External solution updated in bdyval
+        hefc(nspgx,k) = 0.0_rkx  ! Internal solution computed
+      end do
+      if ( bdy_use_lehmann ) then
+        cflmax = min(0.999_rkx,(speedlimit(1)*(dtsec/real(mo_nadv,rkx)))/dx)
+        cflmin = max(0.001_rkx,(speedlimit(2)*(dtsec/real(mo_nadv,rkx)))/dx)
+        call relax_coefficients(nspgx-2,cflmin,cflmax,hefc(2:nspgx-1,1))
+        if ( myid == 0 ) then
+          write(stdout, '(a,2f12.4)') ' Lehman optimal boundary'
+          write(stdout, '(a,2f12.4)') ' Computed cfl range: ', cflmin, cflmax
+          call vprntv(hefc(2:nspgx-1,1),nspgx-2,'Boundary coefficients')
+        end if
+        do k = 2, kz
+          hefc(2:nspgx-1,k) = hefc(2:nspgx-1,1)
+        end do
+      else
+        call exponential_nudging(anudge)
+        do k = 1, kz
+          do n = 2, nspgx-1
+            hefc(n,k) = exp(-(real(n-1,rkx)))*anudge(k)
+          end do
+        end do
       end if
       if ( mo_spectral_nudging ) call lowpass_init( )
+      do k = 1, kz
+        if ( k < nztop ) then
+          wnudge(k) = sin(d_half*mathpi*(gmeanz(k)-zztop)/(mo_h-zztop))**2
+        else
+          wnudge(k) = 0.0_rkx
+        end if
+      end do
     else
       if ( iboudy == 1 .or. iboudy == 5 .or. iboudy == 6 ) then
         if ( bdy_nm > d_zero ) then
@@ -1558,7 +1604,7 @@ module mod_bdycod
     !
     ! Set time
     !
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
     !
     ! Set boundary conditions
@@ -1594,9 +1640,8 @@ module mod_bdycod
         do concurrent ( i = ici1:ici2, k = 1:kz, n = iqfrst:nqx )
           if ( present_qc .and. n == iqc ) cycle
           if ( present_qi .and. n == iqi ) cycle
-          qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
-          windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
-          if ( windavg > d_zero ) then
+          qxint = mo_atm%qx(jci1,i,k,n)
+          if ( mo_atm%u(jde1,i,k) > d_zero ) then
             mo_atm%qx(jce1,i,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(jce1,i,k,n) = qxint
@@ -1610,13 +1655,10 @@ module mod_bdycod
             mo_atm%tke(jce1,i,1) = tkemin ! West boundary
           end do
           do concurrent ( i = ici1:ici2, k = 2:kz )
-            tkeint = mo_atm%tke(jci1,i,k+1)
-            windavg = mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k) + &
-                      mo_atm%u(jde1,i,k-1) + mo_atm%u(jdi1,i,k-1)
-            if ( windavg > d_zero ) then
+            if ( mo_atm%u(jde1,i,k)+mo_atm%u(jde1,i,k-1) > d_zero ) then
               mo_atm%tke(jce1,i,k+1) = tkemin
             else
-              mo_atm%tke(jce1,i,k+1) = tkeint
+              mo_atm%tke(jce1,i,k+1) = mo_atm%tke(jci1,i,k+1)
             end if
           end do
         end if
@@ -1649,9 +1691,8 @@ module mod_bdycod
         do concurrent ( i = ici1:ici2, k = 1:kz, n = iqfrst:nqx )
           if ( present_qc .and. n == iqc ) cycle
           if ( present_qi .and. n == iqi ) cycle
-          qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
-          windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
-          if ( windavg < d_zero ) then
+          qxint = mo_atm%qx(jci2,i,k,n)
+          if ( mo_atm%u(jde2,i,k) < d_zero ) then
             mo_atm%qx(jce2,i,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(jce2,i,k,n) = qxint
@@ -1665,13 +1706,10 @@ module mod_bdycod
             mo_atm%tke(jce2,i,1) = tkemin ! East boundary
           end do
           do concurrent ( i = ici1:ici2, k = 2:kz )
-            tkeint = mo_atm%tke(jci2,i,k+1)
-            windavg = mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k) + &
-                      mo_atm%u(jde2,i,k-1) + mo_atm%u(jdi2,i,k-1)
-            if ( windavg < d_zero ) then
+            if ( mo_atm%u(jde2,i,k) + mo_atm%u(jde2,i,k-1) < d_zero ) then
               mo_atm%tke(jce2,i,k+1) = tkemin
             else
-              mo_atm%tke(jce2,i,k+1) = tkeint
+              mo_atm%tke(jce2,i,k+1) = mo_atm%tke(jci2,i,k+1)
             end if
           end do
         end if
@@ -1704,9 +1742,8 @@ module mod_bdycod
         do concurrent ( j = jce1:jce2, k = 1:kz, n = iqfrst:nqx )
           if ( present_qc .and. n == iqc ) cycle
           if ( present_qi .and. n == iqi ) cycle
-          qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
-          windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
-          if ( windavg > d_zero ) then
+          qxint = mo_atm%qx(j,ici1,k,n)
+          if ( mo_atm%v(j,ide1,k) > d_zero ) then
             mo_atm%qx(j,ice1,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(j,ice1,k,n) = qxint
@@ -1720,13 +1757,10 @@ module mod_bdycod
             mo_atm%tke(j,ice1,1) = tkemin  ! South boundary
           end do
           do concurrent ( j = jce1:jce2, k = 2:kz )
-            tkeint = mo_atm%tke(j,ici1,k+1)
-            windavg = mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k) + &
-                      mo_atm%v(j,ide1,k-1) + mo_atm%v(j,idi1,k-1)
-            if ( windavg > d_zero ) then
+            if ( mo_atm%v(j,ide1,k) + mo_atm%v(j,ide1,k-1) > d_zero ) then
               mo_atm%tke(j,ice1,k+1) = tkemin
             else
-              mo_atm%tke(j,ice1,k+1) = tkeint
+              mo_atm%tke(j,ice1,k+1) = mo_atm%tke(j,ici1,k+1)
             end if
           end do
         end if
@@ -1759,9 +1793,8 @@ module mod_bdycod
         do concurrent ( j = jce1:jce2, k = 1:kz, n = iqfrst:nqx )
           if ( present_qc .and. n == iqc ) cycle
           if ( present_qi .and. n == iqi ) cycle
-          qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
-          windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
-          if ( windavg < d_zero ) then
+          qxint = mo_atm%qx(j,ici2,k,n)
+          if ( mo_atm%v(j,ide2,k) < d_zero ) then
             mo_atm%qx(j,ice2,k,n) = 0.5_rkx*(qxbval(n)+qxint)
           else
             mo_atm%qx(j,ice2,k,n) = qxint
@@ -1775,13 +1808,10 @@ module mod_bdycod
             mo_atm%tke(j,ice2,1) = tkemin  ! North boundary
           end do
           do concurrent ( j = jce1:jce2, k = 2:kz )
-            tkeint = mo_atm%tke(j,ici2,k+1)
-            windavg = mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k) + &
-                      mo_atm%v(j,ide2,k-1) + mo_atm%v(j,idi2,k-1)
-            if ( windavg < d_zero ) then
+            if ( mo_atm%v(j,ide2,k) + mo_atm%v(j,ide2,k-1) < d_zero ) then
               mo_atm%tke(j,ice2,k+1) = tkemin
             else
-              mo_atm%tke(j,ice2,k+1) = tkeint
+              mo_atm%tke(j,ice2,k+1) = mo_atm%tke(j,ici2,k+1)
             end if
           end do
         end if
@@ -2614,7 +2644,7 @@ module mod_bdycod
     end if
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      fg1(j,i,k) = (bnd%b1(j,i,k)-bnd%b0(j,i,k))/dtbdys
+      fg1(j,i,k) = (bnd%b1(j,i,k)-bnd%b0(j,i,k))*rtb
     end do
 
     if ( ba_cr%ns /= 0 ) then
@@ -2670,8 +2700,8 @@ module mod_bdycod
     end if
 
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
-      fg1(j,i,k) = (bndu%b1(j,i,k)-bndu%b0(j,i,k))/dtbdys
-      fg2(j,i,k) = (bndv%b1(j,i,k)-bndv%b0(j,i,k))/dtbdys
+      fg1(j,i,k) = (bndu%b1(j,i,k)-bndu%b0(j,i,k))*rtb
+      fg2(j,i,k) = (bndv%b1(j,i,k)-bndv%b0(j,i,k))*rtb
     end do
 
     if ( ba_dt%ns /= 0 ) then
@@ -2732,7 +2762,7 @@ module mod_bdycod
 
     nk = size(ften,3)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk )
-      fg1(j,i,k) = (bnd%b1(j,i,k)-bnd%b0(j,i,k))/dtbdys
+      fg1(j,i,k) = (bnd%b1(j,i,k)-bnd%b0(j,i,k))*rtb
     end do
 
     if ( ba_cr%ns /= 0 ) then
@@ -2786,7 +2816,7 @@ module mod_bdycod
     end if
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      fg1(j,i,1) = (bnd%b0(j,i)-bnd%b1(j,i))/dtbdys
+      fg1(j,i,1) = (bnd%b0(j,i)-bnd%b1(j,i))*rtb
     end do
 
     if ( ba_cr%ns /= 0 ) then
@@ -2866,7 +2896,7 @@ module mod_bdycod
       return
     end if
 
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
     do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
@@ -3022,7 +3052,7 @@ module mod_bdycod
       return
     end if
 
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
     do concurrent ( j = jde1ga:jde2ga, i = ide1ga:ide2ga, k = 1:kz )
@@ -3266,7 +3296,7 @@ module mod_bdycod
     ns = lbound(f,3)
     nk = ubound(f,3)
     !if ( nk == kzp1 ) ns = 2
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
     do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = ns:nk )
@@ -3423,7 +3453,7 @@ module mod_bdycod
       return
     end if
 
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
     do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
@@ -3580,7 +3610,7 @@ module mod_bdycod
     integer(ik4) :: i, j, k, maxk
     real(rkx) :: bval
 
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
     maxk = min(kzp1,rayndamp)
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:maxk )
@@ -3637,7 +3667,7 @@ module mod_bdycod
     real(rkx) :: x0, x1
     integer(ik4) :: i, j, k, maxk
     real(rkx) :: bval
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
     maxk = min(kz,rayndamp)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:maxk )
@@ -3656,7 +3686,7 @@ module mod_bdycod
     integer(ik4) :: i, j, k, maxk
     real(rkx) :: x0, x1
     real(rkx) :: bval
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
     maxk = min(kz,rayndamp)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:maxk )
@@ -3766,7 +3796,6 @@ module mod_bdycod
     integer(ik4) :: i, j, k, l
     real(rkx), parameter :: cutoff_wavelength_lon_km = 1500.0_rkx
     real(rkx), parameter :: cutoff_wavelength_lat_km =  750.0_rkx
-    real(rk8) :: meanz, gmeanz, np
 
     km = max(nint((njcross*ds)/cutoff_wavelength_lon_km),1)
     lm = max(nint((nicross*ds)/cutoff_wavelength_lat_km),1)
@@ -3808,15 +3837,9 @@ module mod_bdycod
       end do
     end do
     deallocate(px,py)
-    cn0 = dtrad/dtbdys
-    np = real(jx*iy,rk8)
+    cn0 = dtrad*rtb
     do k = 1, kz
-      meanz = 0.0_rkx
-      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-         meanz = meanz + real(mo_atm%zeta(j,i,k),rk8)/np
-      end do
-      call sumall(meanz,gmeanz)
-      cnudge(k) = cn0 * min((real(gmeanz,rkx)/mo_h)**2, 1.0_rkx)
+      cnudge(k) = cn0 * min((gmeanz(k)/mo_h)**2, 1.0_rkx)
     end do
   end subroutine lowpass_init
 
@@ -3870,7 +3893,7 @@ module mod_bdycod
     real(rkx) :: x0, x1
     integer(ik4) :: i, j, k
 
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
     do k = 1, kz
@@ -3889,21 +3912,13 @@ module mod_bdycod
     real(rkx), dimension(:), intent(inout) :: v
     real(rkx), dimension(size(v)) :: swap
     integer(ik4) :: nk, k, kk
-    swap = v
+    swap(:) = v(:)
     nk = size(v)
     do k = 1, nk
       kk = nk-k+1
       v(k) = swap(kk)
     end do
   end subroutine invert_top_bottom
-
-  subroutine moupdate_norm(ud,vd,unx)
-    implicit none
-    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: ud, vd
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: unx
-    call outward_velocity(jci1,jci2,ici1,ici2,1,kz, &
-                          jcross2,icross2,nspgx,ud,vd,unx)
-  end subroutine moupdate_norm
 
   subroutine morelax(j1,j2,i1,i2,ba,f,bnd)
     implicit none
@@ -3927,14 +3942,14 @@ module mod_bdycod
       return
     end if
 
-    x1 = (xbctime + dt)/dtbdys
+    x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
     if ( ba%ns /= 0 ) then
       do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
         if ( .not. ba%bsouth(j,i) ) cycle
         ib = ba%ibnd(j,i)
-        xf = fcx(ib)
+        xf = hefc(ib,k)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3943,7 +3958,7 @@ module mod_bdycod
       do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
         if ( .not. ba%bnorth(j,i) ) cycle
         ib = ba%ibnd(j,i)
-        xf = fcx(ib)
+        xf = hefc(ib,k)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3952,7 +3967,7 @@ module mod_bdycod
       do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
         if ( .not. ba%bwest(j,i) ) cycle
         ib = ba%ibnd(j,i)
-        xf = fcx(ib)
+        xf = hefc(ib,k)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3961,7 +3976,7 @@ module mod_bdycod
       do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
         if ( .not. ba%beast(j,i) ) cycle
         ib = ba%ibnd(j,i)
-        xf = fcx(ib)
+        xf = hefc(ib,k)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
       end do
@@ -3970,6 +3985,39 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine morelax
+
+  subroutine motopnudge(t,u,v,w,dta)
+    implicit none
+    real(rkx), intent(in) :: dta
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: t, u, v, w
+    integer(ik4) :: i, j, k
+    real(rkx) :: wrtau, trtau, x0, x1, fext, xf
+
+    trtau = 1.0_rkx*rtb
+    wrtau = 4.0_rkx*rtb
+
+    x1 = (xbctime + dt)*rtb
+    x0 = 1.0_rkx - x1
+
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:nztop )
+      w(j,i,k) = (1.0_rkx - wnudge(k)*wrtau*dta) * w(j,i,k)
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nztop )
+      fext = x0*xtb%b0(j,i,k) + x1*xtb%b1(j,i,k)
+      xf = wnudge(k)*trtau*dta
+      t(j,i,k) = (1.0_rkx - xf) * t(j,i,k) + xf * fext
+    end do
+    do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:nztop )
+      fext = x0*dub%b0(j,i,k) + x1*dub%b1(j,i,k)
+      xf = wnudge(k)*trtau*dta
+      u(j,i,k) = (1.0_rkx - xf) * u(j,i,k) + xf * fext
+    end do
+    do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:nztop )
+      fext = x0*dvb%b0(j,i,k) + x1*dvb%b1(j,i,k)
+      xf = wnudge(k)*trtau*dta
+      v(j,i,k) = (1.0_rkx - xf) * v(j,i,k) + xf * fext
+    end do
+  end subroutine motopnudge
 
 end module mod_bdycod
 

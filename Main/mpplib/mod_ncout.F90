@@ -3257,24 +3257,26 @@ module mod_ncout
 
         ! Buffer Zone Control relaxation + diffusion term params
 
-        if ( idynamic /= 3 ) then
+        if ( bdy_use_lehmann ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('boundary_nspgx',nspgx))
+            ncattribute_integer('boundary_points',nspgx-2))
+        else
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('boundary_nspgd',nspgd))
+            ncattribute_integer('boundary_points',nspgx-2))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('boundary_high_nudge',high_nudge))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('boundary_medium_nudge',medium_nudge))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('boundary_low_nudge',low_nudge))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('boundary_nm',bdy_nm))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('boundary_dm',bdy_dm))
-        else
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('boundary_points',nspgx-2))
+          if ( idynamic /= 3 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_integer('boundary_points_dot',nspgd-2))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('boundary_nm',bdy_nm))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('boundary_dm',bdy_dm))
+          end if
         end if
 
         ! Perturbation control for ensembles

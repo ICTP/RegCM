@@ -474,6 +474,8 @@ module mod_moloch
 
     call bdyval
 
+    call motopnudge(t,u,v,w,dtsec)
+
     ! Davies boundary condition on internal point
 
     call morelax(jdi1,jdi2,ici1,ici2,ba_ud,u,dub)
@@ -535,8 +537,6 @@ module mod_moloch
        rdx**2 * (zdiv2(j,i-1,k) + zdiv2(j,i+1,k) - 2.0_rkx * zdiv2(j,i,k))
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      if ( j > nspgx+2 .or. j < jcross2+nspgx-1 ) cycle
-      if ( i > nspgx+2 .or. i < icross2+nspgx-1 ) cycle
       zdiv2(j,i,k) = zdiv2(j,i,k) + dts * numax * xknu(k) * laplacian(j,i,k)
     end do
   end subroutine divergence_diffusion
