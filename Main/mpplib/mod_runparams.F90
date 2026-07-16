@@ -180,11 +180,6 @@ module mod_runparams
   logical, parameter, public :: moloch_do_test_1 = .false.
   logical, parameter, public :: moloch_do_test_2 = .false.
   real(rkx), public :: mo_dzita
-  logical, public :: mo_divfilter = .true.
-  logical, public :: mo_divdamp = .true.
-  logical, public :: mo_spectral_nudging = .true.
-  integer(ik4), public :: mo_nadv
-  integer(ik4), public :: mo_nsound
 
   real(rkx), public :: dt, dt2, dtsq, dtcb, dtbdys, rdt
   real(rkx), public :: dx, dx2, dx4, dx8, dx16, dxsq

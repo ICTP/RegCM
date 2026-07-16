@@ -478,10 +478,6 @@
  rayndamp = 5,      ! Number of top levels to apply
  rayalpha0 = .0000115740, ! Rate alpha0 (1/86400)
  rayhd = 10000.0,   ! Damping scale depth
- mo_nadv = 3,       ! Number of advection loops for phisics loop
- mo_nsound = 5,     ! Number of sound loops for advection loop
- mo_divfilter = .true. ! Do horizontal divergence diffusion
- mo_divdamp = .true.   ! Do damping of divergence
  /
 !
 ! Hydrostatic core option
@@ -497,6 +493,11 @@
  mo_ztop = 30000.0, ! Atmosphere top lid in meters
  mo_h = 8000.0,     ! Atmosphere reference height
  mo_a0 = 0.0,       ! Vertical stretching in model level equations
+ mo_nadv = 3,       ! Number of advection loops for phisics loop
+ mo_nsound = 5,     ! Number of sound loops for advection loop
+ mo_divfilter = .true. ! Do horizontal divergence diffusion
+ mo_divdamp = .true.   ! Do damping of divergence
+ mo_spectral_nudging = .false., ! Use spectral filtering
  /
 !
 ! Buffer Zone Control relaxation + diffusion term

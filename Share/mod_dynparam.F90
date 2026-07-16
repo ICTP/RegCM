@@ -202,6 +202,11 @@ module mod_dynparam
   real(rkx), public :: mo_ztop = 30000.0_rkx
   real(rkx), public :: mo_h = 8000.0_rkx
   real(rkx), public :: mo_a0 = 0.0_rkx
+  logical, public :: mo_divfilter = .true.
+  logical, public :: mo_divdamp = .true.
+  logical, public :: mo_spectral_nudging = .false.
+  integer(ik4), public :: mo_nadv = 2
+  integer(ik4), public :: mo_nsound = 5
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! End of configureation. Below this point things are
@@ -496,7 +501,8 @@ module mod_dynparam
 
     namelist /dimparam/ iy, jx, kz, dsmax, dsmin, nsg, njxcpus, niycpus
     namelist /coreparam/ idynamic
-    namelist /molochparam/ mo_a0, mo_ztop, mo_h
+    namelist /molochparam/ mo_a0, mo_ztop, mo_h, mo_divfilter, &
+      mo_divdamp, mo_spectral_nudging, mo_nadv, mo_nsound
     namelist /geoparam/ iproj, ds, ptop, clat, clon, plat,    &
       plon, cntri, cntrj, truelatl, truelath, i_band, i_crm
     namelist /terrainparam/ domname, lresamp, smthbdy, nsmthbdy, &

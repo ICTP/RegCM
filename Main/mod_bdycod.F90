@@ -117,7 +117,7 @@ module mod_bdycod
 #endif
 
   integer(ik4) :: nztop
-  real(rkx), parameter :: zztop = 15000.0_rkx
+  real(rkx), parameter :: zztop = 18000.0_rkx
   real(rkx), pointer, dimension(:), contiguous :: gmeanz
   real(rkx), parameter, dimension(10) :: qxbval = &
     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
@@ -529,7 +529,7 @@ module mod_bdycod
         call exponential_nudging(anudge)
         do k = 1, kz
           do n = 2, nspgx-1
-            hefc(n,k) = exp(-(real(n-1,rkx)/anudge(k)))
+            hefc(n,k) = exp(-0.625_rkx * real(n-1,rkx)/anudge(k))
           end do
         end do
       end if
@@ -3898,11 +3898,11 @@ module mod_bdycod
 
     do k = 1, kz
       do concurrent ( j = j1:j2, i = i1:i2 )
-        zn1(j,i) = f(j,i,k) - (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
+        zn1(j,i) = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k)) - f(j,i,k)
       end do
       call lowpass_filter(j1,j2,i1,i2,jj1,jj2,ii1,ii2,zn1)
       do concurrent ( j = jj1:jj2, i = ii1:ii2 )
-        f(j,i,k) = f(j,i,k) - cnudge(k)*zn1(j,i)
+        f(j,i,k) = f(j,i,k) + cnudge(k)*zn1(j,i)
       end do
     end do
   end subroutine mospectral_nudge
@@ -3991,10 +3991,9 @@ module mod_bdycod
     real(rkx), intent(in) :: dta
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: t, u, v, w
     integer(ik4) :: i, j, k
-    real(rkx) :: wrtau, trtau, x0, x1, fext, xf
-
-    trtau = 1.0_rkx*rtb
-    wrtau = 4.0_rkx*rtb
+    real(rkx), parameter :: trtau = 1.0_rkx/(2.0_rkx*3600.0_rkx)
+    real(rkx), parameter :: wrtau = 1.0_rkx/(3600.0_rkx/4.0_rkx)
+    real(rkx) :: x0, x1, fext, xf
 
     x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1

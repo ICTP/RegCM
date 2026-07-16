@@ -1696,6 +1696,11 @@ module mod_mppparam
       call bcast(mo_a0)
       call bcast(mo_h)
       call bcast(mo_ztop)
+      call bcast(mo_divfilter)
+      call bcast(mo_divdamp)
+      call bcast(mo_spectral_nudging)
+      call bcast(mo_nadv)
+      call bcast(mo_nsound)
     end if
 
     ! Setup all convenience dimensions
