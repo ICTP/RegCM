@@ -483,6 +483,7 @@ module mod_moloch
     call morelax(jci1,jci2,ici1,ici2,ba_cr,t,xtb)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,pai,xpaib)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,qv,xqb)
+    call morelax(jci1,jci2,ici1,ici2,ba_cr,wx,0.0_rkx)
     if ( is_present_qc( ) ) then
       call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,xlb)
     end if
@@ -515,6 +516,7 @@ module mod_moloch
     end if
 
     call uvstagtox(u,v,ux,vx)
+    call htozstag(wx,w)
 
     call temp_to_tvirt( )
 

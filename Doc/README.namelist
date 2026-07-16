@@ -493,7 +493,7 @@
  mo_ztop = 30000.0, ! Atmosphere top lid in meters
  mo_h = 8000.0,     ! Atmosphere reference height
  mo_a0 = 0.0,       ! Vertical stretching in model level equations
- mo_nadv = 3,       ! Number of advection loops for phisics loop
+ mo_nadv = 3,       ! Number of advection loops for physics loop
  mo_nsound = 5,     ! Number of sound loops for advection loop
  mo_divfilter = .true. ! Do horizontal divergence diffusion
  mo_divdamp = .true.   ! Do damping of divergence
@@ -503,9 +503,9 @@
 ! Buffer Zone Control relaxation + diffusion term
 !
  &boundaryparam
- bdy_use_lehmann = .false., ! Use Lehmann optimal coefficients instead
-              ! of the exponential relaxation. Valid only for idynamic == 3.
-              ! The parameters below are therefore discarded.
+ bdy_use_lehmann = .false., ! Use Lehmann optimal coefficients instead of
+              ! the exponential relaxation. Valid only for idynamic = 3.
+              ! All of the below parameters are discarded.
  nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
               ! the boundary sponge or relaxation boundary conditions.
  nspgd  = 12, ! nspgd-1 represent the number of dot point slices on 
@@ -513,6 +513,7 @@
  high_nudge =    3.0, ! Nudge value high range
  medium_nudge =  2.0, ! Nudge value medium range
  low_nudge =     1.0  ! Nudge value low range
+ ! The two parameters below are not used for idynamic = 3
  bdy_nm = -1.0, ! Newtonian term, Eq. 7 Giorgi et al, 1993
                 ! Default is to use the formulation 1/dt
  bdy_dm = -1.0, ! Reverse of diffusion term, Eq. 8 Giorgi et al, 1993 

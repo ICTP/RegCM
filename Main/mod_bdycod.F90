@@ -124,6 +124,11 @@ module mod_bdycod
       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
       1.0e10_rkx, 100.0_rkx, 0.01_rkx ]      ! ncc, nc, nr
 
+  interface morelax
+    module procedure morelax_val
+    module procedure morelax_const
+  end interface morelax
+
   interface nudge
     module procedure nudge4d
     module procedure nudge4d3d
@@ -3920,7 +3925,69 @@ module mod_bdycod
     end do
   end subroutine invert_top_bottom
 
-  subroutine morelax(j1,j2,i1,i2,ba,f,bnd)
+  subroutine morelax_const(j1,j2,i1,i2,ba,f,cons)
+    implicit none
+    integer(ik4) :: j1, j2, i1, i2
+    real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
+    type(bound_area), intent(in) :: ba
+    real(rkx), intent(in) :: cons
+    real(rkx) :: x0, x1
+    integer(ik4) :: i, j, k, ib
+    real(rkx) :: xf, fext
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'morelax_const'
+    integer(ik4), save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
+
+    if ( .not. ba%havebound ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
+
+    x1 = (xbctime + dt)*rtb
+    x0 = 1.0_rkx - x1
+
+    if ( ba%ns /= 0 ) then
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+        if ( .not. ba%bsouth(j,i) ) cycle
+        ib = ba%ibnd(j,i)
+        xf = hefc(ib,k)
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*cons
+      end do
+    end if
+    if ( ba%nn /= 0 ) then
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+        if ( .not. ba%bnorth(j,i) ) cycle
+        ib = ba%ibnd(j,i)
+        xf = hefc(ib,k)
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*cons
+      end do
+    end if
+    if ( ba%nw /= 0 ) then
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+        if ( .not. ba%bwest(j,i) ) cycle
+        ib = ba%ibnd(j,i)
+        xf = hefc(ib,k)
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*cons
+      end do
+    end if
+    if ( ba%ne /= 0 ) then
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+        if ( .not. ba%beast(j,i) ) cycle
+        ib = ba%ibnd(j,i)
+        xf = hefc(ib,k)
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*cons
+      end do
+    end if
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+  end subroutine morelax_const
+
+  subroutine morelax_val(j1,j2,i1,i2,ba,f,bnd)
     implicit none
     integer(ik4) :: j1, j2, i1, i2
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
@@ -3930,7 +3997,7 @@ module mod_bdycod
     integer(ik4) :: i, j, k, ib
     real(rkx) :: xf, fext
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'morelax'
+    character(len=dbgslen) :: subroutine_name = 'morelax_val'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
@@ -3984,7 +4051,7 @@ module mod_bdycod
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end subroutine morelax
+  end subroutine morelax_val
 
   subroutine motopnudge(t,u,v,w,dta)
     implicit none
