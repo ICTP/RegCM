@@ -176,14 +176,12 @@ module mod_pgw
     istatus = nf90_get_var(ncid,ivardelta(5),v2,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(5))
-    istart(3) = 1
+    istart(3) = it
     icount(3) = 1
-    istart(4) = it
-    icount(4) = 1
-    istatus = nf90_get_var(ncid,ivardelta(6),ps2,istart,icount)
+    istatus = nf90_get_var(ncid,ivardelta(6),ps2,istart(1:3),icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(6))
-    istatus = nf90_get_var(ncid,ivardelta(7),ts2,istart,icount)
+    istatus = nf90_get_var(ncid,ivardelta(7),ts2,istart(1:3),icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(7))
     write (stdout,*) 'READ IN fields for month:', month
