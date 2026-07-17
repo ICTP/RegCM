@@ -46,24 +46,24 @@ module mod_mpmessage
     integer(ik4), intent(in) :: n
     character(len=*), intent(in) :: nam
     real(rk8), intent(in), dimension(n) :: a
-    integer(ik4) :: k, nn, kk
+    integer(ik4) :: k, nn, kk, k1
     integer(ik4), parameter :: npl = 7
     character(len=32) :: myf
     write(stdout,'(2x,a,a,a)') '# ',nam,' #'
     write(myf,'(a,i1,a)') '(2x,',npl,'g11.3)'
+    k1 = 1
+    kk = n
     if ( n > npl ) then
       nn = n/npl
       do k = 1, nn
-        kk = (k-1)*npl+1
-        write(stdout,myf) a(kk:kk+npl-1)
+        write(stdout,myf) a((k-1)*npl+1:k*npl)
+        k1 = k1 + npl
+        kk = kk - npl
       end do
-      kk = n-(nn*npl)+1
-    else
-      kk = n
     end if
     if ( kk > 0 ) then
       write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-      write(stdout,myf) a(n-kk+2:)
+      write(stdout,myf) a(k1:)
     end if
   end subroutine vprntv_r8
 
@@ -72,24 +72,24 @@ module mod_mpmessage
     integer(ik4), intent(in) :: n
     character(len=*), intent(in) :: nam
     real(rk4), intent(in), dimension(n) :: a
-    integer(ik4) :: k, nn, kk
+    integer(ik4) :: k, nn, kk, k1
     integer(ik4), parameter :: npl = 7
     character(len=32) :: myf
     write(stdout,'(2x,a,a,a)') '# ',nam,' #'
     write(myf,'(a,i1,a)') '(2x,',npl,'g11.3)'
+    k1 = 1
+    kk = n
     if ( n > npl ) then
       nn = n/npl
       do k = 1, nn
-        kk = (k-1)*npl+1
-        write(stdout,myf) a(kk:kk+npl-1)
+        write(stdout,myf) a((k-1)*npl+1:k*npl)
+        k1 = k1 + npl
+        kk = kk - npl
       end do
-      kk = n-(nn*npl)+1
-    else
-      kk = n
     end if
     if ( kk > 0 ) then
       write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-      write(stdout,myf) a(n-kk+2:)
+      write(stdout,myf) a(k1:)
     end if
   end subroutine vprntv_r4
 
@@ -98,24 +98,24 @@ module mod_mpmessage
     integer(ik4), intent(in) :: n
     character(len=*), intent(in) :: nam
     integer(ik4), intent(in), dimension(n) :: a
-    integer(ik4) :: k, nn, kk
+    integer(ik4) :: k, nn, kk, k1
     integer(ik4), parameter :: npl = 7
     character(len=32) :: myf
     write(stdout,'(2x,a,a,a)') '# ',nam,' #'
     write(myf,'(a,i1,a)') '(2x,',npl,'i8)'
+    k1 = 1
+    kk = n
     if ( n > npl ) then
       nn = n/npl
       do k = 1, nn
-        kk = (k-1)*npl+1
-        write(stdout,myf) a(kk:kk+npl-1)
+        write(stdout,myf) a((k-1)*npl+1:k*npl)
+        k1 = k1 + npl
+        kk = kk - npl
       end do
-      kk = n-(nn*npl)+1
-    else
-      kk = n
     end if
     if ( kk > 0 ) then
-      write(myf,'(a,i1,a)') '(2x,',kk,'i8)'
-      write(stdout,myf) a(n-kk+2:)
+      write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
+      write(stdout,myf) a(k1:)
     end if
   end subroutine iprntv
 !
@@ -124,7 +124,7 @@ module mod_mpmessage
     integer(ik4), intent (in) :: n1, n2
     character(len=*), intent (in) :: nam
     real(rk8), intent (in), dimension(n1,n2) :: a
-    integer(ik4) :: k1, k2, nn, kk
+    integer(ik4) :: k, k1, k2, nn, kk
     integer(ik4), parameter :: npl = 7
     character(len=32) :: myf
     write(stdout,'(2x,a,a,a)') '# ',nam,' #'
@@ -132,18 +132,18 @@ module mod_mpmessage
     do k2 = 1, n2
       write(myf,'(a,i1,a)') '(2x,',npl,'g11.3)'
       write(stdout,*) '## Row ',k2
+      k1 = 1
+      kk = n1
       if ( n1 > npl ) then
-        do k1 = 1, nn
-          kk = (k1-1)*npl+1
-          write(stdout,myf) a(kk:kk+npl-1,k2)
+        do k = 1, nn
+          write(stdout,myf) a((k-1)*npl+1:k*npl,k2)
+          k1 = k1 + npl
+          kk = kk - npl
         end do
-        kk = n1-(nn*npl)+1
-      else
-        kk = n1
       end if
       if ( kk > 0 ) then
         write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-        write(stdout,myf) a(n1-kk+2:,k2)
+        write(stdout,myf) a(k1:,k2)
       end if
       write(stdout,*) '## '
     end do
@@ -154,7 +154,7 @@ module mod_mpmessage
     integer(ik4), intent (in) :: n1, n2
     character(len=*), intent (in) :: nam
     real(rk4), intent (in), dimension(n1,n2) :: a
-    integer(ik4) :: k1, k2, nn, kk
+    integer(ik4) :: k, k1, k2, nn, kk
     integer(ik4), parameter :: npl = 7
     character(len=32) :: myf
     write(stdout,'(2x,a,a,a)') '# ',nam,' #'
@@ -162,18 +162,18 @@ module mod_mpmessage
     do k2 = 1, n2
       write(myf,'(a,i1,a)') '(2x,',npl,'g11.3)'
       write(stdout,*) '## Row ',k2
+      k1 = 1
+      kk = n1
       if ( n1 > npl ) then
-        do k1 = 1, nn
-          kk = (k1-1)*npl+1
-          write(stdout,myf) a(kk:kk+npl-1,k2)
+        do k = 1, nn
+          write(stdout,myf) a((k-1)*npl+1:k*npl,k2)
+          k1 = k1 + npl
+          kk = kk - npl
         end do
-        kk = n1-(nn*npl)+1
-      else
-        kk = n1
       end if
       if ( kk > 0 ) then
         write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-        write(stdout,myf) a(n1-kk+2:,k2)
+        write(stdout,myf) a(k1:,k2)
       end if
       write(stdout,*) '## '
     end do

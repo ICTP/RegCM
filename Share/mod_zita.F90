@@ -62,7 +62,8 @@ module mod_zita
     kz = kzp1-1
     dz = ztop/real(kz,rkx)
     zitaf(kzp1) = 0.0_rkx
-    do k = kz, 1, -1
+    zitaf(1) = ztop
+    do k = kz, 2, -1
       zitaf(k) = zitaf(k+1) + dz
     end do
   end subroutine model_zitaf
@@ -76,7 +77,8 @@ module mod_zita
     kz = size(zitah)
     dz = ztop/real(kz,rkx)
     zitah(kz) = dz*0.5_rkx
-    do k = kz-1, 1, -1
+    zitah(1) = ztop - dz*0.5_rkx
+    do k = kz-1, 2, -1
       zitah(k) = zitah(k+1) + dz
     end do
   end subroutine model_zitah

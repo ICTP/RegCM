@@ -99,7 +99,7 @@ module mod_bdycod
   real(rkx), pointer, contiguous, dimension(:,:,:) :: fg2 => null( )
 
   real(rkx), pointer, contiguous, dimension(:) :: cnudge => null( )
-  real(rkx), pointer, contiguous, dimension(:) :: wnudge => null( )
+  real(rkx), pointer, contiguous, dimension(:) :: tnudge => null( )
 
   integer(ik4) :: km, lm
   real(rkx) :: cn0
@@ -423,7 +423,7 @@ module mod_bdycod
       call getmem(hefc,1,nspgx,1,kz,'bdycon:hefc')
       call getmem(zn1,jde1,jde2,ide1,ide2,'bdycon:zn1')
       call getmem(cnudge,1,kz,'bdycon:cnudge')
-      call getmem(wnudge,1,kz,'bdycon:wnudge')
+      call getmem(tnudge,1,kz,'bdycon:tnudge')
       call getmem(gmeanz,1,kz,'bdycon:gmeanz')
     else
       if ( iboudy == 1 .or. idynamic == 2 ) then
@@ -502,7 +502,7 @@ module mod_bdycod
 
     if ( idynamic == 3 ) then
       np = real(jx*iy,rk8)
-      nztop = 1
+      nztop = 0
       do k = 1, kz
         meanz = 0.0_rkx
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
@@ -542,12 +542,17 @@ module mod_bdycod
       end if
       if ( mo_spectral_nudging ) call lowpass_init( )
       do k = 1, kz
-        if ( k < nztop ) then
-          wnudge(k) = sin(d_half*mathpi*(gmeanz(k)-zztop)/(mo_h-zztop))**2
+        if ( k <= nztop ) then
+          tnudge(k) = sin(d_half*mathpi*(gmeanz(k)-zztop)/(mo_h-zztop))**2
         else
-          wnudge(k) = 0.0_rkx
+          tnudge(k) = 0.0_rkx
         end if
       end do
+      if ( myid == 0 ) then
+        write(stdout, '(a,i3,a,f6.2,a)') ' Top damping on ',nztop, &
+          ' layers above ', zztop/1000, ' km from ground level.'
+        call vprntv(tnudge,nztop,'Damping coefficients : ')
+      end if
     else
       if ( iboudy == 1 .or. iboudy == 5 .or. iboudy == 6 ) then
         if ( bdy_nm > d_zero ) then
@@ -4068,22 +4073,22 @@ module mod_bdycod
     x0 = 1.0_rkx - x1
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:nztop )
-      xf = wnudge(k)*wrtau*dta
+      xf = tnudge(k)*wrtau*dta
       w(j,i,k) = (1.0_rkx - xf) * w(j,i,k) + xf * wfac * w(j,i,k)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nztop )
       fext = x0*xtb%b0(j,i,k) + x1*xtb%b1(j,i,k)
-      xf = wnudge(k)*trtau*dta
+      xf = tnudge(k)*trtau*dta
       t(j,i,k) = (1.0_rkx - xf) * t(j,i,k) + xf * fext
     end do
     do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:nztop )
       fext = x0*dub%b0(j,i,k) + x1*dub%b1(j,i,k)
-      xf = wnudge(k)*trtau*dta
+      xf = tnudge(k)*trtau*dta
       u(j,i,k) = (1.0_rkx - xf) * u(j,i,k) + xf * fext
     end do
     do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:nztop )
       fext = x0*dvb%b0(j,i,k) + x1*dvb%b1(j,i,k)
-      xf = wnudge(k)*trtau*dta
+      xf = tnudge(k)*trtau*dta
       v(j,i,k) = (1.0_rkx - xf) * v(j,i,k) + xf * fext
     end do
   end subroutine motopnudge

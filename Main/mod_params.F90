@@ -3355,6 +3355,8 @@ module mod_params
           mo_atm%fmz(j,i,k) = md_fmz(zitah(k), &
                     mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
         end do
+        call exchange(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         do concurrent ( j = jde1:jde2, i = ice1:ice2, k = 1:kz )
           mo_atm%rfmzu(j,i,k) = d_one / md_fmz(zitah(k), &
                     mddom%htu(j,i),mo_ztop,mo_h,mo_a0)
@@ -3371,10 +3373,8 @@ module mod_params
           end do
         end if
 #endif
-        call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%rfmzu,1,jde1,jde2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%rfmzv,1,jce1,jce2,ide1,ide2,1,kz)
-        call exchange(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
           mo_atm%fmzf(j,i,k) = md_fmz(zita(k), &
                    mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
