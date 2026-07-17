@@ -474,7 +474,7 @@ module mod_moloch
 
     call bdyval
 
-    call motopnudge(t,u,v,w,dtsec)
+    call motopnudge(t,u,v,w,0.0_rkx,dtsec)
 
     ! Davies boundary condition on internal point
 
@@ -483,7 +483,7 @@ module mod_moloch
     call morelax(jci1,jci2,ici1,ici2,ba_cr,t,xtb)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,pai,xpaib)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,qv,xqb)
-    call morelax(jci1,jci2,ici1,ici2,ba_cr,wx,0.0_rkx)
+    call morelax(jci1,jci2,ici1,ici2,ba_cr,wx,0.125_rkx)
     if ( is_present_qc( ) ) then
       call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,xlb)
     end if

@@ -125,8 +125,8 @@ module mod_bdycod
       1.0e10_rkx, 100.0_rkx, 0.01_rkx ]      ! ncc, nc, nr
 
   interface morelax
-    module procedure morelax_val
-    module procedure morelax_const
+    module procedure morelax_external
+    module procedure morelax_fraction
   end interface morelax
 
   interface nudge
@@ -525,7 +525,6 @@ module mod_bdycod
         if ( myid == 0 ) then
           write(stdout, '(a,2f12.4)') ' Lehman optimal boundary'
           write(stdout, '(a,2f12.4)') ' Computed cfl range: ', cflmin, cflmax
-          call vprntv(hefc(2:nspgx-1,1),nspgx-2,'Boundary coefficients : ')
         end if
         do k = 2, kz
           hefc(2:nspgx-1,k) = hefc(2:nspgx-1,1)
@@ -537,6 +536,9 @@ module mod_bdycod
             hefc(n,k) = exp(-0.625_rkx * real(n-1,rkx)/anudge(k))
           end do
         end do
+      end if
+      if ( myid == 0 ) then
+        call vprntv(hefc(2:nspgx-1,1),nspgx-2,'Boundary coefficients : ')
       end if
       if ( mo_spectral_nudging ) call lowpass_init( )
       do k = 1, kz
@@ -3925,17 +3927,17 @@ module mod_bdycod
     end do
   end subroutine invert_top_bottom
 
-  subroutine morelax_const(j1,j2,i1,i2,ba,f,cons)
+  subroutine morelax_fraction(j1,j2,i1,i2,ba,f,frac)
     implicit none
     integer(ik4) :: j1, j2, i1, i2
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
     type(bound_area), intent(in) :: ba
-    real(rkx), intent(in) :: cons
+    real(rkx), intent(in) :: frac
     real(rkx) :: x0, x1
     integer(ik4) :: i, j, k, ib
     real(rkx) :: xf, fext
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'morelax_const'
+    character(len=dbgslen) :: subroutine_name = 'morelax_fraction'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
@@ -3955,7 +3957,7 @@ module mod_bdycod
         if ( .not. ba%bsouth(j,i) ) cycle
         ib = ba%ibnd(j,i)
         xf = hefc(ib,k)
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*cons
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*f(j,i,k)*frac
       end do
     end if
     if ( ba%nn /= 0 ) then
@@ -3963,7 +3965,7 @@ module mod_bdycod
         if ( .not. ba%bnorth(j,i) ) cycle
         ib = ba%ibnd(j,i)
         xf = hefc(ib,k)
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*cons
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*f(j,i,k)*frac
       end do
     end if
     if ( ba%nw /= 0 ) then
@@ -3971,7 +3973,7 @@ module mod_bdycod
         if ( .not. ba%bwest(j,i) ) cycle
         ib = ba%ibnd(j,i)
         xf = hefc(ib,k)
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*cons
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*f(j,i,k)*frac
       end do
     end if
     if ( ba%ne /= 0 ) then
@@ -3979,15 +3981,15 @@ module mod_bdycod
         if ( .not. ba%beast(j,i) ) cycle
         ib = ba%ibnd(j,i)
         xf = hefc(ib,k)
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*cons
+        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*f(j,i,k)*frac
       end do
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end subroutine morelax_const
+  end subroutine morelax_fraction
 
-  subroutine morelax_val(j1,j2,i1,i2,ba,f,bnd)
+  subroutine morelax_external(j1,j2,i1,i2,ba,f,bnd)
     implicit none
     integer(ik4) :: j1, j2, i1, i2
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
@@ -3997,7 +3999,7 @@ module mod_bdycod
     integer(ik4) :: i, j, k, ib
     real(rkx) :: xf, fext
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'morelax_val'
+    character(len=dbgslen) :: subroutine_name = 'morelax_external'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
@@ -4051,11 +4053,11 @@ module mod_bdycod
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end subroutine morelax_val
+  end subroutine morelax_external
 
-  subroutine motopnudge(t,u,v,w,dta)
+  subroutine motopnudge(t,u,v,w,wfac,dta)
     implicit none
-    real(rkx), intent(in) :: dta
+    real(rkx), intent(in) :: dta, wfac
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: t, u, v, w
     integer(ik4) :: i, j, k
     real(rkx), parameter :: trtau = 1.0_rkx/(2.0_rkx*3600.0_rkx)
@@ -4066,7 +4068,8 @@ module mod_bdycod
     x0 = 1.0_rkx - x1
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:nztop )
-      w(j,i,k) = (1.0_rkx - wnudge(k)*wrtau*dta) * w(j,i,k)
+      xf = wnudge(k)*wrtau*dta
+      w(j,i,k) = (1.0_rkx - xf) * w(j,i,k) + xf * wfac * w(j,i,k)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nztop )
       fext = x0*xtb%b0(j,i,k) + x1*xtb%b1(j,i,k)
