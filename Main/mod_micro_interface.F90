@@ -58,7 +58,7 @@ module mod_micro_interface
   real(rkx), parameter :: xchi = nchi-1
   real(rkx), parameter :: rchi = 1.0_rkx/xchi
 
-  logical, parameter :: do_cfscaling = .false.
+  logical, parameter :: do_cfscaling = .true.
 
   public :: qck1, cgul, rh0, cevap, xcevap, caccr
 

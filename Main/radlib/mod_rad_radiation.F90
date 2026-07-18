@@ -5034,14 +5034,15 @@ module mod_rad_radiation
                   rt%abv,rt%sol,rt%aeradfo,rt%aeradfos,rt%tauxcl,     &
                   rt%tauxci,rt%outtaucl,rt%outtauci)
       !
-      ! Compute Total Cloud fraction
+      ! Compute Total Cloud fraction - Maximum-Random Overlap (MRO) scheme.
       !
       do concurrent ( n = rt%n1:rt%n2 )
-        rt%totcf(n) = 1.0_rk8
+        rt%totcf(n) = 1.001_rk8-rt%cld(1,n)
         do k = 2, kz
-          rt%totcf(n) = rt%totcf(n) * (1.0_rk8-rt%cld(k,n))
+          rt%totcf(n) = rt%totcf(n) * (1.001_rk8-max(rt%cld(k,n), &
+                            rt%cld(k-1,n)))/(1.001_rk8-rt%cld(k-1,n))
         end do
-        rt%totcf(n) = 1.0_rkx - rt%totcf(n)
+        rt%totcf(n) = max(0.0_rk8,min(1.0_rk8,1.001_rk8-rt%totcf(n)))
       end do
 
       do concurrent ( n = rt%n1:rt%n2 )

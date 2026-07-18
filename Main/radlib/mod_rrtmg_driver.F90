@@ -573,12 +573,13 @@ module mod_rrtmg_driver
     end do
 
     ! Calculate cloud parameters
-    do n = 1, npr
-      totcf(n) = 1.0_rk8
+    do concurrent ( n = 1:npr )
+      totcf(n) = 1.001_rk8-cld_int(n,1)
       do k = 2, kz
-        totcf(n) = totcf(n) * (1.0_rk8-cld_int(n,k))
+        totcf(n) = totcf(n) * (1.001_rk8-max(cld_int(n,k), &
+                      cld_int(n,k-1)))/(1.001_rk8-cld_int(n,k-1))
       end do
-      totcf(n) = 1.0_rk8 - totcf(n)
+      totcf(n) = max(0.0_rk8,min(1.0_rk8,1.001_rk8-totcf(n)))
     end do
     totwv(:) = 0.0_rk8
     totci(:) = 0.0_rk8

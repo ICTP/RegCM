@@ -691,8 +691,20 @@ module mod_rad_colmod3
       arg = min(kabs*rt%clwp(k,n),25.0_rk8)
       cldemis = max(1.0_rk8 - exp(-arg),0.0_rk8)
       ! Effective cloud cover
-      rt%effcld(k,n) = temp(k,n)*cldemis
+      temp(k,n) = temp(k,n)*cldemis
     end do
+    do concurrent ( n = rt%n1:rt%n2 )
+      rt%effcld(1,n) = 0.0_rk8
+      rt%effcld(kzp1,n) = 0.0_rk8
+    end do
+    do concurrent( k = 2:kz, n = rt%n1:rt%n2 )
+      rt%effcld(k,n) = max(temp(k-1,n),temp(k,n))
+    end do
+    if ( ncld > 0 ) then
+      do concurrent ( k = kz-ncld:kz,  n = rt%n1:rt%n2 )
+        rt%effcld(k,n) = 0.0_rk8
+      end do
+    end if
     rt%eccf = real(eccf,rk8)
     rt%labsem = labsem
     !

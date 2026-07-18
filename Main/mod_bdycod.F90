@@ -1628,6 +1628,9 @@ module mod_bdycod
       ! west boundary: corners excluded
       !
       if ( ma%has_bdyleft ) then
+        do concurrent ( i = ici1:ici2 )
+          sfs%psa(jde1,i) = x0*xpsb%b0(jde1,i) + x1*xpsb%b1(jde1,i)
+        end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           mo_atm%u(jde1,i,k) = x0*dub%b0(jde1,i,k) + x1*dub%b1(jde1,i,k)
         end do
@@ -1679,6 +1682,9 @@ module mod_bdycod
       ! east boundary: corners excluded
       !
       if ( ma%has_bdyright ) then
+        do concurrent ( i = ici1:ici2 )
+          sfs%psa(jde2,i) = x0*xpsb%b0(jde2,i) + x1*xpsb%b1(jde2,i)
+        end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           mo_atm%u(jde2,i,k) = x0*dub%b0(jde2,i,k) + x1*dub%b1(jde2,i,k)
         end do
@@ -1730,6 +1736,9 @@ module mod_bdycod
       ! south boundary: corners included
       !
       if ( ma%has_bdybottom ) then
+        do concurrent ( j = jde1:jde2 )
+          sfs%psa(j,ice1) = x0*xpsb%b0(j,ice1) + x1*xpsb%b1(j,ice1)
+        end do
         do concurrent ( j = jde1:jde2, k = 1:kz )
           mo_atm%u(j,ice1,k) = x0*dub%b0(j,ice1,k) + x1*dub%b1(j,ice1,k)
         end do
@@ -1781,6 +1790,9 @@ module mod_bdycod
       ! north boundary: corners included
       !
       if ( ma%has_bdytop ) then
+        do concurrent ( j = jde1:jde2 )
+          sfs%psa(j,ice2) = x0*xpsb%b0(j,ice2) + x1*xpsb%b1(j,ice2)
+        end do
         do concurrent ( j = jde1:jde2, k = 1:kz )
           mo_atm%u(j,ice2,k) = x0*dub%b0(j,ice2,k) + x1*dub%b1(j,ice2,k)
         end do

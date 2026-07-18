@@ -1670,11 +1670,10 @@ module mod_moloch
 
   subroutine extrapolate_surface_pressure( )
     implicit none
-    real(rkx) :: zdgz, zh
+    real(rkx) :: zdgz
     integer(ik4) :: i, j
-    zh = 0.5_rkx*mo_dzita
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-     zdgz = egrav*md_zeta(zh,ht(j,i),mo_ztop,mo_h,mo_a0)
+     zdgz = egrav*z(j,i,kz)
      ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tvirt(j,i,kz)))
     end do
   end subroutine extrapolate_surface_pressure
