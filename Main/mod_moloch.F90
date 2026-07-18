@@ -151,9 +151,8 @@ module mod_moloch
   logical :: do_divfilter = .true.
 
   ! Base damping coefficients
-  real(rkx), parameter :: dcoff = 0.125_rkx
+  real(rkx), parameter :: numax = 0.125_rkx
   real(rkx), parameter :: ddamp = 0.1_rkx
-  real(rkx) :: numax
 
   real(rkx) :: rdzita
   integer(ik4) :: jmin, jmax, imin, imax
@@ -205,7 +204,6 @@ module mod_moloch
       call getmem(qwitot,jce1,jce2,ice1,ice2,1,kz,'moloch:qwitot')
     end if
     call getmem(xknu,1,kz,'moloch:xknu')
-    numax = 0.25_rkx*rdt
     do concurrent ( k = 1:kz )
       xknu(k) = (ddamp + (1.0_rkx-ddamp)/(k+2.0_rkx))
     end do
@@ -538,7 +536,7 @@ module mod_moloch
            zdiv2(j,i-1,k)+zdiv2(j,i+1,k) - 4.0_rkx*zdiv2(j,i,k))
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      zdiv2(j,i,k) = zdiv2(j,i,k) + dts * numax * xknu(k) * laplacian(j,i,k)
+      zdiv2(j,i,k) = zdiv2(j,i,k) + numax * xknu(k) * laplacian(j,i,k)
     end do
   end subroutine divergence_diffusion
 
@@ -783,11 +781,11 @@ module mod_moloch
     integer(ik4) :: i, j, k
     real(rkx) :: xdam, dxrdt
 
-    dxrdt = dcoff * dx/dts
+    dxrdt = numax * dx/dts
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
     if ( lrotllr ) then
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = dxrdt * xknu(k) * mx(j,i)
+        xdam = dxrdt * xknu(k) * mu(j,i)
         u(j,i,k) = u(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
@@ -796,11 +794,11 @@ module mod_moloch
       end do
     else
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = dxrdt * xknu(k) * mx(j,i)
+        xdam = dxrdt * xknu(k) * mu(j,i)
         u(j,i,k) = u(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        xdam = dxrdt * xknu(k) * mx(j,i)
+        xdam = dxrdt * xknu(k) * mv(j,i)
         v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if

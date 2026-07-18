@@ -39,7 +39,7 @@ module mod_write
   real(rkx), pointer, contiguous, dimension(:,:,:) :: q4, qc4, qi4
   real(rkx), pointer, contiguous, dimension(:,:,:) :: t4, u4, v4, z4
   real(rkx), pointer, contiguous, dimension(:,:,:) :: pp4, ww4, tv4, tvd4
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: pai4
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pai4, p4, qs
 
   public :: ps4, pd4, ts4, q4, t4, u4, v4, pp4, ww4
   public :: qc4, qi4, z4, pr, ssr, strd, clt
@@ -55,6 +55,8 @@ module mod_write
   logical :: qli_present = .false.
 
   contains
+
+#include <pfwsat.inc>
 
   subroutine init_outpgw(plevs)
     implicit none
@@ -250,6 +252,8 @@ module mod_write
       nvar2d = 10
       nvar3d = 5
       call getmem(pai4,1,jx,1,iy,1,kz,'mod_write:pai4')
+      call getmem(p4,1,jx,1,iy,1,kz,'mod_write:p4')
+      call getmem(qs,1,jx,1,iy,1,kz,'mod_write:qs')
     end if
     if ( qli_present ) then
       nvar3d = nvar3d + 2
@@ -645,8 +649,14 @@ module mod_write
 
     if ( idynamic == 3 ) then
       ! Remember in this case ptop is zero!
-      ps4 = ps4*d_10
+      ps4(:,:) = ps4(:,:)*d_1000
       call pai_compute(jx,iy,kz,ps4,z0,t4,q4,pai4)
+      p4(:,:,:) = (pai4(:,:,:)**cpovr) * p00
+      qs(:,:,:) = pfwsat(t4(:,:,:),p4(:,:,:))
+      q4(:,:,:) = max(min(q4(:,:,:),qs(:,:,:)),1.0E-8_rkx)
+      call extrapolate_surface_pressure(jx,iy,p4(:,:,kz), &
+                       topogm,t4(:,:,kz),q4(:,:,kz),ps4)
+      ps4(:,:) = ps4(:,:)*d_r100
     end if
 
     call outstream_addrec(ncout,idate)
@@ -685,7 +695,7 @@ module mod_write
         end if
         tv = tv1 - 0.5_rkx*z(j,i,nz)*lrt
         zz = d_one/(rgas*tv)
-        p = ps(j,i) * 100.0_rkx * exp(-zdelta*zz)
+        p = ps(j,i) * exp(-zdelta*zz)
         paikp1 = (p/p00)**rovcp
         pai(j,i,nz) = paikp1
         do k = nz-1, 1, -1
@@ -713,6 +723,24 @@ module mod_write
       pai(:,:,k) = fbc(:,:) + xg * hgt(:,:)
     end do
   end subroutine pai_compute
+
+  subroutine extrapolate_surface_pressure(nx,ny,p,ht,t,q,ps)
+    implicit none
+    integer(ik4), intent(in) :: nx, ny
+    real(rkx), dimension(nx,ny), intent(in) :: p, ht, t, q
+    real(rkx), dimension(nx,ny), intent(out) :: ps
+    real(rkx) :: zh, zdgz, tvirt
+    integer(ik4) :: i, j
+
+    zh = 0.5_rkx*mo_dzita
+    do i = 1, ny
+      do j = 1, nx
+        zdgz = egrav*md_zeta_h(zh,ht(j,i),mo_ztop,mo_h,mo_a0)
+        tvirt = t(j,i) * (1.0_rkx + ep1*q(j,i))
+        ps(j,i) = p(j,i) * exp(zdgz/(rgas*tvirt))
+      end do
+    end do
+  end subroutine extrapolate_surface_pressure
 
 end module mod_write
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

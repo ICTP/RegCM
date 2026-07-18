@@ -2,17 +2,23 @@ Main/batslib/Makefile
 Main/batslib/Makefile.in
 Main/batslib/libbats.a
 Main/batslib/*.mod
+Main/batslib/*.opt.yaml
+Main/batslib/*.optrpt
 Main/batslib/*.o
 
 Main/chemlib/GAS_CBMZ_NEW/Makefile
 Main/chemlib/GAS_CBMZ_NEW/Makefile.in
 Main/chemlib/GAS_CBMZ_NEW/libcbmz.a
 Main/chemlib/GAS_CBMZ_NEW/*.mod
+Main/chemlib/GAS_CBMZ_NEW/*.opt.yaml
+Main/chemlib/GAS_CBMZ_NEW/*.optrpt
 Main/chemlib/GAS_CBMZ_NEW/*.o
 Main/chemlib/Makefile
 Main/chemlib/Makefile.in
 Main/chemlib/libchem.a
 Main/chemlib/*.mod
+Main/chemlib/*.opt.yaml
+Main/chemlib/*.optrpt
 Main/chemlib/*.o
 
 Main/clmlib/.deps
@@ -22,51 +28,69 @@ Main/clmlib/clm4.5/Makefile
 Main/clmlib/clm4.5/Makefile.in
 Main/clmlib/clm4.5/libclm45.a
 Main/clmlib/clm4.5/*.mod
+Main/clmlib/clm4.5/*.opt.yaml
+Main/clmlib/clm4.5/*.optrpt
 Main/clmlib/clm4.5/*.o
 Main/clmlib/libclm.a
 Main/clmlib/*.mod
+Main/clmlib/*.opt.yaml
+Main/clmlib/*.optrpt
 Main/clmlib/*.o
 
 Main/cloudlib/Makefile
 Main/cloudlib/Makefile.in
 Main/cloudlib/libcloud.a
 Main/cloudlib/*.mod
+Main/cloudlib/*.opt.yaml
+Main/cloudlib/*.optrpt
 Main/cloudlib/*.o
 
 Main/cumlib/Makefile
 Main/cumlib/Makefile.in
 Main/cumlib/libcum.a
 Main/cumlib/*.mod
+Main/cumlib/*.opt.yaml
+Main/cumlib/*.optrpt
 Main/cumlib/*.o
 
 Main/microlib/Makefile
 Main/microlib/Makefile.in
 Main/microlib/libmicro.a
 Main/microlib/*.mod
+Main/microlib/*.opt.yaml
+Main/microlib/*.optrpt
 Main/microlib/*.o
 
 Main/mpplib/Makefile
 Main/mpplib/Makefile.in
 Main/mpplib/libmpp.a
 Main/mpplib/*.mod
+Main/mpplib/*.opt.yaml
+Main/mpplib/*.optrpt
 Main/mpplib/*.o
 
 Main/netlib/Makefile
 Main/netlib/Makefile.in
 Main/netlib/libnetlib.a
 Main/netlib/*.mod
+Main/netlib/*.opt.yaml
+Main/netlib/*.optrpt
 Main/netlib/*.o
 
 Main/ocnlib/Makefile
 Main/ocnlib/Makefile.in
 Main/ocnlib/libocn.a
 Main/ocnlib/*.mod
+Main/ocnlib/*.opt.yaml
+Main/ocnlib/*.optrpt
 Main/ocnlib/*.o
 
 Main/pbllib/Makefile
 Main/pbllib/Makefile.in
 Main/pbllib/libpbl.a
 Main/pbllib/*.mod
+Main/pbllib/*.opt.yaml
+Main/pbllib/*.optrpt
 Main/pbllib/*.o
 
 Main/radlib/Makefile
@@ -75,23 +99,31 @@ Main/radlib/RRTMG/Makefile
 Main/radlib/RRTMG/Makefile.in
 Main/radlib/RRTMG/librrtmg.a
 Main/radlib/RRTMG/*.mod
+Main/radlib/RRTMG/*.opt.yaml
+Main/radlib/RRTMG/*.optrpt
 Main/radlib/RRTMG/*.o
 Main/radlib/librad.a
 Main/radlib/*.mod
+Main/radlib/*.opt.yaml
+Main/radlib/*.optrpt
 Main/radlib/*.o
 
 Main/oasislib/Makefile
 Main/oasislib/Makefile.in
 Main/oasislib/liboasis.a
 Main/oasislib/*.mod
+Main/oasislib/*.opt.yaml
+Main/oasislib/*.optrpt
 Main/oasislib/*.o
 
 Main/Makefile
 Main/Makefile.in
 Main/regcm
 Main/clmsa
-Main/*.o
 Main/*.mod
+Main/*.opt.yaml
+Main/*.optrpt
+Main/*.o
 
 PostProc/Makefile
 PostProc/Makefile.in
@@ -101,6 +133,8 @@ PostProc/clm45_1dto2d
 PostProc/sigma2p
 PostProc/sigma2z
 PostProc/*.mod
+PostProc/*.opt.yaml
+PostProc/*.optrpt
 PostProc/*.o
 
 PreProc/CH_EMISSIONS/Makefile
@@ -114,28 +148,38 @@ PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/Makefile.in
 PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/emcre_grid
 PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/*.o
 PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/*.mod
+PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/*.opt.yaml
+PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/*.optrpt
 PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/emcre
-PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.o
 PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.mod
+PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.opt.yaml
+PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.optrpt
+PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.o
 
 PreProc/CLM/Makefile
 PreProc/CLM/Makefile.in
 PreProc/CLM/clm2rcm
-PreProc/CLM/*.o
 PreProc/CLM/*.mod
+PreProc/CLM/*.opt.yaml
+PreProc/CLM/*.optrpt
+PreProc/CLM/*.o
 
 PreProc/CLM45/Makefile
 PreProc/CLM45/Makefile.in
 PreProc/CLM45/interpinic
 PreProc/CLM45/mksurfdata
-PreProc/CLM45/*.o
 PreProc/CLM45/*.mod
+PreProc/CLM45/*.opt.yaml
+PreProc/CLM45/*.optrpt
+PreProc/CLM45/*.o
 
 PreProc/ICBC/cmip6/Makefile
 PreProc/ICBC/cmip6/Makefile.in
 PreProc/ICBC/cmip6/libcmip6.a
-PreProc/ICBC/cmip6/*.o
 PreProc/ICBC/cmip6/*.mod
+PreProc/ICBC/cmip6/*.opt.yaml
+PreProc/ICBC/cmip6/*.optrpt
+PreProc/ICBC/cmip6/*.o
 
 PreProc/ICBC/Makefile
 PreProc/ICBC/Makefile.in
@@ -145,21 +189,27 @@ PreProc/ICBC/icbc
 PreProc/ICBC/sst
 PreProc/ICBC/pgw_icbc
 PreProc/ICBC/pgwbc
-PreProc/ICBC/*.o
 PreProc/ICBC/*.mod
+PreProc/ICBC/*.opt.yaml
+PreProc/ICBC/*.optrpt
+PreProc/ICBC/*.o
 
 PreProc/Makefile
 PreProc/Makefile.in
 PreProc/Terrain/Makefile
 PreProc/Terrain/Makefile.in
 PreProc/Terrain/terrain
-PreProc/Terrain/*.o
 PreProc/Terrain/*.mod
+PreProc/Terrain/*.opt.yaml
+PreProc/Terrain/*.optrpt
+PreProc/Terrain/*.o
 
 Share/Makefile
 Share/Makefile.in
 Share/librcmlib.a
 Share/*.mod
+Share/*.opt.yaml
+Share/*.optrpt
 Share/*.o
 
 Tools/Scripts/pycordexer/utilities/__pycache__
@@ -176,12 +226,17 @@ external/.deps
 external/Makefile
 external/Makefile.in
 external/*.mod
+external/*.opt.yaml
+external/*.optrpt
 external/*.o
 external/*.a
 external/aerosols/*.mod
+external/aerosols/*.opt.yaml
+external/aerosols/*.optrpt
 external/aerosols/*.o
 external/aerosols/sptest*
 
+.deps
 aclocal.m4
 ar-lib
 autom4te.cache
@@ -194,6 +249,7 @@ config.log
 config.status
 config.sub
 configure
+configure~
 depcomp
 install-sh
 libtool
@@ -203,3 +259,4 @@ stamp-h1
 version
 Makefile
 Makefile.in
+ipo_out.optrpt
