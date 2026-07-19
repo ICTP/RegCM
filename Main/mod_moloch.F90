@@ -616,11 +616,11 @@ module mod_moloch
         end do
       end if
 
-      if ( do_divfilter ) then
-        call divergence_diffusion(dts)
-      end if
       if ( do_divdamp ) then
         call divergence_damping(dts)
+      end if
+      if ( do_divfilter ) then
+        call divergence_diffusion(dts)
       end if
 
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
@@ -1670,11 +1670,9 @@ module mod_moloch
 
   subroutine extrapolate_surface_pressure( )
     implicit none
-    real(rkx) :: zdgz
     integer(ik4) :: i, j
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-     zdgz = egrav*z(j,i,kz)
-     ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tvirt(j,i,kz)))
+      ps(j,i) = p(j,i,kz) * exp(govr*z(j,i,kz)/tvirt(j,i,kz))
     end do
   end subroutine extrapolate_surface_pressure
 

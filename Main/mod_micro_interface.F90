@@ -235,6 +235,7 @@ module mod_micro_interface
     implicit none
     real(rkx), pointer, contiguous, &
       dimension(:,:,:), intent(inout) :: cldlwc, cldfra
+    real(rkx) :: w1, w2
     integer(ik4) :: i, j, k
     integer(ik4) :: ichi
 
@@ -370,12 +371,15 @@ module mod_micro_interface
 #endif
           ! Cloud Water Volume
           ! get overlap of clouds
-          if ( max(cldfra(j,i,k),mc2mo%fcc(j,i,k)) > lowcld ) then
-            if ( cldfra(j,i,k) > mc2mo%fcc(j,i,k) ) then
-              cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
+          if ( max(cldfra(j,i,k), mc2mo%fcc(j,i,k)) > lowcld ) then
+            if ( cldfra(j,i,k) > lowcld ) then
+              w1 = mc2mo%fcc(j,i,k) / (mc2mo%fcc(j,i,k)+cldfra(j,i,k))
+              w2 = 1.0_rkx-w1
+              cldlwc(j,i,k) = w1 * totc(j,i,k)/cldfra(j,i,k) + &
+                              w2 * clwfromt(mo2mc%t(j,i,k))
+              cldfra(j,i,k) = max(mc2mo%fcc(j,i,k),cldfra(j,i,k))
             else
-              cldfra(j,i,k) = mc2mo%fcc(j,i,k)
-              cldlwc(j,i,k) = totc(j,i,k)/cldfra(j,i,k)
+              cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
             end if
             ! Scaling for CF
             ! Implements CF scaling as in Liang GRL 32, 2005
