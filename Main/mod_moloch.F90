@@ -68,6 +68,7 @@ module mod_moloch
 
   real(rkx), dimension(:), pointer, contiguous :: gzitak => null( )
   real(rkx), dimension(:), pointer, contiguous :: gzitakh => null( )
+  real(rkx), dimension(:), pointer, contiguous :: xkdamp => null( )
   real(rkx), dimension(:), pointer, contiguous :: xknu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: laplacian => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
@@ -152,7 +153,7 @@ module mod_moloch
 
   ! Base damping coefficients
   real(rkx), parameter :: numax = 0.125_rkx
-  real(rkx), parameter :: ddamp = 0.1_rkx
+  real(rkx), parameter :: ddamp = 0.150_rkx
 
   real(rkx) :: rdzita
   integer(ik4) :: jmin, jmax, imin, imax
@@ -203,9 +204,17 @@ module mod_moloch
       call getmem(qwltot,jce1,jce2,ice1,ice2,1,kz,'moloch:qwltot')
       call getmem(qwitot,jce1,jce2,ice1,ice2,1,kz,'moloch:qwitot')
     end if
+    call getmem(xkdamp,1,kz,'moloch:xkdamp')
     call getmem(xknu,1,kz,'moloch:xknu')
+    !do concurrent ( k = 1:kz )
+    !  xknu(k) = numax * (ddamp + (1.0_rkx-ddamp)/(k+2.0_rkx))
+    !  xkdamp(k) = numax * (ddamp + (1.0_rkx-ddamp)/(k+2.0_rkx))
+    !end do
     do concurrent ( k = 1:kz )
-      xknu(k) = (ddamp + (1.0_rkx-ddamp)/(k+2.0_rkx))
+      xkdamp(k) = numax * (1.0_rkx-ddamp) * &
+        (1.0_rkx/(k+1.0_rkx) - 1.0_rkx/(kz+2.0_rkx))
+      xknu(k) = numax * (0.35_rkx + 0.45_rkx * &
+        (real(kz-k+1,rkx)-1.0_rkx)/(real(kz,rkx)-1.0_rkx))
     end do
   end subroutine allocate_moloch
 
@@ -536,7 +545,7 @@ module mod_moloch
            zdiv2(j,i-1,k)+zdiv2(j,i+1,k) - 4.0_rkx*zdiv2(j,i,k))
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      zdiv2(j,i,k) = zdiv2(j,i,k) + numax * xknu(k) * laplacian(j,i,k)
+      zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * laplacian(j,i,k)
     end do
   end subroutine divergence_diffusion
 
@@ -781,24 +790,24 @@ module mod_moloch
     integer(ik4) :: i, j, k
     real(rkx) :: xdam, dxrdt
 
-    dxrdt = numax * dx/dts
+    dxrdt = dx/dts
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
     if ( lrotllr ) then
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = dxrdt * xknu(k) * mu(j,i)
+        xdam = dxrdt * xkdamp(k) * mu(j,i)
         u(j,i,k) = u(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        xdam = dxrdt * xknu(k)
+        xdam = dxrdt * xkdamp(k)
         v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = dxrdt * xknu(k) * mu(j,i)
+        xdam = dxrdt * xkdamp(k) * mu(j,i)
         u(j,i,k) = u(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        xdam = dxrdt * xknu(k) * mv(j,i)
+        xdam = dxrdt * xkdamp(k) * mv(j,i)
         v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if

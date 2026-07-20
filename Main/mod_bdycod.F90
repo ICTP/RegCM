@@ -1,4 +1,4 @@
-!*rdb::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !    This file is part of ICTP RegCM.
 !
@@ -519,26 +519,28 @@ module mod_bdycod
         hefc(nspgx,k) = 0.0_rkx  ! Internal solution computed
       end do
       if ( bdy_use_lehmann ) then
-        cflmax = min(0.999_rkx,(speedlimit(1)*(dtsec/real(mo_nadv,rkx)))/dx)
-        cflmin = max(0.001_rkx,(speedlimit(2)*(dtsec/real(mo_nadv,rkx)))/dx)
-        call relax_coefficients(nspgx-2,cflmin,cflmax,hefc(2:nspgx-1,1))
+        cflmax = min(0.999_rkx, &
+            (speedlimit(1) * (dtsec/real(mo_nadv,rkx)))/(2.0_rkx*dx))
+        cflmin = max(0.001_rkx, &
+            (speedlimit(2) * (dtsec/real(mo_nadv,rkx)))/(2.0_rkx*dx))
         if ( myid == 0 ) then
           write(stdout, '(a,2f12.4)') ' Lehman optimal boundary'
           write(stdout, '(a,2f12.4)') ' Computed cfl range: ', cflmin, cflmax
         end if
-        do k = 2, kz
-          hefc(2:nspgx-1,k) = hefc(2:nspgx-1,1)
+        do k = 1, kz
+          call relax_coefficients(nspgx-2,cflmin,cflmax,hefc(2:nspgx-1,k))
         end do
       else
         call exponential_nudging(anudge)
         do k = 1, kz
           do n = 2, nspgx-1
-            hefc(n,k) = exp(-0.625_rkx * real(n-1,rkx)/anudge(k))
+            hefc(n,k) = exp(-real(n-1,rkx)/anudge(k))
           end do
         end do
       end if
       if ( myid == 0 ) then
-        call vprntv(hefc(2:nspgx-1,1),nspgx-2,'Boundary coefficients : ')
+        call vprntv(hefc(:,1),nspgx,'Top boundary coefficients ')
+        call vprntv(hefc(:,kz),nspgx,'Bottom boundary coefficients ')
       end if
       if ( mo_spectral_nudging ) call lowpass_init( )
       do k = 1, kz
@@ -3930,19 +3932,6 @@ module mod_bdycod
       end do
     end do
   end subroutine mospectral_nudge
-
-  subroutine invert_top_bottom(v)
-    implicit none
-    real(rkx), dimension(:), intent(inout) :: v
-    real(rkx), dimension(size(v)) :: swap
-    integer(ik4) :: nk, k, kk
-    swap(:) = v(:)
-    nk = size(v)
-    do k = 1, nk
-      kk = nk-k+1
-      v(k) = swap(kk)
-    end do
-  end subroutine invert_top_bottom
 
   subroutine morelax_fraction(j1,j2,i1,i2,ba,f,frac)
     implicit none
