@@ -373,8 +373,8 @@ module mod_micro_interface
           ! get overlap of clouds
           if ( max(cldfra(j,i,k), mc2mo%fcc(j,i,k)) > lowcld ) then
             if ( cldfra(j,i,k) > lowcld ) then
-              w1 = mc2mo%fcc(j,i,k) / (mc2mo%fcc(j,i,k)+cldfra(j,i,k))
-              w2 = 1.0_rkx-w1
+              w2 = mc2mo%fcc(j,i,k) / (mc2mo%fcc(j,i,k)+cldfra(j,i,k))
+              w1 = 1.0_rkx-w2
               cldlwc(j,i,k) = w1 * totc(j,i,k)/cldfra(j,i,k) + &
                               w2 * clwfromt(mo2mc%t(j,i,k))
               cldfra(j,i,k) = max(mc2mo%fcc(j,i,k),cldfra(j,i,k))
