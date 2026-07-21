@@ -140,7 +140,6 @@ module mod_moloch
   logical, parameter :: do_radiation    = .true.
   logical, parameter :: do_surface      = .true.
   logical, parameter :: do_pbl          = .true.
-  logical, parameter :: do_fulleq       = .true.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -198,10 +197,6 @@ module mod_moloch
     end if
     call getmem(ud,jde1,jde2,ice1,ice2,1,kz,'moloch:ud')
     call getmem(vd,jce1,jce2,ide1,ide2,1,kz,'moloch:vd')
-    if ( do_fulleq ) then
-      call getmem(qwltot,jce1,jce2,ice1,ice2,1,kz,'moloch:qwltot')
-      call getmem(qwitot,jce1,jce2,ice1,ice2,1,kz,'moloch:qwitot')
-    end if
     call getmem(xkdamp,1,kz,'moloch:xkdamp')
     call getmem(xknu,1,kz,'moloch:xknu')
     !do concurrent ( k = 1:kz )
@@ -565,11 +560,7 @@ module mod_moloch
     dtrdz = dts*rdzita
     zcs2 = dtrdz**2*rdrcv
 
-    if ( .not. do_fulleq ) then
-      call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
-    end if
-
-    !  sound waves
+    call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
 
     do nsound = 1, mo_nsound
 
@@ -647,13 +638,6 @@ module mod_moloch
                    fmzf(j,i,k)*fmzf(j,i,k) * &
                    real(nsound,rkx) * dtrdz * &
                    (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
-          if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
-               w(j,i,k) > 0.1_rkx ) then
-            zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
-            zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv* &
-                zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
-            zrom1w = zrom1w + zdth*fmzf(j,i,k)
-          end if
           zwexpl = w(j,i,k) - zrom1w * dtrdz * &
                    (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts
           zwexpl = zwexpl + rdrcv * zrom1w * dtrdz * &
@@ -682,24 +666,6 @@ module mod_moloch
         zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
                   (w(j,i,k) - w(j,i,k+1))
       end do
-
-      if ( do_fulleq ) then
-        if ( ipptls > 0 ) then
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            zdiv2(j,i,k) = zdiv2(j,i,k) * &
-                   (d_one + 0.86_rkx * qv(j,i,k) + &
-                            3.2_rkx * qc(j,i,k)) / &
-                   (d_one + 0.96_rkx * qv(j,i,k) + &
-                            4.8_rkx * qc(j,i,k))
-            tetav(j,i,k) = tetav(j,i,k) * &
-                   (d_one + rdrcv*zdiv2(j,i,k) * &
-                    (0.25_rkx * qv(j,i,k) +      &
-                     4.2_rkx * qwltot(j,i,k) +   &
-                     2.1_rkx * qwitot(j,i,k)))
-          end do
-          call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
-        end if
-      end if
 
       ! new Exner function (Equation 19)
 
@@ -1150,36 +1116,6 @@ module mod_moloch
     real(rkx) :: fice
     integer(ik4) :: i, j, k, n, nadv
     !@acc call nvtxStartRange("dynamical_core")
-    !
-    ! Prepare fields
-    !
-    if ( do_fulleq ) then
-      if ( ipptls > 0 ) then
-        if ( ipptls > 1 ) then
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            qwltot(j,i,k) = qc(j,i,k) + qr(j,i,k)
-            qwitot(j,i,k) = qi(j,i,k) + qs(j,i,k)
-          end do
-        else
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            if ( t(j,i,k) >= tzero ) then
-              qwltot(j,i,k) = qc(j,i,k)
-            else if ( t(j,i,k) <= -20.0_rkx+tzero ) then
-              qwitot(j,i,k) = qc(j,i,k)
-            else
-              fice = (tzero-t(j,i,k))/20.0_rkx
-              qwltot(j,i,k) = qc(j,i,k) * (1.0_rkx-fice)
-              qwitot(j,i,k) = qc(j,i,k) * fice
-            end if
-          end do
-        end if
-      else
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          qwltot(j,i,k) = d_zero
-          qwitot(j,i,k) = d_zero
-        end do
-      end if
-    end if
 
     if ( idiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
