@@ -48,7 +48,6 @@ module mod_moloch
   real(rkx), pointer, contiguous, dimension(:,:,:) :: s => null( )
   ! nonhydrostatic term in pressure gradient force
   ! tridiagonal inversion
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: deltaw => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: wwkw => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: tkex => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: wz => null( )
@@ -171,7 +170,6 @@ module mod_moloch
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
     call getmem(laplacian,jdi1,jdi2,idi1,idi2,1,kz,'moloch:laplacian')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
-    call getmem(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
     call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem(wz,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:wz')
@@ -213,7 +211,7 @@ module mod_moloch
     do concurrent ( k = 1:kz )
       xkdamp(k) = numax * (1.0_rkx-ddamp) * &
         (1.0_rkx/(k+1.0_rkx) - 1.0_rkx/(kz+2.0_rkx))
-      xknu(k) = numax * (0.35_rkx + 0.45_rkx * &
+      xknu(k) = numax * (0.55_rkx + 0.45_rkx * &
         (real(kz-k+1,rkx)-1.0_rkx)/(real(kz,rkx)-1.0_rkx))
     end do
   end subroutine allocate_moloch
@@ -641,7 +639,6 @@ module mod_moloch
 
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         do k = kz, 2, -1
-          deltaw(j,i,k) = -w(j,i,k)
           ! explicit w:
           !    it must be consistent with the initialization of pai
           zrom1w = d_half * cpd * fmzf(j,i,k) * &
@@ -678,7 +675,6 @@ module mod_moloch
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         do k = 2, kz
           w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
-          deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
         end do
       end do
 
@@ -712,7 +708,6 @@ module mod_moloch
       end do
 
       call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
       ! horizontal momentum equations
 
@@ -720,9 +715,7 @@ module mod_moloch
         ! Equation 17
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           zcx = dtrdx * mu(j,i)
-          zfz = egrav * dts + 0.25_rkx * &
-              (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-               deltaw(j,i,k)   + deltaw(j,i,k+1))
+          zfz = egrav * dts
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
           zcor1u = coru(j,i) * dts * vd(j,i,k)
           ! Equation 17
@@ -733,9 +726,7 @@ module mod_moloch
         ! Equation 18
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           zcy = dtrdy
-          zfz = egrav * dts + 0.25_rkx * &
-              (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-               deltaw(j,i,k)   + deltaw(j,i,k+1))
+          zfz = egrav * dts
           zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
           zcor1v = corv(j,i) * dts * ud(j,i,k)
           ! Equation 18
@@ -746,9 +737,7 @@ module mod_moloch
       else
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           zcx = dtrdx * mu(j,i)
-          zfz = egrav * dts + 0.25_rkx * &
-              (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-               deltaw(j,i,k)   + deltaw(j,i,k+1))
+          zfz = egrav * dts
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
           zcor1u = coru(j,i) * dts * vd(j,i,k)
           ! Equation 17
@@ -758,9 +747,7 @@ module mod_moloch
         end do
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           zcy = dtrdy * mv(j,i)
-          zfz = egrav * dts + 0.25_rkx * &
-              (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-               deltaw(j,i,k)   + deltaw(j,i,k+1))
+          zfz = egrav * dts
           zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
           zcor1v = corv(j,i) * dts * ud(j,i,k)
           ! Equation 18
@@ -1117,9 +1104,6 @@ module mod_moloch
     end do
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kzp1 )
       wwkw(j,i,k) = d_zero
-    end do
-    do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kzp1 )
-      deltaw(j,i,k) = d_zero
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       tten(j,i,k) = d_zero
