@@ -51,6 +51,7 @@ module mod_moloch
   real(rkx), pointer, contiguous, dimension(:,:,:) :: wwkw => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: tkex => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: wz => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tetavf => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: mx2 => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: rmx => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: rmu => null( )
@@ -169,6 +170,7 @@ module mod_moloch
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
     call getmem(laplacian,jdi1,jdi2,idi1,idi2,1,kz,'moloch:laplacian')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
+    call getmem(tetavf,jce1,jce2,ice1,ice2,2,kz,'moloch:tetavf')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
     call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem(wz,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:wz')
@@ -562,6 +564,10 @@ module mod_moloch
 
     call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
 
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
+      tetavf(j,i,k) = 0.5_rkx * (tetav(j,i,k-1)+tetav(j,i,k))
+    end do
+
     do nsound = 1, mo_nsound
 
       call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
@@ -632,12 +638,9 @@ module mod_moloch
         do k = kz, 2, -1
           ! explicit w:
           !    it must be consistent with the initialization of pai
-          zrom1w = d_half * cpd * fmzf(j,i,k) * &
-                   (tetav(j,i,k-1) + tetav(j,i,k))
-          zrom1w = zrom1w - cpd * w(j,i,k) * &
-                   fmzf(j,i,k)*fmzf(j,i,k) * &
-                   real(nsound,rkx) * dtrdz * &
-                   (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
+          tetavf(j,i,k) = tetavf(j,i,k) - w(j,i,k)*fmzf(j,i,k) * &
+               dtrdz * (tetav(j,i,k-1) - tetav(j,i,k))
+          zrom1w = cpd * tetavf(j,i,k) * fmzf(j,i,k)
           zwexpl = w(j,i,k) - zrom1w * dtrdz * &
                    (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts
           zwexpl = zwexpl + rdrcv * zrom1w * dtrdz * &
