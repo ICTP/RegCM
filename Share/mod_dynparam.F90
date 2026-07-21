@@ -204,7 +204,7 @@ module mod_dynparam
   real(rkx), public :: mo_a0 = 0.0_rkx
   logical, public :: mo_divfilter = .true.
   logical, public :: mo_divdamp = .true.
-  logical, public :: mo_spectral_nudging = .true.
+  logical, public :: mo_spectral_nudge = .true.
   integer(ik4), public :: mo_nadv = 2
   integer(ik4), public :: mo_nsound = 5
 
@@ -502,7 +502,7 @@ module mod_dynparam
     namelist /dimparam/ iy, jx, kz, dsmax, dsmin, nsg, njxcpus, niycpus
     namelist /coreparam/ idynamic
     namelist /molochparam/ mo_a0, mo_ztop, mo_h, mo_divfilter, &
-      mo_divdamp, mo_spectral_nudging, mo_nadv, mo_nsound
+      mo_divdamp, mo_spectral_nudge, mo_nadv, mo_nsound
     namelist /geoparam/ iproj, ds, ptop, clat, clon, plat,    &
       plon, cntri, cntrj, truelatl, truelath, i_band, i_crm
     namelist /terrainparam/ domname, lresamp, smthbdy, nsmthbdy, &

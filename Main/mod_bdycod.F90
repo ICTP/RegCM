@@ -542,7 +542,7 @@ module mod_bdycod
         call vprntv(hefc(:,1),nspgx,'Top boundary coefficients ')
         call vprntv(hefc(:,kz),nspgx,'Bottom boundary coefficients ')
       end if
-      if ( mo_spectral_nudging ) call lowpass_init( )
+      if ( mo_spectral_nudge ) call lowpass_init( )
       do k = 1, kz
         if ( k <= nztop ) then
           tnudge(k) = sin(d_half*mathpi*(gmeanz(k)-zztop)/(mo_h-zztop))**2
@@ -1685,7 +1685,7 @@ module mod_bdycod
       !
       if ( ma%has_bdyright ) then
         do concurrent ( i = ici1:ici2 )
-          sfs%psa(jde2,i) = x0*xpsb%b0(jde2,i) + x1*xpsb%b1(jde2,i)
+          sfs%psa(jce2,i) = x0*xpsb%b0(jce2,i) + x1*xpsb%b1(jce2,i)
         end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           mo_atm%u(jde2,i,k) = x0*dub%b0(jde2,i,k) + x1*dub%b1(jde2,i,k)
@@ -1738,7 +1738,7 @@ module mod_bdycod
       ! south boundary: corners included
       !
       if ( ma%has_bdybottom ) then
-        do concurrent ( j = jde1:jde2 )
+        do concurrent ( j = jce1:jce2 )
           sfs%psa(j,ice1) = x0*xpsb%b0(j,ice1) + x1*xpsb%b1(j,ice1)
         end do
         do concurrent ( j = jde1:jde2, k = 1:kz )
@@ -1792,7 +1792,7 @@ module mod_bdycod
       ! north boundary: corners included
       !
       if ( ma%has_bdytop ) then
-        do concurrent ( j = jde1:jde2 )
+        do concurrent ( j = jce1:jce2 )
           sfs%psa(j,ice2) = x0*xpsb%b0(j,ice2) + x1*xpsb%b1(j,ice2)
         end do
         do concurrent ( j = jde1:jde2, k = 1:kz )
@@ -3941,7 +3941,7 @@ module mod_bdycod
     real(rkx), intent(in) :: frac
     real(rkx) :: x0, x1
     integer(ik4) :: i, j, k, ib
-    real(rkx) :: xf, fext
+    real(rkx) :: xf
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'morelax_fraction'
     integer(ik4), save :: idindx = 0

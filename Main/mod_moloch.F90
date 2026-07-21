@@ -496,7 +496,7 @@ module mod_moloch
       call morelax_chiten(trac)
     end if
 
-    if ( mo_spectral_nudging ) then
+    if ( mo_spectral_nudge ) then
       tspectral = tspectral + dtsec
       if ( int(mod(tspectral,dtrad)) == 0 ) then
         call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci1,ici1,ici2,t,xtb)

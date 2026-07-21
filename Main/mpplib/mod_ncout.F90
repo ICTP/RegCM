@@ -3259,6 +3259,8 @@ module mod_ncout
 
         if ( bdy_use_lehmann ) then
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('boundary_lehmann',bdy_use_lehmann))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('boundary_points',nspgx-2))
         else
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -3423,6 +3425,10 @@ module mod_ncout
           if ( mo_divdamp ) then
             call outstream_addatt(outstream(i)%ncout(j), &
                     ncattribute_logical('divergence_damping',mo_divdamp))
+          end if
+          if ( mo_spectral_nudge ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_logical('spectral_nudge',mo_spectral_nudge))
           end if
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
