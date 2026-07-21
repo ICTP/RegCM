@@ -497,7 +497,7 @@
  mo_nsound = 5,     ! Number of sound loops for advection loop
  mo_divfilter = .true. ! Do horizontal divergence diffusion
  mo_divdamp = .true.   ! Do damping of divergence
- mo_spectral_nudging = .false., ! Use spectral filtering
+ mo_spectral_nudging = .true., ! Use spectral filtering
  /
 !
 ! Buffer Zone Control relaxation + diffusion term
