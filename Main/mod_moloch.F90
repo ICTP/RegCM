@@ -110,8 +110,6 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: qr => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: qs => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: qsat => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: qwltot => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: qwitot => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tke => null( )
   real(rkx), dimension(:,:,:,:), pointer, contiguous :: qx => null( )
   real(rkx), dimension(:,:,:,:), pointer, contiguous :: trac => null( )
@@ -485,7 +483,7 @@ module mod_moloch
     call morelax(jci1,jci2,ici1,ici2,ba_cr,t,xtb)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,pai,xpaib)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,qv,xqb)
-    call morelax(jci1,jci2,ici1,ici2,ba_cr,wx,0.0_rkx)
+    call morelax(jci1,jci2,ici1,ici2,ba_cr,w,0.0_rkx)
     if ( is_present_qc( ) ) then
       call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,xlb)
     end if
@@ -517,8 +515,7 @@ module mod_moloch
       end do
     end if
 
-    call uvstagtox(u,v,ux,vx)
-    call htozstag(wx,w)
+    call uvstagtouvx(u,v,ux,vx)
 
     call temp_to_tvirt( )
 
@@ -529,10 +526,9 @@ module mod_moloch
     !@acc call nvtxEndRange
   end subroutine boundary
 
-  subroutine divergence_diffusion(dts)
+  subroutine divergence_diffusion()
     implicit none
     integer(ik4) :: j, i, k
-    real(rkx), intent(in) :: dts
 
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -552,7 +548,6 @@ module mod_moloch
     real(rkx) :: dtrdx, dtrdy, dtrdz, zcs2
     real(rkx) :: zum, zup, zvm, zvp, zuh, zvh
     real(rkx) :: zrom1w, zwexpl, zu, zd, zrapp
-    real(rkx) :: zqs, zdth
     real(rkx) :: zcx, zcy, zfz
     real(rkx) :: zrom1u, zcor1u, zrom1v, zcor1v
 
@@ -624,7 +619,7 @@ module mod_moloch
         call divergence_damping(dts)
       end if
       if ( do_divfilter ) then
-        call divergence_diffusion(dts)
+        call divergence_diffusion
       end if
 
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
@@ -780,7 +775,7 @@ module mod_moloch
     !@acc call nvtxStartRange("advection")
 
     ! Compute U,V on cross points
-    call uvstagtox(u,v,ux,vx)
+    call uvstagtouvx(u,v,ux,vx)
     call zstagtoh(w,wx)
 
     ! Compute TKE if required on zita levels
@@ -830,7 +825,7 @@ module mod_moloch
     end if
 
     ! Interpolate on staggered points
-    call xtouvstag(ux,vx,u,v)
+    call uvxtouvstag(ux,vx,u,v)
     call htozstag(wx,w)
 
     if ( ibltyp == 2 ) then
@@ -1116,7 +1111,6 @@ module mod_moloch
     !@acc use nvtx
     implicit none
     real(rkx), intent(in) :: dta, dts
-    real(rkx) :: fice
     integer(ik4) :: i, j, k, n, nadv
     !@acc call nvtxStartRange("dynamical_core")
 
@@ -1465,11 +1459,12 @@ module mod_moloch
 
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
+      p(j,i,k) = (pai(j,i,k)**cpovr) * p00
       rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
     end do
 
-    call xtouvstag(ux,vx,u,v)
+    call uvxtouvstag(ux,vx,u,v)
 
     !@acc call nvtxEndRange
   end subroutine status_update
@@ -1506,13 +1501,13 @@ module mod_moloch
     end do
   end subroutine htozstag
 
-  subroutine xtouvstag(ux,vx,u,v)
+  subroutine uvxtouvstag(ux,vx,u,v)
     !@acc use nvtx
     implicit none
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
     integer(ik4) :: i, j, k
-    !@acc call nvtxStartRange("xtouvstag")
+    !@acc call nvtxStartRange("uvxtouvstag")
 
     call exchange_lr(ux,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange_bt(vx,2,jce1,jce2,ice1,ice2,1,kz)
@@ -1551,15 +1546,15 @@ module mod_moloch
       end do
     end if
     !@acc call nvtxEndRange
-  end subroutine xtouvstag
+  end subroutine uvxtouvstag
 
-  subroutine uvstagtox(u,v,ux,vx)
+  subroutine uvstagtouvx(u,v,ux,vx)
     !@acc use nvtx
     implicit none
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: u, v
     real(rkx), intent(inout), dimension(:,:,:), pointer, contiguous :: ux, vx
     integer(ik4) :: i, j, k
-    !@acc call nvtxStartRange("uvstagtox")
+    !@acc call nvtxStartRange("uvstagtouvx")
 
     call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
     call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)
@@ -1598,13 +1593,17 @@ module mod_moloch
       end do
     end if
     !@acc call nvtxEndRange
-  end subroutine uvstagtox
+  end subroutine uvstagtouvx
 
   subroutine extrapolate_surface_pressure( )
     implicit none
     integer(ik4) :: i, j
+    real(rkx) :: tv, lrt
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      ps(j,i) = p(j,i,kz) * exp(govr*z(j,i,kz)/tvirt(j,i,kz))
+      lrt = (tvirt(j,i,kzm1)-tvirt(j,i,kz))/(z(j,i,kzm1)-z(j,i,kz))
+      lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+      tv = tvirt(j,i,kz) - lrt*d_half*z(j,i,kz)
+      ps(j,i) = p(j,i,kz) * exp(govr*z(j,i,kz)/tv)
     end do
   end subroutine extrapolate_surface_pressure
 

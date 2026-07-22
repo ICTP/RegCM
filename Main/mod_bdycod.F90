@@ -1667,6 +1667,13 @@ module mod_bdycod
             mo_atm%qx(jce1,i,k,n) = 0.0_rkx
           end if
         end do
+        do concurrent ( i = ici1:ici2, k = 1:kz )
+          if ( mo_atm%u(jde1,i,k) > d_zero ) then
+            mo_atm%w(jce1,i,k) = 0.1_rkx*mo_atm%w(jci1,i,k)
+          else
+            mo_atm%w(jce1,i,k) = mo_atm%w(jci1,i,k)
+          end if
+        end do
         if ( ibltyp == 2 ) then
           do concurrent ( i = ici1:ici2 )
             mo_atm%tke(jce1,i,1) = tkemin ! West boundary
@@ -1719,6 +1726,13 @@ module mod_bdycod
           end if
           if ( mo_atm%qx(jce2,i,k,n) < 1.0E-12_rkx ) then
             mo_atm%qx(jce2,i,k,n) = 0.0_rkx
+          end if
+        end do
+        do concurrent ( i = ici1:ici2, k = 1:kz )
+          if ( mo_atm%u(jde2,i,k) < d_zero ) then
+            mo_atm%w(jce2,i,k) = 0.1_rkx*mo_atm%w(jci2,i,k)
+          else
+            mo_atm%w(jce2,i,k) = mo_atm%w(jci2,i,k)
           end if
         end do
         if ( ibltyp == 2 ) then
@@ -1775,6 +1789,13 @@ module mod_bdycod
             mo_atm%qx(j,ice1,k,n) = 0.0_rkx
           end if
         end do
+        do concurrent ( j = jce1:jce2, k = 1:kz )
+          if ( mo_atm%v(j,ide1,k) > d_zero ) then
+            mo_atm%w(j,ice1,k) = 0.1_rkx*mo_atm%w(j,ici1,k)
+          else
+            mo_atm%w(j,ice1,k) = mo_atm%w(j,ici1,k)
+          end if
+        end do
         if ( ibltyp == 2 ) then
           do concurrent ( j = jce1:jce2 )
             mo_atm%tke(j,ice1,1) = tkemin  ! South boundary
@@ -1827,6 +1848,13 @@ module mod_bdycod
           end if
           if ( mo_atm%qx(j,ice2,k,n) < 1.0E-12_rkx ) then
             mo_atm%qx(j,ice2,k,n) = 0.0_rkx
+          end if
+        end do
+        do concurrent ( j = jce1:jce2, k = 1:kz )
+          if ( mo_atm%v(j,ide2,k) < d_zero ) then
+            mo_atm%w(j,ice2,k) = 0.1_rkx*mo_atm%w(j,ici2,k)
+          else
+            mo_atm%w(j,ice2,k) = mo_atm%w(j,ici2,k)
           end if
         end do
         if ( ibltyp == 2 ) then

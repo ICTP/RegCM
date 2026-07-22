@@ -372,11 +372,15 @@ module mod_micro_interface
           ! Cloud Water Volume
           ! get overlap of clouds
           if ( cldfra(j,i,k) > lowcld ) then
-            w2 = mc2mo%fcc(j,i,k) / (mc2mo%fcc(j,i,k)+cldfra(j,i,k))
-            w1 = 1.0_rkx-w2
-            cldlwc(j,i,k) = w1 * totc(j,i,k)/mc2mo%fcc(j,i,k) + &
-                            w2 * clwfromt(mo2mc%t(j,i,k))
-            cldfra(j,i,k) = max(mc2mo%fcc(j,i,k),cldfra(j,i,k))
+            if ( mc2mo%fcc(j,i,k) > lowcld ) then
+              w2 = mc2mo%fcc(j,i,k) / (mc2mo%fcc(j,i,k)+cldfra(j,i,k))
+              w1 = 1.0_rkx-w2
+              cldlwc(j,i,k) = w1 * totc(j,i,k)/mc2mo%fcc(j,i,k) + &
+                              w2 * clwfromt(mo2mc%t(j,i,k))
+              cldfra(j,i,k) = max(mc2mo%fcc(j,i,k),cldfra(j,i,k))
+            else
+              cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
+            end if
           else
             if ( mc2mo%fcc(j,i,k) > lowcld ) then
               cldfra(j,i,k) = mc2mo%fcc(j,i,k)

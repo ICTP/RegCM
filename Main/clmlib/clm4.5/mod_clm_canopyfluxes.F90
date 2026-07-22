@@ -1235,6 +1235,7 @@ module mod_clm_canopyfluxes
                laisha(p)/(rb(p)+rssha(p)))/max(elai(p), 0.01_rk8)
 #endif
        efpot = forc_rho(g)*wtl*(qsatl(p)-qaf(p))
+       if ( abs(efpot) < 1.0e-20_rk8 ) efpot = 0._rk8
 
        if ( efpot > 0._rk8 ) then
          if ( btran(p) > btran0 ) then
@@ -1330,8 +1331,9 @@ module mod_clm_canopyfluxes
        ! result in an imbalance in "hvap*qflx_evap_veg" and
        ! "efe + dc2*wtgaq*qsatdt_veg"
 
-       efpot = forc_rho(g)*wtl*(wtgaq*(qsatl(p)+qsatldT(p)*dt_veg(p)) &
-            -wtgq0*qg(c)-wtaq0(p)*forc_q(g))
+       efpot = forc_rho(g)*wtl*(wtgaq*(qsatl(p)+qsatldT(p)*dt_veg(p)) - &
+               wtgq0*qg(c)-wtaq0(p)*forc_q(g))
+       if ( abs(efpot) < 1.0e-20_rk8 ) efpot = 0._rk8
        qflx_evap_veg(p) = rpp*efpot
 
        ! Calculation of evaporative potentials (efpot) and
@@ -1520,6 +1522,7 @@ module mod_clm_canopyfluxes
      ! Update dew accumulation (kg/m2)
 
      h2ocan(p) = max(0._rk8,h2ocan(p)+(qflx_tran_veg(p)-qflx_evap_veg(p))*dtsrf)
+     if ( h2ocan(p) < 1.0e-20_rk8 ) h2ocan(p) = 0._rk8
 
      ! total photosynthesis
 
