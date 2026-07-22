@@ -985,7 +985,7 @@ module mod_pbl_holtbl
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
         ttnp(j,i,k) = hydf(j,i,k)*rhohf(j,i,k-1) * &
-                          kvh(j,i,k)*cgs(j,i,k)*xqfx(j,i)
+                          kvq(j,i,k)*cgs(j,i,k)*xqfx(j,i)
       end do
       !
       !   compute the tendencies:

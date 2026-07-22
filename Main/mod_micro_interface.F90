@@ -371,26 +371,27 @@ module mod_micro_interface
 #endif
           ! Cloud Water Volume
           ! get overlap of clouds
-          if ( max(cldfra(j,i,k), mc2mo%fcc(j,i,k)) > lowcld ) then
-            if ( cldfra(j,i,k) > lowcld ) then
-              w2 = mc2mo%fcc(j,i,k) / (mc2mo%fcc(j,i,k)+cldfra(j,i,k))
-              w1 = 1.0_rkx-w2
-              cldlwc(j,i,k) = w1 * totc(j,i,k)/cldfra(j,i,k) + &
-                              w2 * clwfromt(mo2mc%t(j,i,k))
-              cldfra(j,i,k) = max(mc2mo%fcc(j,i,k),cldfra(j,i,k))
-            else
-              cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
-            end if
-            ! Scaling for CF
-            ! Implements CF scaling as in Liang GRL 32, 2005
-            ! doi: 10.1029/2004GL022301
-            if ( do_cfscaling ) then
-              ichi = int(cldfra(j,i,k)*xchi)
-              cldlwc(j,i,k) = cldlwc(j,i,k) * chis(ichi)
-            end if
+          if ( cldfra(j,i,k) > lowcld ) then
+            w2 = mc2mo%fcc(j,i,k) / (mc2mo%fcc(j,i,k)+cldfra(j,i,k))
+            w1 = 1.0_rkx-w2
+            cldlwc(j,i,k) = w1 * totc(j,i,k)/mc2mo%fcc(j,i,k) + &
+                            w2 * clwfromt(mo2mc%t(j,i,k))
+            cldfra(j,i,k) = max(mc2mo%fcc(j,i,k),cldfra(j,i,k))
           else
-            cldfra(j,i,k) = d_zero
-            cldlwc(j,i,k) = d_zero
+            if ( mc2mo%fcc(j,i,k) > lowcld ) then
+              cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+              cldlwc(j,i,k) = totc(j,i,k)/mc2mo%fcc(j,i,k)
+            else
+              cldfra(j,i,k) = 0.0_rkx
+              cldlwc(j,i,k) = 0.0_rkx
+            end if
+          end if
+          ! Scaling for CF
+          ! Implements CF scaling as in Liang GRL 32, 2005
+          ! doi: 10.1029/2004GL022301
+          if ( cldlwc(j,i,k) > 0.0_rkx .and. do_cfscaling ) then
+            ichi = int(cldfra(j,i,k)*xchi)
+            cldlwc(j,i,k) = cldlwc(j,i,k) * chis(ichi)
           end if
 #ifndef STDPAR_FIXED
         end do
