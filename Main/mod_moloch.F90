@@ -500,8 +500,8 @@ module mod_moloch
       tspectral = tspectral + dtsec
       if ( int(mod(tspectral,dtrad)) == 0 ) then
         call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci1,ici1,ici2,t,xtb)
-        call mospectral_nudge(jde1,jde2,ice1,ice2,jdi1,jdi2,ici1,ici2,ud,dub)
-        call mospectral_nudge(jce1,jce2,ide1,ide2,jci1,jci2,idi1,idi2,vd,dvb)
+        call mospectral_nudge(jde1,jde2,ice1,ice2,jdi1,jdi2,ici1,ici2,u,dub)
+        call mospectral_nudge(jce1,jce2,ide1,ide2,jci1,jci2,idi1,idi2,v,dvb)
       end if
     end if
 
