@@ -665,10 +665,10 @@ module mod_rad_colmod3
       end do
     end if
     do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
-      ! ice absorption coefficient
-      kabsi = 0.005_rk8 + (1.0_rk8/rt%rei(k,n))
-      ! liquid water absorption coefficient for broadband long wave
       ! (Hannu Savijärvi & Petri Räisänen)
+      ! ice absorption coefficient
+      kabsi = 0.04_rk8 + 0.08_rk8 * exp(-0.018_rk8*rt%rei(k,n))
+      ! liquid water absorption coefficient for broadband long wave
       kabsl = 0.31_rk8 * exp(-0.08_rk8*rt%rel(k,n))
       ! longwave absorption coeff (m**2/g)
       kabs = kabsl*(1.0_rk8-rt%fice(k,n)) + (kabsi*rt%fice(k,n))
