@@ -335,8 +335,13 @@ module mod_pbl_holtbl
     ! compute Bulk Richardson Number (BRN)
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      ! Force stability above kmxpbl ( 5 km above ground )
       !$acc loop seq
-      do k = kzm1, kmxpbl(j,i), -1
+      do k = 1, kmxpbl(j,i)
+        ri(k,j,i) = 2.0_rkx * ricr(j,i)
+      end do
+      !$acc loop seq
+      do k = kmxpbl(j,i)+1, kzm1
         ri(k,j,i) = max(minri,min(maxri,egrav*(thvx(j,i,k)-thvx(j,i,kz)) * &
                     m2p%za(j,i,k)/(thv10(j,i)*vv(j,i,k))))
       end do
@@ -345,7 +350,7 @@ module mod_pbl_holtbl
     ! looking for first guess bl top
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       p2m%zpbl(j,i) = m2p%za(j,i,kz)
-      do k = kzm1, kmxpbl(j,i) + 1, -1
+      do k = kzm1, kmxpbl(j,i)+1, -1
         ! bl height lies between this level and the last
         ! use linear interp. of rich. no. to height of ri=ricr
         if ( (ri(k,j,i)   <  ricr(j,i)) .and. &
@@ -368,7 +373,7 @@ module mod_pbl_holtbl
         ri(kz,j,i) = max(minri,min(maxri, &
                     -egrav*therm * m2p%za(j,i,kz)/(thv10(j,i)*vvk)))
         !$acc loop seq
-        do k = kzm1, kmxpbl(j,i), -1
+        do k = kzm1, kmxpbl(j,i)+1, -1
           ri(k,j,i) = max(minri,min(maxri, &
                     egrav*(thvx(j,i,k)-thvx(j,i,kz)-therm) * &
                     m2p%za(j,i,k)/(thv10(j,i)*vv(j,i,k))))
@@ -380,7 +385,7 @@ module mod_pbl_holtbl
       if ( lunstb(j,i) ) then
         ! improve estimate of bl height under convective conditions
         ! using convective temperature excess (therm)
-        do k = kz, kmxpbl(j,i) + 1, -1
+        do k = kz, kmxpbl(j,i)+1, -1
           ! bl height lies between this level and the last
           ! use linear interp. of rich. no. to height of ri=ricr
           if ( (ri(k,j,i) < ricr(j,i)) .and. &
@@ -418,7 +423,7 @@ module mod_pbl_holtbl
     end do
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      zpbl = p2m%zpbl(j,i)
+      zpbl = min(p2m%zpbl(j,i),3000.0_rkx)
       fak1 = ustr(j,i)*zpbl*vonkar
       if ( lunstb(j,i) ) then
         xfmt = (d_one-binm*zpbl/obklen(j,i))**onet
