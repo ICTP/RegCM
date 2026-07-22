@@ -49,18 +49,48 @@ module mod_output
 
   private
 
-  public :: output
+  public :: output, init_output
 
   type(rcm_time_and_date), save, public :: lastout
-
-  logical :: rotinit = .false.
 
   interface uvrot
     module procedure uvrot2d
     module procedure uvrot3d
   end interface uvrot
 
+  real(rkx), pointer, contiguous, dimension(:) :: p1d, t1d, rh1d, td
+  real(rkx), pointer, contiguous, dimension(:) :: pi, q, th, thv, z
+  real(rkx), dimension(:,:,:), pointer, contiguous :: qv
+  real(rkx), dimension(:,:), pointer, contiguous :: temp500
+  type(regcm_projection), save :: pj
+
   contains
+
+  subroutine init_output
+    implicit none
+    if ( idynamic == 3 ) then
+      call assignpnt(mo_atm%qx,qv,iqv)
+    else
+      call assignpnt(atm1%qx,qv,iqv)
+    end if
+    if ( associated(srf_li_out) ) then
+      call getmem(temp500,jci1,jci2,ici1,ici2,'output:temp500')
+    end if
+    if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then
+      call getmem(p1d,1,kz,'output:p1d')
+      call getmem(t1d,1,kz,'output:t1d')
+      call getmem(rh1d,1,kz,'output:rh1d')
+      call getmem(td,1,kz,'output:td')
+      call getmem(pi,1,kz,'output:pi')
+      call getmem(q,1,kz,'output:q')
+      call getmem(th,1,kz,'output:th')
+      call getmem(thv,1,kz,'output:thv')
+      call getmem(z,1,kz,'output:z')
+    end if
+    if ( uvrotate ) then
+      call alpharot_compute(pj)
+    end if
+  end subroutine init_output
 
   subroutine output
     !@acc use nvtx
@@ -71,27 +101,14 @@ module mod_output
     logical :: lstartup
     logical :: lasync_batch
     integer(ik4) :: i, j, k, n, kk, itr
-    real(rkx), dimension(kz) :: p1d, t1d, rh1d, td, pi, q, th, thv, z
     real(rkx) :: cell, srffac, radfac, lakfac, subfac, optfac, stsfac
     real(rkx) :: tsurf, t500
-    real(rkx), dimension(:,:,:), pointer, contiguous :: qv
-    real(rkx), dimension(:,:), pointer, contiguous :: temp500
-    type(regcm_projection), save :: pj
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4), save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !@acc call nvtxStartRange("output")
-
-    qv => null( )
-    temp500 => null( )
-    if ( uvrotate ) then
-      if ( .not. rotinit ) then
-        call alpharot_compute(pj)
-        rotinit = .true.
-      end if
-    end if
 
     lstartup = .false.
     if ( rcmtimer%start( ) .or. doing_restart ) then
@@ -1027,11 +1044,9 @@ module mod_output
         call windcompute(pj,srf_ua100_out,srf_va100_out,100.0_rkx)
         call windcompute(pj,srf_ua150_out,srf_va150_out,150.0_rkx)
         if ( idynamic == 3 ) then
-          call assignpnt(mo_atm%qx,qv,iqv)
           call vinterz(mo_atm%t,srf_ta50_out,50.0_rkx)
           call vinterz(qv,srf_hus50_out,50.0_rkx)
         else
-          call assignpnt(atm1%qx,qv,iqv)
           call vinterz(atm1%t,srf_ta50_out,50.0_rkx)
           call vinterz(qv,srf_hus50_out,50.0_rkx)
         end if
@@ -1041,10 +1056,6 @@ module mod_output
 
         if ( associated(srf_li_out) ) then
           if ( idynamic == 3 ) then
-            call assignpnt(mo_atm%qx,qv,iqv)
-            if ( .not. associated(temp500) ) then
-              call getmem(temp500,jci1,jci2,ici1,ici2,'output:temp500')
-            end if
             call vertint(mo_atm%tvirt,mo_atm%p,sfs%psa,temp500,50000.0_rkx)
             call otlift(srf_li_out,mo_atm%t,qv,mo_atm%p,temp500, &
                         jci1,jci2,ici1,ici2,kz)
@@ -1065,33 +1076,35 @@ module mod_output
         end if
         if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then
           if ( idynamic == 3 ) then
-            !$acc parallel loop collapse(2) gang vector private(p1d,t1d,rh1d,td,pi,q,th,thv,z)
+            !$acc parallel loop collapse(2) gang vector &
+            !$acc   private(p1d(1:kz),t1d(1:kz),rh1d(1:kz), &
+            !$acc        td(1:kz),pi(1:kz),q(1:kz),th(1:kz),thv(1:kz),z(1:kz))
             do i = ici1, ici2
               do j = jci1, jci2
-                !$acc loop seq
                 do k = 1, kz
                   kk = kzp1 - k
-                  p1d(kk) = mo_atm%p(j,i,k)
-                  t1d(kk) = mo_atm%t(j,i,k)
-                  rh1d(kk) = min(d_one,max(d_zero,(mo_atm%qx(j,i,k,iqv) / &
-                      pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
+                  p1d(k) = mo_atm%p(j,i,kk)
+                  t1d(k) = mo_atm%t(j,i,kk)
+                  rh1d(k) = min(d_one,max(d_zero,(mo_atm%qx(j,i,kk,iqv) / &
+                      pfwsat(mo_atm%t(j,i,kk),mo_atm%p(j,i,kk)))))
                 end do
                 call getcape_new(kz,p1d,t1d,rh1d, &
                   srf_cape_out(j,i),srf_cin_out(j,i),td,pi,q,th,thv,z)
               end do
             end do
           else
-            !$acc parallel loop collapse(2) gang vector private(p1d,t1d,rh1d,td,pi,q,th,thv,z)
+            !$acc parallel loop collapse(2) gang vector &
+            !$acc   private(p1d(1:kz),t1d(1:kz),rh1d(1:kz), &
+            !$acc        td(1:kz),pi(1:kz),q(1:kz),th(1:kz),thv(1:kz),z(1:kz))
             do i = ici1, ici2
               do j = jci1, jci2
-                !$acc loop seq
                 do k = 1, kz
                   kk = kzp1 - k
-                  p1d(kk) = atm1%pr(j,i,k)
-                  t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
-                  rh1d(kk) = min(d_one,max(d_zero, &
-                     (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
-                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+                  p1d(k) = atm1%pr(j,i,kk)
+                  t1d(k) = atm1%t(j,i,kk)/sfs%psa(j,i)
+                  rh1d(k) = min(d_one,max(d_zero, &
+                     (atm1%qx(j,i,kk,iqv)/ps_out(j,i)) / &
+                     pfwsat(atm1%t(j,i,kk)/ps_out(j,i),atm1%pr(j,i,kk))))
                 end do
                 call getcape_new(kz,p1d,t1d,rh1d, &
                   srf_cape_out(j,i),srf_cin_out(j,i),td,pi,q,th,thv,z)
@@ -1506,48 +1519,68 @@ module mod_output
       if ( ldosav ) then
         if ( do_parallel_save ) then
           if ( idynamic == 3 ) then
-            atm_u_io(jde1:jde2,ice1:ice2,:) = mo_atm%u(jde1:jde2,ice1:ice2,:)
-            atm_v_io(jce1:jce2,ide1:ide2,:) = mo_atm%v(jce1:jce2,ide1:ide2,:)
-            atm_w_io(jce1:jce2,ice1:ice2,:) = mo_atm%w(jce1:jce2,ice1:ice2,:)
-            atm_t_io(jce1:jce2,ice1:ice2,:) = mo_atm%t(jce1:jce2,ice1:ice2,:)
-            atm_pai_io(jce1:jce2,ice1:ice2,:) = &
-                              mo_atm%pai(jce1:jce2,ice1:ice2,:)
-            atm_qx_io(jce1:jce2,ice1:ice2,:,:) = &
-                               mo_atm%qx(jce1:jce2,ice1:ice2,:,:)
+            do concurrent ( j = jde1:jde2, i = ice1:ice2, k = 1:kz )
+              atm_u_io(j,i,k) = mo_atm%u(j,i,k)
+            end do
+            do concurrent ( j = jce1:jce2, i = ide1:ide2, k = 1:kz )
+              atm_v_io(j,i,k) = mo_atm%v(j,i,k)
+            end do
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+              atm_t_io(j,i,k) = mo_atm%t(j,i,k)
+              atm_pai_io(j,i,k) = mo_atm%pai(j,i,k)
+            end do
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
+              atm_w_io(j,i,k) = mo_atm%w(j,i,k)
+            end do
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz, n = 1:nqx )
+              atm_qx_io(j,i,k,n) = mo_atm%qx(j,i,k,n)
+            end do
             if ( ibltyp == 2 ) then
-              atm_tke_io(jce1:jce2,ice1:ice2,:) = &
-                       mo_atm%tke(jce1:jce2,ice1:ice2,:)
+              do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
+                atm_tke_io(j,i,k) = mo_atm%tke(j,i,k)
+              end do
             end if
             if ( ichem == 1 ) then
-              trac_io(jce1:jce2,ice1:ice2,:,:) = &
-                                mo_atm%trac(jce1:jce2,ice1:ice2,:,:)
+              do concurrent ( j = jce1:jce2, i = ice1:ice2, &
+                              k = 1:kz, n = 1:ntr )
+                trac_io(j,i,k,n) = mo_atm%trac(j,i,k,n)
+              end do
             end if
-            ps_io(jce1:jce2,ice1:ice2) = sfs%psa(jce1:jce2,ice1:ice2)
+            do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+              ps_io(j,i) = sfs%psa(j,i)
+            end do
           else
-            atm1_u_io(jde1:jde2,ide1:ide2,:) = atm1%u(jde1:jde2,ide1:ide2,:)
-            atm1_v_io(jde1:jde2,ide1:ide2,:) = atm1%v(jde1:jde2,ide1:ide2,:)
-            atm1_t_io(jce1:jce2,ice1:ice2,:) = atm1%t(jce1:jce2,ice1:ice2,:)
-            atm1_qx_io(jce1:jce2,ice1:ice2,:,:) = &
-                               atm1%qx(jce1:jce2,ice1:ice2,:,:)
-            atm2_u_io(jde1:jde2,ide1:ide2,:) = atm2%u(jde1:jde2,ide1:ide2,:)
-            atm2_v_io(jde1:jde2,ide1:ide2,:) = atm2%v(jde1:jde2,ide1:ide2,:)
-            atm2_t_io(jce1:jce2,ice1:ice2,:) = atm2%t(jce1:jce2,ice1:ice2,:)
-            atm2_qx_io(jce1:jce2,ice1:ice2,:,:) = &
-                               atm2%qx(jce1:jce2,ice1:ice2,:,:)
+            do concurrent ( j = jde1:jde2, i = ide1:ide2, k = 1:kz )
+              atm1_u_io(j,i,k) = atm1%u(j,i,k)
+              atm1_v_io(j,i,k) = atm1%v(j,i,k)
+              atm2_u_io(j,i,k) = atm2%u(j,i,k)
+              atm2_v_io(j,i,k) = atm2%v(j,i,k)
+            end do
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+              atm1_t_io(j,i,k) = atm1%t(j,i,k)
+              atm2_t_io(j,i,k) = atm2%t(j,i,k)
+            end do
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz, n = 1:nqx )
+              atm1_qx_io(j,i,k,n) = atm1%qx(j,i,k,n)
+              atm2_qx_io(j,i,k,n) = atm2%qx(j,i,k,n)
+            end do
             if ( ibltyp == 2 ) then
-              atm1_tke_io(jce1:jce2,ice1:ice2,:) = &
-                       atm1%tke(jce1:jce2,ice1:ice2,:)
-              atm2_tke_io(jce1:jce2,ice1:ice2,:) = &
-                       atm2%tke(jce1:jce2,ice1:ice2,:)
+              do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
+                atm1_tke_io(j,i,k) = atm1%tke(j,i,k)
+                atm2_tke_io(j,i,k) = atm2%tke(j,i,k)
+              end do
             end if
             if ( ichem == 1 ) then
-              chia_io(jce1:jce2,ice1:ice2,:,:) = &
-                                atm1%chi(jce1:jce2,ice1:ice2,:,:)
-              chib_io(jce1:jce2,ice1:ice2,:,:) = &
-                                atm2%chi(jce1:jce2,ice1:ice2,:,:)
+              do concurrent ( j = jce1:jce2, i = ice1:ice2, &
+                      k = 1:kz, n = 1:ntr )
+                chia_io(j,i,k,n) = atm1%chi(j,i,k,n)
+                chib_io(j,i,k,n) = atm2%chi(j,i,k,n)
+              end do
             end if
-            psa_io(jce1:jce2,ice1:ice2) = sfs%psa(jce1:jce2,ice1:ice2)
-            psb_io(jce1:jce2,ice1:ice2) = sfs%psb(jce1:jce2,ice1:ice2)
+            do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+              psa_io(j,i) = sfs%psa(j,i)
+              psb_io(j,i) = sfs%psb(j,i)
+            end do
           end if
           if ( ibltyp == 2 ) then
             kpbl_io = kpbl
@@ -1564,10 +1597,14 @@ module mod_output
             tke_pbl_io = atms%tkepbl
           end if
           if ( idynamic == 2 ) then
-            atm1_pp_io(jce1:jce2,ice1:ice2,:) = atm1%pp(jce1:jce2,ice1:ice2,:)
-            atm2_pp_io(jce1:jce2,ice1:ice2,:) = atm2%pp(jce1:jce2,ice1:ice2,:)
-            atm1_w_io(jce1:jce2,ice1:ice2,:) = atm1%w(jce1:jce2,ice1:ice2,:)
-            atm2_w_io(jce1:jce2,ice1:ice2,:) = atm2%w(jce1:jce2,ice1:ice2,:)
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+              atm1_pp_io(j,i,k) = atm1%pp(j,i,k)
+              atm2_pp_io(j,i,k) = atm2%pp(j,i,k)
+            end do
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
+              atm1_w_io(j,i,k) = atm1%w(j,i,k)
+              atm2_w_io(j,i,k) = atm2%w(j,i,k)
+            end do
           end if
           hfx_io = sfs%hfx
           qfx_io = sfs%qfx
@@ -1657,7 +1694,9 @@ module mod_output
           end if
 #else
           if ( imask == 2 ) then
-            lndcat_io(jce1:jce2,ice1:ice2) = mddom%lndcat(jce1:jce2,ice1:ice2)
+            do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+              lndcat_io(j,i) = mddom%lndcat(j,i)
+            end do
           end if
 #endif
           if ( idcsst == 1 ) then
@@ -1667,8 +1706,10 @@ module mod_output
             tdeltas_io = lms%tdeltas
           end if
           if ( idynamic == 1 ) then
-            dstor_io(jde1:jde2,ide1:ide2,:) = dstor(jde1:jde2,ide1:ide2,:)
-            hstor_io(jde1:jde2,ide1:ide2,:) = hstor(jde1:jde2,ide1:ide2,:)
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, n = 1:nsplit )
+              dstor_io(j,i,n) = dstor(j,i,n)
+              hstor_io(j,i,n) = hstor(j,i,n)
+            end do
           end if
           if ( ichem == 1 ) then
             convpr_io = convpr

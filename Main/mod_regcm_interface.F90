@@ -184,6 +184,7 @@ module mod_regcm_interface
     ! Setup the output files
     !
     call init_output_streams(do_parallel_netcdf_out)
+    call init_output
     !
     ! Setup valid BC's
     !
