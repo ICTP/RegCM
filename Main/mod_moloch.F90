@@ -117,8 +117,6 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: vten => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tten => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: qvten => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: qcten => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: qiten => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tketen => null( )
   real(rkx), dimension(:,:,:,:), pointer, contiguous :: chiten => null( )
   real(rkx), dimension(:,:,:,:), pointer, contiguous :: qxten => null( )
@@ -244,18 +242,16 @@ module mod_moloch
     call assignpnt(mo_atm%rho,rho)
     call assignpnt(mo_atm%qx,qx)
     call assignpnt(mo_atm%qs,qsat)
-    call assignpnt(mo_atm%qx,qv,iqv)
     call assignpnt(mo_atm%uten,uten)
     call assignpnt(mo_atm%vten,vten)
     call assignpnt(mo_atm%tten,tten)
     call assignpnt(mo_atm%qxten,qxten)
+    call assignpnt(mo_atm%qx,qv,iqv)
     call assignpnt(mo_atm%qxten,qvten,iqv)
     if ( ipptls > 0 ) then
       call assignpnt(mo_atm%qx,qc,iqc)
-      call assignpnt(mo_atm%qxten,qcten,iqc)
       if ( ipptls > 1 ) then
         call assignpnt(mo_atm%qx,qi,iqi)
-        call assignpnt(mo_atm%qxten,qiten,iqi)
         call assignpnt(mo_atm%qx,qr,iqr)
         call assignpnt(mo_atm%qx,qs,iqs)
       end if
@@ -461,7 +457,7 @@ module mod_moloch
     if ( idiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         ten0(j,i,k) = t(j,i,k)
-        qen0(j,i,k) = qx(j,i,k,iqv)
+        qen0(j,i,k) = qv(j,i,k)
       end do
     end if
     if ( ichem == 1 .and. ichdiag > 0 ) then
@@ -1093,17 +1089,6 @@ module mod_moloch
       cldlwc(j,i,k) = d_zero
     end do
 
-    if ( idiag > 0 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        ten0(j,i,k) = t(j,i,k)
-        qen0(j,i,k) = qv(j,i,k)
-      end do
-      if ( ichem == 1 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-          chiten0(j,i,k,n) = trac(j,i,k,n)
-        end do
-      end if
-    end if
     !@acc call nvtxEndRange
   end subroutine reset_tendencies
 
@@ -1196,7 +1181,7 @@ module mod_moloch
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             ten0(j,i,k) = tten(j,i,k)
-            qen0(j,i,k) = qxten(j,i,k,iqv)
+            qen0(j,i,k) = qvten(j,i,k)
           end do
         end if
         if ( ichem == 1 .and. ichdiag > 0 ) then
@@ -1222,7 +1207,7 @@ module mod_moloch
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             tdiag%con(j,i,k) = tten(j,i,k) - ten0(j,i,k)
-            qdiag%con(j,i,k) = qxten(j,i,k,iqv) - qen0(j,i,k)
+            qdiag%con(j,i,k) = qvten(j,i,k) - qen0(j,i,k)
           end do
         end if
         if ( ichem == 1 .and. ichdiag > 0 ) then
@@ -1239,7 +1224,7 @@ module mod_moloch
           if ( idiag > 0 ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               tdiag%con(j,i,k) = tten(j,i,k) - ten0(j,i,k)
-              qdiag%con(j,i,k) = qxten(j,i,k,iqv) - qen0(j,i,k)
+              qdiag%con(j,i,k) = qvten(j,i,k) - qen0(j,i,k)
             end do
           end if
         end if
@@ -1255,7 +1240,7 @@ module mod_moloch
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             ten0(j,i,k) = tten(j,i,k)
-            qen0(j,i,k) = qxten(j,i,k,iqv)
+            qen0(j,i,k) = qvten(j,i,k)
           end do
         end if
         ! Cumulus clouds
@@ -1281,7 +1266,7 @@ module mod_moloch
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             tdiag%lsc(j,i,k) = tten(j,i,k) - ten0(j,i,k)
-            qdiag%lsc(j,i,k) = qxten(j,i,k,iqv) - qen0(j,i,k)
+            qdiag%lsc(j,i,k) = qvten(j,i,k) - qen0(j,i,k)
           end do
         end if
       end if
@@ -1368,7 +1353,7 @@ module mod_moloch
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             ten0(j,i,k) = tten(j,i,k)
-            qen0(j,i,k) = qxten(j,i,k,iqv)
+            qen0(j,i,k) = qvten(j,i,k)
           end do
         end if
         if ( ichem == 1 .and. ichdiag > 0 ) then
@@ -1383,7 +1368,7 @@ module mod_moloch
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             tdiag%tbl(j,i,k) = tten(j,i,k) - ten0(j,i,k)
-            qdiag%tbl(j,i,k) = qxten(j,i,k,iqv) - qen0(j,i,k)
+            qdiag%tbl(j,i,k) = qvten(j,i,k) - qen0(j,i,k)
           end do
         end if
         if ( ichem == 1 .and. ichdiag > 0 ) then
@@ -1400,14 +1385,14 @@ module mod_moloch
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             ten0(j,i,k) = tten(j,i,k)
-            qen0(j,i,k) = qxten(j,i,k,iqv)
+            qen0(j,i,k) = qvten(j,i,k)
           end do
         end if
         call condtq
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             tdiag%lsc(j,i,k) = tdiag%lsc(j,i,k)+tten(j,i,k)-ten0(j,i,k)
-            qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k)+qxten(j,i,k,iqv)-qen0(j,i,k)
+            qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k)+qvten(j,i,k)-qen0(j,i,k)
           end do
         end if
       end if
@@ -1429,13 +1414,11 @@ module mod_moloch
     !@acc call nvtxStartRange("status_update")
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      t(j,i,k)   = t(j,i,k)   + dtinc * tten(j,i,k)
-      ux(j,i,k)  = ux(j,i,k)  + dtinc * uten(j,i,k)
-      vx(j,i,k)  = vx(j,i,k)  + dtinc * vten(j,i,k)
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      qx(j,i,k,iqv) = qx(j,i,k,iqv) + dtinc * qxten(j,i,k,iqv)
-      if ( qx(j,i,k,iqv) < 1.0E-8_rkx ) qx(j,i,k,iqv) = 1.0E-8_rkx
+      t(j,i,k)  = t(j,i,k)  + dtinc * tten(j,i,k)
+      ux(j,i,k) = ux(j,i,k) + dtinc * uten(j,i,k)
+      vx(j,i,k) = vx(j,i,k) + dtinc * vten(j,i,k)
+      qv(j,i,k) = qv(j,i,k) + dtinc * qvten(j,i,k)
+      if ( qv(j,i,k) < 1.0E-8_rkx ) qv(j,i,k) = 1.0E-8_rkx
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                     k = 1:kz, n = iqfrst:nqx)
