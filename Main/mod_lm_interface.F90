@@ -1624,9 +1624,7 @@ module mod_lm_interface
         end if
         if ( associated(srf_t2m_out) ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-              srf_t2m_out(j,i,1) = lm_t2m(j,i)
-            end do
+            srf_t2m_out(j,i,1) = lm_t2m(j,i)
           end do
         end if
         if ( associated(srf_q2m_out) ) then
