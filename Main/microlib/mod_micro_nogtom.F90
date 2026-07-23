@@ -399,6 +399,7 @@ module mod_micro_nogtom
     real(rkx), dimension(mxqx) :: rsp2
     real(rkx), dimension(mxqx) :: rsp3
     integer(ik4), dimension(mxqx) :: isp1
+    real(rkx), dimension(1) :: dum
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
@@ -469,24 +470,13 @@ module mod_micro_nogtom
     ! Define pressure at full levels
     ! pf = Pressure on fuLL levels (Pa)
     ! Define a new array for detrainment
-#ifdef STDPAR_FIXED
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
-#else
-    !$acc parallel loop collapse(3)
-    do i = ici1,ici2
-    do j = jci1,jci2
-    do k = 1,kz
-#endif
       qliq(k,j,i) = max(min(d_one,((max(rtice,min(tzero, &
                         tx(k,j,i)))-rtice)*rtwat_rtice_r)**2),d_zero)
       ! Compute supersaturations
       eeliq(k,j,i) = ep2*esatliq(tx(k,j,i))
       eeice(k,j,i) = ep2*esatice(tx(k,j,i))
       koop(k,j,i) = min(rkoop1-rkoop2*tx(k,j,i),eeliq(k,j,i)/eeice(k,j,i))
-#ifndef STDPAR_FIXED
-    end do
-    end do
-#endif
     end do
 
     !-------------------------------------
@@ -635,17 +625,9 @@ module mod_micro_nogtom
     !
     ! Loop over points
     !
-#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
-      rsp1,rsp2,rsp3,isp1)
-#else
-    !$acc parallel loop collapse(2) gang vector &
-    !$acc     private(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp, &
-    !$acc             qx0,qxfg,qxn,rsp1,rsp2,rsp3,isp1)
-    do i = ici1, ici2
-    do j = jci1, jci2
-#endif
+      rsp1,rsp2,rsp3,isp1,dum)
 
       pbot = pf(kzp1,j,i)
       covptot = d_zero
@@ -1724,7 +1706,7 @@ module mod_micro_nogtom
           qxn(n) = qx0(n) + rexplicit
         end do
 
-        call solver(nqx,qlhs,qxn,rsp1,rsp2,rsp3,isp1)
+        call solver(nqx,qlhs,qxn,rsp1,rsp2,rsp3,isp1,dum)
 
         !---------------------------------------------------------
         ! End solver for the microphysics: qxn is now the solution
@@ -1752,9 +1734,6 @@ module mod_micro_nogtom
           end if
         end do
       end do  ! kz : end of vertical loop
-#ifndef STDPAR_FIXED
-    end do
-#endif
     end do      ! jx, iy : end of latitude-longitude loop
 
     if ( idynamic == 3 ) then
@@ -2038,7 +2017,7 @@ module mod_micro_nogtom
  !   end do
  ! end function argsort
 
-  pure subroutine solver(n,lhs,rhs,rsp1,rsp2,rsp3,isp1)
+  pure subroutine solver(n,lhs,rhs,rsp1,rsp2,rsp3,isp1,dum)
     !$acc routine seq
     implicit none
     integer, intent(in) :: n
@@ -2048,8 +2027,9 @@ module mod_micro_nogtom
     real(rkx), dimension(n), intent(inout) :: rsp2
     real(rkx), dimension(n), intent(inout) :: rsp3
     integer(ik4), dimension(n), intent(out) :: isp1
+    real(rkx), dimension(1), intent(out) :: dum
     rsp1(1:n) = rhs
-    call nnls(n, lhs, rsp1, rhs, rsp2, rsp3, isp1)
+    call nnls(n, lhs, rsp1, rhs, rsp2, rsp3, isp1, dum)
   end subroutine solver
   !
   !  The original version of this code was developed by
@@ -2088,7 +2068,7 @@ module mod_micro_nogtom
   !              IZ1 = NSETP + 1 = NPP1
   !              IZ2 = N
   !  ------------------------------------------------------------------
-  pure subroutine nnls (n, a, b, x, w, zz, indx)
+  pure subroutine nnls (n, a, b, x, w, zz, indx, dummy)
     !$acc routine seq
     implicit none
     integer(ik4), intent(in) :: n
@@ -2096,12 +2076,12 @@ module mod_micro_nogtom
     real(rkx), intent(inout), dimension(n) :: b
     real(rkx), intent(out), dimension(n) :: x, w, zz
     integer(ik4), intent(out), dimension(n) :: indx
+    real(rkx), intent(out), dimension(1) :: dummy
 
     integer(ik4) :: i, ii, ip, iter, itmax, iz, iz1, iz2, izmax,   &
                     j, jj, jz, l, mda, npp1, nsetp
-    real(rkx), dimension(1) :: dummy
-    real(rkx), parameter :: factor = 0.01_rkx
     real(rkx) :: alpha, asave, cc, ss, t, temp, unorm, up, wmax, ztest
+    real(rkx), parameter :: factor = 0.01_rkx
 
     iter = 0
     itmax = 3*n
@@ -2149,7 +2129,7 @@ module mod_micro_nogtom
     ! NEAR LINEAR DEPENDENCE.
 
     asave = a(npp1,j)
-    call h12(1, npp1, npp1+1, n, a(:,j), up, dummy, 1, 1, 0)
+    call h12(1, npp1, npp1+1, n, n, 1, a(:,j), dummy, up, 1, 1, 0)
     unorm = d_zero
     if ( nsetp /= 0 ) then
       unorm = sum( a(1:nsetp,j)**2 )
@@ -2161,7 +2141,7 @@ module mod_micro_nogtom
       ! AND SOLVE FOR ZTEST ( = PROPOSED NEW VALUE FOR X(J) ).
 
       zz(1:n) = b(1:n)
-      call h12(2, npp1, npp1+1, n, a(:,j), up, zz, 1, 1, 1)
+      call h12(2, npp1, npp1+1, n, n, n, a(:,j), zz, up, 1, 1, 1)
       ztest = zz(npp1)/a(npp1,j)
       !                                 SEE IF ZTEST IS POSITIVE
       if ( ztest > d_zero ) goto 140
@@ -2192,7 +2172,7 @@ module mod_micro_nogtom
     if ( iz1 <= iz2 ) then
       do jz = iz1, iz2
         jj = indx(jz)
-        call h12(2, nsetp, npp1, n, a(:,j), up, a(:,jj), 1, mda, 1)
+        call h12(2, nsetp, npp1, n, n, n, a(:,j), a(:,jj), up, 1, mda, 1)
       end do
     end if
 
@@ -2203,7 +2183,7 @@ module mod_micro_nogtom
     w(j) = d_zero
     !                            SOLVE THE TRIANGULAR SYSTEM.
     !                            STORE THE SOLUTION TEMPORARILY IN ZZ().
-    call solve_triangular(zz, a, nsetp, indx)
+    call solve_triangular(n, zz, a, nsetp, indx)
 
     !                   ******  SECONDARY LOOP BEGINS HERE ******
     !                      ITERATION COUNTER.
@@ -2287,7 +2267,7 @@ module mod_micro_nogtom
     ! COPY B( ) INTO ZZ( ).  THEN SOLVE AGAIN AND LOOP BACK.
 
     zz(1:n) = b(1:n)
-    calL solve_triangular(zz, a, nsetp, indx)
+    calL solve_triangular(n, zz, a, nsetp, indx)
     goto 210
     !             ******  END OF SECONDARY LOOP  ******
 
@@ -2312,12 +2292,13 @@ module mod_micro_nogtom
   ! THE FOLLOWING BLOCK OF CODE WAS USED AS AN INTERNAL SUBROUTINE
   ! TO SOLVE THE TRIANGULAR SYSTEM, PUTTING THE SOLUTION IN ZZ().
   !
-  pure subroutine solve_triangular(zz, a, nsetp, indx)
+  pure subroutine solve_triangular(n, zz, a, nsetp, indx)
     !$acc routine seq
     implicit none
-    real(rkx), dimension(:), intent(inout) :: zz
-    real(rkx), dimension(:,:), intent(in) :: a
-    integer(ik4), dimension(:), intent(in) :: indx
+    integer(ik4), intent(in) :: n
+    real(rkx), dimension(n), intent(inout) :: zz
+    real(rkx), dimension(n,n), intent(in) :: a
+    integer(ik4), dimension(n), intent(in) :: indx
     integer(ik4), intent(in) :: nsetp
     integer(ik4) :: l, ip, jj
     do l = 1, nsetp
@@ -2389,11 +2370,12 @@ module mod_micro_nogtom
   !     NCV    NUMBER OF VECTORS IN C() TO BE TRANSFORMED. IF NCV  <=  0
   !            NO OPERATIONS WILL BE DONE ON C().
   !     ------------------------------------------------------------------
-  pure subroutine h12(mode, lpivot, l1, m, u, up, c, ice, icv, ncv)
+  pure subroutine h12(mode, lpivot, l1, m, nu, nc, u, c, up, ice, icv, ncv)
     !$acc routine seq
     implicit none
-    integer(ik4), intent(in) :: mode, lpivot, l1, m, ice, icv, ncv
-    real(rkx), dimension(:), intent(inout) :: u, c
+    integer(ik4), intent(in) :: mode, lpivot, l1, m, nu, nc, ice, icv, ncv
+    real(rkx), dimension(nu), intent(inout) :: u
+    real(rkx), dimension(nc), intent(inout) :: c
     real(rkx), intent(inout) :: up
     integer(ik4) :: i, i2, i3, i4, incr, j
     real(rkx) :: b, cl, clinv, sm
