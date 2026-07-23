@@ -625,10 +625,17 @@ module mod_micro_nogtom
     !
     ! Loop over points
     !
+#ifdef OPENACC
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
       rsp1,rsp2,rsp3,isp1,dum)
-
+#else
+    !$acc parallel loop collapse(2) gang vector &
+    !$acc     private(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp, &
+    !$acc             qx0,qxfg,qxn,rsp1,rsp2,rsp3,isp1,dum)
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
       pbot = pf(kzp1,j,i)
       covptot = d_zero
       covpclr = d_zero
@@ -1734,6 +1741,9 @@ module mod_micro_nogtom
           end if
         end do
       end do  ! kz : end of vertical loop
+#ifndef OPENACC
+      end do
+#endif
     end do      ! jx, iy : end of latitude-longitude loop
 
     if ( idynamic == 3 ) then
