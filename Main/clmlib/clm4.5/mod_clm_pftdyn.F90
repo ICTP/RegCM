@@ -40,11 +40,13 @@ module mod_clm_pftdyn
 #endif
   real(rk8), pointer, contiguous, dimension(:,:) :: wtpft1
   real(rk8), pointer, contiguous, dimension(:,:) :: wtpft2
-  real(rk8), pointer, contiguous, dimension(:) :: harvest
   real(rk8), pointer, contiguous, dimension(:) :: wtcol_old
+#ifdef CN
+  logical :: do_harvest
+  real(rk8), pointer, contiguous, dimension(:) :: harvest
+#endif
   integer(ik4) :: nt
   real(rk8) :: ndpy
-  logical :: do_harvest
   type(clm_filetype) :: ncid   ! netcdf id
   character(len=256) :: fpftdyn
   character(len=4) :: cy4
@@ -58,7 +60,7 @@ module mod_clm_pftdyn
   ! that bound the initial model date)
   !
   subroutine pftdyn_init()
-    use mod_clm_varpar, only : numpft, maxpatch_pft, numurbl
+    use mod_clm_varpar, only : numpft, maxpatch_pft
     implicit none
     integer(ik4) :: m, g ! indices
     integer(ik4) :: year  ! year (0, ...) for nstep+1

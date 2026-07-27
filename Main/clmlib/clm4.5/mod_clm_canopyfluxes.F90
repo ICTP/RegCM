@@ -597,7 +597,9 @@ module mod_clm_canopyfluxes
    forc_lwrad     => clm_a2l%forc_lwrad
    forc_pco2      => clm_a2l%forc_pco2
    if ( use_c13 ) then
-     forc_pc13o2    => clm_a2l%forc_pc13o2
+     forc_pc13o2  => clm_a2l%forc_pc13o2
+   else
+     forc_pc13o2  => null( )
    end if
    forc_po2       => clm_a2l%forc_po2
    forc_q         => clm_a2l%forc_q
@@ -1625,17 +1627,17 @@ module mod_clm_canopyfluxes
       gb_mol         => clm3%g%l%c%p%ppsyns%gb_mol
       gs_mol         => clm3%g%l%c%p%ppsyns%gs_mol
 
-      if (phase == 'sun') then
-        par_z       => clm3%g%l%c%p%pef%parsun_z
-        alphapsn    => clm3%g%l%c%p%pps%alphapsnsun
-      else if (phase == 'sha') then
-        par_z       => clm3%g%l%c%p%pef%parsha_z
-        alphapsn    => clm3%g%l%c%p%pps%alphapsnsha
-      else
-        nullify(par_z)
-        nullify(alphapsn)
+      if ( phase /= 'sun' .and. phase /= 'sha' ) then
         write(stderr,*) 'ERRORR! phase not in [sha,sun]'
         call fatal(__FILE__,__LINE__,'clm now stopping')
+      end if
+
+      if ( phase == 'sun' ) then
+        par_z       => clm3%g%l%c%p%pef%parsun_z
+        alphapsn    => clm3%g%l%c%p%pps%alphapsnsun
+      else
+        par_z       => clm3%g%l%c%p%pef%parsha_z
+        alphapsn    => clm3%g%l%c%p%pps%alphapsnsha
       end if
 
 #ifdef OPENACC

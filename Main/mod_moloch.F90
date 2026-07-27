@@ -376,6 +376,7 @@ module mod_moloch
     ! Recomputes       : pai, tetav, ud, vd, qx, qs
     !
     call status_update(dtsec)
+
     !
     ! ===========================
     ! Diagnostic and end timestep
@@ -494,6 +495,7 @@ module mod_moloch
       tspectral = tspectral + dtsec
       if ( int(mod(tspectral,dtrad)) == 0 ) then
         call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci1,ici1,ici2,t,xtb)
+        call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci1,ici1,ici2,pai,xpaib)
         call mospectral_nudge(jde1,jde2,ice1,ice2,jdi1,jdi2,ici1,ici2,u,dub)
         call mospectral_nudge(jce1,jce2,ide1,ide2,jci1,jci2,idi1,idi2,v,dvb)
       end if
@@ -1326,7 +1328,11 @@ module mod_moloch
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         tten(j,i,k) = tten(j,i,k) + heatrt(j,i,k)
       end do
-      if ( idiag > 0 ) tdiag%rad = heatrt
+      if ( idiag > 0 ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          tdiag%rad(j,i,k) = heatrt(j,i,k)
+        end do
+      end if
     end if
     !
     !------------------------------------------------

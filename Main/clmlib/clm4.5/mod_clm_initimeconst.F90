@@ -456,17 +456,15 @@ module mod_clm_initimeconst
     sandfrac        => clm3%g%l%c%p%pps%sandfrac
     clayfrac        => clm3%g%l%c%p%pps%clayfrac
 
-    if (nlevurb > 0) then
-      allocate(zurb_wall(begl:endl,nlevurb),    &
-               zurb_roof(begl:endl,nlevurb),    &
-               dzurb_wall(begl:endl,nlevurb),   &
-               dzurb_roof(begl:endl,nlevurb),   &
-               ziurb_wall(begl:endl,0:nlevurb), &
-               ziurb_roof(begl:endl,0:nlevurb), &
-               stat=ier)
-      if (ier /= 0) then
-        call fatal(__FILE__,__LINE__, 'iniTimeConst: allocation error')
-      end if
+    allocate(zurb_wall(begl:endl,nlevurb),    &
+             zurb_roof(begl:endl,nlevurb),    &
+             dzurb_wall(begl:endl,nlevurb),   &
+             dzurb_roof(begl:endl,nlevurb),   &
+             ziurb_wall(begl:endl,0:nlevurb), &
+             ziurb_roof(begl:endl,0:nlevurb), &
+             stat=ier)
+    if (ier /= 0) then
+      call fatal(__FILE__,__LINE__, 'iniTimeConst: allocation error')
     end if
 
     ! --------------------------------------------------------------------
@@ -964,14 +962,14 @@ module mod_clm_initimeconst
         write(stdout,*)'Total thickness of roof: ',sum(dzurb_roof(l,:))
         write(stdout,*)'Roof layer thicknesses: ',dzurb_roof(l,:)
 
-        ziurb_wall(l,0) = 0.
+        ziurb_wall(l,0) = 0._rk8
         ziurb_wall(l,1) = dzurb_wall(l,1)
         do j = 2, nlevurb
           ziurb_wall(l,j) = sum(dzurb_wall(l,1:j))
         end do
         write(stdout,*)'Wall layer interface depths: ',ziurb_wall(l,:)
 
-        ziurb_roof(l,0) = 0.
+        ziurb_roof(l,0) = 0._rk8
         ziurb_roof(l,1) = dzurb_roof(l,1)
         do j = 2, nlevurb
           ziurb_roof(l,j) = sum(dzurb_roof(l,1:j))
@@ -979,41 +977,41 @@ module mod_clm_initimeconst
         write(stdout,*)'Roof layer interface depths: ',ziurb_roof(l,:)
 #else
         do j = 1, nlevurb
-          zurb_wall(l,j) = (j-0.5)*(thick_wall(l)/float(nlevurb))  !node depths
+          zurb_wall(l,j) = (j-0.5_rk8)*(thick_wall(l)/float(nlevurb))  !node depths
         end do
         do j = 1, nlevurb
-          zurb_roof(l,j) = (j-0.5)*(thick_roof(l)/float(nlevurb))  !node depths
+          zurb_roof(l,j) = (j-0.5_rk8)*(thick_roof(l)/float(nlevurb))  !node depths
         end do
 
         !thickness b/n two interfaces
-        dzurb_roof(l,1) = 0.5*(zurb_roof(l,1)+zurb_roof(l,2))
+        dzurb_roof(l,1) = 0.5_rk8*(zurb_roof(l,1)+zurb_roof(l,2))
         do j = 2, nlevurb-1
-          dzurb_roof(l,j)= 0.5*(zurb_roof(l,j+1)-zurb_roof(l,j-1))
+          dzurb_roof(l,j)= 0.5_rk8*(zurb_roof(l,j+1)-zurb_roof(l,j-1))
         end do
         dzurb_roof(l,nlevurb) = zurb_roof(l,nlevurb)-zurb_roof(l,nlevurb-1)
 
         !thickness b/n two interfaces
-        dzurb_wall(l,1) = 0.5*(zurb_wall(l,1)+zurb_wall(l,2))
+        dzurb_wall(l,1) = 0.5_rk8*(zurb_wall(l,1)+zurb_wall(l,2))
         do j = 2, nlevurb-1
-          dzurb_wall(l,j)= 0.5*(zurb_wall(l,j+1)-zurb_wall(l,j-1))
+          dzurb_wall(l,j)= 0.5_rk8*(zurb_wall(l,j+1)-zurb_wall(l,j-1))
         end do
         dzurb_wall(l,nlevurb) = zurb_wall(l,nlevurb)-zurb_wall(l,nlevurb-1)
 
-        ziurb_wall(l,0) = 0.
+        ziurb_wall(l,0) = 0._rk8
         do j = 1, nlevurb-1
           !interface depths
-          ziurb_wall(l,j) = 0.5*(zurb_wall(l,j)+zurb_wall(l,j+1))
+          ziurb_wall(l,j) = 0.5_rk8*(zurb_wall(l,j)+zurb_wall(l,j+1))
         end do
         ziurb_wall(l,nlevurb) = zurb_wall(l,nlevurb) + &
-                0.5*dzurb_wall(l,nlevurb)
+                0.5_rk8*dzurb_wall(l,nlevurb)
 
-        ziurb_roof(l,0) = 0.
+        ziurb_roof(l,0) = 0._rk8
         do j = 1, nlevurb-1
           !interface depths
-          ziurb_roof(l,j) = 0.5*(zurb_roof(l,j)+zurb_roof(l,j+1))
+          ziurb_roof(l,j) = 0.5_rk8*(zurb_roof(l,j)+zurb_roof(l,j+1))
         end do
         ziurb_roof(l,nlevurb) = zurb_roof(l,nlevurb) + &
-                0.5*dzurb_roof(l,nlevurb)
+                0.5_rk8*dzurb_roof(l,nlevurb)
 #endif
       end if
     end do
@@ -1024,7 +1022,7 @@ module mod_clm_initimeconst
       ! Set gridcell and landunit indices
       efisop(1,g)=efisop2d(1,g)
       efisop(2,g)=efisop2d(2,g)
-       efisop(3,g)=efisop2d(3,g)
+      efisop(3,g)=efisop2d(3,g)
       efisop(4,g)=efisop2d(4,g)
       efisop(5,g)=efisop2d(5,g)
       efisop(6,g)=efisop2d(6,g)
@@ -1640,10 +1638,8 @@ module mod_clm_initimeconst
     deallocate(lakedepth_in)
     deallocate(etal_in)
     deallocate(lakefetch_in)
-    if (nlevurb > 0) then
-      deallocate(zurb_wall, zurb_roof, dzurb_wall, &
-                 dzurb_roof, ziurb_wall, ziurb_roof)
-    end if
+    deallocate(zurb_wall, zurb_roof, dzurb_wall, &
+               dzurb_roof, ziurb_wall, ziurb_roof)
 
     deallocate(std)
     deallocate(tslope)

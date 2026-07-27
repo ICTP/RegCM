@@ -638,6 +638,7 @@ module mod_clm_initgridcells
       call subgrid_get_gcellinfo(nw, nglacier=npfts, wtglacier=wtlunit2gcell)
       m = npatch_glacier
     else
+      m = -1
       write(stderr,*)' set_landunit_wet_ice_lake: ltype of ',ltype,' not valid'
       write(stderr,*) &
               ' only istwet, istdlak, istice and ltypes are valid'
@@ -882,22 +883,27 @@ module mod_clm_initgridcells
           wtlunit_roof = urbinp%wtlunit_roof(nw,n)
           wtroad_perv  = urbinp%wtroad_perv(nw,n)
 
-          if (m == npatch  ) then
+          if ( m == npatch ) then
             ctype = icol_roof
             wtcol2lunit = wtlunit_roof
-          else if (m == npatch+1) then
+          else if ( m == npatch+1 ) then
             ctype = icol_sunwall
             wtcol2lunit = (1.0_rk8 - wtlunit_roof)/3.0_rk8
-          else if (m == npatch+2) then
+          else if ( m == npatch+2 ) then
             ctype = icol_shadewall
             wtcol2lunit = (1.0_rk8 - wtlunit_roof)/3.0_rk8
-          else if (m == npatch+3) then
+          else if ( m == npatch+3 ) then
             ctype = icol_road_imperv
             wtcol2lunit = ((1.0_rk8 - wtlunit_roof)/3.0_rk8) * &
                           (1.0_rk8-wtroad_perv)
-          else if (m == npatch+4) then
+          else if ( m == npatch+4 ) then
             ctype = icol_road_perv
             wtcol2lunit = ((1.0_rk8 - wtlunit_roof)/3.0_rk8) * (wtroad_perv)
+          else
+             ctype = -1
+             wtcol2lunit = -0._rk8
+             write(stderr, *) 'ERROR!'
+             call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
 
           ci = ci + 1

@@ -404,6 +404,16 @@ module mod_clm_accflds
       a5tmin           => clm3%g%l%c%p%pes%a5tmin
       vf               => clm3%g%l%c%p%pps%vf
       croplive         => clm3%g%l%c%p%pps%croplive
+    else
+      gdd0             => null( )
+      gdd8             => null( )
+      gdd10            => null( )
+      gddplant         => null( )
+      gddtsoi          => null( )
+      a10tmin          => null( )
+      a5tmin           => null( )
+      vf               => null( )
+      croplive         => null( )
     end if
 #if (defined CNDV)
     t_mo             => clm3%g%l%c%p%pdgvs%t_mo
@@ -901,6 +911,14 @@ module mod_clm_accflds
       gdd10            => clm3%g%l%c%p%pps%gdd10
       gddplant         => clm3%g%l%c%p%pps%gddplant
       gddtsoi          => clm3%g%l%c%p%pps%gddtsoi
+    else
+      a10tmin          => null( )
+      a5tmin           => null( )
+      gdd0             => null( )
+      gdd8             => null( )
+      gdd10            => null( )
+      gddplant         => null( )
+      gddtsoi          => null( )
     end if
 #if (defined CNDV)
     t_mo             => clm3%g%l%c%p%pdgvs%t_mo

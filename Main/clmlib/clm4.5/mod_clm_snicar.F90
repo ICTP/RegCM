@@ -451,16 +451,14 @@ module mod_clm_snicar
     if (flg_snw_ice == 1) then
       snl       => clm3%g%l%c%cps%snl
       h2osno    => clm3%g%l%c%cws%h2osno
-      clandunit => clm3%g%l%c%landunit  ! (debug only)
-      cgridcell => clm3%g%l%c%gridcell  ! (debug only)
-      ltype     => clm3%g%l%itype       ! (debug only)
-      londeg    => clm3%g%londeg        ! (debug only)
-      latdeg    => clm3%g%latdeg        ! (debug only)
     end if
 
-    frac_sno    => clm3%g%l%c%cps%frac_sno_eff
-    clandunit   => clm3%g%l%c%landunit
-    ltype       => clm3%g%l%itype
+    frac_sno  => clm3%g%l%c%cps%frac_sno_eff
+    clandunit => clm3%g%l%c%landunit
+    cgridcell => clm3%g%l%c%gridcell  ! (debug only)
+    ltype     => clm3%g%l%itype
+    londeg    => clm3%g%londeg        ! (debug only)
+    latdeg    => clm3%g%latdeg        ! (debug only)
 
     ! always use Delta approximation for snow
     delta = 1

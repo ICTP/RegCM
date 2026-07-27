@@ -753,7 +753,7 @@ module mod_clm_vocemission
           fgro = 0.0_rk8
           fmat = 1.0_rk8 - (elai_prev - elai_in)/elai_prev
           fold = (elai_prev - elai_in)/elai_prev
-        else if (elai_prev < elai_in) then
+        else ! if (elai_prev < elai_in) then
           fnew = 1 - (elai_prev / elai_in)
           fgro = 0.0_rk8
           fmat = (elai_prev / elai_in)
@@ -822,7 +822,7 @@ module mod_clm_vocemission
       IEmax   = fint*0.8611_rk8 + (1._rk8 - fint)*0.7976_rk8
       ECi50   = fint*508._rk8 + (1._rk8 - fint)*575._rk8
       Cislope = fint*2.7497_rk8 + (1._rk8 - fint)*2.3643_rk8
-    else if ( co2_ppmv > 800._rk8 ) then
+    else ! if ( co2_ppmv > 800._rk8 ) then
       IEmin   = 0.6063_rk8
       IEmax   = 0.7976_rk8
       ECi50   = 575._rk8

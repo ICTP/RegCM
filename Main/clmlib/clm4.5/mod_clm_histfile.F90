@@ -897,6 +897,13 @@ module mod_clm_histfile
     ! Determine output 1d dimensions
 
     type1d_out = tape(t)%hlist(n)%field%type1d_out
+    if ( type1d_out /= nameg .and. type1d_out /= namel .and. &
+         type1d_out /= namec .and. type1d_out /= namep ) then
+      write(stderr,*) trim(subname), &
+              ' ERROR: incorrect value of type1d_out= ',type1d_out
+      call fatal(__FILE__,__LINE__,'clm now stopping.')
+    end if
+
     if ( type1d_out == nameg ) then
       beg1d_out = begg
       end1d_out = endg
@@ -909,14 +916,10 @@ module mod_clm_histfile
       beg1d_out = begc
       end1d_out = endc
       num1d_out = numc
-    else if ( type1d_out == namep ) then
+    else
       beg1d_out = begp
       end1d_out = endp
       num1d_out = nump
-    else
-      write(stderr,*) trim(subname), &
-              ' ERROR: incorrect value of type1d_out= ',type1d_out
-      call fatal(__FILE__,__LINE__,'clm now stopping.')
     end if
 
     tape(t)%hlist(n)%field%beg1d_out = beg1d_out

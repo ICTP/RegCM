@@ -192,6 +192,9 @@ Module mod_clm_drydepvelocity
             [ 0.000_rk8, 0.010_rk8, 0.005_rk8, 0.004_rk8, 0.003_rk8, &
                0.005_rk8, 0.000_rk8, 0.000_rk8, 0.000_rk8, 0.075_rk8, 0.002_rk8 ]
 
+    cts = 0._rk8
+    rlux_o3 = 0._rk8
+
     if ( n_drydep == 0 .or. drydep_method /= DD_XLND ) return
 
     ! local pointers to original implicit out arrays

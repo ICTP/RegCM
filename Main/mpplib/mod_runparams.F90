@@ -540,6 +540,8 @@ module mod_runparams
   ! option for writing tendency diagnostic
   integer(ik4), public :: idiag
   integer(ik4), public :: icosp
+  integer(ik4), public :: diaghfs
+  real(rkx), public :: diaghf
 
   data doing_restart /.false./
 

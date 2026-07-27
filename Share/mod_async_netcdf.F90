@@ -1211,7 +1211,6 @@ module mod_async_netcdf
       implicit none
       integer(c_int64_t), intent(in), optional :: limit_bytes
       integer(c_int) :: rc
-      integer(ik4) :: stat
 
       if ( initialized ) return
       call read_memory_cap()

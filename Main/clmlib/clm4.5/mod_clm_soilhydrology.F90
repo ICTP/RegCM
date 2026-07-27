@@ -607,11 +607,12 @@ module mod_clm_soilhydrology
         qflx_infl(c) = qflx_in_soil(c) - qflx_infl_excess(c)
         qflx_in_h2osfc(c) =  qflx_in_h2osfc(c) + qflx_infl_excess(c)
 
+        frac_infclust = 0.0_rk8
+
         !5. surface runoff from h2osfc
         if ( h2osfcflag == 1 ) then
           ! calculate runoff from h2osfc
           if ( frac_h2osfc(c) <= pc ) then
-            frac_infclust = 0.0_rk8
             ! there is a potential conflict between frac_sno and frac_h2osfc
             ! calculate temporary surface water fraction to enable runoff
             ! when frac_sno is large

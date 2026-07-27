@@ -321,8 +321,6 @@ module mod_clm_balancecheck
 
     character(len=*), parameter :: f99001 = &
      "(1x,a,' step =',i10,' point =',i10,' imbalance =',f12.6,' W/m2')"
-    character(len=*), parameter :: f99002 = &
-     "(1x,a,' step =',i10,' point =',i10,' imbalance =',f12.6,' mm')"
 
     ! Assign local pointers to derived type scalar members (gridcell-level)
 
@@ -668,6 +666,8 @@ module mod_clm_balancecheck
     ! Solar radiation energy balance check
 
     found = .false.
+    indexg = -1
+    indexp = -1
     !$acc parallel loop gang vector copy(found) copyout(indexp,indexg)
     do p = lbp, ubp
       if (pactive(p)) then

@@ -44,6 +44,9 @@ module mod_output
   use mod_slabocean
   use mod_moloch
   use mod_capecin
+#ifdef DEBUG
+  use mod_timer
+#endif
 
   implicit none
 
@@ -103,6 +106,7 @@ module mod_output
     integer(ik4) :: i, j, k, n, kk, itr
     real(rkx) :: cell, srffac, radfac, lakfac, subfac, optfac, stsfac
     real(rkx) :: tsurf, t500
+    logical, save :: diag_hf_started = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4), save :: idindx = 0
@@ -175,6 +179,21 @@ module mod_output
     ldoslab = .false.
     ldosts = .false.
     ldoshf = .false.
+
+    ! Undocumented debug - keep it undocumented.
+    if ( idiag > 0 ) then
+      if ( diaghfs > 0 .and. diaghf > 0.0_rkx ) then
+        if ( .not. diag_hf_started ) then
+          if ( rcmtimer%idate >= diaghfs ) then
+            if ( myid == italk ) then
+              write(stderr, *) 'HIGH FREQUENCY DEBUG OUTPUT ACTIVATED!'
+            end if
+            alarm_out_atm => rcm_alarm(rcmtimer,diaghf)
+            diag_hf_started = .true.
+          end if
+        end if
+      end if
+    end if
 
     if ( rcmtimer%integrating( ) ) then
       if ( associated(alarm_out_nwf) ) then
@@ -694,15 +713,9 @@ module mod_output
             tdiag%adh = d_zero
           end if
           if ( associated(atm_tten_adv_out) ) then
-            if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_tten_adv_out(j,i,k) = tdiag%adv(j,i,k)
-              end do
-            else
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_tten_adv_out(j,i,k) = tdiag%adv(j,i,k)/ps_out(j,i)
-              end do
-            end if
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_tten_adv_out(j,i,k) = tdiag%adv(j,i,k)/ps_out(j,i)
+            end do
             tdiag%adv = d_zero
           end if
           if ( associated(atm_tten_tbl_out) ) then
@@ -718,15 +731,9 @@ module mod_output
             tdiag%tbl = d_zero
           end if
           if ( associated(atm_tten_dif_out) ) then
-            if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_tten_dif_out(j,i,k) = tdiag%dif(j,i,k)
-              end do
-            else
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_tten_dif_out(j,i,k) = tdiag%dif(j,i,k)/ps_out(j,i)
-              end do
-            end if
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_tten_dif_out(j,i,k) = tdiag%dif(j,i,k)/ps_out(j,i)
+            end do
             tdiag%dif = d_zero
           end if
           if ( associated(atm_tten_bdy_out) ) then
@@ -754,15 +761,9 @@ module mod_output
             tdiag%con = d_zero
           end if
           if ( associated(atm_tten_adi_out) ) then
-            if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_tten_adi_out(j,i,k) = tdiag%adi(j,i,k)
-              end do
-            else
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_tten_adi_out(j,i,k) = tdiag%adi(j,i,k)/ps_out(j,i)
-              end do
-            end if
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_tten_adi_out(j,i,k) = tdiag%adi(j,i,k)/ps_out(j,i)
+            end do
             tdiag%adi = d_zero
           end if
           if ( associated(atm_tten_rad_out) ) then
@@ -802,15 +803,9 @@ module mod_output
             qdiag%adh = d_zero
           end if
           if ( associated(atm_qten_adv_out) ) then
-            if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_qten_adv_out(j,i,k) = qdiag%adv(j,i,k)
-              end do
-            else
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_qten_adv_out(j,i,k) = qdiag%adv(j,i,k)/ps_out(j,i)
-              end do
-            end if
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_qten_adv_out(j,i,k) = qdiag%adv(j,i,k)/ps_out(j,i)
+            end do
             qdiag%adv = d_zero
           end if
           if ( associated(atm_qten_tbl_out) ) then
@@ -826,15 +821,9 @@ module mod_output
             qdiag%tbl = d_zero
           end if
           if ( associated(atm_qten_dif_out) ) then
-            if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_qten_dif_out(j,i,k) = qdiag%dif(j,i,k)
-              end do
-            else
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_qten_dif_out(j,i,k) = qdiag%dif(j,i,k)/ps_out(j,i)
-              end do
-            end if
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_qten_dif_out(j,i,k) = qdiag%dif(j,i,k)/ps_out(j,i)
+            end do
             qdiag%dif = d_zero
           end if
           if ( associated(atm_qten_bdy_out) ) then
@@ -862,28 +851,10 @@ module mod_output
             qdiag%con = d_zero
           end if
           if ( associated(atm_qten_adi_out) ) then
-            if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_qten_adi_out(j,i,k) = qdiag%adi(j,i,k)
-              end do
-            else
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_qten_adi_out(j,i,k) = qdiag%adi(j,i,k)/ps_out(j,i)
-              end do
-            end if
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_qten_adi_out(j,i,k) = qdiag%adi(j,i,k)/ps_out(j,i)
+            end do
             qdiag%adi = d_zero
-          end if
-          if ( associated(atm_qten_rad_out) ) then
-            if ( idynamic == 3 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_qten_rad_out(j,i,k) = qdiag%rad(j,i,k)
-              end do
-            else
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                atm_qten_rad_out(j,i,k) = qdiag%rad(j,i,k)/ps_out(j,i)
-              end do
-            end if
-            qdiag%rad = d_zero
           end if
           if ( associated(atm_qten_lsc_out) ) then
             if ( idynamic == 3 ) then

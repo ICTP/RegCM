@@ -166,6 +166,15 @@ module mod_clm_h2osfc
         h2osoi_liq = h2osoi_liq + h2osfc
         h2osfc = 0._rk8
       end if
+      if ( frac_sno > (1._rk8 - frac_h2osfc) .and. h2osno > 0._rk8 ) then
+        if ( frac_h2osfc > 0.01_rk8 ) then
+          frac_h2osfc = max(1.0_rk8 - frac_sno,0.01_rk8)
+          frac_sno = 1.0_rk8 - frac_h2osfc
+        else
+          frac_sno = 1.0_rk8 - frac_h2osfc
+        end if
+        frac_sno_eff = frac_sno
+      end if
     else
       frac_h2osfc = 0._rk8
     end if

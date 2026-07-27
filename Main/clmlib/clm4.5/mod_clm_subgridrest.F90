@@ -84,6 +84,15 @@ module mod_clm_subgridrest
         call fatal(__FILE__,__LINE__, &
               'allocation error from inicfile_fields iarrs')
       end if
+    else
+       rgarr => null( )
+       rlarr => null( )
+       rcarr => null( )
+       rparr => null( )
+       igarr => null( )
+       ilarr => null( )
+       icarr => null( )
+       iparr => null( )
     end if
 
     ! Write output data (first write current date and seconds of current date)

@@ -622,6 +622,8 @@ module mod_rad_colmod3
       do k = 1, kz
         ! Turn off ice radiative properties by setting fice = 0.0
         ! rt%fice(k,n) = 0.0_rk8
+        ! Vertical integral of in cloud ice/liquid water path:
+        !    (g/m^2 * cf) / 1000.0 = grid cell average value in kg/m^2
         totcl_l = totcl_l + &
              (rt%clwp(k,n)*temp(k,n)*(1.0_rk8-rt%fice(k,n)))*0.001_rk8
         totci_l = totci_l + &

@@ -96,7 +96,7 @@ module mod_params
       uvrotate, enable_atm_vars, enable_srf_vars, enable_rad_vars,  &
       enable_sub_vars, enable_sts_vars, enable_lak_vars,            &
       enable_opt_vars, enable_che_vars, enable_shf_vars,            &
-      lsync, idiag, icosp, ifcordex, chechgact,                     &
+      lsync, idiag, icosp, ifcordex, chechgact, diaghfs, diaghf,    &
       do_parallel_netcdf_in, do_parallel_netcdf_out
 
     namelist /physicsparam/ ibltyp, iboudy, isladvec, iqmsl,       &
@@ -279,6 +279,8 @@ module mod_params
     do_parallel_netcdf_in = .false.
     do_parallel_netcdf_out = .false.
     chechgact = .false.
+    diaghfs = -1
+    diaghf = -1.0_rkx
     idiag = 0
     icosp = 0
     !
@@ -1327,6 +1329,8 @@ module mod_params
     call bcast(lsync)
     call bcast(uvrotate)
     call bcast(idiag)
+    call bcast(diaghfs)
+    call bcast(diaghf)
     call bcast(icosp)
     call bcast(do_parallel_netcdf_in)
     call bcast(do_parallel_netcdf_out)

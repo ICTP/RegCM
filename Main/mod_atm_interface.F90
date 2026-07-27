@@ -792,12 +792,16 @@ module mod_atm_interface
       implicit none
       type(tendiag), intent(inout) :: dia
       call getmem(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
-      call getmem(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
+      if ( idynamic /= 3 ) then
+        call getmem(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
+        call getmem(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
+        call getmem(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
+      end if
+      if ( .not. all(icup == 0) ) then
+        call getmem(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
+      end if
       call getmem(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
-      call getmem(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
       call getmem(dia%bdy,jci1,jci2,ici1,ici2,1,kz,'tendiag:bdy')
-      call getmem(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
-      call getmem(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
       call getmem(dia%rad,jci1,jci2,ici1,ici2,1,kz,'tendiag:rad')
       call getmem(dia%lsc,jci1,jci2,ici1,ici2,1,kz,'tendiag:lsc')
     end subroutine allocate_tendiag
@@ -806,13 +810,16 @@ module mod_atm_interface
       implicit none
       type(qendiag), intent(inout) :: dia
       call getmem(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
-      call getmem(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
+      if ( idynamic /= 3 ) then
+        call getmem(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
+        call getmem(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
+        call getmem(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
+      end if
+      if ( .not. all(icup == 0) ) then
+        call getmem(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
+      end if
       call getmem(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
-      call getmem(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
       call getmem(dia%bdy,jci1,jci2,ici1,ici2,1,kz,'tendiag:bdy')
-      call getmem(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
-      call getmem(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
-      call getmem(dia%rad,jci1,jci2,ici1,ici2,1,kz,'tendiag:rad')
       call getmem(dia%lsc,jci1,jci2,ici1,ici2,1,kz,'tendiag:lsc')
       if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
         call getmem(dia%qcl,jci1,jci2,ici1,ici2,1,kz,'tendiag:qcl')

@@ -62,7 +62,7 @@ module mod_ncout
   integer(ik4), parameter :: nbase = 6
 
   integer(ik4), parameter :: natm2dvars = 4 + nbase
-  integer(ik4), parameter :: natm3dvars = 69
+  integer(ik4), parameter :: natm3dvars = 68
   integer(ik4), parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4), parameter :: nshf2dvars = 4 + nbase
@@ -227,31 +227,30 @@ module mod_ncout
   integer(ik4), parameter :: atm_qten_bdy     = 42
   integer(ik4), parameter :: atm_qten_con     = 43
   integer(ik4), parameter :: atm_qten_adi     = 44
-  integer(ik4), parameter :: atm_qten_rad     = 45
-  integer(ik4), parameter :: atm_qten_lsc     = 46
-  integer(ik4), parameter :: atm_stats_supw   = 47
-  integer(ik4), parameter :: atm_stats_supc   = 48
-  integer(ik4), parameter :: atm_stats_detw   = 49
-  integer(ik4), parameter :: atm_stats_detc   = 50
-  integer(ik4), parameter :: atm_stats_erow   = 51
-  integer(ik4), parameter :: atm_stats_eroc   = 52
-  integer(ik4), parameter :: atm_stats_evw    = 53
-  integer(ik4), parameter :: atm_stats_evc    = 54
-  integer(ik4), parameter :: atm_stats_con1w  = 55
-  integer(ik4), parameter :: atm_stats_con1c  = 56
-  integer(ik4), parameter :: atm_stats_dep    = 57
-  integer(ik4), parameter :: atm_stats_melt   = 58
-  integer(ik4), parameter :: atm_stats_frz    = 59
-  integer(ik4), parameter :: atm_stats_rainev = 60
-  integer(ik4), parameter :: atm_stats_snowev = 61
-  integer(ik4), parameter :: atm_stats_autocw = 62
-  integer(ik4), parameter :: atm_stats_autocc = 63
-  integer(ik4), parameter :: atm_qcrit        = 64
-  integer(ik4), parameter :: atm_ccnnum       = 65
-  integer(ik4), parameter :: atm_qincl        = 66
-  integer(ik4), parameter :: atm_autoconvr    = 67
-  integer(ik4), parameter :: atm_smw          = 68
-  integer(ik4), parameter :: atm_tsoil        = 69
+  integer(ik4), parameter :: atm_qten_lsc     = 45
+  integer(ik4), parameter :: atm_stats_supw   = 46
+  integer(ik4), parameter :: atm_stats_supc   = 47
+  integer(ik4), parameter :: atm_stats_detw   = 48
+  integer(ik4), parameter :: atm_stats_detc   = 49
+  integer(ik4), parameter :: atm_stats_erow   = 50
+  integer(ik4), parameter :: atm_stats_eroc   = 51
+  integer(ik4), parameter :: atm_stats_evw    = 52
+  integer(ik4), parameter :: atm_stats_evc    = 53
+  integer(ik4), parameter :: atm_stats_con1w  = 54
+  integer(ik4), parameter :: atm_stats_con1c  = 55
+  integer(ik4), parameter :: atm_stats_dep    = 56
+  integer(ik4), parameter :: atm_stats_melt   = 57
+  integer(ik4), parameter :: atm_stats_frz    = 58
+  integer(ik4), parameter :: atm_stats_rainev = 59
+  integer(ik4), parameter :: atm_stats_snowev = 60
+  integer(ik4), parameter :: atm_stats_autocw = 61
+  integer(ik4), parameter :: atm_stats_autocc = 62
+  integer(ik4), parameter :: atm_qcrit        = 63
+  integer(ik4), parameter :: atm_ccnnum       = 64
+  integer(ik4), parameter :: atm_qincl        = 65
+  integer(ik4), parameter :: atm_autoconvr    = 66
+  integer(ik4), parameter :: atm_smw          = 67
+  integer(ik4), parameter :: atm_tsoil        = 68
 
   integer(ik4), parameter :: shf_xlon   = 1
   integer(ik4), parameter :: shf_xlat   = 2
@@ -1166,17 +1165,74 @@ module mod_ncout
 
         if ( idiag > 0 ) then
           ! FAB : flag properly
-          if ( enable_atm3d_vars(atm_tten_adh) ) then
-            call setup_var(v3dvar_atm,atm_tten_adh,vsize,'ttenadh','K.s-1', &
-             'Temperature tendency due to horizontal advection', &
-             'temperature_tendency_due_to_horizontal_advection',.true.)
-            atm_tten_adh_out => v3dvar_atm(atm_tten_adh)%rval
-          end if
-          if ( enable_atm3d_vars(atm_tten_adv) ) then
-            call setup_var(v3dvar_atm,atm_tten_adv,vsize,'ttenadv','K.s-1', &
-             'Temperature tendency due to vertical advection', &
-             'temperature_tendency_due_to_vertical_advection',.true.)
-            atm_tten_adv_out => v3dvar_atm(atm_tten_adv)%rval
+          if ( idynamic == 3 ) then
+            if ( enable_atm3d_vars(atm_tten_adh) ) then
+              call setup_var(v3dvar_atm,atm_tten_adh,vsize,'ttendyn','K.s-1', &
+               'Temperature tendency due to dynamics', &
+               'temperature_tendency_due_to_dynamics',.true.)
+              atm_tten_adh_out => v3dvar_atm(atm_tten_adh)%rval
+            end if
+            if ( enable_atm3d_vars(atm_qten_adh) ) then
+              call setup_var(v3dvar_atm,atm_qten_adh,vsize,'qtendyn','s-1', &
+               'Mixing ratio tendency due to dynamics', &
+               'mixing_ratio_tendency_due_to_dynamics',.true.)
+              atm_qten_adh_out => v3dvar_atm(atm_qten_adh)%rval
+            end if
+            enable_atm3d_vars(atm_tten_adv) = .false.
+            enable_atm3d_vars(atm_tten_dif) = .false.
+            enable_atm3d_vars(atm_tten_adi) = .false.
+            enable_atm3d_vars(atm_qten_adv) = .false.
+            enable_atm3d_vars(atm_qten_dif) = .false.
+            enable_atm3d_vars(atm_qten_adi) = .false.
+          else
+            if ( enable_atm3d_vars(atm_tten_adh) ) then
+              call setup_var(v3dvar_atm,atm_tten_adh,vsize,'ttenadh','K.s-1', &
+               'Temperature tendency due to horizontal advection', &
+               'temperature_tendency_due_to_horizontal_advection',.true.)
+              atm_tten_adh_out => v3dvar_atm(atm_tten_adh)%rval
+            end if
+            if ( enable_atm3d_vars(atm_qten_adh) ) then
+              call setup_var(v3dvar_atm,atm_qten_adh,vsize,'qtenadh','s-1', &
+               'Mixing ratio tendency due to horizontal advection', &
+               'mixing_ratio_tendency_due_to_horizontal_advection',.true.)
+              atm_qten_adh_out => v3dvar_atm(atm_qten_adh)%rval
+            end if
+            if ( enable_atm3d_vars(atm_tten_adv) ) then
+              call setup_var(v3dvar_atm,atm_tten_adv,vsize,'ttenadv','K.s-1', &
+               'Temperature tendency due to vertical advection', &
+               'temperature_tendency_due_to_vertical_advection',.true.)
+              atm_tten_adv_out => v3dvar_atm(atm_tten_adv)%rval
+            end if
+            if ( enable_atm3d_vars(atm_qten_adv) ) then
+              call setup_var(v3dvar_atm,atm_qten_adv,vsize,'qtenadv','s-1', &
+               'Mixing ratio tendency due to vertical advection', &
+               'mixing_ratio_tendency_due_to_vertical_advection',.true.)
+              atm_qten_adv_out => v3dvar_atm(atm_qten_adv)%rval
+            end if
+            if ( enable_atm3d_vars(atm_tten_dif) ) then
+              call setup_var(v3dvar_atm,atm_tten_dif,vsize,'ttendif','K.s-1', &
+               'Temperature tendency due to diffusion', &
+               'temperature_tendency_due_to_diffusion',.true.)
+              atm_tten_dif_out => v3dvar_atm(atm_tten_dif)%rval
+            end if
+            if ( enable_atm3d_vars(atm_qten_dif) ) then
+              call setup_var(v3dvar_atm,atm_qten_dif,vsize,'qtendif','s-1', &
+               'Mixing ratio tendency due to diffusion', &
+               'mixing_ratio_tendency_due_to_diffusion',.true.)
+              atm_qten_dif_out => v3dvar_atm(atm_qten_dif)%rval
+            end if
+            if ( enable_atm3d_vars(atm_tten_adi) ) then
+              call setup_var(v3dvar_atm,atm_tten_adi,vsize,'ttenadi','K.s-1', &
+               'Temperature tendency due to adiabatic', &
+               'temperature_tendency_due_to_adiabatic',.true.)
+              atm_tten_adi_out => v3dvar_atm(atm_tten_adi)%rval
+            end if
+            if ( enable_atm3d_vars(atm_qten_adi) ) then
+              call setup_var(v3dvar_atm,atm_qten_adi,vsize,'qtenadi','s-1', &
+               'Mixing ratio tendency due to adiabatic', &
+               'mixing_ratio_tendency_due_to_adiabatic',.true.)
+              atm_qten_adi_out => v3dvar_atm(atm_qten_adi)%rval
+            end if
           end if
           if ( enable_atm3d_vars(atm_tten_tbl) ) then
             call setup_var(v3dvar_atm,atm_tten_tbl,vsize,'ttentbl','K.s-1', &
@@ -1184,11 +1240,11 @@ module mod_ncout
              'temperature_tendency_due_to_surface_boundary_layer',.true.)
             atm_tten_tbl_out => v3dvar_atm(atm_tten_tbl)%rval
           end if
-          if ( enable_atm3d_vars(atm_tten_dif) ) then
-            call setup_var(v3dvar_atm,atm_tten_dif,vsize,'ttendif','K.s-1', &
-             'Temperature tendency due to diffusion', &
-             'temperature_tendency_due_to_diffusion',.true.)
-            atm_tten_dif_out => v3dvar_atm(atm_tten_dif)%rval
+          if ( enable_atm3d_vars(atm_qten_tbl) ) then
+            call setup_var(v3dvar_atm,atm_qten_tbl,vsize,'qtentbl','s-1', &
+             'mixing_ratio_tendency_due_to_surface_boundary_layer', &
+             'Mixing ratio tendency due to surface boundary layer',.true.)
+            atm_qten_tbl_out => v3dvar_atm(atm_qten_tbl)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_bdy) ) then
             call setup_var(v3dvar_atm,atm_tten_bdy,vsize,'ttenbdy','K.s-1', &
@@ -1196,17 +1252,28 @@ module mod_ncout
              'temperature_tendency_due_to_boundary_conditions',.true.)
             atm_tten_bdy_out => v3dvar_atm(atm_tten_bdy)%rval
           end if
-          if ( enable_atm3d_vars(atm_tten_con) ) then
-            call setup_var(v3dvar_atm,atm_tten_con,vsize,'ttencon','K.s-1', &
-             'Temperature tendency due to convection', &
-             'temperature_tendency_due_to_convection',.true.)
-            atm_tten_con_out => v3dvar_atm(atm_tten_con)%rval
+          if ( enable_atm3d_vars(atm_qten_bdy) ) then
+            call setup_var(v3dvar_atm,atm_qten_bdy,vsize,'qtenbdy','s-1', &
+             'Mixing ratio tendency due to boundary conditions', &
+             'mixing_ratio_tendency_due_to_boundary_conditions',.true.)
+            atm_qten_bdy_out => v3dvar_atm(atm_qten_bdy)%rval
           end if
-          if ( enable_atm3d_vars(atm_tten_adi) ) then
-            call setup_var(v3dvar_atm,atm_tten_adi,vsize,'ttenadi','K.s-1', &
-             'Temperature tendency due to adiabatic', &
-             'temperature_tendency_due_to_adiabatic',.true.)
-            atm_tten_adi_out => v3dvar_atm(atm_tten_adi)%rval
+          if ( all(icup == 0) ) then
+            enable_atm3d_vars(atm_tten_con) = .false.
+            enable_atm3d_vars(atm_qten_con) = .false.
+          else
+            if ( enable_atm3d_vars(atm_tten_con) ) then
+              call setup_var(v3dvar_atm,atm_tten_con,vsize,'ttencon','K.s-1', &
+               'Temperature tendency due to convection', &
+               'temperature_tendency_due_to_convection',.true.)
+              atm_tten_con_out => v3dvar_atm(atm_tten_con)%rval
+            end if
+            if ( enable_atm3d_vars(atm_qten_con) ) then
+              call setup_var(v3dvar_atm,atm_qten_con,vsize,'qtencon','s-1', &
+               'Mixing ratio tendency due to convection', &
+               'mixing_ratio_tendency_due_to_convection',.true.)
+              atm_qten_con_out => v3dvar_atm(atm_qten_con)%rval
+            end if
           end if
           if ( enable_atm3d_vars(atm_tten_rad) ) then
             call setup_var(v3dvar_atm,atm_tten_rad,vsize,'ttenrad','K.s-1', &
@@ -1220,54 +1287,6 @@ module mod_ncout
              'temperature_tendency_due_to_large_scale_latent_heat_exchange', &
              .true.)
             atm_tten_lsc_out => v3dvar_atm(atm_tten_lsc)%rval
-          end if
-          if ( enable_atm3d_vars(atm_qten_adh) ) then
-            call setup_var(v3dvar_atm,atm_qten_adh,vsize,'qtenadh','s-1', &
-             'Mixing ratio tendency due to horizontal advection', &
-             'mixing_ratio_tendency_due_to_horizontal_advection',.true.)
-            atm_qten_adh_out => v3dvar_atm(atm_qten_adh)%rval
-          end if
-          if ( enable_atm3d_vars(atm_qten_adv) ) then
-            call setup_var(v3dvar_atm,atm_qten_adv,vsize,'qtenadv','s-1', &
-             'Mixing ratio tendency due to vertical advection', &
-             'mixing_ratio_tendency_due_to_vertical_advection',.true.)
-            atm_qten_adv_out => v3dvar_atm(atm_qten_adv)%rval
-          end if
-          if ( enable_atm3d_vars(atm_qten_tbl) ) then
-            call setup_var(v3dvar_atm,atm_qten_tbl,vsize,'qtentbl','s-1', &
-             'mixing_ratio_tendency_due_to_surface_boundary_layer', &
-             'Mixing ratio tendency due to surface boundary layer',.true.)
-            atm_qten_tbl_out => v3dvar_atm(atm_qten_tbl)%rval
-          end if
-          if ( enable_atm3d_vars(atm_qten_dif) ) then
-            call setup_var(v3dvar_atm,atm_qten_dif,vsize,'qtendif','s-1', &
-             'Mixing ratio tendency due to diffusion', &
-             'mixing_ratio_tendency_due_to_diffusion',.true.)
-            atm_qten_dif_out => v3dvar_atm(atm_qten_dif)%rval
-          end if
-          if ( enable_atm3d_vars(atm_qten_bdy) ) then
-            call setup_var(v3dvar_atm,atm_qten_bdy,vsize,'qtenbdy','s-1', &
-             'Mixing ratio tendency due to boundary conditions', &
-             'mixing_ratio_tendency_due_to_boundary_conditions',.true.)
-            atm_qten_bdy_out => v3dvar_atm(atm_qten_bdy)%rval
-          end if
-          if ( enable_atm3d_vars(atm_qten_con) ) then
-            call setup_var(v3dvar_atm,atm_qten_con,vsize,'qtencon','s-1', &
-             'Mixing ratio tendency due to convection', &
-             'mixing_ratio_tendency_due_to_convection',.true.)
-            atm_qten_con_out => v3dvar_atm(atm_qten_con)%rval
-          end if
-          if ( enable_atm3d_vars(atm_qten_adi) ) then
-            call setup_var(v3dvar_atm,atm_qten_adi,vsize,'qtenadi','s-1', &
-             'Mixing ratio tendency due to adiabatic', &
-             'mixing_ratio_tendency_due_to_adiabatic',.true.)
-            atm_qten_adi_out => v3dvar_atm(atm_qten_adi)%rval
-          end if
-          if ( enable_atm3d_vars(atm_qten_rad) ) then
-            call setup_var(v3dvar_atm,atm_qten_rad,vsize,'qtenrad','s-1', &
-             'Mixing ratio tendency due to radiation heating', &
-             'mixing_ratio_tendency_due_to_radiation_heating',.true.)
-            atm_qten_rad_out => v3dvar_atm(atm_qten_rad)%rval
           end if
           if ( enable_atm3d_vars(atm_qten_lsc) ) then
             call setup_var(v3dvar_atm,atm_qten_lsc,vsize,'qtenlsc','s-1', &
