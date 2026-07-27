@@ -503,13 +503,13 @@ module mod_moloch
 
     if ( idiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
-        qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
+        tdiag%bdy(j,i,k) = (t(j,i,k) - ten0(j,i,k)) * rdt
+        qdiag%bdy(j,i,k) = (qv(j,i,k) - qen0(j,i,k)) * rdt
       end do
     end if
     if ( ichem == 1 .and. ichdiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-        cbdydiag(j,i,k,n) = trac(j,i,k,n) - chiten0(j,i,k,n)
+        cbdydiag(j,i,k,n) = (trac(j,i,k,n) - chiten0(j,i,k,n)) * rdt
       end do
     end if
 
