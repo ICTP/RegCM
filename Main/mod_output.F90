@@ -44,9 +44,7 @@ module mod_output
   use mod_slabocean
   use mod_moloch
   use mod_capecin
-#ifdef DEBUG
   use mod_timer
-#endif
 
   implicit none
 
