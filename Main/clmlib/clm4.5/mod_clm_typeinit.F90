@@ -1073,6 +1073,7 @@ module mod_clm_typeinit
     integer(ik4), intent(in) :: ibeg, iend
     type (pft_mflux_type), intent(inout) :: pmf
 
+    allocate(pmf%ustar(ibeg:iend), source=nan_r8)
     allocate(pmf%taux(ibeg:iend), source=nan_r8)
     allocate(pmf%tauy(ibeg:iend), source=nan_r8)
   end subroutine init_pft_mflux_type

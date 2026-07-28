@@ -122,6 +122,8 @@ module mod_clm_atmlnd
     real(rk8), pointer, contiguous, dimension(:,:) :: albd => null()
     !(numrad) surface albedo (diffuse)
     real(rk8), pointer, contiguous, dimension(:,:) :: albi => null()
+    !friction velocity (m/s)
+    real(rk8), pointer, contiguous, dimension(:) :: ustar => null()
     !wind stress: e-w (kg/m/s**2)
     real(rk8), pointer, contiguous, dimension(:) :: taux => null()
     !wind stress: n-s (kg/m/s**2)
@@ -301,6 +303,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%h2osno(ibeg:iend))
     allocate(l2a%albd(ibeg:iend,1:numrad))
     allocate(l2a%albi(ibeg:iend,1:numrad))
+    allocate(l2a%ustar(ibeg:iend))
     allocate(l2a%taux(ibeg:iend))
     allocate(l2a%tauy(ibeg:iend))
     allocate(l2a%zom(ibeg:iend))
@@ -352,6 +355,7 @@ end subroutine init_atm2lnd_type
     l2a%h2osno(ibeg:iend) = ival
     l2a%albd(ibeg:iend,1:numrad) = ival
     l2a%albi(ibeg:iend,1:numrad) = ival
+    l2a%ustar(ibeg:iend) = ival
     l2a%taux(ibeg:iend) = ival
     l2a%tauy(ibeg:iend) = ival
     l2a%zom(ibeg:iend) = ival
@@ -565,6 +569,11 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                pptr%pps%u10_clm,clm_l2a%u_ref10m,       &
+               p2c_scale_type='unity',                  &
+               c2l_scale_type='unity',                  &
+               l2g_scale_type='unity')
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
+               pptr%pmf%ustar,clm_l2a%ustar,            &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')

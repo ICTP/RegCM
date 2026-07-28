@@ -269,6 +269,7 @@ module mod_clm_canopyfluxes
    real(rk8), pointer, contiguous :: qflx_evap_veg(:)
    ! sensible heat flux from leaves (W/m**2) [+ to atm]
    real(rk8), pointer, contiguous :: eflx_sh_veg(:)
+   real(rk8), pointer, contiguous :: ustarp(:)    ! Friction Velocity (m/s)
    real(rk8), pointer, contiguous :: taux(:)      ! wind (shear) stress: e-w (kg/m/s**2)
    real(rk8), pointer, contiguous :: tauy(:)      ! wind (shear) stress: n-s (kg/m/s**2)
    ! sensible heat flux from ground (W/m**2) [+ to atm]
@@ -700,6 +701,7 @@ module mod_clm_canopyfluxes
    sabv           => clm3%g%l%c%p%pef%sabv
    qflx_evap_veg  => clm3%g%l%c%p%pwf%qflx_evap_veg
    eflx_sh_veg    => clm3%g%l%c%p%pef%eflx_sh_veg
+   ustarp         => clm3%g%l%c%p%pmf%ustar
    taux           => clm3%g%l%c%p%pmf%taux
    tauy           => clm3%g%l%c%p%pmf%tauy
    eflx_sh_grnd   => clm3%g%l%c%p%pef%eflx_sh_grnd
@@ -1462,6 +1464,7 @@ module mod_clm_canopyfluxes
      ! Fluxes from ground to canopy space
 
      delt    = wtal(p)*t_grnd(c)-wtl0(p)*t_veg(p)-wta0(p)*thm(p)
+     ustarp(p) = ustar(p)
      taux(p) = -forc_rho(g)*forc_u(g)/ram1(p)
      tauy(p) = -forc_rho(g)*forc_v(g)/ram1(p)
      eflx_sh_grnd(p) = cpair*forc_rho(g)*wtg(p)*delt

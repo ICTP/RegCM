@@ -2960,6 +2960,8 @@ module mod_clm_urban
     real(rk8), pointer, contiguous :: cgrndl(:)
     ! deriv. of soil energy flux wrt to soil temp (W/m**2/K)
     real(rk8), pointer, contiguous :: cgrnd(:)
+    ! Friction Velocity (m/s)
+    real(rk8), pointer, contiguous :: ustarp(:)
     ! wind (shear) stress: e-w (kg/m/s**2)
     real(rk8), pointer, contiguous :: taux(:)
     ! wind (shear) stress: n-s (kg/m/s**2)
@@ -3249,6 +3251,7 @@ module mod_clm_urban
     cgrnds         => clm3%g%l%c%p%pef%cgrnds
     cgrndl         => clm3%g%l%c%p%pef%cgrndl
     cgrnd          => clm3%g%l%c%p%pef%cgrnd
+    ustarp         => clm3%g%l%c%p%pmf%ustar
     taux           => clm3%g%l%c%p%pmf%taux
     tauy           => clm3%g%l%c%p%pmf%tauy
     eflx_sh_grnd   => clm3%g%l%c%p%pef%eflx_sh_grnd
@@ -3789,6 +3792,7 @@ module mod_clm_urban
 
       ! Surface fluxes of momentum, sensible and latent heat
 
+      ustarp(p) = ustar(l)
       taux(p) = -forc_rho(g)*forc_u(g)/ramu(l)
       tauy(p) = -forc_rho(g)*forc_v(g)/ramu(l)
 
