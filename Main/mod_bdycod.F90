@@ -54,6 +54,7 @@ module mod_bdycod
   public :: sponge, nudge, morelax, setup_bdycon, raydamp
   public :: mospectral_nudge, motopnudge
   public :: is_present_qc, is_present_qi
+  public :: setup_bdywt
 
   !
   ! West U External  = WUE
@@ -3986,38 +3987,13 @@ module mod_bdycod
     x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
-    if ( ba%ns /= 0 ) then
-      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
-        if ( .not. ba%bsouth(j,i) ) cycle
-        ib = ba%ibnd(j,i)
+    do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+      ib = ba%ibnd(j,i)
+      if ( ib > 0 ) then
         xf = hefc(ib,k)
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*f(j,i,k)*frac
-      end do
-    end if
-    if ( ba%nn /= 0 ) then
-      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
-        if ( .not. ba%bnorth(j,i) ) cycle
-        ib = ba%ibnd(j,i)
-        xf = hefc(ib,k)
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*f(j,i,k)*frac
-      end do
-    end if
-    if ( ba%nw /= 0 ) then
-      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
-        if ( .not. ba%bwest(j,i) ) cycle
-        ib = ba%ibnd(j,i)
-        xf = hefc(ib,k)
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*f(j,i,k)*frac
-      end do
-    end if
-    if ( ba%ne /= 0 ) then
-      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
-        if ( .not. ba%beast(j,i) ) cycle
-        ib = ba%ibnd(j,i)
-        xf = hefc(ib,k)
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*f(j,i,k)*frac
-      end do
-    end if
+      end if
+    end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -4048,46 +4024,33 @@ module mod_bdycod
     x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
-    if ( ba%ns /= 0 ) then
-      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
-        if ( .not. ba%bsouth(j,i) ) cycle
-        ib = ba%ibnd(j,i)
+    do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+      ib = ba%ibnd(j,i)
+      if ( ib > 0 ) then
         xf = hefc(ib,k)
         fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
         f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
-      end do
-    end if
-    if ( ba%nn /= 0 ) then
-      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
-        if ( .not. ba%bnorth(j,i) ) cycle
-        ib = ba%ibnd(j,i)
-        xf = hefc(ib,k)
-        fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
-      end do
-    end if
-    if ( ba%nw /= 0 ) then
-      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
-        if ( .not. ba%bwest(j,i) ) cycle
-        ib = ba%ibnd(j,i)
-        xf = hefc(ib,k)
-        fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
-      end do
-    end if
-    if ( ba%ne /= 0 ) then
-      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
-        if ( .not. ba%beast(j,i) ) cycle
-        ib = ba%ibnd(j,i)
-        xf = hefc(ib,k)
-        fext = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k))
-        f(j,i,k) = (1.0_rkx-xf) * f(j,i,k) + xf*fext
-      end do
-    end if
+      end if
+    end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine morelax_external
+
+  subroutine setup_bdywt(mask,ba)
+    implicit none
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: mask
+    type(bound_area), intent(in) :: ba
+    integer(ik4) :: i, j, k, ib
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      ib = ba%ibnd(j,i)
+      if ( ib > 0 ) then
+        mask(j,i,k) = 1.0_rkx - hefc(nspgx-ib+1,kzp1-k)
+      else
+        mask(j,i,k) = 1.0_rkx
+      end if
+    end do
+  end subroutine setup_bdywt
 
   subroutine motopnudge(t,u,v,w,wfac,dta)
     implicit none
