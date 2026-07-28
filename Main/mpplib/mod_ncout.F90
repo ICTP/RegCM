@@ -1167,7 +1167,7 @@ module mod_ncout
           ! FAB : flag properly
           if ( idynamic == 3 ) then
             if ( enable_atm3d_vars(atm_tten_adh) ) then
-              call setup_var(v3dvar_atm,atm_tten_adh,vsize,'ttendyn','K.s-1', &
+              call setup_var(v3dvar_atm,atm_tten_adh,vsize,'ttendyn','K s-1', &
                'Temperature tendency due to dynamics', &
                'temperature_tendency_due_to_dynamics',.true.)
               atm_tten_adh_out => v3dvar_atm(atm_tten_adh)%rval
@@ -1186,7 +1186,7 @@ module mod_ncout
             enable_atm3d_vars(atm_qten_adi) = .false.
           else
             if ( enable_atm3d_vars(atm_tten_adh) ) then
-              call setup_var(v3dvar_atm,atm_tten_adh,vsize,'ttenadh','K.s-1', &
+              call setup_var(v3dvar_atm,atm_tten_adh,vsize,'ttenadh','K s-1', &
                'Temperature tendency due to horizontal advection', &
                'temperature_tendency_due_to_horizontal_advection',.true.)
               atm_tten_adh_out => v3dvar_atm(atm_tten_adh)%rval
@@ -1198,7 +1198,7 @@ module mod_ncout
               atm_qten_adh_out => v3dvar_atm(atm_qten_adh)%rval
             end if
             if ( enable_atm3d_vars(atm_tten_adv) ) then
-              call setup_var(v3dvar_atm,atm_tten_adv,vsize,'ttenadv','K.s-1', &
+              call setup_var(v3dvar_atm,atm_tten_adv,vsize,'ttenadv','K s-1', &
                'Temperature tendency due to vertical advection', &
                'temperature_tendency_due_to_vertical_advection',.true.)
               atm_tten_adv_out => v3dvar_atm(atm_tten_adv)%rval
@@ -1210,7 +1210,7 @@ module mod_ncout
               atm_qten_adv_out => v3dvar_atm(atm_qten_adv)%rval
             end if
             if ( enable_atm3d_vars(atm_tten_dif) ) then
-              call setup_var(v3dvar_atm,atm_tten_dif,vsize,'ttendif','K.s-1', &
+              call setup_var(v3dvar_atm,atm_tten_dif,vsize,'ttendif','K s-1', &
                'Temperature tendency due to diffusion', &
                'temperature_tendency_due_to_diffusion',.true.)
               atm_tten_dif_out => v3dvar_atm(atm_tten_dif)%rval
@@ -1222,7 +1222,7 @@ module mod_ncout
               atm_qten_dif_out => v3dvar_atm(atm_qten_dif)%rval
             end if
             if ( enable_atm3d_vars(atm_tten_adi) ) then
-              call setup_var(v3dvar_atm,atm_tten_adi,vsize,'ttenadi','K.s-1', &
+              call setup_var(v3dvar_atm,atm_tten_adi,vsize,'ttenadi','K s-1', &
                'Temperature tendency due to adiabatic', &
                'temperature_tendency_due_to_adiabatic',.true.)
               atm_tten_adi_out => v3dvar_atm(atm_tten_adi)%rval
@@ -1235,7 +1235,7 @@ module mod_ncout
             end if
           end if
           if ( enable_atm3d_vars(atm_tten_tbl) ) then
-            call setup_var(v3dvar_atm,atm_tten_tbl,vsize,'ttentbl','K.s-1', &
+            call setup_var(v3dvar_atm,atm_tten_tbl,vsize,'ttentbl','K s-1', &
              'Temperature tendency due to surface boundary layer', &
              'temperature_tendency_due_to_surface_boundary_layer',.true.)
             atm_tten_tbl_out => v3dvar_atm(atm_tten_tbl)%rval
@@ -1247,7 +1247,7 @@ module mod_ncout
             atm_qten_tbl_out => v3dvar_atm(atm_qten_tbl)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_bdy) ) then
-            call setup_var(v3dvar_atm,atm_tten_bdy,vsize,'ttenbdy','K.s-1', &
+            call setup_var(v3dvar_atm,atm_tten_bdy,vsize,'ttenbdy','K s-1', &
              'Temperature tendency due to boundary conditions', &
              'temperature_tendency_due_to_boundary_conditions',.true.)
             atm_tten_bdy_out => v3dvar_atm(atm_tten_bdy)%rval
@@ -1263,7 +1263,7 @@ module mod_ncout
             enable_atm3d_vars(atm_qten_con) = .false.
           else
             if ( enable_atm3d_vars(atm_tten_con) ) then
-              call setup_var(v3dvar_atm,atm_tten_con,vsize,'ttencon','K.s-1', &
+              call setup_var(v3dvar_atm,atm_tten_con,vsize,'ttencon','K s-1', &
                'Temperature tendency due to convection', &
                'temperature_tendency_due_to_convection',.true.)
               atm_tten_con_out => v3dvar_atm(atm_tten_con)%rval
@@ -1276,13 +1276,13 @@ module mod_ncout
             end if
           end if
           if ( enable_atm3d_vars(atm_tten_rad) ) then
-            call setup_var(v3dvar_atm,atm_tten_rad,vsize,'ttenrad','K.s-1', &
+            call setup_var(v3dvar_atm,atm_tten_rad,vsize,'ttenrad','K s-1', &
              'Temperature tendency due to radiation heating', &
              'temperature_tendency_due_to_radiation_heating',.true.)
             atm_tten_rad_out => v3dvar_atm(atm_tten_rad)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_lsc) ) then
-            call setup_var(v3dvar_atm,atm_tten_lsc,vsize,'ttenlsc','K.s-1', &
+            call setup_var(v3dvar_atm,atm_tten_lsc,vsize,'ttenlsc','K s-1', &
              'Temperature tendency due to large scale latent heat exchange', &
              'temperature_tendency_due_to_large_scale_latent_heat_exchange', &
              .true.)
