@@ -1699,6 +1699,7 @@ module mod_mppparam
       call bcast(mo_divfilter)
       call bcast(mo_divdamp)
       call bcast(mo_spectral_nudge)
+      call bcast(mo_top_nudge)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
     end if

@@ -138,6 +138,7 @@ module mod_moloch
   logical, parameter :: do_radiation    = .true.
   logical, parameter :: do_surface      = .true.
   logical, parameter :: do_pbl          = .true.
+  logical, parameter :: do_phy_bdy_wt   = .false.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -309,7 +310,11 @@ module mod_moloch
     do_apply_bdy = ( do_bdy .and. moloch_realcase .and. irceideal == 0 )
     dtstepa = dtsec / real(mo_nadv,rkx)
     dtsound = dtstepa / real(mo_nsound,rkx)
-    call setup_bdywt(bdywt,ba_cr)
+    if ( do_phy_bdy_wt ) then
+      call setup_bdywt(bdywt,ba_cr)
+    else
+      bdywt(:,:,:) = 1.0_rkx
+    end if
   end subroutine init_moloch
   !
   ! Moloch integration engine
@@ -474,7 +479,9 @@ module mod_moloch
 
     call bdyval
 
-    call motopnudge(t,u,v,w,0.0_rkx,dtsec)
+    if ( mo_top_nudge ) then
+      call motopnudge(t,u,v,w,0.0_rkx,dtsec)
+    end if
 
     ! Davies boundary condition on internal point
 
