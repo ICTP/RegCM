@@ -32,7 +32,7 @@ clm45_1dto2d_SOURCES = clm45_1dto2d.F90
 LDADD = $(OMPFLAGS)
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod *__genmod.* *opt.yaml *optrpt

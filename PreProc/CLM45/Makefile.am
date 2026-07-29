@@ -33,7 +33,7 @@ interpinic_SOURCES = interpinic.F90
 LDADD = $(OMPFLAGS)
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 endif
 

@@ -27,7 +27,7 @@ libcmip6_a_SOURCES = mod_cmip6_helper.F90 mod_cmip6_cnrm.F90 \
                      mod_cmip6_mpilr.F90 mod_cmip6_ipsllr.F90
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod *__genmod.* *opt.yaml *optrpt

@@ -25,7 +25,7 @@ clm2rcm_SOURCES = mod_param_clm.F90 mod_grid.F90 mod_nclib.F90  \
                   mod_clm3grid.F90 clm2rcm.F90
 
 %.o: %.F90
-	$(FC) $(FPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 endif
 
 clean-local:
