@@ -196,6 +196,7 @@ endif
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_savefile.o : mod_savefile.F90 mod_atm_interface.o mod_che_interface.o mod_che_mppio.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_massck.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_nchelper.o mod_date.o mod_stdio.o
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_slabocean.o : mod_slabocean.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mppparam.o mod_outvars.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_stdio.o
 mod_sladvection.o : mod_sladvection.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_service.o mod_sldepparam.o mod_stdio.o
 mod_sldepparam.o : mod_sldepparam.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o

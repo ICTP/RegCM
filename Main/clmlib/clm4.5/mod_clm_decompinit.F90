@@ -15,7 +15,7 @@ module mod_clm_decompinit
   use mod_service
   use mod_clm_decomp
   use mod_clm_subgrid, only : subgrid_get_gcellinfo
-  use mpi
+  use mpi_f08
 
   implicit none
 

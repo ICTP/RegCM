@@ -71,6 +71,7 @@ module mod_moloch
   real(rkx), dimension(:), pointer, contiguous :: xkdamp => null( )
   real(rkx), dimension(:), pointer, contiguous :: xknu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: laplacian => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywt => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
@@ -164,7 +165,8 @@ module mod_moloch
     integer(ik4) :: k
     call getmem(gzitak,1,kzp1,'moloch:gzitak')
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
-    call getmem(laplacian,jdi1,jdi2,idi1,idi2,1,kz,'moloch:laplacian')
+    call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
+    call getmem(bdywt,jci1,jci2,ici1,ici2,1,kz,'moloch:bdywt')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
     call getmem(tetavf,jce1,jce2,ice1,ice2,2,kz,'moloch:tetavf')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
@@ -211,7 +213,7 @@ module mod_moloch
 
   subroutine init_moloch
     implicit none
-    integer(ik4) :: i, j
+    integer(ik4) :: i, j, k
     call assignpnt(mddom%msfu,mu)
     call assignpnt(mddom%msfv,mv)
     call assignpnt(mddom%msfx,mx)
@@ -307,6 +309,7 @@ module mod_moloch
     do_apply_bdy = ( do_bdy .and. moloch_realcase .and. irceideal == 0 )
     dtstepa = dtsec / real(mo_nadv,rkx)
     dtsound = dtstepa / real(mo_nsound,rkx)
+    call setup_bdywt(bdywt,ba_cr)
   end subroutine init_moloch
   !
   ! Moloch integration engine
@@ -495,7 +498,6 @@ module mod_moloch
       tspectral = tspectral + dtsec
       if ( int(mod(tspectral,dtrad)) == 0 ) then
         call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci1,ici1,ici2,t,xtb)
-        call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci1,ici1,ici2,pai,xpaib)
         call mospectral_nudge(jde1,jde2,ice1,ice2,jdi1,jdi2,ici1,ici2,u,dub)
         call mospectral_nudge(jce1,jce2,ide1,ide2,jci1,jci2,idi1,idi2,v,dvb)
       end if
@@ -503,13 +505,13 @@ module mod_moloch
 
     if ( idiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
-        qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
+        tdiag%bdy(j,i,k) = (t(j,i,k) - ten0(j,i,k)) * rdt
+        qdiag%bdy(j,i,k) = (qv(j,i,k) - qen0(j,i,k)) * rdt
       end do
     end if
     if ( ichem == 1 .and. ichdiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-        cbdydiag(j,i,k,n) = trac(j,i,k,n) - chiten0(j,i,k,n)
+        cbdydiag(j,i,k,n) = (trac(j,i,k,n) - chiten0(j,i,k,n)) * rdt
       end do
     end if
 
@@ -1420,26 +1422,26 @@ module mod_moloch
     !@acc call nvtxStartRange("status_update")
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      t(j,i,k)  = t(j,i,k)  + dtinc * tten(j,i,k)
-      ux(j,i,k) = ux(j,i,k) + dtinc * uten(j,i,k)
-      vx(j,i,k) = vx(j,i,k) + dtinc * vten(j,i,k)
-      qv(j,i,k) = qv(j,i,k) + dtinc * qvten(j,i,k)
+      t(j,i,k)  = t(j,i,k)  + dtinc*bdywt(j,i,k)*tten(j,i,k)
+      ux(j,i,k) = ux(j,i,k) + dtinc*bdywt(j,i,k)*uten(j,i,k)
+      vx(j,i,k) = vx(j,i,k) + dtinc*bdywt(j,i,k)*vten(j,i,k)
+      qv(j,i,k) = qv(j,i,k) + dtinc*bdywt(j,i,k)*qvten(j,i,k)
       if ( qv(j,i,k) < 1.0E-8_rkx ) qv(j,i,k) = 1.0E-8_rkx
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                     k = 1:kz, n = iqfrst:nqx)
-      qx(j,i,k,n) = qx(j,i,k,n) + dtinc * qxten(j,i,k,n)
+      qx(j,i,k,n) = qx(j,i,k,n) + dtinc*bdywt(j,i,k)*qxten(j,i,k,n)
       if ( qx(j,i,k,n) < 1.0E-20_rkx ) qx(j,i,k,n) = 0.0_rkx
     end do
     if ( ibltyp == 2 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-        tke(j,i,k) = tke(j,i,k) + dtinc * tketen(j,i,k)
+        tke(j,i,k) = tke(j,i,k) + dtinc*bdywt(j,i,k)*tketen(j,i,k)
         if ( tke(j,i,k) < tkemin ) tke(j,i,k) = tkemin
       end do
     end if
     if ( ichem == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-        trac(j,i,k,n) = trac(j,i,k,n) + dtinc * chiten(j,i,k,n)
+        trac(j,i,k,n) = trac(j,i,k,n) + dtinc*bdywt(j,i,k)*chiten(j,i,k,n)
         if ( trac(j,i,k,n) < 0.0_rkx ) trac(j,i,k,n) = 0.0_rkx
       end do
     end if

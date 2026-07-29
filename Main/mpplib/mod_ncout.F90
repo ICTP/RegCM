@@ -3088,8 +3088,8 @@ module mod_ncout
       outstream(nstream)%opar%l_crm  = (i_crm  == 1)
 
       if ( parallel_out ) then
-        outstream(nstream)%opar%mpi_comm = mycomm
-        outstream(nstream)%opar%mpi_info = ncout_mpi_info
+        outstream(nstream)%opar%mpicom = mycomm
+        outstream(nstream)%opar%mpinfo = ncout_mpi_info
 #ifdef NETCDF4_HDF5
         outstream(nstream)%opar%mpi_iotype = nf90_mpiio
 #else

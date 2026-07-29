@@ -27,7 +27,7 @@ module mod_mppparam
   use netcdf
   use mod_regcm_types
 #ifndef MPI_SERIAL
-  use mpi
+  use mpi_f08
 #endif
 
   implicit none
@@ -63,13 +63,13 @@ module mod_mppparam
 
   public :: set_nproc, broadcast_params
 
-  integer(ik4) :: cartesian_communicator
-  integer(ik4) :: cartesian_row_communicator
-  integer(ik4) :: cartesian_column_communicator
-  !integer(ik4) :: node_local_communicator
+  type(mpi_comm) :: cartesian_communicator
+  type(mpi_comm) :: cartesian_row_communicator
+  type(mpi_comm) :: cartesian_column_communicator
+  !type(mpi_comm) :: node_local_communicator
   integer(ik4) :: ccid, ccio
 
-  integer(ik4), public :: ncout_mpi_info = mpi_info_null
+  type(mpi_info), public :: ncout_mpi_info = mpi_info_null
 
   type grid_nc_var2d
     character(len=64) :: varname
@@ -1054,7 +1054,7 @@ module mod_mppparam
     implicit none
     integer(ik4), intent(in) :: isize, icpu, itag
     logical, dimension(isize), intent(in) :: lval
-    integer(ik4), intent(out) :: req
+    type(mpi_requsest), intent(out) :: req
     call mpi_isend(lval,isize,mpi_logical,icpu,itag, &
                   cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1069,7 +1069,7 @@ module mod_mppparam
     implicit none
     integer(ik4), intent(in) :: isize, icpu, itag
     integer(ik4), dimension(isize), intent(in) :: ival
-    integer(ik4), intent(out) :: req
+    type(mpi_request), intent(out) :: req
     call mpi_isend(ival,isize,mpi_integer4,icpu,itag, &
                   cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1084,7 +1084,7 @@ module mod_mppparam
     implicit none
     integer(ik4), intent(in) :: isize, icpu, itag
     real(rk4), dimension(isize), intent(in) :: rval
-    integer(ik4), intent(out) :: req
+    type(mpi_request), intent(out) :: req
     call mpi_isend(rval,isize,mpi_real4,icpu,itag, &
                   cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1099,7 +1099,7 @@ module mod_mppparam
     implicit none
     integer(ik4), intent(in) :: isize, icpu, itag
     real(rk8), dimension(isize), intent(in) :: rval
-    integer(ik4), intent(out) :: req
+    type(mpi_request), intent(out) :: req
     call mpi_isend(rval,isize,mpi_real8,icpu,itag, &
                   cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1114,7 +1114,7 @@ module mod_mppparam
     implicit none
     integer(ik4), intent(in) :: isize, icpu, itag
     logical, dimension(isize), intent(out) :: lval
-    integer(ik4), intent(out) :: req
+    type(mpi_request), intent(out) :: req
     call mpi_irecv(lval,isize,mpi_logical,icpu,itag, &
                    cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1129,7 +1129,7 @@ module mod_mppparam
     implicit none
     integer(ik4), intent(in) :: isize, icpu, itag
     integer(ik4), dimension(isize), intent(out) :: ival
-    integer(ik4), intent(out) :: req
+    type(mpi_request), intent(out) :: req
     call mpi_irecv(ival,isize,mpi_integer4,icpu,itag, &
                    cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1144,7 +1144,7 @@ module mod_mppparam
     implicit none
     integer(ik4), intent(in) :: isize, icpu, itag
     real(rk4), dimension(isize), intent(out) :: rval
-    integer(ik4), intent(out) :: req
+    type(mpi_request), intent(out) :: req
     call mpi_irecv(rval,isize,mpi_real4,icpu,itag, &
                    cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1159,7 +1159,7 @@ module mod_mppparam
     implicit none
     integer(ik4), intent(in) :: isize, icpu, itag
     real(rk8), dimension(isize), intent(out) :: rval
-    integer(ik4), intent(out) :: req
+    type(mpi_request), intent(out) :: req
     call mpi_irecv(rval,isize,mpi_real8,icpu,itag, &
                    cartesian_communicator,req,mpierr)
 #ifdef DEBUG
@@ -1176,7 +1176,7 @@ module mod_mppparam
     integer(ik4), intent(in) :: isize, icpu, tag1, tag2
     real(rk8), dimension(isize), intent(in) :: rv1
     real(rk8), dimension(isize), intent(inout) :: rv2
-    integer(ik4), intent(out) :: srq, rrq
+    type(mpi_request), intent(out) :: srq, rrq
     call mpi_irecv(rv2,isize,mpi_real8,icpu,tag1, &
                    cartesian_communicator,rrq,mpierr)
 #ifdef DEBUG
@@ -1198,7 +1198,7 @@ module mod_mppparam
     integer(ik4), intent(in) :: isize, icpu, tag1, tag2
     real(rk4), dimension(isize), intent(in) :: rv1
     real(rk4), dimension(isize), intent(inout) :: rv2
-    integer(ik4), intent(out) :: srq, rrq
+    type(mpi_request), intent(out) :: srq, rrq
     call mpi_irecv(rv2,isize,mpi_real4,icpu,tag1, &
                    cartesian_communicator,rrq,mpierr)
 #ifdef DEBUG
@@ -16507,8 +16507,8 @@ module mod_mppparam
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: k1, k2
     integer(ik4) :: ssize, ksize, k, ib, irc, ipos
-    integer(ik4), dimension(4) :: req
-    req =mpi_request_null
+    type(mpi_request), dimension(4) :: req
+    req(:) = mpi_request_null
     ksize = k2-k1+1
     irc = 0
     ipos = 1
@@ -16604,8 +16604,8 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: k1, k2
     integer(ik4) :: ssize, ksize, k, ib, irc, ipos
-    integer(ik4), dimension(4) :: req
-    req = mpi_request_null
+    type(mpi_request), dimension(4) :: req
+    req(:) = mpi_request_null
     ksize = k2-k1+1
     irc = 0
     ipos = 1
@@ -16701,8 +16701,8 @@ module mod_mppparam
     real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: k1, k2
     integer(ik4) :: ssize, ksize, k, ib, irc, ipos
-    integer(ik4), dimension(4) :: req
-    req = mpi_request_null
+    type(mpi_request), dimension(4) :: req
+    req(:) = mpi_request_null
     ksize = k2-k1+1
     ssize = 2*ksize
     if ( size(r8vector1) < ssize ) then
@@ -16771,8 +16771,8 @@ module mod_mppparam
     real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: ml
     integer(ik4), intent(in) :: k1, k2
     integer(ik4) :: ssize, ksize, k, ib, irc, ipos
-    integer(ik4), dimension(4) :: req
-    req = mpi_request_null
+    type(mpi_request), dimension(4) :: req
+    req(:) = mpi_request_null
     ksize = k2-k1+1
     ssize = 2*ksize
     if ( size(r4vector1) < ssize ) then
@@ -20609,7 +20609,7 @@ module mod_mppparam
     end do
   end subroutine myunpack_global_real8_real4_subgrid_slice
 
-  integer(ik4) function get_cartcomm( ) result(cc)
+  type(mpi_comm) function get_cartcomm( ) result(cc)
     implicit none
     cc = cartesian_communicator
   end function get_cartcomm

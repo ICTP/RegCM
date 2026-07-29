@@ -166,7 +166,7 @@ module mod_mtrxclm
     ! Initialize run control variables for clm
     !
     numdays = dayspy
-    r2comm = mycomm
+    r2comm = mycomm%mpi_val
     if ( rcmtimer%integrating( ) ) then
       r2cnsrest = 1
     else

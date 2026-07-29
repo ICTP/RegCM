@@ -34,7 +34,7 @@ program clmsa
   use mod_clm_regcm
   use mod_ncio
 #ifndef MPI_SERIAL
-  use mpi
+  use mpi_f08
 #endif
   implicit none
 
@@ -71,8 +71,10 @@ program clmsa
     implicit none
     integer, intent(in), optional :: mpiCommunicator
     integer(ik4) :: ierr
+    type(mpi_comm) :: fcom
     if (present(mpiCommunicator)) then
-      call mpi_comm_dup(mpiCommunicator,mycomm,ierr)
+      fcom%mpi_val = mpiCommunicator
+      call mpi_comm_dup(fcom,mycomm,ierr)
       if ( ierr /= 0 ) then
         call fatal(__FILE__,__LINE__,'Cannot get communicator!')
       end if

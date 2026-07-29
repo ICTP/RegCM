@@ -31,6 +31,7 @@ module mod_savefile
   use mod_che_mppio
   use mod_massck
   use netcdf
+  use mpi_f08, only : mpi_comm, mpi_comm_self
 
   implicit none
 
@@ -1391,7 +1392,7 @@ module mod_savefile
 
   subroutine myputvar2dd(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1422,7 +1423,7 @@ module mod_savefile
 
   subroutine mygetvar2dd(ncid,str,var,skippable)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1502,7 +1503,7 @@ module mod_savefile
 
   subroutine myputvar3dd4(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1536,7 +1537,7 @@ module mod_savefile
 
   subroutine myputvar3dd8(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1570,7 +1571,7 @@ module mod_savefile
 
   subroutine mygetvar3dd4(ncid,str,var)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1600,7 +1601,7 @@ module mod_savefile
 
   subroutine mygetvar3dd8(ncid,str,var)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1630,7 +1631,7 @@ module mod_savefile
 
   subroutine myputvar4dd8(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1665,7 +1666,7 @@ module mod_savefile
 
   subroutine myputvar4dd4(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1700,7 +1701,7 @@ module mod_savefile
 
   subroutine mygetvar4dd8(ncid,str,var)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1732,7 +1733,7 @@ module mod_savefile
 
   subroutine mygetvar4dd4(ncid,str,var)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1804,7 +1805,7 @@ module mod_savefile
 
   subroutine myputvar2di(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1835,7 +1836,7 @@ module mod_savefile
 
   subroutine mygetvar2di(ncid,str,var)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1863,7 +1864,7 @@ module mod_savefile
 
   subroutine myputvar3di(ncid,str,var,ivar,iivar)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1896,7 +1897,7 @@ module mod_savefile
 
   subroutine mygetvar3di(ncid,str,var)
 #ifdef PNETCDF
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
     use pnetcdf
 #else
     use netcdf
@@ -1927,7 +1928,7 @@ module mod_savefile
   subroutine saveopen(sname,ncid)
 #ifdef PNETCDF
     use pnetcdf
-    use mpi, only : mpi_comm_self
+    use mpi_f08, only : mpi_comm_self
 #else
     use netcdf
 #endif
@@ -1937,28 +1938,30 @@ module mod_savefile
     integer(ik4) :: imode
     character (len=11) :: ctemp
     integer(ik4) :: ical
-    type (rcm_time_and_date) :: idatex
+    type(rcm_time_and_date) :: idatex
+    type(mpi_comm) :: ccom
     real(rk8) :: rtmp
     imode = nf90_nowrite
     if ( do_parallel_save ) then
+      ccom = get_cartcomm( )
 #ifdef PNETCDF
-      ncstatus = nf90mpi_open(get_cartcomm( ),sname,imode, &
-                              ncout_mpi_info,ncid)
+      ncstatus = nf90mpi_open(ccom%mpi_val,sname,imode, &
+                              ncout_mpi_info%mpi_val,ncid)
 #else
 #ifdef NETCDF4_HDF5
       imode = ior(imode,nf90_share)
-      ncstatus = nf90_open(sname,imode,ncid,comm=get_cartcomm( ), &
-                           info=ncout_mpi_info)
+      ncstatus = nf90_open(sname,imode,ncid,comm=ccom%mpi_val, &
+                           info=ncout_mpi_info%mpi_val)
 #endif
 #ifdef PNETCDF_IN_NETCDF
-      ncstatus = nf90_open(sname,imode,ncid=ncid,comm=get_cartcomm( ), &
-                           info=ncout_mpi_info)
+      ncstatus = nf90_open(sname,imode,ncid=ncid,comm=ccom%mpi_val, &
+                           info=ncout_mpi_info%mpi_val)
 #endif
 #endif
     else
 #ifdef PNETCDF
-      ncstatus = nf90mpi_open(mpi_comm_self,sname,imode, &
-                              ncout_mpi_info,ncid)
+      ncstatus = nf90mpi_open(mpi_comm_self%mpi_val,sname,imode, &
+                              ncout_mpi_info%mpi_val,ncid)
 #else
       ncstatus = nf90_open(sname, imode, ncid)
 #endif
@@ -2036,7 +2039,7 @@ module mod_savefile
   subroutine savecreate(sname,ncid)
 #ifdef PNETCDF
     use pnetcdf
-    use mpi, only : mpi_comm_self
+    use mpi_f08, only : mpi_comm_self
 #else
     use netcdf
 #endif
@@ -2044,6 +2047,7 @@ module mod_savefile
     character(len=*), intent(in) :: sname
     integer(ik4), intent(out) :: ncid
     integer(ik4) :: imode, iofmod
+    type(mpi_comm) :: ccom
 #ifndef PNETCDF
 #ifdef NETCDF4_HDF5
     imode = ior(nf90_clobber, nf90_netcdf4)
@@ -2058,25 +2062,26 @@ module mod_savefile
     imode = ior(nf90_clobber, nf90_64bit_data)
 #endif
     if ( do_parallel_save ) then
+      ccom = get_cartcomm( )
 #ifdef PNETCDF
-      ncstatus = nf90mpi_create(get_cartcomm( ),sname,imode, &
-                                ncout_mpi_info,ncid)
+      ncstatus = nf90mpi_create(ccom%mpi_val,sname,imode, &
+                                ncout_mpi_info%mpi_val,ncid)
 #else
 #ifdef NETCDF4_HDF5
       imode = ior(imode,nf90_mpiio)
-      ncstatus = nf90_create(sname,imode,ncid,comm=get_cartcomm( ), &
-                             info=ncout_mpi_info)
+      ncstatus = nf90_create(sname,imode,ncid,comm=ccom%mpi_val, &
+                             info=ncout_mpi_info%mpi_val)
 #endif
 #ifdef PNETCDF_IN_NETCDF
       imode = ior(imode,nf90_mpiio)
       ncstatus = nf90_create_par(sname,imode, &
-                             get_cartcomm( ),ncout_mpi_info,ncid)
+                             ccom%mpi_val,ncout_mpi_info%mpi_val,ncid)
 #endif
 #endif
     else
 #ifdef PNETCDF
-      ncstatus = nf90mpi_create(mpi_comm_self,sname,imode, &
-                                ncout_mpi_info,ncid)
+      ncstatus = nf90mpi_create(mpi_comm_self%mpi_val,sname,imode, &
+                                ncout_mpi_info%mpi_val,ncid)
 #else
       ncstatus = nf90_create(sname, imode, ncid)
 #endif
@@ -2166,7 +2171,7 @@ module mod_savefile
   integer(ik4) function savedefdim(ncid,dname,dlen) result(dimid)
 #ifdef PNETCDF
     use pnetcdf
-    use mpi, only : mpi_offset_kind
+    use mpi_f08, only : mpi_offset_kind
 #else
     use netcdf
 #endif

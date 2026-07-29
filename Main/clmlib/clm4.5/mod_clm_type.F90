@@ -1155,6 +1155,8 @@ module mod_clm_type
   ! pft momentum flux variables structure
   !----------------------------------------------------
   type, public :: pft_mflux_type
+    !Friction velocity (m/s)
+    real(rk8), pointer, contiguous, dimension(:) ::  ustar => null( )
     !wind (shear) stress: e-w (kg/m/s**2)
     real(rk8), pointer, contiguous, dimension(:) ::  taux => null()
     !wind (shear) stress: n-s (kg/m/s**2)

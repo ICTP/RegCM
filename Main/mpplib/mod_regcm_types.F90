@@ -16,6 +16,7 @@
 module mod_regcm_types
   use mod_realkinds
   use mod_intkinds
+  use mpi_f08, only : mpi_comm
 
   implicit none
 
@@ -26,7 +27,7 @@ module mod_regcm_types
 ! timesteps and all the 2d variables and constants
 !
   type masked_comm
-    integer(ik4) :: linear_communicator
+    type(mpi_comm) :: linear_communicator
     logical, pointer, contiguous, dimension(:,:) :: gmask => null( )
     integer(ik4), pointer, contiguous, dimension(:,:) :: gmask_id => null( )
     logical, pointer, contiguous, dimension(:,:,:) :: sgmask => null( )

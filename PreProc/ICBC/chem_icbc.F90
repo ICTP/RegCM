@@ -16,7 +16,7 @@
 #ifdef PNETCDF
 subroutine myabort
   use mod_stdio
-  use mpi
+  use mpi_f08
   implicit none
   integer :: ierr
   write(stderr,*) ' Execution terminated because of runtime error'
@@ -46,7 +46,7 @@ program chem_icbc
   use mod_memutil
   use mod_cams
 #ifdef PNETCDF
-  use mpi
+  use mpi_f08
 #endif
 
   implicit none

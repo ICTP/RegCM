@@ -136,6 +136,7 @@ module mod_clm_baregroundfluxes
     real(rk8), pointer, contiguous :: cgrndl(:)
     ! deriv. of soil energy flux wrt to soil temp [w/m2/k]
     real(rk8), pointer, contiguous :: cgrnd(:)
+    real(rk8), pointer, contiguous :: ustarp(:)  ! Friction Velocity (m/s)
     real(rk8), pointer, contiguous :: taux(:)    ! wind (shear) stress: e-w (kg/m/s**2)
     real(rk8), pointer, contiguous :: tauy(:)    ! wind (shear) stress: n-s (kg/m/s**2)
     ! sensible heat flux from ground (W/m**2) [+ to atm]
@@ -290,10 +291,11 @@ module mod_clm_baregroundfluxes
 
     ! Assign local pointers to derived type members (pft-level)
 
-    taux => clm3%g%l%c%p%pmf%taux
-    tauy => clm3%g%l%c%p%pmf%tauy
-    eflx_sh_grnd => clm3%g%l%c%p%pef%eflx_sh_grnd
-    eflx_sh_tot => clm3%g%l%c%p%pef%eflx_sh_tot
+    ustarp => clm3%g%l%c%p%pmf%ustar
+    taux   => clm3%g%l%c%p%pmf%taux
+    tauy   => clm3%g%l%c%p%pmf%tauy
+    eflx_sh_grnd  => clm3%g%l%c%p%pef%eflx_sh_grnd
+    eflx_sh_tot   => clm3%g%l%c%p%pef%eflx_sh_tot
     qflx_evap_soi => clm3%g%l%c%p%pwf%qflx_evap_soi
     qflx_evap_tot => clm3%g%l%c%p%pwf%qflx_evap_tot
     t_ref2m => clm3%g%l%c%p%pes%t_ref2m
@@ -458,6 +460,7 @@ module mod_clm_baregroundfluxes
       ! Surface fluxes of momentum, sensible and latent heat
       ! using ground temperatures from previous time step
 
+      ustarp(p) = ustar(p)
       taux(p) = -forc_rho(c)*forc_u(g)/ram
       tauy(p) = -forc_rho(c)*forc_v(g)/ram
       eflx_sh_grnd(p) = -raih*dth(p)

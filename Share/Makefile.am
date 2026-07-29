@@ -54,6 +54,7 @@ mod_constants.o: mod_constants.F90 mod_realkinds.o
 mod_date.o: mod_date.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_message.o
 mod_domain.o: mod_domain.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_nchelper.o mod_stdio.o mod_message.o
 mod_dynparam.o: mod_dynparam.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_ensemble.o: mod_ensemble.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_constants.o
 mod_hgt.o: mod_hgt.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_message.o
 mod_humid.o : mod_humid.F90 mod_intkinds.o mod_realkinds.o mod_constants.o pfwsat.inc sig2p.inc

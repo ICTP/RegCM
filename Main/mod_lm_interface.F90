@@ -509,6 +509,8 @@ module mod_lm_interface
         wspd = sqrt(lm%uatm(j,i)**2+lm%vatm(j,i)**2)
         lms%taux(n,j,i) = lms%drag(n,j,i)*lm%uatm(j,i)/wspd
         lms%tauy(n,j,i) = lms%drag(n,j,i)*lm%vatm(j,i)/wspd
+        lms%ustar(n,j,i) = sqrt(sqrt(lms%taux(n,j,i)**2 + &
+                              lms%tauy(n,j,i)**2)/lms%rhoa(n,j,i))
       end if
     end do
 #endif
@@ -518,8 +520,6 @@ module mod_lm_interface
       lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
       if ( lm%ldmsk1(n,j,i) == 1 ) then
         lms%rhoa(n,j,i) = lms%sfcp(n,j,i)/(rgas*lms%t2m(n,j,i))
-        lms%ustar(n,j,i) = sqrt(sqrt(lms%taux(n,j,i)**2 + &
-                              lms%tauy(n,j,i)**2)/lms%rhoa(n,j,i))
       end if
     end do
     !$acc kernels

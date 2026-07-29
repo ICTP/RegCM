@@ -30,7 +30,7 @@ program regcm
   use mod_regcm_interface
   use mod_runparams
 #ifndef MPI_SERIAL
-  use mpi
+  use mpi_f08
 #endif
 #ifdef OASIS
   use mod_oasis_interface

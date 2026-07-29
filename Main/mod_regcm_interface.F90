@@ -48,7 +48,6 @@ module mod_regcm_interface
 #ifdef OASIS
   use mod_oasis_interface
 #endif
-  use mpi
   implicit none
 
   private
@@ -68,16 +67,19 @@ module mod_regcm_interface
   contains
 
   subroutine RCM_initialize(mpiCommunicator)
+    use mpi_f08
     implicit none
-    integer, intent(in), optional :: mpiCommunicator
+    integer(ik4), intent(in), optional :: mpiCommunicator
     real(rkx), allocatable, dimension(:,:) :: rcemip_noise
     integer(ik4) :: ierr, k
     real(rkx) :: rnl
+    type(mpi_comm) :: fcom
     !
     ! MPI Initialization
     !
     if (present(mpiCommunicator)) then
-      call mpi_comm_dup(mpiCommunicator, mycomm, ierr)
+      fcom%mpi_val = mpiCommunicator
+      call mpi_comm_dup(fcom, mycomm, ierr)
       if ( ierr /= 0 ) then
         call fatal(__FILE__,__LINE__,'Cannot get communicator!')
       end if

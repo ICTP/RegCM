@@ -583,6 +583,10 @@ if test -z "$COMPILER_GNU_TRUE"; then
     FCFLAGS="$FCFLAGS -march=nehalem"
     AC_SUBST(FCFLAGS)
   fi
+  if eval "test x"$USECLM" = x1"; then
+    FCFLAGS="$FCFLAGS -fallow-invalid-boz"
+    AC_SUBST(FCFLAGS)
+  fi
 fi
 if test -z "$COMPILER_NAG_TRUE"; then
   FCFLAGS="$FCFLAGS -convert=big-endian -pic -f2018"
@@ -723,6 +727,9 @@ if eval "test x$DEBUG = x1"; then
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
             -Wintrinsic-shadow -fcheck=array-temps,bounds,do,mem,recursion"
             # -ffpe-trap=zero,invalid,overflow,underflow
+    fi
+    if eval "test x"$USECLM" = x1"; then
+      FCFLAGS="$FCFLAGS -fallow-invalid-boz"
     fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)

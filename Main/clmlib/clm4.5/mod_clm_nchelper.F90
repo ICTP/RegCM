@@ -28,7 +28,7 @@ module mod_clm_nchelper
   use mod_regcm_types
   use mod_clm_decomp
   use mod_clm_varcon
-  use mpi
+  use mpi_f08
 
   implicit none
 

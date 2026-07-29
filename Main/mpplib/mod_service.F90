@@ -23,7 +23,7 @@ module mod_service
   use mod_stdio
   use mod_mppparam
   use mod_dynparam, only : mycomm, myid, nproc, debug_level
-  use mpi
+  use mpi_f08
 
   implicit none
 

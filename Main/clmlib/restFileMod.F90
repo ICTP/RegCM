@@ -721,7 +721,7 @@ contains
 ! Read/Write initial data from/to netCDF instantaneous initial data file
 !
 ! !USES:
-    use mpi
+    use mpi_f08
     use shr_kind_mod, only : r8 => shr_kind_r8
     use clm_time_manager, only : get_nstep, get_curr_date
     use spmdMod    , only : mpicom

@@ -19,7 +19,7 @@ module histFileMod
   use clm_varsur  , only : r2coutfrq
   use mod_runparams, only : dtsec
   use mod_dynparam, only : prestr, pthsep
-  use mpi
+  use mpi_f08
   implicit none
   save
   private

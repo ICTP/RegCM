@@ -11,6 +11,7 @@ module mod_clm_decomp
   use mod_mpmessage
   use mod_regcm_types
   use mod_clm_type, only : nameg, namel, namec, namep
+  use mpi_f08, only : mpi_comm
 
   implicit none
 
@@ -42,7 +43,7 @@ module mod_clm_decomp
   !---global information on each pe
   type processor_type
     logical, dimension(:,:), pointer, contiguous :: gcmask => null()
-    integer(ik4) :: icomm
+    type(mpi_comm) :: icomm
     integer(ik4) :: ncells           ! number of gridcells in proc
     integer(ik4) :: nlunits          ! number of landunits in proc
     integer(ik4) :: ncols            ! number of columns in proc
@@ -62,7 +63,7 @@ module mod_clm_decomp
   end type processor_type
 
   type subgrid_type
-    integer(ik4) :: icomm
+    type(mpi_comm) :: icomm
     integer(ik4) :: ns, is, ie
     integer(ik4), pointer, contiguous, dimension(:) :: ic => null()
     integer(ik4), pointer, contiguous, dimension(:) :: id => null()

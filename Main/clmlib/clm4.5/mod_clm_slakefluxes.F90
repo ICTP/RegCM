@@ -123,6 +123,8 @@ module mod_clm_slakefluxes
     real(rk8), pointer, contiguous :: q_ref2m(:)
     ! 2 m height surface relative humidity (%)
     real(rk8), pointer, contiguous :: rh_ref2m(:)
+    ! Friction Velocity (m/s)
+    real(rk8), pointer, contiguous :: ustarp(:)
     ! wind (shear) stress: e-w (kg/m/s**2)
     real(rk8), pointer, contiguous :: taux(:)
     ! wind (shear) stress: n-s (kg/m/s**2)
@@ -331,6 +333,7 @@ module mod_clm_slakefluxes
     rah1           => clm3%g%l%c%p%pps%rah1
     br1            => clm3%g%l%c%p%pps%br1
     ram1_lake      => clm3%g%l%c%p%pps%ram1_lake
+    ustarp         => clm3%g%l%c%p%pmf%ustar
     taux           => clm3%g%l%c%p%pmf%taux
     tauy           => clm3%g%l%c%p%pmf%tauy
     qflx_prec_grnd => clm3%g%l%c%p%pwf%qflx_prec_grnd
@@ -759,6 +762,7 @@ module mod_clm_slakefluxes
       ! The variable eflx_gnet will be used to pass the actual heat flux
       ! from the ground interface into the lake.
 
+      ustarp(p) = ustar(p)
       taux(p) = -forc_rho(g)*forc_u(g)/ram(p)
       tauy(p) = -forc_rho(g)*forc_v(g)/ram(p)
 

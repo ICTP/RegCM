@@ -21,8 +21,9 @@ module mod_ncstream_types
   use mod_realkinds
   use mod_constants
   use mod_date
+  use mpi_f08, only : mpi_comm, mpi_info, mpi_comm_null, mpi_info_null
 #ifdef PNETCDF
-  use mpi, only: mpi_offset_kind
+  use mpi_f08, only : mpi_offset_kind
 #endif
 
   implicit none
@@ -57,8 +58,8 @@ module mod_ncstream_types
     ! The name of the input file
     character(len=maxstring) :: fname
     ! To enable Parallel I/O. Must use hdf5 library
-    integer(ik4) :: mpi_comm = -1
-    integer(ik4) :: mpi_info = -1
+    type(mpi_comm) :: mpicom = mpi_comm_null
+    type(mpi_info) :: mpinfo = mpi_info_null
     ! If parallel I/O, the processor patch indexes on the global grid
     integer(ik4) :: global_jstart, global_jend
     integer(ik4) :: global_istart, global_iend
@@ -70,8 +71,8 @@ module mod_ncstream_types
     ! The name of the program writing the file
     character(len=maxname) :: pname = 'ncoutstream test'
     ! To enable Parallel I/O. Must use hdf5 library
-    integer(ik4) :: mpi_comm = -1
-    integer(ik4) :: mpi_info = -1
+    type(mpi_comm) :: mpicom = mpi_comm_null
+    type(mpi_info) :: mpinfo = mpi_info_null
     integer(ik4) :: mpi_iotype = -1
     logical :: l_keep = .false.
     ! If boundary values are part of the grids

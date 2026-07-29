@@ -23,6 +23,7 @@ module mod_dynparam
 #ifndef PNETCDF
   use netcdf
 #endif
+  use mpi_f08, only : mpi_comm
 
   implicit none
 
@@ -312,7 +313,7 @@ module mod_dynparam
 
   !####################### MPI parameters ################################
 
-  integer(ik4), public :: mycomm
+  type(mpi_comm), public :: mycomm
   integer(ik4), public :: nproc, nprocshm
   integer(ik4), public :: myid, myidshm
   integer(ik4), public :: njxcpus, niycpus
