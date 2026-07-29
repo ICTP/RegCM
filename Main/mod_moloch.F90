@@ -1457,7 +1457,6 @@ module mod_moloch
 
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
-      p(j,i,k) = (pai(j,i,k)**cpovr) * p00
       rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
     end do
@@ -1631,17 +1630,17 @@ module mod_moloch
     integer(ik4) :: i, j, k
     if ( ipptls > 0 ) then
       if ( ipptls > 1 ) then
-        do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+        do concurrent( j=jci1:jci2, i = ici1:ici2, k = 1:kz )
           t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - &
              qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
         end do
       else
-        do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+        do concurrent( j=jci1:jci2, i = ici1:ici2, k = 1:kz )
           t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - qc(j,i,k))
         end do
       end if
     else
-      do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+      do concurrent( j=jci1:jci2, i = ici1:ici2, k = 1:kz )
         t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
       end do
     end if

@@ -493,11 +493,12 @@
  mo_ztop = 30000.0, ! Atmosphere top lid in meters
  mo_h = 8000.0,     ! Atmosphere reference height
  mo_a0 = 0.0,       ! Vertical stretching in model level equations
- mo_nadv = 3,       ! Number of advection loops for physics loop
+ mo_nadv = 2,       ! Number of advection loops for physics loop
  mo_nsound = 5,     ! Number of sound loops for advection loop
- mo_divfilter = .true. ! Do horizontal divergence diffusion
- mo_divdamp = .true.   ! Do damping of divergence
- mo_spectral_nudge = .true., ! Use spectral filtering
+ mo_divfilter = .true.       ! Do horizontal divergence diffusion
+ mo_divdamp = .true.         ! Do damping of divergence
+ mo_top_nudge = .false.,     ! Perform top nudging towards the BC
+ mo_spectral_nudge = .true., ! Use spectral top relaxation towards the BC
  /
 !
 ! Buffer Zone Control relaxation + diffusion term
