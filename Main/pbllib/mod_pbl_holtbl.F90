@@ -300,7 +300,7 @@ module mod_pbl_holtbl
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         thv10(j,i) = max(thv10(j,i),m2p%tg(j,i))  ! gtb add to maximize
       end do
-    else  if ( ifaholt  == 2 ) then
+    else if ( ifaholt == 2 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         thv10(j,i) = min(thv10(j,i),m2p%tg(j,i))  ! gtb add to minimize
       end do
@@ -363,6 +363,7 @@ module mod_pbl_holtbl
     ! looking for first guess bl top
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       p2m%zpbl(j,i) = m2p%za(j,i,kz)
+      !$acc loop seq
       do k = kzm1, kmxpbl(j,i)+1, -1
         ! bl height lies between this level and the last
         ! use linear interp. of rich. no. to height of ri=ricr
@@ -398,6 +399,7 @@ module mod_pbl_holtbl
       if ( lunstb(j,i) ) then
         ! improve estimate of bl height under convective conditions
         ! using convective temperature excess (therm)
+        !$acc loop seq
         do k = kz, kmxpbl(j,i)+1, -1
           ! bl height lies between this level and the last
           ! use linear interp. of rich. no. to height of ri=ricr
@@ -429,6 +431,7 @@ module mod_pbl_holtbl
       if ( p2m%zpbl(j,i) < phpblm ) then
         p2m%zpbl(j,i) = max(phpblm,p2m%zpbl(j,i))
       end if
+      !$acc loop seq
       do k = kz, kmxpbl(j,i), -1
         p2m%kpbl(j,i) = k
         if ( m2p%za(j,i,k) > p2m%zpbl(j,i) ) exit
@@ -449,6 +452,7 @@ module mod_pbl_holtbl
         wsc = d_zero
         fak2 = d_zero
       end if
+      !$acc loop seq
       do k = kz, p2m%kpbl(j,i), -1
         zm = m2p%za(j,i,k)
         zp = m2p%za(j,i,k-1)
