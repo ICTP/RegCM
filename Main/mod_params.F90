@@ -547,7 +547,7 @@ module mod_params
     zhnew_fac = 0.25_rkx
     ifaholt = 0
     ifaholtth10 = 2
-    holtth10iter = 3
+    holtth10iter = 1
     !
     ! slabocparam ;
     !
