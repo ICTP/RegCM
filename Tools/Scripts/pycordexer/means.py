@@ -36,10 +36,14 @@ compressed in disk.
         dates = num2date(times[:], units=times.units, calendar=times.calendar)
     d1 = datetime(dates[0].year,dates[0].month,dates[0].day)
     d2 = datetime(dates[-1].year,dates[-1].month,dates[-1].day)
-    f1 = (repr(dates[0].year).zfill(4)+repr(dates[0].month).zfill(2)+
-          repr(dates[0].day).zfill(2))
-    f2 = (repr(dates[-1].year).zfill(4)+repr(dates[-1].month).zfill(2)+
-          repr(dates[-1].day).zfill(2))
+    if window == 'day':
+      f1 = (repr(dates[0].year).zfill(4)+repr(dates[0].month).zfill(2)+
+            repr(dates[0].day).zfill(2))
+      f2 = (repr(dates[-1].year).zfill(4)+repr(dates[-1].month).zfill(2)+
+            repr(dates[-1].day).zfill(2))
+    else:
+      f1 = (repr(dates[0].year).zfill(4)+repr(dates[0].month).zfill(2))
+      f2 = (repr(dates[-1].year).zfill(4)+repr(dates[-1].month).zfill(2))
 
     creation_date = time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                   time.localtime(time.time())),
@@ -63,7 +67,7 @@ compressed in disk.
             print('How to make monthly mean on monthly dataset?')
             sys.exit(-1)
         try:
-            nco = Dataset(str.join('_',pieces[0:6])+'_'+
+            nco = Dataset(str.join('_',pieces[0:8])+'_'+
                           window+'_'+f1+'-'+f2+'.nc',
                           'w', format='NETCDF4_CLASSIC')
         except:
