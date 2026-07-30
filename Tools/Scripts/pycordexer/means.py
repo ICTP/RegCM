@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+import os
+import sys
+import time
+import numpy as np
+from netCDF4 import Dataset , num2date
+from netcdftime import datetime , utime
+
 """
 This small program is computing time means of netcdf file variables
 of the RegCM output file and writing a netcdf file with the means.
@@ -14,11 +21,6 @@ will follow the following convention:
 Its format will be NETCDF4_CLASSIC, and all 2D+ variables will be
 compressed in disk.
     """
-    from netCDF4 import Dataset , num2date
-    import numpy as np
-    import time
-    from netcdftime import datetime , utime
-    import os
 
     names = { 'day' : 'day',
               'mon' : 'month' }
@@ -49,17 +51,27 @@ compressed in disk.
                                   time.localtime(time.time())),
 
     pieces = os.path.basename(os.path.splitext(datafile)[0]).split('_')
- 
+
+    print(pieces[0], f1, f2)
+
+    input_frequency = ncf.frequency
+
     if window == 'day':
-        if ncf.frequency == 'day' or ncf.frequency == 'mon':
+        if input_frequency == 'day' or input_frequency == 'mon':
             print('How to make daily mean on day or monthly dataset?')
             sys.exit(-1)
         try:
-            nco = Dataset(str.join('_',pieces[0:8])+
-                          '_'+window+'_'+f1+'12-'+f2+'12.nc',
-                          'w', format='NETCDF4_CLASSIC')
+            if os.path.join('CORDEX-CMIP6','DD') in datafile:
+                opath = os.path.dirname(datafile).replace(input_frequency,'day')
+                os.makedirs(opath, exist_ok=True)
+                ofile = os.path.join(opath,str.join('_',pieces[0:8])+
+                          '_'+window+'_'+f1+'-'+f2+'.nc')
+            else:
+                ofile = (str.join('_',pieces[0:8])+
+                          '_'+window+'_'+f1+'-'+f2+'.nc')
+            nco = Dataset(ofile, 'w', format='NETCDF4_CLASSIC')
         except:
-            print(str.join('_',pieces[0:8])+'_'+window+'_'+f1+'12-'+f2+'12.nc')
+            print(ofile)
             raise RuntimeError('Cannot open output file')
         tunit = 'days since 1950-01-01 00:00:00'
     elif window == 'mon':
@@ -67,9 +79,15 @@ compressed in disk.
             print('How to make monthly mean on monthly dataset?')
             sys.exit(-1)
         try:
-            nco = Dataset(str.join('_',pieces[0:8])+'_'+
-                          window+'_'+f1+'-'+f2+'.nc',
-                          'w', format='NETCDF4_CLASSIC')
+            if os.path.join('CORDEX-CMIP6','DD') in datafile:
+                opath = os.path.dirname(datafile).replace(input_frequency,'mon')
+                os.makedirs(opath, exist_ok=True)
+                ofile = os.path.join(opath,str.join('_',pieces[0:8])+
+                          '_'+window+'_'+f1+'-'+f2+'.nc')
+            else:
+                ofile = (str.join('_',pieces[0:8])+
+                          '_'+window+'_'+f1+'-'+f2+'.nc')
+            nco = Dataset(ofile, 'w', format='NETCDF4_CLASSIC')
         except:
             raise RuntimeError('Cannot open output file')
         tunit = 'days since 1950-01-01 00:00:00'
@@ -171,9 +189,9 @@ compressed in disk.
             indx = (ic == dic[it]) 
             if times.units.find('hours since') == 0:
                 hh = (times[1]-times[0])/48.0
-                nco.variables['time'][it] = np.median(times[indx])/24.0 - hh
+                nco.variables['time'][it] = np.ma.median(times[indx])/24.0 - hh
             else:
-                nco.variables['time'][it] = np.median(times[indx])
+                nco.variables['time'][it] = np.ma.median(times[indx])
         if times.units.find('hours since') == 0:
             diff = (times[1]-times[0])/2.0
         else:
@@ -182,11 +200,11 @@ compressed in disk.
             indx = (ic == dic[it]) 
             if times.units.find('hours since') == 0:
                 hh = (times[1]-times[0])/48.0
-                tbnds[it,0] = (np.min(times[indx])-diff)/24.0 - hh
-                tbnds[it,1] = (np.max(times[indx])+diff)/24.0 - hh
+                tbnds[it,0] = (np.ma.min(times[indx])-diff)/24.0 - hh
+                tbnds[it,1] = (np.ma.max(times[indx])+diff)/24.0 - hh
             else:
-                tbnds[it,0] = np.min(times[indx])-diff
-                tbnds[it,1] = np.max(times[indx])+diff
+                tbnds[it,0] = np.ma.min(times[indx])-diff
+                tbnds[it,1] = np.ma.max(times[indx])+diff
 
     for var in ncf.variables:
         if var == 'crs':
@@ -206,13 +224,12 @@ compressed in disk.
     nco.close()
 
 if ( __name__ == '__main__' ):
-    import sys
     if len(sys.argv) < 2:
         print('Need file name')
         sys.exit(-1)
-    infile = sys.argv[1]
-    if ( len(sys.argv) < 3 ):
-        timewin = 'mon'
+    if sys.argv[-1] == 'day':
+        for ff in sys.argv[1:-1]:
+            compute_mean(ff, 'day')
     else:
-        timewin = sys.argv[2]
-    compute_mean(infile, timewin)
+        for ff in sys.argv[1:]:
+            compute_mean(ff, 'mon')
