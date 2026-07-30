@@ -612,7 +612,6 @@ module mod_runparams
     zcin(2) = sigma(findwhere(0.40_rkx))
     zcin(3) = sigma(kzp1)
     call spline1d(3,zcin,ncin,ycin,kz,hsigma,nudge)
-    call invert_top_bottom(nudge)
     if ( myid == 0 ) then
       call vprntv(nudge,kz,'Nudging coefficient profile')
     end if
