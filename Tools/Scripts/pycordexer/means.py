@@ -63,7 +63,7 @@ compressed in disk.
             print('How to make monthly mean on monthly dataset?')
             sys.exit(-1)
         try:
-            nco = Dataset(str.join('_',pieces[0:8])+'_'+
+            nco = Dataset(str.join('_',pieces[0:6])+'_'+
                           window+'_'+f1+'-'+f2+'.nc',
                           'w', format='NETCDF4_CLASSIC')
         except:
