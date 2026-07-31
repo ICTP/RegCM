@@ -53,7 +53,7 @@ module mod_write
   type(ncvariable2d_mixed), allocatable, save, dimension(:) :: v2dvar_icbc
   type(ncvariable3d_mixed), allocatable, save, dimension(:) :: v3dvar_icbc
   logical :: qli_present = .false.
-  logical :: do_wavelet_denoise = .false.
+  logical :: do_wavelet_denoise = .true.
 
   contains
 
@@ -710,8 +710,8 @@ module mod_write
     end do
     if ( do_wavelet_denoise ) then
       nn = real(nx*ny, rk8)
+      hgt(:,:) = p00 * (pai(:,:,kz)**cpovr)
       do k = 1, kz
-        hgt(:,:) = p00 * (pai(:,:,k)**cpovr)
         ppsum = sum(hgt*hgt)
         mp = sum(hgt)/nn
         mf = sum(pai(:,:,k))/nn
