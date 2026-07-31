@@ -1598,7 +1598,11 @@ module mod_moloch
     real(rkx) :: tv, lrt
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       lrt = (tvirt(j,i,kzm1)-tvirt(j,i,kz))/(z(j,i,kzm1)-z(j,i,kz))
-      lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+      if ( lrt > govcp ) then
+        lrt = govcp
+      else if ( lrt < -0.005_rkx ) then
+        lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+      end if
       tv = tvirt(j,i,kz) - lrt*d_half*z(j,i,kz)
       ps(j,i) = p(j,i,kz) * exp(govr*z(j,i,kz)/tv)
     end do

@@ -53,6 +53,7 @@ module mod_write
   type(ncvariable2d_mixed), allocatable, save, dimension(:) :: v2dvar_icbc
   type(ncvariable3d_mixed), allocatable, save, dimension(:) :: v3dvar_icbc
   logical :: qli_present = .false.
+  logical :: do_wavelet_denoise = .false.
 
   contains
 
@@ -653,9 +654,8 @@ module mod_write
       call pai_compute(jx,iy,kz,ps4,z0,t4,q4,pai4)
       p4(:,:,:) = (pai4(:,:,:)**cpovr) * p00
       qs(:,:,:) = pfwsat(t4(:,:,:),p4(:,:,:))
-      q4(:,:,:) = max(min(q4(:,:,:),qs(:,:,:)),1.0E-8_rkx)
-      call extrapolate_surface_pressure(jx,iy,p4(:,:,kz), &
-                       topogm,t4(:,:,kz),q4(:,:,kz),ps4)
+      q4(:,:,:) = max(min(q4(:,:,:),1.02_rkx*qs(:,:,:)),1.0E-8_rkx)
+      call extrapolate_surface_pressure(jx,iy,kz,p4,z0,t4,q4,ps4)
       ps4(:,:) = ps4(:,:)*d_r100
     end if
 
@@ -691,7 +691,7 @@ module mod_write
         if ( lrt > govcp ) then
           lrt = govcp
         else if ( lrt < -0.005_rkx ) then
-          lrt = 0.5_rkx*lrt - 0.5_rkx*lrate
+          lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
         end if
         tv = tv1 - 0.5_rkx*z(j,i,nz)*lrt
         zz = d_one/(rgas*tv)
@@ -708,36 +708,44 @@ module mod_write
         end do
       end do
     end do
-    nn = real(nx*ny, rk8)
-    do k = 1, kz
-      hgt(:,:) = p00 * (pai(:,:,k)**cpovr)
-      ppsum = sum(hgt*hgt)
-      mp = sum(hgt)/nn
-      mf = sum(pai(:,:,k))/nn
-      pfsum = sum(hgt(:,:) * pai(:,:,k))
-      ! Covariance(hgt,pai)/Variance(hgt)
-      xg = (pfsum - nn * mp * mf) / (ppsum - nn * mp * mp)
-      ! Decouple, remove noise, recouple
-      fb(:,:) = pai(:,:,k) - xg * hgt(:,:)
-      call wavelet_denoise(nx,ny,fb,fbc,0.002_rkx/ds)
-      pai(:,:,k) = fbc(:,:) + xg * hgt(:,:)
-    end do
+    if ( do_wavelet_denoise ) then
+      nn = real(nx*ny, rk8)
+      do k = 1, kz
+        hgt(:,:) = p00 * (pai(:,:,k)**cpovr)
+        ppsum = sum(hgt*hgt)
+        mp = sum(hgt)/nn
+        mf = sum(pai(:,:,k))/nn
+        pfsum = sum(hgt(:,:) * pai(:,:,k))
+        ! Covariance(hgt,pai)/Variance(hgt)
+        xg = (pfsum - nn * mp * mf) / (ppsum - nn * mp * mp)
+        ! Decouple, remove noise, recouple
+        fb(:,:) = pai(:,:,k) - xg * hgt(:,:)
+        call wavelet_denoise(nx,ny,fb,fbc,0.002_rkx/ds)
+        pai(:,:,k) = fbc(:,:) + xg * hgt(:,:)
+      end do
+    end if
   end subroutine pai_compute
 
-  subroutine extrapolate_surface_pressure(nx,ny,p,ht,t,q,ps)
+  subroutine extrapolate_surface_pressure(nx,ny,nz,p,z,t,q,ps)
     implicit none
-    integer(ik4), intent(in) :: nx, ny
-    real(rkx), dimension(nx,ny), intent(in) :: p, ht, t, q
+    integer(ik4), intent(in) :: nx, ny, nz
+    real(rkx), dimension(nx,ny,nz), intent(in) :: p, z, t, q
     real(rkx), dimension(nx,ny), intent(out) :: ps
-    real(rkx) :: zh, zdgz, tvirt
+    real(rkx) :: tv1, tv2, tv, lrt
     integer(ik4) :: i, j
 
-    zh = 0.5_rkx*mo_dzita
     do i = 1, ny
       do j = 1, nx
-        zdgz = egrav*md_zeta_h(zh,ht(j,i),mo_ztop,mo_h,mo_a0)
-        tvirt = t(j,i) * (1.0_rkx + ep1*q(j,i))
-        ps(j,i) = p(j,i) * exp(zdgz/(rgas*tvirt))
+        tv1 = t(j,i,kz) * (1.0_rkx + ep1*q(j,i,kz))
+        tv2 = t(j,i,kzm1) * (1.0_rkx + ep1*q(j,i,kzm1))
+        lrt = (tv2-tv1)/(z(j,i,kzm1)-z(j,i,kz))
+        if ( lrt > govcp ) then
+          lrt = govcp
+        else if ( lrt < -0.005_rkx ) then
+          lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+        end if
+        tv = tv1 - lrt*0.5_rkx*z(j,i,kz)
+        ps(j,i) = p(j,i,kz) * exp(govr*z(j,i,kz)/tv)
       end do
     end do
   end subroutine extrapolate_surface_pressure
