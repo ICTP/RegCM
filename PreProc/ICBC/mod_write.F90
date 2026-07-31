@@ -649,7 +649,6 @@ module mod_write
     end if
 
     if ( idynamic == 3 ) then
-      ! Remember in this case ptop is zero!
       ps4(:,:) = ps4(:,:)*d_1000
       call pai_compute(jx,iy,kz,ps4,z0,t4,q4,pai4)
       p4(:,:,:) = (pai4(:,:,:)**cpovr) * p00
@@ -677,9 +676,9 @@ module mod_write
     real(rkx), dimension(nx,ny,nz), intent(in) :: z, t, q
     real(rkx), dimension(nx,ny,nz), intent(out) :: pai
     integer(ik4) :: i, j, k
-    real(rkx), dimension(nx,ny) :: hgt, fb, fbc
+    real(rkx), dimension(nx,ny) :: press, fb, fbc
     real(rkx) :: tv1, tv2, lrt, tv, zz, zb, p, zdelta, paikp1
-    real(rk8) :: pfsum, ppsum, mp, mf, xg, nn
+    real(rk8) :: pfsum, ppsum, mp, mf, xg, nn, xk
 
     ! Hydrostatic initialization of pai
     do i = 1, ny
@@ -710,18 +709,26 @@ module mod_write
     end do
     if ( do_wavelet_denoise ) then
       nn = real(nx*ny, rk8)
-      hgt(:,:) = p00 * (pai(:,:,kz)**cpovr)
       do k = 1, kz
-        ppsum = sum(hgt*hgt)
-        mp = sum(hgt)/nn
+        ! In press, recompute model level pressure. Going up, merge with
+        ! average pressure (flattening of pressure level)
+        press(:,:) = p00 * (pai(:,:,k)**cpovr)
+        mp = sum(press)/nn
+        xk = 1.0_rkx - 0.5_rkx * &
+          ((fmz0(j,i,k)-fmz0(j,i,kz))/(fmz0(j,i,1)-fmz0(j,i,kz)))
+        press(:,:) = xk * press(:,:) + (1.0_rkx - xk) * mp
+        ! Now the filtering. Compute integrals and means.
+        ppsum = sum(press(:,:) * press(:,:))
+        pfsum = sum(press(:,:) * pai(:,:,k))
+        mp = sum(press)/nn
         mf = sum(pai(:,:,k))/nn
-        pfsum = sum(hgt(:,:) * pai(:,:,k))
-        ! Covariance(hgt,pai)/Variance(hgt)
+        ! Covariance(press,pai) / Variance(press)
         xg = (pfsum - nn * mp * mf) / (ppsum - nn * mp * mp)
-        ! Decouple, remove noise, recouple
-        fb(:,:) = pai(:,:,k) - xg * hgt(:,:)
-        call wavelet_denoise(nx,ny,fb,fbc,0.002_rkx/ds)
-        pai(:,:,k) = fbc(:,:) + xg * hgt(:,:)
+        ! Decouple from pressure, smooth, remove noise, recouple with pressure
+        fb(:,:) = pai(:,:,k) - xg * press(:,:)
+        call gaussian_filter(jx,iy,press,kzp1-k)
+        call wavelet_denoise(nx,ny,fb,fbc,0.5_rkx/ds)
+        pai(:,:,k) = fbc(:,:) + xg * press(:,:)
       end do
     end if
   end subroutine pai_compute
@@ -749,6 +756,53 @@ module mod_write
       end do
     end do
   end subroutine extrapolate_surface_pressure
+
+  subroutine gaussian_filter(nj,ni,slab,npass)
+    implicit none
+    integer(ik4), intent(in) :: ni, nj, npass
+    real(rkx), intent(inout), dimension(nj,ni) :: slab
+    real(rkx), dimension(nj,ni) :: temp1, temp2
+    integer :: n, i, j
+    temp1(:,:) = slab(:,:)
+    ! Gaussian filter
+    do n = 1, npass
+      do i = 2, ni-1
+        do j = 2, nj-1
+          temp2(j,i) = 0.0625_rkx * ( 4.0_rkx * temp1(j,i) + &
+                  2.0_rkx * (temp1(j,i+1)+temp1(j,i-1) + &
+                             temp1(j+1,i)+temp1(j-1,i)) + &
+            temp1(j+1,i+1)+temp1(j-1,i+1)+temp1(j-1,i-1)+temp1(j+1,i-1))
+        end do
+      end do
+      do i = 2, ni-1
+        temp2(1,i) = 0.1_rkx * ( 3.0_rkx * temp1(1,i) + &
+          2.0_rkx * (temp1(1,i+1)+temp1(1,i-1)+temp1(2,i)) + &
+          0.5_rkx * (temp1(2,i+1)+temp1(2,i-1)))
+        temp2(nj,i) = 0.1_rkx * ( 3.0_rkx * temp1(nj,i) + &
+          2.0_rkx * (temp1(nj,i+1)+temp1(nj,i-1)+temp1(nj-1,i)) + &
+          0.5_rkx * (temp1(nj-1,i+1)+temp1(nj-1,i-1)))
+      end do
+      do j = 2, nj-1
+        temp2(j,1) = 0.1_rkx * ( 3.0_rkx * temp1(j,1) + &
+          2.0_rkx * (temp1(j+1,1)+temp1(j-1,1)+temp1(j,2)) + &
+          0.5_rkx * (temp1(j+1,2)+temp1(j-1,2)))
+        temp2(j,ni) = 0.1_rkx * ( 3.0_rkx * temp1(j,ni) + &
+          2.0_rkx * (temp1(j+1,ni)+temp1(j-1,ni)+temp1(j,ni-1)) + &
+          0.5_rkx * (temp1(j+1,ni-1)+temp1(j-1,ni-1)))
+      end do
+      temp2(1,1) =   0.25_rkx * (temp1(1,   1) +temp1(1,   2)    + &
+                                 temp1(2,   1) +temp1(2,   2))
+      temp2(1,ni) =  0.25_rkx * (temp1(1,   ni)+temp1(1,   ni-1) + &
+                                 temp1(2,   ni)+temp1(2,   ni-1))
+      temp2(nj,1) =  0.25_rkx * (temp1(nj,  1) +temp1(nj,  2)    + &
+                                 temp1(nj-1,1) +temp1(nj-1,2))
+      temp2(nj,ni) = 0.25_rkx * (temp1(nj,  ni)+temp1(nj,  ni-1) + &
+                                 temp1(nj-1,ni)+temp1(nj-1,ni-1))
+      if ( n == npass ) exit
+      temp1(:,:) = temp2(:,:)
+    end do
+    slab(:,:) = temp2(:,:)
+  end subroutine gaussian_filter
 
 end module mod_write
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
