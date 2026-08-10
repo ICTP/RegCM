@@ -59,8 +59,8 @@ module mod_output
     module procedure uvrot3d
   end interface uvrot
 
-  real(rkx), pointer, contiguous, dimension(:) :: p1d, t1d, rh1d, td
-  real(rkx), pointer, contiguous, dimension(:) :: pi, q, th, thv, z
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: p1d, t1d, rh1d, td
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: pi, q, th, thv, z
   real(rkx), dimension(:,:,:), pointer, contiguous :: qv
   real(rkx), dimension(:,:), pointer, contiguous :: temp500
   type(regcm_projection), save :: pj
@@ -78,15 +78,15 @@ module mod_output
       call getmem(temp500,jci1,jci2,ici1,ici2,'output:temp500')
     end if
     if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then
-      call getmem(p1d,1,kz,'output:p1d')
-      call getmem(t1d,1,kz,'output:t1d')
-      call getmem(rh1d,1,kz,'output:rh1d')
-      call getmem(td,1,kz,'output:td')
-      call getmem(pi,1,kz,'output:pi')
-      call getmem(q,1,kz,'output:q')
-      call getmem(th,1,kz,'output:th')
-      call getmem(thv,1,kz,'output:thv')
-      call getmem(z,1,kz,'output:z')
+      call getmem(p1d,jci1,jci2,ici1,ici2,1,kz,'output:p1d')
+      call getmem(t1d,jci1,jci2,ici1,ici2,1,kz,'output:t1d')
+      call getmem(rh1d,jci1,jci2,ici1,ici2,1,kz,'output:rh1d')
+      call getmem(td,jci1,jci2,ici1,ici2,1,kz,'output:td')
+      call getmem(pi,jci1,jci2,ici1,ici2,1,kz,'output:pi')
+      call getmem(q,jci1,jci2,ici1,ici2,1,kz,'output:q')
+      call getmem(th,jci1,jci2,ici1,ici2,1,kz,'output:th')
+      call getmem(thv,jci1,jci2,ici1,ici2,1,kz,'output:thv')
+      call getmem(z,jci1,jci2,ici1,ici2,1,kz,'output:z')
     end if
     if ( uvrotate ) then
       call alpharot_compute(pj)
@@ -349,7 +349,7 @@ module mod_output
           end if
           ! Specific humidity in the output, not mixing ratio
           !$acc kernels
-          atm_qv_out = atm_qv_out/(d_one+atm_qv_out)
+          atm_qv_out(:,:,:) = atm_qv_out(:,:,:)/(d_one+atm_qv_out(:,:,:))
           !$acc end kernels
         end if
         if ( associated(atm_qc_out) ) then
@@ -493,7 +493,9 @@ module mod_output
           end if
         else if ( idynamic == 2 ) then
           if ( associated(atm_ph_out) ) then
+            !$acc kernels
             atm_ph_out(:,:,1) = ptop*d_1000
+            !$acc end kernels
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
               atm_ph_out(j,i,k) = atm0%pf(j,i,k) + &
                        d_half*(atm1%pp(j,i,k-1)+atm1%pp(j,i,k))/sfs%psa(j,i)
@@ -708,13 +710,17 @@ module mod_output
                 atm_tten_adh_out(j,i,k) = tdiag%adh(j,i,k)/ps_out(j,i)
               end do
             end if
-            tdiag%adh = d_zero
+            !$acc kernels
+            tdiag%adh(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_tten_adv_out) ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_tten_adv_out(j,i,k) = tdiag%adv(j,i,k)/ps_out(j,i)
             end do
-            tdiag%adv = d_zero
+            !$acc kernels
+            tdiag%adv(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_tten_tbl_out) ) then
             if ( idynamic == 3 ) then
@@ -726,13 +732,17 @@ module mod_output
                 atm_tten_tbl_out(j,i,k) = tdiag%tbl(j,i,k)/ps_out(j,i)
               end do
             end if
-            tdiag%tbl = d_zero
+            !$acc kernels
+            tdiag%tbl(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_tten_dif_out) ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_tten_dif_out(j,i,k) = tdiag%dif(j,i,k)/ps_out(j,i)
             end do
-            tdiag%dif = d_zero
+            !$acc kernels
+            tdiag%dif(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_tten_bdy_out) ) then
             if ( idynamic == 3 ) then
@@ -744,7 +754,9 @@ module mod_output
                 atm_tten_bdy_out(j,i,k) = tdiag%bdy(j,i,k)/ps_out(j,i)
               end do
             end if
-            tdiag%bdy = d_zero
+            !$acc kernels
+            tdiag%bdy(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_tten_con_out) ) then
             if ( idynamic == 3 ) then
@@ -756,13 +768,17 @@ module mod_output
                 atm_tten_con_out(j,i,k) = tdiag%con(j,i,k)/ps_out(j,i)
               end do
             end if
-            tdiag%con = d_zero
+            !$acc kernels
+            tdiag%con(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_tten_adi_out) ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_tten_adi_out(j,i,k) = tdiag%adi(j,i,k)/ps_out(j,i)
             end do
-            tdiag%adi = d_zero
+            !$acc kernels
+            tdiag%adi(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_tten_rad_out) ) then
             if ( idynamic == 3 ) then
@@ -774,7 +790,9 @@ module mod_output
                 atm_tten_rad_out(j,i,k) = tdiag%rad(j,i,k)/ps_out(j,i)
               end do
             end if
-            tdiag%rad = d_zero
+            !$acc kernels
+            tdiag%rad(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_tten_lsc_out) ) then
             if ( idynamic == 3 ) then
@@ -786,7 +804,9 @@ module mod_output
                 atm_tten_lsc_out(j,i,k) = tdiag%lsc(j,i,k)/ps_out(j,i)
               end do
             end if
-            tdiag%lsc = d_zero
+            !$acc kernels
+            tdiag%lsc(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_qten_adh_out) ) then
             if ( idynamic == 3 ) then
@@ -798,13 +818,17 @@ module mod_output
                 atm_qten_adh_out(j,i,k) = qdiag%adh(j,i,k)/ps_out(j,i)
               end do
             end if
-            qdiag%adh = d_zero
+            !$acc kernels
+            qdiag%adh(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_qten_adv_out) ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qten_adv_out(j,i,k) = qdiag%adv(j,i,k)/ps_out(j,i)
             end do
-            qdiag%adv = d_zero
+            !$acc kernels
+            qdiag%adv(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_qten_tbl_out) ) then
             if ( idynamic == 3 ) then
@@ -816,13 +840,17 @@ module mod_output
                 atm_qten_tbl_out(j,i,k) = qdiag%tbl(j,i,k)/ps_out(j,i)
               end do
             end if
-            qdiag%tbl = d_zero
+            !$acc kernels
+            qdiag%tbl(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_qten_dif_out) ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qten_dif_out(j,i,k) = qdiag%dif(j,i,k)/ps_out(j,i)
             end do
-            qdiag%dif = d_zero
+            !$acc kernels
+            qdiag%dif(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_qten_bdy_out) ) then
             if ( idynamic == 3 ) then
@@ -834,7 +862,9 @@ module mod_output
                 atm_qten_bdy_out(j,i,k) = qdiag%bdy(j,i,k)/ps_out(j,i)
               end do
             end if
-            qdiag%bdy = d_zero
+            !$acc kernels
+            qdiag%bdy(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_qten_con_out) ) then
             if ( idynamic == 3 ) then
@@ -846,13 +876,17 @@ module mod_output
                 atm_qten_con_out(j,i,k) = qdiag%con(j,i,k)/ps_out(j,i)
               end do
             end if
-            qdiag%con = d_zero
+            !$acc kernels
+            qdiag%con(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_qten_adi_out) ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_qten_adi_out(j,i,k) = qdiag%adi(j,i,k)/ps_out(j,i)
             end do
-            qdiag%adi = d_zero
+            !$acc kernels
+            qdiag%adi(:,:,:) = d_zero
+            !$acc end kernels
           end if
           if ( associated(atm_qten_lsc_out) ) then
             if ( idynamic == 3 ) then
@@ -864,7 +898,9 @@ module mod_output
                 atm_qten_lsc_out(j,i,k) = qdiag%lsc(j,i,k)/ps_out(j,i)
               end do
             end if
-            qdiag%lsc = d_zero
+            !$acc kernels
+            qdiag%lsc(:,:,:) = d_zero
+            !$acc end kernels
           end if
         end if
 
@@ -883,8 +919,10 @@ module mod_output
         if ( myid == italk ) &
           write(stdout,*) 'ATM variables written at ', rcmtimer%str( )
 
-        sfs%rainc  = d_zero
-        sfs%rainnc = d_zero
+        !$acc kernels
+        sfs%rainc(:,:)  = d_zero
+        sfs%rainnc(:,:) = d_zero
+        !$acc end kernels
       end if
     end if
 
@@ -907,106 +945,153 @@ module mod_output
         end if
         ! Averaged values
         if ( associated(srf_tpr_out) ) then
-          srf_tpr_out = srf_tpr_out*srffac
-          where ( srf_tpr_out < 1.0e-8_rkx )
-            srf_tpr_out = 0.0_rkx
-          end where
+          !$acc kernels
+          srf_tpr_out(:,:) = max(srf_tpr_out(:,:)*srffac,0.0_rkx)
+          !$acc end kernels
         end if
         if ( associated(srf_prcv_out) ) then
-          srf_prcv_out = srf_prcv_out*srffac
-          where ( srf_prcv_out < 1.0e-8_rkx )
-            srf_prcv_out = 0.0_rkx
-          end where
+          !$acc kernels
+          srf_prcv_out(:,:) = max(srf_prcv_out(:,:)*srffac,0.0_rkx)
+          !$acc end kernels
         end if
         if ( associated(srf_snow_out) ) then
-          srf_snow_out = srf_snow_out*srffac
-          where ( srf_snow_out < 1.0e-8_rkx )
-            srf_snow_out = 0.0_rkx
-          end where
+          !$acc kernels
+          srf_snow_out(:,:) = max(srf_snow_out(:,:)*srffac,0.0_rkx)
+          !$acc end kernels
         end if
         if ( associated(srf_hail_out) ) then
-          srf_hail_out = srf_hail_out*srffac
-          where ( srf_hail_out < 1.0e-8_rkx )
-            srf_hail_out = 0.0_rkx
-          end where
+          !$acc kernels
+          srf_hail_out(:,:) = max(srf_hail_out(:,:)*srffac,0.0_rkx)
+          !$acc end kernels
         end if
-        if ( associated(srf_zpbl_out) ) &
-          srf_zpbl_out = srf_zpbl_out*srffac
+        if ( associated(srf_zpbl_out) ) then
+          !$acc kernels
+          srf_zpbl_out(:,:) = srf_zpbl_out(:,:)*srffac
+          !$acc end kernels
+        end if
         if ( associated(srf_dew_out) .and. associated(srf_evp_out) ) then
-          srf_dew_out = -(srf_evp_out*srffac)
-          srf_dew_out = max(srf_dew_out, d_zero)
+          !$acc kernels
+          srf_dew_out(:,:) = max(-(srf_evp_out(:,:)*srffac),0.0_rkx)
+          !$acc end kernels
         end if
         if ( associated(srf_evp_out) ) then
-          srf_evp_out = srf_evp_out*srffac
-          srf_evp_out = max(srf_evp_out, d_zero)
+          !$acc kernels
+          srf_evp_out(:,:) = max(srf_evp_out(:,:)*srffac,0.0_rkx)
+          !$acc end kernels
         end if
         if ( associated(srf_scv_out) ) then
-          where ( mddom%ldmsk > 0 )
-            srf_scv_out = srf_scv_out*srffac
-          elsewhere
-            srf_scv_out = dmissval
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( mddom%ldmsk(j,i) > 0 ) then
+              srf_scv_out(j,i) = srf_scv_out(j,i)*srffac
+            else
+              srf_scv_out(j,i) = dmissval
+            end if
+          end do
         end if
         if ( associated(srf_srunoff_out) ) then
-          where ( srf_srunoff_out < dlowval )
-            srf_srunoff_out = d_zero
-          end where
-          where ( mddom%ldmsk == 1 )
-            srf_srunoff_out = srf_srunoff_out*srffac
-          elsewhere
-            srf_srunoff_out = dmissval
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( mddom%ldmsk(j,i) == 1 ) then
+              srf_srunoff_out(j,i) = srf_srunoff_out(j,i)*srffac
+            else
+              srf_srunoff_out(j,i) = dmissval
+            end if
+          end do
         end if
         if ( associated(srf_trunoff_out) ) then
-          where ( mddom%ldmsk == 1 )
-            where ( srf_trunoff_out < dlowval )
-              srf_trunoff_out = d_zero
-            end where
-            srf_trunoff_out = srf_trunoff_out*srffac
-          elsewhere
-            srf_trunoff_out = dmissval
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( mddom%ldmsk(j,i) == 1 ) then
+              srf_trunoff_out(j,i) = srf_trunoff_out(j,i)*srffac
+            else
+              srf_trunoff_out(j,i) = dmissval
+            end if
+          end do
         end if
-        if ( associated(srf_sena_out) ) &
-          srf_sena_out = srf_sena_out*srffac
-        if ( associated(srf_lena_out) ) &
-          srf_lena_out = srf_lena_out*srffac
-        if ( associated(srf_flw_out) ) &
-          srf_flw_out = srf_flw_out*srffac
-        if ( associated(srf_fsw_out) ) &
-          srf_fsw_out = srf_fsw_out*srffac
-        if ( associated(srf_fld_out) ) &
-          srf_fld_out = srf_fld_out*srffac
-        if ( associated(srf_sina_out) ) &
-          srf_sina_out = srf_sina_out*srffac
-        if ( associated(srf_uflw_out) ) &
-          srf_uflw_out = srf_fld_out + srf_flw_out
-        if ( associated(srf_ufsw_out) ) &
-          srf_ufsw_out = srf_sina_out - srf_fsw_out
+        if ( associated(srf_sena_out) ) then
+          !$acc kernels
+          srf_sena_out(:,:) = srf_sena_out(:,:)*srffac
+          !$acc end kernels
+        end if
+        if ( associated(srf_lena_out) ) then
+          !$acc kernels
+          srf_lena_out(:,:) = srf_lena_out(:,:)*srffac
+          !$acc end kernels
+        end if
+        if ( associated(srf_flw_out) ) then
+          !$acc kernels
+          srf_flw_out(:,:) = srf_flw_out(:,:)*srffac
+          !$acc end kernels
+        end if
+        if ( associated(srf_fsw_out) ) then
+          !$acc kernels
+          srf_fsw_out(:,:) = srf_fsw_out(:,:)*srffac
+          !$acc end kernels
+        end if
+        if ( associated(srf_fld_out) ) then
+          !$acc kernels
+          srf_fld_out(:,:) = srf_fld_out(:,:)*srffac
+          !$acc end kernels
+        end if
+        if ( associated(srf_sina_out) ) then
+          !$acc kernels
+          srf_sina_out(:,:) = srf_sina_out(:,:)*srffac
+          !$acc end kernels
+        end if
+        if ( associated(srf_uflw_out) ) then
+          if ( associated(srf_fld_out) .and. associated(srf_flw_out) ) then
+            !$acc kernels
+            srf_uflw_out(:,:) = srf_fld_out(:,:) + srf_flw_out(:,:)
+            !$acc end kernels
+          else
+            !$acc kernels
+            srf_uflw_out(:,:) = dmissval
+            !$acc end kernels
+          end if
+        end if
+        if ( associated(srf_ufsw_out) ) then
+          if ( associated(srf_sina_out) .and. associated(srf_fsw_out) ) then
+            !$acc kernels
+            srf_ufsw_out(:,:) = srf_sina_out(:,:) - srf_fsw_out(:,:)
+            !$acc end kernels
+          else
+            !$acc kernels
+            srf_ufsw_out(:,:) = dmissval
+            !$acc end kernels
+          end if
+        end if
+        if ( associated(srf_snowmelt_out) ) then
+          !$acc kernels
+          srf_snowmelt_out(:,:) = srf_snowmelt_out(:,:)*srffac/alarm_out_srf%dt
+          !$acc end kernels
+        end if
+        if ( associated(srf_totcf_out) ) then
+          !$acc kernels
+          srf_totcf_out(:,:) = srf_totcf_out(:,:) * srffac * d_100
+          !$acc end kernels
+        end if
+        if ( associated(srf_evpot_out) ) then
+          !$acc kernels
+          srf_evpot_out(:,:) = srf_evpot_out(:,:) * srffac
+          !$acc end kernels
+        end if
         if ( associated(srf_taux_out) .and. associated(srf_tauy_out) ) then
-          srf_taux_out = srf_taux_out*srffac
-          srf_tauy_out = srf_tauy_out*srffac
+          !$acc kernels
+          srf_taux_out(:,:) = srf_taux_out(:,:)*srffac
+          srf_tauy_out(:,:) = srf_tauy_out(:,:)*srffac
+          !$acc end kernels
           if ( uvrotate ) then
             call uvrot(pj,srf_taux_out,srf_tauy_out)
           end if
         end if
-        if ( associated(srf_snowmelt_out) ) &
-          srf_snowmelt_out = srf_snowmelt_out*srffac / alarm_out_srf%dt
         if ( associated(srf_u10m_out) .and. associated(srf_v10m_out) ) then
           if ( associated(srf_wspd_out) ) then
-            srf_wspd_out = sqrt(srf_u10m_out(:,:,1)*srf_u10m_out(:,:,1) + &
-                                srf_v10m_out(:,:,1)*srf_v10m_out(:,:,1))
+            !$acc kernels
+            srf_wspd_out(:,:) = sqrt(srf_u10m_out(:,:,1)*srf_u10m_out(:,:,1) + &
+                                     srf_v10m_out(:,:,1)*srf_v10m_out(:,:,1))
+            !$acc end kernels
           end if
           if ( uvrotate ) then
             call uvrot(pj,srf_u10m_out,srf_v10m_out)
           end if
-        end if
-
-        if ( associated(srf_totcf_out) ) then
-          srf_totcf_out = srf_totcf_out * srffac * d_100
-        end if
-        if ( associated(srf_evpot_out) ) then
-          srf_evpot_out = srf_evpot_out * srffac
         end if
 
         call windcompute(pj,srf_ua50_out,srf_va50_out,50.0_rkx)
@@ -1020,7 +1105,10 @@ module mod_output
           call vinterz(qv,srf_hus50_out,50.0_rkx)
         end if
         if ( associated(srf_hus50_out) ) then
-          srf_hus50_out = srf_hus50_out/(1.0_rkx+srf_hus50_out)
+          !$acc kernels
+          srf_hus50_out(:,:,:) = srf_hus50_out(:,:,:) / &
+                  (1.0_rkx+srf_hus50_out(:,:,:))
+          !$acc end kernels
         end if
 
         if ( associated(srf_li_out) ) then
@@ -1045,45 +1133,33 @@ module mod_output
         end if
         if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then
           if ( idynamic == 3 ) then
-            !$acc parallel loop collapse(2) gang vector &
-            !$acc   private(p1d(1:kz),t1d(1:kz),rh1d(1:kz), &
-            !$acc        td(1:kz),pi(1:kz),q(1:kz),th(1:kz),thv(1:kz),z(1:kz))
-            do i = ici1, ici2
-              do j = jci1, jci2
-                do k = 1, kz
-                  kk = kzp1 - k
-                  p1d(k) = mo_atm%p(j,i,kk)
-                  t1d(k) = mo_atm%t(j,i,kk)
-                  rh1d(k) = min(d_one,max(d_zero,(mo_atm%qx(j,i,kk,iqv) / &
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              kk = kzp1 - k
+              p1d(j,i,k) = mo_atm%p(j,i,kk)
+              t1d(j,i,k) = mo_atm%t(j,i,kk)
+              rh1d(j,i,k) = min(d_one,max(d_zero,(mo_atm%qx(j,i,kk,iqv) / &
                       pfwsat(mo_atm%t(j,i,kk),mo_atm%p(j,i,kk)))))
-                end do
-                call getcape_new(kz,p1d,t1d,rh1d, &
-                  srf_cape_out(j,i),srf_cin_out(j,i),td,pi,q,th,thv,z)
-              end do
             end do
+            call getcape_new(jci1,jci2,ici1,ici2,kz,p1d,t1d,rh1d, &
+                             srf_cape_out,srf_cin_out,td,pi,q,th,thv,z)
           else
-            !$acc parallel loop collapse(2) gang vector &
-            !$acc   private(p1d(1:kz),t1d(1:kz),rh1d(1:kz), &
-            !$acc        td(1:kz),pi(1:kz),q(1:kz),th(1:kz),thv(1:kz),z(1:kz))
-            do i = ici1, ici2
-              do j = jci1, jci2
-                do k = 1, kz
-                  kk = kzp1 - k
-                  p1d(k) = atm1%pr(j,i,kk)
-                  t1d(k) = atm1%t(j,i,kk)/sfs%psa(j,i)
-                  rh1d(k) = min(d_one,max(d_zero, &
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              kk = kzp1 - k
+              p1d(j,i,k) = atm1%pr(j,i,kk)
+              t1d(j,i,k) = atm1%t(j,i,kk)/sfs%psa(j,i)
+              rh1d(j,i,k) = min(d_one,max(d_zero, &
                      (atm1%qx(j,i,kk,iqv)/ps_out(j,i)) / &
                      pfwsat(atm1%t(j,i,kk)/ps_out(j,i),atm1%pr(j,i,kk))))
-                end do
-                call getcape_new(kz,p1d,t1d,rh1d, &
-                  srf_cape_out(j,i),srf_cin_out(j,i),td,pi,q,th,thv,z)
-              end do
             end do
+            call getcape_new(jci1,jci2,ici1,ici2,kz,p1d,t1d,rh1d, &
+                             srf_cape_out,srf_cin_out,td,pi,q,th,thv,z)
           end if
         end if
 
         if ( associated(srf_tprw_out) ) then
+          !$acc kernels
           srf_tprw_out(:,:) = d_zero
+          !$acc end kernels
           do k = 1, kz
             do concurrent ( j = jci1:jci2, i = ici1:ici2 )
               srf_tprw_out(j,i) = srf_tprw_out(j,i) + &
@@ -1097,30 +1173,32 @@ module mod_output
         if ( myid == italk ) &
           write(stdout,*) 'SRF variables written at ', rcmtimer%str( )
 
-        if ( associated(srf_tpr_out) ) srf_tpr_out = d_zero
-        if ( associated(srf_prcv_out) ) srf_prcv_out = d_zero
-        if ( associated(srf_snow_out) ) srf_snow_out = d_zero
-        if ( associated(srf_hail_out) ) srf_hail_out = d_zero
-        if ( associated(srf_grau_out) ) srf_grau_out = d_zero
-        if ( associated(srf_zpbl_out) ) srf_zpbl_out = d_zero
-        if ( associated(srf_evp_out) ) srf_evp_out = d_zero
-        if ( associated(srf_scv_out) ) srf_scv_out = d_zero
-        if ( associated(srf_srunoff_out) ) srf_srunoff_out = d_zero
-        if ( associated(srf_trunoff_out) ) srf_trunoff_out = d_zero
-        if ( associated(srf_sena_out) ) srf_sena_out = d_zero
-        if ( associated(srf_lena_out) ) srf_lena_out = d_zero
-        if ( associated(srf_flw_out) ) srf_flw_out = d_zero
-        if ( associated(srf_fsw_out) ) srf_fsw_out = d_zero
-        if ( associated(srf_fld_out) ) srf_fld_out = d_zero
-        if ( associated(srf_sina_out) ) srf_sina_out = d_zero
-        if ( associated(srf_taux_out) ) srf_taux_out = d_zero
-        if ( associated(srf_tauy_out) ) srf_tauy_out = d_zero
-        if ( associated(srf_snowmelt_out) ) srf_snowmelt_out = d_zero
-        if ( associated(srf_evpot_out) ) srf_evpot_out = d_zero
-        if ( associated(srf_sund_out) ) srf_sund_out = d_zero
-        if ( associated(srf_totcf_out) ) srf_totcf_out = d_zero
-        if ( associated(srf_pcpmax_out) ) srf_pcpmax_out = d_zero
-        if ( associated(srf_twetb_out) ) srf_twetb_out = d_zero
+        !$acc kernels
+        if ( associated(srf_tpr_out) ) srf_tpr_out(:,:) = d_zero
+        if ( associated(srf_prcv_out) ) srf_prcv_out(:,:) = d_zero
+        if ( associated(srf_snow_out) ) srf_snow_out(:,:) = d_zero
+        if ( associated(srf_hail_out) ) srf_hail_out(:,:) = d_zero
+        if ( associated(srf_grau_out) ) srf_grau_out(:,:) = d_zero
+        if ( associated(srf_zpbl_out) ) srf_zpbl_out(:,:) = d_zero
+        if ( associated(srf_evp_out) ) srf_evp_out(:,:) = d_zero
+        if ( associated(srf_scv_out) ) srf_scv_out(:,:) = d_zero
+        if ( associated(srf_srunoff_out) ) srf_srunoff_out(:,:) = d_zero
+        if ( associated(srf_trunoff_out) ) srf_trunoff_out(:,:) = d_zero
+        if ( associated(srf_sena_out) ) srf_sena_out(:,:) = d_zero
+        if ( associated(srf_lena_out) ) srf_lena_out(:,:) = d_zero
+        if ( associated(srf_flw_out) ) srf_flw_out(:,:) = d_zero
+        if ( associated(srf_fsw_out) ) srf_fsw_out(:,:) = d_zero
+        if ( associated(srf_fld_out) ) srf_fld_out(:,:) = d_zero
+        if ( associated(srf_sina_out) ) srf_sina_out(:,:) = d_zero
+        if ( associated(srf_taux_out) ) srf_taux_out(:,:) = d_zero
+        if ( associated(srf_tauy_out) ) srf_tauy_out(:,:) = d_zero
+        if ( associated(srf_snowmelt_out) ) srf_snowmelt_out(:,:) = d_zero
+        if ( associated(srf_evpot_out) ) srf_evpot_out(:,:) = d_zero
+        if ( associated(srf_sund_out) ) srf_sund_out(:,:) = d_zero
+        if ( associated(srf_totcf_out) ) srf_totcf_out(:,:) = d_zero
+        if ( associated(srf_pcpmax_out) ) srf_pcpmax_out(:,:) = d_zero
+        if ( associated(srf_twetb_out) ) srf_twetb_out(:,:) = d_zero
+        !$acc end kernels
 
         rnsrf_for_srffrq = d_zero
 
@@ -1130,28 +1208,40 @@ module mod_output
     if ( sub_stream > 0 ) then
       if ( ldosub ) then
         subfac = d_one / rnsrf_for_subfrq
-        sub_ps_out = sub_ps_out*subfac
+        !$acc kernels
+        sub_ps_out(:,:) = sub_ps_out(:,:)*subfac
+        !$acc end kernels
 
         if ( associated(sub_evp_out) ) then
-          sub_evp_out = sub_evp_out*subfac
-          sub_evp_out = max(sub_evp_out, d_zero)
+          !$acc kernels
+          sub_evp_out(:,:) = max(sub_evp_out(:,:)*subfac, 0.0_rkx)
+          !$acc end kernels
         end if
         if ( associated(sub_scv_out) ) then
-          where ( sub_scv_out < dmissval )
-            sub_scv_out = sub_scv_out*subfac
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( sub_scv_out(j,i) < dmissval ) then
+              sub_scv_out(j,i) = sub_scv_out(j,i)*subfac
+            end if
+          end do
         end if
-        if ( associated(sub_sena_out) ) &
-          sub_sena_out = sub_sena_out*subfac
+        if ( associated(sub_sena_out) ) then
+          !$acc kernels
+          sub_sena_out(:,:) = sub_sena_out(:,:)*subfac
+          !$acc end kernels
+        end if
         if ( associated(sub_srunoff_out) ) then
-          where ( sub_srunoff_out < dmissval )
-            sub_srunoff_out = sub_srunoff_out*subfac
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( sub_srunoff_out(j,i) < dmissval ) then
+              sub_srunoff_out(j,i) = sub_srunoff_out(j,i)*subfac
+            end if
+          end do
         end if
         if ( associated(sub_trunoff_out) ) then
-          where ( sub_trunoff_out < dmissval )
-            sub_trunoff_out = sub_trunoff_out*subfac
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( sub_trunoff_out(j,i) < dmissval ) then
+              sub_trunoff_out(j,i) = sub_trunoff_out(j,i)*subfac
+            end if
+          end do
         end if
 
         if ( associated(sub_u10m_out) .and. associated(sub_v10m_out) ) then
@@ -1163,11 +1253,13 @@ module mod_output
         if ( myid == italk ) &
           write(stdout,*) 'SUB variables written at ', rcmtimer%str( )
 
-        if ( associated(sub_evp_out) ) sub_evp_out = d_zero
-        if ( associated(sub_scv_out) ) sub_scv_out = d_zero
-        if ( associated(sub_sena_out) ) sub_sena_out = d_zero
-        if ( associated(sub_srunoff_out) ) sub_srunoff_out = d_zero
-        if ( associated(sub_trunoff_out) ) sub_trunoff_out = d_zero
+        !$acc kernels
+        if ( associated(sub_evp_out) ) sub_evp_out(:,:) = d_zero
+        if ( associated(sub_scv_out) ) sub_scv_out(:,:) = d_zero
+        if ( associated(sub_sena_out) ) sub_sena_out(:,:) = d_zero
+        if ( associated(sub_srunoff_out) ) sub_srunoff_out(:,:) = d_zero
+        if ( associated(sub_trunoff_out) ) sub_trunoff_out(:,:) = d_zero
+        !$acc end kernels
         rnsrf_for_subfrq = d_zero
       end if
     end if
@@ -1190,42 +1282,65 @@ module mod_output
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
-        if ( associated(lak_tpr_out) ) &
-          lak_tpr_out = lak_tpr_out*lakfac
-        if ( associated(lak_scv_out) ) then
-          where ( mddom%ldmsk > 0 )
-            lak_scv_out = lak_scv_out*lakfac
-          elsewhere
-            lak_scv_out = dmissval
-          end where
+        if ( associated(lak_tpr_out) ) then
+          !$acc kernels
+          lak_tpr_out(:,:) = lak_tpr_out(:,:)*lakfac
+          !$acc end kernels
         end if
-        if ( associated(lak_sena_out) ) &
-          lak_sena_out = lak_sena_out*lakfac
-        if ( associated(lak_flw_out) ) &
-          lak_flw_out = lak_flw_out*lakfac
-        if ( associated(lak_fsw_out) ) &
-          lak_fsw_out = lak_fsw_out*lakfac
-        if ( associated(lak_fld_out) ) &
-          lak_fld_out = lak_fld_out*lakfac
-        if ( associated(lak_sina_out) ) &
-          lak_sina_out = lak_sina_out*lakfac
+        if ( associated(lak_scv_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( mddom%ldmsk(j,i) > 0  ) then
+              lak_scv_out(j,i) = lak_scv_out(j,i)*lakfac
+            else
+              lak_scv_out(j,i) = dmissval
+            end if
+          end do
+        end if
+        if ( associated(lak_sena_out) ) then
+          !$acc kernels
+          lak_sena_out(:,:) = lak_sena_out(:,:)*lakfac
+          !$acc end kernels
+        end if
+        if ( associated(lak_flw_out) ) then
+          !$acc kernels
+          lak_flw_out(:,:) = lak_flw_out(:,:)*lakfac
+          !$acc end kernels
+        end if
+        if ( associated(lak_fsw_out) ) then
+          !$acc kernels
+          lak_fsw_out(:,:) = lak_fsw_out(:,:)*lakfac
+          !$acc end kernels
+        end if
+        if ( associated(lak_fld_out) ) then
+          !$acc kernels
+          lak_fld_out(:,:) = lak_fld_out(:,:)*lakfac
+          !$acc end kernels
+        end if
+        if ( associated(lak_sina_out) ) then
+          !$acc kernels
+          lak_sina_out(:,:) = lak_sina_out(:,:)*lakfac
+          !$acc end kernels
+        end if
         if ( associated(lak_evp_out) ) then
-          lak_evp_out = lak_evp_out*lakfac
-          lak_evp_out = max(lak_evp_out, d_zero)
+          !$acc kernels
+          lak_evp_out(:,:) = max(lak_evp_out(:,:)*lakfac,0.0_rkx)
+          !$acc end kernels
         end if
 
         call write_record_output_stream(lak_stream,alarm_out_lak%idate)
         if ( myid == italk ) &
           write(stdout,*) 'LAK variables written at ', rcmtimer%str( )
 
-        if ( associated(lak_tpr_out) )    lak_tpr_out = d_zero
-        if ( associated(lak_scv_out) )    lak_scv_out = d_zero
-        if ( associated(lak_sena_out) )   lak_sena_out = d_zero
-        if ( associated(lak_flw_out) )    lak_flw_out = d_zero
-        if ( associated(lak_fsw_out) )    lak_fsw_out = d_zero
-        if ( associated(lak_fld_out) )    lak_fld_out = d_zero
-        if ( associated(lak_sina_out) )   lak_sina_out = d_zero
-        if ( associated(lak_evp_out) )    lak_evp_out = d_zero
+        !$acc kernels
+        if ( associated(lak_tpr_out) )  lak_tpr_out(:,:) = d_zero
+        if ( associated(lak_scv_out) )  lak_scv_out(:,:) = d_zero
+        if ( associated(lak_sena_out) ) lak_sena_out(:,:) = d_zero
+        if ( associated(lak_flw_out) )  lak_flw_out(:,:) = d_zero
+        if ( associated(lak_fsw_out) )  lak_fsw_out(:,:) = d_zero
+        if ( associated(lak_fld_out) )  lak_fld_out(:,:) = d_zero
+        if ( associated(lak_sina_out) ) lak_sina_out(:,:) = d_zero
+        if ( associated(lak_evp_out) )  lak_evp_out(:,:) = d_zero
+        !$acc end kernels
         rnsrf_for_lakfrq = d_zero
       end if
     end if
@@ -1257,34 +1372,60 @@ module mod_output
             opt_pai_out(j,i,k) = mo_atm%pai(j,i,k)
           end do
         end if
-        if ( associated(opt_acstoarf_out) ) &
-          opt_acstoarf_out = opt_acstoarf_out * optfac
-        if ( associated(opt_acstsrrf_out) ) &
-          opt_acstsrrf_out = opt_acstsrrf_out * optfac
-        if ( associated(opt_acstalrf_out) ) &
-          opt_acstalrf_out = opt_acstalrf_out * optfac
-        if ( associated(opt_acssrlrf_out) ) &
-          opt_acssrlrf_out = opt_acssrlrf_out * optfac
-        if ( associated(opt_aastoarf_out) ) &
-          opt_aastoarf_out = opt_aastoarf_out * optfac
-        if ( associated(opt_aastsrrf_out) ) &
-          opt_aastsrrf_out = opt_aastsrrf_out * optfac
-        if ( associated(opt_aastalrf_out) ) &
-          opt_aastalrf_out = opt_aastalrf_out * optfac
-        if ( associated(opt_aassrlrf_out) ) &
-          opt_aassrlrf_out = opt_aassrlrf_out * optfac
+        if ( associated(opt_acstoarf_out) ) then
+          !$acc kernels
+          opt_acstoarf_out(:,:) = opt_acstoarf_out(:,:) * optfac
+          !$acc end kernels
+        end if
+        if ( associated(opt_acstsrrf_out) ) then
+          !$acc kernels
+          opt_acstsrrf_out(:,:) = opt_acstsrrf_out(:,:) * optfac
+          !$acc end kernels
+        end if
+        if ( associated(opt_acstalrf_out) ) then
+          !$acc kernels
+          opt_acstalrf_out(:,:) = opt_acstalrf_out(:,:) * optfac
+          !$acc end kernels
+        end if
+        if ( associated(opt_acssrlrf_out) ) then
+          !$acc kernels
+          opt_acssrlrf_out(:,:) = opt_acssrlrf_out(:,:) * optfac
+          !$acc end kernels
+        end if
+        if ( associated(opt_aastoarf_out) ) then
+          !$acc kernels
+          opt_aastoarf_out(:,:) = opt_aastoarf_out(:,:) * optfac
+          !$acc end kernels
+        end if
+        if ( associated(opt_aastsrrf_out) ) then
+          !$acc kernels
+          opt_aastsrrf_out(:,:) = opt_aastsrrf_out(:,:) * optfac
+          !$acc end kernels
+        end if
+        if ( associated(opt_aastalrf_out) ) then
+          !$acc kernels
+          opt_aastalrf_out(:,:) = opt_aastalrf_out(:,:) * optfac
+          !$acc end kernels
+        end if
+        if ( associated(opt_aassrlrf_out) ) then
+          !$acc kernels
+          opt_aassrlrf_out(:,:) = opt_aassrlrf_out(:,:) * optfac
+          !$acc end kernels
+        end if
 
         call write_record_output_stream(opt_stream,alarm_out_opt%idate)
         if ( myid == italk ) &
           write(stdout,*) 'OPT variables written at ', rcmtimer%str( )
-        if ( associated(opt_acstoarf_out) ) opt_acstoarf_out = d_zero
-        if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out = d_zero
-        if ( associated(opt_acstalrf_out) ) opt_acstalrf_out = d_zero
-        if ( associated(opt_acssrlrf_out) ) opt_acssrlrf_out = d_zero
-        if ( associated(opt_aastoarf_out) ) opt_aastoarf_out = d_zero
-        if ( associated(opt_aastsrrf_out) ) opt_aastsrrf_out = d_zero
-        if ( associated(opt_aastalrf_out) ) opt_aastalrf_out = d_zero
-        if ( associated(opt_aassrlrf_out) ) opt_aassrlrf_out = d_zero
+        !$acc kernels
+        if ( associated(opt_acstoarf_out) ) opt_acstoarf_out(:,:) = d_zero
+        if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out(:,:) = d_zero
+        if ( associated(opt_acstalrf_out) ) opt_acstalrf_out(:,:) = d_zero
+        if ( associated(opt_acssrlrf_out) ) opt_acssrlrf_out(:,:) = d_zero
+        if ( associated(opt_aastoarf_out) ) opt_aastoarf_out(:,:) = d_zero
+        if ( associated(opt_aastsrrf_out) ) opt_aastsrrf_out(:,:) = d_zero
+        if ( associated(opt_aastalrf_out) ) opt_aastalrf_out(:,:) = d_zero
+        if ( associated(opt_aassrlrf_out) ) opt_aassrlrf_out(:,:) = d_zero
+        !$acc end kernels
         rnrad_for_optfrq = d_zero
       end if
     end if
@@ -1342,18 +1483,26 @@ module mod_output
           end do
         end if
 
-        if ( associated(shf_pcpavg_out) ) &
-          shf_pcpavg_out = shf_pcpavg_out * dtsrf/3600.0_rkx
-        if ( associated(shf_pcprcv_out) ) &
-          shf_pcprcv_out = shf_pcprcv_out * dtsrf/3600.0_rkx
+        if ( associated(shf_pcpavg_out) ) then
+          !$acc kernels
+          shf_pcpavg_out(:,:) = shf_pcpavg_out(:,:) * dtsrf/3600.0_rkx
+          !$acc end kernels
+        end if
+        if ( associated(shf_pcprcv_out) ) then
+          !$acc kernels
+          shf_pcprcv_out(:,:) = shf_pcprcv_out(:,:) * dtsrf/3600.0_rkx
+          !$acc end kernels
+        end if
         call write_record_output_stream(shf_stream,alarm_out_shf%idate)
         if ( myid == italk ) &
           write(stdout,*) 'SHF variables written at ', rcmtimer%str( )
 
-        if ( associated(shf_pcpavg_out) ) shf_pcpavg_out = d_zero
-        if ( associated(shf_pcpmax_out) ) shf_pcpmax_out = d_zero
-        if ( associated(shf_pcprcv_out) ) shf_pcprcv_out = d_zero
-        if ( associated(shf_twetb_out) ) shf_twetb_out = d_zero
+        !$acc kernels
+        if ( associated(shf_pcpavg_out) ) shf_pcpavg_out(:,:) = d_zero
+        if ( associated(shf_pcpmax_out) ) shf_pcpmax_out(:,:) = d_zero
+        if ( associated(shf_pcprcv_out) ) shf_pcprcv_out(:,:) = d_zero
+        if ( associated(shf_twetb_out) ) shf_twetb_out(:,:) = d_zero
+        !$acc end kernels
       end if
     end if
 
@@ -1374,45 +1523,60 @@ module mod_output
             ps_out(j,i) = sfs%psa(j,i)
           end do
         end if
-        if ( associated(sts_pcpavg_out) ) &
-          sts_pcpavg_out = sts_pcpavg_out*stsfac
-        if ( associated(sts_t2avg_out) ) &
-          sts_t2avg_out = sts_t2avg_out*stsfac
-        if ( associated(sts_psavg_out) ) &
-          sts_psavg_out = sts_psavg_out*stsfac
+        if ( associated(sts_pcpavg_out) ) then
+          !$acc kernels
+          sts_pcpavg_out(:,:) = sts_pcpavg_out(:,:)*stsfac
+          !$acc end kernels
+        end if
+        if ( associated(sts_t2avg_out) ) then
+          !$acc kernels
+          sts_t2avg_out(:,:,:) = sts_t2avg_out(:,:,:)*stsfac
+          !$acc end kernels
+        end if
+        if ( associated(sts_psavg_out) ) then
+          !$acc kernels
+          sts_psavg_out(:,:) = sts_psavg_out(:,:)*stsfac
+          !$acc end kernels
+        end if
         if ( associated(sts_srunoff_out) ) then
-          where ( mddom%ldmsk == 1 )
-            sts_srunoff_out = sts_srunoff_out*stsfac
-          elsewhere
-            sts_srunoff_out = dmissval
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( mddom%ldmsk(j,i) == 1 ) then
+              sts_srunoff_out(j,i) = sts_srunoff_out(j,i)*stsfac
+            else
+              sts_srunoff_out(j,i) = dmissval
+            end if
+          end do
         end if
         if ( associated(sts_trunoff_out) ) then
-          where ( mddom%ldmsk == 1 )
-            sts_trunoff_out = sts_trunoff_out*stsfac
-          elsewhere
-            sts_trunoff_out = dmissval
-          end where
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( mddom%ldmsk(j,i) == 1 ) then
+              sts_trunoff_out(j,i) = sts_trunoff_out(j,i)*stsfac
+            else
+              sts_trunoff_out(j,i) = dmissval
+            end if
+          end do
         end if
 
         call write_record_output_stream(sts_stream,alarm_out_sts%idate)
         if ( myid == italk ) &
           write(stdout,*) 'STS variables written at ', rcmtimer%str( )
 
-        if ( associated(sts_pcpavg_out) )  sts_pcpavg_out  = d_zero
-        if ( associated(sts_t2avg_out) )   sts_t2avg_out   = d_zero
-        if ( associated(sts_psavg_out) )   sts_psavg_out   = d_zero
-        if ( associated(sts_tgmax_out) )   sts_tgmax_out   = -1.e30_rkx
-        if ( associated(sts_tgmin_out) )   sts_tgmin_out   =  1.e30_rkx
-        if ( associated(sts_wsgsmax_out) ) sts_wsgsmax_out = -1.e30_rkx
-        if ( associated(sts_t2max_out) )   sts_t2max_out   = -1.e30_rkx
-        if ( associated(sts_t2min_out) )   sts_t2min_out   =  1.e30_rkx
-        if ( associated(sts_w10max_out) )  sts_w10max_out  = -1.e30_rkx
-        if ( associated(sts_psmin_out) )   sts_psmin_out   =  1.e30_rkx
-        if ( associated(sts_pcpmax_out) )  sts_pcpmax_out  = -1.e30_rkx
-        if ( associated(sts_sund_out) )    sts_sund_out    = d_zero
-        if ( associated(sts_srunoff_out) ) sts_srunoff_out = d_zero
-        if ( associated(sts_trunoff_out) ) sts_trunoff_out = d_zero
+        !$acc kernels
+        if ( associated(sts_pcpavg_out) )  sts_pcpavg_out(:,:)   = d_zero
+        if ( associated(sts_t2avg_out) )   sts_t2avg_out(:,:,:)  = d_zero
+        if ( associated(sts_psavg_out) )   sts_psavg_out(:,:)    = d_zero
+        if ( associated(sts_tgmax_out) )   sts_tgmax_out(:,:)    = -1.e30_rkx
+        if ( associated(sts_tgmin_out) )   sts_tgmin_out(:,:)    =  1.e30_rkx
+        if ( associated(sts_wsgsmax_out) ) sts_wsgsmax_out(:,:)  = -1.e30_rkx
+        if ( associated(sts_t2max_out) )   sts_t2max_out(:,:,:)  = -1.e30_rkx
+        if ( associated(sts_t2min_out) )   sts_t2min_out(:,:,:)  =  1.e30_rkx
+        if ( associated(sts_w10max_out) )  sts_w10max_out(:,:,:) = -1.e30_rkx
+        if ( associated(sts_psmin_out) )   sts_psmin_out(:,:)    =  1.e30_rkx
+        if ( associated(sts_pcpmax_out) )  sts_pcpmax_out(:,:)   = -1.e30_rkx
+        if ( associated(sts_sund_out) )    sts_sund_out(:,:)     = d_zero
+        if ( associated(sts_srunoff_out) ) sts_srunoff_out(:,:)  = d_zero
+        if ( associated(sts_trunoff_out) ) sts_trunoff_out(:,:)  = d_zero
+        !$acc end kernels
         rnsrf_for_day = d_zero
       end if
     end if
@@ -1444,18 +1608,32 @@ module mod_output
             rad_pai_out(j,i,k) = mo_atm%pai(j,i,k)
           end do
         end if
-        if ( associated(rad_higcl_out) ) &
-          rad_higcl_out = max(min(rad_higcl_out * radfac,d_one),d_zero) * d_100
-        if ( associated(rad_midcl_out) ) &
-          rad_midcl_out = max(min(rad_midcl_out * radfac,d_one),d_zero) * d_100
-        if ( associated(rad_lowcl_out) ) &
-          rad_lowcl_out = max(min(rad_lowcl_out * radfac,d_one),d_zero) * d_100
+        if ( associated(rad_higcl_out) ) then
+          !$acc kernels
+          rad_higcl_out(:,:) = max(min(rad_higcl_out(:,:) * &
+                  radfac,d_one),d_zero) * d_100
+          !$acc end kernels
+        end if
+        if ( associated(rad_midcl_out) ) then
+          !$acc kernels
+          rad_midcl_out(:,:) = max(min(rad_midcl_out(:,:) * &
+                  radfac,d_one),d_zero) * d_100
+          !$acc end kernels
+        end if
+        if ( associated(rad_lowcl_out) ) then
+          !$acc kernels
+          rad_lowcl_out(:,:) = max(min(rad_lowcl_out(:,:) * &
+                  radfac,d_one),d_zero) * d_100
+          !$acc end kernels
+        end if
         call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ', rcmtimer%str( )
-        if ( associated(rad_higcl_out) ) rad_higcl_out = d_zero
-        if ( associated(rad_midcl_out) ) rad_midcl_out = d_zero
-        if ( associated(rad_lowcl_out) ) rad_lowcl_out = d_zero
+        !$acc kernels
+        if ( associated(rad_higcl_out) ) rad_higcl_out(:,:) = d_zero
+        if ( associated(rad_midcl_out) ) rad_midcl_out(:,:) = d_zero
+        if ( associated(rad_lowcl_out) ) rad_lowcl_out(:,:) = d_zero
+        !$acc end kernels
         rnrad_for_radfrq = d_zero
       end if
     end if
