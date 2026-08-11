@@ -3449,6 +3449,10 @@ module mod_ncout
             call outstream_addatt(outstream(i)%ncout(j), &
                     ncattribute_logical('spectral_nudge',mo_spectral_nudge))
           end if
+          if ( mo_top_nudge ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_logical('top_nudge',mo_top_nudge))
+          end if
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))

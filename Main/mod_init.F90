@@ -1006,7 +1006,7 @@ module mod_init
     ! Initialize the Surface Model
     !
     if ( idynamic == 3 ) then
-      np = real((jcross2-jcross1+1)*(icross2-icross1+1),rk8)
+      np = real(njcross*nicross,rk8)
       do k = 1, kz
         meanz = 0.0_rkx
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
@@ -1016,10 +1016,10 @@ module mod_init
       end do
       ! Sponge layer at the top of the atmosphere
       do k = 1, kz
-        if ( gmeanz(k) < mo_h ) then
+        if ( gmeanz(k) < 18000.0_rkx ) then
           ffilt(k) = d_zero
         else
-          zzi = (gmeanz(k)-mo_h)/(mo_ztop-mo_h)
+          zzi = (gmeanz(k)-18000.0_rkx)/(mo_ztop-18000.0_rkx)
           ffilt(k) = mo_zfilt_fac*sin(d_half*mathpi*zzi)**2
         end if
       end do

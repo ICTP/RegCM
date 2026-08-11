@@ -422,10 +422,16 @@ module mod_bdycod
     implicit none
     if ( idynamic == 3 ) then
       call getmem(hefc,1,nspgx,1,kz,'bdycon:hefc')
-      call getmem(zn1,jde1,jde2,ide1,ide2,'bdycon:zn1')
-      call getmem(cnudge,1,kz,'bdycon:cnudge')
-      call getmem(tnudge,1,kz,'bdycon:tnudge')
-      call getmem(gmeanz,1,kz,'bdycon:gmeanz')
+      if ( mo_spectral_nudge ) then
+        call getmem(zn1,jde1,jde2,ide1,ide2,'bdycon:zn1')
+        call getmem(cnudge,1,kz,'bdycon:cnudge')
+      end if
+      if ( mo_top_nudge ) then
+        call getmem(tnudge,1,kz,'bdycon:tnudge')
+      end if
+      if ( mo_top_nudge .or. mo_spectral_nudge ) then
+        call getmem(gmeanz,1,kz,'bdycon:gmeanz')
+      end if
     else
       if ( iboudy == 1 .or. idynamic == 2 ) then
         call getmem(fcx,2,nspgx-1,'bdycon:fcx')
@@ -502,19 +508,21 @@ module mod_bdycod
     rtb = d_one/dtbdys
 
     if ( idynamic == 3 ) then
-      np = real(jx*iy,rk8)
-      nztop = 0
-      do k = 1, kz
-        meanz = 0.0_rkx
-        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-          meanz = meanz + real(mo_atm%zeta(j,i,k),rk8)/np
+      if ( mo_top_nudge .or. mo_spectral_nudge ) then
+        np = real(njcross*nicross,rk8)
+        nztop = 0
+        do k = 1, kz
+          meanz = 0.0_rkx
+          do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+            meanz = meanz + real(mo_atm%zeta(j,i,k),rk8)/np
+          end do
+          call sumall(meanz,mpmeanz)
+          gmeanz(k) = real(mpmeanz,rkx)
+          if ( gmeanz(k) > zztop ) then
+            nztop = nztop + 1
+          end if
         end do
-        call sumall(meanz,mpmeanz)
-        gmeanz(k) = real(mpmeanz,rkx)
-        if ( gmeanz(k) > zztop ) then
-          nztop = nztop + 1
-        end if
-      end do
+      end if
       do k = 1, kz
         hefc(1,k) = 1.0_rkx      ! External solution updated in bdyval
         hefc(nspgx,k) = 0.0_rkx  ! Internal solution computed
@@ -543,18 +551,22 @@ module mod_bdycod
         call vprntv(hefc(:,1),nspgx,'Top boundary coefficients ')
         call vprntv(hefc(:,kz),nspgx,'Bottom boundary coefficients ')
       end if
-      if ( mo_spectral_nudge ) call lowpass_init( )
-      do k = 1, kz
-        if ( k <= nztop ) then
-          tnudge(k) = sin(d_half*mathpi*(gmeanz(k)-zztop)/(mo_h-zztop))**2
-        else
-          tnudge(k) = 0.0_rkx
+      if ( mo_spectral_nudge ) then
+        call lowpass_init( )
+      end if
+      if ( mo_top_nudge ) then
+        do k = 1, kz
+          if ( k <= nztop ) then
+            tnudge(k) = sin(d_half*mathpi*(gmeanz(k)-zztop)/(mo_h-zztop))**2
+          else
+            tnudge(k) = 0.0_rkx
+          end if
+        end do
+        if ( myid == 0 ) then
+          write(stdout, '(a,i3,a,f6.2,a)') ' Top damping on ',nztop, &
+            ' layers above ', zztop/1000, ' km from ground level.'
+          call vprntv(tnudge,nztop,'Damping coefficients : ')
         end if
-      end do
-      if ( myid == 0 ) then
-        write(stdout, '(a,i3,a,f6.2,a)') ' Top damping on ',nztop, &
-          ' layers above ', zztop/1000, ' km from ground level.'
-        call vprntv(tnudge,nztop,'Damping coefficients : ')
       end if
     else
       if ( iboudy == 1 .or. iboudy == 5 .or. iboudy == 6 ) then
@@ -3968,7 +3980,6 @@ module mod_bdycod
     real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
     type(bound_area), intent(in) :: ba
     real(rkx), intent(in) :: frac
-    real(rkx) :: x0, x1
     integer(ik4) :: i, j, k, ib
     real(rkx) :: xf
 #ifdef DEBUG
@@ -3983,9 +3994,6 @@ module mod_bdycod
 #endif
       return
     end if
-
-    x1 = (xbctime + dt)*rtb
-    x0 = 1.0_rkx - x1
 
     do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
       ib = ba%ibnd(j,i)
@@ -4045,7 +4053,7 @@ module mod_bdycod
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       ib = ba%ibnd(j,i)
       if ( ib > 0 ) then
-        mask(j,i,k) = 1.0_rkx - hefc(nspgx-ib+1,kzp1-k)
+        mask(j,i,k) = 1.0_rkx - 0.125_rkx * hefc(ib,k)
       else
         mask(j,i,k) = 1.0_rkx
       end if
@@ -4064,9 +4072,10 @@ module mod_bdycod
     x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:nztop )
-      xf = tnudge(k)*wrtau*dta
-      w(j,i,k) = (1.0_rkx - xf) * w(j,i,k) + xf * wfac * w(j,i,k)
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      fext = wfac * w(j,i,2)
+      xf = wrtau * dta
+      w(j,i,2) = (1.0_rkx - xf) * w(j,i,2) + xf * fext
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nztop )
       fext = x0*xtb%b0(j,i,k) + x1*xtb%b1(j,i,k)

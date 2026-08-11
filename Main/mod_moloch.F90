@@ -71,7 +71,6 @@ module mod_moloch
   real(rkx), dimension(:), pointer, contiguous :: xkdamp => null( )
   real(rkx), dimension(:), pointer, contiguous :: xknu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: laplacian => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywt => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
@@ -138,7 +137,6 @@ module mod_moloch
   logical, parameter :: do_radiation    = .true.
   logical, parameter :: do_surface      = .true.
   logical, parameter :: do_pbl          = .true.
-  logical, parameter :: do_phy_bdy_wt   = .false.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -150,7 +148,7 @@ module mod_moloch
 
   ! Base damping coefficients
   real(rkx), parameter :: numax = 0.125_rkx
-  real(rkx), parameter :: ddamp = 0.150_rkx
+  real(rkx), parameter :: ddamp = 0.850_rkx
 
   real(rkx) :: rdzita
   integer(ik4) :: jmin, jmax, imin, imax
@@ -167,7 +165,6 @@ module mod_moloch
     call getmem(gzitak,1,kzp1,'moloch:gzitak')
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
     call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
-    call getmem(bdywt,jci1,jci2,ici1,ici2,1,kz,'moloch:bdywt')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
     call getmem(tetavf,jce1,jce2,ice1,ice2,2,kz,'moloch:tetavf')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
@@ -200,12 +197,8 @@ module mod_moloch
     call getmem(vd,jce1,jce2,ide1,ide2,1,kz,'moloch:vd')
     call getmem(xkdamp,1,kz,'moloch:xkdamp')
     call getmem(xknu,1,kz,'moloch:xknu')
-    !do concurrent ( k = 1:kz )
-    !  xknu(k) = numax * (ddamp + (1.0_rkx-ddamp)/(k+2.0_rkx))
-    !  xkdamp(k) = numax * (ddamp + (1.0_rkx-ddamp)/(k+2.0_rkx))
-    !end do
     do concurrent ( k = 1:kz )
-      xkdamp(k) = numax * (1.0_rkx-ddamp) * &
+      xkdamp(k) = numax * ddamp * &
         (1.0_rkx/(k+1.0_rkx) - 1.0_rkx/(kz+2.0_rkx))
       xknu(k) = numax * (0.55_rkx + 0.45_rkx * &
         (real(kz-k+1,rkx)-1.0_rkx)/(real(kz,rkx)-1.0_rkx))
@@ -310,11 +303,6 @@ module mod_moloch
     do_apply_bdy = ( do_bdy .and. moloch_realcase .and. irceideal == 0 )
     dtstepa = dtsec / real(mo_nadv,rkx)
     dtsound = dtstepa / real(mo_nsound,rkx)
-    if ( do_phy_bdy_wt ) then
-      call setup_bdywt(bdywt,ba_cr)
-    else
-      bdywt(:,:,:) = 1.0_rkx
-    end if
   end subroutine init_moloch
   !
   ! Moloch integration engine
@@ -480,7 +468,7 @@ module mod_moloch
     call bdyval
 
     if ( mo_top_nudge ) then
-      call motopnudge(t,u,v,w,0.0_rkx,dtsec)
+      call motopnudge(t,u,v,w,0.1_rkx,dtsec)
     end if
 
     ! Davies boundary condition on internal point
@@ -490,7 +478,7 @@ module mod_moloch
     call morelax(jci1,jci2,ici1,ici2,ba_cr,t,xtb)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,pai,xpaib)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,qv,xqb)
-    call morelax(jci1,jci2,ici1,ici2,ba_cr,w,0.0_rkx)
+    call morelax(jci1,jci2,ici1,ici2,ba_cr,w,-1.0_rkx)
     if ( is_present_qc( ) ) then
       call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,xlb)
     end if
@@ -667,15 +655,11 @@ module mod_moloch
         end do
       end do
 
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
-                  (w(j,i,k) - w(j,i,k+1))
-      end do
-
       ! new Exner function (Equation 19)
 
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+        pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv * &
+            (zdiv2(j,i,k) + (dtrdz * fmz(j,i,k) * (w(j,i,k) - w(j,i,k+1)))))
       end do
 
       call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
@@ -1429,26 +1413,26 @@ module mod_moloch
     !@acc call nvtxStartRange("status_update")
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      t(j,i,k)  = t(j,i,k)  + dtinc*bdywt(j,i,k)*tten(j,i,k)
-      ux(j,i,k) = ux(j,i,k) + dtinc*bdywt(j,i,k)*uten(j,i,k)
-      vx(j,i,k) = vx(j,i,k) + dtinc*bdywt(j,i,k)*vten(j,i,k)
-      qv(j,i,k) = qv(j,i,k) + dtinc*bdywt(j,i,k)*qvten(j,i,k)
+      t(j,i,k)  = t(j,i,k)  + dtinc*tten(j,i,k)
+      ux(j,i,k) = ux(j,i,k) + dtinc*uten(j,i,k)
+      vx(j,i,k) = vx(j,i,k) + dtinc*vten(j,i,k)
+      qv(j,i,k) = qv(j,i,k) + dtinc*qvten(j,i,k)
       if ( qv(j,i,k) < 1.0E-8_rkx ) qv(j,i,k) = 1.0E-8_rkx
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                     k = 1:kz, n = iqfrst:nqx)
-      qx(j,i,k,n) = qx(j,i,k,n) + dtinc*bdywt(j,i,k)*qxten(j,i,k,n)
+      qx(j,i,k,n) = qx(j,i,k,n) + dtinc*qxten(j,i,k,n)
       if ( qx(j,i,k,n) < 1.0E-20_rkx ) qx(j,i,k,n) = 0.0_rkx
     end do
     if ( ibltyp == 2 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-        tke(j,i,k) = tke(j,i,k) + dtinc*bdywt(j,i,k)*tketen(j,i,k)
+        tke(j,i,k) = tke(j,i,k) + dtinc*tketen(j,i,k)
         if ( tke(j,i,k) < tkemin ) tke(j,i,k) = tkemin
       end do
     end if
     if ( ichem == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-        trac(j,i,k,n) = trac(j,i,k,n) + dtinc*bdywt(j,i,k)*chiten(j,i,k,n)
+        trac(j,i,k,n) = trac(j,i,k,n) + dtinc*chiten(j,i,k,n)
         if ( trac(j,i,k,n) < 0.0_rkx ) trac(j,i,k,n) = 0.0_rkx
       end do
     end if
