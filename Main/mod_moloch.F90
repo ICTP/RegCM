@@ -478,7 +478,7 @@ module mod_moloch
     call morelax(jci1,jci2,ici1,ici2,ba_cr,t,xtb)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,pai,xpaib)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,qv,xqb)
-    call morelax(jci1,jci2,ici1,ici2,ba_cr,w,-1.0_rkx)
+    call morelax(jci1,jci2,ici1,ici2,ba_cr,w,0.1_rkx)
     if ( is_present_qc( ) ) then
       call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,xlb)
     end if
