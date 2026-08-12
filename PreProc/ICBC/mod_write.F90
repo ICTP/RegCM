@@ -55,6 +55,11 @@ module mod_write
   logical :: qli_present = .false.
   logical :: do_wavelet_denoise = .true.
 
+  interface gaussian_filter
+    module procedure gaussian_filter2
+    module procedure gaussian_filter3
+  end interface gaussian_filter
+
   contains
 
 #include <pfwsat.inc>
@@ -650,6 +655,9 @@ module mod_write
 
     if ( idynamic == 3 ) then
       ps4(:,:) = ps4(:,:)*d_1000
+      call gaussian_filter(jx,iy,kz,u4,1)
+      call gaussian_filter(jx,iy,kz,v4,1)
+      call gaussian_filter(jx,iy,kz,t4,1)
       call pai_compute(jx,iy,kz,ps4,z0,t4,q4,pai4)
       p4(:,:,:) = (pai4(:,:,:)**cpovr) * p00
       qs(:,:,:) = pfwsat(t4(:,:,:),p4(:,:,:))
@@ -724,10 +732,11 @@ module mod_write
         mf = sum(pai(:,:,k))/nn
         ! Covariance(press,pai) / Variance(press)
         xg = (pfsum - nn * mp * mf) / (ppsum - nn * mp * mp)
-        ! Decouple from pressure, smooth, remove noise, recouple with pressure
+        ! Decouple from pressure, smooth presure, remove noise,
+        !   recouple with smoothed pressure
         fb(:,:) = pai(:,:,k) - xg * press(:,:)
-        call gaussian_filter(jx,iy,press,kzp1-k)
-        call wavelet_denoise(nx,ny,fb,fbc,0.5_rkx/ds)
+        call gaussian_filter(jx,iy,press,2)
+        call wavelet_denoise(nx,ny,fb,fbc,0.05_rkx/ds)
         pai(:,:,k) = fbc(:,:) + xg * press(:,:)
       end do
     end if
@@ -757,7 +766,7 @@ module mod_write
     end do
   end subroutine extrapolate_surface_pressure
 
-  subroutine gaussian_filter(nj,ni,slab,npass)
+  subroutine gaussian_filter2(nj,ni,slab,npass)
     implicit none
     integer(ik4), intent(in) :: ni, nj, npass
     real(rkx), intent(inout), dimension(nj,ni) :: slab
@@ -802,7 +811,56 @@ module mod_write
       temp1(:,:) = temp2(:,:)
     end do
     slab(:,:) = temp2(:,:)
-  end subroutine gaussian_filter
+  end subroutine gaussian_filter2
+
+  subroutine gaussian_filter3(nj,ni,nk,slab,npass)
+    implicit none
+    integer(ik4), intent(in) :: ni, nj, nk, npass
+    real(rkx), intent(inout), dimension(nj,ni,nk) :: slab
+    real(rkx), dimension(nj,ni) :: temp1, temp2
+    integer :: n, i, j, k
+    do k = 1, nk
+      temp1(:,:) = slab(:,:,k)
+      ! Gaussian filter
+      do n = 1, npass
+        do i = 2, ni-1
+          do j = 2, nj-1
+            temp2(j,i) = 0.0625_rkx * ( 4.0_rkx * temp1(j,i) + &
+                    2.0_rkx * (temp1(j,i+1)+temp1(j,i-1) + &
+                               temp1(j+1,i)+temp1(j-1,i)) + &
+              temp1(j+1,i+1)+temp1(j-1,i+1)+temp1(j-1,i-1)+temp1(j+1,i-1))
+          end do
+        end do
+        do i = 2, ni-1
+          temp2(1,i) = 0.1_rkx * ( 3.0_rkx * temp1(1,i) + &
+            2.0_rkx * (temp1(1,i+1)+temp1(1,i-1)+temp1(2,i)) + &
+            0.5_rkx * (temp1(2,i+1)+temp1(2,i-1)))
+          temp2(nj,i) = 0.1_rkx * ( 3.0_rkx * temp1(nj,i) + &
+            2.0_rkx * (temp1(nj,i+1)+temp1(nj,i-1)+temp1(nj-1,i)) + &
+            0.5_rkx * (temp1(nj-1,i+1)+temp1(nj-1,i-1)))
+        end do
+        do j = 2, nj-1
+          temp2(j,1) = 0.1_rkx * ( 3.0_rkx * temp1(j,1) + &
+            2.0_rkx * (temp1(j+1,1)+temp1(j-1,1)+temp1(j,2)) + &
+            0.5_rkx * (temp1(j+1,2)+temp1(j-1,2)))
+          temp2(j,ni) = 0.1_rkx * ( 3.0_rkx * temp1(j,ni) + &
+            2.0_rkx * (temp1(j+1,ni)+temp1(j-1,ni)+temp1(j,ni-1)) + &
+            0.5_rkx * (temp1(j+1,ni-1)+temp1(j-1,ni-1)))
+        end do
+        temp2(1,1) =   0.25_rkx * (temp1(1,   1) +temp1(1,   2)    + &
+                                   temp1(2,   1) +temp1(2,   2))
+        temp2(1,ni) =  0.25_rkx * (temp1(1,   ni)+temp1(1,   ni-1) + &
+                                   temp1(2,   ni)+temp1(2,   ni-1))
+        temp2(nj,1) =  0.25_rkx * (temp1(nj,  1) +temp1(nj,  2)    + &
+                                   temp1(nj-1,1) +temp1(nj-1,2))
+        temp2(nj,ni) = 0.25_rkx * (temp1(nj,  ni)+temp1(nj,  ni-1) + &
+                                   temp1(nj-1,ni)+temp1(nj-1,ni-1))
+        if ( n == npass ) exit
+        temp1(:,:) = temp2(:,:)
+      end do
+      slab(:,:,k) = temp2(:,:)
+    end do
+  end subroutine gaussian_filter3
 
 end module mod_write
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -649,6 +649,7 @@ module mod_moloch
       end do
 
       ! 2nd loop for the tridiagonal inversion
+
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         do k = 2, kz
           w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
@@ -716,6 +717,7 @@ module mod_moloch
 
     ! complete computation of generalized vertical velocity
     ! Complete Equation 10
+
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
       s(j,i,k) = (w(j,i,k) + s(j,i,k)) * fmzf(j,i,k)
     end do
@@ -881,8 +883,7 @@ module mod_moloch
       zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
       zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
       zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
-      wz(j,i,k) = pp(j,i,k) - &
-        wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv
+      wz(j,i,k) = pp(j,i,k) - wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv
     end do
 
     if ( do_vadvtwice ) then
@@ -912,8 +913,7 @@ module mod_moloch
         zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
         zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
         zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
-        wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + &
-                                wfw(j,i,k+1)*zrfmd + zdv
+        wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv
       end do
 
     end if
