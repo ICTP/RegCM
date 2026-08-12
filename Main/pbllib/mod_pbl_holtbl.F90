@@ -493,9 +493,9 @@ module mod_pbl_holtbl
           ! compute eddy diffusivities
           kvm(j,i,k) = max(pblk,kvm(j,i,k))
           kvh(j,i,k) = max(pblk/pr,kvh(j,i,k))
-          kvq(j,i,k) = max(pblk1/pr,kvq(j,i,k))
+          kvq(j,i,k) = max(pblk1,kvq(j,i,k))
           if ( ichem == 1 ) then
-            kvc(j,i,k) = max(pblk2/pr,kvc(j,i,k))
+            kvc(j,i,k) = max(pblk2,kvc(j,i,k))
           end if
         end if
       end do

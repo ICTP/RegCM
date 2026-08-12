@@ -727,7 +727,7 @@
  &holtslagparam
  ricr_ocn = 0.30,  ! Critical Richardson Number over Ocean
  ricr_lnd = 0.30,  ! Critical Richardson Number over Land
- zhnew_fac = 0.72, ! Multiplicative factor for zzhnew in holtpbl
+ zhnew_fac = 1.0,  ! Multiplicative factor for zzhnew in holtpbl
  ifaholtth10 = 2,  ! First approximation for obhukov length, th10 formula:
                    !      0 => 0.5 * (t+tg) * (1+0.61*q)
                    !      1 => (0.25*t + 0.75*tg) * (1+0.61*q)
