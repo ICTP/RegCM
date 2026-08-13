@@ -39,8 +39,10 @@ module mod_pbl_gfs
   real(rkx), dimension(:), pointer, contiguous :: psk, rbsoil
   real(rkx), dimension(:), pointer, contiguous :: fm, fh, spd1
   real(rkx), dimension(:,:), pointer, contiguous :: prsi, phii, z, dz
-  real(rkx), dimension(:,:), pointer, contiguous :: del, prsl, prslk, phil, thraten
-  real(rkx), dimension(:), pointer, contiguous :: heat, evap, stress, ustar, rrho
+  real(rkx), dimension(:,:), pointer, contiguous :: del, prsl, prslk
+  real(rkx), dimension(:,:), pointer, contiguous :: phil, thraten
+  real(rkx), dimension(:), pointer, contiguous :: heat, evap, stress
+  real(rkx), dimension(:), pointer, contiguous :: ustar, rrho
 
   ! Output from moninq
 
@@ -99,7 +101,7 @@ module mod_pbl_gfs
 
       integer(ik4) :: i, j, k, kk, km, n
       integer(ik4) :: iq, it, iit
-      real(rkx) :: ps, ua, va
+      real(rkx) :: ps, ua, va, uflxsfx, vflxsfx, uu
 
       n = 1
       do i = ici1, ici2
@@ -111,8 +113,11 @@ module mod_pbl_gfs
           fh(n) = m2p%rah1(j,i)
           rbsoil(n) = m2p%br(j,i)
           psk(n) = (ps/p00)**rovcp
-          ustar(n) = m2p%ustar(j,i)
           rrho(n) = 1.0_rkx/m2p%rhox2d(j,i)
+          uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)*rrho(n)
+          vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)*rrho(n)
+          uu = max(uflxsfx*uflxsfx+vflxsfx*vflxsfx,0.00000001_rkx)
+          ustar(n) = sqrt(sqrt(uu))
           stress(n) = (ustar(n)*ustar(n))*m2p%rhox2d(j,i)
           heat(n) = m2p%hfx(j,i)*rcpd*rrho(n)
           evap(n) = m2p%qfx(j,i)
@@ -329,8 +334,8 @@ module mod_pbl_gfs
       real(rkx), parameter :: rentf1 = 0.2_rkx
       real(rkx), parameter :: rentf2 = 1.0_rkx
       real(rkx), parameter :: radfac = 0.85_rkx
-      real(rkx), parameter :: zstblmax = 2500.0_rkx
-      real(rkx), parameter :: qlcr=3.5e-5_rkx
+      real(rkx), parameter :: zstblmax = 3500.0_rkx
+      real(rkx), parameter :: qlcr = 3.5e-5_rkx
       real(rkx), parameter :: actei = 0.7_rkx
 
       rdt   = d_one / dt

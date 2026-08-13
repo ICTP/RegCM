@@ -71,7 +71,6 @@ module mod_moloch
   real(rkx), dimension(:), pointer, contiguous :: xkdamp => null( )
   real(rkx), dimension(:), pointer, contiguous :: xknu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: laplacian => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywt => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
@@ -166,7 +165,6 @@ module mod_moloch
     call getmem(gzitak,1,kzp1,'moloch:gzitak')
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
     call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
-    call getmem(bdywt,jci1,jci2,ici1,ici2,1,kz,'moloch:bdywt')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
     call getmem(tetavf,jce1,jce2,ice1,ice2,2,kz,'moloch:tetavf')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
@@ -305,13 +303,6 @@ module mod_moloch
     do_apply_bdy = ( do_bdy .and. moloch_realcase .and. irceideal == 0 )
     dtstepa = dtsec / real(mo_nadv,rkx)
     dtsound = dtstepa / real(mo_nsound,rkx)
-    if ( do_apply_bdy ) then
-      call setup_bdywt(bdywt,ba_cr)
-    else
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        bdywt(j,i,k) = 1.0_rkx
-      end do
-    end if
   end subroutine init_moloch
   !
   ! Moloch integration engine
@@ -477,7 +468,7 @@ module mod_moloch
     call bdyval
 
     if ( mo_top_nudge ) then
-      call motopnudge(t,u,v,w,0.1_rkx,dtsec)
+      call motopnudge(t,u,v,w,0.0_rkx,dtsec)
     end if
 
     ! Davies boundary condition on internal point
@@ -487,7 +478,7 @@ module mod_moloch
     call morelax(jci1,jci2,ici1,ici2,ba_cr,t,xtb)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,pai,xpaib)
     call morelax(jci1,jci2,ici1,ici2,ba_cr,qv,xqb)
-    call morelax(jci1,jci2,ici1,ici2,ba_cr,w,0.1_rkx)
+    call morelax(jci1,jci2,ici1,ici2,ba_cr,w,0.0_rkx)
     if ( is_present_qc( ) ) then
       call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,xlb)
     end if
@@ -540,7 +531,7 @@ module mod_moloch
            zdiv2(j,i-1,k)+zdiv2(j,i+1,k) - 4.0_rkx*zdiv2(j,i,k))
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      zdiv2(j,i,k) = bdywt(j,i,k) * (zdiv2(j,i,k) + xknu(k) * laplacian(j,i,k))
+      zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * laplacian(j,i,k)
     end do
   end subroutine divergence_diffusion
 

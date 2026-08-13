@@ -701,7 +701,6 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:) :: hfx => null( )       ! sfs%hfx
     real(rkx), pointer, contiguous, dimension(:,:) :: uvdrag => null( )    ! sfs%uvdrag
     real(rkx), pointer, contiguous, dimension(:,:) :: zo => null( )        ! sfs%zo
-    real(rkx), pointer, contiguous, dimension(:,:) :: ustar => null( )     ! sfs%ustar
     real(rkx), pointer, contiguous, dimension(:,:) :: ram1 => null( )      ! sfs%ram1
     real(rkx), pointer, contiguous, dimension(:,:) :: rah1 => null( )      ! sfs%rah1
     real(rkx), pointer, contiguous, dimension(:,:) :: br => null( )        ! sfs%br

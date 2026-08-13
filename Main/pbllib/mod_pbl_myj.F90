@@ -176,9 +176,9 @@ module mod_pbl_myj
     real(rkx) :: akhs_dens, akms_dens, dqdt, dtdif, dtdt, &
           dtturbl, rexnsfc, psfc, qold, ratiomx, tg,     &
           rdtturbl, thnew, thold, tx, exner, qsfc,       &
-          thsk, ct, qha, ustar, uspd
+          thsk, ct, qha, uspd
     real(rkx) :: zu, wght, zt, zq, wghtt, wghtq, tha
-    real(rkx) :: akhs, akms, zo
+    real(rkx) :: akhs, akms, zo, uflxsfx, vflxsfx, uu
     real(rkx), dimension(nspec) :: clow, cts, sz0
     real(rkx), dimension(kz) :: cwmk, pk, q2k, qk, thek ,&
             tk, uk, vk, qcwk, qcik
@@ -189,7 +189,7 @@ module mod_pbl_myj
     real(rkx), dimension(jci1:jci2,ici1:ici2,kz) :: ape, the, th, cwm
     real(rkx), dimension(jci1:jci2,ici1:ici2,kzm1) :: akh, akm
     real(rkx), dimension(jci1:jci2,ici1:ici2,kzp1) :: zint
-    real(rkx), dimension(jci1:jci2,ici1:ici2) :: pfac
+    real(rkx), dimension(jci1:jci2,ici1:ici2) :: pfac, ustar
 
     dtturbl = dt
     rdtturbl = d_one/dtturbl
@@ -226,10 +226,18 @@ module mod_pbl_myj
       end do
     end do
 
+    do i = ici1, ici2
+      do j = jci1, jci2
+        uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)/m2p%rhox2d(j,i)
+        vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)/m2p%rhox2d(j,i)
+        uu = max(uflxsfx*uflxsfx+vflxsfx*vflxsfx,0.00000001_rkx)
+        ustar(j,i) = sqrt(sqrt(uu))
+      end do
+    end do
+
     setup_integration: &
     do i = ici1, ici2
       do j = jci1, jci2
-        ustar = m2p%ustar(j,i)
         !
         ! Fill 1-d vertical arrays: myj scheme counts downward from
         ! the domain's top
@@ -258,7 +266,7 @@ module mod_pbl_myj
         !
         ! Solve for the production/dissipation of the turbulent kinetic energy
         !
-        call prodq2(dtturbl,ustar,gm,gh,el,q2k)
+        call prodq2(dtturbl,ustar(j,i),gm,gh,el,q2k)
         !
         ! Find the exchange coefficients in the free atmosphere
         !
@@ -329,7 +337,6 @@ module mod_pbl_myj
 
         psfc = m2p%patmf(j,i,kzp1)
         rexnsfc = (p00/psfc)**rovcp
-        ustar = m2p%ustar(j,i)
         tg = m2p%tg(j,i)
         thsk = tg*rexnsfc
         uspd = max(sqrt(m2p%uxatm(j,i,kz)**2+m2p%vxatm(j,i,k)**2),0.01_rkx)
@@ -345,9 +352,9 @@ module mod_pbl_myj
         tha = m2p%tatm(j,i,kz) * ape(j,i,kz)
         ratiomx = m2p%qxatm(j,i,kz,iqv)
         qha = ratiomx/(d_one+ratiomx)
-        zo = max(ustfc*ustar*ustar,1.59e-5_rkx)
-        if ( ustar < ustr ) then
-          zu = fzu1*sqrt(sqrt(zo*ustar*rvisc))/ustar
+        zo = max(ustfc*ustar(j,i)*ustar(j,i),1.59e-5_rkx)
+        if ( ustar(j,i) < ustr ) then
+          zu = fzu1*sqrt(sqrt(zo*ustar(j,i)*rvisc))/ustar(j,i)
           wght = akms*zu*rvisc
           wght = wght/(d_one+wght)
           m2p%uz0(j,i) = d_half*((m2p%uxatm(j,i,kz)*wght)+m2p%uz0(j,i))
@@ -365,10 +372,10 @@ module mod_pbl_myj
             m2p%qz0(j,i) = d_half*(((wghtq*qha)+qsfc) /  &
                                   (wghtq+d_one)+m2p%qz0(j,i))
           end if
-        else if ( ustar > ustr .and. ustar < ustc ) then
+        else if ( ustar(j,i) > ustr .and. ustar(j,i) < ustc ) then
           m2p%uz0(j,i) = d_zero
           m2p%vz0(j,i) = d_zero
-          zt = fzt2*sqrt(sqrt(zo*ustar*rvisc))/ustar
+          zt = fzt2*sqrt(sqrt(zo*ustar(j,i)*rvisc))/ustar(j,i)
           zq = fzq2*zt
           wghtt = akhs*zt*rtvisc
           wghtq = akhs*zq*rqvisc
@@ -511,7 +518,7 @@ module mod_pbl_myj
     lpbl = kz
     lfound = .false.
     do k = kzm1, 1, -1
-      if ( q2(k) <= epsq2*fh ) then
+      if ( q2(k) <= epsq2*fh .or. z(lpbl+1) > 4000.0_rkx ) then
         lpbl = k
         lfound = .true.
         pblh = z(lpbl+1)-z(kzp1)
