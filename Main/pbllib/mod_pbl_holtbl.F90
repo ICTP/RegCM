@@ -41,7 +41,7 @@ module mod_pbl_holtbl
                                           kvm, kvq
   real(rkx), pointer, contiguous, dimension(:,:) :: xhfx, xqfx, pfcor
   real(rkx), pointer, contiguous, dimension(:,:) :: hfxv, obklen, thv10
-  real(rkx), pointer, contiguous, dimension(:,:) :: sh10
+  real(rkx), pointer, contiguous, dimension(:,:) :: sh10, ustr
   logical, pointer, contiguous, dimension(:,:) :: lunstb
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: alphak, betak, &
@@ -111,6 +111,7 @@ module mod_pbl_holtbl
     call getmem(obklen,jci1,jci2,ici1,ici2,'mod_holtbl:obklen')
     call getmem(pfcor,jci1,jci2,ici1,ici2,'mod_holtbl:pfcor')
     call getmem(thv10,jci1,jci2,ici1,ici2,'mod_holtbl:thv10')
+    call getmem(ustr,jci1,jci2,ici1,ici2,'mod_holtbl:ustr')
     if ( ifaholtth10 /= 2 ) then
       call getmem(sh10,jci1,jci2,ici1,ici2,'mod_holtbl:sh10')
     end if
@@ -141,7 +142,7 @@ module mod_pbl_holtbl
     type(pbl_2_mod), intent(inout) :: p2m
     integer(ik4) :: i, j, k, n
     real(rkx) :: dudz, dvdz, ss, n2, rin, fofri, kzmh
-    real(rkx) :: rrho
+    real(rkx) :: rrho, uu, uflxsfx, vflxsfx
     real(rkx) :: oblen, vvk
     real(rkx) :: xfmt, wsc, therm, phpblm, zpbl, xfht
     real(rkx) :: z, zm, zp, zh, zl, wstr
@@ -233,6 +234,11 @@ module mod_pbl_holtbl
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       ! compute friction velocity
       rrho = 1.0_rkx/m2p%rhox2d(j,i)
+      uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)*rrho
+      vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)*rrho
+      ! Minimum allowed ustr = 0.01
+      uu = max(uflxsfx*uflxsfx+vflxsfx*vflxsfx,0.00000001_rkx)
+      ustr(j,i) = sqrt(sqrt(uu))
       ! convert surface fluxes to kinematic units
       xhfx(j,i) = m2p%hfx(j,i)*rrho*rcpd
       xqfx(j,i) = m2p%qfx(j,i)*rrho
@@ -248,7 +254,7 @@ module mod_pbl_holtbl
     !
     if ( ifaholtth10 == 2 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*m2p%ustar(j,i)* &
+        thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
                      log(m2p%za(j,i,kz)*d_r10))
       end do
     else
@@ -274,17 +280,17 @@ module mod_pbl_holtbl
     end if
     do iter = 1, holtth10iter
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        oblen = comp_obklen(thv10(j,i),m2p%ustar(j,i),hfxv(j,i))
+        oblen = comp_obklen(thv10(j,i),ustr(j,i),hfxv(j,i))
         if ( oblen >= m2p%za(j,i,kz) ) then
-          thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*m2p%ustar(j,i))*  &
+          thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
              (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
         else
           if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
-            thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*m2p%ustar(j,i))*  &
+            thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
                 (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
                 6.0_rkx*log(m2p%za(j,i,kz)/oblen))
           else
-            thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*m2p%ustar(j,i)) * &
+            thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
                         6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
           end if
         end if
@@ -302,7 +308,7 @@ module mod_pbl_holtbl
 
     ! final value for obukhov length
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      obklen(j,i) = comp_obklen(thv10(j,i),m2p%ustar(j,i),hfxv(j,i))
+      obklen(j,i) = comp_obklen(thv10(j,i),ustr(j,i),hfxv(j,i))
     end do
     !
     ! compute diffusivities and counter gradient terms
@@ -324,7 +330,7 @@ module mod_pbl_holtbl
     !                    thv10   virt. pot. temp. at 10m
     !                    hfxv    surface virtual heat flux
     !                    obklen  monin obukov length
-    !                    ustar   friction velocity
+    !                    ustr    friction velocity
     !
     ! input/output
     ! arguments :        therm   thermal temperature excess
@@ -374,10 +380,10 @@ module mod_pbl_holtbl
       if ( lunstb(j,i) ) then
         ! estimate of convective velocity scale
         xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
-        wsc = m2p%ustar(j,i)*xfmt
+        wsc = ustr(j,i)*xfmt
         ! thermal temperature excess
         therm = fak * hfxv(j,i)/wsc
-        vvk = vv(j,i,kz) + fak*m2p%ustar(j,i)**2
+        vvk = vv(j,i,kz) + fak*ustr(j,i)**2
         ri(kz,j,i) = max(minri,min(maxri, &
                     -egrav*therm * m2p%za(j,i,kz)/(thv10(j,i)*vvk)))
         !$acc loop seq
@@ -420,8 +426,8 @@ module mod_pbl_holtbl
       ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
       ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
       ! latitude value for f so that c = 0.07/f = 700.
-      !phpblm = 700.0_rkx*m2p%ustar(j,i)
-      phpblm = (0.07_rkx*m2p%ustar(j,i))/pfcor(j,i)
+      !phpblm = 700.0_rkx*ustr(j,i)
+      phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
       if ( p2m%zpbl(j,i) < phpblm ) then
         p2m%zpbl(j,i) = max(phpblm,p2m%zpbl(j,i))
       end if
@@ -434,11 +440,11 @@ module mod_pbl_holtbl
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       zpbl = min(p2m%zpbl(j,i),3000.0_rkx)
-      fak1 = m2p%ustar(j,i)*zpbl*vonkar
+      fak1 = ustr(j,i)*zpbl*vonkar
       if ( lunstb(j,i) ) then
         xfmt = (d_one-binm*zpbl/obklen(j,i))**onet
         xfht = sqrt(d_one-binh*zpbl/obklen(j,i))
-        wsc = m2p%ustar(j,i)*xfmt
+        wsc = ustr(j,i)*xfmt
         fak2 = wsc*zpbl*vonkar
       else
         xfmt = d_zero
