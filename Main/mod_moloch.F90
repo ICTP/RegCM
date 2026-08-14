@@ -71,6 +71,8 @@ module mod_moloch
   real(rkx), dimension(:), pointer, contiguous :: xkdamp => null( )
   real(rkx), dimension(:), pointer, contiguous :: xknu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: laplacian => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtu => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtv => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
@@ -161,10 +163,11 @@ module mod_moloch
 
   subroutine allocate_moloch
     implicit none
-    integer(ik4) :: k
     call getmem(gzitak,1,kzp1,'moloch:gzitak')
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
     call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
+    call getmem(bdywtu,jdi1,jdi2,ici1,ici2,1,kz,'moloch:bdywtu')
+    call getmem(bdywtv,jci1,jci2,idi1,idi2,1,kz,'moloch:bdywtv')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
     call getmem(tetavf,jce1,jce2,ice1,ice2,2,kz,'moloch:tetavf')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
@@ -197,12 +200,6 @@ module mod_moloch
     call getmem(vd,jce1,jce2,ide1,ide2,1,kz,'moloch:vd')
     call getmem(xkdamp,1,kz,'moloch:xkdamp')
     call getmem(xknu,1,kz,'moloch:xknu')
-    do concurrent ( k = 1:kz )
-      xkdamp(k) = numax * ddamp * &
-        (1.0_rkx/(k+1.0_rkx) - 1.0_rkx/(kz+2.0_rkx))
-      xknu(k) = numax * (0.55_rkx + 0.45_rkx * &
-        (real(kz-k+1,rkx)-1.0_rkx)/(real(kz,rkx)-1.0_rkx))
-    end do
   end subroutine allocate_moloch
 
   subroutine init_moloch
@@ -298,6 +295,14 @@ module mod_moloch
       imin = icross1 - 2
       imax = icross2 + 2
     end if
+    do concurrent ( k = 1:kz )
+      xkdamp(k) = numax * ddamp * &
+        (1.0_rkx/(k+1.0_rkx) - 1.0_rkx/(kz+2.0_rkx))
+      xknu(k) = numax * (0.55_rkx + 0.45_rkx * &
+        (real(kz-k+1,rkx)-1.0_rkx)/(real(kz,rkx)-1.0_rkx))
+    end do
+    call setup_bdywt(jdi1,jdi2,ici1,ici2,bdywtu,ba_ud)
+    call setup_bdywt(jci1,jci2,idi1,idi2,bdywtv,ba_vd)
     do_divdamp = mo_divdamp
     do_divfilter = mo_divfilter
     do_apply_bdy = ( do_bdy .and. moloch_realcase .and. irceideal == 0 )
@@ -675,9 +680,9 @@ module mod_moloch
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
           zcor1u = coru(j,i) * dts * vd(j,i,k)
           ! Equation 17
-          u(j,i,k) = u(j,i,k) + zcor1u - &
+          u(j,i,k) = u(j,i,k) + bdywtu(j,i,k) * ( zcor1u - &
                      zfz * hx(j,i) * gzitakh(k) - &
-                     zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+                     zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k)))
         end do
         ! Equation 18
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
@@ -686,9 +691,9 @@ module mod_moloch
           zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
           zcor1v = corv(j,i) * dts * ud(j,i,k)
           ! Equation 18
-          v(j,i,k) = v(j,i,k) - zcor1v - &
+          v(j,i,k) = v(j,i,k) + bdywtv(j,i,k) * (-zcor1v - &
                      zfz * hy(j,i) * gzitakh(k) -  &
-                     zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+                     zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k)))
         end do
       else
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
@@ -697,9 +702,9 @@ module mod_moloch
           zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
           zcor1u = coru(j,i) * dts * vd(j,i,k)
           ! Equation 17
-          u(j,i,k) = u(j,i,k) + zcor1u - &
+          u(j,i,k) = u(j,i,k) + bdywtu(j,i,k) * ( zcor1u - &
                      zfz * hx(j,i) * gzitakh(k) - &
-                     zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+                     zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k)))
         end do
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           zcy = dtrdy * mv(j,i)
@@ -707,9 +712,9 @@ module mod_moloch
           zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
           zcor1v = corv(j,i) * dts * ud(j,i,k)
           ! Equation 18
-          v(j,i,k) = v(j,i,k) - zcor1v - &
+          v(j,i,k) = v(j,i,k) + bdywtv(j,i,k) * (-zcor1v - &
                      zfz * hy(j,i) * gzitakh(k) - &
-                     zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+                     zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k)))
         end do
       end if
 

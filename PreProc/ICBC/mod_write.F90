@@ -623,6 +623,7 @@ module mod_write
     type(rcm_time_and_date), intent(in) :: idate
     integer(ik4) :: ivar, k
     real(rkx) :: dx
+    real(rkx), dimension(kz) :: xk
 
     if ( idynamic == 1 ) then
       ps4 = (ps4+ptop)*d_10
@@ -655,9 +656,9 @@ module mod_write
 
     if ( idynamic == 3 ) then
       ps4(:,:) = ps4(:,:)*d_1000
-      call gaussian_filter(jx,iy,kz,u4,1)
-      call gaussian_filter(jx,iy,kz,v4,1)
-      call gaussian_filter(jx,iy,kz,t4,1)
+      xk(:) = 1.0_rkx - sigmah(:)
+      call gaussian_filter(jx,iy,kz,u4,xk,4)
+      call gaussian_filter(jx,iy,kz,v4,xk,4)
       call pai_compute(jx,iy,kz,ps4,z0,t4,q4,pai4)
       p4(:,:,:) = (pai4(:,:,:)**cpovr) * p00
       qs(:,:,:) = pfwsat(t4(:,:,:),p4(:,:,:))
@@ -721,10 +722,11 @@ module mod_write
         ! In press, recompute model level pressure. Going up, merge with
         ! average pressure (flattening of pressure level)
         press(:,:) = p00 * (pai(:,:,k)**cpovr)
-        mp = sum(press)/nn
-        xk = 1.0_rkx - 0.5_rkx * &
-          ((fmz0(j,i,k)-fmz0(j,i,kz))/(fmz0(j,i,1)-fmz0(j,i,kz)))
-        press(:,:) = xk * press(:,:) + (1.0_rkx - xk) * mp
+        xk = 1.0_rkx - sigmah(k)
+        if ( k <= kz/3 ) then
+          mp = sum(press)/nn
+          press(:,:) = sigmah(k) * press(:,:) + xk * mp
+        end if
         ! Now the filtering. Compute integrals and means.
         ppsum = sum(press(:,:) * press(:,:))
         pfsum = sum(press(:,:) * pai(:,:,k))
@@ -735,8 +737,12 @@ module mod_write
         ! Decouple from pressure, smooth presure, remove noise,
         !   recouple with smoothed pressure
         fb(:,:) = pai(:,:,k) - xg * press(:,:)
-        call gaussian_filter(jx,iy,press,2)
-        call wavelet_denoise(nx,ny,fb,fbc,0.05_rkx/ds)
+        if ( k <= kz/3 ) then
+          call gaussian_filter(jx,iy,press,xk,kz/3+1-k)
+          call wavelet_denoise(nx,ny,fb,fbc,((0.5_rkx*(kz/3+1-k))/(kz-3))/ds)
+        else
+          call wavelet_denoise(nx,ny,fb,fbc,0.05_rkx/ds)
+        end if
         pai(:,:,k) = fbc(:,:) + xg * press(:,:)
       end do
     end if
@@ -766,9 +772,10 @@ module mod_write
     end do
   end subroutine extrapolate_surface_pressure
 
-  subroutine gaussian_filter2(nj,ni,slab,npass)
+  subroutine gaussian_filter2(nj,ni,slab,gf,npass)
     implicit none
     integer(ik4), intent(in) :: ni, nj, npass
+    real(rkx), intent(in) :: gf
     real(rkx), intent(inout), dimension(nj,ni) :: slab
     real(rkx), dimension(nj,ni) :: temp1, temp2
     integer :: n, i, j
@@ -807,15 +814,16 @@ module mod_write
                                  temp1(nj-1,1) +temp1(nj-1,2))
       temp2(nj,ni) = 0.25_rkx * (temp1(nj,  ni)+temp1(nj,  ni-1) + &
                                  temp1(nj-1,ni)+temp1(nj-1,ni-1))
+      temp1(:,:) = temp1(:,:) + gf * (temp2(:,:) - temp1(:,:))
       if ( n == npass ) exit
-      temp1(:,:) = temp2(:,:)
     end do
-    slab(:,:) = temp2(:,:)
+    slab(:,:) = temp1(:,:)
   end subroutine gaussian_filter2
 
-  subroutine gaussian_filter3(nj,ni,nk,slab,npass)
+  subroutine gaussian_filter3(nj,ni,nk,slab,gf,npass)
     implicit none
     integer(ik4), intent(in) :: ni, nj, nk, npass
+    real(rkx), intent(in), dimension(nk) :: gf
     real(rkx), intent(inout), dimension(nj,ni,nk) :: slab
     real(rkx), dimension(nj,ni) :: temp1, temp2
     integer :: n, i, j, k
@@ -855,10 +863,10 @@ module mod_write
                                    temp1(nj-1,1) +temp1(nj-1,2))
         temp2(nj,ni) = 0.25_rkx * (temp1(nj,  ni)+temp1(nj,  ni-1) + &
                                    temp1(nj-1,ni)+temp1(nj-1,ni-1))
+        temp1(:,:) = temp1(:,:) + gf(k) * (temp2(:,:) - temp1(:,:))
         if ( n == npass ) exit
-        temp1(:,:) = temp2(:,:)
       end do
-      slab(:,:,k) = temp2(:,:)
+      slab(:,:,k) = temp1(:,:)
     end do
   end subroutine gaussian_filter3
 

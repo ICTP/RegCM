@@ -4045,15 +4045,16 @@ module mod_bdycod
 #endif
   end subroutine morelax_external
 
-  subroutine setup_bdywt(mask,ba)
+  subroutine setup_bdywt(j1,j2,i1,i2,mask,ba)
     implicit none
+    integer(ik4), intent(in) :: j1, j2, i1, i2
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: mask
     type(bound_area), intent(in) :: ba
     integer(ik4) :: i, j, k, ib
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
       ib = ba%ibnd(j,i)
       if ( ib > 0 ) then
-        mask(j,i,k) = 1.0_rkx - 0.125_rkx * hefc(ib,k)
+        mask(j,i,k) = 1.0_rkx - hefc(ib,k)
       else
         mask(j,i,k) = 1.0_rkx
       end if
