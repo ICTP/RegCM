@@ -490,14 +490,14 @@
 ! MOLOCH control parameters
 ! 
  &molochparam
- mo_ztop = 30000.0, ! Atmosphere top lid in meters
- mo_h = 8000.0,     ! Atmosphere reference height
- mo_a0 = 0.0,       ! Vertical stretching in model level equations
- mo_nadv = 2,       ! Number of advection loops for physics loop
- mo_nsound = 5,     ! Number of sound loops for advection loop
+ mo_ztop = 30000.0,          ! Atmosphere top lid in meters
+ mo_h = 8000.0,              ! Atmosphere reference height
+ mo_a0 = 0.0,                ! Vertical stretching in model level equations
+ mo_nadv = 2,                ! Number of advection loops for physics loop
+ mo_nsound = 5,              ! Number of sound loops for advection loop
  mo_divfilter = .true.       ! Do horizontal divergence diffusion
  mo_divdamp = .true.         ! Do damping of divergence
- mo_top_nudge = .false.,     ! Perform top nudging towards the BC
+ mo_top_nudge = .true.,      ! Perform top nudging towards the BC
  mo_spectral_nudge = .true., ! Use spectral top relaxation towards the BC
  /
 !
@@ -725,8 +725,8 @@
 ! Holtslag PBL scheme control
 !
  &holtslagparam
- ricr_ocn = 0.30,  ! Critical Richardson Number over Ocean
- ricr_lnd = 0.30,  ! Critical Richardson Number over Land
+ ricr_ocn = 0.24,  ! Critical Richardson Number over Ocean
+ ricr_lnd = 0.32,  ! Critical Richardson Number over Land
  zhnew_fac = 1.0,  ! Multiplicative factor for zzhnew in holtpbl
  ifaholtth10 = 2,  ! First approximation for obhukov length, th10 formula:
                    !      0 => 0.5 * (t+tg) * (1+0.61*q)

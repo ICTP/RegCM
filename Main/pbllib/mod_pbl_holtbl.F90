@@ -41,7 +41,7 @@ module mod_pbl_holtbl
                                           kvm, kvq
   real(rkx), pointer, contiguous, dimension(:,:) :: xhfx, xqfx, pfcor
   real(rkx), pointer, contiguous, dimension(:,:) :: hfxv, obklen, thv10
-  real(rkx), pointer, contiguous, dimension(:,:) :: sh10, ustr
+  real(rkx), pointer, contiguous, dimension(:,:) :: sh10, ustr, adricr
   logical, pointer, contiguous, dimension(:,:) :: lunstb
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: alphak, betak, &
@@ -112,6 +112,7 @@ module mod_pbl_holtbl
     call getmem(pfcor,jci1,jci2,ici1,ici2,'mod_holtbl:pfcor')
     call getmem(thv10,jci1,jci2,ici1,ici2,'mod_holtbl:thv10')
     call getmem(ustr,jci1,jci2,ici1,ici2,'mod_holtbl:ustr')
+    call getmem(adricr,jci1,jci2,ici1,ici2,'mod_holtbl:adricr')
     if ( ifaholtth10 /= 2 ) then
       call getmem(sh10,jci1,jci2,ici1,ici2,'mod_holtbl:sh10')
     end if
@@ -244,7 +245,15 @@ module mod_pbl_holtbl
       xqfx(j,i) = m2p%qfx(j,i)*rrho
       ! Compute virtual heat flux at surface (surface kinematic buoyancy flux)
       hfxv(j,i) = xhfx(j,i) + ep1 * m2p%thatm(j,i,kz) * xqfx(j,i)
-      lunstb(j,i) = (hfxv(j,i) > 0.0_rkx)
+      if ( hfxv(j,i) > 0.0_rkx ) then
+        lunstb(j,i) = .true.
+        adricr(j,i) = (0.9_rkx + 0.2_rkx*min(1.0_rkx, &
+                         hfxv(j,i)/0.75_rkx)) * ricr(j,i)
+      else
+        lunstb(j,i) = .false.
+        adricr(j,i) = (0.9_rkx - 0.2_rkx*min(1.0_rkx, &
+                         abs(hfxv(j,i))/0.25_rkx)) * ricr(j,i)
+      end if
     end do
     !
     ! estimate potential temperature at 10m via log temperature
@@ -367,10 +376,10 @@ module mod_pbl_holtbl
       do k = kzm1, kmxpbl(j,i)+1, -1
         ! bl height lies between this level and the last
         ! use linear interp. of rich. no. to height of ri=ricr
-        if ( (ri(k,j,i)   <  ricr(j,i)) .and. &
-             (ri(k-1,j,i) >= ricr(j,i)) ) then
+        if ( (ri(k,j,i)   <  adricr(j,i)) .and. &
+             (ri(k-1,j,i) >= adricr(j,i)) ) then
           p2m%zpbl(j,i) = m2p%za(j,i,k)+(m2p%za(j,i,k-1)-m2p%za(j,i,k)) * &
-              ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
+              ((adricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
         end if
       end do
     end do
@@ -403,11 +412,11 @@ module mod_pbl_holtbl
         do k = kz, kmxpbl(j,i)+1, -1
           ! bl height lies between this level and the last
           ! use linear interp. of rich. no. to height of ri=ricr
-          if ( (ri(k,j,i) < ricr(j,i)) .and. &
-               (ri(k-1,j,i) >= ricr(j,i)) ) then
+          if ( (ri(k,j,i)   <  adricr(j,i)) .and. &
+               (ri(k-1,j,i) >= adricr(j,i)) ) then
             p2m%zpbl(j,i) = m2p%za(j,i,k) + &
               (m2p%za(j,i,k-1)-m2p%za(j,i,k))* &
-              ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
+              ((adricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
           end if
         end do
       end if
