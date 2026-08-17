@@ -1672,17 +1672,14 @@ module mod_bdycod
           if ( present_qi .and. n == iqi ) cycle
           qxint = mo_atm%qx(jci1,i,k,n)
           if ( mo_atm%u(jde1,i,k) > d_zero ) then
-            mo_atm%qx(jce1,i,k,n) = 0.5_rkx*(qxbval(n)+qxint)
+            mo_atm%qx(jce1,i,k,n) = qxbval(n)
           else
             mo_atm%qx(jce1,i,k,n) = qxint
-          end if
-          if ( mo_atm%qx(jce1,i,k,n) < 1.0E-12_rkx ) then
-            mo_atm%qx(jce1,i,k,n) = 0.0_rkx
           end if
         end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           if ( mo_atm%u(jde1,i,k) > d_zero ) then
-            mo_atm%w(jce1,i,k) = 0.1_rkx*mo_atm%w(jci1,i,k)
+            mo_atm%w(jce1,i,k) = 0.0_rkx
           else
             mo_atm%w(jce1,i,k) = mo_atm%w(jci1,i,k)
           end if
@@ -1733,17 +1730,14 @@ module mod_bdycod
           if ( present_qi .and. n == iqi ) cycle
           qxint = mo_atm%qx(jci2,i,k,n)
           if ( mo_atm%u(jde2,i,k) < d_zero ) then
-            mo_atm%qx(jce2,i,k,n) = 0.5_rkx*(qxbval(n)+qxint)
+            mo_atm%qx(jce2,i,k,n) = qxbval(n)
           else
             mo_atm%qx(jce2,i,k,n) = qxint
-          end if
-          if ( mo_atm%qx(jce2,i,k,n) < 1.0E-12_rkx ) then
-            mo_atm%qx(jce2,i,k,n) = 0.0_rkx
           end if
         end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           if ( mo_atm%u(jde2,i,k) < d_zero ) then
-            mo_atm%w(jce2,i,k) = 0.1_rkx*mo_atm%w(jci2,i,k)
+            mo_atm%w(jce2,i,k) = 0.0_rkx
           else
             mo_atm%w(jce2,i,k) = mo_atm%w(jci2,i,k)
           end if
@@ -1794,17 +1788,14 @@ module mod_bdycod
           if ( present_qi .and. n == iqi ) cycle
           qxint = mo_atm%qx(j,ici1,k,n)
           if ( mo_atm%v(j,ide1,k) > d_zero ) then
-            mo_atm%qx(j,ice1,k,n) = 0.5_rkx*(qxbval(n)+qxint)
+            mo_atm%qx(j,ice1,k,n) = qxbval(n)
           else
             mo_atm%qx(j,ice1,k,n) = qxint
-          end if
-          if ( mo_atm%qx(j,ice1,k,n) < 1.0E-12_rkx ) then
-            mo_atm%qx(j,ice1,k,n) = 0.0_rkx
           end if
         end do
         do concurrent ( j = jce1:jce2, k = 1:kz )
           if ( mo_atm%v(j,ide1,k) > d_zero ) then
-            mo_atm%w(j,ice1,k) = 0.1_rkx*mo_atm%w(j,ici1,k)
+            mo_atm%w(j,ice1,k) = 0.0_rkx
           else
             mo_atm%w(j,ice1,k) = mo_atm%w(j,ici1,k)
           end if
@@ -1855,17 +1846,14 @@ module mod_bdycod
           if ( present_qi .and. n == iqi ) cycle
           qxint = mo_atm%qx(j,ici2,k,n)
           if ( mo_atm%v(j,ide2,k) < d_zero ) then
-            mo_atm%qx(j,ice2,k,n) = 0.5_rkx*(qxbval(n)+qxint)
+            mo_atm%qx(j,ice2,k,n) = qxbval(n)
           else
             mo_atm%qx(j,ice2,k,n) = qxint
-          end if
-          if ( mo_atm%qx(j,ice2,k,n) < 1.0E-12_rkx ) then
-            mo_atm%qx(j,ice2,k,n) = 0.0_rkx
           end if
         end do
         do concurrent ( j = jce1:jce2, k = 1:kz )
           if ( mo_atm%v(j,ide2,k) < d_zero ) then
-            mo_atm%w(j,ice2,k) = 0.1_rkx*mo_atm%w(j,ici2,k)
+            mo_atm%w(j,ice2,k) = 0.0_rkx
           else
             mo_atm%w(j,ice2,k) = mo_atm%w(j,ici2,k)
           end if
