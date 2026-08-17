@@ -73,6 +73,7 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: laplacian => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtv => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtt => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
@@ -168,6 +169,7 @@ module mod_moloch
     call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
     call getmem(bdywtu,jdi1,jdi2,ici1,ici2,1,kz,'moloch:bdywtu')
     call getmem(bdywtv,jci1,jci2,idi1,idi2,1,kz,'moloch:bdywtv')
+    call getmem(bdywtt,jci1,jci2,ici1,ici2,1,kz,'moloch:bdywtt')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
     call getmem(tetavf,jce1,jce2,ice1,ice2,2,kz,'moloch:tetavf')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
@@ -303,6 +305,7 @@ module mod_moloch
     end do
     call setup_bdywt(jdi1,jdi2,ici1,ici2,bdywtu,ba_ud)
     call setup_bdywt(jci1,jci2,idi1,idi2,bdywtv,ba_vd)
+    call setup_bdywt(jci1,jci2,ici1,ici2,bdywtt,ba_cr)
     do_divdamp = mo_divdamp
     do_divfilter = mo_divfilter
     do_apply_bdy = ( do_bdy .and. moloch_realcase .and. irceideal == 0 )
@@ -577,7 +580,7 @@ module mod_moloch
 
       ! partial definition of the generalized vertical velocity
 
-      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
         zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
         s(j,i,kzp1) = -0.5_rkx * (zuh+zvh)
@@ -586,7 +589,7 @@ module mod_moloch
 
       ! Equation 10, generalized vertical velocity
 
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
         zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
               (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
         zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
@@ -622,14 +625,14 @@ module mod_moloch
         call divergence_diffusion
       end if
 
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        zdiv2(j,i,k) = zdiv2(j,i,k) + bdywtt(j,i,k) * dtrdz * fmz(j,i,k) * &
                   (s(j,i,k) - s(j,i,k+1))
       end do
 
       ! new w (implicit scheme) from Equation 19
 
-      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         do k = kz, 2, -1
           ! explicit w:
           !    it must be consistent with the initialization of pai
@@ -655,7 +658,7 @@ module mod_moloch
 
       ! 2nd loop for the tridiagonal inversion
 
-      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         do k = 2, kz
           w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
         end do
@@ -723,10 +726,10 @@ module mod_moloch
     ! complete computation of generalized vertical velocity
     ! Complete Equation 10
 
-    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
       s(j,i,k) = (w(j,i,k) + s(j,i,k)) * fmzf(j,i,k)
     end do
-    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       s(j,i,1) = 0.0_rkx
       s(j,i,kzp1) = 0.0_rkx
     end do
