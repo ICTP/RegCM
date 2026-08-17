@@ -662,7 +662,7 @@ module mod_write
       call pai_compute(jx,iy,kz,ps4,z0,t4,q4,pai4)
       p4(:,:,:) = (pai4(:,:,:)**cpovr) * p00
       qs(:,:,:) = pfwsat(t4(:,:,:),p4(:,:,:))
-      q4(:,:,:) = max(min(q4(:,:,:),1.02_rkx*qs(:,:,:)),1.0E-8_rkx)
+      q4(:,:,:) = max(min(q4(:,:,:),0.9999_rkx*qs(:,:,:)),1.0E-8_rkx)
       call extrapolate_surface_pressure(jx,iy,kz,p4,z0,t4,q4,ps4)
       ps4(:,:) = ps4(:,:)*d_r100
     end if

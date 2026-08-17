@@ -490,14 +490,10 @@ module mod_moloch
     if ( ipptls > 0 ) then
       if ( is_present_qc( ) ) then
         call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,xlb)
-      else
-        call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,0.0_rkx)
       end if
       if ( ipptls > 1 ) then
         if ( is_present_qi( ) ) then
           call morelax(jci1,jci2,ici1,ici2,ba_cr,qi,xib)
-        else
-          call morelax(jci1,jci2,ici1,ici2,ba_cr,qi,0.0_rkx)
         end if
       end if
     end if
