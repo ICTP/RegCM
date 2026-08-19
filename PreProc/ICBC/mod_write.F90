@@ -53,7 +53,8 @@ module mod_write
   type(ncvariable2d_mixed), allocatable, save, dimension(:) :: v2dvar_icbc
   type(ncvariable3d_mixed), allocatable, save, dimension(:) :: v3dvar_icbc
   logical :: qli_present = .false.
-  logical :: do_wavelet_denoise = .true.
+  logical, parameter :: do_wavelet_denoise = .true.
+  integer, parameter :: ntt = 3
 
   interface gaussian_filter
     module procedure gaussian_filter2
@@ -684,7 +685,7 @@ module mod_write
     real(rkx), dimension(nx,ny), intent(in) :: ps
     real(rkx), dimension(nx,ny,nz), intent(in) :: z, t, q
     real(rkx), dimension(nx,ny,nz), intent(out) :: pai
-    integer(ik4) :: i, j, k
+    integer(ik4) :: i, j, k, ntk, nkt
     real(rkx), dimension(nx,ny) :: press, fb, fbc
     real(rkx) :: tv1, tv2, lrt, tv, zz, zb, p, zdelta, paikp1
     real(rk8) :: pfsum, ppsum, mp, mf, xg, nn, xk
@@ -717,13 +718,15 @@ module mod_write
       end do
     end do
     if ( do_wavelet_denoise ) then
+      xk = 1.0_rkx
+      nkt = kz / ntt
       nn = real(nx*ny, rk8)
       do k = 1, kz
         ! In press, recompute model level pressure. Going up, merge with
         ! average pressure (flattening of pressure level)
         press(:,:) = p00 * (pai(:,:,k)**cpovr)
-        xk = 1.0_rkx - sigmah(k)
-        if ( k <= kz/3 ) then
+        if ( k <= nkt ) then
+          xk = 1.0_rkx - sigmah(k)/sigmah(nkt)
           mp = sum(press)/nn
           press(:,:) = sigmah(k) * press(:,:) + xk * mp
         end if
@@ -737,11 +740,12 @@ module mod_write
         ! Decouple from pressure, smooth presure, remove noise,
         !   recouple with smoothed pressure
         fb(:,:) = pai(:,:,k) - xg * press(:,:)
-        if ( k <= kz/3 ) then
-          call gaussian_filter(jx,iy,press,xk,kz/3+1-k)
-          call wavelet_denoise(nx,ny,fb,fbc,((0.5_rkx*(kz/3+1-k))/(kz-3))/ds)
+        if ( k <= nkt ) then
+          ntk = nkt - k + 1
+          call gaussian_filter(jx,iy,press,xk,ntk)
+          call wavelet_denoise(nx,ny,fb,fbc,((xk*0.5_rkx)/ds))
         else
-          call wavelet_denoise(nx,ny,fb,fbc,0.05_rkx/ds)
+          call wavelet_denoise(nx,ny,fb,fbc,(0.05_rkx/ds))
         end if
         pai(:,:,k) = fbc(:,:) + xg * press(:,:)
       end do
