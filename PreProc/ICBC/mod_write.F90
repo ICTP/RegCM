@@ -685,7 +685,7 @@ module mod_write
     real(rkx), dimension(nx,ny), intent(in) :: ps
     real(rkx), dimension(nx,ny,nz), intent(in) :: z, t, q
     real(rkx), dimension(nx,ny,nz), intent(out) :: pai
-    integer(ik4) :: i, j, k, ntk, nkt
+    integer(ik4) :: i, j, k, npass, nkt
     real(rkx), dimension(nx,ny) :: press, fb, fbc
     real(rkx) :: tv1, tv2, lrt, tv, zz, zb, p, zdelta, paikp1
     real(rk8) :: pfsum, ppsum, mp, mf, xg, nn, xk
@@ -725,7 +725,7 @@ module mod_write
         ! In press, recompute model level pressure. Going up, merge with
         ! average pressure (flattening of pressure level)
         press(:,:) = p00 * (pai(:,:,k)**cpovr)
-        if ( k <= nkt ) then
+        if ( k < nkt ) then
           xk = 1.0_rkx - sigmah(k)/sigmah(nkt)
           mp = sum(press)/nn
           press(:,:) = sigmah(k) * press(:,:) + xk * mp
@@ -740,9 +740,9 @@ module mod_write
         ! Decouple from pressure, smooth presure, remove noise,
         !   recouple with smoothed pressure
         fb(:,:) = pai(:,:,k) - xg * press(:,:)
-        if ( k <= nkt ) then
-          ntk = nkt - k + 1
-          call gaussian_filter(jx,iy,press,xk,ntk)
+        if ( k < nkt ) then
+          npass = nkt - k
+          call gaussian_filter(jx,iy,press,xk,npass)
           call wavelet_denoise(nx,ny,fb,fbc,((xk*0.5_rkx)/ds))
         else
           call wavelet_denoise(nx,ny,fb,fbc,(0.05_rkx/ds))
