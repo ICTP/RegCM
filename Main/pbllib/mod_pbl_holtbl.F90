@@ -194,7 +194,7 @@ module mod_pbl_holtbl
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
       vv(j,i,k) = max(m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
-                      m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k), 0.001_rkx)
+                      m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k), 0.01_rkx)
       dudz = (m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))/dza(j,i,k-1)
       dvdz = (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k))/dza(j,i,k-1)
       ! Vertical wind shear (square)
@@ -247,12 +247,12 @@ module mod_pbl_holtbl
       hfxv(j,i) = xhfx(j,i) + ep1 * m2p%thatm(j,i,kz) * xqfx(j,i)
       if ( hfxv(j,i) > 0.0_rkx ) then
         lunstb(j,i) = .true.
-        adricr(j,i) = (0.9_rkx + 0.2_rkx*min(1.0_rkx, &
+        adricr(j,i) = (1.0_rkx - 0.2_rkx*min(1.0_rkx, &
                          hfxv(j,i)/0.75_rkx)) * ricr(j,i)
       else
         lunstb(j,i) = .false.
-        adricr(j,i) = (0.9_rkx - 0.2_rkx*min(1.0_rkx, &
-                         abs(hfxv(j,i))/0.25_rkx)) * ricr(j,i)
+        adricr(j,i) = (1.0_rkx - 0.2_rkx*min(1.0_rkx, &
+                         hfxv(j,i)/0.25_rkx)) * ricr(j,i)
       end if
     end do
     !

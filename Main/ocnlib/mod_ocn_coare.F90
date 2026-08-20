@@ -40,7 +40,7 @@ module mod_ocn_coare
     !
     subroutine coare3_drv()
       implicit none
-      real(rkx) :: ts, qs, us, uv995, t995, q995, z995, ta
+      real(rkx) :: ts, qs, es, ws, us, uv995, t995, q995, z995, ta
       real(rkx) :: zu, zt, zq, zi, du, dt, dq, ut, dter, dqer
       real(rkx) :: ug, zogs, u10, cdhg, zo10, zot10
       real(rkx) :: usr, qsr, tsr, zetu, l10, wetc, zet
@@ -134,7 +134,10 @@ module mod_ocn_coare
         ! Begin bulk loop - first guess
         !--------------------------------
         !
-        qs = pfqsat(tgrd(i),sfps(i))*0.98_rkx
+        ! the saturation vapor pressure for salty water is on average 2% lower
+        es = pfesat(tgrd(i),sfps(i))*0.98_rkx
+        ws = ep2*(es/(sfps(i)-es))
+        qs = ws/(d_one+ws)
         wetc = pfqsdt(tgrd(i),sfps(i))
 
         ! Deltas
@@ -368,7 +371,7 @@ module mod_ocn_coare
 
       contains
 
-#include <pfqsat.inc>
+#include <pfesat.inc>
 #include <pfqsdt.inc>
 #include <wlh.inc>
 #include <cpmf.inc>
