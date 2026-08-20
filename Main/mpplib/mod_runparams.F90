@@ -181,6 +181,16 @@ module mod_runparams
   logical, parameter, public :: moloch_do_test_2 = .false.
   real(rkx), public :: mo_dzita
 
+  real(rkx), parameter, public, dimension(10) :: qxcheckval = &
+     [ 1.0e-8_rkx,  1.0e-16_rkx, 1.0e-16_rkx, 1.0e-16_rkx, &
+       1.0e-16_rkx, 1.0e-16_rkx, 1.0e-16_rkx, 1.0e10_rkx,  &
+       100.0_rkx, 0.01_rkx ]
+
+  real(rkx), parameter, public, dimension(10) :: qxzeroval = &
+     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
+       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
+       1.0e10_rkx, 100.0_rkx, 0.01_rkx ]      ! ncc, nc, nr
+
   real(rkx), public :: dt, dt2, dtsq, dtcb, dtbdys, rdt
   real(rkx), public :: dx, dx2, dx4, dx8, dx16, dxsq
   real(rkx), public :: rdx, rdxsq

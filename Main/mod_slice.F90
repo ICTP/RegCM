@@ -47,15 +47,6 @@ module mod_slice
      [  8.1797_rkx, 8.1455_rkx, -23.4839_rkx, &
         1.1464_rkx, 0.0798_rkx, -0.1491_rkx ]
 
-  real(rkx), parameter, dimension(10) :: qxcheckval = &
-     [ 1.0e-8_rkx,  1.0e-16_rkx, 1.0e-16_rkx, 1.0e-16_rkx, &
-       1.0e-16_rkx, 1.0e-16_rkx, 1.0e-16_rkx, 1.0e10_rkx,  &
-       100.0_rkx, 0.01_rkx ]
-  real(rkx), parameter, dimension(10) :: qxzeroval = &
-     [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx,       &  ! qv, qc, qi
-       0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
-       1.0e10_rkx, 100.0_rkx, 0.01_rkx ]      ! ncc, nc, nr
-
   contains
 
   subroutine init_slice

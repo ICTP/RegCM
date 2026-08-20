@@ -73,7 +73,7 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: laplacian => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtv => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtt => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtw => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
@@ -163,7 +163,7 @@ module mod_moloch
     call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
     call getmem(bdywtu,jdi1,jdi2,ici1,ici2,1,kz,'moloch:bdywtu')
     call getmem(bdywtv,jci1,jci2,idi1,idi2,1,kz,'moloch:bdywtv')
-    call getmem(bdywtt,jci1,jci2,ici1,ici2,1,kz,'moloch:bdywtt')
+    call getmem(bdywtw,jci1,jci2,ici1,ici2,1,kz,'moloch:bdywtw')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
     call getmem(tetavf,jce1,jce2,ice1,ice2,2,kz,'moloch:tetavf')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
@@ -299,7 +299,7 @@ module mod_moloch
     end do
     call setup_bdywt(jdi1,jdi2,ici1,ici2,bdywtu,ba_ud)
     call setup_bdywt(jci1,jci2,idi1,idi2,bdywtv,ba_vd)
-    call setup_bdywt(jci1,jci2,ici1,ici2,bdywtt,ba_cr)
+    call setup_bdywt(jci1,jci2,ici1,ici2,bdywtw,ba_cr)
     do_divdamp = mo_divdamp
     do_divfilter = mo_divfilter
     do_apply_bdy = ( do_bdy .and. moloch_realcase .and. irceideal == 0 )
@@ -328,7 +328,7 @@ module mod_moloch
 
     !
     ! Dynamical core - update status variables to new timestep
-    ! Status variables : tetav, pai, ud, vd, qx, qs
+    ! Status variables : tetav, pai, ud, vd, qx
     ! Update variables : t, ux, vx
     !
     call dynamical_core(dtstepa,dtsound)
@@ -625,7 +625,7 @@ module mod_moloch
       end if
 
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zdiv2(j,i,k) = zdiv2(j,i,k) + bdywtt(j,i,k) * dtrdz * fmz(j,i,k) * &
+        zdiv2(j,i,k) = zdiv2(j,i,k) + bdywtw(j,i,k) * dtrdz * fmz(j,i,k) * &
                   (s(j,i,k) - s(j,i,k+1))
       end do
 
@@ -843,7 +843,7 @@ module mod_moloch
     real(rkx) :: dtrdx, dtrdy, dtrdz
     real(rkx), parameter :: wlow  = 0.0_rkx
     real(rkx), parameter :: whigh = 2.0_rkx
-    real(rkx) :: zamu, is, r, b, zphi, zznum, zzden, zdv
+    real(rkx) :: zamu, is, r, b, zphi, zdv
     real(rkx) :: zhxvtn, zhxvts, zcostx
     real(rkx) :: zrfmu, zrfmd
     real(rkx) :: zrfmn, zrfms
@@ -1408,26 +1408,23 @@ module mod_moloch
     !@acc call nvtxStartRange("status_update")
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      t(j,i,k)  = t(j,i,k)  + dtinc*tten(j,i,k)
-      ux(j,i,k) = ux(j,i,k) + dtinc*uten(j,i,k)
-      vx(j,i,k) = vx(j,i,k) + dtinc*vten(j,i,k)
-      qv(j,i,k) = qv(j,i,k) + dtinc*qvten(j,i,k)
-      if ( qv(j,i,k) < 1.0E-8_rkx ) qv(j,i,k) = 1.0E-8_rkx
+      t(j,i,k)  = t(j,i,k)  + dtinc * tten(j,i,k)
+      ux(j,i,k) = ux(j,i,k) + dtinc * uten(j,i,k)
+      vx(j,i,k) = vx(j,i,k) + dtinc * vten(j,i,k)
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                    k = 1:kz, n = iqfrst:nqx)
-      qx(j,i,k,n) = qx(j,i,k,n) + dtinc*qxten(j,i,k,n)
-      if ( qx(j,i,k,n) < 1.0E-20_rkx ) qx(j,i,k,n) = 0.0_rkx
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
+      qx(j,i,k,n) = qx(j,i,k,n) + dtinc * qxten(j,i,k,n)
+      if ( qx(j,i,k,n) < qxcheckval(n) ) qx(j,i,k,n) = qxzeroval(n)
     end do
     if ( ibltyp == 2 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-        tke(j,i,k) = tke(j,i,k) + dtinc*tketen(j,i,k)
+        tke(j,i,k) = tke(j,i,k) + dtinc * tketen(j,i,k)
         if ( tke(j,i,k) < tkemin ) tke(j,i,k) = tkemin
       end do
     end if
     if ( ichem == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-        trac(j,i,k,n) = trac(j,i,k,n) + dtinc*chiten(j,i,k,n)
+        trac(j,i,k,n) = trac(j,i,k,n) + dtinc * chiten(j,i,k,n)
         if ( trac(j,i,k,n) < 0.0_rkx ) trac(j,i,k,n) = 0.0_rkx
       end do
     end if
@@ -1613,17 +1610,17 @@ module mod_moloch
     integer(ik4) :: i, j, k
     if ( ipptls > 0 ) then
       if ( ipptls > 1 ) then
-        do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+        do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - &
              qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
         end do
       else
-        do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+        do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - qc(j,i,k))
         end do
       end if
     else
-      do concurrent( j=jce1:jce2, i = ice1:ice2, k = 1:kz )
+      do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
       end do
     end if
@@ -1634,17 +1631,17 @@ module mod_moloch
     integer(ik4) :: i, j, k
     if ( ipptls > 0 ) then
       if ( ipptls > 1 ) then
-        do concurrent( j=jci1:jci2, i = ici1:ici2, k = 1:kz )
+        do concurrent( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - &
              qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
         end do
       else
-        do concurrent( j=jci1:jci2, i = ici1:ici2, k = 1:kz )
+        do concurrent( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - qc(j,i,k))
         end do
       end if
     else
-      do concurrent( j=jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
       end do
     end if
