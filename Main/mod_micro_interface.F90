@@ -235,30 +235,34 @@ module mod_micro_interface
     implicit none
     real(rkx), pointer, contiguous, &
       dimension(:,:,:), intent(inout) :: cldlwc, cldfra
-    real(rkx) :: w1, w2
+    real(rkx) :: w1, w2, liq, ice
     integer(ik4) :: i, j, k
     integer(ik4) :: ichi
 
     if ( ipptls > 1 ) then
       if ( icldfrac == 3 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k) + &
-                        mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
+          liq = mo2mc%qcn(j,i,k)
+          ice = mo2mc%qin(j,i,k)
+          if ( liq < 2.0e-5_rkx ) liq = 0.0_rkx
+          if ( ice < 2.0e-7_rkx ) ice = 0.0_rkx
+          totc(j,i,k) = liq + ice + mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
         end do
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k)
+          liq = mo2mc%qcn(j,i,k)
+          ice = mo2mc%qin(j,i,k)
+          if ( liq < 2.0e-5_rkx ) liq = 0.0_rkx
+          if ( ice < 2.0e-7_rkx ) ice = 0.0_rkx
+          totc(j,i,k) = liq + ice
         end do
       end if
     else
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         totc(j,i,k) = mo2mc%qcn(j,i,k)
+        if ( totc(j,i,k) < 2.0e-5_rkx ) totc(j,i,k) = 0.0_rkx
       end do
     end if
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      ! Limit of moisture detected by satellite is 0.005 g/kg
-      if ( totc(j,i,k) < 5.0e-6_rkx ) totc(j,i,k) = 0.0_rkx
-    end do
 
     select case ( icldfrac )
       case (0)
