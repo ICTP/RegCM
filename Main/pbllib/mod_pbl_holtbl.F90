@@ -79,7 +79,7 @@ module mod_pbl_holtbl
   real(rkx), parameter :: binh = betah*sffrac
   real(rkx), parameter :: kzfrac = 0.8_rkx
   ! Avoid numerical problem with supposedly safe range
-  real(rkx), parameter :: minri = -10.0_rkx
+  real(rkx), parameter :: minri = -20.0_rkx
   real(rkx), parameter :: maxri = 100.0_rkx
 
   contains
@@ -88,7 +88,7 @@ module mod_pbl_holtbl
     implicit none
     call getmem(cfac,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cfac')
     call getmem(vv,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:vv')
-    call getmem(ri,1,kz,jci1,jci2,ici1,ici2,'mod_holtbl:ri')
+    call getmem(ri,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ri')
     call getmem(kvf,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:kvf')
     call getmem(qtenv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenv')
     call getmem(qtenc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenc')
@@ -244,7 +244,7 @@ module mod_pbl_holtbl
                          kbfs(j,i)/0.75_rkx)) * ricr(j,i)
       else
         lunstb(j,i) = .false.
-        adricr(j,i) = (1.0_rkx - 0.2_rkx*min(1.0_rkx, &
+        adricr(j,i) = (1.0_rkx - 0.2_rkx*max(-1.0_rkx, &
                          kbfs(j,i)/0.25_rkx)) * ricr(j,i)
       end if
     end do
@@ -349,12 +349,12 @@ module mod_pbl_holtbl
     ! note: kmxpbl, max no. of pbl levels (set in slice)
     ! compute Bulk Richardson Number (BRN)
     !
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       if ( k >= kmxpbl(j,i) ) then
-        ri(k,j,i) = max(minri,min(maxri,egrav*(thvx(j,i,k)-thvx(j,i,kz)) * &
+        ri(j,i,k) = max(minri,min(maxri,egrav*(thvx(j,i,k)-thvx(j,i,kz)) * &
                     m2p%za(j,i,k)/(thv10(j,i)*vv(j,i,k))))
       else
-        ri(k,j,i) = maxri
+        ri(j,i,k) = maxri
       end if
     end do
 
@@ -365,10 +365,10 @@ module mod_pbl_holtbl
       do k = kzm1, kmxpbl(j,i), -1
         ! bl height lies between this level and the last
         ! use linear interp. of rich. no. to height of ri=ricr
-        if ( (ri(k,j,i)   <  adricr(j,i)) .and. &
-             (ri(k-1,j,i) >= adricr(j,i)) ) then
+        if ( (ri(j,i,k)   <  adricr(j,i)) .and. &
+             (ri(j,i,k-1) >= adricr(j,i)) ) then
           p2m%zpbl(j,i) = m2p%za(j,i,k)+(m2p%za(j,i,k-1)-m2p%za(j,i,k)) * &
-              ((adricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
+              ((adricr(j,i)-ri(j,i,k))/(ri(j,i,k-1)-ri(j,i,k)))
         end if
       end do
     end do
@@ -383,12 +383,12 @@ module mod_pbl_holtbl
         therm = fak * kbfs(j,i)/wm
         tlv = thvx(j,i,kz)+therm
         vvk = vv(j,i,kz) + fak*ustar(j,i)**2
-        ri(kz,j,i) = max(minri,min(maxri, &
+        ri(j,i,kz) = max(minri,min(maxri, &
                     -egrav*therm*m2p%za(j,i,kz)/(thv10(j,i)*vvk)))
         !$acc loop seq
         do k = kzm1, kmxpbl(j,i), -1
-          ri(k,j,i) = max(minri,min(maxri,egrav*(thvx(j,i,k)-tlv) * &
-            m2p%za(j,i,k)/(thv10(j,i)*vv(j,i,k))))
+          ri(j,i,k) = max(minri,min(maxri,egrav*(thvx(j,i,k)-tlv) * &
+                    m2p%za(j,i,k)/(thv10(j,i)*vv(j,i,k))))
         end do
       end if
     end do
@@ -401,11 +401,11 @@ module mod_pbl_holtbl
         do k = kz, kmxpbl(j,i), -1
           ! bl height lies between this level and the last
           ! use linear interp. of rich. no. to height of ri=ricr
-          if ( (ri(k,j,i)   <  adricr(j,i)) .and. &
-               (ri(k-1,j,i) >= adricr(j,i)) ) then
+          if ( (ri(j,i,k)   <  adricr(j,i)) .and. &
+               (ri(j,i,k-1) >= adricr(j,i)) ) then
             p2m%zpbl(j,i) = m2p%za(j,i,k) + &
               (m2p%za(j,i,k-1)-m2p%za(j,i,k))* &
-              ((adricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
+              ((adricr(j,i)-ri(j,i,k))/(ri(j,i,k-1)-ri(j,i,k)))
           end if
         end do
       end if

@@ -47,7 +47,7 @@ module mod_ocn_coare
       real(rkx) :: cd10, ch10, ct10, cc, cd, ct, ribcu
       real(rkx) :: rr, rt, rq, zo, zot, zoq, dels, bigc, Al
       real(rkx) :: l, Bf, tkt, qout, qcol, alq, xlamx
-      real(rkx) :: le, visa, rhoa, Rns, Rnl
+      real(rkx) :: le, visa, Rns, Rnl
       real(rkx) :: hsb, hlb, tau, uv10, facttq
       real(rkx) :: charnock
       integer(ik4) :: i, k, niter
@@ -98,14 +98,11 @@ module mod_ocn_coare
         ! latent heat of vaporization (J/kg) at sea surface
         le = wlh(tgrd(i))
 
-        ! moist air density (kg/m3)
-        rhoa = sfps(i)/(rgas*ta*(d_one+ep1*q995))
-
         ! kinematic viscosity of dry air (m2/s), Andreas (1989)
         visa = 1.326e-5_rkx*(d_one+6.542e-3_rkx*t995+8.301e-6_rkx*t995*t995- &
                4.84e-9_rkx*t995*t995*t995)
 
-        bigc = 16.0*egrav*cpw*(rhow*visw)**3/(tcw*tcw*rhoa*rhoa)
+        bigc = 16.0*egrav*cpw*(rhow*visw)**3/(tcw*tcw*rhox(i)*rhox(i))
 
         ! water thermal expansion coefft
         if (ts > -2.0_rkx) then
@@ -298,8 +295,8 @@ module mod_ocn_coare
           ut = sqrt(du*du+ug*ug)
 
           ! background sensible and latent heat flux
-          hsb = -rhoa*cpd*usr*tsr
-          hlb = -rhoa*Le*usr*qsr
+          hsb = -rhox(i)*cpd*usr*tsr
+          hlb = -rhox(i)*Le*usr*qsr
 
           ! total cooling at the interface
           qout = Rnl+hsb+hlb
@@ -316,7 +313,7 @@ module mod_ocn_coare
             else
               xlamx = 6.0_rkx/(1.0_rkx+(bigc*alq/usr**4)**0.75_rkx)**0.333_rkx
               ! sub. thk, Eq. 11
-              tkt = xlamx*visw/(sqrt(rhoa/rhow)*usr)
+              tkt = xlamx*visw/(sqrt(rhox(i)/rhow)*usr)
               ! cool skin, Eq. 12
               dter = qcol*tkt/tcw
             end if
@@ -356,7 +353,7 @@ module mod_ocn_coare
         drag(i) = usr**2*rhox(i)/uv995
 
         ! wind stress components
-        tau = rhoa*usr*usr*du/ut
+        tau = rhox(i)*usr*usr*du/ut
         taux(i) = tau*(usw(i)/uv995)
         tauy(i) = tau*(vsw(i)/uv995)
 

@@ -75,11 +75,11 @@ module mod_ocn_zeng
     real(rkx) :: tc995, q995, uv995, z995
     real(rkx) :: dqh, dth, facttq, lh, qs, sh, zo,     &
           tau, tsurf, ustar, uv10, zi, cd, dthv, zq,   &
-          zh, zu, obu, qstar, xdens, th, thv, thvstar, &
-          tstar, um, visa, zot, wc, zeta, zoq, cpm,    &
+          zh, zu, obu, qstar, th, thv, thvstar, tstar, &
+          es, ws, um, visa, zot, wc, zeta, zoq, cpm,   &
           rlv, rs, rd, td, tdelta, delta, q, fd, fs,   &
           ustarw, l, phidl, aa, bb, lamb, dtstend,     &
-          dts, tskin_new, fua, es, ws
+          dts, tskin_new, fua, tha
 !     real(rkx) :: lwds, lwus
     integer(ik4) :: nconv
     logical :: act_coupler
@@ -104,6 +104,7 @@ module mod_ocn_zeng
       q995 = qv(i)/(1.0_rkx+qv(i))
       z995 = ht(i)
       ! Estimate air temperature above water
+      rlv = wlh(tatm(i))
       cpm = cpd*(d_one-qv(i)) + cpv*qv(i)
       zi = hpbl(i)
       zu = z995
@@ -119,10 +120,10 @@ module mod_ocn_zeng
         tsurf = tgrd(i) - 0.17_rkx
       end if
 
-      rlv = wlh(tsurf)
-      dth = tatm(i)-tsurf
       ! potential T
       th = tsurf*(p00/sfps(i))**rovcp
+      tha = tatm(i)*(p00/patm(i))**rovcp
+      dth = tha - th
       ! the saturation vapor pressure for salty water is on average 2% lower
       es = pfesat(tsurf,sfps(i))*0.98_rkx
       ws = ep2*(es/(sfps(i)-es))
@@ -135,14 +136,12 @@ module mod_ocn_zeng
       if ( iocnzoq == 4 ) then
         ! BCC_AGCM2.0.1 influence of the wind speed on waves and sea spray
         ! in the computation of surface fluxes
-        if ( uv995 > 5.0_rkx ) then
-          fua = exp((5.0_rkx-uv995)/40.0_rkx)
-          dthv = dthv * fua
+        if ( uv995 > 10.0_rkx ) then
+          fua = exp((uv995-10.0_rkx)/100.0_rkx)
           dqh = dqh * fua
+          dthv = dthv * fua
         end if
       end if
-      ! density
-      xdens = sfps(i)/(rgas*tsurf*(d_one+ep1*qs))
       ! J/kg
       ! Kinematic viscosity of dry air (m2/s)
       !   Andreas (1989) CRREL Rep. 89-11
@@ -240,7 +239,7 @@ module mod_ocn_zeng
         !
         zeta = zq/obu
         if ( zeta < -zetat ) then      ! zeta < -1
-          qstar = vonkar*dqh/ &
+          qstar = vonkar*dqh / &
                (log(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
                      0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
         else if ( zeta < d_zero ) then ! -1 <= zeta < 0
@@ -351,13 +350,10 @@ module mod_ocn_zeng
         obu = zu/zeta
         cd = (ustar/um)**2
       end if
-      tau = xdens*ustar*ustar*uv995/um
-      lh = -xdens*rlv*qstar*ustar
-      sh = -xdens*cpm*tstar*ustar
+      tau = rhox(i)*ustar*ustar*(uv995/um)
+      lh = -rhox(i)*rlv*qstar*ustar
+      sh = -rhox(i)*cpm*tstar*ustar
       !
-      ! x and y components of tau:
-      ! lms%taux=xdens*ustar*ustar*u_x/um
-      ! lms%tauy=xdens*ustar*ustar*u_y/um
       ! 10-meter wind (without w_* part)
       !
       zeta = z10/obu
@@ -454,12 +450,13 @@ module mod_ocn_zeng
       sent(i) = sh
       evpr(i) = lh/rlv
       ! Back out Drag Coefficient
-      drag(i) = cd*uv995*xdens
+      drag(i) = cd*uv995*rhox(i)
       ustr(i) = ustar
       zoo(i)  = zo
       u10m(i) = usw(i)*uv10/uv995
       v10m(i) = vsw(i)*uv10/uv995
       um10(i) = um10(i)*wt1 + uv10*wt2
+      ! x and y components of tau:
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
       facttq = log(z995*0.5_rkx)/log(z995/zo)
@@ -550,6 +547,9 @@ module mod_ocn_zeng
       zoq = rq*visa/ustar
     else if ( izoq == 4 ) then
       zoq = min(5.0e-5_rkx, 2.0e-4_rkx*re**(-3.3_rkx))
+      zot = zoq
+    else if ( izoq == 5 ) then
+      zoq = min(1.6e-4_rkx,5.8e-5_rkx*re**(-0.72_rkx))
       zot = zoq
     else
       xtq = 2.67_rkx*(re**0.25_rkx) - 2.57_rkx
