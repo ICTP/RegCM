@@ -147,7 +147,7 @@ module mod_slice
       end if
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         atms%rhb3d(j,i,k) = min(max(atms%qxb3d(j,i,k,iqv) / &
-                           atms%qsb3d(j,i,k),rhmin),rhmax)
+                           atms%qsb3d(j,i,k),0.0_rkx),1.0_rkx)
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         atms%wpx3d(j,i,k) = -egrav*atms%rhob3d(j,i,k) * &
@@ -321,7 +321,7 @@ module mod_slice
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         atms%rhb3d(j,i,k) = min(max(atms%qxb3d(j,i,k,iqv) / &
-                     atms%qsb3d(j,i,k),rhmin),rhmax)
+                     atms%qsb3d(j,i,k),0.0_rkx),1.0_rkx)
       end do
       !
       ! Find 700 mb theta

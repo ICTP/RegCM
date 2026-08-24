@@ -515,7 +515,7 @@ module mod_micro_interface
       else if ( rhc > 0.99999_rkx ) then
         dqv = conf * (qvcs - qvs)      ! High cloud cover
       else
-        fccc = d_one-sqrt((d_one-rhc)/(d_one-rh0adj(j,i,k)))
+        fccc = d_one-sqrt((rhmax-rhc)/(rhmax-rh0adj(j,i,k)))
         fccc = min(max(fccc,d_zero),d_one)
         ! qv diff between predicted qv_c
         dqv = conf * fccc * (qvc_cld - qvs)
