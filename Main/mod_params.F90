@@ -377,20 +377,15 @@ module mod_params
     !
     ! Cloud fraction control algorithm
     !
-    ncld      = 1        ! # of bottom model levels with no clouds (rad only)
-    rhmax     = 1.01_rkx   ! RH at whicn FCC = 1.0
+    ncld      = 0        ! # of bottom model levels with no clouds (rad only)
+    rhmax     = 1.00_rkx   ! RH at whicn FCC = 1.0
     rhmin     = 0.01_rkx   ! RH min value
-    rh0land   = 0.80_rkx   ! Relative humidity threshold for land
-    rh0oce    = 0.90_rkx   ! Relative humidity threshold for ocean
+    rh0land   = 0.90_rkx   ! Relative humidity threshold for land
+    rh0oce    = 0.80_rkx   ! Relative humidity threshold for ocean
     tc0       = 238.0_rkx  ! Below this temp, rh0 begins to approach unity
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
-#ifdef RCEMIP
-    clfrcvmax = 1.00_rkx   ! Max cloud fractional cover for convective precip.
+    clfrcvmax = 0.60_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 1.00_rkx   ! Max total cover cloud fraction for radiation
-#else
-    clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
-    cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
-#endif
     k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux

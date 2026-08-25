@@ -27,6 +27,8 @@ module mod_cloud_subex
 
   public :: subex_cldfrac
 
+  logical, parameter :: use_dynamic_rhcrit = .true.
+
   contains
   !
   ! This subroutine computes the fractional cloud coverage
@@ -58,14 +60,18 @@ module mod_cloud_subex
       ! rhrng = rh(j,i,k)
       ! Adjusted relative humidity threshold
       rhrng = min(max(rh(j,i,k),rhmin),rhmax)
-      if ( t(j,i,k) > tc0 ) then
-        rh0adj = rh0(j,i)
-      else ! high cloud (less subgrid variability)
-        ! Use Pal et al. formula
-        rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
-        ! Adjusted for Sundqvist
-        !rh0adj = d_one - &
-        !  (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
+      if ( use_dynamic_rhcrit ) then
+        rh0adj = dynamic_rhcrit(rh0(j,i),t(j,i,k))
+      else
+        if ( t(j,i,k) > tc0 ) then
+          rh0adj = rh0(j,i)
+        else ! high cloud (less subgrid variability)
+          ! Use Pal et al. formula
+          rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
+          ! Adjusted for Sundqvist
+          !rh0adj = d_one - &
+          !  (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
+        end if
       end if
       if ( rhrng <= rh0adj ) then
         fcc(j,i,k) = d_zero
@@ -95,8 +101,22 @@ module mod_cloud_subex
         end if
       end do
     end if
-
   end subroutine subex_cldfrac
+  !
+  ! A dynamic critical relative humidity based on temperature in
+  ! cloud parameterization to improve low cloud in an AGCM
+  ! https://doi.org/10.1016/j.atmosres.2025.108183
+  !
+  pure real(rkx) function dynamic_rhcrit(rh0,tk) result(rhc)
+    !$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: rh0, tk
+    real(rkx) :: tku
+    tku = min(301.0_rkx,max(216.0_rkx,tk))
+    rhc = 0.01_rkx * min(60.0_rkx, max(100.0_rkx, rh0*100.0_rkx + &
+      -21760.24_rkx-0.000004969437_rkx*tku**4+0.005182194_rkx*tku**3 - &
+      2.009108_rkx*tku**2+343.0437_rkx*tku))
+  end function dynamic_rhcrit
 
 end module mod_cloud_subex
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
