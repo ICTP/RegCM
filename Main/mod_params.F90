@@ -537,9 +537,9 @@ module mod_params
     ! holtslagparam ;
     ! Settings from C. Torma
     !
-    ricr_ocn = 0.200_rkx
+    ricr_ocn = 0.150_rkx
     ricr_lnd = 0.250_rkx
-    zhnew_fac = 0.20_rkx
+    zhnew_fac = 0.66_rkx
     ifaholt = 0
     ifaholtth10 = 2
     holtth10iter = 1
@@ -3364,14 +3364,6 @@ module mod_params
           mo_atm%rfmzv(j,i,k) = d_one / md_fmz(zitah(k), &
                     mddom%htv(j,i),mo_ztop,mo_h,mo_a0)
         end do
-#ifdef RCEMIP
-        if ( myid == italk ) then
-          write(stdout,'(a)') 'Vertical level height profile: '
-          do k = kz, 1, -1
-            write(stdout,'(i3,f9.2)') kzp1-k, mo_atm%zeta(jci1,ici1,k)
-          end do
-        end if
-#endif
         call exchange_lrbt(mo_atm%rfmzu,1,jde1,jde2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%rfmzv,1,jce1,jce2,ide1,ide2,1,kz)
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
@@ -3385,6 +3377,12 @@ module mod_params
         end do
         rayzd = mo_ztop
         if ( myid == italk ) then
+#ifdef RCEMIP
+          write(stdout,'(a)') 'Vertical level height profile: '
+          do k = kz, 1, -1
+            write(stdout,'(i3,f9.2)') kzp1-k, mo_atm%zeta(jci1,ici1,k)
+          end do
+#endif
           write(stdout,*) 'Model top at ',mo_ztop,' m'
         end if
       end subroutine compute_moloch_static
