@@ -169,18 +169,18 @@ module mod_rad_outrad
         end do
         do k = kh1, kh2
           hif = hif * &
-            (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)) / &
-                 (1.001_rk8 - m2r%cldfrc(j,i,k-1)))
+            (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k))) / &
+                 (1.001_rk8 - m2r%cldfrc(j,i,k-1))
         end do
         do k = km1, km2
           mif = mif * &
-            (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)) / &
-                 (1.001_rk8 - m2r%cldfrc(j,i,k-1)))
+            (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k))) / &
+                 (1.001_rk8 - m2r%cldfrc(j,i,k-1))
         end do
         do k = kl1, kl2
           lof = lof * &
-            (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)) / &
-                 (1.001_rk8 - m2r%cldfrc(j,i,k-1)))
+            (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k))) / &
+                 (1.001_rk8 - m2r%cldfrc(j,i,k-1))
         end do
         rad_higcl_out(j,i) = real(rad_higcl_out(j,i) + &
           max(0.0_rk8,min(1.0_rk8,(1.001_rk8-hif))), rkx)
