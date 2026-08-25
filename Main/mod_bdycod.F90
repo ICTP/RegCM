@@ -54,7 +54,7 @@ module mod_bdycod
   public :: sponge, nudge, morelax, setup_bdycon, raydamp
   public :: mospectral_nudge, motopnudge
   public :: is_present_qc, is_present_qi
-  public :: setup_bdywt
+  public :: setup_bdymask, setup_bdywt
 
   !
   ! West U External  = WUE
@@ -1618,7 +1618,7 @@ module mod_bdycod
   subroutine bdyval
     implicit none
     integer(ik4) :: i, j, k, n
-    real(rkx) :: qext, qint, qxint, qrat, windavg, tkeint
+    real(rkx) :: qext, qint, qxint, qzero, qrat, windavg, tkeint
     real(rkx) :: x0, x1
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyval'
@@ -1668,15 +1668,16 @@ module mod_bdycod
           if ( present_qc .and. n == iqc ) cycle
           if ( present_qi .and. n == iqi ) cycle
           qxint = mo_atm%qx(jci1,i,k,n)
+          qzero = qxzeroval(n)
           if ( mo_atm%u(jde1,i,k) > d_zero ) then
-            mo_atm%qx(jce1,i,k,n) = qxzeroval(n)
+            mo_atm%qx(jce1,i,k,n) = max(qzero,0.5_rkx*(qxint+qzero))
           else
             mo_atm%qx(jce1,i,k,n) = qxint
           end if
         end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           if ( mo_atm%u(jde1,i,k) > d_zero ) then
-            mo_atm%w(jce1,i,k) = 0.0_rkx
+            mo_atm%w(jce1,i,k) = 0.5_rkx*mo_atm%w(jci1,i,k)
           else
             mo_atm%w(jce1,i,k) = mo_atm%w(jci1,i,k)
           end if
@@ -1726,15 +1727,16 @@ module mod_bdycod
           if ( present_qc .and. n == iqc ) cycle
           if ( present_qi .and. n == iqi ) cycle
           qxint = mo_atm%qx(jci2,i,k,n)
+          qzero = qxzeroval(n)
           if ( mo_atm%u(jde2,i,k) < d_zero ) then
-            mo_atm%qx(jce2,i,k,n) = qxzeroval(n)
+            mo_atm%qx(jce2,i,k,n) = max(qzero,0.5_rkx*(qxint+qzero))
           else
             mo_atm%qx(jce2,i,k,n) = qxint
           end if
         end do
         do concurrent ( i = ici1:ici2, k = 1:kz )
           if ( mo_atm%u(jde2,i,k) < d_zero ) then
-            mo_atm%w(jce2,i,k) = 0.0_rkx
+            mo_atm%w(jce2,i,k) = 0.5_rkx*mo_atm%w(jci2,i,k)
           else
             mo_atm%w(jce2,i,k) = mo_atm%w(jci2,i,k)
           end if
@@ -1784,15 +1786,16 @@ module mod_bdycod
           if ( present_qc .and. n == iqc ) cycle
           if ( present_qi .and. n == iqi ) cycle
           qxint = mo_atm%qx(j,ici1,k,n)
+          qzero = qxzeroval(n)
           if ( mo_atm%v(j,ide1,k) > d_zero ) then
-            mo_atm%qx(j,ice1,k,n) = qxzeroval(n)
+            mo_atm%qx(j,ice1,k,n) = max(qzero,0.5_rkx*(qxint+qzero))
           else
             mo_atm%qx(j,ice1,k,n) = qxint
           end if
         end do
         do concurrent ( j = jce1:jce2, k = 1:kz )
           if ( mo_atm%v(j,ide1,k) > d_zero ) then
-            mo_atm%w(j,ice1,k) = 0.0_rkx
+            mo_atm%w(j,ice1,k) = 0.5_rkx*mo_atm%w(j,ici1,k)
           else
             mo_atm%w(j,ice1,k) = mo_atm%w(j,ici1,k)
           end if
@@ -1842,15 +1845,16 @@ module mod_bdycod
           if ( present_qc .and. n == iqc ) cycle
           if ( present_qi .and. n == iqi ) cycle
           qxint = mo_atm%qx(j,ici2,k,n)
+          qzero = qxzeroval(n)
           if ( mo_atm%v(j,ide2,k) < d_zero ) then
-            mo_atm%qx(j,ice2,k,n) = qxzeroval(n)
+            mo_atm%qx(j,ice2,k,n) = max(qzero,0.5_rkx*(qxint+qzero))
           else
             mo_atm%qx(j,ice2,k,n) = qxint
           end if
         end do
         do concurrent ( j = jce1:jce2, k = 1:kz )
           if ( mo_atm%v(j,ide2,k) < d_zero ) then
-            mo_atm%w(j,ice2,k) = 0.0_rkx
+            mo_atm%w(j,ice2,k) = 0.5_rkx*mo_atm%w(j,ici2,k)
           else
             mo_atm%w(j,ice2,k) = mo_atm%w(j,ici2,k)
           end if
@@ -4030,7 +4034,7 @@ module mod_bdycod
 #endif
   end subroutine morelax_external
 
-  subroutine setup_bdywt(j1,j2,i1,i2,mask,ba)
+  subroutine setup_bdymask(j1,j2,i1,i2,mask,ba)
     implicit none
     integer(ik4), intent(in) :: j1, j2, i1, i2
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: mask
@@ -4039,9 +4043,25 @@ module mod_bdycod
     do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
       ib = ba%ibnd(j,i)
       if ( ib > 0 ) then
-        mask(j,i,k) = 1.0_rkx - hefc(ib,k)
+        mask(j,i,k) = 0.50_rkx * (1.0_rkx - hefc(ib,k))
       else
         mask(j,i,k) = 1.0_rkx
+      end if
+    end do
+  end subroutine setup_bdymask
+
+  subroutine setup_bdywt(j1,j2,i1,i2,wt,ba)
+    implicit none
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: wt
+    type(bound_area), intent(in) :: ba
+    integer(ik4) :: i, j, k, ib
+    do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+      ib = ba%ibnd(j,i)
+      if ( ib > 0 ) then
+        wt(j,i,k) = 1.0_rkx - hefc(ib,k)
+      else
+        wt(j,i,k) = 1.0_rkx
       end if
     end do
   end subroutine setup_bdywt

@@ -61,6 +61,7 @@ module mod_output
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: p1d, t1d, rh1d, td
   real(rkx), pointer, contiguous, dimension(:,:,:) :: pi, q, th, thv, z
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: bdymask
   real(rkx), dimension(:,:,:), pointer, contiguous :: qv
   real(rkx), dimension(:,:), pointer, contiguous :: temp500
   type(regcm_projection), save :: pj
@@ -76,6 +77,10 @@ module mod_output
     end if
     if ( associated(srf_li_out) ) then
       call getmem(temp500,jci1,jci2,ici1,ici2,'output:temp500')
+    end if
+    if ( idynamic == 3 .and. associated(atm_w_out) ) then
+      call getmem(bdymask,jci1,jci2,ici1,ici2,1,kz,'output:bdymask')
+      call setup_bdymask(jci1,jci2,ici1,ici2,bdymask,ba_cr)
     end if
     if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then
       call getmem(p1d,jci1,jci2,ici1,ici2,1,kz,'output:p1d')
@@ -320,6 +325,9 @@ module mod_output
         if ( associated(atm_w_out) ) then
           if ( idynamic == 3 ) then
             call wstagtox(mo_atm%w,atm_w_out)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              atm_w_out(j,i,k) = atm_w_out(j,i,k) * bdymask(j,i,k)
+            end do
           else
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_w_out(j,i,k) = d_half * (atm1%w(j,i,k+1) + &
