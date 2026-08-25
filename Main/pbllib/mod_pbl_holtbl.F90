@@ -143,7 +143,7 @@ module mod_pbl_holtbl
     real(rkx) :: dudz, dvdz, ss, n2, rin, fofri, kvfh
     real(rkx) :: rrho, uu, uflxsfx, vflxsfx
     real(rkx) :: oblen, vvk, sh, hqfac
-    real(rkx) :: phiminv, wstar, wm, therm, phpblm, zpbl, phihinv
+    real(rkx) :: phiminv, wstar, wm, therm, zpbl, phihinv
     real(rkx) :: zmzp, zm, zp, zh, zl, zzh, pblk, pr, tlv
     real(rkx) :: fak1, fak2, fak3, term
     real(rkx) :: drgdot, uflxsf, vflxsf
@@ -360,9 +360,20 @@ module mod_pbl_holtbl
 
     ! looking for first guess bl top
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      p2m%zpbl(j,i) = m2p%za(j,i,kz)
+      ! BL height is at least the mechanical mixing depth
+      ! PBL height must be greater than some minimum mechanical mixing depth
+      ! Several investigators have proposed minimum mechanical mixing depth
+      ! relationships as a function of the local friction velocity, u*.  We
+      ! make use of a linear relationship of the form h = c u* where c=700.
+      ! The scaling arguments that give rise to this relationship most often
+      ! represent the coefficient c as some constant over the local coriolis
+      ! parameter.  Here we make use of the experimental results of Koracin
+      ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
+      ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
+      ! latitude value for f so that c = 0.07/f = 700.
+      p2m%zpbl(j,i) = (0.07_rkx*ustar(j,i))/pfcor(j,i)
       !$acc loop seq
-      do k = kzm1, kmxpbl(j,i), -1
+      do k = kz, kmxpbl(j,i), -1
         ! bl height lies between this level and the last
         ! use linear interp. of rich. no. to height of ri=ricr
         if ( (ri(j,i,k)   <  adricr(j,i)) .and. &
@@ -413,22 +424,6 @@ module mod_pbl_holtbl
 
     ! Find the k of the level of the pbl
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      ! BL height is at least the mechanical mixing depth
-      ! PBL height must be greater than some minimum mechanical mixing depth
-      ! Several investigators have proposed minimum mechanical mixing depth
-      ! relationships as a function of the local friction velocity, u*.  We
-      ! make use of a linear relationship of the form h = c u* where c=700.
-      ! The scaling arguments that give rise to this relationship most often
-      ! represent the coefficient c as some constant over the local coriolis
-      ! parameter.  Here we make use of the experimental results of Koracin
-      ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
-      ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
-      ! latitude value for f so that c = 0.07/f = 700.
-      !phpblm = 700.0_rkx*ustar(j,i)
-      phpblm = (0.07_rkx*ustar(j,i))/pfcor(j,i)
-      if ( p2m%zpbl(j,i) < phpblm ) then
-        p2m%zpbl(j,i) = max(phpblm,p2m%zpbl(j,i))
-      end if
       !$acc loop seq
       do k = kz, kmxpbl(j,i), -1
         p2m%kpbl(j,i) = k
@@ -438,7 +433,7 @@ module mod_pbl_holtbl
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
       zpbl = p2m%zpbl(j,i)
-      if ( k > p2m%kpbl(j,i) ) then
+      if ( k >= p2m%kpbl(j,i) ) then
         zm = m2p%za(j,i,k)
         zp = min(m2p%za(j,i,k-1),zpbl)
         phiminv = (1.0_rkx - binm*zpbl/obklen(j,i))**onet
@@ -465,7 +460,7 @@ module mod_pbl_holtbl
             cgs(j,i,k) = fak3/(zpbl*wm)
             cgh(j,i,k) = khfs(j,i)*cgs(j,i,k)
           end if
-          hqfac = 1.0_rkx - (1.0_rkx-zhnew_fac)*min(1.0_rkx,kbfs(j,i)/0.75_rkx)
+          hqfac = max(0.8_rkx - fak*zhnew_fac*kbfs(j,i),0.25_rkx)
         else
           if ( zl < d_one ) then
             pblk = fak1*zzh/(d_one+betas*zl)
@@ -473,7 +468,7 @@ module mod_pbl_holtbl
             pblk = fak1*zzh/(betas+zl)
           end if
           pr = 1.0_rkx
-          hqfac = 1.0_rkx + zhnew_fac*min(1.0_rkx,abs(kbfs(j,i))/0.25_rkx)
+          hqfac = 0.8_rkx
         end if
         ! compute eddy diffusivities
         kvm(j,i,k) = max(pblk,kvf(j,i,k))

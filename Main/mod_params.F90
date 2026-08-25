@@ -539,7 +539,7 @@ module mod_params
     !
     ricr_ocn = 0.275_rkx
     ricr_lnd = 0.250_rkx
-    zhnew_fac = 0.66_rkx
+    zhnew_fac = 0.25_rkx
     ifaholt = 0
     ifaholtth10 = 2
     holtth10iter = 1
