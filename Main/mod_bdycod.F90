@@ -4043,7 +4043,7 @@ module mod_bdycod
     do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
       ib = ba%ibnd(j,i)
       if ( ib > 0 ) then
-        mask(j,i,k) = 0.50_rkx * (1.0_rkx - hefc(ib,k))
+        mask(j,i,k) = 0.25_rkx * (1.0_rkx - hefc(ib,k))
       else
         mask(j,i,k) = 1.0_rkx
       end if

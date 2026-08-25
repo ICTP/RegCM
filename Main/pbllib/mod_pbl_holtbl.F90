@@ -240,11 +240,11 @@ module mod_pbl_holtbl
       kbfs(j,i) = khfs(j,i) + ep1 * m2p%thatm(j,i,kz) * kqfs(j,i)
       if ( kbfs(j,i) > 0.0_rkx ) then
         lunstb(j,i) = .true.
-        adricr(j,i) = (1.0_rkx - 0.2_rkx*min(1.0_rkx, &
+        adricr(j,i) = (1.0_rkx + 0.4_rkx*min(1.0_rkx, &
                          kbfs(j,i)/0.75_rkx)) * ricr(j,i)
       else
         lunstb(j,i) = .false.
-        adricr(j,i) = (1.0_rkx - 0.2_rkx*max(-1.0_rkx, &
+        adricr(j,i) = (1.0_rkx + 0.2_rkx*max(-1.0_rkx, &
                          kbfs(j,i)/0.25_rkx)) * ricr(j,i)
       end if
     end do

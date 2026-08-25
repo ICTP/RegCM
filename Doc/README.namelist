@@ -725,7 +725,7 @@
 ! Holtslag PBL scheme control
 !
  &holtslagparam
- ricr_ocn = 0.150, ! Critical Richardson Number over Ocean
+ ricr_ocn = 0.275, ! Critical Richardson Number over Ocean
  ricr_lnd = 0.250, ! Critical Richardson Number over Land
  zhnew_fac = 0.66, ! Multiplicative factor for zzhnew in holtpbl
  ifaholtth10 = 2,  ! First approximation for obhukov length, th10 formula:

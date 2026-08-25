@@ -537,7 +537,7 @@ module mod_params
     ! holtslagparam ;
     ! Settings from C. Torma
     !
-    ricr_ocn = 0.150_rkx
+    ricr_ocn = 0.275_rkx
     ricr_lnd = 0.250_rkx
     zhnew_fac = 0.66_rkx
     ifaholt = 0
