@@ -150,9 +150,9 @@ module mod_rad_outrad
       kh1 = 2
       kl2 = kz
       do concurrent ( j=jci1:jci2, i=ici1:ici2)
-        hif = d_one
-        mif = d_one
-        lof = d_one
+        hif = 1.001_rk8
+        mif = 1.001_rk8
+        lof = 1.001_rk8
         kh2 = 2
         km1 = 2
         km2 = 2
@@ -168,17 +168,26 @@ module mod_rad_outrad
           end if
         end do
         do k = kh1, kh2
-          hif = hif*(1.0_rk8-max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)))
+          hif = hif * &
+            (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)) / &
+                 (1.001_rk8 - m2r%cldfrc(j,i,k-1)))
         end do
         do k = km1, km2
-          mif = mif*(1.0_rk8-max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)))
+          mif = mif * &
+            (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)) / &
+                 (1.001_rk8 - m2r%cldfrc(j,i,k-1)))
         end do
         do k = kl1, kl2
-          lof = lof*(1.0_rk8-max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)))
+          lof = lof * &
+            (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k)) / &
+                 (1.001_rk8 - m2r%cldfrc(j,i,k-1)))
         end do
-        rad_higcl_out(j,i) = real(rad_higcl_out(j,i) + d_one-hif, rkx)
-        rad_midcl_out(j,i) = real(rad_midcl_out(j,i) + d_one-mif, rkx)
-        rad_lowcl_out(j,i) = real(rad_lowcl_out(j,i) + d_one-lof, rkx)
+        rad_higcl_out(j,i) = real(rad_higcl_out(j,i) + &
+          max(0.0_rk8,min(1.0_rk8,(1.001_rk8-hif))), rkx)
+        rad_midcl_out(j,i) = real(rad_midcl_out(j,i) + &
+          max(0.0_rk8,min(1.0_rk8,(1.001_rk8-mif))), rkx)
+        rad_lowcl_out(j,i) = real(rad_lowcl_out(j,i) + &
+          max(0.0_rk8,min(1.0_rk8,(1.001_rk8-lof))), rkx)
       end do
     end if
 
