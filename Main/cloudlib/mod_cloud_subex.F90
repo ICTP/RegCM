@@ -113,7 +113,7 @@ module mod_cloud_subex
     real(rkx), intent(in) :: rh0, tk
     real(rkx) :: tku
     tku = min(301.0_rkx,max(216.0_rkx,tk))
-    rhc = 0.01_rkx * min(60.0_rkx, max(100.0_rkx, rh0*100.0_rkx + &
+    rhc = 0.01_rkx * max(60.0_rkx, min(100.0_rkx, rh0*100.0_rkx + &
      (-21760.24_rkx-0.000004969437_rkx*tku**4+0.005182194_rkx*tku**3 - &
       2.009108_rkx*tku**2+343.0437_rkx*tku)))
   end function dynamic_rhcrit
