@@ -436,21 +436,21 @@ module mod_pbl_holtbl
       if ( k >= p2m%kpbl(j,i) ) then
         zm = m2p%za(j,i,k)
         zp = min(m2p%za(j,i,k-1),zpbl)
-        phiminv = (1.0_rkx - binm*zpbl/obklen(j,i))**onet
-        phihinv = sqrt(1.0_rkx - binh*zpbl/obklen(j,i))
-        wm = ustar(j,i)*phiminv
-        fak1 = ustar(j,i)*zpbl*vonkar
-        fak2 = wm*zpbl*vonkar
         zmzp = (zm+zp)*d_half
         zh = zmzp/zpbl
         zl = zmzp/obklen(j,i)
         zzh = zh * max(0.0_rkx,(1.0_rkx-zh))**2
+        fak1 = ustar(j,i)*zpbl*vonkar
         if ( lunstb(j,i) ) then
           if ( zh < sffrac ) then
             term = (1.0_rkx - betam*zl)**onet
             pblk = fak1*zzh*term
             pr = term/sqrt(1.0_rkx-betah*zl)
           else
+            phiminv = (1.0_rkx - binm*zpbl/obklen(j,i))**onet
+            phihinv = sqrt(1.0_rkx - binh*zpbl/obklen(j,i))
+            wm = ustar(j,i)*phiminv
+            fak2 = wm*zpbl*vonkar
             ! Convective velocity scale
             wstar = (kbfs(j,i)*egrav*zpbl/thv10(j,i))**onet
             fak3 = fakn * wstar/wm
