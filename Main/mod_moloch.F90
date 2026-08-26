@@ -147,6 +147,14 @@ module mod_moloch
   real(rkx), parameter :: numax = 0.125_rkx
   real(rkx), parameter :: ddamp = 0.850_rkx
 
+#ifdef SINGLE_PRECISION_REAL
+  real(rk4), parameter :: minden = 1.0e-15_rkx
+  real(rk4), parameter :: minnum = minden
+#else
+  real(rk8), parameter :: minden = 1.0e-30_rkx
+  real(rk8), parameter :: minnum = minden
+#endif
+
   real(rkx) :: rdzita
   integer(ik4) :: jmin, jmax, imin, imax
 
@@ -843,7 +851,7 @@ module mod_moloch
     real(rkx) :: dtrdx, dtrdy, dtrdz
     real(rkx), parameter :: wlow  = 0.0_rkx
     real(rkx), parameter :: whigh = 2.0_rkx
-    real(rkx) :: zamu, is, r, b, zphi, zdv
+    real(rkx) :: zamu, is, r, b, zphi, zdv, znum, zden
     real(rkx) :: zhxvtn, zhxvts, zcostx
     real(rkx) :: zrfmu, zrfmd
     real(rkx) :: zrfmn, zrfms
@@ -878,7 +886,17 @@ module mod_moloch
         k1p1 = k
         if ( k1 < 1 ) k1 = 1
       end if
-      r = local_flow_param(pp(j,i,k1)-pp(j,i,k1p1),pp(j,i,k)-pp(j,i,k+1))
+      znum = pp(j,i,k1) - pp(j,i,k1p1)
+      zden = pp(j,i,k) - pp(j,i,k+1)
+      if ( abs(zden) < minden ) then
+        if ( abs(znum) < minnum ) then
+          r = 1.0_rkx
+        else
+          r = 0.0_rkx
+        end if
+      else
+        r = znum/zden
+      end if
       b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
       zphi = is + zamu * b - is * b
       wfw(j,i,k+1) = 0.5_rkx * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
@@ -906,7 +924,17 @@ module mod_moloch
           k1p1 = k
           if ( k1 < 1 ) k1 = 1
         end if
-        r = local_flow_param(wz(j,i,k1)-wz(j,i,k1p1),wz(j,i,k)-wz(j,i,k+1))
+        znum = wz(j,i,k1) - wz(j,i,k1p1)
+        zden = wz(j,i,k) - wz(j,i,k+1)
+        if ( abs(zden) < minden ) then
+          if ( abs(znum) < minnum ) then
+            r = 1.0_rkx
+          else
+            r = 0.0_rkx
+          end if
+        else
+          r = znum/zden
+        end if
         b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
         zphi = is + zamu * b - is * b
         wfw(j,i,k+1) = 0.5_rkx * s(j,i,k+1) * &
@@ -936,7 +964,17 @@ module mod_moloch
           ih = min(i+1,imax)
         end if
         ihm1 = max(ih-1,imin)
-        r = local_flow_param(wz(j,ih,k)-wz(j,ihm1,k),wz(j,i,k)-wz(j,i-1,k))
+        znum = wz(j,ih,k) - wz(j,ihm1,k)
+        zden = wz(j,i,k) - wz(j,i-1,k)
+        if ( abs(zden) < minden ) then
+          if ( abs(znum) < minnum ) then
+            r = 1.0_rkx
+          else
+            r = 0.0_rkx
+          end if
+        else
+          r = znum/zden
+        end if
         b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
         zphi = is + zamu*b - is*b
         zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
@@ -966,7 +1004,17 @@ module mod_moloch
           jh = min(j+1,jmax)
         end if
         jhm1 = max(jh-1,jmin)
-        r = local_flow_param(p0(jh,i,k)-p0(jhm1,i,k),p0(j,i,k)-p0(j-1,i,k))
+        znum = p0(jh,i,k) - p0(jhm1,i,k)
+        zden = p0(j,i,k) - p0(j-1,i,k)
+        if ( abs(zden) < minden ) then
+          if ( abs(znum) < minnum ) then
+            r = 1.0_rkx
+          else
+            r = 0.0_rkx
+          end if
+        else
+          r = znum/zden
+        end if
         b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
         zphi = is + zamu*b - is*b
         zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
@@ -994,7 +1042,17 @@ module mod_moloch
           ih = min(i+1,imax)
         end if
         ihm1 = max(ih-1,imin)
-        r = local_flow_param(wz(j,ih,k)-wz(j,ihm1,k),wz(j,i,k)-wz(j,i-1,k))
+        znum = wz(j,ih,k) - wz(j,ihm1,k)
+        zden = wz(j,i,k) - wz(j,i-1,k)
+        if ( abs(zden) < minden ) then
+          if ( abs(znum) < minnum ) then
+            r = 1.0_rkx
+          else
+            r = 0.0_rkx
+          end if
+        else
+          r = znum/zden
+        end if
         b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
         zphi = is + zamu*b - is*b
         zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
@@ -1022,7 +1080,17 @@ module mod_moloch
           jh = min(j+1,jmax)
         end if
         jhm1 = max(jh-1,jmin)
-        r = local_flow_param(p0(jh,i,k)-p0(jhm1,i,k),p0(j,i,k)-p0(j-1,i,k))
+        znum = p0(jh,i,k) - p0(jhm1,i,k)
+        zden = p0(j,i,k) - p0(j-1,i,k)
+        if ( abs(zden) < minden ) then
+          if ( abs(znum) < minnum ) then
+            r = 1.0_rkx
+          else
+            r = 0.0_rkx
+          end if
+        else
+          r = znum/zden
+        end if
         b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
         zphi = is + zamu*b - is*b
         zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
@@ -1567,28 +1635,6 @@ module mod_moloch
     end if
     !@acc call nvtxEndRange
   end subroutine uvstagtouvx
-
-  pure real(rkx) function local_flow_param(num,den) result(r)
-    implicit none
-    real(rkx), intent(in) :: num, den
-#ifdef SINGLE_PRECISION_REAL
-    real(rk4), parameter :: minden = 1.0e-15_rkx
-    real(rk4), parameter :: minnum = minden
-#else
-    real(rk8), parameter :: minden = 1.0e-30_rkx
-    real(rk8), parameter :: minnum = minden
-#endif
-
-    if ( abs(den) < minden ) then
-      if ( abs(num) < minnum ) then
-        r = 1.0_rkx
-      else
-        r = 0.0_rkx
-      end if
-    else
-      r = num/den
-    end if
-  end function local_flow_param
 
   subroutine extrapolate_surface_pressure( )
     implicit none
