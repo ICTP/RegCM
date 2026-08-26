@@ -1573,10 +1573,11 @@ module mod_moloch
     real(rkx), intent(in) :: num, den
 #ifdef SINGLE_PRECISION_REAL
     real(rk4), parameter :: minden = 1.0e-15_rkx
+    real(rk4), parameter :: minnum = minden
 #else
     real(rk8), parameter :: minden = 1.0e-30_rkx
+    real(rk8), parameter :: minnum = minden
 #endif
-    real(rk4), parameter :: minnum = minden
 
     if ( abs(den) < minden ) then
       if ( abs(num) < minnum ) then
