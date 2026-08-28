@@ -28,6 +28,9 @@ module mod_dynparam
   implicit none
 
   private
+
+  integer, parameter :: regcm_magick = 19590209
+
   !
   ! PARAMETER definitions
   !
@@ -501,6 +504,9 @@ module mod_dynparam
     integer(ik4) :: ipunit
     integer(ik4) :: isp
 
+    integer :: nseed, i
+    integer, allocatable, dimension(:) :: seed
+
     namelist /dimparam/ iy, jx, kz, dsmax, dsmin, nsg, njxcpus, niycpus
     namelist /coreparam/ idynamic
     namelist /molochparam/ mo_a0, mo_ztop, mo_h, mo_divfilter, &
@@ -871,6 +877,14 @@ module mod_dynparam
 #endif
 
     close(ipunit)
+
+    ! Initialize random number generator which may be needed by any program
+    call random_seed(size=nseed)
+    allocate(seed(nseed))
+    seed(:) = regcm_magick + 37*[(i-1,i=1,nseed)]
+    call random_seed(put=seed)
+    deallocate(seed)
+
     ierr = 0
     return
   end subroutine initparam

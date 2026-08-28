@@ -165,9 +165,6 @@ module mod_bdycod
     real(rkx), allocatable, dimension(:) :: g, p, t, u, v, r
     real(rkx), allocatable, dimension(:) :: pi, ui, vi
     integer(ik4) :: i, nlev
-    integer(ik4) :: nseed
-    integer(ik8) :: sclock
-    integer(ik4), allocatable, dimension(:) :: seed
     real(rkx) :: ht
     real(rkx), dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: noise
 
@@ -175,10 +172,6 @@ module mod_bdycod
     namelist /surface/ ps, ts
     namelist /profile/ g, p, t, u, v, r
 
-    call random_seed(size=nseed)
-    call system_clock(sclock)
-    seed = myid + int(sclock) + 37*[(i-1,i=1,nseed)]
-    call random_seed(put = seed)
     call random_number(noise)
 
     open(newunit=iunit, file='profile.in', status='old', &
@@ -288,7 +281,6 @@ module mod_bdycod
         'Should never get here....')
     end if
 
-    deallocate(seed)
     deallocate(g,p,t,u,v,r)
     deallocate(zi,pi,ti,ui,vi,qi)
 #else

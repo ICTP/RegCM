@@ -113,9 +113,6 @@ module mod_cu_kf
   subroutine allocate_mod_cu_kf
     implicit none
     integer(ik4) :: ii, i, j
-    integer(ik4) :: nseed
-    integer(ik4), dimension(:), allocatable :: seed
-    integer(ik8) :: sclock
 
     nipoi = 0
     do i = ici1, ici2
@@ -173,14 +170,6 @@ module mod_cu_kf
     if ( kf_trigger == 2 ) then
       call getmem(tpart_v,1,kz,1,nipoi,'mod_cu_kf:tpart_v')
       call getmem(tpart_h,1,kz,1,nipoi,'mod_cu_kf:tpart_h')
-    end if
-
-    if ( istochastic == 1 ) then
-      call random_seed(size = nseed)
-      allocate(seed(nseed))
-      call system_clock(sclock)
-      seed(:) = int(sclock) + 37*[(i-1,i=1,nseed)] + myid*104729 ! Independent stream for each rank
-      call random_seed(put = seed)
     end if
 
   end subroutine allocate_mod_cu_kf

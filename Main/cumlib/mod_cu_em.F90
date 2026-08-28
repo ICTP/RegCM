@@ -66,9 +66,6 @@ module mod_cu_em
 
   subroutine allocate_mod_cu_em
     implicit none
-    integer(ik4) :: i, nseed
-    integer(ik4), dimension(:), allocatable :: seed
-    integer(ik8) :: sclock
 
     ncp = (jci2-jci1+1) * (ici2-ici1+1)
 
@@ -104,13 +101,6 @@ module mod_cu_em
     if ( ichem == 1 ) then
       call getmem(ftra,1,ncp,1,kz,1,ntr,'emanuel:ftra')
       call getmem(tra,1,ncp,1,kz,1,ntr,'emanuel:tra')
-    end if
-    if ( istochastic == 1 ) then
-      call random_seed(size = nseed)
-      allocate(seed(nseed))
-      call system_clock(sclock)
-      seed(:) = int(sclock) + 37*[(i-1,i=1,nseed)]
-      call random_seed(put = seed)
     end if
   end subroutine allocate_mod_cu_em
   !

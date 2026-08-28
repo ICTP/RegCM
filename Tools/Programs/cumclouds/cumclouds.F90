@@ -40,20 +40,8 @@ program cumclouds
   real(8), dimension(nk) :: sigma
 
   integer, parameter :: gun = 100
-  integer :: nseed
   character(len=256) :: fname, gname
   logical :: addnoise = .false.
-  real :: cputime
-  integer, dimension(:), allocatable :: iseed
-
-  if ( addnoise ) then
-    ! Initialize a random number generator
-    call random_seed(size=nseed)
-    call cpu_time(cputime)
-    allocate(iseed(nseed))
-    iseed = int(cputime) + 37*(/(k-1,k=1,nseed)/)
-    call random_seed(put=iseed)
-  end if
 
   fixed_cld_profile(1)  = 0.130D0
   fixed_cld_profile(2)  = 0.125D0

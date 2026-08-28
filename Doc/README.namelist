@@ -524,7 +524,7 @@
 ! Cloud fraction algorithms control
 !
  &cldparam
- ncld      = 0,       ! # of bottom model levels with no clouds
+ ncld      = 1,       ! # of bottom model levels with no clouds
                       ! The cloud fraction is set to zero for ncld layers
                       ! from the surface up.
  rhmax     = 1.00,    ! Higher value limit for Relative Humidity
@@ -532,7 +532,7 @@
  rh0land   = 0.90,    ! Relative humidity threshold for land
                       ! Critical relative humidity for cloud (land)
                       ! Used in SUBEX cloud fraction scheme (Sunqvist)
- rh0oce    = 0.80,    ! Relative humidity threshold for ocean
+ rh0oce    = 0.90,    ! Relative humidity threshold for ocean
                       ! Critical relative humidity for cloud (ocean)
                       ! Used in SUBEX cloud fraction scheme (Sunqvist)
  tc0       = 238.0,   ! Below this temp, rh0 begins to approach unity

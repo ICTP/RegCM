@@ -50,6 +50,7 @@ module mod_micro_interface
 
   ! rh0adj - Adjusted relative humidity threshold
   real(rkx), pointer, contiguous, dimension(:,:) :: rh0 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rhcrit => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: totc => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rh0adj => null( )
 
@@ -119,6 +120,9 @@ module mod_micro_interface
       call allocate_mod_wdm7
     end if
     call getmem(rh0,jci1,jci2,ici1,ici2,'micro:rh0')
+    if ( icldfrac == 1 ) then
+      call getmem(rhcrit,jci1,jci2,ici1,ici2,1,kz,'micro:rhcrit')
+    end if
     call getmem(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
     do i = 1, nchi
       cf = real(i-1,rkx)*rchi
@@ -267,7 +271,7 @@ module mod_micro_interface
     select case ( icldfrac )
       case (0)
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           mo2mc%rh,tc0,rh0,mc2mo%fcc)
+                           mo2mc%rh,tc0,rh0,rhcrit,mc2mo%fcc)
       case (1)
         call xuran_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (2)

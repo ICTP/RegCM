@@ -109,14 +109,7 @@ module mod_cu_common
       fixed_cld_profile(8)  = 0.085_rkx
       fixed_cld_profile(9)  = 0.105_rkx
       fixed_cld_profile(10) = 0.110_rkx
-      if ( addnoise ) then
-        call random_seed(size=nseed)
-        call cpu_time(cputime)
-        allocate(iseed(nseed))
-        iseed(:) = int(cputime) + 37*[(k-1,k=1,nseed)]
-        call random_seed(put=iseed)
-        deallocate(iseed)
-      else
+      if ( .not. addnoise ) then
         cld_profile = fixed_cld_profile
       end if
     end if
