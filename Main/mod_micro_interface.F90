@@ -120,7 +120,7 @@ module mod_micro_interface
       call allocate_mod_wdm7
     end if
     call getmem(rh0,jci1,jci2,ici1,ici2,'micro:rh0')
-    if ( icldfrac == 1 ) then
+    if ( icldfrac == 0 ) then
       call getmem(rhcrit,jci1,jci2,ici1,ici2,1,kz,'micro:rhcrit')
     end if
     call getmem(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
