@@ -122,6 +122,8 @@ program clmsa
         write ( 6, * ) 'Check argument and namelist syntax'
         stop
       end if
+    else
+      call init_random_number_generator( )
     end if
 
     call broadcast_params

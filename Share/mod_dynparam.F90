@@ -492,6 +492,7 @@ module mod_dynparam
 #endif
 
   public :: initparam, init_fnestparam, init_globwindow
+  public :: init_random_number_generator
 
   contains
 
@@ -503,9 +504,6 @@ module mod_dynparam
     integer(ik4) :: iresult
     integer(ik4) :: ipunit
     integer(ik4) :: isp
-
-    integer :: nseed, i
-    integer, allocatable, dimension(:) :: seed
 
     namelist /dimparam/ iy, jx, kz, dsmax, dsmin, nsg, njxcpus, niycpus
     namelist /coreparam/ idynamic
@@ -877,6 +875,15 @@ module mod_dynparam
 #endif
 
     close(ipunit)
+    ierr = 0
+    call init_random_number_generator( )
+    return
+  end subroutine initparam
+
+  subroutine init_random_number_generator
+    implicit none
+    integer :: nseed, i
+    integer, allocatable, dimension(:) :: seed
 
     ! Initialize random number generator which may be needed by any program
     call random_seed(size=nseed)
@@ -884,10 +891,7 @@ module mod_dynparam
     seed(:) = regcm_magick + 37*[(i-1,i=1,nseed)]
     call random_seed(put=seed)
     deallocate(seed)
-
-    ierr = 0
-    return
-  end subroutine initparam
+  end subroutine init_random_number_generator
 
   subroutine init_fnestparam(filename,coarse_outdir,coarse_domname)
     implicit none

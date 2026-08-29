@@ -131,6 +131,8 @@ module mod_regcm_interface
         write ( 6, * ) 'ERROR : ', ierr
         stop
       end if
+    else
+      call init_random_number_generator( )
     end if
 
     call broadcast_params
