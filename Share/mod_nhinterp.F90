@@ -15,6 +15,7 @@
 
 module mod_nhinterp
 
+  use mod_dynparam, only : maxvert
   use mod_realkinds
   use mod_intkinds
   use mod_constants
@@ -113,9 +114,9 @@ module mod_nhinterp
       integer(ik4) :: i, j, k, l, ll
       real(rk8) :: fl, fu, pr0, alnqvn, alnp
       real(rk8) :: zl, zu, wu, wl
-      real(rk8), dimension(1:kxs) :: fn
+      real(rk8), dimension(maxvert) :: fn
+      real(rk8), dimension(maxvert) :: zq
       real(rk8), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
-      real(rk8), dimension(1:kxs+1) :: zq
       real(rk8), parameter :: minqq8 = minqq
       !
       ! We expect ps and ps0 to be already interpolated on dot points
@@ -234,9 +235,9 @@ module mod_nhinterp
       integer(ik4) :: i, j, k, l, ll
       real(rk8) :: fl, fu, pr0, alnqvn, alnp
       real(rk8) :: zl, zu, wu, wl
-      real(rk8), dimension(1:kxs) :: fn
+      real(rk8), dimension(maxvert) :: fn
+      real(rk8), dimension(maxvert) :: zq
       real(rk8), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
-      real(rk8), dimension(1:kxs+1) :: zq
       real(rk4), parameter :: minqq4 = real(minqq,rk4)
       real(rk8), parameter :: minqq8 = real(minqq,rk8)
       !
@@ -356,9 +357,9 @@ module mod_nhinterp
       integer(ik4) :: i, j, k, n, l, ll
       real(rk8) :: fl, fu, pr0, alnqvn, alnp
       real(rk8) :: zl, zu, wl, wu
-      real(rk8), dimension(1:kxs) :: fn
+      real(rk8), dimension(maxvert) :: fn
+      real(rk8), dimension(maxvert) :: zq
       real(rk8), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
-      real(rk8), dimension(1:kxs+1) :: zq
       real(rk8), parameter :: mintr8 = mintr
       !
       ! We expect ps and ps0 to be already interpolated on dot points
@@ -447,9 +448,9 @@ module mod_nhinterp
       integer(ik4) :: i, j, k, n, l, ll
       real(rk8) :: fl, fu, pr0, alnqvn, alnp
       real(rk8) :: zl, zu, wl, wu
-      real(rk8), dimension(1:kxs) :: fn
+      real(rk8), dimension(maxvert) :: fn
+      real(rk8), dimension(maxvert) :: zq
       real(rk8), dimension(j1:j2,i1:i2,1:kxs) :: z, z0
-      real(rk8), dimension(1:kxs+1) :: zq
       real(rk4), parameter :: mintr4 = real(mintr,rk4)
       !
       ! We expect ps and ps0 to be already interpolated on dot points

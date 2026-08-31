@@ -31,6 +31,21 @@ module mod_dynparam
 
   integer, parameter :: regcm_magick = 19590209
 
+  ! ######################################################################
+  !           Hardcoded maximum to optimize memory for CUDA
+  ! ######################################################################
+  ! ECMWF has 137 levels.
+  ! MIROC-ESM has 80 levels.
+  ! Assume we will never go above this.
+  ! We keep this hardcoded fixed to allow caching in parallel code.
+  integer, parameter, public :: maxvert = 256
+  ! Maximum tracers.
+  ! We use a maximum number of 56 (MINE settings) as of 2026, September.
+  integer, parameter, public :: maxtracer = 64
+  !
+  ! ######################################################################
+  !           Hardcoded maximum to optimize memory for CUDA
+  ! ######################################################################
   !
   ! PARAMETER definitions
   !
@@ -562,6 +577,12 @@ module mod_dynparam
     read(ipunit, nml=dimparam, iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error reading dimparam namelist in ',trim(filename)
+      ierr = 2
+      return
+    end if
+    if ( maxvert < kz ) then
+      write (stderr,*) 'The maximum allowed vertical level number is ', &
+                        maxvert, ' levels.'
       ierr = 2
       return
     end if

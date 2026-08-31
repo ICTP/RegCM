@@ -2334,12 +2334,12 @@ module mod_rad_radiation
     real(rk8), dimension(4) :: emm, o3emm, term1, term2, &
                       term3, term4, term5, zinpl, temh2o
     real(rk8), dimension(2) :: term7, term8, trline
-    real(rk8), dimension(kzp1) :: dbvtit
-    real(rk8), dimension(kzp1) :: term6
-    real(rk8), dimension(kzp1) :: term9
-    real(rk8), dimension(kzp1) :: pnmsq
-    real(rk8), dimension(kz) :: dbvtly
     real(rk8), dimension(4) :: tbar, pinpl, uinpl, winpl
+    real(rk8), dimension(maxvert) :: dbvtit
+    real(rk8), dimension(maxvert) :: term6
+    real(rk8), dimension(maxvert) :: term9
+    real(rk8), dimension(maxvert) :: pnmsq
+    real(rk8), dimension(maxvert) :: dbvtly
     real(rk8), dimension(nlwspi,4) :: bplnk
     real(rk8), dimension(nlwspi) :: xplnk
     !

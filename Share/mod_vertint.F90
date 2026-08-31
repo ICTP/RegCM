@@ -22,6 +22,7 @@ module mod_vertint
   use mod_message
   use mod_stdatm
   use mod_interp, only : interp1d
+  use mod_dynparam, only : maxvert
 
   implicit none
 
@@ -1580,9 +1581,10 @@ module mod_vertint
     real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: fccm, pccm
     real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: prcm
     real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: frcm
-    real(rk8), dimension(kccm) :: xc, fc, zi, zg
-    real(rk8), dimension(krcm) :: xr, fr
+    real(rk8), dimension(maxvert) :: xc, fc, zi, zg
+    real(rk8), dimension(maxvert) :: xr, fr
     integer(ik4) :: i, j, k, kt, kb
+
 #ifndef OPENACC
     if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
       kt = kccm
@@ -1592,7 +1594,7 @@ module mod_vertint
       kb = kccm
     end if
 #endif
-    !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr,zi,zg)
+    !$acc parallel loop collapse(2) gang vector private(xc,fc,zi,zg,xr,fr)
     do j = j1, j2
       do i = i1, i2
 #ifdef OPENACC
@@ -1629,9 +1631,10 @@ module mod_vertint
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: fccm, pccm
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: prcm
     real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: frcm
-    real(rk4), dimension(kccm) :: xc, fc, zi, zg
-    real(rk4), dimension(krcm) :: xr, fr
+    real(rk4), dimension(maxvert) :: xc, fc, zi, zg
+    real(rk4), dimension(maxvert) :: xr, fr
     integer(ik4) :: i, j, k, kt, kb
+
 #ifndef OPENACC
     if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
       kt = kccm
@@ -1641,7 +1644,7 @@ module mod_vertint
       kb = kccm
     end if
 #endif
-    !$acc parallel loop collapse(2) gang vector private(xc,fc,xr,fr,zi,zg)
+    !$acc parallel loop collapse(2) gang vector private(xc,fc,zi,zg,xr,fr)
     do j = j1, j2
       do i = i1, i2
 #ifdef OPENACC

@@ -1122,7 +1122,7 @@ module mod_pbl_holtbl
     real(rkx), dimension(:,:,:,:), pointer, contiguous, intent(in) :: start
     real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: sflux, ps
     integer(ik4) :: i, j, k
-    real(rkx), dimension(kz) :: qi, qf
+    real(rkx), dimension(maxvert) :: qi, qf
     real(rkx) :: sqtoti, sqtotf
 
 #ifdef STDPAR_FIXED

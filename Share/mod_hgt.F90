@@ -15,6 +15,7 @@
 
 module mod_hgt
 
+  use mod_dynparam, only : maxvert
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -23,8 +24,6 @@ module mod_hgt
   implicit none
 
   private
-
-  integer(ik4), parameter :: maxnlev = 100
 
   real(rk4), parameter :: srovg = real(rovg,rk4)
   real(rk4), parameter :: slrate = real(lrate,rk4)
@@ -74,8 +73,8 @@ module mod_hgt
     real(rkx), intent(out), dimension(ni,nj,nk) :: h
 
     integer(ik4) :: i, j, k
-    real(rkx), dimension(nk+1) :: sigmaf
-    real(rkx), dimension(nk) :: dsigma
+    real(rkx), dimension(maxvert) :: sigmaf
+    real(rkx), dimension(maxvert) :: dsigma
     real(rkx) :: pf, tbar
     !
     ! ROUTINE TO COMPUTE HEIGHT USING THE HYDROSTATIC RELATION.
@@ -187,7 +186,7 @@ module mod_hgt
 
     real(rkx) :: psfc, temp, wb, wt, pt, pb
     integer(ik4) :: i, j, k, kb, kt, n, ipb, ipt, ipi
-    real(rkx), dimension(km) :: psig
+    real(rkx), dimension(maxvert) :: psig
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
@@ -281,7 +280,7 @@ module mod_hgt
 
     real(rk8) :: psfc, temp, wb, wt
     integer(ik4) :: i, j, k, kb, kt, n
-    real(rk8), dimension(km) :: psig
+    real(rk8), dimension(maxvert) :: psig
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
@@ -414,7 +413,7 @@ module mod_hgt
 
     real(rk4) :: psfc, temp, wb, wt, ptp
     integer(ik4) :: i, j, k, kb, kt, n
-    real(rk4), dimension(km) :: psig
+    real(rk4), dimension(maxvert) :: psig
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:

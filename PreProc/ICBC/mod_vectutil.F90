@@ -19,6 +19,7 @@ module mod_vectutil
   use mod_realkinds
   use mod_constants
   use mod_message
+  use mod_dynparam, only : maxvert
 
   private
 
@@ -369,7 +370,7 @@ module mod_vectutil
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: x
     integer(ik4) :: i1, i2, j1, j2, k1, k2
     integer(ik4) :: i, j, k, kr
-    real(rkx), dimension(size(x,3)) :: work
+    real(rkx), dimension(maxvert) :: work
 
     i1 = lbound(x,1)
     i2 = ubound(x,1)
@@ -406,7 +407,7 @@ module mod_vectutil
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: x
     integer(ik4) :: i1, i2, j1, j2, k1, k2, n1, n2
     integer(ik4) :: i, j, k, n, kr
-    real(rkx), dimension(size(x,3)) :: work
+    real(rkx), dimension(maxvert) :: work
 
     i1 = lbound(x,1)
     i2 = ubound(x,1)

@@ -139,22 +139,22 @@ module mod_pbl_uwtcm
     ! real(rkx) :: kh0, thvflx
     real(rkx) :: thv0, thx_t, thvx_t, dthv, dthv_t
     integer(ik4) :: kpbl2dx  ! Top of PBL
-    real(rkx), dimension(kzp2) :: zqx
-    real(rkx), dimension(kzp1) :: kth, kzm, rhoxfl, rcldb, tke, &
+    real(rkx), dimension(maxvert) :: zqx
+    real(rkx), dimension(maxvert) :: kth, kzm, rhoxfl, rcldb, tke, &
          tkes, bbls, nsquar, presfl, exnerfl, rexnerfl !, epo, richnum
-    real(rkx), dimension(kz) :: shear, buoyan, rdza, rrhoxfl !, svs
+    real(rkx), dimension(maxvert) :: shear, buoyan, rdza, rrhoxfl !, svs
     integer(ik4) ::  k, itr !, ibnd
     integer(ik4) :: ilay, kpbconv, iteration
-    real(rkx), dimension(kz) :: ux, vx, qx, thx, uthvx, zax, &
+    real(rkx), dimension(maxvert) :: ux, vx, qx, thx, uthvx, zax, &
          kethl, thlx, thxs, tx, tvx, rttenx, preshl, qcx,    &
          qwx, rrhoxhl, uxs, qxs, rhoxhl, exnerhl, rexnerhl,  &
          rdzq, vxs, qcxs, aimp, bimp, cimp, uimp1, &
          rimp1, uimp2, rimp2, rlv, orlv, cp, ocp
-    !real(rkx), dimension(kz) :: qwxs, thlxs
-    real(rkx), dimension(kz) :: qix, qixs
-    real(rkx), dimension(kz,ntr) :: chix, chixs
-    real(rkx), dimension(ntr) :: chifxx
-    integer(ik4), dimension(kz) :: ktop, kbot
+    !real(rkx), dimension(maxvert) :: qwxs, thlxs
+    real(rkx), dimension(maxvert) :: qix, qixs
+    real(rkx), dimension(maxvert,maxtracer) :: chix, chixs
+    real(rkx), dimension(maxtracer) :: chifxx
+    integer(ik4), dimension(maxvert) :: ktop, kbot
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4), save :: idindx = 0
