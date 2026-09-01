@@ -237,7 +237,7 @@ module mod_ncio
       if ( .not. lerror ) then
         call read_var1d_static(idmin,'sigma',sigma)
       end if
-      if ( idynamic == 3 ) then
+      if ( idynamic == 3 .and. iproj == 'ROTLLR' ) then
         call read_var1d_static(idmin,'rlat',rlat,lerror)
         call read_var1d_static(idmin,'rlon',rlon,lerror)
       end if
@@ -376,7 +376,7 @@ module mod_ncio
           call read_var1d_static(idmin,'sigma',sigma)
         end if
         call bcast(sigma)
-        if ( idynamic == 3 ) then
+        if ( idynamic == 3 .and. iproj == 'ROTLLR' ) then
           call read_var1d_static(idmin,'rlat',rlat,lerror)
           call read_var1d_static(idmin,'rlon',rlon,lerror)
           call bcast(rlat)
@@ -507,7 +507,7 @@ module mod_ncio
         call bcast(replacemoist)
         call bcast(replacetemp)
         call bcast(sigma)
-        if ( idynamic == 3 ) then
+        if ( idynamic == 3 .and. iproj == 'ROTLLR' ) then
           call bcast(rlat)
           call bcast(rlon)
         end if
