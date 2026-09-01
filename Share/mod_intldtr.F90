@@ -25,7 +25,7 @@ module mod_intldtr
 
   private
 
-  public :: mxmnll, interp, filter1plakes
+  public :: mxmnll, interp, puddlefilter
 
   real(rk8), public :: grdlnmn, grdltmn, grdlnma, grdltma
   real(rk8), public :: xmaxlat, xmaxlon, xminlat, xminlon
@@ -35,6 +35,7 @@ module mod_intldtr
   real(rk8), dimension(4,4) :: c
   real(rk8), dimension(16,16) :: wt
   integer(ik4), parameter :: maxbins = 22
+  integer(ik4), parameter :: iocn = 15
   integer(ik4), dimension(maxbins) :: bincnt
   real(rk8), dimension(maxbins) :: bmindist
   logical, dimension(2,maxbins) :: lndwt
@@ -537,46 +538,76 @@ module mod_intldtr
     end select
   end subroutine interp
 
-  subroutine filter1plakes(jx,iy,omt)
+  subroutine puddlefilter(jx,iy,omt)
     implicit none
     integer(ik4), intent(in) :: jx, iy
     real(rkx), intent(inout), dimension(jx,iy) :: omt
-    integer(ik4), dimension(maxbins) :: cnt
-    integer(ik4), dimension(9) :: around
-    integer(ik4), parameter :: ilake = 14
-    integer(ik4), parameter :: iocn = 15
-    integer(ik4), parameter :: minlak = 2*ilake
-    integer(ik4) :: i, j, ii, jj, ip, jp, k, mpindex
+    logical, dimension(jx,iy) :: visited
+    integer(ik4), dimension(jx*iy,2) :: cnodes
+    integer(ik4), parameter :: iminc = 6
+    integer(ik4) :: i, j, icount, npass
 
+    visited(:,:) = .false.
     do i = 1, iy
       do j = 1, jx
-        if (int(omt(j,i)) == ilake) then
-          k = 1
-          do ii = -1, 1, 1
-            do jj = -1, 1, 1
-              ip = max(min(i+ii,iy),1)
-              jp = max(min(j+jj,jx),1)
-              around(k) = int(omt(jp,ip))
-              k = k + 1
-            end do
-          end do
-          if (sum(around, around==ilake) < minlak) then
-            do k = 1, maxbins
-              cnt(k) = sum(around/k,around==k)
-            end do
-            mpindex = 0
-            do k = 1, maxbins
-              if (k == ilake) cycle
-              if (k == iocn) cycle
-              if (cnt(k) > mpindex) mpindex = k
-            end do
-            if (mpindex == 0) mpindex = iocn
-            omt(j,i) = real(mpindex,rkx)
+        if ( int(omt(j,i)) == iocn .and. .not. visited(j,i) ) then
+          icount = 0
+          call dfs_cluster(jx,iy,omt,visited,j,i,cnodes,icount)
+          if ( icount < iminc ) then
+            call remove_cluster(jx,iy,omt,cnodes,icount)
           end if
         end if
       end do
     end do
-  end subroutine filter1plakes
+  end subroutine puddlefilter
+
+  recursive subroutine dfs_cluster(nj,ni,omt,visited,j,i,nodes,ic)
+    implicit none
+    integer(ik4), intent(in) :: i, j, ni, nj
+    real(rkx), intent(in), dimension(nj,ni) :: omt
+    logical, intent(inout), dimension(nj,ni) :: visited
+    integer, intent(inout), dimension(nj*ni,2) :: nodes
+    integer, intent(inout) :: ic
+
+    if ( i < 1 .or. i > ni .or. j < 1 .or. j > nj ) return
+    if ( int(omt(j,i)) /= iocn .or. visited(j,i) ) return
+
+    visited(j,i) = .true.
+    ic = ic + 1
+    nodes(ic, 1) = j
+    nodes(ic, 2) = i
+    call dfs_cluster(nj,ni,omt,visited,j+1,i  ,nodes,ic)
+    call dfs_cluster(nj,ni,omt,visited,j-1,i  ,nodes,ic)
+    call dfs_cluster(nj,ni,omt,visited,j  ,i+1,nodes,ic)
+    call dfs_cluster(nj,ni,omt,visited,j  ,i-1,nodes,ic)
+  end subroutine dfs_cluster
+
+  subroutine remove_cluster(nj,ni,omt,nodes,ic)
+    implicit none
+    integer(ik4), intent(in) :: nj, ni
+    real(rkx), intent(inout), dimension(nj,ni) :: omt
+    integer(ik4), intent(in), dimension(nj*ni,2) :: nodes
+    integer(ik4), intent(in) :: ic
+    integer(ik4), dimension(maxbins) :: cnt
+    integer(ik4) :: i, j, ii, jj, k, kk, imax(1)
+    do k = 1, ic
+      j = nodes(k,1)
+      i = nodes(k,2)
+      cnt(:) = 0
+      do ii = i-1, i+1
+        do jj = j-1, j+1
+          if ( jj == j .or. ii == i .or. &
+               jj < 1 .or. jj > nj .or. &
+               ii < 1 .or. ii > ni ) cycle
+          kk = int(omt(jj,ii))
+          if ( kk == iocn ) cycle
+          cnt(kk) = cnt(kk) + 1
+        end do
+      end do
+      imax = maxloc(cnt)
+      omt(j,i) = real(imax(1),rkx)
+    end do
+  end subroutine remove_cluster
 
   subroutine mxmnll(jx,iy,xlon,xlat,iband)
     implicit none

@@ -497,7 +497,7 @@ module mod_dynparam
   real(rkx), public :: perturb_frac_u
   real(rkx), public :: perturb_frac_v
 
-  logical, public :: lclm45lake = .false.
+  logical, public :: lclm45lake = .true.
 #ifdef CLM45
   logical, public :: enable_megan_emission = .false.
   logical, public :: enable_urban_landunit = .true.

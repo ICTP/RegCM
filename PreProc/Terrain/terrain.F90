@@ -308,14 +308,14 @@ program terrain
     write(stdout,*)'Static landcover BATS data successfully read in'
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,lndout_s,values, &
                 class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
-    call filter1plakes(jxsg,iysg,lndout_s)
+    call puddlefilter(jxsg,iysg,lndout_s)
     if ( idynamic == 3 ) then
       call interp(dsnsg,jxsg,iysg,ulat_s,ulon_s,ulnd_s,values, &
                   class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
-      call filter1plakes(jxsg,iysg,ulnd_s)
+      call puddlefilter(jxsg,iysg,ulnd_s)
       call interp(dsnsg,jxsg,iysg,vlat_s,vlon_s,vlnd_s,values, &
                   class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
-      call filter1plakes(jxsg,iysg,vlnd_s)
+      call puddlefilter(jxsg,iysg,vlnd_s)
     end if
     call relmem(values)
     write(stdout,*)'Interpolated landcover on SUBGRID'
@@ -538,14 +538,14 @@ program terrain
   write(stdout,*)'Static landcover BATS data successfully read in'
   call interp(ds,jx,iy,xlat,xlon,lndout,values, &
               class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
-  call filter1plakes(jx,iy,lndout)
+  call puddlefilter(jx,iy,lndout)
   if ( idynamic == 3 ) then
     call interp(ds,jx,iy,ulat,ulon,ulnd,values, &
                 class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
-    call filter1plakes(jx,iy,ulnd)
+    call puddlefilter(jx,iy,ulnd)
     call interp(ds,jx,iy,vlat,vlon,vlnd,values, &
                 class_interp_method,ibnty=1,h2opct=h2opct,rdem=roidem)
-    call filter1plakes(jx,iy,vlnd)
+    call puddlefilter(jx,iy,vlnd)
   end if
   call relmem(values)
   write(stdout,*)'Interpolated landcover on model GRID'
