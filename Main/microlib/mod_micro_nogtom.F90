@@ -625,13 +625,13 @@ module mod_micro_nogtom
     !
     ! Loop over points
     !
-#ifdef OPENACC
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-      local(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
+      local(fallsrce,fallsink,convsrce,vqx,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
       rsp1,rsp2,rsp3,isp1,dum)
 #else
     !$acc parallel loop collapse(2) gang vector &
-    !$acc     private(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp, &
+    !$acc     private(fallsrce,fallsink,convsrce,vqx,qlhs,qsexp,qsimp, &
     !$acc             qx0,qxfg,qxn,rsp1,rsp2,rsp3,isp1,dum)
     do i = ici1, ici2
     do j = jci1, jci2
@@ -641,12 +641,13 @@ module mod_micro_nogtom
       covpclr = d_zero
 
       ! Loop over levels
-
+      !$acc loop seq
       do k = 1, kz
 
         supsat      = d_zero
         subsat      = d_zero
         ldefr       = d_zero
+        !$acc loop seq
         do n = 1, nqx
           fallsrce(n) = d_zero
           fallsink(n) = d_zero
@@ -683,7 +684,9 @@ module mod_micro_nogtom
         ! each of these is a parametrization for a microphysical process.
         !--------------------------------------------------------
         !
+        !$acc loop seq
         do n = 1, nqx
+          !$acc loop seq
           do m = 1, nqx
             qsexp(m,n)  = d_zero
             qsimp(m,n)  = d_zero
@@ -693,6 +696,7 @@ module mod_micro_nogtom
         !---------------------------------
         ! First guess microphysics
         !---------------------------------
+        !$acc loop seq
         do n = 1, nqx
           qx0(n)  = qx(n,k,j,i)
           qxfg(n) = qx0(n)
@@ -718,6 +722,7 @@ module mod_micro_nogtom
         end if
 
         qicetot = d_zero
+        !$acc loop seq
         do n = 1, nqx
           if ( iphase(n) == 2 ) then
             qicetot = qicetot + qxfg(n)
@@ -800,6 +805,7 @@ module mod_micro_nogtom
           !-------------------------------------------------------
           qpretot = d_zero
           if ( k > 1 ) then
+            !$acc loop seq
             do n = 1, nqx
               if ( lfall(n) ) then
                 ! Source from layer above
@@ -810,6 +816,7 @@ module mod_micro_nogtom
               endif
             end do
           else
+            !$acc loop seq
             do n = 1, nqx
               if ( lfall(n) ) then
                 qpretot = qpretot + qxfg(n)
@@ -856,6 +863,7 @@ module mod_micro_nogtom
             precip = max(rainp*3600.0_rkx*tmpa,1.0_rkx)
             vqx(iqqr) = rain_fallspeed(dens,dens0,precip)
           end if
+          !$acc loop seq
           do n = 1, nqx
             if ( lfall(n) ) then
               sink = vqx(n) * dens * dtgdp
@@ -1479,6 +1487,7 @@ module mod_micro_nogtom
               chngmax = max(tdiff*cons1*rldcp,d_zero)
               if ( chngmax > d_zero ) then
                 ! Loop over frozen hydrometeors (iphase == 2 (ice, snow))
+                !$acc loop seq
                 do n = 1, nqx
                   if ( iphase(n) == 2 ) then
                     m = imelt(n) ! imelt(iqqi)=iqql, imelt(iqqs)=iqqr
@@ -1554,6 +1563,7 @@ module mod_micro_nogtom
           ! of precipitation occuring in a portion of the grid
           !------------------------------------------------------------
           qpretot = d_zero
+          !$acc loop seq
           do n = 1, nqx
             if ( lfall(n) ) then
               qpretot = qpretot + qxfg(n)
@@ -1685,11 +1695,14 @@ module mod_micro_nogtom
         !--------------------------------------------------------
 
         ! Set the LHS of equation
+        !$acc loop seq
         do n = 1, nqx
+          !$acc loop seq
           do jn = 1, nqx
             ! Diagonals: microphysical sink terms+transport
             if ( jn == n ) then
               qlhs(jn,n) = d_one + fallsink(n)
+              !$acc loop seq
               do jo = 1, nqx
                 qlhs(jn,n) = qlhs(jn,n) + qsimp(jo,jn)
               end do
@@ -1702,10 +1715,11 @@ module mod_micro_nogtom
         end do
 
         ! Set the RHS of equation
-
+        !$acc loop seq
         do n = 1, nqx
           ! Sum the explicit source and sink
           rexplicit = d_zero
+          !$acc loop seq
           do jn = 1, nqx
             ! Positive, since summed over 2nd index
             rexplicit = rexplicit + qsexp(n,jn)
@@ -1724,6 +1738,7 @@ module mod_micro_nogtom
         !  diagnostic precipitation fluxes
         !  It is this scaled flux that must be used for source to next layer
         !-------------------------------------------------------------------
+        !$acc loop seq
         do n = 1, nqx
           chng = qxn(n) - qx0(n)
           pfplsx(n,k+1,j,i) = fallsink(n)*qxn(n)*rdtgdp
@@ -1741,7 +1756,7 @@ module mod_micro_nogtom
           end if
         end do
       end do  ! kz : end of vertical loop
-#ifndef OPENACC
+#ifndef STDPAR
       end do
 #endif
     end do      ! jx, iy : end of latitude-longitude loop

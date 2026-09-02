@@ -52,15 +52,23 @@ module mod_moloch
   real(rkx), pointer, contiguous, dimension(:,:,:) :: tkex => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: wz => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: tetavf => null( )
-  real(rkx), pointer, contiguous, dimension(:,:) :: mx2 => null( )
-  real(rkx), pointer, contiguous, dimension(:,:) :: rmx => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: mxt2 => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: rmu => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: rmv => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: iden => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: p0 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: wfw => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: zpby => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: zpbw => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: zdiv2 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: mxt => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: myt => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: myu => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: mxu => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rmyu => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: mxv => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: myv => null( )
+  real(rkx), pointer, contiguous, dimension(:,:) :: rmxv => null( )
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ten0 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qen0 => null( )
@@ -78,10 +86,7 @@ module mod_moloch
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: corv => null( )
-  real(rkx), dimension(:,:), pointer, contiguous :: mu => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: hx => null( )
-  real(rkx), dimension(:,:), pointer, contiguous :: mx => null( )
-  real(rkx), dimension(:,:), pointer, contiguous :: mv => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: hy => null( )
   real(rkx), dimension(:), pointer, contiguous :: rlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: ps => null( )
@@ -166,6 +171,7 @@ module mod_moloch
 
   subroutine allocate_moloch
     implicit none
+    lrotllr = (iproj == 'ROTLLR')
     call getmem(gzitak,1,kzp1,'moloch:gzitak')
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
     call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
@@ -182,10 +188,12 @@ module mod_moloch
     call getmem(wx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:wx')
     call getmem(zpby,jce1,jce2,ici1,ice2ga,1,kz,'moloch:zpby')
     call getmem(zpbw,jci1,jce2ga,ice1,ice2,1,kz,'moloch:zpbw')
-    call getmem(mx2,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:mx2')
-    call getmem(rmx,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmx')
+    if ( lrotllr ) then
+      call getmem(iden,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:iden')
+    end if
     call getmem(rmu,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmu')
     call getmem(rmv,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:rmv')
+    call getmem(mxt2,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:mxt2')
     call getmem(coru,jde1,jde2,ice1,ice2,'moloch:coru')
     call getmem(corv,jce1,jce2,ide1,ide2,'moloch:corv')
     if ( ibltyp == 2 ) then
@@ -209,9 +217,6 @@ module mod_moloch
   subroutine init_moloch
     implicit none
     integer(ik4) :: i, j, k
-    call assignpnt(mddom%msfu,mu)
-    call assignpnt(mddom%msfv,mv)
-    call assignpnt(mddom%msfx,mx)
     call assignpnt(mddom%rlat,rlat)
     call assignpnt(mddom%hx,hx)
     call assignpnt(mddom%hy,hy)
@@ -268,23 +273,42 @@ module mod_moloch
     coru = eomeg2*sin(mddom%ulat(jde1:jde2,ice1:ice2)*degrad)
     corv = eomeg2*sin(mddom%vlat(jce1:jce2,ide1:ide2)*degrad)
 #endif
-    do concurrent ( j = jde1:jde2, i = ide1:ide2 )
-      mx2(j,i) = mx(j,i) * mx(j,i)
-      rmx(j,i) = d_one/mx(j,i)
-      rmu(j,i) = d_one/mu(j,i)
-      rmv(j,i) = d_one/mv(j,i)
-    end do
-    call exchange_lrbt(mx2,1,jde1,jde2,ide1,ide2)
-    call exchange_lrbt(rmx,1,jde1,jde2,ide1,ide2)
-    call exchange_lrbt(rmu,1,jde1,jde2,ide1,ide2)
-    call exchange_lrbt(rmv,1,jde1,jde2,ide1,ide2)
     gzitak = gzita(zita,mo_ztop,mo_a0)
     gzitakh = gzita(zitah,mo_ztop,mo_a0)
     rdzita = 1.0_rkx / mo_dzita
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       w(j,i,1) = d_zero
     end do
-    lrotllr = (iproj == 'ROTLLR')
+    do concurrent ( j = jde1:jde2, i = ide1:ide2 )
+      rmu(j,i) = d_one/mddom%msfu(j,i)
+      rmv(j,i) = d_one/mddom%msfv(j,i)
+    end do
+    call exchange_lrbt(rmu,1,jde1,jde2,ide1,ide2)
+    call exchange_lrbt(rmv,1,jde1,jde2,ide1,ide2)
+    if ( lrotllr ) then
+      iden(:,:) = 1.0_rkx
+      call assignpnt(mddom%msfx,mxt)
+      call assignpnt(iden,myt)
+      call assignpnt(mddom%msfu,mxu)
+      call assignpnt(iden,myu)
+      call assignpnt(mddom%msfv,mxv)
+      call assignpnt(iden,myv)
+      call assignpnt(rmv,rmxv)
+      call assignpnt(iden,rmyu)
+    else
+      call assignpnt(mddom%msfx,mxt)
+      call assignpnt(mddom%msfx,myt)
+      call assignpnt(mddom%msfu,mxu)
+      call assignpnt(mddom%msfu,myu)
+      call assignpnt(mddom%msfv,mxv)
+      call assignpnt(mddom%msfv,myv)
+      call assignpnt(rmv,rmxv)
+      call assignpnt(rmu,rmyu)
+    end if
+    do concurrent ( j = jde1:jde2, i = ide1:ide2 )
+      mxt2(j,i) = mxt(j,i) * myt(j,i)
+    end do
+    call exchange_lrbt(mxt2,1,jde1,jde2,ide1,ide2)
     jmin = jcross1
     jmax = jcross2
     imin = icross1
@@ -302,7 +326,7 @@ module mod_moloch
     do concurrent ( k = 1:kz )
       xkdamp(k) = numax * ddamp * &
         (1.0_rkx/(k+1.0_rkx) - 1.0_rkx/(kz+2.0_rkx))
-      xknu(k) = numax * (0.55_rkx + 0.45_rkx * &
+      xknu(k) = min(4.0_rkx/ds,numax)  * (0.55_rkx + 0.45_rkx * &
         (real(kz-k+1,rkx)-1.0_rkx)/(real(kz,rkx)-1.0_rkx))
     end do
     call setup_bdywt(jdi1,jdi2,ici1,ici2,bdywtu,ba_ud)
@@ -536,20 +560,6 @@ module mod_moloch
     !@acc call nvtxEndRange
   end subroutine boundary
 
-  subroutine divergence_diffusion()
-    implicit none
-    integer(ik4) :: j, i, k
-
-    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      laplacian(j,i,k) = (zdiv2(j-1,i,k)+zdiv2(j+1,i,k) + &
-           zdiv2(j,i-1,k)+zdiv2(j,i+1,k) - 4.0_rkx*zdiv2(j,i,k))
-    end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * laplacian(j,i,k)
-    end do
-  end subroutine divergence_diffusion
-
   subroutine sound(dts)
     !@acc use nvtx
     implicit none
@@ -607,23 +617,13 @@ module mod_moloch
       ! Part of divergence (except w contribution) put in zdiv2
       ! Equation 16
 
-      if ( lrotllr ) then
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          zum = dtrdx * u(j,i,k)   * rfmzu(j,i,k)
-          zup = dtrdx * u(j+1,i,k) * rfmzu(j+1,i,k)
-          zvm = dtrdy * v(j,i,k)   * rfmzv(j,i,k)   * rmv(j,i)
-          zvp = dtrdy * v(j,i+1,k) * rfmzv(j,i+1,k) * rmv(j,i+1)
-          zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
-        end do
-      else
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          zum = dtrdx * u(j,i,k)   * rfmzu(j,i,k)   * rmu(j,i)
-          zup = dtrdx * u(j+1,i,k) * rfmzu(j+1,i,k) * rmu(j+1,i)
-          zvm = dtrdy * v(j,i,k)   * rfmzv(j,i,k)   * rmv(j,i)
-          zvp = dtrdy * v(j,i+1,k) * rfmzv(j,i+1,k) * rmv(j,i+1)
-          zdiv2(j,i,k) = fmz(j,i,k) * mx2(j,i) * ((zup-zum) + (zvp-zvm))
-        end do
-      end if
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        zum = dtrdx * u(j,i,k)   * rfmzu(j,i,k)   * rmyu(j,i)
+        zup = dtrdx * u(j+1,i,k) * rfmzu(j+1,i,k) * rmyu(j+1,i)
+        zvm = dtrdy * v(j,i,k)   * rfmzv(j,i,k)   * rmxv(j,i)
+        zvp = dtrdy * v(j,i+1,k) * rfmzv(j,i+1,k) * rmxv(j,i+1)
+        zdiv2(j,i,k) = fmz(j,i,k) * mxt2(j,i) * ((zup-zum) + (zvp-zvm))
+      end do
 
       if ( do_divdamp ) then
         call divergence_damping(dts)
@@ -682,51 +682,26 @@ module mod_moloch
 
       ! horizontal momentum equations
 
-      if ( lrotllr ) then
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        zcx = dtrdx * mxu(j,i)
+        zfz = egrav * dts
+        zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+        zcor1u = coru(j,i) * dts * vd(j,i,k)
         ! Equation 17
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-          zcx = dtrdx * mu(j,i)
-          zfz = egrav * dts
-          zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-          zcor1u = coru(j,i) * dts * vd(j,i,k)
-          ! Equation 17
-          u(j,i,k) = u(j,i,k) + bdywtu(j,i,k) * ( zcor1u - &
-                     zfz * hx(j,i) * gzitakh(k) - &
-                     zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k)))
-        end do
+        u(j,i,k) = u(j,i,k) + bdywtu(j,i,k) * ( zcor1u - &
+                   zfz * hx(j,i) * gzitakh(k) - &
+                   zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k)))
+      end do
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        zcy = dtrdy * myv(j,i)
+        zfz = egrav * dts
+        zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+        zcor1v = corv(j,i) * dts * ud(j,i,k)
         ! Equation 18
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-          zcy = dtrdy
-          zfz = egrav * dts
-          zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-          zcor1v = corv(j,i) * dts * ud(j,i,k)
-          ! Equation 18
-          v(j,i,k) = v(j,i,k) + bdywtv(j,i,k) * (-zcor1v - &
-                     zfz * hy(j,i) * gzitakh(k) -  &
-                     zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k)))
-        end do
-      else
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-          zcx = dtrdx * mu(j,i)
-          zfz = egrav * dts
-          zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-          zcor1u = coru(j,i) * dts * vd(j,i,k)
-          ! Equation 17
-          u(j,i,k) = u(j,i,k) + bdywtu(j,i,k) * ( zcor1u - &
-                     zfz * hx(j,i) * gzitakh(k) - &
-                     zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k)))
-        end do
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-          zcy = dtrdy * mv(j,i)
-          zfz = egrav * dts
-          zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-          zcor1v = corv(j,i) * dts * ud(j,i,k)
-          ! Equation 18
-          v(j,i,k) = v(j,i,k) + bdywtv(j,i,k) * (-zcor1v - &
-                     zfz * hy(j,i) * gzitakh(k) - &
-                     zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k)))
-        end do
-      end if
+        v(j,i,k) = v(j,i,k) + bdywtv(j,i,k) * (-zcor1v - &
+                   zfz * hy(j,i) * gzitakh(k) - &
+                   zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k)))
+      end do
 
     end do ! sound loop
 
@@ -743,6 +718,20 @@ module mod_moloch
     !@acc call nvtxEndRange
   end subroutine sound
 
+  subroutine divergence_diffusion
+    implicit none
+    integer(ik4) :: j, i, k
+
+    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      laplacian(j,i,k) = (zdiv2(j-1,i,k)+zdiv2(j+1,i,k) + &
+           zdiv2(j,i-1,k)+zdiv2(j,i+1,k) - 4.0_rkx*zdiv2(j,i,k))
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * laplacian(j,i,k)
+    end do
+  end subroutine divergence_diffusion
+
   subroutine divergence_damping(dts)
     implicit none
     real(rkx), intent(in) :: dts
@@ -751,25 +740,14 @@ module mod_moloch
 
     dxrdt = dx/dts
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-    if ( lrotllr ) then
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = dxrdt * xkdamp(k) * mu(j,i)
-        u(j,i,k) = u(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        xdam = dxrdt * xkdamp(k)
-        v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
-      end do
-    else
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        xdam = dxrdt * xkdamp(k) * mu(j,i)
-        u(j,i,k) = u(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        xdam = dxrdt * xkdamp(k) * mv(j,i)
-        v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
-      end do
-    end if
+    do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+      xdam = dxrdt * xkdamp(k) * mxu(j,i)
+      u(j,i,k) = u(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j-1,i,k))
+    end do
+    do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+      xdam = dxrdt * xkdamp(k) * myv(j,i)
+      v(j,i,k) = v(j,i,k) + xdam * (zdiv2(j,i,k)-zdiv2(j,i-1,k))
+    end do
   end subroutine divergence_damping
 
   subroutine advection(dta)
@@ -816,21 +794,16 @@ module mod_moloch
 
     !!! Curvature terms !!!
 
-    if ( lrotllr ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        dlat = degrad * 0.5_rkx * (rlat(i)+rlat(i+1))
-        tanx = sin(dlat)*mx(j,i)*rearthrad
-        ux(j,i,k) = ux(j,i,k) + ux(j,i,k) * vx(j,i,k) * tanx * dta
-        vx(j,i,k) = vx(j,i,k) - ux(j,i,k) * ux(j,i,k) * tanx * dta
-      end do
-    else
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        tanx = (mu(j-1,i)-mu(j,i))*rdx
-        tany = (mv(j,i-1)-mv(j,i))*rdx
-        ux(j,i,k) = ux(j,i,k) + ux(j,i,k) * vx(j,i,k) * tanx * dta
-        vx(j,i,k) = vx(j,i,k) - ux(j,i,k) * ux(j,i,k) * tany * dta
-      end do
-    end if
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      tanx = (mxu(j+1,i)-mxu(j,i))*rdx
+      tany = (myv(j,i+1)-myv(j,i))*rdx
+      ux(j,i,k) = ux(j,i,k) + &
+            (ux(j,i,k) * vx(j,i,k) * tanx - &
+             vx(j,i,k) * vx(j,i,k) * tany) * dta
+      vx(j,i,k) = vx(j,i,k) + &
+            (ux(j,i,k) * vx(j,i,k) * tany - &
+             ux(j,i,k) * ux(j,i,k) * tanx) * dta
+    end do
 
     ! Interpolate on staggered points
     call uvxtouvstag(ux,vx,u,v)
@@ -852,7 +825,6 @@ module mod_moloch
     real(rkx), parameter :: wlow  = 0.0_rkx
     real(rkx), parameter :: whigh = 2.0_rkx
     real(rkx) :: zamu, is, r, b, zphi, zdv, znum, zden
-    real(rkx) :: zhxvtn, zhxvts, zcostx
     real(rkx) :: zrfmu, zrfmd
     real(rkx) :: zrfmn, zrfms
     real(rkx) :: zrfme, zrfmw
@@ -951,161 +923,77 @@ module mod_moloch
 
     call exchange_bt(wz,2,jce1,jce2,ice1,ice2,1,kz)
 
-    if ( lrotllr ) then
-
-      ! Meridional advection
-      do concurrent ( j = jce1:jce2, i = ici1:ice2ga, k = 1:kz )
-        zamu = v(j,i,k) * dtrdy
-        if ( zamu > d_zero ) then
-          is = d_one
-          ih = i-1
+    ! Meridional advection
+    do concurrent ( j = jce1:jce2, i = ici1:ice2ga, k = 1:kz )
+      zamu = v(j,i,k) * myv(j,i) * dtrdy
+      if ( zamu > d_zero ) then
+        is = d_one
+        ih = i-1
+      else
+        is = -d_one
+        ih = min(i+1,imax)
+      end if
+      ihm1 = max(ih-1,imin)
+      znum = wz(j,ih,k) - wz(j,ihm1,k)
+      zden = wz(j,i,k) - wz(j,i-1,k)
+      if ( abs(zden) < minden ) then
+        if ( abs(znum) < minnum ) then
+          r = 1.0_rkx
         else
-          is = -d_one
-          ih = min(i+1,imax)
+          r = 0.0_rkx
         end if
-        ihm1 = max(ih-1,imin)
-        znum = wz(j,ih,k) - wz(j,ihm1,k)
-        zden = wz(j,i,k) - wz(j,i-1,k)
-        if ( abs(zden) < minden ) then
-          if ( abs(znum) < minnum ) then
-            r = 1.0_rkx
-          else
-            r = 0.0_rkx
-          end if
+      else
+        r = znum/zden
+      end if
+      b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+      zphi = is + zamu*b - is*b
+      zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
+          ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+    end do
+    do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
+      zrfmn = dtrdy * fmz(j,i,k) * rfmzv(j,i+1,k) * rmxv(j,i+1)
+      zrfms = dtrdy * fmz(j,i,k) * rfmzv(j,i,k) * rmxv(j,i)
+      zdv = (v(j,i+1,k)*zrfmn - v(j,i,k)*zrfms) * pp(j,i,k)
+      p0(j,i,k) = wz(j,i,k) + &
+        mxt2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
+    end do
+
+    call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
+
+    ! Zonal advection
+    do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
+      zamu = u(j,i,k) * mxu(j,i) * dtrdx
+      if ( zamu > d_zero ) then
+        is = d_one
+         jh = j-1
+      else
+        is = -d_one
+        jh = min(j+1,jmax)
+      end if
+      jhm1 = max(jh-1,jmin)
+      znum = p0(jh,i,k) - p0(jhm1,i,k)
+      zden = p0(j,i,k) - p0(j-1,i,k)
+      if ( abs(zden) < minden ) then
+        if ( abs(znum) < minnum ) then
+          r = 1.0_rkx
         else
-          r = znum/zden
+          r = 0.0_rkx
         end if
-        b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-        zphi = is + zamu*b - is*b
-        zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
-            ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
-      end do
-      do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
-        zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
-        zhxvts = dtrdy * rmv(j,i)   * mx(j,i)
-        zrfmn = zhxvtn * fmz(j,i,k) * rfmzv(j,i+1,k)
-        zrfms = zhxvts * fmz(j,i,k) * rfmzv(j,i,k)
-        zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
-        p0(j,i,k) = wz(j,i,k) + &
-              (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
-      end do
-
-      call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
-
-      ! Zonal advection
-
-      do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
-        zamu = u(j,i,k) * mu(j,i) * dtrdx
-        if ( zamu > d_zero ) then
-          is = d_one
-          jh = j-1
-        else
-          is = -d_one
-          jh = min(j+1,jmax)
-        end if
-        jhm1 = max(jh-1,jmin)
-        znum = p0(jh,i,k) - p0(jhm1,i,k)
-        zden = p0(j,i,k) - p0(j-1,i,k)
-        if ( abs(zden) < minden ) then
-          if ( abs(znum) < minnum ) then
-            r = 1.0_rkx
-          else
-            r = 0.0_rkx
-          end if
-        else
-          r = znum/zden
-        end if
-        b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-        zphi = is + zamu*b - is*b
-        zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
-               ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zcostx = dtrdx * mx(j,i)
-        zrfmw = zcostx * fmz(j,i,k) * rfmzu(j,i,k)
-        zrfme = zcostx * fmz(j,i,k) * rfmzu(j+1,i,k)
-        zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
-        pp(j,i,k) = p0(j,i,k) + &
-               zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
-      end do
-
-    else ! Not the ROTLLR projection
-
-      ! Meridional advection
-      do concurrent ( j = jce1:jce2, i = ici1:ice2ga, k = 1:kz )
-        zamu = v(j,i,k) * mv(j,i) * dtrdy
-        if ( zamu > d_zero ) then
-          is = d_one
-          ih = i-1
-        else
-          is = -d_one
-          ih = min(i+1,imax)
-        end if
-        ihm1 = max(ih-1,imin)
-        znum = wz(j,ih,k) - wz(j,ihm1,k)
-        zden = wz(j,i,k) - wz(j,i-1,k)
-        if ( abs(zden) < minden ) then
-          if ( abs(znum) < minnum ) then
-            r = 1.0_rkx
-          else
-            r = 0.0_rkx
-          end if
-        else
-          r = znum/zden
-        end if
-        b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-        zphi = is + zamu*b - is*b
-        zpby(j,i,k) = 0.5_rkx * v(j,i,k) * &
-            ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
-      end do
-      do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
-        zrfmn = dtrdy * fmz(j,i,k) * rfmzu(j,i+1,k)
-        zrfms = dtrdy * fmz(j,i,k) * rfmzu(j,i,k)
-        zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
-               v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
-        p0(j,i,k) = wz(j,i,k) + &
-          mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
-      end do
-
-      call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
-
-      ! Zonal advection
-      do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
-        zamu = u(j,i,k) * mu(j,i) * dtrdx
-        if ( zamu > d_zero ) then
-          is = d_one
-           jh = j-1
-        else
-          is = -d_one
-          jh = min(j+1,jmax)
-        end if
-        jhm1 = max(jh-1,jmin)
-        znum = p0(jh,i,k) - p0(jhm1,i,k)
-        zden = p0(j,i,k) - p0(j-1,i,k)
-        if ( abs(zden) < minden ) then
-          if ( abs(znum) < minnum ) then
-            r = 1.0_rkx
-          else
-            r = 0.0_rkx
-          end if
-        else
-          r = znum/zden
-        end if
-        b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-        zphi = is + zamu*b - is*b
-        zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
-               ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zrfmw = dtrdx * fmz(j,i,k) * rfmzu(j,i,k)
-        zrfme = dtrdx * fmz(j,i,k) * rfmzu(j+1,i,k)
-        zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
-               u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
-        pp(j,i,k) = p0(j,i,k) + &
-            mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
-      end do
-
-    end if
+      else
+        r = znum/zden
+      end if
+      b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+      zphi = is + zamu*b - is*b
+      zpbw(j,i,k) = 0.5_rkx * u(j,i,k) * &
+             ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      zrfmw = dtrdx * fmz(j,i,k) * rfmzu(j,i,k) * rmyu(j+1,i)
+      zrfme = dtrdx * fmz(j,i,k) * rfmzu(j+1,i,k) * rmyu(j,i)
+      zdv = (u(j+1,i,k)*zrfme - u(j,i,k)*zrfmw) * pp(j,i,k)
+      pp(j,i,k) = p0(j,i,k) + &
+          mxt2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
+    end do
 
   end subroutine wafone
 
@@ -1499,10 +1387,21 @@ module mod_moloch
 
     call temp_to_tvirt( )
 
+#ifdef STDPAR_FIXED
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+#else
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do i = ice1, ice2
+    do j = jce1, jce2
+#endif
       tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
       rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
+#ifndef STDPAR_FIXED
+    end do
+    end do
+#endif
     end do
 
     call uvxtouvstag(ux,vx,u,v)
