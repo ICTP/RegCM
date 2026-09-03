@@ -193,7 +193,7 @@ module mod_kdinterp
     dx = rin/erkm
     lbil = .true.
     if ( present(ds) ) then
-      if ( rin < ds ) then
+      if ( rin < 0.50_rk8*ds ) then
         dx = ds/erkm
         lbil = .false.
       end if
@@ -412,7 +412,7 @@ module mod_kdinterp
     dx = rin/erkm
     lbil = .true.
     if ( present(ds) ) then
-      if ( rin < ds ) then
+      if ( rin < 0.50_rk8*ds ) then
         dx = ds/erkm
         lbil = .false.
       end if
@@ -1206,8 +1206,8 @@ module mod_kdinterp
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
-    real(rk8) :: wgtm
-    integer(ik4) :: i, j, ni, nj, n, si, sj
+    real(rk8), dimension(maxp) :: wgtn
+    integer(ik4) :: i, j, ni, nj, np, n, m(1)
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -1220,19 +1220,13 @@ module mod_kdinterp
     ni = size(f,2)
     do i = 1, ni
       do j = 1, nj
-        if ( h_i%tg%ft(j,i)%np > 0 ) then
-          wgtm = h_i%tg%ft(j,i)%wgt(1)%wgt
-          si = h_i%tg%ft(j,i)%wgt(1)%i
-          sj = h_i%tg%ft(j,i)%wgt(1)%j
-          f(j,i) = g(sj,si)
-          do n = 2, h_i%tg%ft(j,i)%np
-            if ( wgtm < h_i%tg%ft(j,i)%wgt(n)%wgt ) then
-              wgtm = h_i%tg%ft(j,i)%wgt(n)%wgt
-              si = h_i%tg%ft(j,i)%wgt(n)%i
-              sj = h_i%tg%ft(j,i)%wgt(n)%j
-              f(j,i) = g(sj,si)
-            end if
+        np = h_i%tg%ft(j,i)%np
+        if ( np > 0 ) then
+          do n = 1, np
+            wgtn(n) = h_i%tg%ft(j,i)%wgt(n)%wgt
           end do
+          m = maxloc(wgtn(1:np))
+          f(j,i) = g(h_i%tg%ft(j,i)%wgt(m(1))%j,h_i%tg%ft(j,i)%wgt(m(1))%i)
         else
           f(j,i) = missl
         end if

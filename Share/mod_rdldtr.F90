@@ -1797,13 +1797,13 @@ module mod_rdldtr
     do i = iis, iie
       do j = jjs, jje
         il = 1
-        if ( grid(j,i) >= flagval ) then
+        if ( grid(j,i) == flagval ) then
           findloop: do
             do ii = i - il, i + il
               is = min(max(ii,iis),iie)
               do jj = j - il, j + il
                 js = min(max(jj,jjs),jje)
-                if ( grid(js,is) > h_missing_value ) then
+                if ( grid(js,is) /= flagval ) then
                   destgrid(j,i) = grid(js,is)
                   exit findloop
                 end if
@@ -1811,10 +1811,16 @@ module mod_rdldtr
             end do
             il = il + 1
             if ( il == maxil ) then
-              destgrid(j,i) = h_missing_value
               exit findloop
             end if
           end do findloop
+        end if
+      end do
+    end do
+    do i = iis, iie
+      do j = jjs, jje
+        if ( destgrid(j,i) == flagval ) then
+          destgrid(j,i) = h_missing_value
         end if
       end do
     end do
@@ -1844,13 +1850,13 @@ module mod_rdldtr
     do i = iis, iie
       do j = jjs, jje
         il = 1
-        if ( grid(j,i,kks) >= flagval ) then
+        if ( grid(j,i,kks) == flagval ) then
           findloop: do
             do ii = i - il, i + il
               is = min(max(ii,iis),iie)
               do jj = j - il, j + il
                 js = min(max(jj,jjs),jje)
-                if ( grid(js,is,kks) > h_missing_value ) then
+                if ( grid(js,is,kks) /= flagval ) then
                   jgrid(j,i) = js
                   igrid(j,i) = is
                   exit findloop
@@ -1907,13 +1913,13 @@ module mod_rdldtr
     do i = iis, iie
       do j = jjs, jje
         il = 1
-        if ( grid(j,i,kks,nns) >= flagval ) then
+        if ( grid(j,i,kks,nns) == flagval ) then
           findloop: do
             do ii = i - il, i + il
               is = min(max(ii,iis),iie)
               do jj = j - il, j + il
                 js = min(max(jj,jjs),jje)
-                if ( grid(js,is,kks,nns) > h_missing_value ) then
+                if ( grid(js,is,kks,nns) /= flagval ) then
                   jgrid(j,i) = js
                   igrid(j,i) = is
                   exit findloop
