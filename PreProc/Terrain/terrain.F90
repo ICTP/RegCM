@@ -785,19 +785,15 @@ program terrain
     if ( ibndry ) then
       do j = 1, jx
         topou(j,1) = topou(j,2)
-        topou(j,iy-1) = topou(j,iy-2)
         topou(j,iy) = topou(j,iy-1)
         topov(j,1) = topov(j,2)
-        topov(j,iy-1) = topov(j,iy-2)
         topov(j,iy) = topov(j,iy-1)
       end do
       if ( i_band /= 1 ) then
         do i = 2, iy-1
           topou(1,i) = topou(2,i)
-          topou(jx-1,i) = topou(jx-2,i)
           topou(jx,i) = topou(jx-1,i)
           topov(1,i) = topov(2,i)
-          topov(jx-1,i) = topov(jx-2,i)
           topov(jx,i) = topov(jx-1,i)
         end do
       end if
@@ -936,19 +932,15 @@ program terrain
       if ( ibndry ) then
         do j = 1, jxsg
           topou_s(j,1) = topou_s(j,2)
-          topou_s(j,iysg-1) = topou_s(j,iysg-2)
           topou_s(j,iysg) = topou_s(j,iysg-1)
           topov_s(j,1) = topov_s(j,2)
-          topov_s(j,iysg-1) = topov_s(j,iysg-2)
           topov_s(j,iysg) = topov_s(j,iysg-1)
         end do
         if ( i_band /= 1 ) then
           do i = 2, iysg-1
             topou_s(1,i) = topou_s(2,i)
-            topou_s(jxsg-1,i) = topou_s(jxsg-2,i)
             topou_s(jxsg,i) = topou_s(jxsg-1,i)
             topov_s(1,i) = topov_s(2,i)
-            topov_s(jxsg-1,i) = topov_s(jxsg-2,i)
             topov_s(jxsg,i) = topov_s(jxsg-1,i)
           end do
         end if
