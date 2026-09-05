@@ -756,7 +756,7 @@ module mod_moloch
     real(rkx), intent(in) :: dta
     integer(ik4) :: i, j, k, n
     real(rkx), pointer, contiguous, dimension(:,:,:) :: ptr => null( )
-    real(rkx) :: tanx, tany, dlat
+    real(rkx) :: tanx, tany
 
     !@acc call nvtxStartRange("advection")
 

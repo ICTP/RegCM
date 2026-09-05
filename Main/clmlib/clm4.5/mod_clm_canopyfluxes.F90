@@ -1076,8 +1076,7 @@ module mod_clm_canopyfluxes
    ! Make copies so that array sections are not passed in function
    ! calls to friction velocity
 
-   do concurrent ( f = 1:fn )
-     p = filterp(f)
+   do concurrent ( p = lbp:ubp )
      displa_loc(p) = displa(p)
      z0mv_loc(p) = z0mv(p)
      z0hv_loc(p) = z0hv(p)
@@ -1388,7 +1387,7 @@ module mod_clm_canopyfluxes
 
        if (zeta >= 0._rk8) then     !stable
          zeta = min(2._rk8,max(zeta,0.01_rk8))
-         um(p) = max(ur(p),0.1_rk8)
+         um(p) = ur(p)
        else                     !unstable
          zeta = max(-100._rk8,min(zeta,-0.01_rk8))
          wc = beta*(-grav*ustar(p)*thvstar*zii/thv(c))**0.333_rk8

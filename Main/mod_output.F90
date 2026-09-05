@@ -935,7 +935,7 @@ module mod_output
     end if
 
     if ( srf_stream > 0 ) then
-      if ( ldosrf ) then
+      if ( ldosrf .and. rnsrf_for_srffrq > 0.0_rkx ) then
         srffac = d_one / rnsrf_for_srffrq
         if ( idynamic == 1 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )

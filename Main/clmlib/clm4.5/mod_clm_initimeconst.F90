@@ -500,9 +500,8 @@ module mod_clm_initimeconst
       call clm_readvar(ncid,'mxsoil_color',mxsoil_color)
     end if
 
-    if ( .not. clm_check_var(ncid,'z0') ) then
-      z0mg0 = zlnd
-    else
+    z0mg0(:) = zlnd
+    if ( clm_check_var(ncid,'z0') ) then
       allocate(z0_in(begg:endg))
       call clm_readvar(ncid,'z0',z0_in,gcomm_gridcell)
       do concurrent ( c = begc:endc )

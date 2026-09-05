@@ -545,7 +545,7 @@ module mod_intldtr
     logical, dimension(jx,iy) :: visited
     integer(ik4), dimension(jx*iy,2) :: cnodes
     integer(ik4), parameter :: iminc = 6
-    integer(ik4) :: i, j, icount, npass
+    integer(ik4) :: i, j, icount
 
     visited(:,:) = .false.
     do i = 1, iy

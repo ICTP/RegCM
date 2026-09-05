@@ -1757,6 +1757,7 @@ module mod_rad_radiation
           ! top of the current layer:
           !
           exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
+          if ( exptdn(k,n) < 1.0e-30_rk8 ) exptdn(k,n) = 0.0_rk8
           rdenom = 1.0_rk8/(1.0_rk8 - rdif(k-1,n)*rdndif(k-1,n))
           rdirexp = rdir(k-1,n)*exptdn(k-1,n)
           tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)

@@ -159,6 +159,7 @@ module mod_clm_frictionvelocity
         ustar(n) = vkc*um(n)/(log(obu(n)/z0m(n))+5._rk8-5._rk8*z0m(n)/obu(n) &
               +(5._rk8*log(zeta)+zeta-1._rk8))
       end if
+      ustar(n) = max(0.01_rk8,min(1.8_rk8,ustar(n)))
 
       if (zeta < 0._rk8) then
         vds_tmp = 2.e-3_rk8*ustar(n) * &
@@ -448,10 +449,11 @@ module mod_clm_frictionvelocity
       else if (zeta < 0._rk8) then         ! -1 <= zeta < 0
         ustar(n) = vkc * um(n) / log(zldis/z0m(n))
       else if (zeta <= 1._rk8) then        !  0 <= ztea <= 1
-        ustar(n)=vkc * um(n)/log(zldis/z0m(n))
+        ustar(n) = vkc * um(n)/log(zldis/z0m(n))
       else                             !  1 < zeta, phi=5+zeta
-        ustar(n)=vkc * um(n)/log(obu(n)/z0m(n))
+        ustar(n) = vkc * um(n)/log(obu(n)/z0m(n))
       end if
+      ustar(n) = max(0.01_rk8,min(1.8_rk8,ustar(n)))
 
       ! Calculate a 10-m wind (10m + z0m + d)
       ! For now, this will not be the same as the 10-m wind calculated for
@@ -740,6 +742,7 @@ module mod_clm_frictionvelocity
         ustar(n) = vkc*um(n)/(log(obu(n)/z0m(n))+5._rk8-5._rk8*z0m(n)/obu(n) &
               +(5._rk8*log(zeta)+zeta-1._rk8))
       end if
+      ustar(n) = max(0.01_rk8,min(1.8_rk8,ustar(n)))
 
       if (zeta < 0._rk8) then
         vds_tmp = 2.e-3_rk8*ustar(n) * &
@@ -1024,10 +1027,11 @@ module mod_clm_frictionvelocity
       else if (zeta < 0._rk8) then         ! -1 <= zeta < 0
         ustar(n) = vkc * um(n) / log(zldis/z0m(n))
       else if (zeta <= 1._rk8) then        !  0 <= ztea <= 1
-        ustar(n)=vkc * um(n)/log(zldis/z0m(n))
+        ustar(n) = vkc * um(n)/log(zldis/z0m(n))
       else                             !  1 < zeta, phi=5+zeta
-        ustar(n)=vkc * um(n)/log(obu(n)/z0m(n))
+        ustar(n) = vkc * um(n)/log(obu(n)/z0m(n))
       end if
+      ustar(n) = max(0.01_rk8,min(1.8_rk8,ustar(n)))
 
       ! Calculate a 10-m wind (10m + z0m + d)
       ! For now, this will not be the same as the 10-m wind calculated for
@@ -1251,7 +1255,7 @@ module mod_clm_frictionvelocity
 
     wc = 0.5_rk8
     if ( dthv >= 0._rk8 ) then
-      um = max(ur,0.1_rk8)
+      um = ur
     else
       um = sqrt(ur*ur+wc*wc)
     end if

@@ -400,9 +400,9 @@ module mod_clm_baregroundfluxes
         thvstar = tstar*(1._rk8+0.61_rk8*forc_q(c)) + 0.61_rk8*forc_th(c)*qstar
         zeta = zldis(p)*vkc*grav*thvstar/(ustar(p)**2*thv(c))
 
-        if ( zeta >= 0._rk8 ) then                   !stable
+        if ( zeta >= 0._rk8 ) then                !stable
           zeta = min(2._rk8,max(zeta,0.01_rk8))
-          um(p) = max(ur(p),0.1_rk8)
+          um(p) = ur(p)
         else                                      !unstable
           zeta = max(-100._rk8,min(zeta,-0.01_rk8))
           wc = beta(c)*(-grav*ustar(p)*thvstar*zii(c)/thv(c))**0.333_rk8

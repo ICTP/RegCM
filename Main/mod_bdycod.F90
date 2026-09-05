@@ -164,7 +164,7 @@ module mod_bdycod
 #ifndef RCEMIP
     real(rkx), allocatable, dimension(:) :: g, p, t, u, v, r
     real(rkx), allocatable, dimension(:) :: pi, ui, vi
-    integer(ik4) :: i, nlev
+    integer(ik4) :: nlev
     real(rkx) :: ht
     real(rkx), dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: noise
 

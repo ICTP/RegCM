@@ -764,7 +764,7 @@ module mod_dynparam
     lresamp = .false.
     smthbdy = .false.
     nsmthbdy = 5
-    h2ohgt = .true.
+    h2ohgt = .false.
     h2opct = 50.0_rkx
     roidem = 0.5_rkx*sqrt(2.0_rkx)
     ismthlev = 1
@@ -909,7 +909,7 @@ module mod_dynparam
     ! Initialize random number generator which may be needed by any program
     call random_seed(size=nseed)
     allocate(seed(nseed))
-    seed(:) = regcm_magick + 37*[(i-1,i=1,nseed)]
+    seed(:) = regcm_magick + myid*jx*iy + 37*[(i-1,i=1,nseed)]
     call random_seed(put=seed)
     deallocate(seed)
   end subroutine init_random_number_generator

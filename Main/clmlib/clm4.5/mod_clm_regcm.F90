@@ -502,7 +502,7 @@ module mod_clm_regcm
     ! Compute or alias
     !these kernels cause illegal memory access
     !!!$acc kernels
-    clm_a2l%forc_wind = max(sqrt(clm_a2l%forc_u**2+clm_a2l%forc_v**2),0.1_rk8)
+    clm_a2l%forc_wind = max(sqrt(clm_a2l%forc_u**2+clm_a2l%forc_v**2),1.0_rk8)
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
