@@ -375,9 +375,15 @@ module mod_cmip6_mpihr
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
         y = (year / 5) * 5
-        write(v%filename,'(a,i4,a,i4,a)') &
-          trim(cmip6_path(y,'Oday',mpihr_version,v%vname)), &
-          y, '0101-', y+4, '1231.nc'
+        if ( y == 2100 ) then
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'Oday',mpihr_version,v%vname)), &
+            y, '0101-', y, '1231.nc'
+        else
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'Oday',mpihr_version,v%vname)), &
+            y, '0101-', y+4, '1231.nc'
+       end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
