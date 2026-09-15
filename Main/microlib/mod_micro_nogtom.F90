@@ -625,7 +625,7 @@ module mod_micro_nogtom
     !
     ! Loop over points
     !
-#ifdef STDPAR
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(fallsrce,fallsink,convsrce,vqx,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
       rsp1,rsp2,rsp3,isp1,dum)
@@ -1756,7 +1756,7 @@ module mod_micro_nogtom
           end if
         end do
       end do  ! kz : end of vertical loop
-#ifndef STDPAR
+#ifndef STDPAR_FIXED
       end do
 #endif
     end do      ! jx, iy : end of latitude-longitude loop
