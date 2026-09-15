@@ -1051,6 +1051,9 @@ module mod_ncio
     if ( idynamic == 2 ) then
       icbc_prefetch_required_bytes = icbc_prefetch_required_bytes + &
         2_c_int64_t*aligned_icbc_bytes(n3) + aligned_icbc_bytes(n2)
+    else if ( idynamic == 3 ) then
+      icbc_prefetch_required_bytes = icbc_prefetch_required_bytes + &
+        aligned_icbc_bytes(n3)
     end if
   end function icbc_prefetch_required_bytes
 
