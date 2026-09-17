@@ -380,8 +380,8 @@ module mod_params
     ncld      = 1          ! # of bottom model levels with no clouds (rad only)
     rhmax     = 1.00_rkx   ! RH at whicn FCC = 1.0
     rhmin     = 0.01_rkx   ! RH min value
-    rh0land   = 0.90_rkx   ! Relative humidity threshold for land at surface
-    rh0oce    = 0.90_rkx   ! Relative humidity threshold for ocean at surface
+    rh0land   = 0.85_rkx   ! Relative humidity threshold for land at surface
+    rh0oce    = 0.85_rkx   ! Relative humidity threshold for ocean at surface
     tc0       = 238.0_rkx  ! Below this temp, rh0 begins to approach unity
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.60_rkx   ! Max cloud fractional cover for convective precip.
