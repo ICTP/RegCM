@@ -399,7 +399,6 @@ module mod_micro_nogtom
     real(rkx), dimension(mxqx) :: rsp2
     real(rkx), dimension(mxqx) :: rsp3
     integer(ik4), dimension(mxqx) :: isp1
-    real(rkx), dimension(1) :: dum
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
@@ -628,14 +627,21 @@ module mod_micro_nogtom
 #ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(fallsrce,fallsink,convsrce,vqx,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
-      rsp1,rsp2,rsp3,isp1,dum)
+      rsp1,rsp2,rsp3,isp1)
 #else
     !$acc parallel loop collapse(2) gang vector &
     !$acc     private(fallsrce,fallsink,convsrce,vqx,qlhs,qsexp,qsimp, &
-    !$acc             qx0,qxfg,qxn,rsp1,rsp2,rsp3,isp1,dum)
+    !$acc             qx0,qxfg,qxn,rsp1,rsp2,rsp3,isp1)
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
+      ! VQX is private to each horizontal column. Seed every private copy
+      ! explicitly because PRIVATE does not inherit the module initialization.
+      vqx(iqqv) = d_zero
+      vqx(iqql) = d_zero
+      vqx(iqqi) = vfqi
+      vqx(iqqr) = vfqr
+      vqx(iqqs) = vfqs
       pbot = pf(kzp1,j,i)
       covptot = d_zero
       covpclr = d_zero
@@ -1727,7 +1733,8 @@ module mod_micro_nogtom
           qxn(n) = qx0(n) + rexplicit
         end do
 
-        call solver(nqx,qlhs,qxn,rsp1,rsp2,rsp3,isp1,dum)
+        rsp1(1:nqx) = qxn(1:nqx)
+        call nnls(nqx,qlhs,rsp1,qxn,rsp2,rsp3,isp1)
 
         !---------------------------------------------------------
         ! End solver for the microphysics: qxn is now the solution
@@ -1779,6 +1786,7 @@ module mod_micro_nogtom
         mc2mo%tten(j,i,k) = ttendc(k,j,i)*mo2mc%psb(j,i)
       end do
     end if
+
     !
     !-------------------------------------
     ! Final enthalpy and total water diagnostics
@@ -2042,19 +2050,18 @@ module mod_micro_nogtom
  !   end do
  ! end function argsort
 
-  pure subroutine solver(n,lhs,rhs,rsp1,rsp2,rsp3,isp1,dum)
+  pure subroutine solver(n,lhs,rhs,rsp1,rsp2,rsp3,isp1)
     !$acc routine seq
     implicit none
     integer, intent(in) :: n
-    real(rkx), dimension(n,n), intent(inout) :: lhs
-    real(rkx), dimension(n), intent(inout) :: rhs
-    real(rkx), dimension(n), intent(inout) :: rsp1
-    real(rkx), dimension(n), intent(inout) :: rsp2
-    real(rkx), dimension(n), intent(inout) :: rsp3
-    integer(ik4), dimension(n), intent(out) :: isp1
-    real(rkx), dimension(1), intent(out) :: dum
-    rsp1(1:n) = rhs
-    call nnls(n, lhs, rsp1, rhs, rsp2, rsp3, isp1, dum)
+    real(rkx), dimension(mxqx,mxqx), intent(inout) :: lhs
+    real(rkx), dimension(mxqx), intent(inout) :: rhs
+    real(rkx), dimension(mxqx), intent(inout) :: rsp1
+    real(rkx), dimension(mxqx), intent(inout) :: rsp2
+    real(rkx), dimension(mxqx), intent(inout) :: rsp3
+    integer(ik4), dimension(mxqx), intent(out) :: isp1
+    rsp1(1:n) = rhs(1:n)
+    call nnls(n, lhs, rsp1, rhs, rsp2, rsp3, isp1)
   end subroutine solver
   !
   !  The original version of this code was developed by
@@ -2093,19 +2100,18 @@ module mod_micro_nogtom
   !              IZ1 = NSETP + 1 = NPP1
   !              IZ2 = N
   !  ------------------------------------------------------------------
-  pure subroutine nnls (n, a, b, x, w, zz, indx, dummy)
+  pure subroutine nnls (n, a, b, x, w, zz, indx)
     !$acc routine seq
     implicit none
     integer(ik4), intent(in) :: n
-    real(rkx), intent(inout), dimension(n,n) :: a
-    real(rkx), intent(inout), dimension(n) :: b
-    real(rkx), intent(out), dimension(n) :: x, w, zz
-    integer(ik4), intent(out), dimension(n) :: indx
-    real(rkx), intent(out), dimension(1) :: dummy
-
+    real(rkx), intent(inout), dimension(mxqx,mxqx) :: a
+    real(rkx), intent(inout), dimension(mxqx) :: b
+    real(rkx), intent(out), dimension(mxqx) :: x, w, zz
+    integer(ik4), intent(out), dimension(mxqx) :: indx
     integer(ik4) :: i, ii, ip, iter, itmax, iz, iz1, iz2, izmax,   &
-                    j, jj, jz, l, mda, npp1, nsetp
+                    j, jj, jz, l, npp1, nsetp
     real(rkx) :: alpha, asave, cc, ss, t, temp, unorm, up, wmax, ztest
+    real(rkx) :: h_b, h_cl, h_clinv, h_sm
     real(rkx), parameter :: factor = 0.01_rkx
 
     iter = 0
@@ -2130,7 +2136,10 @@ module mod_micro_nogtom
 
     do iz = iz1, iz2
       j = indx(iz)
-      w(j) = dot_product(a(npp1:n,j), b(npp1:n))
+      w(j) = d_zero
+      do i = npp1, n
+        w(j) = w(j) + a(i,j)*b(i)
+      end do
     end do
     !                               FIND LARGEST POSITIVE W(J).
 60  wmax = d_zero
@@ -2154,10 +2163,30 @@ module mod_micro_nogtom
     ! NEAR LINEAR DEPENDENCE.
 
     asave = a(npp1,j)
-    call h12(1, npp1, npp1+1, n, n, 1, a(:,j), dummy, up, 1, 1, 0)
+    ! Specialized inline H1 construction.  The original H12 call used
+    ! dummy(1) with NCV=0, so no C vector is involved in this operation.
+    if ( npp1+1 <= n ) then
+      h_cl = abs(a(npp1,j))
+      do i = npp1+1, n
+        h_cl = max(abs(a(i,j)),h_cl)
+      end do
+      if ( h_cl > d_zero ) then
+        h_clinv = d_one/h_cl
+        h_sm = (a(npp1,j)*h_clinv)**2
+        do i = npp1+1, n
+          h_sm = h_sm + (a(i,j)*h_clinv)**2
+        end do
+        h_cl = h_cl*sqrt(h_sm)
+        if ( a(npp1,j) > d_zero ) h_cl = -h_cl
+        up = a(npp1,j) - h_cl
+        a(npp1,j) = h_cl
+      end if
+    end if
     unorm = d_zero
     if ( nsetp /= 0 ) then
-      unorm = sum( a(1:nsetp,j)**2 )
+      do i = 1, nsetp
+        unorm = unorm + a(i,j)*a(i,j)
+      end do
     end if
     unorm = sqrt(unorm)
     if ( unorm + abs(a(npp1,j))*factor - unorm > d_zero ) then
@@ -2166,7 +2195,27 @@ module mod_micro_nogtom
       ! AND SOLVE FOR ZTEST ( = PROPOSED NEW VALUE FOR X(J) ).
 
       zz(1:n) = b(1:n)
-      call h12(2, npp1, npp1+1, n, n, n, a(:,j), zz, up, 1, 1, 1)
+      ! Specialized inline H2 application to ZZ.
+      if ( npp1+1 <= n ) then
+        h_cl = abs(a(npp1,j))
+        if ( h_cl > d_zero ) then
+          h_b = up*a(npp1,j)
+          if ( h_b < d_zero ) then
+            h_b = d_one/h_b
+            h_sm = zz(npp1)*up
+            do i = npp1+1, n
+              h_sm = h_sm + zz(i)*a(i,j)
+            end do
+            if ( h_sm /= d_zero ) then
+              h_sm = h_sm*h_b
+              zz(npp1) = zz(npp1) + h_sm*up
+              do i = npp1+1, n
+                zz(i) = zz(i) + h_sm*a(i,j)
+              end do
+            end if
+          end if
+        end if
+      end if
       ztest = zz(npp1)/a(npp1,j)
       !                                 SEE IF ZTEST IS POSITIVE
       if ( ztest > d_zero ) goto 140
@@ -2193,11 +2242,30 @@ module mod_micro_nogtom
     nsetp = npp1
     npp1 = npp1+1
 
-    mda = size(a,1)
     if ( iz1 <= iz2 ) then
       do jz = iz1, iz2
         jj = indx(jz)
-        call h12(2, nsetp, npp1, n, n, n, a(:,j), a(:,jj), up, 1, mda, 1)
+        ! Specialized inline H2 application to column JJ of A.
+        if ( npp1 <= n ) then
+          h_cl = abs(a(nsetp,j))
+          if ( h_cl > d_zero ) then
+            h_b = up*a(nsetp,j)
+            if ( h_b < d_zero ) then
+              h_b = d_one/h_b
+              h_sm = a(nsetp,jj)*up
+              do i = npp1, n
+                h_sm = h_sm + a(i,jj)*a(i,j)
+              end do
+              if ( h_sm /= d_zero ) then
+                h_sm = h_sm*h_b
+                a(nsetp,jj) = a(nsetp,jj) + h_sm*up
+                do i = npp1, n
+                  a(i,jj) = a(i,jj) + h_sm*a(i,j)
+                end do
+              end if
+            end if
+          end if
+        end if
       end do
     end if
 
@@ -2255,7 +2323,8 @@ module mod_micro_nogtom
       do j = jj, nsetp
         ii = indx(j)
         indx(j-1) = ii
-        call g1(a(j-1,ii), a(j,ii), cc, ss, a(j-1,ii))
+        call g1(a(j-1,ii), a(j,ii), cc, ss, temp)
+        a(j-1,ii) = temp
         a(j,ii) = d_zero
         do l = 1, n
           if ( l /= ii ) then
@@ -2321,14 +2390,18 @@ module mod_micro_nogtom
     !$acc routine seq
     implicit none
     integer(ik4), intent(in) :: n
-    real(rkx), dimension(n), intent(inout) :: zz
-    real(rkx), dimension(n,n), intent(in) :: a
-    integer(ik4), dimension(n), intent(in) :: indx
+    real(rkx), dimension(mxqx), intent(inout) :: zz
+    real(rkx), dimension(mxqx,mxqx), intent(in) :: a
+    integer(ik4), dimension(mxqx), intent(in) :: indx
     integer(ik4), intent(in) :: nsetp
-    integer(ik4) :: l, ip, jj
+    integer(ik4) :: i, l, ip, jj
     do l = 1, nsetp
       ip = nsetp+1-l
-      if ( l /= 1 ) zz(1:ip) = zz(1:ip) - a(1:ip,jj)*zz(ip+1)
+      if ( l /= 1 ) then
+        do i = 1, ip
+          zz(i) = zz(i) - a(i,jj)*zz(ip+1)
+        end do
+      end if
       jj = indx(ip)
       zz(ip) = zz(ip) / a(ip,jj)
     end do
@@ -2414,7 +2487,10 @@ module mod_micro_nogtom
       end do
       if ( cl <= 0 ) return
       clinv = d_one / cl
-      sm = (u(lpivot)*clinv) ** 2 + sum( (u(l1:m)*clinv)**2 )
+      sm = (u(lpivot)*clinv) ** 2
+      do i = l1, m
+        sm = sm + (u(i)*clinv) ** 2
+      end do
       cl = cl * sqrt(sm)
       if ( u(lpivot) > 0 ) then
         cl = -cl
