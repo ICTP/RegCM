@@ -3897,38 +3897,30 @@ module mod_bdycod
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
     integer(ik4) :: i, j, k, l
 
-    do k = 1, 2*km
-      do i = i1, i2
-        sx(i,k) = 0.0_rkx
-        do j = jj1, jj2
-          sx(i,k) = sx(i,k) + f(j,i)*bvx(j,k)
-        end do
+    do concurrent ( i = i1:i2, k = 1:2*km )
+      sx(i,k) = 0.0_rkx
+      do j = jj1, jj2
+        sx(i,k) = sx(i,k) + f(j,i)*bvx(j,k)
       end do
     end do
     call row_reduce(sx,sxg,i1,i2)
-    f(:,:) = 0.0_rkx
-    do k = 1, 2*km
-      do i = i1, i2
-        do j = j1, j2
-          f(j,i) = f(j,i) + sxg(i,k)*bvx(j,k)
-        end do
+    do concurrent ( j = j1:j2, i = i1:i2 )
+      f(j,i) = 0.0_rkx
+      do k = 1, 2*km
+        f(j,i) = f(j,i) + sxg(i,k)*bvx(j,k)
       end do
     end do
-    do l = 1, 2*lm
-      do j = j1, j2
-        sy(j,l) = 0.
-        do i = ii1, ii2
-          sy(j,l) = sy(j,l) + f(j,i)*bvy(i,l)
-        end do
+    do concurrent ( j = j1:j2, l = 1:2*lm )
+      sy(j,l) = 0.0_rkx
+      do i = ii1, ii2
+        sy(j,l) = sy(j,l) + f(j,i)*bvy(i,l)
       end do
     end do
     call column_reduce(sy,syg,j1,j2)
-    f(:,:) = 0.0_rkx
-    do l = 1, 2*lm
-      do i = i1, i2
-        do j = j1, j2
-          f(j,i) = f(j,i) + syg(j,l)*bvy(i,l)
-        end do
+    do concurrent ( j = j1:j2, i = i1:i2 )
+      f(j,i) = 0.0_rkx
+      do l = 1, 2*lm
+        f(j,i) = f(j,i) + syg(j,l)*bvy(i,l)
       end do
     end do
   end subroutine lowpass_filter
