@@ -508,6 +508,9 @@ module mod_dynparam
 
   public :: initparam, init_fnestparam, init_globwindow
   public :: init_random_number_generator
+#ifdef OPENACC
+  public :: init_gpu_random_number_generator
+#endif
 
   contains
 
@@ -913,6 +916,38 @@ module mod_dynparam
     call random_seed(put=seed)
     deallocate(seed)
   end subroutine init_random_number_generator
+
+#ifdef OPENACC
+  subroutine init_gpu_random_number_generator
+    use curand, only : curandGenerator, curandCreateGenerator, &
+                      curandSetPseudoRandomGeneratorSeed, &
+                      CURAND_RNG_PSEUDO_XORWOW, CURAND_STATUS_SUCCESS
+    use cutensorex, only : curandExSetCurandGenerator
+    implicit none
+    type(curandGenerator) :: generator
+    integer(ik8) :: seed
+    integer(ik4) :: istat
+
+    ! Seed the generator used by the cutensorex RANDOM_NUMBER overload.
+    ! This is separate from the Fortran intrinsic generator seeded above.
+    seed = int(regcm_magick,ik8) + int(myid,ik8)*int(jx,ik8)*int(iy,ik8)
+    istat = curandCreateGenerator(generator,CURAND_RNG_PSEUDO_XORWOW)
+    if ( istat /= CURAND_STATUS_SUCCESS ) then
+      write(stderr,*) 'Unable to create GPU random number generator: ',istat
+      stop 1
+    end if
+    istat = curandSetPseudoRandomGeneratorSeed(generator,seed)
+    if ( istat /= CURAND_STATUS_SUCCESS ) then
+      write(stderr,*) 'Unable to seed GPU random number generator: ',istat
+      stop 1
+    end if
+    istat = curandExSetCurandGenerator(generator)
+    if ( istat /= CURAND_STATUS_SUCCESS ) then
+      write(stderr,*) 'Unable to register GPU random number generator: ',istat
+      stop 1
+    end if
+  end subroutine init_gpu_random_number_generator
+#endif
 
   subroutine init_fnestparam(filename,coarse_outdir,coarse_domname)
     implicit none

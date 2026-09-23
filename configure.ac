@@ -860,30 +860,30 @@ fi
 
 if test -z "$COMPILER_PGI_TRUE"; then
   if eval "test x"$USE_OPENACC" = x1"; then
-    FCFLAGS="$FCFLAGS -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
-    NOOPTFC="$NOOPTFC -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
-    LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx,cusparse"
+    FCFLAGS="$FCFLAGS -acc=gpu -cuda -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
+    NOOPTFC="$NOOPTFC -acc=gpu -cuda -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
+    LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx,cusparse,curand"
   fi
   if eval "test x"$USE_OPENACC" = x2"; then
-    FCFLAGS="$NOOPTFC -acc=gpu \
+    FCFLAGS="$NOOPTFC -acc=gpu -cuda \
         -gpu="${PGI_GPU_ARCH}",autocompare -Minfo=accel"
-    NOOPTFC="$NOOPTFC -acc=gpu \
+    NOOPTFC="$NOOPTFC -acc=gpu -cuda \
         -gpu="${PGI_GPU_ARCH}",autocompare -Minfo=accel"
-    LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx,cusparse"
+    LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx,cusparse,curand"
   fi
   if eval "test x"$USE_OPENACC" = x3"; then
-    FCFLAGS="$FCFLAGS -acc=gpu \
+    FCFLAGS="$FCFLAGS -acc=gpu -cuda \
         -gpu=$PGI_GPU_ARCH,lineinfo,mem:managed -Minfo=accel"
-    NOOPTFC="$NOOPTFC -acc=gpu \
+    NOOPTFC="$NOOPTFC -acc=gpu -cuda \
         -gpu=$PGI_GPU_ARCH,lineinfo,mem:managed -Minfo=accel"
-    LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx,cusparse"
+    LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx,cusparse,curand"
   fi
   if eval "test x"$USE_OPENACC" = x4"; then
-    FCFLAGS="$FCFLAGS -stdpar=gpu \
+    FCFLAGS="$FCFLAGS -stdpar=gpu -cuda \
         -gpu=$PGI_GPU_ARCH,lineinfo,mem:unified -Minfo=accel"
-    NOOPTFC="$NOOPTFC -stdpar=gpu \
+    NOOPTFC="$NOOPTFC -stdpar=gpu -cuda \
         -gpu=$PGI_GPU_ARCH,lineinfo,mem:unified -Minfo=accel"
-    LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx,cusparse"
+    LDFLAGS="$LDFLAGS -traceback -cudalib=nvtx,cusparse,curand"
   fi
   AC_SUBST(FCFLAGS)
   AC_SUBST(NOOPTFC)

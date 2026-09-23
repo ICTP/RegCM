@@ -136,6 +136,9 @@ module mod_regcm_interface
     end if
 
     call broadcast_params
+#ifdef OPENACC
+    call init_gpu_random_number_generator( )
+#endif
 
     call memory_init
 

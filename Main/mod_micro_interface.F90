@@ -51,6 +51,9 @@ module mod_micro_interface
   ! rh0adj - Adjusted relative humidity threshold
   real(rkx), pointer, contiguous, dimension(:,:) :: rh0 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rhcrit => null( )
+#ifdef OPENACC
+  attributes(managed) :: rhcrit
+#endif
   real(rkx), pointer, contiguous, dimension(:,:,:) :: totc => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rh0adj => null( )
 
