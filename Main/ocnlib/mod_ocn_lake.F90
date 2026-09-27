@@ -233,7 +233,7 @@ module mod_ocn_lake
       tl = tatm(i)
       tc = tl - tzero
       sold = sncv(i)
-      vl = sqrt(usw(i)**2+vsw(i)**2)
+      vl = max(sqrt(usw(i)**2+vsw(i)**2),0.5_rkx)
       zl = ht(i)
       qs = qv(i)/(1.0_rkx+qv(i))
       fswx = rswf(i)
