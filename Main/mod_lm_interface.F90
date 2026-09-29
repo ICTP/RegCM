@@ -635,6 +635,10 @@ module mod_lm_interface
     implicit none
     type(exp_data), intent(inout) :: expfie
     integer(ik4) :: j, i
+    real(rkx), parameter :: minwind = 0.5_rkx
+    real(rkx), parameter :: minwindcp = minwind*rsqrt2
+    real(rkx), parameter :: minstress = 0.004_rkx*rsqrt2
+    real(rkx), parameter :: minustar = 2.0E-3_rkx
 
     if ( .not. associated(expfie%psfc) ) then
       call fatal(__FILE__,__LINE__, &
@@ -656,14 +660,36 @@ module mod_lm_interface
       expfie%wndv(j,i) = lm%v10m(j,i)
       expfie%taux(j,i) = sum(lms%taux(:,j,i))*rdnnsg
       expfie%tauy(j,i) = sum(lms%tauy(:,j,i))*rdnnsg
+      ! Ensure wind at least approx 0.5 m/s
+      if ( expfie%wndu(j,i) >= 0.0_rkx ) then
+        expfie%wndu(j,i) = max(expfie%wndu(j,i),minwindcp)
+      else
+        expfie%wndu(j,i) = min(expfie%wndu(j,i),-minwindcp)
+      end if
+      if ( expfie%wndv(j,i) >= 0.0_rkx ) then
+        expfie%wndv(j,i) = max(expfie%wndv(j,i),minwindcp)
+      else
+        expfie%wndv(j,i) = min(expfie%wndv(j,i),-minwindcp)
+      end if
+      if ( expfie%taux(j,i) >= 0.0_rkx ) then
+        expfie%taux(j,i) = max(expfie%taux(j,i),minstress)
+      else
+        expfie%taux(j,i) = min(expfie%taux(j,i),-minstress)
+      end if
+      if ( expfie%tauy(j,i) >= 0.0_rkx ) then
+        expfie%tauy(j,i) = max(expfie%tauy(j,i),minstress)
+      else
+        expfie%tauy(j,i) = min(expfie%tauy(j,i),-minstress)
+      end if
       expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
       expfie%snow(j,i) = sum(lms%sncv(:,j,i))*rdnnsg
-      expfie%wspd(j,i) = sqrt(expfie%wndu(j,i)**2+expfie%wndv(j,i)**2)
+      expfie%wspd(j,i) = max(sqrt(expfie%wndu(j,i)**2 + &
+                                  expfie%wndv(j,i)**2), minwind)
       expfie%wdir(j,i) = atan2(expfie%wndu(j,i), expfie%wndv(j,i))
       if (expfie%wdir(j,i) < d_zero) then
         expfie%wdir(j,i) = expfie%wdir(j,i)+twopi
       end if
-      expfie%ustr(j,i) = sum(lms%ustar(:,j,i))*rdnnsg
+      expfie%ustr(j,i) = max(sum(lms%ustar(:,j,i))*rdnnsg,minustar)
       expfie%nflx(j,i) = lm%rswf(j,i) - expfie%lhfx(j,i) - &
                          expfie%shfx(j,i) - lm%rlwf(j,i)
       expfie%rnof(j,i) = lm%dtrnof(j,i)
