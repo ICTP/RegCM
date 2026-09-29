@@ -123,7 +123,7 @@ module mod_ocn_bats
         if ( tgrd(i) >= tgb(i) ) tgrd(i) = 0.5_rkx*(tatm(i)+tgb(i))
       end if
 
-      uv995 = max(sqrt(usw(i)**2+vsw(i)**2),wtur)
+      uv995 = max(sqrt(usw(i)**2+vsw(i)**2),0.5_rkx)
 
       ! Update Snow Cover
       delt = tatm(i) - tgrd(i)

@@ -79,7 +79,7 @@ module mod_ocn_coare
         ts = tgrd(i) - tzero
         ! comes from coupled model
         us = 0.0_rkx ! current speed
-        uv995 = sqrt(usw(i)**2+vsw(i)**2)
+        uv995 = max(sqrt(usw(i)**2+vsw(i)**2),0.5_rkx)
         t995 = tatm(i)-tzero
         q995 = qv(i)/(1.0_rkx+qv(i))
         z995 = ht(i)
@@ -117,7 +117,8 @@ module mod_ocn_coare
         else if (uv995 > 18_rkx) then
           charnock = 0.018_rkx
         else
-          charnock = 0.011_rkx + (0.018_rkx - 0.011_rkx)*(uv995 - 10_rkx)/(18_rkx - 10_rkx)
+          charnock = 0.011_rkx + &
+            (0.018_rkx - 0.011_rkx)*(uv995 - 10_rkx)/(18_rkx - 10_rkx)
         end if
         !
         !-----------------------------------------------------

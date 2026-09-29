@@ -56,7 +56,7 @@ module mod_ocn_zeng
 
   real(rkx), parameter :: zetat = 0.465_rkx
   real(rkx), parameter :: zetam = 1.574_rkx
-  real(rkx), parameter :: minw = 0.01_rkx
+  real(rkx), parameter :: minw = 0.5_rkx
 
   real(rkx), parameter :: missing_r8 = 1.0e20_rkx
   real(rkx), parameter :: tol = missing_r8/2.0_rkx
