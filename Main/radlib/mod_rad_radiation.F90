@@ -4385,8 +4385,8 @@ module mod_rad_radiation
     real(rk8), dimension(kz,n1:n2), intent(in) :: h2ommr, tnm
     real(rk8), dimension(kz,n1:n2), intent(in) :: pbr, pmln, o3vmr
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: piln, pnm
-    real(rk8), dimension(kzp1,n1:n2), intent(in) :: cfc11, cfc12
-    real(rk8), dimension(kzp1,n1:n2), intent(in) :: ch4, n2o
+    real(rk8), dimension(kz,n1:n2), intent(in) :: cfc11, cfc12
+    real(rk8), dimension(kz,n1:n2), intent(in) :: ch4, n2o
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: cld, plco2, plh2o
     real(rk8), dimension(kzp1,n1:n2), intent(inout) :: tclrsf
     real(rk8), dimension(n1:n2), intent(out) :: flns, flnsc, flnt
@@ -4969,7 +4969,8 @@ module mod_rad_radiation
     integer(ik4), intent(in) :: iyear, imonth
     type(radtype), intent(inout) :: rt
     integer(ik4) :: n
-    integer(ik4) :: k
+    integer(ik4) :: k, batch_first, batch_last
+    integer(ik4), parameter :: radclw_batch_columns = 16384
     ! Mass mixing ratios
     ! cfc1immr  - cfc11 mass mixing ratio
     ! cfc12mmr  - cfc12 mass mixing ratio
@@ -5142,12 +5143,45 @@ module mod_rad_radiation
           end if
         end do
       end do
-      call radclw(rt%n1,rt%n2,rt%labsem,rt%ts,rt%emiss,rt%t,rt%q,   &
-                  co2vmr,co2mmr,rt%o3vmr,pbr,pnm,rt%pmln,rt%piln,   &
-                  n2o,ch4,cfc11,cfc12,rt%effcld,plco2,plh2o,tclrsf, &
-                  rt%flns,rt%flnt,rt%lwout,rt%lwin,rt%flnsc,        &
-                  rt%flntc,rt%flwds,fslwdcs,rt%aerlwfo,rt%aerlwfos, &
-                  rt%absgasnxt,rt%absgastot,rt%emsgastot,rt%qrl)
+      ! Limit the three (kzp1,kzp1,ncol) scratch arrays in radclw.
+      ! Retain global column indices for accesses to module arrays.
+      do batch_first = rt%n1, rt%n2, radclw_batch_columns
+        batch_last = min(batch_first+radclw_batch_columns-1, rt%n2)
+        call radclw(batch_first,batch_last,rt%labsem, &
+                    rt%ts(batch_first:batch_last), &
+                    rt%emiss(batch_first:batch_last), &
+                    rt%t(:,batch_first:batch_last), &
+                    rt%q(:,batch_first:batch_last), &
+                    co2vmr(batch_first:batch_last), &
+                    co2mmr(batch_first:batch_last), &
+                    rt%o3vmr(:,batch_first:batch_last), &
+                    pbr(:,batch_first:batch_last), &
+                    pnm(:,batch_first:batch_last), &
+                    rt%pmln(:,batch_first:batch_last), &
+                    rt%piln(:,batch_first:batch_last), &
+                    n2o(:,batch_first:batch_last), &
+                    ch4(:,batch_first:batch_last), &
+                    cfc11(:,batch_first:batch_last), &
+                    cfc12(:,batch_first:batch_last), &
+                    rt%effcld(:,batch_first:batch_last), &
+                    plco2(:,batch_first:batch_last), &
+                    plh2o(:,batch_first:batch_last), &
+                    tclrsf(:,batch_first:batch_last), &
+                    rt%flns(batch_first:batch_last), &
+                    rt%flnt(batch_first:batch_last), &
+                    rt%lwout(batch_first:batch_last), &
+                    rt%lwin(batch_first:batch_last), &
+                    rt%flnsc(batch_first:batch_last), &
+                    rt%flntc(batch_first:batch_last), &
+                    rt%flwds(batch_first:batch_last), &
+                    fslwdcs(batch_first:batch_last), &
+                    rt%aerlwfo(batch_first:batch_last), &
+                    rt%aerlwfos(batch_first:batch_last), &
+                    rt%absgasnxt(:,:,batch_first:batch_last), &
+                    rt%absgastot(:,:,batch_first:batch_last), &
+                    rt%emsgastot(:,batch_first:batch_last), &
+                    rt%qrl(:,batch_first:batch_last))
+      end do
       !
       ! Convert units of longwave fields needed by rest of model from CGS to MKS
       !
