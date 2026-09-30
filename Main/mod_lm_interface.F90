@@ -80,7 +80,6 @@ module mod_lm_interface
 #endif
 
   real(rkx), pointer, contiguous, dimension(:,:) :: slp => null( )
-  real(rkx), pointer, contiguous, dimension(:,:) :: sfp => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: slp1 => null( )
 
   type(lm_exchange) :: lm
@@ -245,9 +244,8 @@ module mod_lm_interface
       call getmem(lms%tskin,1,nnsg,jci1,jci2,ici1,ici2,'sst:tskin')
       call getmem(lms%sst,1,nnsg,jci1,jci2,ici1,ici2,'sst:sst')
     end if
-    call getmem(sfp,jce1ga,jce2ga,ice1ga,ice2ga,'lm:sfp')
     call getmem(slp,jce1ga,jce2ga,ice1ga,ice2ga,'lm:slp')
-    call getmem(slp1,jce1ga,jce2ga,ice1ga,ice2ga,'lm:slp1')
+    call getmem(slp1,jce1,jce2,ice1,ice2,'lm:slp1')
   end subroutine allocate_surface_model
 
   subroutine init_surface_model
@@ -1894,9 +1892,23 @@ module mod_lm_interface
     integer(ik4), parameter :: niter = 20
     real(rkx), dimension(jci1:jci2,ici1:ici2) :: mask
     real(rkx), parameter :: alpha = lrate*rgas/egrav
-    real(rkx) :: mval, mall, themin, themax
+    real(rkx) :: maxv, minv, mval, themin, themax
     real(rkx) :: tstar, hstar, raval
 
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+      slp(j,i) = lm%sfps(j,i)
+    end do
+    themin = minval(slp(jce1:jce2,ice1:ice2))
+    themax = maxval(slp(jce1:jce2,ice1:ice2))
+    call minall(themin,minv)
+    call maxall(themax,maxv)
+    mval = (d_half*(maxv-minv))
+    call exchange(slp,1,jce1,jce2,ice1,ice2)
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      mask(j,i) = (slp(j,i-1)+slp(j,i+1) + &
+                   slp(j-1,i)+slp(j+1,i) - &
+                   4.0_rkx*slp(j,i))/mval
+    end do
     ! Follow Kallen 1996
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       tstar = lm%tatm(j,i)
@@ -1907,53 +1919,40 @@ module mod_lm_interface
       end if
       hstar = lm%ht(j,i)/(rgas*tstar)
       raval = d_half*alpha*hstar
-      slp(j,i) = lm%sfps(j,i) * &
+      slp(j,i) = slp(j,i) * &
            exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
     end do
-    ! Gauss Siedel Filtering
-    themin = minval(lm%sfps(jce1:jce2,ice1:ice2))
-    themax = maxval(lm%sfps(jce1:jce2,ice1:ice2))
-    mval = (d_half*(themax-themin))/real(nproc,rkx)
-    call sumall(mval,mall)
-    sfp(jce1:jce2,ice1:ice2) = lm%sfps(jce1:jce2,ice1:ice2)
-    call exchange(slp,1,jce1,jce2,ice1,ice2)
-    call exchange(sfp,1,jce1,jce2,ice1,ice2)
-    slp1 = slp
-    mask = d_zero
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      mask(j,i) = (sfp(j,i-1)+sfp(j,i+1) + &
-                   sfp(j-1,i)+sfp(j+1,i) - &
-                   4.0_rkx*sfp(j,i))/mall
-    end do
+    ! Jacobi Filtering
     do n = 1, niter
-      do i = ici1, ici2
-        do j = jci1, jci2
-          slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
-                               slp1(j-1,i)+slp(j+1,i)-mask(j,i))
-        end do
+      call exchange(slp,1,jce1,jce2,ice1,ice2)
+      do concurrent( j =jci1:jci2, i = ici1:ici2 )
+        slp1(j,i) = d_rfour*(slp(j,i-1)+slp(j,i+1) + &
+                             slp(j-1,i)+slp(j+1,i)-mask(j,i))
       end do
       if ( ma%has_bdyleft ) then
-        do i = ici1, ici2
+        do concurrent ( i = ici1:ici2 )
           slp1(jce1,i) = slp1(jci1,i)
         end do
       end if
       if ( ma%has_bdyright ) then
-        do i = ici1, ici2
+        do concurrent ( i = ici1:ici2 )
           slp1(jce2,i) = slp1(jci2,i)
         end do
       end if
       if ( ma%has_bdybottom ) then
-        do j = jce1, jce2
+        do concurrent ( j = jce1:jce2 )
           slp1(j,ice1) = slp1(j,ici1)
         end do
       end if
       if ( ma%has_bdytop ) then
-        do j = jce1, jce2
+        do concurrent ( j = jce1:jce2 )
           slp1(j,ice2) = slp1(j,ici2)
         end do
       end if
-      call exchange(slp1,1,jce1,jce2,ice1,ice2)
-      slp(:,:) = slp1
+      ! update
+      do concurrent( j =jce1:jce2, i = ice1:ice2 )
+        slp(j,i) = slp1(j,i)
+      end do
     end do
   end subroutine mslp
 
