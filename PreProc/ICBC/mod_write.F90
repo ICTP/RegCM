@@ -687,8 +687,8 @@ module mod_write
     real(rkx), dimension(nx,ny,nz), intent(out) :: pai
     integer(ik4) :: i, j, k, npass, nkt
     real(rkx), dimension(nx,ny) :: press, fb, fbc
-    real(rkx) :: tv1, tv2, lrt, tv, zz, zb, p, zdelta, paikp1
-    real(rk8) :: pfsum, ppsum, mp, mf, xg, nn, xk
+    real(rkx) :: tv1, tv2, lrt, tv, zz, zb, p, zdelta, paikp1, xk
+    real(rk8) :: pfsum, ppsum, mp, mf, xg, nn
 
     ! Hydrostatic initialization of pai
     do i = 1, ny
