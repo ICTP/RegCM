@@ -1771,7 +1771,9 @@ module mod_lm_interface
 #endif
         if ( associated(srf_mslp_out) ) then
           call mslp
+          !$acc kernels
           srf_mslp_out(jci1:jci2,ici1:ici2) = slp(jci1:jci2,ici1:ici2)
+          !$acc end kernels
         end if
       end if
 
@@ -1898,8 +1900,20 @@ module mod_lm_interface
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       slp(j,i) = lm%sfps(j,i)
     end do
+#ifdef OPENACC
+    themin = huge(d_zero)
+    themax = -huge(d_zero)
+    !$acc parallel loop collapse(2) reduction(min:themin) reduction(max:themax)
+    do i = ice1, ice2
+      do j = jce1, jce2
+        themin = min(themin,slp(j,i))
+        themax = max(themax,slp(j,i))
+      end do
+    end do
+#else
     themin = minval(slp(jce1:jce2,ice1:ice2))
     themax = maxval(slp(jce1:jce2,ice1:ice2))
+#endif
     call minall(themin,minv)
     call maxall(themax,maxv)
     mval = (d_half*(maxv-minv))
