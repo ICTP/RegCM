@@ -181,6 +181,14 @@ PreProc/ICBC/cmip6/*.opt.yaml
 PreProc/ICBC/cmip6/*.optrpt
 PreProc/ICBC/cmip6/*.o
 
+PreProc/ICBC/cmip7/Makefile
+PreProc/ICBC/cmip7/Makefile.in
+PreProc/ICBC/cmip7/libcmip7.a
+PreProc/ICBC/cmip7/*.mod
+PreProc/ICBC/cmip7/*.opt.yaml
+PreProc/ICBC/cmip7/*.optrpt
+PreProc/ICBC/cmip7/*.o
+
 PreProc/ICBC/Makefile
 PreProc/ICBC/Makefile.in
 PreProc/ICBC/chem_icbc
