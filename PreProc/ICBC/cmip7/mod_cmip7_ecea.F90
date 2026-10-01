@@ -123,9 +123,10 @@ module mod_cmip7_ecea
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip7_path(year,'6hrLev',ecea_version,v%vname)), &
-            year, '01010000-', year, '12311800.nc'
+        write(v%filename,'(a,i0.4,i0.2,a,i0.4,i0.2,i2,a)') &
+            trim(cmip7_path(year,'6hr',ecea_version,v%vname)), &
+            year, month, '010000-', year, month, &
+            ndaypm(year,month,gregorian), '1800.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -226,15 +227,10 @@ module mod_cmip7_ecea
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( year >= 2015 ) then
-          write(v%filename,'(a,i4,a,i4,a)') &
-              trim(cmip7_path(year,'6hrLev',ecea_version,v%vname)), &
-              year,'01010000-',year,'12311800.nc'
-        else
-          write(v%filename,'(a,i4,a,i4,a)') &
-              trim(cmip7_path(year,'6hrLev',ecea_version,v%vname)), &
-              year,'01010000-',year,'12311800.nc'
-        end if
+        write(v%filename,'(a,i0.4,i0.2,a,i0.4,i0.2,i2,a)') &
+            trim(cmip7_path(year,'6hr',ecea_version,v%vname)), &
+            year, month, '010000-', year, month, &
+            ndaypm(year,month,gregorian), '1800.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif

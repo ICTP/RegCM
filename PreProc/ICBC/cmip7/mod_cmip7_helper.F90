@@ -84,11 +84,11 @@ module mod_cmip7_helper
           case ( 'EC-Earth3-ESM-1-1' )
             fpath = trim(cmip7_inp)//pthsep//'cmip7'//pthsep//'CMIP'//pthsep
             fpath = trim(fpath)//'EC-Earth-Consortium'//pthsep// &
-                    cmip7_model//pthsep//'esm-hist'//pthsep
+                    trim(cmip7_model)//pthsep//'esm-hist'//pthsep
             fx_variant = cmip7_variant
-            fx_freq = 'fx_'
-            fx_label = '_ti-u-hxy-u_'
-            fx_experiment = '_esm-hist_'
+            fx_freq = 'fx'
+            fx_label = 'ti-u-hxy-u'
+            fx_experiment = 'esm-hist'
             fx_model = cmip7_model
             fx_grid_label = cmip7_atmo_grid_label
           case default
@@ -96,11 +96,12 @@ module mod_cmip7_helper
               'Unsupported cmip7 model: '//trim(cmip7_model),-1)
         end select
         fpath = trim(fpath)//trim(fx_variant)//pthsep//trim(cmip7_region)// &
-          pthsep//'fx'//pthsep//trim(var)//pthsep//trim(fx_grid_label)// &
-          pthsep//trim(fx_label)//pthsep//trim(fx_grid_label)//pthsep// &
-          trim(ver)//pthsep//trim(var)//trim(fx_label)//trim(fx_freq)// &
-          trim(fx_label)//trim(cmip7_region)//'_'//trim(fx_grid_label)// &
-          '_'//trim(fx_model)//trim(fx_experiment)//trim(fx_variant)//'.nc'
+          pthsep//'fx'//pthsep//trim(var)//pthsep//trim(fx_label)//pthsep// &
+          trim(fx_grid_label)//pthsep//trim(ver)//pthsep// &
+          trim(var)//'_'//trim(fx_label)//'_'//trim(fx_freq)//'_'// &
+          trim(cmip7_region)//'_'//trim(fx_grid_label)//'_'// &
+          trim(fx_model)//'_'//trim(fx_experiment)//'_'// &
+          trim(fx_variant)//'.nc'
       end if
     end function cmip7_fxpath
 
@@ -118,6 +119,9 @@ module mod_cmip7_helper
             if ( var == 'tos' ) then
               vlabel = 'tavg-u-hxy-sea'
               grid = cmip7_ocn_grid_label
+            else if ( var == 'ps' ) then
+              vlabel = 'tpt-u-hxy-u'
+              grid = cmip7_atmo_grid_label
             else
               vlabel = 'tpt-al-hxy-u'
               grid = cmip7_atmo_grid_label
