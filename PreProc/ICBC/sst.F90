@@ -46,6 +46,7 @@ program sst
   use mod_sst_gndnc
   use mod_sst_gnhnc
   use mod_sst_cmip6
+  use mod_sst_cmip7
 #ifdef PNETCDF
   use mpi_f08
 #endif
@@ -85,6 +86,8 @@ program sst
 
   if ( ssttyp == 'CMIP6' .or. ssttyp == 'PMIP4' ) then
     call cmip6_sst
+  else if ( ssttyp == 'CMIP7' ) then
+    call cmip7_sst
   else if ( ssttyp == 'GISST' .or. ssttyp == 'OISST' .or.  &
        ssttyp == 'OI_NC' .or. ssttyp == 'OI2ST' .or.       &
        ssttyp == 'OI_WK' .or. ssttyp == 'OI2WK' ) then
@@ -124,7 +127,7 @@ program sst
     end if
     call sst_gnmnc
   else if ( ssttyp(1:3) == 'EC_' ) then
-    if (ical /= gregorian) then
+    if (ical /= gregorian ) then
       write(stderr,*) ssttyp//' calendar should be set to gregorian'
       call die('sst','Calendar mismatch',1)
     end if

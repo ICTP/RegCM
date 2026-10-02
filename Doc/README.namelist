@@ -225,6 +225,18 @@
  pmip4_grid = 'gn',
  /
 !
+! CMIP7 model selection
+!
+ &cmip7param
+ cmip7_model = 'EC-Earth3-ESM-1-1',
+ cmip7_inp = 'RCMDATA/cmip7',
+ cmip7_experiment = 'HL-ext',
+ cmip7_variant = 'r1i1p1f1',
+ cmip7_region = 'glb',
+ cmip7_atmo_grid_label = 'g114',
+ cmip7_ocn_grid_label = 'g102',
+ /
+!
 ! Nesting control
 !
  &fnestparam

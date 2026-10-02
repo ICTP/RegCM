@@ -635,7 +635,7 @@ module mod_lm_interface
     integer(ik4) :: j, i
     real(rkx), parameter :: minwind = 0.5_rkx
     real(rkx), parameter :: minwindcp = minwind*rsqrt2
-    real(rkx), parameter :: minstress = 0.004_rkx*rsqrt2
+    real(rkx), parameter :: minstress = 0.0075_rkx*rsqrt2
     real(rkx), parameter :: minustar = 2.0E-3_rkx
 
     if ( .not. associated(expfie%psfc) ) then

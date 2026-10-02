@@ -177,10 +177,20 @@ module mod_dynparam
 
   character(len=256), public :: cmip6_inp = &
               'https://esgf3.dkrz.de/thredds/dodsC'
-  character(len=16), public :: cmip6_model = 'MPI-ESM1-2-HR'
+  character(len=24), public :: cmip6_model = 'MPI-ESM1-2-HR'
   character(len=12), public :: cmip6_variant = 'r1i1p1f1'
   character(len=12), public :: cmip6_experiment = 'ssp585'
   character(len=12), public :: cmip6_grid = 'gn'
+
+  ! CMIP7 model namelist info
+
+  character(len=256), public :: cmip7_inp = 'cmip7'
+  character(len=24), public :: cmip7_model = 'EC-Earth3-ESM-1-1'
+  character(len=12), public :: cmip7_variant = 'r1i1p1f1'
+  character(len=12), public :: cmip7_experiment = 'HL-ext'
+  character(len=12), public :: cmip7_region = 'glb'
+  character(len=12), public :: cmip7_atmo_grid_label = 'g114'
+  character(len=12), public :: cmip7_ocn_grid_label = 'g102'
 
   ! PMIP4 model namelist info
 
@@ -541,6 +551,9 @@ module mod_dynparam
       dirglob, inpglob, calendar, ibdyfrq, ensemble_run
     namelist /cmip6param/ cmip6_inp, cmip6_model, cmip6_experiment, &
       cmip6_variant, cmip6_grid
+    namelist /cmip7param/ cmip7_inp, cmip7_model, cmip7_experiment, &
+      cmip7_variant, cmip7_region, cmip7_atmo_grid_label, &
+      cmip7_ocn_grid_label
     namelist /pmip4param/ pmip4_inp, pmip4_model, pmip4_experiment, &
       pmip4_variant, pmip4_grid
     namelist /perturbparam/ lperturb_ts, perturb_frac_ts,         &
@@ -832,6 +845,15 @@ module mod_dynparam
       read(ipunit, nml=cmip6param, iostat=iresult)
       if ( iresult /= 0 ) then
         write (stderr,*) 'Error reading cmip6param namelist in ',trim(filename)
+        ierr = 7
+        return
+      end if
+    end if
+    if ( dattyp == 'CMIP7' .or. ssttyp == 'CMIP7' ) then
+      rewind(ipunit)
+      read(ipunit, nml=cmip7param, iostat=iresult)
+      if ( iresult /= 0 ) then
+        write (stderr,*) 'Error reading cmip7param namelist in ',trim(filename)
         ierr = 7
         return
       end if

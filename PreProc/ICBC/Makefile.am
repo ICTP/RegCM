@@ -14,12 +14,12 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-vpath %.o $(REGCM_ROOT)/Share:cmip6:.
-vpath %.inc $(REGCM_ROOT)/Share:cmip6:.
+vpath %.o $(REGCM_ROOT)/Share:cmip6:cmip7:.
+vpath %.inc $(REGCM_ROOT)/Share:cmip6:cmip7:.
 
 include $(REGCM_ROOT)/makeinc
 
-SUBDIRS = cmip6
+SUBDIRS = cmip6 cmip7
 
 if DO_COMPILE_LIBCLM45
 bin_PROGRAMS = sst icbc chem_icbc clmbc pgwbc pgw_icbc
@@ -29,18 +29,20 @@ endif
 
 CMIP6PTH = cmip6
 CMIP6LIB = cmip6/libcmip6.a
+CMIP7PTH = cmip7
+CMIP7LIB = cmip7/libcmip7.a
 
 if COMPILER_SUN
-  CPPFLAGS += -M$(CMIP6PTH)
+  CPPFLAGS += -M$(CMIP6PTH) -M$(CMIP7PTH)
 else
-  CPPFLAGS += -I$(CMIP6PTH)
+  CPPFLAGS += -I$(CMIP6PTH) -I$(CMIP7PTH)
 endif
 
-LCMIP6LIB = -L$(CMIP6PTH) -lcmip6
+LCMIPLIB = -L$(CMIP6PTH) -lcmip6 -L$(CMIP7PTH) -lcmip7
 
 FCLD = $(MPIFC)
 
-LIBS = $(LCMIP6LIB) $(SYSLIBS)
+LIBS = $(LCMIPLIB) $(SYSLIBS)
 
 sst_SOURCES = mod_sst_ersst.F90 \
               mod_sst_1deg.F90 mod_sst_gnmnc.F90 mod_sst_grid.F90 \
@@ -49,7 +51,7 @@ sst_SOURCES = mod_sst_ersst.F90 \
               mod_miroc_helper.F90 mod_ipsl_helper.F90 mod_gfdl_helper.F90 \
               mod_cnrm_helper.F90 mod_mpiesm_helper.F90 mod_ecearth_helper.F90 \
               mod_noresm_helper.F90 mod_sst_gndnc.F90 mod_ccsm4_helper.F90 \
-              mod_lgm_helper.F90 mod_sst_cmip6.F90 sst.F90
+              mod_lgm_helper.F90 mod_sst_cmip6.F90 mod_sst_cmip7.F90 sst.F90
 icbc_SOURCES = mod_vectutil.F90 mod_ein.F90 mod_grid.F90  \
                mod_ncep.F90 mod_nest.F90 mod_write.F90 mod_header.F90 \
                mod_mksst.F90 mod_gn6hnc.F90 mod_ifs.F90 mod_ecday.F90 \
@@ -58,7 +60,7 @@ icbc_SOURCES = mod_vectutil.F90 mod_ein.F90 mod_grid.F90  \
                mod_gfdl_helper.F90 mod_cnrm_helper.F90 mod_mpiesm_helper.F90 \
                mod_ecearth_helper.F90 mod_noresm_helper.F90 mod_era5.F90 \
                mod_era5RDA.F90 mod_lgm_helper.F90 mod_ccsm4_helper.F90 \
-               mod_cmip6.F90 icbc.F90
+               mod_cmip6.F90 mod_cmip7.F90 icbc.F90
 clmbc_SOURCES = mod_vectutil.F90 mod_grid.F90 mod_write.F90 mod_header.F90 \
                mod_mksst.F90 mod_era5.F90 clmbc.F90
 chem_icbc_SOURCES = mod_vectutil.F90 mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
@@ -84,14 +86,16 @@ distclean-local:
 chem_icbc.o : chem_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_date.o mod_dynparam.o mod_space.o mod_memutil.o mod_nchelper.o mod_domain.o mod_grid.o mod_ncstream_types.o mod_ncstream.o mod_wrtoxd.o mod_header.o mod_ch_icbc.o mod_ch_icbc_clim.o mod_ox_icbc.o mod_ae_icbc.o mod_ch_cams.o
 pgw_icbc.o : pgw_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_vertint.o mod_date.o mod_vectutil.o mod_zita.o mod_wavelet.o
 pgwbc.o : pgwbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_grid.o mod_date.o mod_pgw.o mod_write.o mod_projections.o
-icbc.o : icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_mksst.o mod_date.o mod_grid.o mod_date.o mod_ein.o mod_ifs.o mod_era5.o mod_era5RDA.o mod_ncep.o mod_ecday.o mod_nest.o mod_gn6hnc.o mod_write.o mod_projections.o $(CMIP6LIB)
+icbc.o : icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_mksst.o mod_date.o mod_grid.o mod_date.o mod_ein.o mod_ifs.o mod_era5.o mod_era5RDA.o mod_ncep.o mod_ecday.o mod_nest.o mod_gn6hnc.o mod_write.o mod_projections.o $(CMIP6LIB) $(CMIP7LIB)
 mod_ch_icbc.o : mod_ch_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_memutil.o mod_message.o mod_nchelper.o mod_ch_param.o mod_constants.o
 mod_ch_cams.o : mod_ch_cams.F90  mod_wrtoxd.o mod_ch_param.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_vertint.o mod_hgt.o mod_humid.o mod_projections.o mod_vectutil.o mod_message.o mod_nchelper.o mod_kdinterp.o mod_earth.o mod_date.o mod_constants.o
 mod_ch_icbc_clim.o : mod_ch_icbc_clim.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_memutil.o mod_message.o mod_nchelper.o mod_ch_param.o mod_constants.o
 mod_ox_icbc.o : mod_ox_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o mod_constants.o mod_stdio.o
 mod_ae_icbc.o : mod_ae_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o mod_stdio.o mod_constants.o
 mod_sst_cmip6.o : mod_sst_cmip6.F90 mod_cmip6_helper.o mod_intkinds.o mod_realkinds.o mod_date.o mod_message.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_kdinterp.o mod_date.o mod_stdio.o mod_cmip6_cesm.o mod_cmip6_cnrm.o mod_cmip6_ecea.o mod_cmip6_gfdl.o mod_cmip6_hadmm.o mod_cmip6_miroc6.o mod_cmip6_mpilr.o mod_cmip6_mpihr.o mod_cmip6_normm.o mod_cmip6_miresl.o mod_cmip6_ipsllr.o
+mod_sst_cmip7.o : mod_sst_cmip7.F90 mod_cmip7_helper.o mod_intkinds.o mod_realkinds.o mod_date.o mod_message.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_kdinterp.o mod_date.o mod_stdio.o mod_cmip7_ecea.o
 mod_cmip6.o : mod_cmip6.F90 mod_cmip6_helper.o mod_cmip6_cnrm.o mod_cmip6_cesm.o mod_cmip6_normm.o mod_cmip6_miroc6.o mod_cmip6_hadmm.o mod_cmip6_mpihr.o mod_cmip6_ecea.o mod_cmip6_miresl.o mod_intkinds.o mod_realkinds.o mod_date.o mod_message.o mod_dynparam.o mod_memutil.o mod_grid.o mod_kdinterp.o mod_write.o mod_vectutil.o mod_mksst.o mod_humid.o mod_hgt.o mod_vertint.o mod_date.o mod_stdio.o
+mod_cmip7.o : mod_cmip7.F90 mod_cmip7_helper.o mod_cmip7_ecea.o mod_intkinds.o mod_realkinds.o mod_date.o mod_message.o mod_dynparam.o mod_memutil.o mod_grid.o mod_kdinterp.o mod_write.o mod_vectutil.o mod_mksst.o mod_humid.o mod_hgt.o mod_vertint.o mod_date.o mod_stdio.o
 mod_ccsm_helper.o : mod_ccsm_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o
 mod_ccsm3_helper.o : mod_ccsm3_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_stdio.o
 mod_hadgem_helper.o : mod_hadgem_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
@@ -128,6 +132,6 @@ mod_sst_grid.o : mod_sst_grid.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod
 mod_vectutil.o : mod_vectutil.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_message.o mod_dynparam.o
 mod_write.o : mod_write.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_grid.o mod_memutil.o mod_message.o mod_ncstream_types.o mod_ncstream.o mod_nhinterp.o mod_vectutil.o mod_zita.o mod_stdio.o mod_wavelet.o
 mod_wrtoxd.o : mod_wrtoxd.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o mod_grid.o mod_memutil.o mod_message.o mod_stdio.o mod_nchelper.o mod_ncstream.o
-sst.o : sst.F90 mod_intkinds.o mod_realkinds.o mod_header.o mod_dynparam.o mod_memutil.o mod_stdio.o mod_message.o mod_sst_grid.o mod_sst_1deg.o mod_sst_ersst.o mod_sst_gnmnc.o mod_sst_gndnc.o mod_sst_gnhnc.o mod_sst_cmip6.o mod_date.o $(CMIP6LIB)
+sst.o : sst.F90 mod_intkinds.o mod_realkinds.o mod_header.o mod_dynparam.o mod_memutil.o mod_stdio.o mod_message.o mod_sst_grid.o mod_sst_1deg.o mod_sst_ersst.o mod_sst_gnmnc.o mod_sst_gndnc.o mod_sst_gnhnc.o mod_sst_cmip6.o mod_sst_cmip7.o mod_date.o $(CMIP6LIB) $(CMIP7LIB)
 mod_ch_param.o : mod_ch_param.F90 mod_intkinds.o mod_realkinds.o
 clmbc.o : clmbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_grid.o mod_date.o mod_write.o mod_era5.o mod_projections.o

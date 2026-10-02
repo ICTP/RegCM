@@ -103,6 +103,7 @@ program icbc
   use mod_nest
   use mod_gn6hnc
   use mod_cmip6
+  use mod_cmip7
   use mod_write
   use mod_ifs
   use mod_projections
@@ -222,6 +223,8 @@ program icbc
 
   if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
     call init_cmip6(globidate1)
+  else if ( dattyp == 'CMIP7' ) then
+    call init_cmip7(globidate1)
   else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
     call init_ncep
   else if ( dattyp(1:4) == 'ERA5' .or. dattyp == 'ERAXX') then
@@ -255,6 +258,8 @@ program icbc
 
     if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
       call get_cmip6(idate)
+    else if ( dattyp == 'CMIP7' ) then
+      call get_cmip7(idate)
     else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
       call get_ncep(idate)
     else if ( dattyp(1:4) == 'ERA5' .or. dattyp == 'ERAXX' ) then
@@ -285,6 +290,8 @@ program icbc
 
   if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
     call conclude_cmip6
+  else if ( dattyp == 'CMIP8' ) then
+    call conclude_cmip7
   else if ( dattyp(1:4) == 'ERA5' .or. dattyp == 'ERAXX' ) then
     call conclude_era5
   else if ( dattyp == 'RDAE5' ) then
