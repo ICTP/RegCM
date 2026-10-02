@@ -28,6 +28,11 @@ module mod_clm_nchelper
   use mod_regcm_types
   use mod_clm_decomp
   use mod_clm_varcon
+#ifdef ASYNC_NETCDF
+  use mod_async_netcdf, only : async_netcdf_put_var, &
+                                async_netcdf_put_var_device, &
+                                async_netcdf_sync, async_netcdf_wait_all
+#endif
   use mpi_f08
 
   implicit none
@@ -89,8 +94,22 @@ module mod_clm_nchelper
 
   public :: clm_readvar
   public :: clm_writevar
+#ifdef ASYNC_NETCDF
+  public :: clm_set_async_writes
+#endif
+
+  ! Arrays use device staging in GPU builds and host staging in CPU builds.
+  ! CPU-produced array values can override this with host_source=.true.
+#ifdef OPENACC
+  logical, parameter :: clm_default_host_source = .false.
+#else
+  logical, parameter :: clm_default_host_source = .true.
+#endif
 
   integer(ik4) :: incstat = nf90_noerr
+#ifdef ASYNC_NETCDF
+  logical :: clm_queue_writes = .false.
+#endif
 
   integer(ik4), dimension(clm_maxdims) :: usedims
   integer(ik4), dimension(4) :: istart
@@ -262,7 +281,589 @@ module mod_clm_nchelper
     module procedure clm_writerec_real8_3d_par_gg
   end interface clm_writevar
 
+  interface clm_put_var
+    module procedure clm_put_i4_0d
+    module procedure clm_put_i4_1d
+    module procedure clm_put_i4_2d
+    module procedure clm_put_i4_3d
+    module procedure clm_put_i4_4d
+    module procedure clm_put_r4_0d
+    module procedure clm_put_r4_1d
+    module procedure clm_put_r4_2d
+    module procedure clm_put_r4_3d
+    module procedure clm_put_r4_4d
+    module procedure clm_put_r8_0d
+    module procedure clm_put_r8_1d
+    module procedure clm_put_r8_2d
+    module procedure clm_put_r8_3d
+    module procedure clm_put_r8_4d
+  end interface clm_put_var
+
   contains
+
+#ifdef ASYNC_NETCDF
+  subroutine clm_set_async_writes(enabled)
+    logical, intent(in) :: enabled
+    clm_queue_writes = enabled
+  end subroutine clm_set_async_writes
+
+  ! Host-only inputs and device buffers use distinct staging paths.
+  integer(ik4) function clm_enqueue_i4(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    integer(ik4), contiguous, intent(in) :: values(:)
+    integer(ik4), intent(in), optional :: start(:), count(:)
+    logical, intent(in) :: host_source
+
+    if ( host_source ) then
+      clm_enqueue_i4 = async_netcdf_put_var(ncid,varid,values,start,count)
+    else
+      clm_enqueue_i4 = async_netcdf_put_var_device(ncid,varid,values,start,count)
+    end if
+  end function clm_enqueue_i4
+
+  integer(ik4) function clm_enqueue_r4(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk4), contiguous, intent(in) :: values(:)
+    integer(ik4), intent(in), optional :: start(:), count(:)
+    logical, intent(in) :: host_source
+
+    if ( host_source ) then
+      clm_enqueue_r4 = async_netcdf_put_var(ncid,varid,values,start,count)
+    else
+      clm_enqueue_r4 = async_netcdf_put_var_device(ncid,varid,values,start,count)
+    end if
+  end function clm_enqueue_r4
+
+  integer(ik4) function clm_enqueue_r8(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk8), contiguous, intent(in) :: values(:)
+    integer(ik4), intent(in), optional :: start(:), count(:)
+    logical, intent(in) :: host_source
+
+    if ( host_source ) then
+      clm_enqueue_r8 = async_netcdf_put_var(ncid,varid,values,start,count)
+    else
+      clm_enqueue_r8 = async_netcdf_put_var_device(ncid,varid,values,start,count)
+    end if
+  end function clm_enqueue_r8
+#endif
+
+  ! NetCDF reads host memory on the synchronous path. Only device-source
+  ! arrays need updates here; queued writes stage their source before returning.
+  ! Scalars always use the host API.
+  integer(ik4) function clm_put_i4_0d(ncid,varid,values,start,count)
+    integer(ik4), intent(in) :: ncid, varid
+    integer(ik4), intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      clm_put_i4_0d = async_netcdf_put_var(ncid,varid,values,start,count)
+      return
+    end if
+#endif
+    if ( present(start) .or. present(count) ) then
+      clm_put_i4_0d = nf90_put_var(ncid,varid,[values],start,count)
+    else
+      clm_put_i4_0d = nf90_put_var(ncid,varid,values)
+    end if
+  end function clm_put_i4_0d
+
+  integer(ik4) function clm_put_i4_1d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    integer(ik4), dimension(:), contiguous, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      clm_put_i4_1d = clm_enqueue_i4(ncid,varid,values,start,count,use_host)
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_i4_1d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_i4_1d
+
+  integer(ik4) function clm_put_i4_2d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    integer(ik4), dimension(:,:), contiguous, target, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+#ifdef ASYNC_NETCDF
+    integer(ik4), pointer, contiguous :: flat(:)
+#endif
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      flat(1:size(values)) => values
+      if ( present(start) ) then
+        if ( present(count) ) then
+          clm_put_i4_2d = clm_enqueue_i4(ncid,varid,flat,start,count,use_host)
+        else
+          clm_put_i4_2d = clm_enqueue_i4(ncid,varid,flat, &
+            start,shape(values),use_host)
+        end if
+      else
+        clm_put_i4_2d = clm_enqueue_i4(ncid,varid,flat, &
+          [1,1],shape(values),use_host)
+      end if
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_i4_2d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_i4_2d
+
+  integer(ik4) function clm_put_i4_3d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    integer(ik4), dimension(:,:,:), contiguous, target, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+#ifdef ASYNC_NETCDF
+    integer(ik4), pointer, contiguous :: flat(:)
+#endif
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      flat(1:size(values)) => values
+      if ( present(start) ) then
+        if ( present(count) ) then
+          clm_put_i4_3d = clm_enqueue_i4(ncid,varid,flat,start,count,use_host)
+        else
+          clm_put_i4_3d = clm_enqueue_i4(ncid,varid,flat, &
+            start,shape(values),use_host)
+        end if
+      else
+        clm_put_i4_3d = clm_enqueue_i4(ncid,varid,flat, &
+          [1,1,1],shape(values),use_host)
+      end if
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_i4_3d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_i4_3d
+
+  integer(ik4) function clm_put_i4_4d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    integer(ik4), dimension(:,:,:,:), contiguous, target, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+#ifdef ASYNC_NETCDF
+    integer(ik4), pointer, contiguous :: flat(:)
+#endif
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      flat(1:size(values)) => values
+      if ( present(start) ) then
+        if ( present(count) ) then
+          clm_put_i4_4d = clm_enqueue_i4(ncid,varid,flat,start,count,use_host)
+        else
+          clm_put_i4_4d = clm_enqueue_i4(ncid,varid,flat, &
+            start,shape(values),use_host)
+        end if
+      else
+        clm_put_i4_4d = clm_enqueue_i4(ncid,varid,flat, &
+          [1,1,1,1],shape(values),use_host)
+      end if
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_i4_4d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_i4_4d
+
+  integer(ik4) function clm_put_r4_0d(ncid,varid,values,start,count)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk4), intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      clm_put_r4_0d = async_netcdf_put_var(ncid,varid,values,start,count)
+      return
+    end if
+#endif
+    if ( present(start) .or. present(count) ) then
+      clm_put_r4_0d = nf90_put_var(ncid,varid,[values],start,count)
+    else
+      clm_put_r4_0d = nf90_put_var(ncid,varid,values)
+    end if
+  end function clm_put_r4_0d
+
+  integer(ik4) function clm_put_r4_1d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk4), dimension(:), contiguous, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      clm_put_r4_1d = clm_enqueue_r4(ncid,varid,values,start,count,use_host)
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_r4_1d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_r4_1d
+
+  integer(ik4) function clm_put_r4_2d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk4), dimension(:,:), contiguous, target, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+#ifdef ASYNC_NETCDF
+    real(rk4), pointer, contiguous :: flat(:)
+#endif
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      flat(1:size(values)) => values
+      if ( present(start) ) then
+        if ( present(count) ) then
+          clm_put_r4_2d = clm_enqueue_r4(ncid,varid,flat,start,count,use_host)
+        else
+          clm_put_r4_2d = clm_enqueue_r4(ncid,varid,flat, &
+            start,shape(values),use_host)
+        end if
+      else
+        clm_put_r4_2d = clm_enqueue_r4(ncid,varid,flat, &
+          [1,1],shape(values),use_host)
+      end if
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_r4_2d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_r4_2d
+
+  integer(ik4) function clm_put_r4_3d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk4), dimension(:,:,:), contiguous, target, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+#ifdef ASYNC_NETCDF
+    real(rk4), pointer, contiguous :: flat(:)
+#endif
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      flat(1:size(values)) => values
+      if ( present(start) ) then
+        if ( present(count) ) then
+          clm_put_r4_3d = clm_enqueue_r4(ncid,varid,flat,start,count,use_host)
+        else
+          clm_put_r4_3d = clm_enqueue_r4(ncid,varid,flat, &
+            start,shape(values),use_host)
+        end if
+      else
+        clm_put_r4_3d = clm_enqueue_r4(ncid,varid,flat, &
+          [1,1,1],shape(values),use_host)
+      end if
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_r4_3d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_r4_3d
+
+  integer(ik4) function clm_put_r4_4d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk4), dimension(:,:,:,:), contiguous, target, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+#ifdef ASYNC_NETCDF
+    real(rk4), pointer, contiguous :: flat(:)
+#endif
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      flat(1:size(values)) => values
+      if ( present(start) ) then
+        if ( present(count) ) then
+          clm_put_r4_4d = clm_enqueue_r4(ncid,varid,flat,start,count,use_host)
+        else
+          clm_put_r4_4d = clm_enqueue_r4(ncid,varid,flat, &
+            start,shape(values),use_host)
+        end if
+      else
+        clm_put_r4_4d = clm_enqueue_r4(ncid,varid,flat, &
+          [1,1,1,1],shape(values),use_host)
+      end if
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_r4_4d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_r4_4d
+
+  integer(ik4) function clm_put_r8_0d(ncid,varid,values,start,count)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk8), intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      clm_put_r8_0d = async_netcdf_put_var(ncid,varid,values,start,count)
+      return
+    end if
+#endif
+    if ( present(start) .or. present(count) ) then
+      clm_put_r8_0d = nf90_put_var(ncid,varid,[values],start,count)
+    else
+      clm_put_r8_0d = nf90_put_var(ncid,varid,values)
+    end if
+  end function clm_put_r8_0d
+
+  integer(ik4) function clm_put_r8_1d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk8), dimension(:), contiguous, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      clm_put_r8_1d = clm_enqueue_r8(ncid,varid,values,start,count,use_host)
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_r8_1d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_r8_1d
+
+  integer(ik4) function clm_put_r8_2d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk8), dimension(:,:), contiguous, target, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+#ifdef ASYNC_NETCDF
+    real(rk8), pointer, contiguous :: flat(:)
+#endif
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      flat(1:size(values)) => values
+      if ( present(start) ) then
+        if ( present(count) ) then
+          clm_put_r8_2d = clm_enqueue_r8(ncid,varid,flat,start,count,use_host)
+        else
+          clm_put_r8_2d = clm_enqueue_r8(ncid,varid,flat, &
+            start,shape(values),use_host)
+        end if
+      else
+        clm_put_r8_2d = clm_enqueue_r8(ncid,varid,flat, &
+          [1,1],shape(values),use_host)
+      end if
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_r8_2d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_r8_2d
+
+  integer(ik4) function clm_put_r8_3d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk8), dimension(:,:,:), contiguous, target, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+#ifdef ASYNC_NETCDF
+    real(rk8), pointer, contiguous :: flat(:)
+#endif
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      flat(1:size(values)) => values
+      if ( present(start) ) then
+        if ( present(count) ) then
+          clm_put_r8_3d = clm_enqueue_r8(ncid,varid,flat,start,count,use_host)
+        else
+          clm_put_r8_3d = clm_enqueue_r8(ncid,varid,flat, &
+            start,shape(values),use_host)
+        end if
+      else
+        clm_put_r8_3d = clm_enqueue_r8(ncid,varid,flat, &
+          [1,1,1],shape(values),use_host)
+      end if
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_r8_3d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_r8_3d
+
+  integer(ik4) function clm_put_r8_4d(ncid,varid,values,start,count,host_source)
+    integer(ik4), intent(in) :: ncid, varid
+    real(rk8), dimension(:,:,:,:), contiguous, target, intent(in) :: values
+    integer(ik4), dimension(:), intent(in), optional :: start, count
+    logical, intent(in), optional :: host_source
+    logical :: use_host
+#ifdef ASYNC_NETCDF
+    real(rk8), pointer, contiguous :: flat(:)
+#endif
+
+    use_host = clm_default_host_source
+    if ( present(host_source) ) use_host = host_source
+#ifdef ASYNC_NETCDF
+    if ( clm_queue_writes ) then
+      flat(1:size(values)) => values
+      if ( present(start) ) then
+        if ( present(count) ) then
+          clm_put_r8_4d = clm_enqueue_r8(ncid,varid,flat,start,count,use_host)
+        else
+          clm_put_r8_4d = clm_enqueue_r8(ncid,varid,flat, &
+            start,shape(values),use_host)
+        end if
+      else
+        clm_put_r8_4d = clm_enqueue_r8(ncid,varid,flat, &
+          [1,1,1,1],shape(values),use_host)
+      end if
+      return
+    end if
+#endif
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update host(values)
+    end if
+#endif
+    clm_put_r8_4d = nf90_put_var(ncid,varid,values,start,count)
+#ifdef OPENACC
+    if ( .not. use_host ) then
+      !$acc update device(values)
+    end if
+#endif
+  end function clm_put_r8_4d
+
 !
   subroutine clm_createfile(fname,ncid)
     implicit none
@@ -277,6 +878,12 @@ module mod_clm_nchelper
 #endif
 
     if ( myid /= iocpu ) return
+#ifdef ASYNC_NETCDF
+    ! The preceding history writes may still be running on the worker.
+    incstat = async_netcdf_wait_all()
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error waiting for queued NetCDF writes before create')
+#endif
     incstat = nf90_create(fname, clm_iomode, ncid%ncid)
     call clm_checkncerr(__FILE__,__LINE__, &
                     'Error creating NetCDF output '//trim(fname))
@@ -3083,7 +3690,7 @@ module mod_clm_nchelper
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, intent(in) :: xval
-    integer(ik4), dimension(1) :: rval
+    integer(ik4) :: rval
     integer(ik4) :: ivarid
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
@@ -3092,7 +3699,7 @@ module mod_clm_nchelper
     else
       rval = 0
       if ( xval ) rval = 1
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
@@ -3100,6 +3707,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_1d(ncid,vname,xval)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -3111,11 +3719,14 @@ module mod_clm_nchelper
       incstat = nf90_enotvar
     else
       allocate(rval(size(xval)))
-      rval = 0
-      where (xval)
-        rval = 1
-      end where
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      do concurrent (i = 1:size(xval))
+        if ( xval(i) ) then
+          rval(i) = 1
+        else
+          rval(i) = 0
+        end if
+      end do
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
@@ -3124,6 +3735,8 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_2d(ncid,vname,xval)
     implicit none
+    integer(ik4) :: j
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -3135,11 +3748,14 @@ module mod_clm_nchelper
       incstat = nf90_enotvar
     else
       allocate(rval(size(xval,1),size(xval,2)))
-      rval = 0
-      where (xval)
-        rval = 1
-      end where
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      do concurrent (i = 1:size(xval,1), j = 1:size(xval,2))
+        if ( xval(i,j) ) then
+          rval(i,j) = 1
+        else
+          rval(i,j) = 0
+        end if
+      end do
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
@@ -3148,6 +3764,8 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_3d(ncid,vname,xval)
     implicit none
+    integer(ik4) :: j, k
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
@@ -3159,11 +3777,15 @@ module mod_clm_nchelper
       incstat = nf90_enotvar
     else
       allocate(rval(size(xval,1),size(xval,2),size(xval,3)))
-      rval = 0
-      where (xval)
-        rval = 1
-      end where
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      do concurrent (i = 1:size(xval,1), j = 1:size(xval,2), &
+                     k = 1:size(xval,3))
+        if ( xval(i,j,k) ) then
+          rval(i,j,k) = 1
+        else
+          rval(i,j,k) = 0
+        end if
+      end do
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
@@ -3172,6 +3794,8 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_4d(ncid,vname,xval)
     implicit none
+    integer(ik4) :: j, k, l
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:,:), intent(in) :: xval
@@ -3183,11 +3807,15 @@ module mod_clm_nchelper
       incstat = nf90_enotvar
     else
       allocate(rval(size(xval,1),size(xval,2),size(xval,3),size(xval,4)))
-      rval = 0
-      where (xval)
-        rval = 1
-      end where
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      do concurrent (i = 1:size(xval,1), j = 1:size(xval,2), &
+                     k = 1:size(xval,3), l = 1:size(xval,4))
+        if ( xval(i,j,k,l) ) then
+          rval(i,j,k,l) = 1
+        else
+          rval(i,j,k,l) = 0
+        end if
+      end do
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
@@ -3205,75 +3833,80 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_integer_0d
 
-  subroutine clm_writevar_integer_1d(ncid,vname,xval)
+  ! Forward the optional source flag; clm_put_var resolves the build default.
+  subroutine clm_writevar_integer_1d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_integer_1d
 
-  subroutine clm_writevar_integer_2d(ncid,vname,xval)
+  subroutine clm_writevar_integer_2d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_integer_2d
 
-  subroutine clm_writevar_integer_3d(ncid,vname,xval)
+  subroutine clm_writevar_integer_3d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_integer_3d
 
-  subroutine clm_writevar_integer_4d(ncid,vname,xval)
+  subroutine clm_writevar_integer_4d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
@@ -3290,75 +3923,79 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real4_0d
 
-  subroutine clm_writevar_real4_1d(ncid,vname,xval)
+  subroutine clm_writevar_real4_1d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real4_1d
 
-  subroutine clm_writevar_real4_2d(ncid,vname,xval)
+  subroutine clm_writevar_real4_2d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real4_2d
 
-  subroutine clm_writevar_real4_3d(ncid,vname,xval)
+  subroutine clm_writevar_real4_3d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real4_3d
 
-  subroutine clm_writevar_real4_4d(ncid,vname,xval)
+  subroutine clm_writevar_real4_4d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
@@ -3375,75 +4012,79 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real8_0d
 
-  subroutine clm_writevar_real8_1d(ncid,vname,xval)
+  subroutine clm_writevar_real8_1d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real8_1d
 
-  subroutine clm_writevar_real8_2d(ncid,vname,xval)
+  subroutine clm_writevar_real8_2d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real8_2d
 
-  subroutine clm_writevar_real8_3d(ncid,vname,xval)
+  subroutine clm_writevar_real8_3d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real8_3d
 
-  subroutine clm_writevar_real8_4d(ncid,vname,xval)
+  subroutine clm_writevar_real8_4d(ncid,vname,xval,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:,:), intent(in) :: xval
     integer(ik4) :: ivarid
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
@@ -3456,7 +4097,7 @@ module mod_clm_nchelper
     logical, intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid
-    integer(ik4), dimension(1) :: rval
+    integer(ik4) :: rval
     if ( myid /= iocpu ) return
     istart(1) = nt
     icount(1) = 1
@@ -3466,7 +4107,7 @@ module mod_clm_nchelper
     else
       rval = 0
       if ( xval ) rval = 1
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
@@ -3474,6 +4115,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_1d(ncid,vname,xval,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -3491,11 +4133,14 @@ module mod_clm_nchelper
       incstat = nf90_enotvar
     else
       allocate(rval(nv1))
-      rval = 0
-      where ( xval )
-        rval = 1
-      end where
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      do concurrent (i = 1:nv1)
+        if ( xval(i) ) then
+          rval(i) = 1
+        else
+          rval(i) = 0
+        end if
+      end do
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
@@ -3504,6 +4149,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_2d(ncid,vname,xval,nt)
     implicit none
+    integer(ik4) :: i, j
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -3524,11 +4170,14 @@ module mod_clm_nchelper
       incstat = nf90_enotvar
     else
       allocate(rval(nv1,nv2))
-      rval = 0
-      where ( xval )
-        rval = 1
-      end where
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+      do concurrent (i = 1:nv1, j = 1:nv2)
+        if ( xval(i,j) ) then
+          rval(i,j) = 1
+        else
+          rval(i,j) = 0
+        end if
+      end do
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
@@ -3537,6 +4186,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_3d(ncid,vname,xval,nt)
     implicit none
+    integer(ik4) :: i, j, k
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
@@ -3560,11 +4210,14 @@ module mod_clm_nchelper
       incstat = nf90_enotvar
     else
       allocate(rval(nv1,nv2,nv3))
-      rval = 0
-      where ( xval )
-        rval = 1
-      end where
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+      do concurrent (i = 1:nv1, j = 1:nv2, k = 1:nv3)
+        if ( xval(i,j,k) ) then
+          rval(i,j,k) = 1
+        else
+          rval(i,j,k) = 0
+        end if
+      end do
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
@@ -3578,7 +4231,7 @@ module mod_clm_nchelper
     integer(ik4), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid
-    integer(ik4), dimension(1) :: rval
+    integer(ik4) :: rval
     if ( myid /= iocpu ) return
     istart(1) = nt
     icount(1) = 1
@@ -3586,20 +4239,21 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      rval(:) = xval
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
+      rval = xval
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_0d
 
-  subroutine clm_writerec_integer_1d(ncid,vname,xval,nt)
+  subroutine clm_writerec_integer_1d(ncid,vname,xval,nt,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     istart(2) = nt
@@ -3610,19 +4264,20 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2),host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_1d
 
-  subroutine clm_writerec_integer_2d(ncid,vname,xval,nt)
+  subroutine clm_writerec_integer_2d(ncid,vname,xval,nt,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3636,19 +4291,20 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3),host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_2d
 
-  subroutine clm_writerec_integer_3d(ncid,vname,xval,nt)
+  subroutine clm_writerec_integer_3d(ncid,vname,xval,nt,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2, nv3
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3665,7 +4321,7 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4),host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
@@ -3678,7 +4334,7 @@ module mod_clm_nchelper
     real(rk4), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid
-    real(rk4), dimension(1) :: rval
+    real(rk4) :: rval
     if ( myid /= iocpu ) return
     istart(1) = nt
     icount(1) = 1
@@ -3686,20 +4342,21 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      rval(:) = xval
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
+      rval = xval
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_0d
 
-  subroutine clm_writerec_real4_1d(ncid,vname,xval,nt)
+  subroutine clm_writerec_real4_1d(ncid,vname,xval,nt,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     istart(2) = nt
@@ -3710,19 +4367,20 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2),host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_1d
 
-  subroutine clm_writerec_real4_2d(ncid,vname,xval,nt)
+  subroutine clm_writerec_real4_2d(ncid,vname,xval,nt,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3736,19 +4394,20 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3),host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_2d
 
-  subroutine clm_writerec_real4_3d(ncid,vname,xval,nt)
+  subroutine clm_writerec_real4_3d(ncid,vname,xval,nt,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2, nv3
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3765,7 +4424,7 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4),host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
@@ -3778,7 +4437,7 @@ module mod_clm_nchelper
     real(rk8), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid
-    real(rk8), dimension(1) :: rval
+    real(rk8) :: rval
     if ( myid /= iocpu ) return
     istart(1) = nt
     icount(1) = 1
@@ -3786,20 +4445,21 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      rval(:) = xval
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
+      rval = xval
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_0d
 
-  subroutine clm_writerec_real8_1d(ncid,vname,xval,nt)
+  subroutine clm_writerec_real8_1d(ncid,vname,xval,nt,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     istart(2) = nt
@@ -3810,19 +4470,20 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2),host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_1d
 
-  subroutine clm_writerec_real8_2d(ncid,vname,xval,nt)
+  subroutine clm_writerec_real8_2d(ncid,vname,xval,nt,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3836,19 +4497,20 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3),host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_2d
 
-  subroutine clm_writerec_real8_3d(ncid,vname,xval,nt)
+  subroutine clm_writerec_real8_3d(ncid,vname,xval,nt,host_source)
     implicit none
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(in) :: xval
     integer(ik4), intent(in) :: nt
     integer(ik4) :: ivarid, nv1, nv2, nv3
+    logical, intent(in), optional :: host_source
     if ( myid /= iocpu ) return
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -3865,7 +4527,7 @@ module mod_clm_nchelper
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
     else
-      incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
+      incstat = clm_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4),host_source=host_source)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
@@ -3889,6 +4551,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_1d_par_sg(ncid,vname,xval,sg)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -3909,12 +4572,14 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      where (lval)
-        rval = 1
-      elsewhere
-        rval = 0
-      end where
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      do concurrent (i = 1:sg%ns)
+        if ( lval(i) ) then
+          rval(i) = 1
+        else
+          rval(i) = 0
+        end if
+      end do
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
       deallocate(rval)
@@ -3924,6 +4589,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_2d_par_sg(ncid,vname,xval,sg)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -3947,16 +4613,18 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        where (lval)
-          rval(:,k) = 1
-        elsewhere
-          rval(:,k) = 0
-        end where
+        do concurrent (i = 1:sg%ns)
+          if ( lval(i) ) then
+            rval(i,k) = 1
+          else
+            rval(i,k) = 0
+          end if
+        end do
       end if
     end do
     deallocate(lval)
     if ( myid == iocpu ) then
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
       deallocate(rval)
@@ -3965,6 +4633,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_3d_par_sg(ncid,vname,xval,sg)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
@@ -3991,17 +4660,19 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
         if ( myid == iocpu ) then
-          where (lval)
-            rval(:,k,n) = 1
-          elsewhere
-            rval(:,k,n) = 0
-          end where
+          do concurrent (i = 1:sg%ns)
+            if ( lval(i) ) then
+              rval(i,k,n) = 1
+            else
+              rval(i,k,n) = 0
+            end if
+          end do
         end if
       end do
     end do
     deallocate(lval)
     if ( myid == iocpu ) then
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
       deallocate(rval)
@@ -4010,6 +4681,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_4d_par_sg(ncid,vname,xval,sg)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:,:), intent(in) :: xval
@@ -4040,18 +4712,20 @@ module mod_clm_nchelper
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
           end if
           if ( myid == iocpu ) then
-            where (lval)
-              rval(:,k,n,l) = 1
-            elsewhere
-              rval(:,k,n,l) = 0
-            end where
+            do concurrent (i = 1:sg%ns)
+              if ( lval(i) ) then
+                rval(i,k,n,l) = 1
+              else
+                rval(i,k,n,l) = 0
+              end if
+            end do
           end if
         end do
       end do
     end do
     deallocate(lval)
     if ( myid == iocpu ) then
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
       deallocate(rval)
@@ -4079,7 +4753,7 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     end if
@@ -4107,7 +4781,7 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4150,7 +4824,7 @@ module mod_clm_nchelper
           end if
         end do
       end do
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4201,7 +4875,7 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4246,7 +4920,7 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     end if
@@ -4287,11 +4961,13 @@ module mod_clm_nchelper
         end if
       end do
       if ( doswitch ) then
+        !$acc kernels
         sval(:,:) = transpose(rval)
-        incstat = nf90_put_var(ncid%ncid,ivarid,sval)
+        !$acc end kernels
+        incstat = clm_put_var(ncid%ncid,ivarid,sval)
         deallocate(sval)
       else
-        incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+        incstat = clm_put_var(ncid%ncid,ivarid,rval)
       end if
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -4335,7 +5011,7 @@ module mod_clm_nchelper
           end if
         end do
       end do
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4386,7 +5062,7 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4431,7 +5107,7 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     end if
@@ -4440,6 +5116,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_2d_par_sg(ncid,vname,xval,sg,switchdim)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
@@ -4472,11 +5149,13 @@ module mod_clm_nchelper
         end if
       end do
       if ( doswitch ) then
-        sval(:,:) = transpose(rval)
-        incstat = nf90_put_var(ncid%ncid,ivarid,sval)
+        do concurrent (i = 1:sg%ns, k = 1:nv1)
+          sval(k,i) = rval(i,k)
+        end do
+        incstat = clm_put_var(ncid%ncid,ivarid,sval)
         deallocate(sval)
       else
-        incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+        incstat = clm_put_var(ncid%ncid,ivarid,rval)
       end if
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -4520,7 +5199,7 @@ module mod_clm_nchelper
           end if
         end do
       end do
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4571,7 +5250,7 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      incstat = clm_put_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4597,6 +5276,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
@@ -4619,16 +5299,18 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      where ( lval )
-        rval = 1
-      elsewhere
-        rval = 0
-      end where
+      do concurrent (i = 1:sg%ns)
+        if ( lval(i) ) then
+          rval(i) = 1
+        else
+          rval(i) = 0
+        end if
+      end do
       istart(2) = nt
       istart(1) = 1
       icount(2) = 1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
       deallocate(rval)
@@ -4638,6 +5320,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
@@ -4663,11 +5346,13 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        where ( lval )
-          rval(:,k) = 1
-        elsewhere
-          rval(:,k) = 0
-        end where
+        do concurrent (i = 1:sg%ns)
+          if ( lval(i) ) then
+            rval(i,k) = 1
+          else
+            rval(i,k) = 0
+          end if
+        end do
       end if
     end do
     deallocate(lval)
@@ -4678,7 +5363,7 @@ module mod_clm_nchelper
       icount(3) = 1
       icount(2) = nv1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
       deallocate(rval)
@@ -4687,6 +5372,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
@@ -4715,11 +5401,13 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
         if ( myid == iocpu ) then
-          where ( lval )
-            rval(:,k,n) = 1
-          elsewhere
-            rval(:,k,n) = 0
-          end where
+          do concurrent (i = 1:sg%ns)
+            if ( lval(i) ) then
+              rval(i,k,n) = 1
+            else
+              rval(i,k,n) = 0
+            end if
+          end do
         end if
       end do
     end do
@@ -4733,7 +5421,7 @@ module mod_clm_nchelper
       icount(3) = nv2
       icount(2) = nv1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
       deallocate(rval)
@@ -4766,7 +5454,7 @@ module mod_clm_nchelper
       istart(1) = 1
       icount(2) = 1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     end if
@@ -4801,7 +5489,7 @@ module mod_clm_nchelper
       icount(3) = 1
       icount(2) = nv1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4853,7 +5541,7 @@ module mod_clm_nchelper
       icount(3) = nv2
       icount(2) = nv1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4876,6 +5564,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
@@ -4897,15 +5586,18 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
 #ifdef DEBUG
-      where ( is_nan(rval) )
-        rval = 0.0
-      end where
+      do concurrent (i = 1:sg%ns)
+        if ( (rval(i) /= rval(i)) .or. &
+             ((rval(i) > 0.0_rk4) .eqv. (rval(i) <= 0.0_rk4)) ) then
+          rval(i) = 0.0_rk4
+        end if
+      end do
 #endif
       istart(2) = nt
       istart(1) = 1
       icount(2) = 1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     end if
@@ -4914,6 +5606,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
@@ -4935,9 +5628,12 @@ module mod_clm_nchelper
         end if
       end do
 #ifdef DEBUG
-      where ( is_nan(rval) )
-        rval = 0.0
-      end where
+      do concurrent (i = 1:sg%ns, k = 1:nv1)
+        if ( (rval(i,k) /= rval(i,k)) .or. &
+             ((rval(i,k) > 0.0_rk4) .eqv. (rval(i,k) <= 0.0_rk4)) ) then
+          rval(i,k) = 0.0_rk4
+        end if
+      end do
 #endif
       istart(3) = nt
       istart(2) = 1
@@ -4945,7 +5641,7 @@ module mod_clm_nchelper
       icount(3) = 1
       icount(2) = nv1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -4965,6 +5661,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(in) :: xval
@@ -4990,9 +5687,12 @@ module mod_clm_nchelper
         end do
       end do
 #ifdef DEBUG
-      where ( is_nan(rval) )
-        rval = 0.0
-      end where
+      do concurrent (i = 1:sg%ns, k = 1:nv1, n = 1:nv2)
+        if ( (rval(i,k,n) /= rval(i,k,n)) .or. &
+             ((rval(i,k,n) > 0.0_rk4) .eqv. (rval(i,k,n) <= 0.0_rk4)) ) then
+          rval(i,k,n) = 0.0_rk4
+        end if
+      end do
 #endif
       istart(4) = nt
       istart(3) = 1
@@ -5002,7 +5702,7 @@ module mod_clm_nchelper
       icount(3) = nv2
       icount(2) = nv1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -5025,6 +5725,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
@@ -5046,24 +5747,25 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
 #ifdef DEBUG
-      where ( is_nan(rval) )
-        rval = 0.0
-      end where
+      do concurrent (i = 1:sg%ns)
+        if ( (rval(i) /= rval(i)) .or. &
+             ((rval(i) > 0.0_rk8) .eqv. (rval(i) <= 0.0_rk8)) ) then
+          rval(i) = 0.0_rk8
+        end if
+      end do
 #endif
-      where ( abs(rval) > huge(0.0) )
-        rval = huge(0.0)
-      end where
-      where ( is_inf(rval) )
-        rval = huge(0.0)
-      end where
-      where ( is_nan(rval) )
-        rval = 1.0e20
-      end where
+      do concurrent (i = 1:sg%ns)
+        if ( abs(rval(i)) > huge(0.0_rk8) ) rval(i) = huge(0.0_rk8)
+        if ( (rval(i) /= rval(i)) .or. &
+             ((rval(i) > 0.0_rk8) .eqv. (rval(i) <= 0.0_rk8)) ) then
+          rval(i) = 1.0e20_rk8
+        end if
+      end do
       istart(2) = nt
       istart(1) = 1
       icount(2) = 1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     end if
@@ -5072,6 +5774,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
@@ -5093,9 +5796,12 @@ module mod_clm_nchelper
         end if
       end do
 #ifdef DEBUG
-      where ( is_nan(rval) )
-        rval = 0.0
-      end where
+      do concurrent (i = 1:sg%ns, k = 1:nv1)
+        if ( (rval(i,k) /= rval(i,k)) .or. &
+             ((rval(i,k) > 0.0_rk8) .eqv. (rval(i,k) <= 0.0_rk8)) ) then
+          rval(i,k) = 0.0_rk8
+        end if
+      end do
 #endif
       istart(3) = nt
       istart(2) = 1
@@ -5103,7 +5809,7 @@ module mod_clm_nchelper
       icount(3) = 1
       icount(2) = nv1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -5123,6 +5829,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
+    integer(ik4) :: i
     type(clm_filetype), intent(in) :: ncid
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(in) :: xval
@@ -5148,9 +5855,12 @@ module mod_clm_nchelper
         end do
       end do
 #ifdef DEBUG
-      where ( is_nan(rval) )
-        rval = 0.0
-      end where
+      do concurrent (i = 1:sg%ns, k = 1:nv1, n = 1:nv2)
+        if ( (rval(i,k,n) /= rval(i,k,n)) .or. &
+             ((rval(i,k,n) > 0.0_rk8) .eqv. (rval(i,k,n) <= 0.0_rk8)) ) then
+          rval(i,k,n) = 0.0_rk8
+        end if
+      end do
 #endif
       istart(4) = nt
       istart(3) = 1
@@ -5160,7 +5870,7 @@ module mod_clm_nchelper
       icount(3) = nv2
       icount(2) = nv1
       icount(1) = sg%ns
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+      incstat = clm_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
     else
@@ -5181,14 +5891,17 @@ module mod_clm_nchelper
     deallocate(rval)
   end subroutine clm_writerec_real8_3d_par_sg
 
+  ! Packing reuses the gridcell IDs built during surface-grid initialization.
   subroutine clm_writevar_logical_2d_par_gg(ncid,vname,xval,gg)
     implicit none
     type(clm_filetype), intent(inout) :: ncid
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     logical, dimension(:), allocatable :: lval
-    integer(ik4) :: i, j, ib, ivarid, mpierr
+    integer(ik4) :: i, j, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(lval(numg))
@@ -5202,24 +5915,22 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      ib = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          if ( gg%gcmask(j,i) ) then
-            if ( lval(ib) ) then
-              ncid%i4buf(j,i) = 1
-            else
-              ncid%i4buf(j,i) = 0
-            end if
-            ib = ib + 1
+      gridmask_id => gg%gcmask_id
+      packed => ncid%i4buf
+      do concurrent (i = iout1:iout2, j = jout1:jout2)
+        if ( gridmask_id(j,i) > 0 ) then
+          if ( lval(gridmask_id(j,i)) ) then
+            packed(j,i) = 1
+          else
+            packed(j,i) = 0
           end if
-        end do
+        end if
       end do
       istart(2) = 1
       istart(1) = 1
       icount(2) = niout
       icount(1) = njout
-      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+      incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                              istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5233,8 +5944,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     logical, dimension(:), allocatable :: lval
-    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
+    integer(ik4) :: i, j, k, nv1, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5251,18 +5964,16 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        ib = 1
-        do i = iout1, iout2
-          do j = jout1, jout2
-            if ( gg%gcmask(j,i) ) then
-              if ( lval(ib) ) then
-                ncid%i4buf(j,i) = 1
-              else
-                ncid%i4buf(j,i) = 0
-              end if
-              ib = ib + 1
+        gridmask_id => gg%gcmask_id
+        packed => ncid%i4buf
+        do concurrent (i = iout1:iout2, j = jout1:jout2)
+          if ( gridmask_id(j,i) > 0 ) then
+            if ( lval(gridmask_id(j,i)) ) then
+              packed(j,i) = 1
+            else
+              packed(j,i) = 0
             end if
-          end do
+          end if
         end do
         istart(3) = k
         istart(2) = 1
@@ -5270,7 +5981,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+        incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5285,8 +5996,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     logical, dimension(:,:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     logical, dimension(:), allocatable :: lval
-    integer(ik4) :: i, j, k, l, nv1, nv3, ib, ivarid, mpierr
+    integer(ik4) :: i, j, k, l, nv1, nv3, ivarid, mpierr
     integer(ik4) :: kk, ll
     nv1 = size(xval,2)
     nv3 = size(xval,3)
@@ -5307,18 +6020,16 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
         if ( myid == iocpu ) then
-          ib = 1
-          do i = iout1, iout2
-            do j = jout1, jout2
-              if ( gg%gcmask(j,i) ) then
-                if ( lval(ib) ) then
-                  ncid%i4buf(j,i) = 1
-                else
-                  ncid%i4buf(j,i) = 0
-                end if
-                ib = ib + 1
+          gridmask_id => gg%gcmask_id
+          packed => ncid%i4buf
+          do concurrent (i = iout1:iout2, j = jout1:jout2)
+            if ( gridmask_id(j,i) > 0 ) then
+              if ( lval(gridmask_id(j,i)) ) then
+                packed(j,i) = 1
+              else
+                packed(j,i) = 0
               end if
-            end do
+            end if
           end do
           istart(4) = l
           istart(3) = k
@@ -5328,7 +6039,7 @@ module mod_clm_nchelper
           icount(3) = 1
           icount(2) = niout
           icount(1) = njout
-          incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+          incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
             'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5344,8 +6055,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     integer(ik4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, ib, ivarid, mpierr
+    integer(ik4) :: i, j, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5359,20 +6072,18 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      ib = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          if ( gg%gcmask(j,i) ) then
-            ncid%i4buf(j,i) = ival(ib)
-            ib = ib + 1
-          end if
-        end do
+      gridmask_id => gg%gcmask_id
+      packed => ncid%i4buf
+      do concurrent (i = iout1:iout2, j = jout1:jout2)
+        if ( gridmask_id(j,i) > 0 ) then
+          packed(j,i) = ival(gridmask_id(j,i))
+        end if
       end do
       istart(2) = 1
       istart(1) = 1
       icount(2) = niout
       icount(1) = njout
-      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+      incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                              istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5386,8 +6097,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     integer(ik4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
+    integer(ik4) :: i, j, k, nv1, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5404,14 +6117,12 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        ib = 1
-        do i = iout1, iout2
-          do j = jout1, jout2
-            if ( gg%gcmask(j,i) ) then
-              ncid%i4buf(j,i) = ival(ib)
-              ib = ib + 1
-            end if
-          end do
+        gridmask_id => gg%gcmask_id
+        packed => ncid%i4buf
+        do concurrent (i = iout1:iout2, j = jout1:jout2)
+          if ( gridmask_id(j,i) > 0 ) then
+            packed(j,i) = ival(gridmask_id(j,i))
+          end if
         end do
         istart(3) = k
         istart(2) = 1
@@ -5419,7 +6130,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+        incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5434,8 +6145,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     integer(ik4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, k, l, nv1, nv3, ib, ivarid, mpierr
+    integer(ik4) :: i, j, k, l, nv1, nv3, ivarid, mpierr
     integer(ik4) :: kk, ll
     nv1 = size(xval,2)
     nv3 = size(xval,3)
@@ -5456,14 +6169,12 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
         if ( myid == iocpu ) then
-          ib = 1
-          do i = iout1, iout2
-            do j = jout1, jout2
-              if ( gg%gcmask(j,i) ) then
-                ncid%i4buf(j,i) = ival(ib)
-                ib = ib + 1
-              end if
-            end do
+          gridmask_id => gg%gcmask_id
+          packed => ncid%i4buf
+          do concurrent (i = iout1:iout2, j = jout1:jout2)
+            if ( gridmask_id(j,i) > 0 ) then
+              packed(j,i) = ival(gridmask_id(j,i))
+            end if
           end do
           istart(4) = l
           istart(3) = k
@@ -5473,7 +6184,7 @@ module mod_clm_nchelper
           icount(3) = 1
           icount(2) = niout
           icount(1) = njout
-          incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+          incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
             'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5489,8 +6200,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk4), pointer, contiguous :: packed(:,:)
     real(rk4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, ib, ivarid, mpierr
+    integer(ik4) :: i, j, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5504,20 +6217,18 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      ib = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          if ( gg%gcmask(j,i) ) then
-            ncid%r4buf(j,i) = ival(ib)
-            ib = ib + 1
-          end if
-        end do
+      gridmask_id => gg%gcmask_id
+      packed => ncid%r4buf
+      do concurrent (i = iout1:iout2, j = jout1:jout2)
+        if ( gridmask_id(j,i) > 0 ) then
+          packed(j,i) = ival(gridmask_id(j,i))
+        end if
       end do
       istart(2) = 1
       istart(1) = 1
       icount(2) = niout
       icount(1) = njout
-      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
+      incstat = clm_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                              istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5531,8 +6242,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk4), pointer, contiguous :: packed(:,:)
     real(rk4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
+    integer(ik4) :: i, j, k, nv1, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5549,14 +6262,12 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        ib = 1
-        do i = iout1, iout2
-          do j = jout1, jout2
-            if ( gg%gcmask(j,i) ) then
-              ncid%r4buf(j,i) = ival(ib)
-              ib = ib + 1
-            end if
-          end do
+        gridmask_id => gg%gcmask_id
+        packed => ncid%r4buf
+        do concurrent (i = iout1:iout2, j = jout1:jout2)
+          if ( gridmask_id(j,i) > 0 ) then
+            packed(j,i) = ival(gridmask_id(j,i))
+          end if
         end do
         istart(3) = k
         istart(2) = 1
@@ -5564,7 +6275,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
+        incstat = clm_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5579,8 +6290,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk4), pointer, contiguous :: packed(:,:)
     real(rk4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, k, l, nv1, nv3, ib, ivarid, mpierr
+    integer(ik4) :: i, j, k, l, nv1, nv3, ivarid, mpierr
     integer(ik4) :: kk, ll
     nv1 = size(xval,2)
     nv3 = size(xval,3)
@@ -5601,14 +6314,12 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
         if ( myid == iocpu ) then
-          ib = 1
-          do i = iout1, iout2
-            do j = jout1, jout2
-              if ( gg%gcmask(j,i) ) then
-                ncid%r4buf(j,i) = ival(ib)
-                ib = ib + 1
-              end if
-            end do
+          gridmask_id => gg%gcmask_id
+          packed => ncid%r4buf
+          do concurrent (i = iout1:iout2, j = jout1:jout2)
+            if ( gridmask_id(j,i) > 0 ) then
+              packed(j,i) = ival(gridmask_id(j,i))
+            end if
           end do
           istart(4) = l
           istart(3) = k
@@ -5618,7 +6329,7 @@ module mod_clm_nchelper
           icount(3) = 1
           icount(2) = niout
           icount(1) = njout
-          incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
+          incstat = clm_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
             'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5634,8 +6345,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk8), pointer, contiguous :: packed(:,:)
     real(rk8), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, ib, ivarid, mpierr
+    integer(ik4) :: i, j, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5649,20 +6362,18 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      ib = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          if ( gg%gcmask(j,i) ) then
-            ncid%r8buf(j,i) = ival(ib)
-            ib = ib + 1
-          end if
-        end do
+      gridmask_id => gg%gcmask_id
+      packed => ncid%r8buf
+      do concurrent (i = iout1:iout2, j = jout1:jout2)
+        if ( gridmask_id(j,i) > 0 ) then
+          packed(j,i) = ival(gridmask_id(j,i))
+        end if
       end do
       istart(2) = 1
       istart(1) = 1
       icount(2) = niout
       icount(1) = njout
-      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
+      incstat = clm_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                              istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5676,8 +6387,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk8), pointer, contiguous :: packed(:,:)
     real(rk8), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
+    integer(ik4) :: i, j, k, nv1, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5694,14 +6407,12 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        ib = 1
-        do i = iout1, iout2
-          do j = jout1, jout2
-            if ( gg%gcmask(j,i) ) then
-              ncid%r8buf(j,i) = ival(ib)
-              ib = ib + 1
-            end if
-          end do
+        gridmask_id => gg%gcmask_id
+        packed => ncid%r8buf
+        do concurrent (i = iout1:iout2, j = jout1:jout2)
+          if ( gridmask_id(j,i) > 0 ) then
+            packed(j,i) = ival(gridmask_id(j,i))
+          end if
         end do
         istart(3) = k
         istart(2) = 1
@@ -5709,7 +6420,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
+        incstat = clm_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5724,8 +6435,10 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk8), pointer, contiguous :: packed(:,:)
     real(rk8), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, k, l, nv1, nv3, ib, ivarid, mpierr
+    integer(ik4) :: i, j, k, l, nv1, nv3, ivarid, mpierr
     integer(ik4) :: kk, ll
     nv1 = size(xval,2)
     nv3 = size(xval,3)
@@ -5746,14 +6459,12 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
         if ( myid == iocpu ) then
-          ib = 1
-          do i = iout1, iout2
-            do j = jout1, jout2
-              if ( gg%gcmask(j,i) ) then
-                ncid%r8buf(j,i) = ival(ib)
-                ib = ib + 1
-              end if
-            end do
+          gridmask_id => gg%gcmask_id
+          packed => ncid%r8buf
+          do concurrent (i = iout1:iout2, j = jout1:jout2)
+            if ( gridmask_id(j,i) > 0 ) then
+              packed(j,i) = ival(gridmask_id(j,i))
+            end if
           end do
           istart(4) = l
           istart(3) = k
@@ -5763,7 +6474,7 @@ module mod_clm_nchelper
           icount(3) = 1
           icount(2) = niout
           icount(1) = njout
-          incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
+          incstat = clm_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
             'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5779,9 +6490,11 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     logical, dimension(:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     integer(ik4), intent(in) :: nt
     logical, dimension(:), allocatable :: lval
-    integer(ik4) :: i, j, ib, ivarid, mpierr
+    integer(ik4) :: i, j, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(lval(numg))
@@ -5795,18 +6508,16 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      ib = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          if ( gg%gcmask(j,i) ) then
-            if ( lval(ib) ) then
-              ncid%i4buf(j,i) = 1
-            else
-              ncid%i4buf(j,i) = 0
-            end if
-            ib = ib + 1
+      gridmask_id => gg%gcmask_id
+      packed => ncid%i4buf
+      do concurrent (i = iout1:iout2, j = jout1:jout2)
+        if ( gridmask_id(j,i) > 0 ) then
+          if ( lval(gridmask_id(j,i)) ) then
+            packed(j,i) = 1
+          else
+            packed(j,i) = 0
           end if
-        end do
+        end if
       end do
       istart(3) = nt
       istart(2) = 1
@@ -5814,7 +6525,7 @@ module mod_clm_nchelper
       icount(3) = 1
       icount(2) = niout
       icount(1) = njout
-      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+      incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                              istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5828,9 +6539,11 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     integer(ik4), intent(in) :: nt
     integer(ik4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, ib, ivarid, mpierr
+    integer(ik4) :: i, j, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5844,14 +6557,12 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      ib = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          if ( gg%gcmask(j,i) ) then
-            ncid%i4buf(j,i) = ival(ib)
-            ib = ib + 1
-          end if
-        end do
+      gridmask_id => gg%gcmask_id
+      packed => ncid%i4buf
+      do concurrent (i = iout1:iout2, j = jout1:jout2)
+        if ( gridmask_id(j,i) > 0 ) then
+          packed(j,i) = ival(gridmask_id(j,i))
+        end if
       end do
       istart(3) = nt
       istart(2) = 1
@@ -5859,7 +6570,7 @@ module mod_clm_nchelper
       icount(3) = 1
       icount(2) = niout
       icount(1) = njout
-      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+      incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                              istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5873,9 +6584,11 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     logical, dimension(:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     integer(ik4), intent(in) :: nt
     logical, dimension(:), allocatable :: lval
-    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
+    integer(ik4) :: i, j, k, nv1, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5892,18 +6605,16 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        ib = 1
-        do i = iout1, iout2
-          do j = jout1, jout2
-            if ( gg%gcmask(j,i) ) then
-              if ( lval(ib) ) then
-                ncid%i4buf(j,i) = 1
-              else
-                ncid%i4buf(j,i) = 0
-              end if
-              ib = ib + 1
+        gridmask_id => gg%gcmask_id
+        packed => ncid%i4buf
+        do concurrent (i = iout1:iout2, j = jout1:jout2)
+          if ( gridmask_id(j,i) > 0 ) then
+            if ( lval(gridmask_id(j,i)) ) then
+              packed(j,i) = 1
+            else
+              packed(j,i) = 0
             end if
-          end do
+          end if
         end do
         istart(4) = nt
         istart(3) = k
@@ -5913,7 +6624,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+        incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5928,9 +6639,11 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     integer(ik4), dimension(:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    integer(ik4), pointer, contiguous :: packed(:,:)
     integer(ik4), intent(in) :: nt
     integer(ik4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
+    integer(ik4) :: i, j, k, nv1, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -5947,14 +6660,12 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        ib = 1
-        do i = iout1, iout2
-          do j = jout1, jout2
-            if ( gg%gcmask(j,i) ) then
-              ncid%i4buf(j,i) = ival(ib)
-              ib = ib + 1
-            end if
-          end do
+        gridmask_id => gg%gcmask_id
+        packed => ncid%i4buf
+        do concurrent (i = iout1:iout2, j = jout1:jout2)
+          if ( gridmask_id(j,i) > 0 ) then
+            packed(j,i) = ival(gridmask_id(j,i))
+          end if
         end do
         istart(4) = nt
         istart(3) = k
@@ -5964,7 +6675,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+        incstat = clm_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error write '//vname//' to file '//trim(ncid%fname))
@@ -5979,9 +6690,11 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk4), pointer, contiguous :: packed(:,:)
     integer(ik4), intent(in) :: nt
     real(rk4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, ib, ivarid, mpierr
+    integer(ik4) :: i, j, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -5995,14 +6708,12 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      ib = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          if ( gg%gcmask(j,i) ) then
-            ncid%r4buf(j,i) = ival(ib)
-            ib = ib + 1
-          end if
-        end do
+      gridmask_id => gg%gcmask_id
+      packed => ncid%r4buf
+      do concurrent (i = iout1:iout2, j = jout1:jout2)
+        if ( gridmask_id(j,i) > 0 ) then
+          packed(j,i) = ival(gridmask_id(j,i))
+        end if
       end do
       istart(3) = nt
       istart(2) = 1
@@ -6010,7 +6721,7 @@ module mod_clm_nchelper
       icount(3) = 1
       icount(2) = niout
       icount(1) = njout
-      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
+      incstat = clm_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                              istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -6024,9 +6735,11 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk4), dimension(:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk4), pointer, contiguous :: packed(:,:)
     integer(ik4), intent(in) :: nt
     real(rk4), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
+    integer(ik4) :: i, j, k, nv1, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -6043,14 +6756,12 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        ib = 1
-        do i = iout1, iout2
-          do j = jout1, jout2
-            if ( gg%gcmask(j,i) ) then
-              ncid%r4buf(j,i) = ival(ib)
-              ib = ib + 1
-            end if
-          end do
+        gridmask_id => gg%gcmask_id
+        packed => ncid%r4buf
+        do concurrent (i = iout1:iout2, j = jout1:jout2)
+          if ( gridmask_id(j,i) > 0 ) then
+            packed(j,i) = ival(gridmask_id(j,i))
+          end if
         end do
         istart(4) = nt
         istart(3) = k
@@ -6060,7 +6771,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
+        incstat = clm_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error write '//vname//' to file '//trim(ncid%fname))
@@ -6075,9 +6786,11 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk8), pointer, contiguous :: packed(:,:)
     integer(ik4), intent(in) :: nt
     real(rk8), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, ib, ivarid, mpierr
+    integer(ik4) :: i, j, ivarid, mpierr
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
       allocate(ival(numg))
@@ -6091,14 +6804,12 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid == iocpu ) then
-      ib = 1
-      do i = iout1, iout2
-        do j = jout1, jout2
-          if ( gg%gcmask(j,i) ) then
-            ncid%r8buf(j,i) = ival(ib)
-            ib = ib + 1
-          end if
-        end do
+      gridmask_id => gg%gcmask_id
+      packed => ncid%r8buf
+      do concurrent (i = iout1:iout2, j = jout1:jout2)
+        if ( gridmask_id(j,i) > 0 ) then
+          packed(j,i) = ival(gridmask_id(j,i))
+        end if
       end do
       istart(3) = nt
       istart(2) = 1
@@ -6106,7 +6817,7 @@ module mod_clm_nchelper
       icount(3) = 1
       icount(2) = niout
       icount(1) = njout
-      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
+      incstat = clm_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                              istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error write '//vname//' to file '//trim(ncid%fname))
@@ -6120,9 +6831,11 @@ module mod_clm_nchelper
     character(len=*), intent(in) :: vname
     real(rk8), dimension(:,:), intent(in) :: xval
     type(processor_type), intent(in) :: gg
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
+    real(rk8), pointer, contiguous :: packed(:,:)
     integer(ik4), intent(in) :: nt
     real(rk8), dimension(:), allocatable :: ival
-    integer(ik4) :: i, j, k, nv1, ib, ivarid, mpierr, kk
+    integer(ik4) :: i, j, k, nv1, ivarid, mpierr, kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
       ivarid = searchvar(ncid,vname)
@@ -6139,14 +6852,12 @@ module mod_clm_nchelper
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       if ( myid == iocpu ) then
-        ib = 1
-        do i = iout1, iout2
-          do j = jout1, jout2
-            if ( gg%gcmask(j,i) ) then
-              ncid%r8buf(j,i) = ival(ib)
-              ib = ib + 1
-            end if
-          end do
+        gridmask_id => gg%gcmask_id
+        packed => ncid%r8buf
+        do concurrent (i = iout1:iout2, j = jout1:jout2)
+          if ( gridmask_id(j,i) > 0 ) then
+            packed(j,i) = ival(gridmask_id(j,i))
+          end if
         end do
         istart(4) = nt
         istart(3) = k
@@ -6156,7 +6867,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
+        incstat = clm_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error write '//vname//' to file '//trim(ncid%fname))
@@ -6170,7 +6881,15 @@ module mod_clm_nchelper
     type(clm_filetype), intent(inout) :: ncid
     if ( myid == iocpu ) then
       if ( lsync ) then
+#ifdef ASYNC_NETCDF
+        if ( clm_queue_writes ) then
+          incstat = async_netcdf_sync(ncid%ncid)
+        else
+          incstat = nf90_sync(ncid%ncid)
+        end if
+#else
         incstat = nf90_sync(ncid%ncid)
+#endif
         call clm_checkncerr(__FILE__,__LINE__,'Error sync '//trim(ncid%fname))
       end if
     end if

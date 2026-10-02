@@ -15,7 +15,7 @@ module mod_clm_surfrd
   use mod_stdio
   use mod_memutil
   use mod_mpmessage
-  use mod_dynparam, only : myid
+  use mod_dynparam, only : myid, iout1, iout2, jout1, jout2
 #if (defined CNDV)
   use mod_dynparam, only : enable_dv_baresoil
 #endif
@@ -69,6 +69,8 @@ module mod_clm_surfrd
     integer(ik4) :: iend           ! local end index
     integer(ik4) :: ni, nj         ! size of grid on file
     integer(ik4) :: inni, innj     ! size of grid on file
+    integer(ik4) :: i, j, ib
+    integer(ik4), pointer, contiguous :: gridmask_id(:,:)
     real(rk4), allocatable, dimension(:,:) :: mask
     character(len=32) :: subname = 'surfrd_get_grid'     ! subroutine name
 
@@ -97,8 +99,23 @@ module mod_clm_surfrd
     call get_proc_bounds(ibeg,iend)
     call domain_init(ldomain,ni=ni,nj=nj,nbeg=ibeg,nend=iend)
 
-    allocate(procinfo%gcmask(ni,nj))
-    procinfo%gcmask(:,:) = (mask(2:inni-2,2:innj-2) > 0.0)
+    ! Build the output-grid lookup once, in the gathered-vector ordering.
+    allocate(procinfo%gcmask_id(jout1:jout2,iout1:iout2))
+    gridmask_id => procinfo%gcmask_id
+    ib = 1
+    do i = iout1, iout2
+      do j = jout1, jout2
+        if ( mask(j+1,i+1) > 0.0_rk4 ) then
+          gridmask_id(j,i) = ib
+          ib = ib + 1
+        else
+          gridmask_id(j,i) = 0
+        end if
+      end do
+    end do
+#ifdef OPENACC
+    !$acc update device(gridmask_id)
+#endif
     deallocate(mask)
 
     ! We receive only GOOD land points !

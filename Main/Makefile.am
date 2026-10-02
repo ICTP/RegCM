@@ -134,6 +134,12 @@ endif
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
+if COMPILER_PGI
+# Temporary workaround for the fort2 crash observed with NVFORTRAN 25.7
+mod_output.o: mod_output.F90
+	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -Mnoinline -c $<
+endif
+
 distclean-local:
 	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 

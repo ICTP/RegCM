@@ -26,6 +26,9 @@ module mod_clm_histfile
          nsrest, nsrStartup, nextdate, DoForceRestart
   use mod_clm_domain, only : ldomain
   use mod_clm_time_manager, only : getdatetime
+#ifdef ASYNC_NETCDF
+  use mod_async_netcdf, only : async_netcdf_wait_all
+#endif
 
   implicit none
 
@@ -1455,7 +1458,6 @@ module mod_clm_histfile
     integer(ik4) :: f              ! field index
     integer(ik4) :: k              ! 1d index
     integer(ik4) :: j              ! 2d index
-    logical :: aflag               ! averaging flag
     ! hbuf 1d beginning and ending indices
     integer(ik4) :: beg1d_out, end1d_out
     ! hbuf size of second dimension (e.g. number of vertical levels)
@@ -1474,19 +1476,13 @@ module mod_clm_histfile
       nacs      => tape(t)%hlist(f)%nacs
       hbuf      => tape(t)%hlist(f)%hbuf
 
-      if (avgflag == 'A') then
-        aflag = .true.
-      else
-        aflag = .false.
-      end if
-
-      do j = 1, num2d
-        do k = beg1d_out, end1d_out
-          if ( aflag .and. nacs(k,j) /= 0 ) then
-            hbuf(k,j) = hbuf(k,j) / float(nacs(k,j))
+      if ( avgflag == 'A' ) then
+        do concurrent (k = beg1d_out:end1d_out, j = 1:num2d)
+          if ( nacs(k,j) /= 0 ) then
+            hbuf(k,j) = hbuf(k,j) / real(nacs(k,j),rk8)
           end if
         end do
-      end do
+      end if
     end do
   end subroutine hfields_normalize
   !
@@ -1497,9 +1493,22 @@ module mod_clm_histfile
     implicit none
     integer(ik4), intent(in) :: t    ! tape index
     integer(ik4) :: f                 ! field index
+    integer(ik4) :: k                 ! 1d index
+    integer(ik4) :: j                 ! 2d index
+    integer(ik4) :: beg1d_out, end1d_out
+    integer(ik4) :: num2d
+    real(rk8), pointer, contiguous :: hbuf(:,:)    ! history buffer
+    integer(ik4), pointer, contiguous :: nacs(:,:) ! accumulation counter
     do f = 1, tape(t)%nflds
-      tape(t)%hlist(f)%hbuf(:,:) = 0._rk8
-      tape(t)%hlist(f)%nacs(:,:) = 0
+      beg1d_out = tape(t)%hlist(f)%field%beg1d_out
+      end1d_out = tape(t)%hlist(f)%field%end1d_out
+      num2d     = tape(t)%hlist(f)%field%num2d
+      hbuf      => tape(t)%hlist(f)%hbuf
+      nacs      => tape(t)%hlist(f)%nacs
+      do concurrent (k = beg1d_out:end1d_out, j = 1:num2d)
+        hbuf(k,j) = 0._rk8
+        nacs(k,j) = 0
+      end do
     end do
   end subroutine hfields_zero
   !
@@ -1626,7 +1635,7 @@ module mod_clm_histfile
     implicit none
     integer(ik4), intent(in) :: t  ! tape index
     character(len=*), intent(in) :: mode  ! 'define' or 'write'
-    integer(ik4) :: c, l, lev, ifld ! indices
+    integer(ik4) :: c, lev, ifld ! indices
     integer(ik4) :: ier                ! error status
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
@@ -1638,8 +1647,16 @@ module mod_clm_histfile
     character(len=8) :: l2g_scale_type
     real(rk8), pointer, contiguous :: histi(:,:)     ! temporary
     real(rk8), pointer, contiguous :: histo(:,:)     ! temporary
-    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type), pointer :: cptr   ! pointer to column derived subtype
+    real(rk8), pointer, contiguous :: z(:,:)
+    real(rk8), pointer, contiguous :: dz(:,:)
+    real(rk8), pointer, contiguous :: watsat(:,:)
+    real(rk8), pointer, contiguous :: sucsat(:,:)
+    real(rk8), pointer, contiguous :: bsw(:,:)
+    real(rk8), pointer, contiguous :: hksat(:,:)
+    real(rk8), pointer, contiguous :: z_lake(:,:)
+    real(rk8), pointer, contiguous :: dz_lake(:,:)
+    integer(ik4), pointer, contiguous :: clandunit(:)
+    logical, pointer, contiguous :: lakpoi(:)
     integer(ik4), parameter :: nflds = 6 ! Number of 3D time-constant fields
     character(len=16) :: tmpchar
     character(len=*), parameter :: subname = 'htape_timeconst3D'
@@ -1707,8 +1724,12 @@ module mod_clm_histfile
 
       ! Set pointers into derived type and get necessary bounds
 
-      lptr => clm3%g%l
-      cptr => clm3%g%l%c
+      z      => clm3%g%l%c%cps%z
+      dz     => clm3%g%l%c%cps%dz
+      watsat => clm3%g%l%c%cps%watsat
+      sucsat => clm3%g%l%c%cps%sucsat
+      bsw    => clm3%g%l%c%cps%bsw
+      hksat  => clm3%g%l%c%cps%hksat
 
       call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
@@ -1755,21 +1776,39 @@ module mod_clm_histfile
           l2g_scale_type = 'veg'
         end if
 
+        !$acc kernels
         histi(:,:) = spval
-        do lev = 1, nlevgrnd
-          do c = begc, endc
-            l = cptr%landunit(c)
-            ! Field indices MUST match varnames array order above!
-            if ( ifld == 1 ) histi(c,lev) = cptr%cps%z(c,lev)
-            if ( ifld == 2 ) histi(c,lev) = cptr%cps%dz(c,lev)
-            if ( ifld == 3 ) histi(c,lev) = cptr%cps%watsat(c,lev)
-            if ( ifld == 4 ) histi(c,lev) = cptr%cps%sucsat(c,lev)
-            if ( ifld == 5 ) histi(c,lev) = cptr%cps%bsw(c,lev)
-            if ( ifld == 6 ) histi(c,lev) = cptr%cps%hksat(c,lev)
+        !$acc end kernels
+        select case (ifld)
+        case (1)
+          do concurrent (c = begc:endc, lev = 1:nlevgrnd)
+            histi(c,lev) = z(c,lev)
           end do
-        end do
+        case (2)
+          do concurrent (c = begc:endc, lev = 1:nlevgrnd)
+            histi(c,lev) = dz(c,lev)
+          end do
+        case (3)
+          do concurrent (c = begc:endc, lev = 1:nlevgrnd)
+            histi(c,lev) = watsat(c,lev)
+          end do
+        case (4)
+          do concurrent (c = begc:endc, lev = 1:nlevgrnd)
+            histi(c,lev) = sucsat(c,lev)
+          end do
+        case (5)
+          do concurrent (c = begc:endc, lev = 1:nlevgrnd)
+            histi(c,lev) = bsw(c,lev)
+          end do
+        case (6)
+          do concurrent (c = begc:endc, lev = 1:nlevgrnd)
+            histi(c,lev) = hksat(c,lev)
+          end do
+        end select
         if ( tape(t)%dov2xy ) then
+          !$acc kernels
           histo(:,:) = spval
+          !$acc end kernels
           call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd,histi,histo, &
                    c2l_scale_type='unity',l2g_scale_type=l2g_scale_type)
           call clm_writevar(nfid(t),trim(varnames(ifld)),histo,gcomm_gridcell)
@@ -1815,8 +1854,10 @@ module mod_clm_histfile
 
       ! Set pointers into derived type and get necessary bounds
 
-      lptr => clm3%g%l
-      cptr => clm3%g%l%c
+      lakpoi    => clm3%g%l%lakpoi
+      clandunit => clm3%g%l%c%landunit
+      z_lake    => clm3%g%l%c%cps%z_lake
+      dz_lake   => clm3%g%l%c%cps%dz_lake
 
       call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
@@ -1837,19 +1878,27 @@ module mod_clm_histfile
       end if
 
       do ifld = 1, nfldsl
+        !$acc kernels
         histil(:,:) = spval
-        do lev = 1, nlevlak
-          do c = begc, endc
-            l = cptr%landunit(c)
-            if ( lptr%lakpoi(l) ) then
-              ! Field indices MUST match varnamesl array order above!
-              if ( ifld == 1 ) histil(c,lev) = cptr%cps%z_lake(c,lev)
-              if ( ifld == 2 ) histil(c,lev) = cptr%cps%dz_lake(c,lev)
+        !$acc end kernels
+        select case (ifld)
+        case (1)
+          do concurrent (c = begc:endc, lev = 1:nlevlak)
+            if ( lakpoi(clandunit(c)) ) then
+              histil(c,lev) = z_lake(c,lev)
             end if
           end do
-        end do
+        case (2)
+          do concurrent (c = begc:endc, lev = 1:nlevlak)
+            if ( lakpoi(clandunit(c)) ) then
+              histil(c,lev) = dz_lake(c,lev)
+            end if
+          end do
+        end select
         if ( tape(t)%dov2xy ) then
+          !$acc kernels
           histol(:,:) = spval
+          !$acc end kernels
           call c2g(begc,endc,begl,endl,begg,endg,nlevlak,histil,histol, &
                    c2l_scale_type='unity', l2g_scale_type='lake')
           call clm_writevar(nfid(t),trim(varnamesl(ifld)),histol, &
@@ -1885,8 +1934,6 @@ module mod_clm_histfile
     integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
     character(len=256) :: str             ! global attribute string
-    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type), pointer :: cptr   ! pointer to column derived subtype
     real(rk8) :: zsoi_1d(1)
 
     ! Time constant grid variables only on first time-sample of file
@@ -1911,7 +1958,7 @@ module mod_clm_histfile
         call clm_writevar(nfid(t),'levdcmp',zsoi)
 #else
         zsoi_1d(1) = 1._rk8
-        call clm_writevar(nfid(t),'levdcmp',zsoi_1d)
+        call clm_writevar(nfid(t),'levdcmp',zsoi_1d,host_source=.true.)
 #endif
       end if
     end if
@@ -1943,7 +1990,7 @@ module mod_clm_histfile
       call clm_writevar(nfid(t),'time',time,tape(t)%ntimes)
       timedata(1) = tape(t)%begtime
       timedata(2) = time
-      call clm_writevar(nfid(t),'time_bounds',timedata,tape(t)%ntimes)
+      call clm_writevar(nfid(t),'time_bounds',timedata,tape(t)%ntimes,host_source=.true.)
       tape(t)%begtime = time
     end if
 
@@ -1982,9 +2029,6 @@ module mod_clm_histfile
       ! But, some may change for dynamic PFT mode for example
       ! Set pointers into derived type and get necessary bounds
 
-      lptr => clm3%g%l
-      cptr => clm3%g%l%c
-
       call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
       call clm_writevar(nfid(t),'lon',ldomain%lonc,gcomm_gridcell)
@@ -2008,6 +2052,7 @@ module mod_clm_histfile
     integer(ik4), intent(in) :: t        ! tape index
     character(len=*), intent(in) :: mode ! 'define' or 'write'
     integer(ik4) :: f         ! field index
+    integer(ik4) :: i         ! local index
     integer(ik4) :: beg1d_out ! on-node 1d hbuf pointer start index
     integer(ik4) :: end1d_out ! on-node 1d hbuf pointer end index
     integer(ik4) :: num1d_out ! size of hbuf first dimension (overall all nodes)
@@ -2119,7 +2164,9 @@ module mod_clm_histfile
             write(stderr,*) trim(subname),' ERROR: allocation'
             call fatal(__FILE__,__LINE__,'clm now stopping.')
           end if
-          hist1do(beg1d_out:end1d_out) = histo(beg1d_out:end1d_out,1)
+          do concurrent (i = beg1d_out:end1d_out)
+            hist1do(i) = histo(i,1)
+          end do
           call clm_writevar(nfid(t),varname,hist1do,gcomm,nt)
           deallocate(hist1do)
         else
@@ -2146,6 +2193,21 @@ module mod_clm_histfile
     integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
     integer(ik4) :: ier         ! errir status
+    real(rk8), pointer, contiguous :: londeg(:)
+    real(rk8), pointer, contiguous :: latdeg(:)
+    real(rk8), pointer, contiguous :: lwtgcell(:)
+    real(rk8), pointer, contiguous :: cwtgcell(:)
+    real(rk8), pointer, contiguous :: cwtlunit(:)
+    real(rk8), pointer, contiguous :: pwtgcell(:)
+    real(rk8), pointer, contiguous :: pwtlunit(:)
+    real(rk8), pointer, contiguous :: pwtcol(:)
+    integer(ik4), pointer, contiguous :: lgridcell(:)
+    integer(ik4), pointer, contiguous :: cgridcell(:)
+    integer(ik4), pointer, contiguous :: clandunit(:)
+    integer(ik4), pointer, contiguous :: pgridcell(:)
+    integer(ik4), pointer, contiguous :: plandunit(:)
+    integer(ik4), pointer, contiguous :: litype(:)
+    integer(ik4), pointer, contiguous :: pitype(:)
     real(rk8), pointer, contiguous :: rgarr(:)        ! temporary
     real(rk8), pointer, contiguous :: rcarr(:)        ! temporary
     real(rk8), pointer, contiguous :: rlarr(:)        ! temporary
@@ -2154,10 +2216,6 @@ module mod_clm_histfile
     integer(ik4), pointer, contiguous :: icarr(:)     ! temporary
     integer(ik4), pointer, contiguous :: ilarr(:)     ! temporary
     integer(ik4), pointer, contiguous :: iparr(:)     ! temporary
-    type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype
-    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
-    type(column_type) , pointer :: cptr ! pointer to column derived subtype
-    type(pft_type)    , pointer :: pptr ! pointer to pft derived subtype
 
     if ( mode == 'define' ) then
 
@@ -2224,10 +2282,21 @@ module mod_clm_histfile
 
       ! Set pointers into derived type
 
-      gptr => clm3%g
-      lptr => clm3%g%l
-      cptr => clm3%g%l%c
-      pptr => clm3%g%l%c%p
+      londeg    => clm3%g%londeg
+      latdeg    => clm3%g%latdeg
+      lgridcell => clm3%g%l%gridcell
+      lwtgcell  => clm3%g%l%wtgcell
+      litype    => clm3%g%l%itype
+      cgridcell => clm3%g%l%c%gridcell
+      clandunit => clm3%g%l%c%landunit
+      cwtgcell  => clm3%g%l%c%wtgcell
+      cwtlunit  => clm3%g%l%c%wtlunit
+      pgridcell => clm3%g%l%c%p%gridcell
+      plandunit => clm3%g%l%c%p%landunit
+      pwtgcell  => clm3%g%l%c%p%wtgcell
+      pwtlunit  => clm3%g%l%c%p%wtlunit
+      pwtcol    => clm3%g%l%c%p%wtcol
+      pitype    => clm3%g%l%c%p%itype
 
       ! Determine bounds
 
@@ -2247,64 +2316,64 @@ module mod_clm_histfile
 
       ! Write gridcell info
 
-      call clm_writevar(nfid(t),'grid1d_lon',gptr%londeg,gcomm_gridcell)
-      call clm_writevar(nfid(t),'grid1d_lat',gptr%latdeg,gcomm_gridcell)
+      call clm_writevar(nfid(t),'grid1d_lon',londeg,gcomm_gridcell)
+      call clm_writevar(nfid(t),'grid1d_lat',latdeg,gcomm_gridcell)
 
       ! Write landunit info
 
-      do l = begl, endl
-        rlarr(l) = gptr%londeg(lptr%gridcell(l))
+      do concurrent (l = begl:endl)
+        rlarr(l) = londeg(lgridcell(l))
       end do
       call clm_writevar(nfid(t),'land1d_lon',rlarr,gcomm_landunit)
-      do l = begl, endl
-        rlarr(l) = gptr%latdeg(lptr%gridcell(l))
+      do concurrent (l = begl:endl)
+        rlarr(l) = latdeg(lgridcell(l))
       end do
       call clm_writevar(nfid(t),'land1d_lat',rlarr,gcomm_landunit)
-      call clm_writevar(nfid(t),'land1d_wtgcell',lptr%wtgcell,gcomm_landunit)
-      call clm_writevar(nfid(t),'land1d_ityplunit',lptr%itype,gcomm_landunit)
-      call clm_writevar(nfid(t),'land1d_active',lptr%active,gcomm_landunit)
+      call clm_writevar(nfid(t),'land1d_wtgcell',lwtgcell,gcomm_landunit)
+      call clm_writevar(nfid(t),'land1d_ityplunit',litype,gcomm_landunit)
+      call clm_writevar(nfid(t),'land1d_active',clm3%g%l%active,gcomm_landunit)
 
       ! Write column info
 
-      do c = begc, endc
-        rcarr(c) = gptr%londeg(cptr%gridcell(c))
+      do concurrent (c = begc:endc)
+        rcarr(c) = londeg(cgridcell(c))
       end do
       call clm_writevar(nfid(t),'cols1d_lon',rcarr,gcomm_column)
-      do c = begc, endc
-        rcarr(c) = gptr%latdeg(cptr%gridcell(c))
+      do concurrent (c = begc:endc)
+        rcarr(c) = latdeg(cgridcell(c))
       end do
       call clm_writevar(nfid(t),'cols1d_lat',rcarr,gcomm_column)
-      call clm_writevar(nfid(t),'cols1d_wtgcell',cptr%wtgcell,gcomm_column)
-      call clm_writevar(nfid(t),'cols1d_wtlunit',cptr%wtlunit,gcomm_column)
-      do c = begc, endc
-        icarr(c) = lptr%itype(cptr%landunit(c))
+      call clm_writevar(nfid(t),'cols1d_wtgcell',cwtgcell,gcomm_column)
+      call clm_writevar(nfid(t),'cols1d_wtlunit',cwtlunit,gcomm_column)
+      do concurrent (c = begc:endc)
+        icarr(c) = litype(clandunit(c))
       end do
       call clm_writevar(nfid(t),'cols1d_itype_lunit',icarr,gcomm_column)
-      call clm_writevar(nfid(t),'cols1d_active',cptr%active,gcomm_column)
+      call clm_writevar(nfid(t),'cols1d_active',clm3%g%l%c%active,gcomm_column)
 
       ! Write pft info
 
-      do p = begp, endp
-        rparr(p) = gptr%londeg(pptr%gridcell(p))
+      do concurrent (p = begp:endp)
+        rparr(p) = londeg(pgridcell(p))
       end do
       call clm_writevar(nfid(t),'pfts1d_lon',rparr,gcomm_pft)
-      do p = begp, endp
-        rparr(p) = gptr%latdeg(pptr%gridcell(p))
+      do concurrent (p = begp:endp)
+        rparr(p) = latdeg(pgridcell(p))
       end do
       call clm_writevar(nfid(t),'pfts1d_lat',rparr,gcomm_pft)
-      call clm_writevar(nfid(t),'pfts1d_wtgcell',pptr%wtgcell,gcomm_pft)
-      call clm_writevar(nfid(t),'pfts1d_wtlunit',pptr%wtlunit,gcomm_pft)
-      call clm_writevar(nfid(t),'pfts1d_wtcol',pptr%wtcol,gcomm_pft)
-      call clm_writevar(nfid(t),'pfts1d_itypveg',pptr%itype,gcomm_pft)
-      do p = begp, endp
-        iparr(p) = lptr%itype(pptr%landunit(p))
+      call clm_writevar(nfid(t),'pfts1d_wtgcell',pwtgcell,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_wtlunit',pwtlunit,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_wtcol',pwtcol,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_itypveg',pitype,gcomm_pft)
+      do concurrent (p = begp:endp)
+        iparr(p) = litype(plandunit(p))
       end do
       call clm_writevar(nfid(t),'pfts1d_itype_lunit',iparr,gcomm_pft)
-      do p = begp, endp
-        iparr(p) = clm3%g%l%c%p%gridcell(p)
+      do concurrent (p = begp:endp)
+        iparr(p) = pgridcell(p)
       end do
       call clm_writevar(nfid(t),'pfts1d_gridcell',iparr,gcomm_pft)
-      call clm_writevar(nfid(t),'pfts1d_active',pptr%active,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_active',clm3%g%l%c%p%active,gcomm_pft)
 
       deallocate(rgarr,rlarr,rcarr,rparr)
       deallocate(igarr,ilarr,icarr,iparr)
@@ -2342,6 +2411,10 @@ module mod_clm_histfile
     integer(ik8) :: temp
     real(rk8):: time                 ! current time
     logical :: if_stop               ! true => last time step of run
+#ifdef ASYNC_NETCDF
+    logical :: waited_for_async_io
+    integer(ik4) :: async_status
+#endif
     ! true => write out 3D time-constant data
     logical, save :: do_3Dtconst = .true.
 
@@ -2349,6 +2422,9 @@ module mod_clm_histfile
 
     call curr_time(nextdate, mdcur, mscur)
     time = mdcur + mscur/secspday
+#ifdef ASYNC_NETCDF
+    waited_for_async_io = .false.
+#endif
 
     ! Loop over active history tapes, create new history files if necessary
     ! and write data to history files if end of history interval.
@@ -2377,6 +2453,19 @@ module mod_clm_histfile
         ! Increment current time sample counter.
 
         tape(t)%ntimes = tape(t)%ntimes + 1
+
+        ! The prefetched reads must finish before any history NetCDF call.
+        ! Leave normalization ahead of this barrier to overlap the reads.
+#ifdef ASYNC_NETCDF
+        if ( .not. waited_for_async_io ) then
+          async_status = async_netcdf_wait_all()
+          if ( async_status /= 0 ) then
+            call fatal(__FILE__,__LINE__, &
+              'Async NetCDF worker failed before CLM history output')
+          end if
+          waited_for_async_io = .true.
+        end if
+#endif
 
         ! Create history file if appropriate and build time comment
 
@@ -2409,6 +2498,9 @@ module mod_clm_histfile
         end if
 
         ! Write time constant history variables
+#ifdef ASYNC_NETCDF
+        call clm_set_async_writes(.true.)
+#endif
         call htape_timeconst(t, mode='write')
 
         ! Write 3D time constant history variables only to first primary tape
@@ -2424,6 +2516,9 @@ module mod_clm_histfile
         ! Write history time samples
 
         call hfields_write(t, mode='write')
+#ifdef ASYNC_NETCDF
+        call clm_set_async_writes(.false.)
+#endif
 
         ! Zero necessary history buffers
 
@@ -2437,10 +2532,20 @@ module mod_clm_histfile
     tapes_ntimes = tape(:)%ntimes
     call hist_do_disp(ntapes, nlomon, if_stop, if_disphist, rstwr, nlend)
 
-    ! Close open history file
-    ! Auxilary files may have been closed and saved off without being full,
-    ! must reopen the files
+#ifdef ASYNC_NETCDF
+    if ( any(if_disphist(1:ntapes) .and. &
+             tapes_ntimes(1:ntapes) /= 0) ) then
+      ! Queued writes must finish before the main thread closes a file.
+      async_status = async_netcdf_wait_all()
+      if ( async_status /= 0 ) then
+        call fatal(__FILE__,__LINE__, &
+          'Async NetCDF worker failed before CLM history close')
+      end if
+    end if
+#endif
 
+    ! Close completed history files. Reopen only files that will receive
+    ! more samples after a midmonth restart write.
     do t = 1, ntapes
       if ( if_disphist(t) ) then
         if ( tape(t)%ntimes /= 0 ) then
@@ -2448,7 +2553,7 @@ module mod_clm_histfile
             write(stdout,*)  'Closing local history file ',trim(locfnh(t))
           end if
           call clm_closefile(nfid(t))
-          if ( .not. if_stop ) then
+          if ( .not. if_stop .and. .not. nlomon ) then
             call clm_openfile(trim(locfnh(t)), nfid(t), clm_readwrite)
           end if
         else
@@ -2458,7 +2563,6 @@ module mod_clm_histfile
         end if
       end if
     end do
-
     ! Reset number of time samples to zero if file is full
 
     do t = 1, ntapes
@@ -2778,12 +2882,12 @@ module mod_clm_histfile
         do f = 1, tape(t)%nflds
           itemp2d(f,t) = tape(t)%hlist(f)%field%num2d
         end do
-        call clm_writevar(ncid_hist(t),'num2d',itemp2d(:,t))
+        call clm_writevar(ncid_hist(t),'num2d',itemp2d(:,t),host_source=.true.)
         itemp2d(:,:) = 0
         do f = 1, tape(t)%nflds
           itemp2d(f,t) = tape(t)%hlist(f)%field%hpindex
         end do
-        call clm_writevar(ncid_hist(t),'hpindex',itemp2d(:,t))
+        call clm_writevar(ncid_hist(t),'hpindex',itemp2d(:,t),host_source=.true.)
         call clm_writevar(ncid_hist(t),'nflds',tape(t)%nflds)
         call clm_writevar(ncid_hist(t),'ntimes',tape(t)%ntimes)
         call clm_writevar(ncid_hist(t),'nhtfrq',tape(t)%nhtfrq)
@@ -3058,8 +3162,10 @@ module mod_clm_histfile
                 write(stderr,*) trim(subname),' ERROR: allocation'
                 call fatal(__FILE__,__LINE__,'clm now stopping.')
               end if
+              !$acc kernels
               hbuf1d(beg1d_out:end1d_out) = hbuf(beg1d_out:end1d_out,1)
               nacs1d(beg1d_out:end1d_out) = nacs(beg1d_out:end1d_out,1)
+              !$acc end kernels
               call clm_writevar(ncid_hist(t),trim(name),hbuf1d,gcomm)
               call clm_writevar(ncid_hist(t),trim(name_acc),nacs1d,gcomm)
               deallocate(hbuf1d)
@@ -3100,13 +3206,17 @@ module mod_clm_histfile
               end if
               call clm_readvar(ncid_hist(t),trim(name),hbuf1d,gcomm)
               call clm_readvar(ncid_hist(t),trim(name_acc),nacs1d,gcomm)
+              !$acc update device(hbuf1d,nacs1d)
+              !$acc kernels
               hbuf(beg1d_out:end1d_out,1) = hbuf1d(beg1d_out:end1d_out)
               nacs(beg1d_out:end1d_out,1) = nacs1d(beg1d_out:end1d_out)
+              !$acc end kernels
               deallocate(hbuf1d)
               deallocate(nacs1d)
             else
               call clm_readvar(ncid_hist(t),trim(name),hbuf,gcomm)
               call clm_readvar(ncid_hist(t),trim(name_acc),nacs,gcomm)
+              !$acc update device(hbuf,nacs)
             end if
           end do
         end if
@@ -3169,11 +3279,22 @@ module mod_clm_histfile
     character(len=8) :: scale_type_c2l
     ! scale type for subgrid averaging of landunits to gridcells
     character(len=8) :: scale_type_l2g
+    integer(ik4), pointer, contiguous :: clandunit(:)
+    integer(ik4), pointer, contiguous :: plandunit(:)
+    logical, pointer, contiguous :: lakpoi(:)
+    logical, pointer, contiguous :: urbpoi(:)
+    logical, pointer, contiguous :: ifspecial(:)
     character(len=*),parameter :: subname = 'hist_addfld1d'
 
     ! Determine processor bounds
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
+
+    lakpoi    => clm3%g%l%lakpoi
+    urbpoi    => clm3%g%l%urbpoi
+    ifspecial => clm3%g%l%ifspecial
+    clandunit => clm3%g%l%c%landunit
+    plandunit => clm3%g%l%c%p%landunit
 
     ! History buffer pointer
 
@@ -3192,28 +3313,28 @@ module mod_clm_histfile
       l_type1d_out = namel(1:8)
       clmptr_rs(hpindex)%ptr => ptr_lunit
       if ( present(set_lake) ) then
-        do l = begl, endl
-          if ( clm3%g%l%lakpoi(l) ) ptr_lunit(l) = set_lake
+        do concurrent (l = begl:endl)
+          if ( lakpoi(l) ) ptr_lunit(l) = set_lake
         end do
       end if
       if ( present(set_nolake) ) then
-        do l = begl, endl
-          if ( .not. (clm3%g%l%lakpoi(l)) ) ptr_lunit(l) = set_nolake
+        do concurrent (l = begl:endl)
+          if ( .not. lakpoi(l) ) ptr_lunit(l) = set_nolake
         end do
       end if
       if ( present(set_urb) ) then
-        do l = begl, endl
-          if ( clm3%g%l%urbpoi(l) ) ptr_lunit(l) = set_urb
+        do concurrent (l = begl:endl)
+          if ( urbpoi(l) ) ptr_lunit(l) = set_urb
         end do
       end if
       if ( present(set_nourb) ) then
-        do l = begl, endl
-          if ( .not. (clm3%g%l%urbpoi(l)) ) ptr_lunit(l) = set_nourb
+        do concurrent (l = begl:endl)
+          if ( .not. urbpoi(l) ) ptr_lunit(l) = set_nourb
         end do
       end if
       if ( present(set_spec) ) then
-        do l = begl, endl
-          if ( clm3%g%l%ifspecial(l) ) ptr_lunit(l) = set_spec
+        do concurrent (l = begl:endl)
+          if ( ifspecial(l) ) ptr_lunit(l) = set_spec
         end do
       end if
     else if ( present(ptr_col) ) then
@@ -3221,33 +3342,28 @@ module mod_clm_histfile
       l_type1d_out = namec(1:8)
       clmptr_rs(hpindex)%ptr => ptr_col
       if ( present(set_lake) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( clm3%g%l%lakpoi(l) ) ptr_col(c) = set_lake
+        do concurrent (c = begc:endc)
+          if ( lakpoi(clandunit(c)) ) ptr_col(c) = set_lake
         end do
       end if
       if ( present(set_nolake) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( .not. (clm3%g%l%lakpoi(l)) ) ptr_col(c) = set_nolake
+        do concurrent (c = begc:endc)
+          if ( .not. lakpoi(clandunit(c)) ) ptr_col(c) = set_nolake
         end do
       end if
       if ( present(set_urb) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( clm3%g%l%urbpoi(l) ) ptr_col(c) = set_urb
+        do concurrent (c = begc:endc)
+          if ( urbpoi(clandunit(c)) ) ptr_col(c) = set_urb
         end do
       end if
       if ( present(set_nourb) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( .not. (clm3%g%l%urbpoi(l)) ) ptr_col(c) = set_nourb
+        do concurrent (c = begc:endc)
+          if ( .not. urbpoi(clandunit(c)) ) ptr_col(c) = set_nourb
         end do
       end if
       if ( present(set_spec) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( clm3%g%l%ifspecial(l) ) ptr_col(c) = set_spec
+        do concurrent (c = begc:endc)
+          if ( ifspecial(clandunit(c)) ) ptr_col(c) = set_spec
         end do
       end if
     else if ( present(ptr_pft) ) then
@@ -3255,33 +3371,28 @@ module mod_clm_histfile
       l_type1d_out = namep(1:8)
       clmptr_rs(hpindex)%ptr => ptr_pft
       if ( present(set_lake) ) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( clm3%g%l%lakpoi(l) ) ptr_pft(p) = set_lake
+        do concurrent (p = begp:endp)
+          if ( lakpoi(plandunit(p)) ) ptr_pft(p) = set_lake
         end do
       end if
       if ( present(set_nolake) ) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( .not. (clm3%g%l%lakpoi(l)) ) ptr_pft(p) = set_nolake
+        do concurrent (p = begp:endp)
+          if ( .not. lakpoi(plandunit(p)) ) ptr_pft(p) = set_nolake
         end do
       end if
       if ( present(set_urb) ) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( clm3%g%l%urbpoi(l) ) ptr_pft(p) = set_urb
+        do concurrent (p = begp:endp)
+          if ( urbpoi(plandunit(p)) ) ptr_pft(p) = set_urb
         end do
       end if
       if ( present(set_nourb) ) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( .not. (clm3%g%l%urbpoi(l)) ) ptr_pft(p) = set_nourb
+        do concurrent (p = begp:endp)
+          if ( .not. urbpoi(plandunit(p)) ) ptr_pft(p) = set_nourb
         end do
       end if
       if (present(set_spec)) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( clm3%g%l%ifspecial(l) ) ptr_pft(p) = set_spec
+        do concurrent (p = begp:endp)
+          if ( ifspecial(plandunit(p)) ) ptr_pft(p) = set_spec
         end do
       end if
     else
@@ -3358,7 +3469,7 @@ module mod_clm_histfile
     character(len=*), optional, intent(in) :: l2g_scale_type
     ! if set to 'inactive, field will not appear on primary tape
     character(len=*), optional, intent(in) :: default
-    integer(ik4) :: p, c, l ! indices
+    integer(ik4) :: p, c, l, j ! indices
     ! size of second dimension (e.g. number of vertical levels)
     integer(ik4) :: num2d
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
@@ -3374,6 +3485,11 @@ module mod_clm_histfile
     character(len=8) :: scale_type_c2l
     ! scale type for subgrid averaging of landunits to gridcells
     character(len=8) :: scale_type_l2g
+    integer(ik4), pointer, contiguous :: clandunit(:)
+    integer(ik4), pointer, contiguous :: plandunit(:)
+    logical, pointer, contiguous :: lakpoi(:)
+    logical, pointer, contiguous :: urbpoi(:)
+    logical, pointer, contiguous :: ifspecial(:)
     character(len=*),parameter :: subname = 'hist_addfld2d'
 
     ! Determine second dimension size
@@ -3398,6 +3514,12 @@ module mod_clm_histfile
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
+    lakpoi    => clm3%g%l%lakpoi
+    urbpoi    => clm3%g%l%urbpoi
+    ifspecial => clm3%g%l%ifspecial
+    clandunit => clm3%g%l%c%landunit
+    plandunit => clm3%g%l%c%p%landunit
+
     ! History buffer pointer
 
     hpindex = pointer_index()
@@ -3405,7 +3527,7 @@ module mod_clm_histfile
     if ( present(ptr_lnd) ) then
       l_type1d = nameg(1:8)
       l_type1d_out = nameg(1:8)
-      clmptr_ra(hpindex)%ptr => ptr_gcell
+      clmptr_ra(hpindex)%ptr => ptr_lnd
     else if ( present(ptr_gcell) ) then
       l_type1d = nameg(1:8)
       l_type1d_out = nameg(1:8)
@@ -3415,28 +3537,28 @@ module mod_clm_histfile
       l_type1d_out = namel(1:8)
       clmptr_ra(hpindex)%ptr => ptr_lunit
       if ( present(set_lake) ) then
-        do l = begl, endl
-          if ( clm3%g%l%lakpoi(l) ) ptr_lunit(l,:) = set_lake
+        do concurrent (l = begl:endl, j = 1:num2d)
+          if ( lakpoi(l) ) ptr_lunit(l,j) = set_lake
         end do
       end if
       if ( present(set_nolake) ) then
-        do l = begl, endl
-          if ( .not. (clm3%g%l%lakpoi(l)) ) ptr_lunit(l,:) = set_nolake
+        do concurrent (l = begl:endl, j = 1:num2d)
+          if ( .not. lakpoi(l) ) ptr_lunit(l,j) = set_nolake
         end do
       end if
       if ( present(set_urb) ) then
-        do l = begl, endl
-          if ( clm3%g%l%urbpoi(l) ) ptr_lunit(l,:) = set_urb
+        do concurrent (l = begl:endl, j = 1:num2d)
+          if ( urbpoi(l) ) ptr_lunit(l,j) = set_urb
         end do
       end if
       if ( present(set_nourb) ) then
-        do l = begl, endl
-          if ( .not. (clm3%g%l%urbpoi(l)) ) ptr_lunit(l,:) = set_nourb
+        do concurrent (l = begl:endl, j = 1:num2d)
+          if ( .not. urbpoi(l) ) ptr_lunit(l,j) = set_nourb
         end do
       end if
       if ( present(set_spec) ) then
-        do l = begl, endl
-          if ( clm3%g%l%ifspecial(l) ) ptr_lunit(l,:) = set_spec
+        do concurrent (l = begl:endl, j = 1:num2d)
+          if ( ifspecial(l) ) ptr_lunit(l,j) = set_spec
         end do
       end if
     else if (present(ptr_col)) then
@@ -3444,33 +3566,28 @@ module mod_clm_histfile
       l_type1d_out = namec(1:8)
       clmptr_ra(hpindex)%ptr => ptr_col
       if ( present(set_lake) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( clm3%g%l%lakpoi(l) ) ptr_col(c,:) = set_lake
+        do concurrent (c = begc:endc, j = 1:num2d)
+          if ( lakpoi(clandunit(c)) ) ptr_col(c,j) = set_lake
         end do
       end if
       if ( present(set_nolake) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( .not. (clm3%g%l%lakpoi(l)) ) ptr_col(c,:) = set_nolake
+        do concurrent (c = begc:endc, j = 1:num2d)
+          if ( .not. lakpoi(clandunit(c)) ) ptr_col(c,j) = set_nolake
         end do
       end if
       if ( present(set_urb) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( clm3%g%l%urbpoi(l) ) ptr_col(c,:) = set_urb
+        do concurrent (c = begc:endc, j = 1:num2d)
+          if ( urbpoi(clandunit(c)) ) ptr_col(c,j) = set_urb
         end do
       end if
       if ( present(set_nourb) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( .not. (clm3%g%l%urbpoi(l)) ) ptr_col(c,:) = set_nourb
+        do concurrent (c = begc:endc, j = 1:num2d)
+          if ( .not. urbpoi(clandunit(c)) ) ptr_col(c,j) = set_nourb
         end do
       end if
       if ( present(set_spec) ) then
-        do c = begc, endc
-          l = clm3%g%l%c%landunit(c)
-          if ( clm3%g%l%ifspecial(l) ) ptr_col(c,:) = set_spec
+        do concurrent (c = begc:endc, j = 1:num2d)
+          if ( ifspecial(clandunit(c)) ) ptr_col(c,j) = set_spec
         end do
       end if
     else if ( present(ptr_pft) ) then
@@ -3478,33 +3595,28 @@ module mod_clm_histfile
       l_type1d_out = namep(1:8)
       clmptr_ra(hpindex)%ptr => ptr_pft
       if ( present(set_lake) ) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( clm3%g%l%lakpoi(l) ) ptr_pft(p,:) = set_lake
+        do concurrent (p = begp:endp, j = 1:num2d)
+          if ( lakpoi(plandunit(p)) ) ptr_pft(p,j) = set_lake
         end do
       end if
       if ( present(set_nolake) ) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( .not. (clm3%g%l%lakpoi(l)) ) ptr_pft(p,:) = set_nolake
+        do concurrent (p = begp:endp, j = 1:num2d)
+          if ( .not. lakpoi(plandunit(p)) ) ptr_pft(p,j) = set_nolake
         end do
       end if
       if ( present(set_urb) ) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( clm3%g%l%urbpoi(l) ) ptr_pft(p,:) = set_urb
+        do concurrent (p = begp:endp, j = 1:num2d)
+          if ( urbpoi(plandunit(p)) ) ptr_pft(p,j) = set_urb
         end do
       end if
       if ( present(set_nourb) ) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( .not. (clm3%g%l%urbpoi(l)) ) ptr_pft(p,:) = set_nourb
+        do concurrent (p = begp:endp, j = 1:num2d)
+          if ( .not. urbpoi(plandunit(p)) ) ptr_pft(p,j) = set_nourb
         end do
       end if
       if ( present(set_spec) ) then
-        do p = begp, endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( clm3%g%l%ifspecial(l) ) ptr_pft(p,:) = set_spec
+        do concurrent (p = begp:endp, j = 1:num2d)
+          if ( ifspecial(plandunit(p)) ) ptr_pft(p,j) = set_spec
         end do
       end if
     else

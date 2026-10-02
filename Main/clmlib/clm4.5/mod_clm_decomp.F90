@@ -42,7 +42,8 @@ module mod_clm_decomp
 
   !---global information on each pe
   type processor_type
-    logical, dimension(:,:), pointer, contiguous :: gcmask => null()
+    ! Packed gridcell index; zero denotes a masked-out cell.
+    integer(ik4), dimension(:,:), pointer, contiguous :: gcmask_id => null()
     type(mpi_comm) :: icomm
     integer(ik4) :: ncells           ! number of gridcells in proc
     integer(ik4) :: nlunits          ! number of landunits in proc
