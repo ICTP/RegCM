@@ -20615,14 +20615,13 @@ module mod_mppparam
     cc = cartesian_communicator
   end function get_cartcomm
 
-  subroutine real8_column_reduce(m,g,j1,j2)
+  subroutine real8_column_reduce(m,g)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: m
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: g
-    integer(ik4), intent(in) :: j1,j2
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: m
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: g
     integer(ik4) :: nk
-    nk = size(m,2)
-    call mpi_allreduce(m,g,nk*(j2-j1+1),mpi_real8,mpi_sum,&
+    nk = size(m)
+    call mpi_allreduce(m,g,nk,mpi_real8,mpi_sum,&
                        cartesian_column_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -20631,14 +20630,13 @@ module mod_mppparam
 #endif
   end subroutine real8_column_reduce
 
-  subroutine real4_column_reduce(m,g,j1,j2)
+  subroutine real4_column_reduce(m,g)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: m
-    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: g
-    integer(ik4), intent(in) :: j1,j2
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: m
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: g
     integer(ik4) :: nk
-    nk = size(m,2)
-    call mpi_allreduce(m,g,nk*(j2-j1+1),mpi_real4,mpi_sum,&
+    nk = size(m)
+    call mpi_allreduce(m,g,nk,mpi_real4,mpi_sum,&
                        cartesian_column_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -20647,14 +20645,13 @@ module mod_mppparam
 #endif
   end subroutine real4_column_reduce
 
-  subroutine real8_row_reduce(m,g,i1,i2)
+  subroutine real8_row_reduce(m,g)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: m
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: g
-    integer(ik4), intent(in) :: i1,i2
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: m
+    real(rk8), pointer, contiguous, dimension(:,:,:), intent(inout) :: g
     integer(ik4) :: nk
-    nk = size(m,2)
-    call mpi_allreduce(m,g,nk*(i2-i1+1),mpi_real8,mpi_sum,&
+    nk = size(m)
+    call mpi_allreduce(m,g,nk,mpi_real8,mpi_sum,&
                        cartesian_row_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
@@ -20663,14 +20660,13 @@ module mod_mppparam
 #endif
   end subroutine real8_row_reduce
 
-  subroutine real4_row_reduce(m,g,i1,i2)
+  subroutine real4_row_reduce(m,g)
     implicit none
-    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: m
-    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: g
-    integer(ik4), intent(in) :: i1,i2
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: m
+    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: g
     integer(ik4) :: nk
-    nk = size(m,2)
-    call mpi_allreduce(m,g,nk*(i2-i1+1),mpi_real4,mpi_sum,&
+    nk = size(m)
+    call mpi_allreduce(m,g,nk,mpi_real4,mpi_sum,&
                        cartesian_row_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then

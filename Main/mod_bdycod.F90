@@ -104,10 +104,10 @@ module mod_bdycod
 
   integer(ik4) :: km, lm
   real(rkx) :: cn0
-  real(rkx), pointer, contiguous, dimension(:,:) :: zn1 => null( )
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: zn1 => null( )
   real(rkx), pointer, dimension(:,:), contiguous :: bvx, bvy
-  real(rkx), pointer, dimension(:,:), contiguous :: sxg, syg
-  real(rkx), pointer, dimension(:,:), contiguous :: sx, sy
+  real(rkx), pointer, dimension(:,:,:), contiguous :: sxg, syg
+  real(rkx), pointer, dimension(:,:,:), contiguous :: sx, sy
 
   real(rkx) :: fnudge, gnudge, rtb
   integer(ik4) :: som_month
@@ -411,7 +411,7 @@ module mod_bdycod
     if ( idynamic == 3 ) then
       call getmem(hefc,1,nspgx,1,kz,'bdycon:hefc')
       if ( mo_spectral_nudge ) then
-        call getmem(zn1,jde1,jde2,ide1,ide2,'bdycon:zn1')
+        call getmem(zn1,jde1,jde2,ide1,ide2,1,kz,'bdycon:zn1')
         call getmem(cnudge,1,kz,'bdycon:cnudge')
       end if
       if ( mo_top_nudge ) then
@@ -3864,10 +3864,10 @@ module mod_bdycod
     allocate(px(2*km), py(2*lm))
     call getmem(bvx,jde1,jde2,1,2*km,'lowpass::bvx')
     call getmem(bvy,ide1,ide2,1,2*lm,'lowpass::bvy')
-    call getmem(sx,ide1,ide2,1,2*km,'lowpass::sx')
-    call getmem(sy,jde1,jde2,1,2*lm,'lowpass::sy')
-    call getmem(sxg,ide1,ide2,1,2*km,'lowpass::sxg')
-    call getmem(syg,jde1,jde2,1,2*lm,'lowpass::syg')
+    call getmem(sx,ide1,ide2,1,2*km,1,kz,'lowpass::sx')
+    call getmem(sy,jde1,jde2,1,2*lm,1,kz,'lowpass::sy')
+    call getmem(sxg,ide1,ide2,1,2*km,1,kz,'lowpass::sxg')
+    call getmem(syg,jde1,jde2,1,2*lm,1,kz,'lowpass::syg')
     do k = 1, 2*km
       px(k) = exp(-(real(k,rkx)/real(km,rkx))**2)
     end do
@@ -3894,33 +3894,37 @@ module mod_bdycod
   subroutine lowpass_filter(j1,j2,i1,i2,jj1,jj2,ii1,ii2,f)
     implicit none
     integer(ik4), intent(in) :: j1, j2, i1, i2, jj1, jj2, ii1, ii2
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: f
-    integer(ik4) :: i, j, k, l
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
+    integer(ik4) :: i, j, k, l, m
 
-    do concurrent ( i = i1:i2, k = 1:2*km )
-      sx(i,k) = 0.0_rkx
-      do j = jj1, jj2
-        sx(i,k) = sx(i,k) + f(j,i)*bvx(j,k)
+    do concurrent ( i = ide1:ide2, m = 1:2*km, k = 1:kz )
+      sx(i,m,k) = 0.0_rkx
+      if ( i >= i1 .and. i <= i2 ) then
+        do j = jj1, jj2
+          sx(i,m,k) = sx(i,m,k) + f(j,i,k)*bvx(j,m)
+        end do
+      end if
+    end do
+    call row_reduce(sx,sxg)
+    do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+      f(j,i,k) = 0.0_rkx
+      do m = 1, 2*km
+        f(j,i,k) = f(j,i,k) + sxg(i,m,k)*bvx(j,m)
       end do
     end do
-    call row_reduce(sx,sxg,i1,i2)
-    do concurrent ( j = j1:j2, i = i1:i2 )
-      f(j,i) = 0.0_rkx
-      do k = 1, 2*km
-        f(j,i) = f(j,i) + sxg(i,k)*bvx(j,k)
-      end do
+    do concurrent ( j = jde1:jde2, l = 1:2*lm, k = 1:kz )
+      sy(j,l,k) = 0.0_rkx
+      if ( j >= j1 .and. j <= j2 ) then
+        do i = ii1, ii2
+          sy(j,l,k) = sy(j,l,k) + f(j,i,k)*bvy(i,l)
+        end do
+      end if
     end do
-    do concurrent ( j = j1:j2, l = 1:2*lm )
-      sy(j,l) = 0.0_rkx
-      do i = ii1, ii2
-        sy(j,l) = sy(j,l) + f(j,i)*bvy(i,l)
-      end do
-    end do
-    call column_reduce(sy,syg,j1,j2)
-    do concurrent ( j = j1:j2, i = i1:i2 )
-      f(j,i) = 0.0_rkx
+    call column_reduce(sy,syg)
+    do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+      f(j,i,k) = 0.0_rkx
       do l = 1, 2*lm
-        f(j,i) = f(j,i) + syg(j,l)*bvy(i,l)
+        f(j,i,k) = f(j,i,k) + syg(j,l,k)*bvy(i,l)
       end do
     end do
   end subroutine lowpass_filter
@@ -3936,14 +3940,12 @@ module mod_bdycod
     x1 = (xbctime + dt)*rtb
     x0 = 1.0_rkx - x1
 
-    do k = 1, kz
-      do concurrent ( j = j1:j2, i = i1:i2 )
-        zn1(j,i) = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k)) - f(j,i,k)
-      end do
-      call lowpass_filter(j1,j2,i1,i2,jj1,jj2,ii1,ii2,zn1)
-      do concurrent ( j = jj1:jj2, i = ii1:ii2 )
-        f(j,i,k) = f(j,i,k) + cnudge(k)*zn1(j,i)
-      end do
+    do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+      zn1(j,i,k) = (x0*bnd%b0(j,i,k)+x1*bnd%b1(j,i,k)) - f(j,i,k)
+    end do
+    call lowpass_filter(j1,j2,i1,i2,jj1,jj2,ii1,ii2,zn1)
+    do concurrent ( j = jj1:jj2, i = ii1:ii2, k = 1:kz )
+      f(j,i,k) = f(j,i,k) + cnudge(k)*zn1(j,i,k)
     end do
   end subroutine mospectral_nudge
 
