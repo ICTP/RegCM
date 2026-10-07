@@ -101,7 +101,7 @@ program icbc
   use mod_ncep
   use mod_ecday
   use mod_nest
-  use mod_gn6hnc
+  use mod_gnhnc
   use mod_cmip6
   use mod_cmip7
   use mod_write
@@ -245,7 +245,7 @@ program icbc
       write(stderr,*) 'CHOSE ONE SCENARIO CODE ',dattyp(1:3),'(26-45-60-85).'
       call die('icbc','Unknown dattyp',1)
     end if
-    call init_gn6hnc
+    call init_gnhnc
   end if
 
   call newfile(idate)
@@ -275,7 +275,7 @@ program icbc
     else if ( dattyp == 'ECDAY' ) then
       call get_ecday(idate)
     else
-      call get_gn6hnc(idate)
+      call get_gnhnc(idate)
     end if
 
     call writef(idate)
@@ -305,7 +305,7 @@ program icbc
   else if ( dattyp == 'FNEST' ) then
     call conclude_nest
   else
-    call conclude_gn6hnc
+    call conclude_gnhnc
   end if
 
   call pju%destruct( )

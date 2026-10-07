@@ -81,12 +81,18 @@ module mod_sst_gnhnc
     type(rcm_time_interval) :: tdif
     integer(ik4) :: k, nsteps, latid, lonid
     integer(ik4) :: year, month, day, hour
+    character(len=10) :: rtime
 
     call split_idate(globidate1, year, month, day, hour)
 
     if ( ssttyp(1:3) == 'MP_' ) then
       call find_mpiesm_sst(inpfile,globidate1,'M')
       varname(2) = 'tos'
+    else if ( ssttyp(1:3) == 'C3S' ) then
+      write (rtime,'(i0.4,i0.2,i0.2,a)') year, month, day, '00'
+      inpfile = trim(inpglob)//pthsep//ssttyp(1:3)//pthsep//trim(rtime)// &
+         pthsep//ssttyp(4:5)//pthsep//'SST'//pthsep//'sst.'//trim(rtime)//'.nc'
+      varname(2) = 'var34'
     else if ( ssttyp(1:3) == 'MPL' ) then
       call find_mpiesm_sst(inpfile,globidate1,'L')
       varname(2) = 'tos'
@@ -256,9 +262,10 @@ module mod_sst_gnhnc
       end if
     end if
 
-    if ( ssttyp(1:3) == 'CFS' .or. &
-         ssttyp(1:3) == 'EIN' .or. &
+    if ( ssttyp(1:3) == 'CFS'  .or. &
+         ssttyp(1:3) == 'EIN'  .or. &
          ssttyp(1:4) == 'ERA5' .or. &
+         ssttyp(1:3) == 'C3S'  .or. &
          ssttyp(1:3) == 'LGM' ) then
       idateo = globidate1
     else

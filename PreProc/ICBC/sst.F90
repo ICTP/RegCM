@@ -164,6 +164,12 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnhnc
+  else if ( ssttyp(1:3) == 'C3S' ) then
+    if (ical /= gregorian) then
+      write(stderr,*) ssttyp//' calendar should be set to gregorian'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnhnc
   else if ( ssttyp(1:3) == 'NO_' ) then
     if (ical /= noleap) then
       write(stderr,*) ssttyp//' calendar should be set to noleap'
