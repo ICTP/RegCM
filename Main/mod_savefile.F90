@@ -960,13 +960,15 @@ module mod_savefile
       call savedefvar(ncid,'cbmf2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
     end if
     if ( irrtm == 0 ) then
+      ! These radiation buffers are real(rk8) in every precision build.
+      ! Match their file types to avoid netCDF narrowing on restart writes.
       wrkdim(3) = dimids(idkh)
       wrkdim(4) = dimids(idspw)
-      call savedefvar(ncid,'gasabsnxt',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      call savedefvar(ncid,'gasabsnxt',nf90_double,wrkdim,1,4,varids,ivcc)
       wrkdim(3) = dimids(idkf)
       wrkdim(4) = dimids(idkf)
-      call savedefvar(ncid,'gasabstot',regcm_vartype,wrkdim,1,4,varids,ivcc)
-      call savedefvar(ncid,'gasemstot',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'gasabstot',nf90_double,wrkdim,1,4,varids,ivcc)
+      call savedefvar(ncid,'gasemstot',nf90_double,wrkdim,1,3,varids,ivcc)
     end if
     if ( ipptls > 0 ) then
       wrkdim(3) = dimids(idkh)
@@ -1030,7 +1032,8 @@ module mod_savefile
     call savedefvar(ncid,'cldfra',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'heatrt',regcm_vartype,wrkdim,1,3,varids,ivcc)
     wrkdim(3) = dimids(idkf)
-    call savedefvar(ncid,'o3prof',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    ! o3prof_io is also always real(rk8).
+    call savedefvar(ncid,'o3prof',nf90_double,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'flw',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'flwd',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
