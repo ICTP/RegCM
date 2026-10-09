@@ -539,7 +539,7 @@ module mod_lm_interface
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       wspd = max(sqrt(lm%uatm(j,i)**2+lm%vatm(j,i)**2),0.01_rkx)
       lm%ram1(j,i) = vonkar * sqrt(wspd * lm%ram1(j,i))
-      lm%rah1(j,i) = lm%ustar(j,i) * lm%rah1(j,i)
+      lm%rah1(j,i) = vonkar * lm%ustar(j,i) * lm%rah1(j,i)
     end do
 #endif
     if ( ichem == 1 ) then

@@ -122,7 +122,6 @@ module mod_pbl_gfs
           spd1(n) = max(sqrt(m2p%uxatm(j,i,kz)**2 + &
                              m2p%vxatm(j,i,kz)**2), 0.5_rkx)
           prsi(n,1) = ps*d_r1000
-          phii(n,1) = d_zero
           n = n + 1
         end do
       end do
@@ -143,6 +142,10 @@ module mod_pbl_gfs
             n = n + 1
           end do
         end do
+      end do
+
+      do n = 1, iblp
+        phii(n,1) = z(n,1) * egrav
       end do
 
       do k = 2, kz

@@ -352,7 +352,7 @@ module mod_ocn_lake
                           (v10m(i)*drag(i))**2)/rhoa(i))
       ustr(i) = max(ustr(i),1.0e-5_rkx)
       ram1(i) = vonkar*sqrt(vspda/cdrx)
-      rah1(i) = ustr(i)/cdrx
+      rah1(i) = ram1(i)
       call ocnrough(zoo(i),ustr(i),um10(i),vl,visa)
       taux(i) = drag(i) * (u10m(i)/usw(i))
       tauy(i) = drag(i) * (v10m(i)/vsw(i))

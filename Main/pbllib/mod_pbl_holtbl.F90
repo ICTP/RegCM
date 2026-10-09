@@ -207,7 +207,7 @@ module mod_pbl_holtbl
         else
           fofri = 1.0_rkx/(1.0_rkx+10.0_rkx*rin*(1.0_rkx+8.0_rkx*rin))
         end if
-        kvfh = kzfrac*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
+        kvfh = kzfrac*dza(j,i,k-1)*dza(j,i,k-1)*rdt
         kvf(j,i,k) = max(min(szkm*sqrt(ss)*fofri,kvfh),kvfl)
       else
         kvf(j,i,k) = 0.0_rkx
@@ -833,11 +833,7 @@ module mod_pbl_holtbl
       coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3 = d_zero
       coefe(j,i,1) = coef1/coef2
-      if ( m2p%qxatm(j,i,1,iqc) > 1.0E-12_rkx ) then
-        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2
-      else
-        coeff1(j,i,1) = 0.0_rkx
-      end if
+      coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2
       !$acc loop seq
       do k = 2, kzm1
         coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
@@ -897,11 +893,7 @@ module mod_pbl_holtbl
         coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
         coef3 = d_zero
         coefe(j,i,1) = coef1/coef2
-        if ( m2p%qxatm(j,i,1,iqi) > 1.0E-12_rkx ) then
-          coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2
-        else
-          coeff1(j,i,1) = 0.0_rkx
-        end if
+        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2
         !$acc loop seq
         do k = 2, kzm1
           coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)

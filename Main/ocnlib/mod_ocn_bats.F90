@@ -69,9 +69,9 @@ module mod_ocn_bats
       cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
       if ( cdrx < cdrmin ) cdrx = cdrmin
       ram1(i) = vonkar * sqrt(vspda/cdrx)
+      rah1(i) = ram1(i)
       drag(i) = cdrx*sqrt(ribd)*rhox(i)
       ustr(i) = sqrt((vspda*drag(i))/rhox(i))
-      rah1(i) = ustr(i) / cdrx
       zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)
 
       ! Update output variables
@@ -185,9 +185,9 @@ module mod_ocn_bats
       end if
       cdrx = (d_one-aarea)*cdr + aarea*clead
       ram1(i) = vonkar * sqrt(vspda/cdrx)
+      rah1(i) = ram1(i)
       drag(i) = cdrx*vspda*rhox(i)
       ustr(i) = sqrt((vspda*drag(i))/rhox(i))
-      rah1(i) = ustr(i) / cdrx
       zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)
 
       ! Update now the other variables
