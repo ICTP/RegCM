@@ -24,6 +24,7 @@ module mod_pbl_shinhong
   use mod_constants, only : egrav, regrav, cpd, rcpd, rdry, rwat
   use mod_constants, only : vonkar, ep1, wlhv, p00, rovcp, d_one
   use mod_memutil, only : getmem, getmem
+  use mod_pbl_myj_sflayer, only : myj_sfclayer_zol
 
   implicit none
 
@@ -36,19 +37,19 @@ module mod_pbl_shinhong
   real(rkx), parameter :: vconvc = 1.0_rkx
   real(rkx), parameter :: czo = 0.0185_rkx
   real(rkx), parameter :: ozo = 1.59e-5_rkx
-  real(rkx), dimension(0:1000) :: psimtb, psihtb
-
   real(rkx), dimension(:,:), pointer, contiguous :: u2d, v2d, utnp, vtnp
-  real(rkx), dimension(:,:), pointer, contiguous :: t2d, ttnp, th2d, p2d, dz2d, pi2d
-  real(rkx), dimension(:,:), pointer, contiguous :: p2di
+  real(rkx), dimension(:,:), pointer, contiguous :: t2d, ttnp, th2d, p2d
+  real(rkx), dimension(:,:), pointer, contiguous :: dz2d, pi2d
+  real(rkx), dimension(:,:), pointer, contiguous :: p2di, zol2d, ustar2d
   real(rkx), dimension(:,:), pointer, contiguous :: tke2d
   real(rkx), dimension(:,:), pointer, contiguous :: qtrac, qtnp
   real(rkx), dimension(:), pointer, contiguous :: psfc, hfx, qfx, ust, znt
-  real(rkx), dimension(:), pointer, contiguous :: wspd, psim, psih, br
-  real(rkx), dimension(:), pointer, contiguous :: hpbl, dusfc, dvsfc, dtsfc, dqsfc
+  real(rkx), dimension(:), pointer, contiguous :: wspd, br
+  real(rkx), dimension(:), pointer, contiguous :: hpbl, dusfc, dvsfc
+  real(rkx), dimension(:), pointer, contiguous :: dtsfc, dqsfc
   real(rkx), dimension(:), pointer, contiguous :: wstar, delta, wspd10
   real(rkx), dimension(:), pointer, contiguous :: corf, za
-  real(rkx), dimension(:), pointer, contiguous :: govrth, dtg, rah, rpfac
+  real(rkx), dimension(:), pointer, contiguous :: govrth, rpfac, zol
   integer, dimension(:), pointer, contiguous :: xland
   integer, dimension(:), pointer, contiguous :: kpbl
 
@@ -69,7 +70,8 @@ module mod_pbl_shinhong
     else
       ichs = 0
     end if
-    call sfclayinit
+    call getmem(zol2d,jci1,jci2,ici1,ici2,'shinhong_pbl')
+    call getmem(ustar2d,jci1,jci2,ici1,ici2,'shinhong_pbl')
     call getmem(u2d,1,numbl,1,kz,'shinhong_pbl')
     call getmem(v2d,1,numbl,1,kz,'shinhong_pbl')
     call getmem(t2d,1,numbl,1,kz,'shinhong_pbl')
@@ -91,8 +93,6 @@ module mod_pbl_shinhong
     call getmem(znt,1,numbl,'shinhong_pbl')
     call getmem(wspd,1,numbl,'shinhong_pbl')
     call getmem(wspd10,1,numbl,'shinhong_pbl')
-    call getmem(psim,1,numbl,'shinhong_pbl')
-    call getmem(psih,1,numbl,'shinhong_pbl')
     call getmem(br,1,numbl,'shinhong_pbl')
     call getmem(hpbl,1,numbl,'shinhong_pbl')
     call getmem(dusfc,1,numbl,'shinhong_pbl')
@@ -104,8 +104,7 @@ module mod_pbl_shinhong
     call getmem(corf,1,numbl,'shinhong_pbl')
     call getmem(za,1,numbl,'shinhong_pbl')
     call getmem(govrth,1,numbl,'shinhong_pbl')
-    call getmem(dtg,1,numbl,'shinhong_pbl')
-    call getmem(rah,1,numbl,'shinhong_pbl')
+    call getmem(zol,1,numbl,'shinhong_pbl')
     call getmem(rpfac,1,numbl,'shinhong_pbl')
     call getmem(xland,1,numbl,'shinhong_pbl')
     call getmem(kpbl,1,numbl,'shinhong_pbl')
@@ -113,7 +112,7 @@ module mod_pbl_shinhong
 
   subroutine shinhong_pbl(m2p,p2m)
     implicit none
-    type(mod_2_pbl), intent(in) :: m2p
+    type(mod_2_pbl), intent(inout) :: m2p   ! inout: myj_sfclayer_zol reads m2p
     type(pbl_2_mod), intent(inout) :: p2m
     !
     ! u2d         3d u-velocity interpolated to theta points (m/s)
@@ -130,24 +129,30 @@ module mod_pbl_shinhong
     ! dz2d        dz between full levels (m)
     ! tke2d       3d diagnostic TKE
     ! psfc        pressure at the surface (pa)
-    ! hfx	  upward heat flux at the surface (w/m^2)
-    ! qfx	  upward moisture flux at the surface (kg/m^2/s)
-    ! ust	  u* in similarity theory (m/s)
+    ! hfx         upward heat flux at the surface (w/m^2)
+    ! qfx         upward moisture flux at the surface (kg/m^2/s)
+    ! ust         u* in similarity theory (m/s)
     ! znt         roughness length (m)
     ! hpbl        pbl height (m)
-    ! psim        similarity stability function for momentum
-    ! psih        similarity stability function for heat
     ! xland       land mask (1 for land, 0 for water)
     ! wspd        wind speed at lowest model level (m/s)
-    ! br          bulk richardson number in surface layer
+    ! br          bulk richardson number (sign only, for stable PBL height)
     ! u10         u-wind speed at 10 m (m/s)
     ! v10         v-wind speed at 10 m (m/s)
+    ! zol2d       Monin-Obukhov stability parameter za/L per column
     !
     integer :: i, j, k, kk, it, ibin
-    real(rkx) :: rrho, hfxv, uflxsfx, vflxsfx, thv10
+    real(rkx) :: rrho, uflxsfx, vflxsfx, thvx_kz, qha, ratiomx, exner_kz
+
+    !
+    ! Compute ustar and Obukhov stability parameter za/L via the
+    ! Janjic Eta surface layer, consistent with the MYJ scheme.
+    ! This replaces the broken sfclay/br-based approach.
+    !
+    call myj_sfclayer_zol(m2p, ustar2d, zol2d)
 
     if ( idynamic == 3 ) then
-      rpfac = 1.0
+      rpfac = 1.0_rkx
     else
       do i = ici1, ici2
         do j = jci1, jci2
@@ -161,31 +166,42 @@ module mod_pbl_shinhong
       do j = jci1, jci2
         ibin = (i-ici1)*nj+(j-jci1+1)
         psfc(ibin) = m2p%patmf(j,i,kzp1)
-        hfx(ibin) = m2p%hfx(j,i)
-        qfx(ibin) = m2p%qfx(j,i)
-        rrho = 1.0_rkx/m2p%rhox2d(j,i)
-        hfxv = m2p%hfx(j,i)*rrho*rcpd + &
-               ep1 * m2p%thatm(j,i,kz) * m2p%qfx(j,i)*rrho
-        uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)*rrho
-        vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)*rrho
-        ust(ibin) = sqrt(sqrt(max(uflxsfx*uflxsfx + &
-          vflxsfx*vflxsfx,0.00000001_rkx)))
-        znt(ibin) = max(m2p%zo(j,i),1.0e-8_rkx)
+        hfx(ibin)  = m2p%hfx(j,i)
+        qfx(ibin)  = m2p%qfx(j,i)
+        rrho = 1.0_rkx / m2p%rhox2d(j,i)
+
+        ! ustar from myj_sfclayer_zol
+        ust(ibin) = ustar2d(j,i)
+
+        znt(ibin)   = max(m2p%zo(j,i), 1.0e-8_rkx)
         xland(ibin) = m2p%ldmsk(j,i)
-        wspd(ibin) = max(sqrt(m2p%uxatm(j,i,kz)**2 + &
-                              m2p%vxatm(j,i,kz)**2),0.001_rkx)
+        wspd(ibin)  = max(sqrt(m2p%uxatm(j,i,kz)**2 + &
+                               m2p%vxatm(j,i,kz)**2), 0.01_rkx)
         wspd10(ibin) = max(sqrt(m2p%u10m(j,i)**2 + &
-                                m2p%v10m(j,i)**2),0.001_rkx)
-        za(ibin) = m2p%za(j,i,kz)
+                                m2p%v10m(j,i)**2), 0.01_rkx)
+        za(ibin)   = m2p%za(j,i,kz)
         corf(ibin) = m2p%coriol(j,i)
-        govrth(ibin) = egrav/m2p%thatm(j,i,kz)
-        rah(ibin) = m2p%rah1(j,i)
-        thv10 =  m2p%thatm(j,i,kz) + hfxv/(vonkar*ust(ibin) * &
-                 log(m2p%za(j,i,kz)*0.10_rkx))
-        dtg(ibin) = m2p%thatm(j,i,kz) - thv10
-        br(ibin) = egrav/(m2p%thatm(j,i,kz)) * &
-          za(ibin)*dtg(ibin)/max(wspd(ibin)-ust(ibin)*ust(ibin),0.001_rkx)
-        br(ibin) = max(-5.0_rkx,min(10.0_rkx,br(ibin)))
+
+        ! Virtual potential temperature at lowest model level
+        exner_kz = (m2p%patm(j,i,kz) / p00)**rovcp
+        ratiomx  = m2p%qxatm(j,i,kz,iqv)
+        qha      = ratiomx / (d_one + ratiomx)
+        thvx_kz  = (m2p%tatm(j,i,kz) / exner_kz) * (d_one + ep1 * qha)
+
+        ! g/theta_v at the surface (virtual: consistent with buoyancy)
+        govrth(ibin) = egrav / thvx_kz
+
+        ! Bulk Richardson number (sign-only for stable PBL classification).
+        ! Use wind speed squared in the denominator (dimensionally correct),
+        ! and virtual potential temperature throughout.
+        ! zol2d already provides the self-consistent stability; br is kept
+        ! only for the stable SBL height search (brcr_sbro branch in shinhong2d).
+        br(ibin) = govrth(ibin) * za(ibin) * zol2d(j,i) * &
+                   ust(ibin)**2 / max(wspd(ibin)**2, 0.001_rkx)
+        br(ibin) = max(-5.0_rkx, min(10.0_rkx, br(ibin)))
+
+        ! Map 2D zol2d to the 1D column-ordered array for shinhong2d
+        zol(ibin) = zol2d(j,i)
       end do
     end do
     do k = 1, kz
@@ -240,12 +256,13 @@ module mod_pbl_shinhong
       end do
     end if
     !
-    call sfclay(numbl,br,znt,za,ust,govrth,dtg,rah,psim,psih)
+    ! Pass zol1d (za/L from the Janjic surface layer) directly to shinhong2d,
+    ! bypassing the obsolete sfclay stability computation.
     !
     call shinhong2d(numbl,ux=u2d,vx=v2d,tx=t2d,qx=qtrac,p2d=p2d,         &
                     p2di=p2di,pi2d=pi2d,utnp=utnp,vtnp=vtnp,ttnp=ttnp,   &
                     qtnp=qtnp,dz8w2d=dz2d,psfcpa=psfc,znt=znt,ust=ust,   &
-                    hpbl=hpbl,psim=psim,psih=psih,xland=xland,hfx=hfx,   &
+                    hpbl=hpbl,zol1d=zol,xland=xland,hfx=hfx,             &
                     qfx=qfx,wspd=wspd,br=br,dusfc=dusfc,dvsfc=dvsfc,     &
                     dtsfc=dtsfc,dqsfc=dqsfc,dt=dt,rcl=d_one,kpbl1d=kpbl, &
                     wstar=wstar,delta=delta,wspd10=wspd10,tke=tke2d,     &
@@ -303,7 +320,7 @@ module mod_pbl_shinhong
   end subroutine shinhong_pbl
 
   subroutine shinhong2d(nbl,ux,vx,tx,qx,p2d,p2di,pi2d,utnp,vtnp,ttnp,qtnp, &
-         dz8w2d,psfcpa,znt,ust,hpbl,psim,psih,xland,hfx,qfx,wspd,br,dusfc, &
+         dz8w2d,psfcpa,znt,ust,hpbl,zol1d,xland,hfx,qfx,wspd,br,dusfc,     &
          dvsfc,dtsfc,dqsfc,dt,rcl,kpbl1d,wstar,delta,tke,corf,wspd10,      &
          dx,dy)
     implicit none
@@ -356,7 +373,7 @@ module mod_pbl_shinhong
     real(rkx), dimension(nbl,kz*ndiff), intent(out) :: qtnp
     integer, dimension(nbl), intent(in) :: xland
     real(rkx), dimension(nbl), intent(in) :: hfx, qfx
-    real(rkx), dimension(nbl), intent(in) :: br, psim, psih, psfcpa
+    real(rkx), dimension(nbl), intent(in) :: br, zol1d, psfcpa
     real(rkx), dimension(nbl), intent(in) :: corf
     real(rkx), dimension(nbl), intent(in) :: wspd10
     real(rkx), dimension(nbl), intent(in) :: ust, znt
@@ -366,7 +383,7 @@ module mod_pbl_shinhong
     integer :: i, k, ic, is, nwmass
     integer :: klpbl, kqc, kqi
     integer :: lmh
-    real(rkx) :: dt2, rdt, spdk2, fm, fh, hol1, gamfac, vpert
+    real(rkx) :: dt2, rdt, spdk2, hol1, gamfac, vpert
     real(rkx) :: prnum, prnum0, ss, ri, qmean, tmean, alpha
     real(rkx) :: chi, zk, rl2, dk, sri, brint, dtodsd, dtodsu
     real(rkx) :: rdz, dsdzt, dsdzq, dsdz2, rlamdz
@@ -494,7 +511,8 @@ module mod_pbl_shinhong
     do i = 1, nbl
       tvcon = (1.0_rkx + ep1*qx(i,1))
       rhox(i) = psfcpa(i)/(rdry*tx(i,1)*tvcon)
-      govrth(i) = egrav/thx(i,1)
+      ! Use virtual potential temperature for g/theta (buoyancy is virtual) ✓
+      govrth(i) = egrav / (thx(i,1)*tvcon)
     end do
     !
     !-----compute the height of full- and half-sigma levels above ground
@@ -678,13 +696,15 @@ module mod_pbl_shinhong
     end do
 
     do i = 1, nbl
-      fm = psim(i)
-      fh = psih(i)
-      zol1(i) = max(br(i)*fm*fm/fh,rimin)
+      !
+      ! Use the Obukhov stability parameter za/L from the Janjic surface layer
+      ! directly, replacing the broken Rb*fm^2/fh approximation.
+      !
+      zol1(i) = zol1d(i)
       if ( sfcflg(i) ) then
-        zol1(i) = min(zol1(i),-zfmin)
+        zol1(i) = min(zol1(i), -zfmin)
       else
-        zol1(i) = max(zol1(i),zfmin)
+        zol1(i) = max(zol1(i),  zfmin)
       end if
       hol1 = zol1(i)*hpbl(i)/zl1(i)*sfcfrac
       epshol(i) = hol1
@@ -2083,93 +2103,6 @@ module mod_pbl_shinhong
     ptke = max(ptke,pmin)
     ptke = min(ptke,pmax)
   end function ptke
-
-  subroutine sfclay(nbl,br,znt,za,ust,govrth,dtg,rah,psim,psih)
-    implicit none
-    integer, intent(in) :: nbl
-    real(rkx), dimension(nbl), intent(in) :: br, znt, za, ust
-    real(rkx), dimension(nbl), intent(in) :: govrth, rah, dtg
-    real(rkx), dimension(nbl), intent(out) :: psim, psih
-    real(rkx) :: gz1oz0, zol, rzol, mol
-    integer :: i, nzol
-    !
-    ! Diagnose basic parameters for the appropriated stability class:
-    !
-    ! The stability classes are determined by br (bulk richardson no.)
-    ! and hol (height of pbl/monin-obukhov length).
-    !
-    ! Criteria for the classes are as follows:
-    !
-    ! 1. br .ge. 0.2;
-    !    represents nighttime stable conditions (regime=1),
-    !
-    ! 2. br .lt. 0.2 .and. br .gt. 0.0;
-    !    represents damped mechanical turbulent conditions
-    !    (regime=2),
-    !
-    ! 3. br .eq. 0.0
-    !    represents forced convection conditions (regime=3),
-    !
-    ! 4. br .lt. 0.0
-    !    represents free convection conditions (regime=4).
-    !
-    do i = 1, nbl
-      gz1oz0 = log(za(i)/znt(i))
-      if ( br(i) >= 0.2_rkx ) then
-        !
-        ! Class 1; stable (nighttime) conditions:
-        !
-        psim(i) = -10.0_rkx*gz1oz0
-        psim(i) = max(psim(i),-10.0_rkx)
-        psih(i) = psim(i)
-      else if ( br(i) > 0.0 ) then
-        !
-        ! Class 2; damped mechanical turbulence:
-        !
-        psim(i) = -5.0_rkx*br(i)*gz1oz0/(1.1_rkx-5.0_rkx*br(i))
-        psim(i) = max(psim(i),-10.0_rkx)
-        psih(i) = psim(i)
-      else if ( br(i) == 0.0 ) then
-        !
-        ! Class 3; forced convection:
-        !
-        psim(i) = 0.0_rkx
-        psih(i) = psim(i)
-      else
-        !
-        ! Class 4; free convection:
-        !
-        if ( ust(i) < 0.01_rkx ) then
-          zol = br(i)*gz1oz0
-        else
-          mol = dtg(i)/(rah(i)*ust(i))
-          zol = vonkar*govrth(i)*za(i)*mol/(ust(i)*ust(i))
-        end if
-        zol = min(zol,0.0_rkx)
-        zol = max(zol,-9.9999_rkx)
-        nzol = int(-zol*100.0_rkx)
-        rzol = -zol*100.0_rkx-nzol
-        psim(i) = psimtb(nzol)+rzol*(psimtb(nzol+1)-psimtb(nzol))
-        psih(i) = psihtb(nzol)+rzol*(psihtb(nzol+1)-psihtb(nzol))
-        psih(i) = min(psih(i),0.9_rkx*gz1oz0)
-        psim(i) = min(psim(i),0.9_rkx*gz1oz0)
-      end if
-    end do
-  end subroutine sfclay
-
-  subroutine sfclayinit
-    implicit none
-    integer :: n
-    real(rkx) :: zoln, x, y
-    do n = 0, 1000
-      zoln = -real(n,rkx)*0.01_rkx
-      x = (1.0_rkx - 16.0_rkx*zoln)**0.25_rkx
-      psimtb(n) = 2.0_rkx*log(0.5_rkx*(1_rkx+x)) + &
-        log(0.5_rkx*(1.0_rkx+x*x))-2.0_rkx*atan(x)+2.0_rkx*atan(1.0_rkx)
-      y = (1.0_rkx - 16.0_rkx*zoln)**0.5_rkx
-      psihtb(n) = 2.0_rkx*log(0.5_rkx*(1.0_rkx+y))
-    end do
-  end subroutine sfclayinit
 
 end module mod_pbl_shinhong
 
