@@ -278,8 +278,6 @@ module mod_ocn_lake
         end if
         cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
         if ( cdrx < cdrmin ) cdrx = cdrmin
-        rah1(i) = d_one/cdrx
-        ram1(i) = d_one/cdrx
         drag(i) = cdrx*vspda*rhox(i)
         evpr(i) = -drag(i)*delq
         sent(i) = -drag(i)*cpd*delt
@@ -329,8 +327,6 @@ module mod_ocn_lake
           clead = cdrn/(d_one+11.5_rkx*br(i))
         end if
         cdrx = (d_one-aarea)*cdr + aarea*clead
-        rah1(i) = d_one/cdrx
-        ram1(i) = d_one/cdrx
         drag(i) = cdrx*vspda*rhox(i)
         qice = 3.3e-3_rkx * stdp/sfps(i)
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
@@ -355,6 +351,8 @@ module mod_ocn_lake
       ustr(i) = sqrt(sqrt((u10m(i)*drag(i))**2 + &
                           (v10m(i)*drag(i))**2)/rhoa(i))
       ustr(i) = max(ustr(i),1.0e-5_rkx)
+      ram1(i) = vonkar*sqrt(vspda/cdrx)
+      rah1(i) = ustr(i)/cdrx
       call ocnrough(zoo(i),ustr(i),um10(i),vl,visa)
       taux(i) = drag(i) * (u10m(i)/usw(i))
       tauy(i) = drag(i) * (v10m(i)/vsw(i))

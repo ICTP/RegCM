@@ -453,9 +453,7 @@ module mod_lm_interface
     !@acc use nvtx
     implicit none
     integer(ik4) :: i, j, n, nn, ierr
-#ifndef CLM45
     real(rkx) :: wspd
-#endif
 #ifdef CLM
     if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
       r2cdoalb = .true.
@@ -504,7 +502,7 @@ module mod_lm_interface
 #ifndef CLM45
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       if ( lm%ldmsk1(n,j,i) == 1 ) then
-        wspd = sqrt(lm%uatm(j,i)**2+lm%vatm(j,i)**2)
+        wspd = max(sqrt(lm%uatm(j,i)**2+lm%vatm(j,i)**2),0.01_rkx)
         lms%taux(n,j,i) = lms%drag(n,j,i) * (lm%uatm(j,i)/wspd)
         lms%tauy(n,j,i) = lms%drag(n,j,i) * (lm%vatm(j,i)/wspd)
         lms%ustar(n,j,i) = sqrt(lms%drag(n,j,i)/lms%rhoa(n,j,i))
@@ -537,6 +535,13 @@ module mod_lm_interface
     lm%tg = sum(lms%tgrd,1)*rdnnsg
     lm%emissivity = sum(lms%emisv,1) * rdnnsg
     !$acc end kernels
+#ifdef CLM45
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      wspd = max(sqrt(lm%uatm(j,i)**2+lm%vatm(j,i)**2),0.01_rkx)
+      lm%ram1(j,i) = vonkar * sqrt(wspd * lm%ram1(j,i))
+      lm%rah1(j,i) = lm%ustar(j,i) * lm%rah1(j,i)
+    end do
+#endif
     if ( ichem == 1 ) then
       lm%deltat = sum(lms%deltat,1)*rdnnsg
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg

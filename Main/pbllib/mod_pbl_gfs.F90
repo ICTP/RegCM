@@ -21,7 +21,7 @@ module mod_pbl_gfs
   use mod_memutil
   use mod_dynparam, only : kz, kzp1, kzm1, ntr, idynamic
   use mod_dynparam, only : ici1, ici2, jci1, jci2
-  use mod_runparams, only : dt, nqx, ichem, iqv
+  use mod_runparams, only : dt, nqx, ichem, ipptls, iqv, iqi
   use mod_regcm_types, only : mod_2_pbl, pbl_2_mod
 
   implicit none
@@ -101,13 +101,11 @@ module mod_pbl_gfs
 
       integer(ik4) :: i, j, k, kk, km, n
       integer(ik4) :: iq, it, iit
-      real(rkx) :: ps, ua, va, uflxsfx, vflxsfx, uu
+      real(rkx) :: ps, uflxsfx, vflxsfx, uu
 
       n = 1
       do i = ici1, ici2
         do j = jci1, jci2
-          ua = max(m2p%u10m(j,i),0.05_rkx)
-          va = max(m2p%v10m(j,i),0.05_rkx)
           ps = m2p%patmf(j,i,kzp1)
           fm(n) = m2p%ram1(j,i)
           fh(n) = m2p%rah1(j,i)
@@ -120,8 +118,9 @@ module mod_pbl_gfs
           ustar(n) = sqrt(sqrt(uu))
           stress(n) = (ustar(n)*ustar(n))*m2p%rhox2d(j,i)
           heat(n) = m2p%hfx(j,i)*rcpd*rrho(n)
-          evap(n) = m2p%qfx(j,i)
-          spd1(n) = sqrt(ua*ua+va*va)
+          evap(n) = m2p%qfx(j,i)*rrho(n)
+          spd1(n) = max(sqrt(m2p%uxatm(j,i,kz)**2 + &
+                             m2p%vxatm(j,i,kz)**2), 0.5_rkx)
           prsi(n,1) = ps*d_r1000
           phii(n,1) = d_zero
           n = n + 1
@@ -153,8 +152,8 @@ module mod_pbl_gfs
           do j = jci1, jci2
             del(n,km) = prsl(n,km)/rovg*dz(n,km)/to(n,km)
             prsi(n,k) = prsi(n,km)-del(n,km)
-            phii(n,k) = (z(n,k)-z(n,1))*egrav
-            phil(n,km) = d_half*(z(n,k)+z(n,km)-d_two*z(n,1))*egrav
+            phii(n,k) = z(n,k)*egrav
+            phil(n,km) = d_half*(z(n,k)+z(n,km))*egrav
             n = n + 1
           end do
         end do
@@ -219,8 +218,8 @@ module mod_pbl_gfs
         kk = kzp1 - k
         do i = ici1, ici2
           do j = jci1, jci2
-            p2m%uten(j,i,k) = du(n,kk)
-            p2m%vten(j,i,k) = dv(n,kk)
+            p2m%uten(j,i,k) = p2m%uten(j,i,k)+du(n,kk)*xpfac(j,i)
+            p2m%vten(j,i,k) = p2m%vten(j,i,k)+dv(n,kk)*xpfac(j,i)
             p2m%tten(j,i,k) = p2m%tten(j,i,k) + tau(n,kk)*xpfac(j,i)
             n = n + 1
           end do
@@ -250,7 +249,7 @@ module mod_pbl_gfs
             do i = ici1, ici2
               do j = jci1, jci2
                 p2m%chiten(j,i,k,it) = p2m%chiten(j,i,k,it) + &
-                      rtg(n,kk,iit)/(d_one-qo(n,kk,iit)) * xpfac(j,i)
+                      rtg(n,kk,iit)/(d_one-qo(n,kk,iit))**2 * xpfac(j,i)
                 n = n + 1
               end do
             end do
@@ -422,7 +421,11 @@ module mod_pbl_gfs
       do k = 1, km
         do i = 1, im
           theta(i,k) = to(i,k) * psk(i) / prslk(i,k)
-          qlx(i,k)   = max(qo(i,k,2),qlmin)
+          if ( ipptls > 1 .and. nqx >= 3 ) then
+            qlx(i,k) = max(qo(i,k,2) + qo(i,k,3), qlmin)
+          else
+            qlx(i,k) = max(qo(i,k,2), qlmin)
+          end if
           qtx(i,k)   = max(qo(i,k,1),qmin)+qlx(i,k)
           ptem       = qlx(i,k)
           ptem1      = wlhvocp*max(qo(i,k,1),qmin)/to(i,k)

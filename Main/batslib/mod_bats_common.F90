@@ -347,7 +347,7 @@ module mod_bats_common
     type(lm_state), intent(inout) :: lms
     integer(ik4), intent (in) :: ivers
     real(rkx) :: facb, facs, fact, factuv, facv, fracb,  &
-                 fracs, fracv, rh0, solvt, xqs0, xqsdif
+                 fracs, fracv, rh0, solvt, tem, xqs0, xqsdif
     integer(ik4) :: i, j, n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interf'
@@ -471,15 +471,17 @@ module mod_bats_common
       call l2c_ss(lndcomm,drag,lms%drag)
       call l2c_ss(lndcomm,sm,lms%snwm)
       call l2c_ss(lndcomm,rib,lms%br)
-      call l2c_ss(lndcomm,cgrnds,lms%rah1)
       call l2c_ss(lndcomm,cdrx,lms%ram1)
 
       do i = ici1, ici2
         do j = jci1, jci2
           do n = 1, nnsg
             if ( lm%ldmsk1(n,j,i) == 1 ) then
-              lms%rah1(n,j,i) = d_one/lms%rah1(n,j,i)
-              lms%ram1(n,j,i) = d_one/lms%ram1(n,j,i)
+              ! Convert Cd to M-O profile integral: fm = vonkar/sqrt(Cd)
+              ! This is consistent with neutral log-profile: fm = log(za/z0)
+              tem = vonkar / sqrt(max(lms%ram1(n,j,i),1.0e-6_rkx))
+              lms%rah1(n,j,i) = tem
+              lms%ram1(n,j,i) = tem
             end if
           end do
         end do
