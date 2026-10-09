@@ -21,7 +21,7 @@ vpath %.inc $(REGCM_ROOT)/Share:.
 noinst_LIBRARIES = libpbl.a
 libpbl_a_SOURCES = mod_pbl_common.F90 mod_pbl_thetal.F90 mod_pbl_uwtcm.F90 \
                    mod_pbl_holtbl.F90 mod_pbl_gfs.F90 mod_pbl_myj.F90 \
-                   mod_pbl_shinhong.F90
+                   mod_pbl_shinhong.F90 mod_pbl_myj_sflayer.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -50,3 +50,5 @@ mod_pbl_uwtcm.o : mod_pbl_uwtcm.F90 mod_constants.o mod_dynparam.o mod_intkinds.
 mod_pbl_gfs.o : mod_pbl_gfs.F90 mod_constants.o mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_runparams.o mod_regcm_types.o mod_memutil.o
 mod_pbl_myj.o : mod_pbl_myj.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o mod_regcm_types.o mod_memutil.o pfqsat.inc
 mod_pbl_shinhong.o : mod_pbl_shinhong.F90 mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o mod_regcm_types.o
+mod_pbl_myj_sflayer.o : mod_pbl_myj_sflayer.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_regcm_types.o mod_runparams.o
+

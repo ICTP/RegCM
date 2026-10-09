@@ -16,7 +16,8 @@
 module mod_pbl_myj
   !
   !
-  ! REFERENCES:  Janjic (2002), NCEP Office Note 437
+  ! REFERENCES:  Janjic (1994), Mon. Wea. Rev., 122, 927-945.
+  !              Janjic (2002), NCEP Office Note 437.
   !              Mellor and Yamada (1982), Rev. Geophys. Space Phys.
   !
   ! ABSTRACT:
@@ -25,7 +26,8 @@ module mod_pbl_myj
   !     (using an implicit formulation) from Mellor-Yamada
   !     level 2.5 as extended by Janjic.  Exchange coefficients for
   !     the surface and for all layer interfaces are computed from
-  !     Monin-Obukhov theory.
+  !     Monin-Obukhov theory via the companion module mod_pbl_myj_sflayer,
+  !     which provides a self-consistent Janjic Eta surface layer.
   !     The turbulent vertical exchange is then executed.
   !
   use mod_intkinds
@@ -35,6 +37,7 @@ module mod_pbl_myj
   use mod_memutil
   use mod_regcm_types
   use mod_runparams
+  use mod_pbl_myj_sflayer, only : myj_sfclayer
 
   implicit none
 
@@ -167,20 +170,17 @@ module mod_pbl_myj
 
   subroutine myjpbl(m2p,p2m)
     implicit none
-    type(mod_2_pbl), intent(in) :: m2p
+    type(mod_2_pbl), intent(inout) :: m2p   ! inout: uz0/vz0/thz0/qz0 updated
     type(pbl_2_mod), intent(inout) :: p2m
     !
     ! nspec is the number of mass species to be vertically mixed
     !
     integer(ik4) :: i, j, k, n, lmxl, nums
     real(rkx) :: akhs_dens, akms_dens, dqdt, dtdif, dtdt, &
-          dtturbl, rexnsfc, psfc, qold, ratiomx, tg,     &
-          rdtturbl, thnew, thold, tx, exner, qsfc,       &
-          thsk, ct, qha, uspd
-    real(rkx) :: zu, wght, zt, zq, wghtt, wghtq, tha
-    real(rkx) :: akhs, akms, zo, uflxsfx, vflxsfx, uu
+          dtturbl, qold, ratiomx,rdtturbl, thnew, thold, tx, exner, ct
+    real(rkx) :: akhs, akms
     real(rkx), dimension(nspec) :: clow, cts, sz0
-    real(rkx), dimension(kz) :: cwmk, pk, q2k, qk, thek ,&
+    real(rkx), dimension(kz) :: cwmk, pk, q2k, qk, thek , &
             tk, uk, vk, qcwk, qcik
     real(rkx), dimension(nspec,kz) :: species
     real(rkx), dimension(kzm1) :: akhk, akmk, el, gh, gm
@@ -189,51 +189,40 @@ module mod_pbl_myj
     real(rkx), dimension(jci1:jci2,ici1:ici2,kz) :: ape, the, th, cwm
     real(rkx), dimension(jci1:jci2,ici1:ici2,kzm1) :: akh, akm
     real(rkx), dimension(jci1:jci2,ici1:ici2,kzp1) :: zint
-    real(rkx), dimension(jci1:jci2,ici1:ici2) :: pfac, ustar
+    real(rkx) :: pfac
+    ! 2-D fields from the surface layer call
+    real(rkx), dimension(jci1:jci2,ici1:ici2) :: ustar, akms2d, akhs2d
 
     dtturbl = dt
     rdtturbl = d_one/dtturbl
     dtdif = dtturbl
     ct = countergrad
 
-    do k = 1, kzm1
-      do i = ici1, ici2
-        do j = jci1, jci2
-          akm(j,i,k) = d_zero
-        enddo
-      enddo
-    enddo
-
-    do k = 1, kzp1
-      do i = ici1, ici2
-        do j = jci1, jci2
-          zint(j,i,k) = m2p%zq(j,i,k) + m2p%ht(j,i) * regrav
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2,  k = 1:kzm1 )
+      akm(j,i,k) = d_zero
     end do
 
-    do k = 1, kz
-      do i = ici1, ici2
-        do j = jci1, jci2
-          exner = (m2p%patm(j,i,k)/p00)**rovcp
-          ape(j,i,k) = d_one/exner
-          tx = m2p%tatm(j,i,k)
-          th(j,i,k) = tx * ape(j,i,k)
-          cwm(j,i,k) = m2p%qxatm(j,i,k,iqc)
-          if ( ipptls > 1 ) cwm(j,i,k) = cwm(j,i,k)+m2p%qxatm(j,i,k,iqi)
-          the(j,i,k) = (cwm(j,i,k)*(-elocp/tx)+d_one)*th(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2,  k = 1:kzp1 )
+      zint(j,i,k) = m2p%zq(j,i,k) + m2p%ht(j,i) * regrav
     end do
 
-    do i = ici1, ici2
-      do j = jci1, jci2
-        uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)/m2p%rhox2d(j,i)
-        vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)/m2p%rhox2d(j,i)
-        uu = max(uflxsfx*uflxsfx+vflxsfx*vflxsfx,0.00000001_rkx)
-        ustar(j,i) = sqrt(sqrt(uu))
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2,  k = 1:kz )
+      exner = (m2p%patm(j,i,k)/p00)**rovcp
+      ape(j,i,k) = d_one/exner
+      tx = m2p%tatm(j,i,k)
+      th(j,i,k) = tx * ape(j,i,k)
+      cwm(j,i,k) = m2p%qxatm(j,i,k,iqc)
+      if ( ipptls > 1 ) cwm(j,i,k) = cwm(j,i,k)+m2p%qxatm(j,i,k,iqi)
+      the(j,i,k) = (cwm(j,i,k)*(-elocp/tx)+d_one)*th(j,i,k)
     end do
+
+    !
+    ! Compute ustar, akms, akhs, and update uz0/vz0/thz0/qz0 via the
+    ! Janjic Eta surface layer (Janjic 1994; NCEP ON 437).
+    ! This replaces the ad-hoc ram1/rah1 derivation and provides
+    ! self-consistent Monin-Obukhov exchange coefficients.
+    !
+    call myj_sfclayer(m2p, ustar, akms2d, akhs2d)
 
     setup_integration: &
     do i = ici1, ici2
@@ -335,66 +324,19 @@ module mod_pbl_myj
           akhk(k) = akh(j,i,k)*d_half*(rhok(k)+rhok(k+1))
         end do
 
-        psfc = m2p%patmf(j,i,kzp1)
-        rexnsfc = (p00/psfc)**rovcp
-        tg = m2p%tg(j,i)
-        thsk = tg*rexnsfc
-        uspd = max(sqrt(m2p%uxatm(j,i,kz)**2+m2p%vxatm(j,i,k)**2),0.01_rkx)
-        akms = d_one/(m2p%ram1(j,i)*uspd)
-        akhs = cpd/(m2p%rah1(j,i)*uspd)
-        akhs_dens = akhs*rhok(kz)
+        !
+        ! Retrieve the M-O exchange coefficients from the surface layer call.
+        ! akms, akhs [m/s];  uz0, vz0, thz0, qz0 already updated in m2p.
+        !
+        akms = akms2d(j,i)
+        akhs = akhs2d(j,i)
+        akhs_dens = akhs * rhok(kz)      ! [kg m^-2 s^-1]
 
-        if ( m2p%ldmsk(j,i) == 0 ) then
-          qsfc = seafc*pfqsat(tg,psfc)
-        else
-          qsfc = m2p%q2m(j,i)
-        end if
-        tha = m2p%tatm(j,i,kz) * ape(j,i,kz)
-        ratiomx = m2p%qxatm(j,i,kz,iqv)
-        qha = ratiomx/(d_one+ratiomx)
-        zo = max(ustfc*ustar(j,i)*ustar(j,i),1.59e-5_rkx)
-        if ( ustar(j,i) < ustr ) then
-          zu = fzu1*sqrt(sqrt(zo*ustar(j,i)*rvisc))/ustar(j,i)
-          wght = akms*zu*rvisc
-          wght = wght/(d_one+wght)
-          m2p%uz0(j,i) = d_half*((m2p%uxatm(j,i,kz)*wght)+m2p%uz0(j,i))
-          m2p%vz0(j,i) = d_half*((m2p%vxatm(j,i,kz)*wght)+m2p%vz0(j,i))
-          zt = fzt1*zu
-          zq = fzq1*zt
-          wghtt = akhs*zt*rtvisc
-          wghtq = akhs*zq*rqvisc
-          if ( rcmtimer%lcount < 1 ) then
-            m2p%thz0(j,i) = ((wghtt*tha)+thsk)/(wghtt+d_one)
-            m2p%qz0(j,i) = ((wghtq*qha)+qsfc)/(wghtq+d_one)
-          else
-            m2p%thz0(j,i) = d_half*(((wghtt*tha)+thsk) / &
-                                   (wghtt+d_one)+m2p%thz0(j,i))
-            m2p%qz0(j,i) = d_half*(((wghtq*qha)+qsfc) /  &
-                                  (wghtq+d_one)+m2p%qz0(j,i))
-          end if
-        else if ( ustar(j,i) > ustr .and. ustar(j,i) < ustc ) then
-          m2p%uz0(j,i) = d_zero
-          m2p%vz0(j,i) = d_zero
-          zt = fzt2*sqrt(sqrt(zo*ustar(j,i)*rvisc))/ustar(j,i)
-          zq = fzq2*zt
-          wghtt = akhs*zt*rtvisc
-          wghtq = akhs*zq*rqvisc
-          if ( rcmtimer%lcount < 1 ) then
-            m2p%thz0(j,i) = (((wghtt*tha)+thsk))/(wghtt+d_one)
-            m2p%qz0(j,i) = (((wghtq*qha)+qsfc))/(wghtq+d_one)
-          else
-            m2p%thz0(j,i) = d_half*(((wghtt*tha)+thsk) / &
-                                   (wghtt+d_one)+m2p%thz0(j,i))
-            m2p%qz0(j,i) = d_half*(((wghtq*qha)+qsfc) /  &
-                                  (wghtq+d_one)+m2p%qz0(j,i))
-          end if
-        else
-          m2p%uz0(j,i) = d_zero
-          m2p%vz0(j,i) = d_zero
-          m2p%thz0(j,i) = thsk
-          m2p%qz0(j,i) = qsfc
-        end if
-
+        !
+        ! Surface boundary values for the diffusion routines.
+        ! thz0 and qz0 come from the viscous-sublayer parameterisation
+        ! in myj_sfclayer, which was already applied above.
+        !
         sz0(1) = m2p%thz0(j,i)
         sz0(2) = m2p%qz0(j,i)
         do nums = 3, nspec
@@ -417,7 +359,8 @@ module mod_pbl_myj
         call vdifh(dtdif,p2m%kpbl(j,i),sz0,akhs_dens,clow,cts, &
                    species,nspec,akhk,zhk,rhok)
         !
-        ! Compute primary variable tendencies
+        ! Compute primary variable tendencies.
+        ! pfac: sigma-pressure tendency factor for the hydrostatic core;
         !
         do k = 1, kz
           thek(k) = species(1,k)
@@ -426,50 +369,49 @@ module mod_pbl_myj
           cwmk(k) = qcwk(k)
           if ( ipptls > 1 ) then
             qcik(k) = species(4,k)
-            cwmk(k) = cwmk(k)+qcik(k)
+            cwmk(k) = cwmk(k) + qcik(k)
           end if
         end do
 
         if ( idynamic == 3 ) then
           pfac = d_one
         else
-          pfac = m2p%psb(jci1:jci2,ici1:ici2)
+          pfac = m2p%psb(j,i)
         end if
         do k = 1, kz
           thold = th(j,i,k)
-          thnew = thek(k)+cwmk(k)*elocp*ape(j,i,k)
-          dtdt = (thnew-thold)*rdtturbl
-          qold = m2p%qxatm(j,i,k,iqv)/(d_one+m2p%qxatm(j,i,k,iqv))
-          dqdt = (qk(k)-qold)*rdtturbl
+          thnew = thek(k) + cwmk(k)*elocp*ape(j,i,k)
+          dtdt  = (thnew-thold)*rdtturbl
+          qold  = m2p%qxatm(j,i,k,iqv)/(d_one+m2p%qxatm(j,i,k,iqv))
+          dqdt  = (qk(k)-qold)*rdtturbl
           exner = (m2p%patm(j,i,k)/p00)**rovcp
-          p2m%tten(j,i,k) = p2m%tten(j,i,k) + dtdt * exner * pfac(j,i)
+          p2m%tten(j,i,k)     = p2m%tten(j,i,k) + dtdt * exner * pfac
           p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
-                   (dqdt/(d_one-qk(k))**2) * pfac(j,i)
+                     (dqdt/(d_one-qk(k))**2) * pfac
           p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
-                   (qcwk(k)-m2p%qxatm(j,i,k,iqc))*rdtturbl * pfac(j,i)
+                     (qcwk(k)-m2p%qxatm(j,i,k,iqc))*rdtturbl*pfac
           if ( ipptls > 1 ) then
             p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
-                     (qcik(k)-m2p%qxatm(j,i,k,iqi))*rdtturbl * pfac(j,i)
+                     (qcik(k)-m2p%qxatm(j,i,k,iqi))*rdtturbl*pfac
           end if
         end do
         if ( ichem == 1 ) then
           do n = 1, ntr
             do k = 1, kz
               p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + &
-                   (species(ispb+n,k)-m2p%chib(j,i,k,n))*rdtturbl*pfac(j,i)
+                   (species(ispb+n,k)-m2p%chib(j,i,k,n))*rdtturbl*pfac
             end do
           end do
         end if
         !
-        ! Fill 1-d vertical arrays: myj scheme counts downward
-        ! from the domain's top
+        ! Density-weight the momentum exchange coefficients and diffuse
+        ! the velocity components.
         !
         do k = 1, kzm1
-          akmk(k) = akm(j,i,k)
-          akmk(k) = akmk(k)*(rhok(k)+rhok(k+1))*d_half
+          akmk(k) = akm(j,i,k) * (rhok(k)+rhok(k+1)) * d_half
         end do
 
-        akms_dens = akms*rhok(kz)
+        akms_dens = akms * rhok(kz)     ! [kg m^-2 s^-1]
         do k = 1, kz
           uk(k) = m2p%uxatm(j,i,k)
           vk(k) = m2p%vxatm(j,i,k)
@@ -480,18 +422,16 @@ module mod_pbl_myj
         call vdifv(dtdif,m2p%uz0(j,i),m2p%vz0(j,i), &
                    akms_dens,uk,vk,akmk,zhk,rhok)
         !
-        ! compute primary variable tendencies
+        ! Compute momentum tendencies
         !
         do k = 1, kz
-          p2m%uten(j,i,k) = p2m%uten(j,i,k)+(uk(k)-m2p%uxatm(j,i,k))*rdtturbl
-          p2m%vten(j,i,k) = p2m%vten(j,i,k)+(vk(k)-m2p%vxatm(j,i,k))*rdtturbl
+          p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
+                             (uk(k)-m2p%uxatm(j,i,k))*rdtturbl
+          p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
+                             (vk(k)-m2p%vxatm(j,i,k))*rdtturbl
         end do
       end do
     end do main_integration
-
-    contains
-
-#include <pfqsat.inc>
 
   end subroutine myjpbl
   !
@@ -515,19 +455,24 @@ module mod_pbl_myj
     !
     ! Find the height of the pbl
     !
+    !
+    ! Scan upward (k decreasing = moving away from surface) to find the
+    ! top of the turbulent layer.  Stop when q2 drops to the minimum
+    ! value OR when the interface height AGL exceeds 6000 m.
+    !
     lpbl = kz
     lfound = .false.
     do k = kzm1, 1, -1
-      if ( q2(k) <= epsq2*fh .or. z(lpbl+1) > 4000.0_rkx ) then
+      if ( q2(k) <= epsq2*fh .or. (z(k+1)-z(kzp1)) > 6000.0_rkx ) then
         lpbl = k
         lfound = .true.
-        pblh = z(lpbl+1)-z(kzp1)
+        pblh = z(lpbl+1) - z(kzp1)
         exit
       end if
     end do
     if ( .not. lfound ) then
       lpbl = 1
-      pblh = z(lpbl+1)-z(kzp1)
+      pblh = z(lpbl+1) - z(kzp1)
     end if
     !
     ! The height of the pbl
@@ -600,10 +545,13 @@ module mod_pbl_myj
       sq   = qdzl+sq
     end do
     !
-    ! Computation of asymptotic l in blackadar formula
+    ! Computation of asymptotic l in blackadar formula.
+    ! el0 is bounded above by the mixed-layer depth (blmx) to prevent
+    ! unrealistically large mixing lengths in deep convective situations.
     !
-    el0 = min(alph*szq*d_half/sq,el0max)
-    el0 = max(el0,el0min)
+    el0 = min(alph*szq*d_half/sq, el0max)
+    el0 = min(el0, blmx)          ! cap at mixed-layer depth
+    el0 = max(el0, el0min)
     !
     ! Above the pbl top
     !
