@@ -1508,8 +1508,8 @@ module mod_micro_wsm7
           ! rain
           !
           qval = max(qrs(i,k,1),qrsmin)
-          source = (pseml(i,k)+pgeml(i,k)+pheml(i,k)             - &
-                    pracw(i,k)-paacw(i,k)-paacw(i,k)-phacw(i,k)  - &
+          source = (pseml(i,k)+pgeml(i,k)+pheml(i,k) - &
+                    pracw(i,k)-paacw(i,k)-phacw(i,k) - &
                     prevp(i,k)-praut(i,k))*dtcld
           if ( source > qval ) then
             factor = qval/source

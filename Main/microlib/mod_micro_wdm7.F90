@@ -1940,7 +1940,7 @@ module mod_micro_wdm7
           !
           qval = max(qci(i,k,1),qcimin)
           source = (praut(i,k)+pracw(i,k)+psacw(i,k) + &
-                    paacw(i,k)-phacw(i,k))*dtcld
+                    paacw(i,k)+phacw(i,k))*dtcld
           if ( source > qval ) then
             factor = qval/source
             praut(i,k) = praut(i,k)*factor
@@ -2046,7 +2046,7 @@ module mod_micro_wdm7
           qrs(i,k,4) = max(qrs(i,k,4)-(phacs(i,k)+phacg(i,k) + &
              phevp(i,k)+pheml(i,k))*dtcld,0.0_rkx)
           ncr(i,k,2) = max(ncr(i,k,2)+(-nraut(i,k)-nccol(i,k) - &
-             nracw(i,k)-naacw(i,k)-naacw(i,k)-nhacw(i,k))*dtcld,0.0_rkx)
+             nracw(i,k)-nsacw(i,k)-naacw(i,k)-nhacw(i,k))*dtcld,0.0_rkx)
           ncr(i,k,3) = max(ncr(i,k,3)+(nraut(i,k)-nrcol(i,k)+ &
              nseml(i,k)+ngeml(i,k)+nheml(i,k))*dtcld,0.0_rkx)
           xlf = wlhs-xl(i,k)
