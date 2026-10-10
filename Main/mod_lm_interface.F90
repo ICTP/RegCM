@@ -503,9 +503,9 @@ module mod_lm_interface
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       if ( lm%ldmsk1(n,j,i) == 1 ) then
         wspd = max(sqrt(lm%uatm(j,i)**2+lm%vatm(j,i)**2),0.01_rkx)
-        lms%taux(n,j,i) = lms%drag(n,j,i) * (lm%uatm(j,i)/wspd)
-        lms%tauy(n,j,i) = lms%drag(n,j,i) * (lm%vatm(j,i)/wspd)
-        lms%ustar(n,j,i) = sqrt(lms%drag(n,j,i)/lms%rhoa(n,j,i))
+        lms%taux(n,j,i) = lms%drag(n,j,i) * lm%uatm(j,i)
+        lms%tauy(n,j,i) = lms%drag(n,j,i) * lm%vatm(j,i)
+        lms%ustar(n,j,i) = sqrt(lms%drag(n,j,i)*wspd/lms%rhoa(n,j,i))
       end if
     end do
 #endif
