@@ -357,7 +357,7 @@ module mod_micro_subex
             if ( mc2mo%remrat(j,i,k) > d_zero ) then
               do kk = 1, k - 1
                 mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
-                  mc2mo%remrat(j,i,kk) * mo2mc%qcn(j,i,kd) * &
+                  mc2mo%remrat(j,i,kk) * mo2mc%qcn(j,i,kk) * &
                   (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
               end do
             end if
