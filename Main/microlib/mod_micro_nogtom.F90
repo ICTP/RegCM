@@ -217,6 +217,7 @@ module mod_micro_nogtom
   ! Delta pressure
   real(rkx), pointer, contiguous, dimension(:,:,:) :: dpfs
 
+  ! DO NOT MODEIFY. Divisions by zero otherwise in the code.
   real(rkx), parameter :: zerocf = 0.01_rkx
   real(rkx), parameter :: onecf  = 0.99_rkx
 
@@ -1210,8 +1211,7 @@ module mod_micro_nogtom
                   qxfg(iqql) = qxfg(iqql) + chng
                   qxfg(iqqv) = qxfg(iqqv) - chng
                 else
-                  ! homogeneous freezing
-                  chng = min(chng,qxfg(iqqi))
+                  chng = min(chng,qxfg(iqqv))
                   qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) + chng
                   qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) - chng
                   qxfg(iqqi) = qxfg(iqqi) + chng
@@ -1371,8 +1371,6 @@ module mod_micro_nogtom
               case (3) ! Kessler(1969)
                 rainaut = dt*auto_rate_kessl*autocrit_kessl
                 qsimp(iqql,iqqv) = d_zero
-                qsexp(iqqr,iqql) = qsexp(iqqr,iqql) - rainaut
-                qsexp(iqql,iqqr) = qsexp(iqql,iqqr) + rainaut
                 qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
               case (4) ! Sundqvist
                 !alpha1 = min(rkconv*dt,ql_incld)
@@ -1602,7 +1600,7 @@ module mod_micro_nogtom
             !--------------------------------------
             ! sensitivity test showed multiply rain evap rate by 0.5
             beta1 = sqrt(ph(k,j,i)/pbot)/5.09e-3_rkx*preclr/covpclr
-            if ( beta1 > d_zero ) then
+            if ( beta1 >= d_zero ) then
               beta = d_half*egrav*rpecons*(beta1)**0.5777_rkx
               denom = d_one + beta*dt*corqsliq
               dpr = covpclr * beta * (qsliq(k,j,i)-qe)/denom*dp*regrav
