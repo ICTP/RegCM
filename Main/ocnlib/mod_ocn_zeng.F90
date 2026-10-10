@@ -385,7 +385,7 @@ module mod_ocn_zeng
         ! rd is sw flux at 3m
         rd = rs*(a1*exp(-d*b1) + a2*exp(-d*b2) + a3*exp(-d*b3))
         ! ustar water (with air density == 1)
-        ustarw = 0.5_rkx*ustar*sqrt(rhox(i)/rhoh2o)
+        ustarw = ustar*sqrt(rhox(i)/rhoh2o)
         ! lwds =  dwrlwf(i)
         ! lwus =  emsw*sigm*(tsurf+273.16)**4
         ! q is the skin cooling term inckude net lw flux from
@@ -422,9 +422,9 @@ module mod_ocn_zeng
         aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+d_one))
         bb = (nu+d_one) * vonkar * ustarw / (d*phidl)
         ! exponential solution
-        dtstend = aa - dts*(d_one-exp(-bb*dtsst))/dtsst
+        dtstend = (aa/bb - dts) * (d_one - exp(-bb*dtsst))
         ! update dts
-        dts = dts + dtstend * dtsst
+        dts = dts + dtstend
         ! update tdelta
         tdelta = dts + td
         ! update delta thickness and cool skin tempearture
