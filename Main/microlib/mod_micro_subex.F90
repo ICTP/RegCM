@@ -265,8 +265,8 @@ module mod_micro_subex
             !       evaporation [kg/m2/s]
             if ( rdevap > dlowval ) then
               if ( rdevap*dpovg > pptsum(j,i) ) then
-                pptsum(j,i) = d_zero
                 rdevap = pptsum(j,i)/dpovg
+                pptsum(j,i) = d_zero
               else
                 pptsum(j,i) = pptsum(j,i) - rdevap*dpovg ![kg/m2/s][avg]
               end if
@@ -357,7 +357,7 @@ module mod_micro_subex
             if ( mc2mo%remrat(j,i,k) > d_zero ) then
               do kk = 1, k - 1
                 mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
-                  mc2mo%remrat(j,i,kk) * mo2mc%qcn(j,i,k) * &
+                  mc2mo%remrat(j,i,kk) * mo2mc%qcn(j,i,kd) * &
                   (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
               end do
             end if
@@ -420,7 +420,7 @@ module mod_micro_subex
       do i = ici1, ici2
         do j = jci1, jci2
           xcevap(j,i) = max(cevap(j,i) * (d_one - &
-                   (sin(abs(lat(j,i)*90.0_rkx/maxlat)*degrad) * &
+                   (sin(abs(lat(j,i)/maxlat)*halfpi) * &
                     season_factor(lat(j,i),day,dayspy))), mincevap)
         end do
       end do
