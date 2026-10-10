@@ -345,11 +345,9 @@ module mod_pbl_uwtcm
         end do
       end if
 
-      rdza(1) = d_zero
-      rhoxfl(1) = rhoxhl(1)
-      do k = 2, kz
+      do k = 1, kz
         ! Level spacing
-        rdza(k) = d_one/(zax(k-1)-zax(k))
+        rdza(k) = d_one/(zqx(k)-zqx(k+1))
         ! Density
         fracz = (zqx(k)-zax(k))*rdza(k)
         rhoxfl(k) = rhoxhl(k) + (rhoxhl(k-1)-rhoxhl(k))*fracz
