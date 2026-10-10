@@ -154,7 +154,7 @@ module mod_clm_frictionvelocity
               + StabilityFunc1(z0m(n)/obu(n)))
       else if (zeta <=  1._rk8) then
         ustar(n) = vkc*um(n)/(log(zldis/z0m(n)) + &
-                5._rk8*max(zeta,0.25_rk8) -5._rk8*z0m(n)/obu(n))
+                5._rk8*zeta-5._rk8*z0m(n)/obu(n))
       else
         ustar(n) = vkc*um(n)/(log(obu(n)/z0m(n))+5._rk8-5._rk8*z0m(n)/obu(n) &
               +(5._rk8*log(zeta)+zeta-1._rk8))
@@ -209,8 +209,7 @@ module mod_clm_frictionvelocity
             else if (zeta <=  1._rk8) then
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) + &
-                        5._rk8*max(zeta,0.25_rk8) - &
-                        5._rk8*(10._rk8+z0m(n))/obu(n)) )
+                        5._rk8*zeta-5._rk8*(10._rk8+z0m(n))/obu(n)) )
             else
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n))) &
@@ -239,8 +238,7 @@ module mod_clm_frictionvelocity
           else if (zeta <=  1._rk8) then
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) + &
-                      5._rk8*max(zeta,0.25_rk8) - &
-                      5._rk8*(10._rk8+z0m(n))/obu(n)) )
+                      5._rk8*zeta-5._rk8*(10._rk8+z0m(n))/obu(n)) )
           else
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n)))   &
@@ -270,7 +268,7 @@ module mod_clm_frictionvelocity
               + StabilityFunc2(z0h(n)/obu(n)))
       else if (zeta <=  1._rk8) then
         temp1(n) = vkc/(log(zldis/z0h(n)) + &
-                5._rk8*max(zeta,0.25_rk8) - 5._rk8*z0h(n)/obu(n))
+                5._rk8*zeta-5._rk8*z0h(n)/obu(n))
       else
         temp1(n) = vkc/(log(obu(n)/z0h(n)) + 5._rk8 - 5._rk8*z0h(n)/obu(n) &
               + (5._rk8*log(zeta)+zeta-1._rk8))
@@ -296,7 +294,7 @@ module mod_clm_frictionvelocity
                  + StabilityFunc2(z0q(n)/obu(n)))
           else if (zeta <=  1._rk8) then
             temp2(n) = vkc/(log(zldis/z0q(n)) + &
-                    5._rk8*max(zeta,0.25_rk8)-5._rk8*z0q(n)/obu(n))
+                    5._rk8*zeta-5._rk8*z0q(n)/obu(n))
           else
             temp2(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
                  + (5._rk8*log(zeta)+zeta-1._rk8))
@@ -319,7 +317,7 @@ module mod_clm_frictionvelocity
                  + StabilityFunc2(z0q(n)/obu(n)))
           else if (zeta <=  1._rk8) then
             temp2(n) = vkc/(log(zldis/z0q(n)) + &
-                    5._rk8*max(zeta,0.25_rk8)-5._rk8*z0q(n)/obu(n))
+                    5._rk8*zeta-5._rk8*z0q(n)/obu(n))
           else
             temp2(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
                  + (5._rk8*log(zeta)+zeta-1._rk8))
@@ -342,7 +340,7 @@ module mod_clm_frictionvelocity
               + StabilityFunc2(z0h(n)/obu(n)))
       else if (zeta <=  1._rk8) then
         temp12m(n) = vkc/(log(zldis/z0h(n)) + &
-                5._rk8*max(zeta,0.25_rk8) - 5._rk8*z0h(n)/obu(n))
+                5._rk8*zeta-5._rk8*z0h(n)/obu(n))
       else
         temp12m(n) = vkc/(log(obu(n)/z0h(n)) + 5._rk8 - 5._rk8*z0h(n)/obu(n) &
               + (5._rk8*log(zeta)+zeta-1._rk8))
@@ -364,7 +362,7 @@ module mod_clm_frictionvelocity
                  StabilityFunc2(zeta)+StabilityFunc2(z0q(n)/obu(n)))
         else if (zeta <=  1._rk8) then
           temp22m(n) = vkc/(log(zldis/z0q(n)) + &
-                  5._rk8*max(zeta,0.25_rk8)-5._rk8*z0q(n)/obu(n))
+                  5._rk8*zeta-5._rk8*z0q(n)/obu(n))
         else
           temp22m(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
                  + (5._rk8*log(zeta)+zeta-1._rk8))
@@ -737,7 +735,7 @@ module mod_clm_frictionvelocity
               + StabilityFunc1(z0m(n)/obu(n)))
       else if (zeta <=  1._rk8) then
         ustar(n) = vkc*um(n)/(log(zldis/z0m(n)) + &
-                5._rk8*max(zeta,0.25_rk8) -5._rk8*z0m(n)/obu(n))
+                5._rk8*zeta-5._rk8*z0m(n)/obu(n))
       else
         ustar(n) = vkc*um(n)/(log(obu(n)/z0m(n))+5._rk8-5._rk8*z0m(n)/obu(n) &
               +(5._rk8*log(zeta)+zeta-1._rk8))
@@ -792,8 +790,7 @@ module mod_clm_frictionvelocity
             else if (zeta <=  1._rk8) then
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) + &
-                        5._rk8*max(zeta,0.25_rk8) - &
-                        5._rk8*(10._rk8+z0m(n))/obu(n)) )
+                        5._rk8*zeta-5._rk8*(10._rk8+z0m(n))/obu(n)) )
             else
               u10_clm(pp) = um(n) - &
                       ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n))) &
@@ -822,8 +819,7 @@ module mod_clm_frictionvelocity
           else if (zeta <=  1._rk8) then
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(zldis/(10._rk8+z0m(n))) + &
-                      5._rk8*max(zeta,0.25_rk8) - &
-                      5._rk8*(10._rk8+z0m(n))/obu(n)) )
+                      5._rk8*zeta-5._rk8*(10._rk8+z0m(n))/obu(n)) )
           else
             u10_clm(n) = um(n) - &
                     ( ustar(n)/vkc*(log(obu(n)/(10._rk8+z0m(n)))   &
@@ -853,7 +849,7 @@ module mod_clm_frictionvelocity
               + StabilityFunc2(z0h(n)/obu(n)))
       else if (zeta <=  1._rk8) then
         temp1(n) = vkc/(log(zldis/z0h(n)) + &
-                5._rk8*max(zeta,0.25_rk8) - 5._rk8*z0h(n)/obu(n))
+                5._rk8*zeta-5._rk8*z0h(n)/obu(n))
       else
         temp1(n) = vkc/(log(obu(n)/z0h(n)) + 5._rk8 - 5._rk8*z0h(n)/obu(n) &
               + (5._rk8*log(zeta)+zeta-1._rk8))
@@ -879,7 +875,7 @@ module mod_clm_frictionvelocity
                  + StabilityFunc2(z0q(n)/obu(n)))
           else if (zeta <=  1._rk8) then
             temp2(n) = vkc/(log(zldis/z0q(n)) + &
-                    5._rk8*max(zeta,0.25_rk8)-5._rk8*z0q(n)/obu(n))
+                    5._rk8*zeta-5._rk8*z0q(n)/obu(n))
           else
             temp2(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
                  + (5._rk8*log(zeta)+zeta-1._rk8))
@@ -902,7 +898,7 @@ module mod_clm_frictionvelocity
                  + StabilityFunc2(z0q(n)/obu(n)))
           else if (zeta <=  1._rk8) then
             temp2(n) = vkc/(log(zldis/z0q(n)) + &
-                    5._rk8*max(zeta,0.25_rk8)-5._rk8*z0q(n)/obu(n))
+                    5._rk8*zeta-5._rk8*z0q(n)/obu(n))
           else
             temp2(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
                  + (5._rk8*log(zeta)+zeta-1._rk8))
@@ -925,7 +921,7 @@ module mod_clm_frictionvelocity
               + StabilityFunc2(z0h(n)/obu(n)))
       else if (zeta <=  1._rk8) then
         temp12m(n) = vkc/(log(zldis/z0h(n)) + &
-                5._rk8*max(zeta,0.25_rk8) - 5._rk8*z0h(n)/obu(n))
+                5._rk8*zeta-5._rk8*z0h(n)/obu(n))
       else
         temp12m(n) = vkc/(log(obu(n)/z0h(n)) + 5._rk8 - 5._rk8*z0h(n)/obu(n) &
               + (5._rk8*log(zeta)+zeta-1._rk8))
@@ -947,7 +943,7 @@ module mod_clm_frictionvelocity
                  StabilityFunc2(zeta)+StabilityFunc2(z0q(n)/obu(n)))
         else if (zeta <=  1._rk8) then
           temp22m(n) = vkc/(log(zldis/z0q(n)) + &
-                  5._rk8*max(zeta,0.25_rk8)-5._rk8*z0q(n)/obu(n))
+                  5._rk8*zeta-5._rk8*z0q(n)/obu(n))
         else
           temp22m(n) = vkc/(log(obu(n)/z0q(n)) + 5._rk8 - 5._rk8*z0q(n)/obu(n) &
                  + (5._rk8*log(zeta)+zeta-1._rk8))
