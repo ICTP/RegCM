@@ -160,7 +160,7 @@ module mod_pbl_holtbl
     ! the full level density is stored in rhohf.
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
-      dza(j,i,k) = m2p%za(j,i,k) - m2p%za(j,i,k+1)
+      dza(j,i,k) = m2p%zq(j,i,k) - m2p%zq(j,i,k+1)
       rhohf(j,i,k) = (m2p%patm(j,i,k+1)-m2p%patm(j,i,k)) / &
                      (egrav*dza(j,i,k))
     end do

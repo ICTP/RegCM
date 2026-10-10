@@ -87,11 +87,6 @@ module mod_pbl_uwtcm
   real(rkx), parameter :: aone = 1.9_rkx*xfr
   real(rkx), parameter :: minn2 =  1.0e-7_rkx
 
-  !real(rkx), parameter :: svp1 =  0.6112_rkx
-  !real(rkx), parameter :: svp1pa = d_10*svp1
-  !real(rkx), parameter :: svp2 =  17.67_rkx
-  !real(rkx), parameter :: svp3 =  29.65_rkx
-
   ! Variables that hold frequently-done calculations
   real(rkx) :: rczero, tkefac, b1
 
@@ -134,14 +129,14 @@ module mod_pbl_uwtcm
     integer(ik4) ::  i, j
     real(rkx) :: temps, templ, deltat, rvls, rpfac, tbbls
     real(rkx) :: uflxp, vflxp, rhoxsf, tskx, tvcon, fracz, dudz, &
-                 dvdz, thgb, pblx, ustxsq, qfxx, hfxx, uvdragx, &
-                 q0s, tvfac, svs, cpoxlv, pfcor, ustx
+                 dvdz, thgb, pblx, uu, qfxx, hfxx, uvdragx, &
+                 q0s, tvfac, svs, cpoxlv, pfcor, ustx, leff, qt_liq
     ! real(rkx) :: kh0, thvflx
     real(rkx) :: thv0, thx_t, thvx_t, dthv, dthv_t
     integer(ik4) :: kpbl2dx  ! Top of PBL
     real(rkx), dimension(maxvert) :: zqx
     real(rkx), dimension(maxvert) :: kth, kzm, rhoxfl, rcldb, tke, &
-         tkes, bbls, nsquar, presfl, exnerfl, rexnerfl !, epo, richnum
+         tkes, bbls, nsquar, presfl, exnerfl, rexnerfl ! richnum
     real(rkx), dimension(maxvert) :: shear, buoyan, rdza, rrhoxfl !, svs
     integer(ik4) ::  k, itr !, ibnd
     integer(ik4) :: ilay, kpbconv, iteration
@@ -152,6 +147,13 @@ module mod_pbl_uwtcm
          rimp1, uimp2, rimp2, rlv, orlv, cp, ocp
     !real(rkx), dimension(maxvert) :: qwxs, thlxs
     real(rkx), dimension(maxvert) :: qix, qixs
+    ! Ice-decoupled arrays for n2(): qwx without qi, thlx corrected for qi.
+    ! n2() solves a liquid+vapour saturation problem; feeding it qwx+qi causes
+    ! rcldb = max(qwx+qi-rvls,0) to overcount condensate, which can flip the
+    ! sign of nsquar and drive a spurious TKE explosion.
+    real(rkx), dimension(maxvert) :: qwxliq, thlxliq
+    ! Total condensate = ql + qi for cloud-top detection in pblhgt/radib
+    real(rkx), dimension(maxvert) :: qtotcx
     real(rkx), dimension(maxvert,maxtracer) :: chix, chixs
     real(rkx), dimension(maxtracer) :: chifxx
     integer(ik4), dimension(maxvert) :: ktop, kbot
@@ -168,8 +170,8 @@ module mod_pbl_uwtcm
             rexnerfl,shear,buoyan,rdza,rrhoxfl,ux,vx,qx,thx,uthvx,zax,    &
             kethl,thlx,thxs,tx,tvx,rttenx,preshl,qcx,qwx,rrhoxhl,uxs,qxs, &
             rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,bimp,cimp,uimp1,   &
-            rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,chix,chixs,chifxx, &
-            ktop,kbot) ! qwxs, thlxs
+            rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,qwxliq,thlxliq,    &
+            qtotcx,chix,chixs,chifxx,ktop,kbot) ! qwxs, thlxs
 #else
     !$acc parallel loop collapse(2) gang vector &
     !$acc     private(zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,     &
@@ -178,7 +180,8 @@ module mod_pbl_uwtcm
     !$acc             rttenx,preshl,qcx,qwx,rrhoxhl,uxs,qxs,rhoxhl,      &
     !$acc             exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,bimp,cimp,     &
     !$acc             uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,  &
-    !$acc             chix,chixs,chifxx,ktop,kbot) ! qwxs, thlxs
+    !$acc             qwxliq,thlxliq,qtotcx,chix,chixs,chifxx,ktop,      &
+    !$acc             kbot) ! qwxs, thlxs
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
@@ -205,7 +208,6 @@ module mod_pbl_uwtcm
       ! Set variables that are on full levels
       do k = 1, kzp1
         presfl(k) = m2p%patmf(j,i,k)
-        !epop(k) = ep2/m2p%patmf(j,i,k)
         zqx(k) = m2p%zq(j,i,k)
         tke(k) = max(m2p%tkests(j,i,k),uwtkemin)
       end do
@@ -253,15 +255,32 @@ module mod_pbl_uwtcm
         rexnerhl(k) = d_one/exnerhl(k)
         ! Potential temperature
         thx(k) = tx(k)*rexnerhl(k)
-        ! Total water mixing ratio
-        qwx(k) = qx(k) + qcx(k)
-        ! Virtual temperature and potential temperature
-        tvcon = d_one + ep1*qx(k)-qcx(k)
-        tvx(k) = tx(k)*tvcon ! virtual temperature
-        uthvx(k) = thx(k)*tvcon ! vitual potential temperature
-        ! Liquid water potential temperature (accounting for ice)
-        thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k)
       end do
+
+      if ( ipptls > 1 ) then
+        do k = 1, kz
+          ! Total water mixing ratio
+          qwx(k) = qx(k) + qcx(k) + qix(k)
+          ! Virtual temperature and potential temperature
+          tvcon = d_one + ep1*qx(k) - qcx(k) - qix(k)
+          tvx(k) = tx(k)*tvcon ! virtual temperature
+          uthvx(k) = thx(k)*tvcon ! vitual potential temperature
+          ! Water potential temperature (accounting for ice)
+          thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k) - &
+                   wlhs*qix(k)*ocp(k)*rexnerhl(k)
+        end do
+      else
+        do k = 1, kz
+          ! Total water mixing ratio
+          qwx(k) = qx(k) + qcx(k)
+          ! Virtual temperature and potential temperature
+          tvcon = d_one + ep1*qx(k)-qcx(k)
+          tvx(k) = tx(k)*tvcon ! virtual temperature
+          uthvx(k) = thx(k)*tvcon ! vitual potential temperature
+          ! Liquid water potential temperature
+          thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k)
+        end do
+      end if
 
       ! save initial values
       do k = 1, kz
@@ -286,6 +305,35 @@ module mod_pbl_uwtcm
       if ( implicit_ice .and. ipptls > 1 ) then
         do k = 1, kz
           qixs(k) = qix(k)
+        end do
+      end if
+
+      ! Build ice-decoupled arrays used by n2() and pblhgt/radib.
+      !
+      ! n2() diagnoses moist buoyancy by finding condensate as
+      !   rcldb = max(qwxin - rvls, 0).
+      ! If qwxin includes qi, rcldb overcounts condensate (qi is already
+      ! condensed and should not be compared against rvls again), which can
+      ! flip the sign of nsquar in mixed-phase layers and cause a TKE
+      ! explosion.
+      !
+      ! The correct inputs for n2() are:
+      !   thlxliq = thlx + Ls*qi/(cp*Pi)  [ice latent heat added back]
+      !           = theta - Lv*ql/(cp*Pi)  [liquid-only liquid-water pot. temp]
+      !   qwxliq  = qwx - qi              [liquid + vapour only]
+      !
+      ! qtotcx = ql + qi for cloud-top detection in radib and pblhgt.
+      if ( implicit_ice .and. ipptls > 1 ) then
+        do k = 1, kz
+          qwxliq(k)  = qwx(k) - qix(k)
+          thlxliq(k) = thlx(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
+          qtotcx(k)  = qcx(k) + qix(k)
+        end do
+      else
+        do k = 1, kz
+          qwxliq(k)  = qwx(k)
+          thlxliq(k) = thlx(k)
+          qtotcx(k)  = qcx(k)
         end do
       end if
 
@@ -356,9 +404,9 @@ module mod_pbl_uwtcm
       ! thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
       ! Estimate of surface eddy diffusivity, for estimating the
       ! surface N^2 from the surface virtual heat flux
-      ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
-      ustx = sqrt(ustxsq)
-      ! kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
+      uu = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-8_rkx))
+      ustx = sqrt(uu)
+      ! kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*uu))
 
 !*******************************************************************************
 !*******************************************************************************
@@ -368,7 +416,10 @@ module mod_pbl_uwtcm
 
       ! Calculate nsquared Set N^2 based on the current potential
       ! temperature profile
-      call n2(kz,thlx,qwx,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv,rdza, &
+      ! Pass ice-decoupled thlxliq/qwxliq so n2 solves only the liquid+vapour
+      ! saturation problem. Feeding qwx+qi would make rcldb overcount condensate
+      ! and can spuriously flip the sign of nsquar, triggering TKE explosion.
+      call n2(kz,thlxliq,qwxliq,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv,rdza, &
               rcldb,nsquar)
       ! Estimate the surface N^2 from the surface virtual heat flux
       ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
@@ -378,8 +429,11 @@ module mod_pbl_uwtcm
       !richnum = nsquar/max(svs,1.0e-8_rkx)
 
       ! Calculate the boundary layer height
-      call pblhgt(kz,thlx,qwx,qcx,nsquar,tke,zqx,ocp,rlv,rexnerhl,thx, &
-                  rttenx,uthvx,presfl,rhoxfl,exnerfl,rcldb,ustx,pfcor, &
+      ! Use thlxliq/qwxliq for the entrainment buoyancy-jump estimate inside
+      ! pblhgt (same reason as for n2).  Pass qtotcx = ql+qi for cloud-top
+      ! radiative-divergence detection so ice-topped clouds are handled.
+      call pblhgt(kz,thlxliq,qwxliq,qtotcx,nsquar,tke,zqx,ocp,rlv,rexnerhl, &
+                  thx,rttenx,uthvx,presfl,rhoxfl,exnerfl,rcldb,ustx,pfcor, &
                   kpbconv,ktop,kbot,kpbl2dx,bbls,pblx,rstbl,atwo)
       ! call pblhgt_tao(kz,zqx,richnum,rcldb,presfl,tke, &
       !                 kpbconv,kpbl2dx,kmix2dx,pblx,ktop,kbot,bbls,nsquar)
@@ -432,12 +486,39 @@ module mod_pbl_uwtcm
         ! Solve liquid water potential temperature
         call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
         ! Calculate nsquared Set N^2 based on the updated potential
-        ! temperature profile (this is for the semi-implicit integration)
-        uimp2 = max(uimp2,minqq)
-        call n2(kz,uimp1,uimp2,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
-                orlv,rdza,rcldb,nsquar)
-        thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz)
-        tvcon = d_one + ep1*qx(kz)-qcx(kz)
+        ! temperature profile (this is for the semi-implicit integration).
+        ! uimp2 = diffused qwx (includes qi);
+        ! uimp1 = diffused thlx (includes Ls*qi).
+        ! Decouple ice before calling n2() as the outer call:
+        ! n2 must receive the liquid+vapour-only qwxliq and the ice-corrected
+        ! thlxliq so that rcldb = max(qwxliq-rvls,0) counts only liquid
+        ! condensate.
+        ! At this point in the loop qix still holds pre-diffusion values (ice
+        ! diffusion happens after the melloryamada iteration), which is the
+        ! best estimate available here.
+        uimp2 = max(uimp2, minqq)
+        if ( implicit_ice .and. ipptls > 1 ) then
+          do k = 1, kz
+            qwxliq(k)  = uimp2(k) - qix(k)
+            thlxliq(k) = uimp1(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
+          end do
+          call n2(kz,thlxliq,qwxliq,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
+                  orlv,rdza,rcldb,nsquar)
+        else
+          call n2(kz,uimp1,uimp2,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
+                  orlv,rdza,rcldb,nsquar)
+        end if
+        ! Invert thlx -> thx at lowest level for the surface N^2 estimate.
+        ! thlx = theta - Lv*ql/(cp*Pi) - Ls*qi/(cp*Pi), so add both back.
+        ! qcx/qix are pre-diffusion values -- best estimate available here.
+        if ( implicit_ice .and. ipptls > 1 ) then
+          thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz) + &
+                  ocp(kz)*wlhs*qix(kz)*rexnerhl(kz)
+          tvcon = d_one + ep1*qx(kz) - qcx(kz) - qix(kz)
+        else
+          thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz)
+          tvcon = d_one + ep1*qx(kz) - qcx(kz)
+        end if
         thvx_t = thx_t*tvcon
         dthv_t = (thvx_t-thv0)
         nsquar(kzp1) = egrav/thvx_t * dthv_t/zax(kz)
@@ -464,29 +545,64 @@ module mod_pbl_uwtcm
       !  end do
       !else
         do k = 1, kz
-          ! Set thlx and qwx to their updated values
           thlx(k) = uimp1(k)
-          qwx(k) = uimp2(k)
-          templ = thlx(k)*exnerhl(k)
-          temps = templ
-          !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
-          !         exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
-          rvls = pfwsat(temps,preshl(k))
-          cpoxlv = cp(k)*orlv(k)
+          qwx(k)  = uimp2(k)
+
+          if ( implicit_ice .and. ipptls > 1 ) then
+            ! Decouple the already-known qi before the Newton iteration.
+            ! qt_liq = qv + ql; templ satisfies T = templ + Lv*ql/cp exactly.
+            qt_liq = qwx(k) - qix(k)
+            templ  = (thlx(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)) * exnerhl(k)
+          else
+            qt_liq = qwx(k)
+            templ  = thlx(k) * exnerhl(k)
+          end if
+
+          ! Newton iteration for liquid+vapour only.
+          ! Uses wlhv (constant Lv) because the ice enthalpy is in templ;
+          ! using rlv(k)=wlh(T) which returns Ls for T<0 would be inconsistent.
+          temps  = templ
+          rvls   = pfwsat(temps, preshl(k))
+          cpoxlv = cp(k) / wlhv
           do iteration = 1, 3
-            deltat = ((templ-temps)*cpoxlv + qwx(k)-rvls) / &
-              (cpoxlv + ep2*rlv(k)*rvls/rgas/templ/templ)
+            deltat = ((templ - temps)*cpoxlv + qt_liq - rvls) / &
+                     (cpoxlv + ep2*wlhv*rvls/rgas/temps/temps)
             if ( abs(deltat) < 0.01_rkx ) exit
             temps = temps + deltat
-            !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
-            !       exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
-            rvls = pfwsat(temps,preshl(k))
+            rvls  = pfwsat(temps, preshl(k))
           end do
-          qcx(k) = max(qwx(k)-rvls, d_zero)
-          qx(k) = qwx(k)-qcx(k)
-          thx(k) = (templ + ocp(k)*rlv(k)*qcx(k))*rexnerhl(k)
-          uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
+
+          ! Phase split: liquid, vapour, ice (already known)
+          qcx(k) = max(qt_liq - rvls, d_zero)
+          qx(k)  = qt_liq - qcx(k)
+          ! qix(k) unchanged -- from its own implicit diffusion
+
+          ! Reconstruct theta (templ already carries the Ls*qi correction)
+          thx(k) = (templ + wlhv*qcx(k)*ocp(k)) * rexnerhl(k)
+
+          ! Virtual potential temperature: all condensate loading
+          if ( implicit_ice .and. ipptls > 1 ) then
+            uthvx(k) = thx(k) * (d_one + ep1*qx(k) - qcx(k) - qix(k))
+          else
+            uthvx(k) = thx(k) * (d_one + ep1*qx(k) - qcx(k))
+          end if
         end do
+
+        ! Update ice-decoupled arrays to reflect post-diffusion thlx/qwx
+        ! (qix is still pre-ice-diffusion here; updated below at line ~530)
+        if ( implicit_ice .and. ipptls > 1 ) then
+          do k = 1, kz
+            qwxliq(k)  = qwx(k) - qix(k)
+            thlxliq(k) = thlx(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
+            qtotcx(k)  = qcx(k) + qix(k)
+          end do
+        else
+          do k = 1, kz
+            qwxliq(k)  = qwx(k)
+            thlxliq(k) = thlx(k)
+            qtotcx(k)  = qcx(k)
+          end do
+        end if
       !end if
 
       !*************************************************************
@@ -542,6 +658,10 @@ module mod_pbl_uwtcm
         do  k = 1, kz
           qix(k) = max(uimp1(k),d_zero)
         end do
+        ! Refresh qtotcx now that qix is its final post-diffusion value
+        do k = 1, kz
+          qtotcx(k) = qcx(k) + qix(k)
+        end do
       end if
 
       !*************************************************************
@@ -590,12 +710,12 @@ module mod_pbl_uwtcm
       ! Calculate surface momentum fluxes
       uflxp = -uvdragx*ux(kz)/rhoxsf
       vflxp = -uvdragx*vx(kz)/rhoxsf
-      ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
-      ustx = sqrt(ustxsq)
+      uu = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-8_rkx))
+      ustx = sqrt(uu)
 
       ! Estimate of surface eddy diffusivity, for estimating the
       ! surface N^2 from the surface virtual heat flux
-      ! kh0 = vonkar*2*sqrt(max(uwtkemin,tkefac*ustxsq))
+      ! kh0 = vonkar*2*sqrt(max(uwtkemin,tkefac*uu))
 
       ! Estimate the surface N^2 from the surface virtual heat flux
       dthv = uthvx(kz) - thv0
@@ -606,7 +726,6 @@ module mod_pbl_uwtcm
 !************************* Integration of TKE Budget Equation ******************
 !*******************************************************************************
 !*******************************************************************************
-
       ! features:
       !   a. explicit calculation of buoyancy and shear terms using
       !      time = t+1 values of thetal, qw, and winds
@@ -614,8 +733,8 @@ module mod_pbl_uwtcm
       !   c. semi-implicit calculation of dissipation term and
       !      implicit calculation of turbulent transfer term
       ! first, buoyancy and shear terms
-      buoyan(:) = d_zero
-      shear(:) = d_zero
+      buoyan(1:kz) = d_zero
+      shear(1:kz) = d_zero
       sandb: &
       do k = 2, kz
         ! Recalculate the shear and the squared
@@ -634,7 +753,7 @@ module mod_pbl_uwtcm
       do ilay = 1, kpbconv
         k = ktop(ilay)
         if ( k > 1 .and. k <= kz ) then
-          if ( qcx(k) > 1.0e-4_rkx ) then
+          if ( qtotcx(k) > 1.0e-4_rkx ) then
             buoyan(k) = buoyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
                         rrhoxfl(k) * rexnerfl(k) / uthvx(k)
           end if
@@ -644,7 +763,7 @@ module mod_pbl_uwtcm
       tke(1) = d_zero
       bbls(1)= d_zero
       ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
-      tke(kzp1) = max(tkefac*ustxsq,uwtkemin) ! normal
+      tke(kzp1) = max(tkefac*uu,uwtkemin) ! normal
 
       ! now the implicit calculations
       ! first find the coefficients that apply for full levels
@@ -747,6 +866,7 @@ module mod_pbl_uwtcm
 
 #include <wlh.inc>
 #include <pfwsat.inc>
+#include <pfmxsat.inc>
 
   pure subroutine solve_tridiag(a,b,c,v,x,n)
 !$acc routine seq
@@ -783,8 +903,8 @@ module mod_pbl_uwtcm
     end do backsub
   end subroutine solve_tridiag
 
-  pure subroutine n2(kz,thlxin,qwxin,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv, &
-                     rdza,rcldb,nsquar)
+  pure subroutine n2(kz,thlxin,qwxin,exnerfl,rexnerfl,presfl,cp,rlv, &
+                     ocp,orlv,rdza,rcldb,nsquar)
 !$acc routine seq
     implicit none
     integer(ik4), intent(in) :: kz
@@ -796,38 +916,31 @@ module mod_pbl_uwtcm
     real(rkx), intent(out), dimension(kz+1) :: nsquar
     ! local variables
     real(rkx) :: tvbl, rcld, tvab, thvxfl, dtvdz
-    real(rkx) :: temps, templ, tempv, rvls, cpoxlv
+    real(rkx) :: temps, templ, tempv, rvls, cpoxlv, leff
     integer(ik4) :: k
 
     do k = 2, kz
       ! buoyancy is jump in thetav across flux level/dza
       ! first, layer below, go up and see if anything condenses.
       templ = thlxin(k)*exnerfl(k)
-      !rvls = d_100*svp1pa*exp(svp2*(templ-tzero)/(templ-svp3))*epop(k)
-      rvls = pfwsat(templ,presfl(k))
-      cpoxlv = cp(k)*orlv(k)
+      call pfmxsat(templ, presfl(k), rvls, leff)
+      cpoxlv = cp(k)/leff
       temps = templ + (qwxin(k)-rvls)/(cpoxlv + &
-                    ep2*rlv(k)*rvls/(rgas*templ*templ))
-      !rvls = d_100*svp1pa*exp(svp2*(temps-tzero)/(temps-svp3))*epop(k)
-      rvls = pfwsat(temps,presfl(k))
+                    ep2*leff*rvls/(rgas*templ*templ))
+      call pfmxsat(temps, presfl(k), rvls, leff)
       rcldb(k) = max(qwxin(k)-rvls,d_zero)
-      tempv = (templ + ocp(k)*rlv(k)*rcldb(k)) * &
-              (d_one + ep1*(qwxin(k)-rcldb(k))-rcldb(k))
-      ! tempv = (templ + wlhvocp*rcldb(k)) * &
-      !   (d_one + ep1*(qwxin(k)-rcldb(k))-rcldb(k))
+      tempv = (templ + leff/cp(k)*rcldb(k)) * &
+              (d_one + ep1*(qwxin(k)-rcldb(k)) - rcldb(k))
       tvbl = tempv*rexnerfl(k)
       ! now do layer above; go down to see how much evaporates
       templ = thlxin(k-1)*exnerfl(k)
-      !rvls = d_100*svp1pa*exp(svp2*(templ-tzero)/(templ-svp3))*epop(k)
-      rvls = pfwsat(templ,presfl(k))
+      call pfmxsat(templ, presfl(k), rvls, leff)
+      cpoxlv = cp(k)/leff
       temps = templ + (qwxin(k-1)-rvls)/(cpoxlv + &
-              ep2*rlv(k)*rvls/(rgas*templ*templ))
-      !rvls = d_100*svp1pa*exp(svp2*(temps-tzero)/(temps-svp3))*epop(k)
-      rvls = pfwsat(temps,presfl(k))
+                    ep2*leff*rvls/(rgas*templ*templ))
+      call pfmxsat(temps, presfl(k), rvls, leff)
       rcld = max(qwxin(k-1)-rvls,d_zero)
-      !tempv = (templ + wlhvocp*rcld) *    &
-      !        (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
-      tempv = (templ + ocp(k)*rlv(k)*rcld) * &
+      tempv = (templ + leff/cp(k)*rcld) * &
               (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
       tvab = tempv*rexnerfl(k)
 
@@ -1066,9 +1179,13 @@ module mod_pbl_uwtcm
         if ( tkeavg > d_zero ) then
           rnnll = rnnll + min(d_zero,bbls(k)/sqrt(tkeavg)*(radnnll+entnnll))
         end if
-        ! now extend down
+        ! now extend down.
+        ! Stop at kz: kzp1 is the surface boundary, not a turbulent fluid layer.
+        ! Allowing kbot=kzp1 sets zqx(kbot+1)=zqx(kzp2)=0 in blinf, inflating
+        ! the mixing length for the entire layer and causing TKE runaway when
+        ! uthvx(kz) is reduced by ice loading.
         searchdown1: &
-        do k = kbot(ilay)+1, kz+1
+        do k = kbot(ilay)+1, kz
           tbbls = min(blinf,vonkar*zqx(k))
           trnnll = nsquar(k)*tbbls*tbbls
           ! is it the bottom?
