@@ -275,7 +275,7 @@ module mod_micro_wsm5
         kk = kzp1-k
         n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
         if ( qrs(n,kk,1) > dlowval ) then
-          pf1 = fall(n,kk,1)*delz(n,kk)/rhoh2o/qrs(n,kk,1)
+          pf1 = fall(n,kk,1)*delz(n,kk)/den(n,kk)/qrs(n,kk,1)
         else
           pf1 = d_zero
         end if
@@ -294,7 +294,7 @@ module mod_micro_wsm5
         if ( mc2mo%remrat(j,i,k) > d_zero ) then
           !$acc loop seq
           do kk = 1, k - 1
-            qcw = mo2mc%qcn(j,i,k)
+            qcw = mo2mc%qcn(j,i,kk)
             mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
                   mc2mo%remrat(j,i,kk) * qcw * &
                   (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
@@ -702,8 +702,8 @@ module mod_micro_wsm5
             !
             acrfac = d_two*rslope3(i,k,2) + d_two*diameter*rslope2(i,k,2) + &
                      diameter**2*rslope(i,k,2)
-            psaci(i,k) = mathpi*qci(i,k,2)*eacrs*n0s*n0sfac * &
-                         abs(vt2s-vt2i)*acrfac*d_rfour
+            psaci(i,k) = min(mathpi*qci(i,k,2)*eacrs*n0s*n0sfac * &
+                           abs(vt2s-vt2i)*acrfac*d_rfour, qci(i,k,2)*rdtcld)
           end if
         end if
         !

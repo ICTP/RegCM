@@ -404,7 +404,7 @@ module mod_micro_wdm7
         kk = kzp1-k
         n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
         if ( qrs(n,kk,1) > dlowval ) then
-          pf1 = fall(n,kk,1)*delz(n,kk)/denr/qrs(n,kk,1)
+          pf1 = fall(n,kk,1)*delz(n,kk)/den(n,kk)/qrs(n,kk,1)
         else
           pf1 = 0.0_rkx
         end if
@@ -433,7 +433,7 @@ module mod_micro_wdm7
         if ( mc2mo%remrat(j,i,k) > 0.0_rkx ) then
           !$acc loop seq
           do kk = 1, k - 1
-            qcw = mo2mc%qcn(j,i,k)
+            qcw = mo2mc%qcn(j,i,kk)
             mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
                   mc2mo%remrat(j,i,kk) * qcw * &
                  (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
@@ -1505,7 +1505,7 @@ module mod_micro_wdm7
             pgaci_w(i,k) = 0.0_rkx
           end if
           pgwet(i,k) = ghw1/ghw2*(precg1*rslope2(i,k,3)      + &
-                       precg3*ghw3*(rslope(i,k,4)**2.75_rkx) + &
+                       precg3*ghw3*(rslope(i,k,3)**2.75_rkx) + &
                        ghw4*(pgaci_w(i,k)+pgacs(i,k)))
           pgwet(i,k) = max(pgwet(i,k), 0.0_rkx)
         end if
@@ -1519,11 +1519,11 @@ module mod_micro_wdm7
           else
             phaci_w(i,k) = 0.0_rkx
           end if
+          phwet(i,k) = ghw1/ghw2*(prech1*rslope2(i,k,4)      + &
+                       prech3*ghw3*(rslope(i,k,4)**2.75_rkx) + &
+                       ghw4*(phaci_w(i,k)+phacs(i,k)))
+          phwet(i,k) = max(phwet(i,k), 0.0_rkx)
         end if
-        phwet(i,k) = ghw1/ghw2*(prech1*rslope2(i,k,4)      + &
-                     prech3*ghw3*(rslope(i,k,4)**2.75_rkx) + &
-                     ghw4*(phaci_w(i,k)+phacs(i,k)))
-        phwet(i,k) = max(phwet(i,k), 0.0_rkx)
         if ( supcol <= 0.0_rkx ) then
           xlf = wlhf
           !
@@ -1739,7 +1739,7 @@ module mod_micro_wdm7
           ! cloud water
           !
           qval = max(qci(i,k,1),qcimin)
-          source = (praut(i,k)+pracw(i,k)+paacw(i,k) + &
+          source = (praut(i,k)+pracw(i,k)+psacw(i,k) + &
                     paacw(i,k)+phacw(i,k))*dtcld
           if ( source > qval ) then
             factor = qval/source
@@ -1865,7 +1865,7 @@ module mod_micro_wdm7
           !
           qval = max(ncr(i,k,2),ncmin)
           source = (nraut(i,k)+nccol(i,k)+nracw(i,k) + &
-                    naacw(i,k)+naacw(i,k)+nhacw(i,k))*dtcld
+                    nsacw(i,k)+naacw(i,k)+nhacw(i,k))*dtcld
           if (source > qval) then
             factor = qval/source
             nraut(i,k) = nraut(i,k)*factor
@@ -1895,7 +1895,7 @@ module mod_micro_wdm7
           ! update
           qv(i,k) = qv(i,k)+work2(i,k)*dtcld
           qci(i,k,1) = max(qci(i,k,1)-(praut(i,k)+pracw(i,k) + &
-                           paacw(i,k)+paacw(i,k)+phacw(i,k))*dtcld,0.0_rkx)
+                           psacw(i,k)+paacw(i,k)+phacw(i,k))*dtcld,0.0_rkx)
           qrs(i,k,1) = max(qrs(i,k,1)+(praut(i,k)+pracw(i,k)          + &
                           prevp(i,k)-piacr(i,k)-pgacr(i,k)            - &
                           psacr(i,k)-phacr(i,k))*dtcld,0.0_rkx)
@@ -1923,7 +1923,7 @@ module mod_micro_wdm7
                           phacw(i,k)+phacr(i,k)+phaci(i,k)+phacs(i,k) + &
                           phacg(i,k)-pvaph(i,k)-primh(i,k))*dtcld,0.0_rkx)
           ncr(i,k,2) = max(ncr(i,k,2)+(-nraut(i,k)-nccol(i,k) - &
-                           nracw(i,k)-naacw(i,k)-naacw(i,k) -   &
+                           nracw(i,k)-nsacw(i,k)-naacw(i,k) -   &
                            nhacw(i,k))*dtcld,0.0_rkx)
           ncr(i,k,3) = max(ncr(i,k,3)+(nraut(i,k)-nrcol(i,k) - &
                            niacr(i,k)-nsacr(i,k)-ngacr(i,k) -  &
@@ -1939,7 +1939,7 @@ module mod_micro_wdm7
           ! cloud water
           !
           qval = max(qci(i,k,1),qcimin)
-          source = (praut(i,k)+pracw(i,k)+paacw(i,k) + &
+          source = (praut(i,k)+pracw(i,k)+psacw(i,k) + &
                     paacw(i,k)-phacw(i,k))*dtcld
           if ( source > qval ) then
             factor = qval/source
@@ -1953,7 +1953,7 @@ module mod_micro_wdm7
           !
           qval = max(qrs(i,k,1),qrsmin)
           source = (-prevp(i,k)-praut(i,k)+pseml(i,k)+pgeml(i,k) + &
-                    pheml(i,k)-pracw(i,k)-paacw(i,k)-paacw(i,k) -  &
+                    pheml(i,k)-pracw(i,k)-psacw(i,k)-paacw(i,k) -  &
                     phacw(i,k))*dtcld
           if ( source > qval ) then
             factor = qval/source
@@ -2043,7 +2043,7 @@ module mod_micro_wdm7
              pgacs(i,k)-phacs(i,k))*dtcld,0.0_rkx)
           qrs(i,k,3) = max(qrs(i,k,3)+(pgacs(i,k)+pgevp(i,k) + &
              pgeml(i,k)-phacg(i,k))*dtcld,0.0_rkx)
-          qrs(i,k,4) = max(qrs(i,k,4)+(phacs(i,k)+phacg(i,k) + &
+          qrs(i,k,4) = max(qrs(i,k,4)-(phacs(i,k)+phacg(i,k) + &
              phevp(i,k)+pheml(i,k))*dtcld,0.0_rkx)
           ncr(i,k,2) = max(ncr(i,k,2)+(-nraut(i,k)-nccol(i,k) - &
              nracw(i,k)-naacw(i,k)-naacw(i,k)-nhacw(i,k))*dtcld,0.0_rkx)
@@ -2066,6 +2066,7 @@ module mod_micro_wdm7
       end do
 
       do concurrent ( i = ims:ime, k = 1:kz )
+        qrs_tmp(i,k,1) = qrs(i,k,1)
         ncr_tmp(i,k) = ncr(i,k,3)
       end do
       call slope_wdm7(ims,ime,qrs_tmp,ncr_tmp,den,denfac,t, &
