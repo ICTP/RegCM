@@ -1157,65 +1157,54 @@ The eddy diffusivity is given by the non-local formulation
 K_c = kw_tz \left( 1- {z \over h} \right)^2
 \end{eqnarray}
 
-where $k$ is the von Karman constant; $w_t$ is a turbulent convective
-velocity that depends on the friction velocity, height, and the Monin-Obhukov
+where $k$ is the von K\'{a}rm\'{a}n constant; $w_t$ is a turbulent convective
+velocity that depends on the friction velocity, height, and the Monin-Obukhov
 length;  and $h$ is the PBL height.
 
-The counter-gradient term for temperature and water vapor is given by
+The counter-gradient term for temperature is given by
 
 \begin{eqnarray}
 \label{eq:countergradient}
-\gamma_c = C { {\phi_c}^0 \over w_t h}
+\gamma_c = C { {{\phi_c}^0} \over w_t h}
 \end{eqnarray}
 
-where C is a constant equal to 8.5, and ${\phi_c}^0$ is the surface
-temperature or water vapor flux. Equation~\ref{eq:countergradient} is applied
+where $C$ is a constant equal to 8.5, and ${{\phi_c}^0}$ is the surface
+temperature flux. Equation~\ref{eq:countergradient} is applied
 between the top of the PBL and the top of the surface layer, which is assumed to
-be equal to $0.1h$. Outside this region and for momentum, $\gamma_c$ is assumed
-to be equal to 0.  
+be equal to $0.1h$. A moisture counter-gradient term is also active and is
+proportional to the surface latent heat flux, scaled by $K_q = 0.8 K_h$.
+Outside this region and for momentum, $\gamma_c$ is assumed to be equal
+to zero.
 
 For the calculation of the eddy diffusivity and counter-gradient terms, the PBL
-height is diagnostically computed from
+height is diagnostically computed as the level at which the bulk Richardson
+number, computed upward from the surface, first exceeds a critical threshold
+$\mathrm{Ri}_{cr}$:
 
 \begin{eqnarray}
-  h = { {\rm {R_i}_{cr}} [u(h)^2 + v(h)^2] \over (g/\theta_s)[\theta_v(h)-\theta_s] }
+  \mathrm{Ri}(z) = { (g/\theta_s)[\theta_v(z)-\theta_s] \cdot z \over
+                     u(z)^2 + v(z)^2 }
 \end{eqnarray}
 
-where $u(h)$, $v(h)$, and $\theta_v$ are the wind components and the
-virtual potential temperature at the PBL height, $g$ is gravity, ${\rm {R_i}_{cr}}$
-is the critical bulk Richardson number, and $\theta_s$ is an appropriate
-temperature of are near the surface.  Refer to \cite{Holtslag_90} and
-\cite{Holtslag_93} for a more detailed description.
+where $u(z)$, $v(z)$, and $\theta_v$ are the wind components and the
+virtual potential temperature at height $z$, $g$ is gravity, and $\theta_s$
+is the virtual potential temperature of a near-surface reference layer.
+The critical Richardson number is stability-dependent: under unstable conditions
+a thermal temperature excess is added to the surface parcel before the search,
+increasing $h$ to reflect convective overshoot.
+Refer to \cite{Holtslag_90} and \cite{Holtslag_93} for a more detailed
+description.
+
+Below the PBL, the eddy diffusivity for momentum and heat is computed from the
+non-local formula above.  In the stable case the velocity scale is reduced by a
+Businger-Dyer factor $1/(1+\beta_s z/L)$ where $\beta_s = 5$.
+Above the PBL, a background (minimum) diffusivity of $0.1\;\mathrm{m^2\,s^{-1}}$
+is applied to prevent complete decoupling.  In the free atmosphere the diffusivity
+is diagnosed from local shear and stability using the master length scale
+$l = l_0 \kappa z / \sqrt{S^2}$ subject to a CFL-type upper bound.
 
 Compared to other schemes this formulation tends to produce relatively strong,
-and often excessive, turbulent vertical transfer.
-For example, after extensive testing, we found excessive vertical transfer
-of moisture in the model resulting in low moisture amounts near the surface
-and excessive moisture near the PBL top.
-
-Therefore in order to ameliorate this problem, the counter-gradient term for
-water vapor was removed in \ac{RegCM4}. Another problem of the Holtslag scheme
-(at least in our implementation) is an excessive vertical transport of heat,
-moisture and momentum in very stable conditions, such as during the winter in
-northern hemisphere high latitude regions. For example we found that in such
-conditions the scheme fails to simulate near surface temperature inversions.
-
-This in turn leads to large warm winter biases (even > 10 degrees) over regions
-such as Northern Siberia and Northern Canada. As an ad-hoc fix to address this
-problem, in \ac{RegCM4} we implemented the following modification to the scheme:
-
-\begin{itemize}
-\item We first define “very stable” conditions within the Holtslag
-parameterization as conditions in which the ratio of the height from the
-surface over the Monin-Obhukov length is lower than 0.1.
-\item When such conditions are found, we set to 0 the eddy diffusivity
-and counter-gradient terms for all variables.
-\end{itemize}
-
-Preliminary tests showed that this modification reduces the warm bias in high
-latitude winter conditions and allows the model to better capture surface
-inversions. These modifications have thus been incorporated as default in the
-\ac{RegCM4} code.
+and often excessive, turbulent vertical transfer, particularly in deep convection.
 
 \subsubsection{The UW Turbulence Closure Model}
 
@@ -1229,15 +1218,15 @@ RegCM to simulate stratocumulus and coastal fog
 
 The UW model is a 1.5-order, local, down-gradient diffusion parametrization.
 It will be referred to as a PBL model, but it has capabilities that allow it to
-calculate vertical fluxes out side of the PBL as well as within;
+calculate vertical fluxes outside of the PBL as well as within;
 \cite{Bretherton_04} refers to it as a moist turbulence parametrization.  As
 with other 1$^{st}$-order models, such as the Holtslag model, the UW model
 parameterizes turbulent fluxes as the product of a diffusivity and a gradient.
 In contrast to 1$^{st}$-order models, however, the model prognostically
 determines the turbulent kinetic energy (TKE, also referred to as $e$), and it
-uses TKE to define the diffusivities. 
+uses TKE to define the diffusivities.
 
-As with the Holtslag mode, diffusivity is defined as the product of a length
+As with the Holtslag model, diffusivity is defined as the product of a length
 scale and a velocity scale, though the velocity scale is defined as the square
 root of local TKE rather than the convective velocity scale. The length scale
 is the UW model's master length scale, either $l = \kappa z$ or $l = kz/(1 +
@@ -1257,7 +1246,7 @@ z}$, $N^2$ can be viewed as being proportional to the local buoyancy flux in
 the UW model.  In this interpretation, this condition for PBL top (or the top
 of any turbulent layer) can be approximately viewed as a ``condition that the
 buoyancy flux anywhere in the interior of a convective layer not be more
-negative than -0.5 of the layer-mean buoyancy flux" \citep{Bretherton_04}.  In
+negative than -0.5 of the layer-mean buoyancy flux'' \citep{Bretherton_04}.  In
 other words for an unstable PBL, the PBL ends approximately when the virtual
 potential temperature profile becomes so stable that the buoyancy flux is
 opposite to and half as strong as the mean buoyancy flux below.  This condition
@@ -1266,7 +1255,7 @@ equation, where the $z$ and $h$ values are restricted to lie on the model's
 vertical grid:
 
 \begin{equation}\label{uwheight}
-N^2(h)l^2(h) = -\frac{1}{2}\frac{1}{h}\int_{0}^{h}N^2(z)l^2(z)\cdot dz 
+N^2(h)l^2(h) = -\frac{1}{2}\frac{1}{h}\int_{0}^{h}N^2(z)l^2(z)\cdot dz
 \end{equation}
 
 The diffusivity of scalar quantities and momentum at a given height, $z$, are
@@ -1312,14 +1301,19 @@ exist.
 
 The UW model is written specifically to deal with moist thermodynamic processes
 (i.e.~mixing between clear and cloudy air): its core prognostic equations are
-written to predict liquid water potential temperature, $\theta_l$, total water
-mixing ratio, $Q$, and momentum, $u_i$.  The use of these variables ensures
+written to predict liquid-ice water potential temperature, $\theta_l$, total
+water mixing ratio, $Q_w$ (including vapour, liquid, and cloud ice when mixed-phase
+microphysics is active), and momentum, $u_i$.  The use of these variables ensures
 that enthalpy and water are explicitly conserved when mixing between clear and
 cloudy parcels of air; care has to be taken otherwise (when using $\theta$ and
-$q$) to ensure conservation in this situation.
+$q$) to ensure conservation in this situation.  When mixed-phase microphysics
+is active, cloud ice is diffused with the scalar diffusivity $K_h$ alongside
+the liquid-water potential temperature, and the phase partitioning after
+diffusion is performed by a Newton iteration on the ice-decoupled
+liquid/vapour system.
 
 At each model timestep, the UW model does the following: determines the
-boundary layer height, $h$, calculates the surface TKE,predicts the change in
+boundary layer height, $h$, calculates the surface TKE, predicts the change in
 TKE due to PBL processes, determines the diffusivities at each height, and
 predicts the change in each prognostic quantity due to vertical convergence of
 turbulent fluxes.  The full set of equations that the UW PBL model solves at
@@ -1329,11 +1323,193 @@ each time step, including equations~\ref{uwheight} and \ref{tkeeqn}, follows:
 \begin{align}
 \frac{\partial u_i}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_m(z) \sqrt{2 e(z)} \frac{\partial u_i}{\partial z}]\label{uwmodela} \\
 \frac{\partial \theta_l}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_h(z) \sqrt{2 e(z)} \frac{\partial \theta_l}{\partial z}]\label{uwmodelb} \\
-\frac{\partial Q}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_h(z) \sqrt{2 e(z)} \frac{\partial Q}{\partial z}]\label{uwmodelc} \\
-\frac{\partial \chi_j}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_h(z) \sqrt{2 e(z)} \frac{\partial \chi_j}{\partial z}]\label{uwmodeld} 
+\frac{\partial Q_w}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_h(z) \sqrt{2 e(z)} \frac{\partial Q_w}{\partial z}]\label{uwmodelc} \\
+\frac{\partial \chi_j}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_h(z) \sqrt{2 e(z)} \frac{\partial \chi_j}{\partial z}]\label{uwmodeld}
 \end{align}
 \end{subequations}
 
+\subsubsection{Mellor-Yamada-Janjic PBL}
+\label{sec:myj}
+
+The Mellor-Yamada-Janjic (MYJ) scheme \citep{Mellor_82,Janjic_94,Janjic_02} is
+a 1.5-order, local, prognostic turbulence closure that solves an explicit
+budget equation for twice the turbulent kinetic energy, $q^2 = 2e$, at each
+model level.  It was originally developed for the NCEP Eta mesoscale model and
+has been adapted for RegCM.  The scheme is local in character: all diffusion
+follows the down-gradient approximation, and there are no non-local
+counter-gradient transport terms.
+
+\paragraph{Surface layer.}
+Exchange coefficients at the lowest model level are provided by the
+self-consistent Janjic Eta surface-layer parameterisation
+\citep{Janjic_94,Janjic_02}, implemented in RegCM as a companion module.  The
+module computes the friction velocity $u_*$ from the surface momentum flux, the
+Obukhov length $L$ from the virtual heat flux, and Businger-Dyer-Pandolfo
+stability functions.  A three-regime viscous sublayer parameterisation
+(smooth, transitional, wavy) provides the roughness lengths for heat ($z_{0h}$)
+and moisture ($z_{0q}$), and the corresponding surface values $\theta_{z_0}$ and
+$q_{z_0}$ are passed directly to the diffusion solver as lower boundary
+conditions.
+
+\paragraph{Mixing length and TKE production.}
+Within the PBL the master length scale follows the Blackadar asymptotic formula
+
+\begin{equation}
+  \frac{1}{l} = \frac{1}{\kappa z} + \frac{1}{l_0}
+\end{equation}
+
+where $\kappa$ is the von K\'{a}rm\'{a}n constant and the asymptotic length
+scale $l_0$ is computed from the TKE-weighted integral of $\sqrt{q^2}$ over the
+mixed layer, capped at the mixed-layer depth $z_{mxl}$.  Above the PBL, a
+shorter length scale is used.  The equilibrium solution of the Mellor-Yamada
+level-2 equations is used to convert the length scale and $q^2$ into stability
+functions $G_m$ and $G_h$ (proportional to the normalised shear and buoyancy
+production terms respectively), and the production/dissipation of $q^2$ is
+integrated semi-implicitly in time at each flux level.  TKE is set to its
+minimum value $q^2_{\min} = 0.2\;\mathrm{m^2\,s^{-2}}$ when conditions are
+laminar.  The PBL height is diagnosed as the lowest flux level at which $q^2$
+drops to this minimum, subject to a maximum height of 6000~m.
+
+\paragraph{Diffusivities and vertical mixing.}
+The exchange coefficients for heat and momentum at each flux level are obtained
+from the Mellor-Yamada level-2.5 stability functions
+
+\begin{equation}
+  K_{h,m} = l\, S_{h,m}(G_m, G_h)\,q
+\end{equation}
+
+where $q = \sqrt{q^2}$ and the stability functions $S_{h,m}$ are diagnosed from
+the algebraic equilibrium equations \citep{Mellor_82}.
+Vertical diffusion of potential temperature, specific humidity, cloud water,
+cloud ice (when mixed-phase microphysics is active), and trace gases is then
+carried out implicitly in time using the tridiagonal Thomas algorithm, driven
+by the surface boundary conditions from the Eta surface-layer module.
+Momentum is diffused separately with the momentum exchange coefficient $K_m$.
+The scheme is entirely diagnostic in terms of phase: it diffuses the separate
+condensate fields rather than a conserved liquid-water potential temperature.
+
+\subsubsection{GFS PBL}
+
+The GFS (Global Forecast System) PBL scheme is a non-local, first-order
+parameterisation based on the work of \cite{Troen_86} and further developed for
+the NCEP operational GFS model by \cite{Han_11}.  It was adapted from the
+NCEP GFS code and coupled to RegCM.  Like the Holtslag scheme it represents
+turbulent fluxes as the sum of a diffusive term and a non-local
+counter-gradient term, but it includes explicit treatment of stratocumulus
+cloud-top driven mixing that is absent from the Holtslag formulation.
+
+\paragraph{PBL height.}
+The boundary layer height $h$ is found by searching upward from the surface for
+the level at which the bulk Richardson number
+
+\begin{equation}
+  \mathrm{Ri}_b(z) = \frac{g}{\theta_v(1)}\frac{[\theta_v(z)-\theta_{ref}]\,z}{u(z)^2+v(z)^2}
+\end{equation}
+
+first exceeds the critical value $\mathrm{Ri}_{cr} = 0.25$.  Under unstable
+conditions a thermal temperature excess
+$\delta\theta = \min(C\,\phi_h^0/w_s,\,\gamma_{crt})$ (with $C=6.5$,
+$\gamma_{crt}=3\;\mathrm{K}$) is added to the surface parcel before the
+search, raising $h$ to account for convective overshoot.  The search is
+restricted to the lower half of the model column.
+
+\paragraph{Eddy diffusivities.}
+Inside the PBL the eddy diffusivities for momentum and scalars follow the
+profile
+
+\begin{equation}
+  K_{m,h}(z) = w_s \kappa z \left(1-\frac{z}{h}\right)^p
+\end{equation}
+
+where $p=2$, $\kappa$ is the von K\'{a}rm\'{a}n constant, and $w_s$ is the
+surface turbulent velocity scale.  The inverse Prandtl number
+$K_h/K_m = ({\phi_h}/{\phi_m} + C\kappa/10)^{-1}$ is bounded between
+0.25 and 4.  Above the PBL the diffusivity switches to a local
+Richardson-number-based formula, with a background minimum of
+$1\;\mathrm{m^2\,s^{-1}}$ for scalars and $3\;\mathrm{m^2\,s^{-1}}$ for
+momentum.
+
+\paragraph{Counter-gradient terms.}
+Under unstable conditions, counter-gradient corrections are applied to heat and
+moisture within the PBL:
+
+\begin{equation}
+  \gamma_c = \frac{C\,\phi_c^0}{w_s h}
+\end{equation}
+
+with $C=6.5$. The moisture counter-gradient is bounded above at
+$\gamma_{crq} = 0$, so the correction is effectively inactive for moisture;
+the temperature counter-gradient is bounded at $\gamma_{crt} = 3\;\mathrm{K}$.
+
+\paragraph{Stratocumulus entrainment.}
+A stratocumulus detection algorithm identifies layers where liquid water content
+exceeds $3.5\times10^{-5}\;\mathrm{kg\,kg^{-1}}$ and the longwave radiative
+cooling at cloud top is negative.  When such a layer is found, additional
+entrainment diffusivity is computed from a convective velocity scale driven by
+the radiative cooling, and a buoyancy jump is used to set a
+cloud-top-enhanced diffusivity $K_{ct}$.  An enhanced entrainment efficiency
+$A_2 = 1$ (versus the default $A_1 = 0.2$) is applied when the cloud-top
+instability parameter $\theta_{e,\mathrm{above}}/\theta_{e,\mathrm{below}}$
+exceeds a threshold, following \cite{Han_11}.  This cloud-top mechanism allows
+the GFS scheme to maintain stratocumulus decks without the more complex
+moist-thermodynamics framework of the UW scheme.
+
+\subsubsection{Shin-Hong PBL}
+
+The Shin-Hong scheme \citep{Shin_15} is a scale-aware, non-local
+parameterisation designed to operate across the grey zone of the convective
+boundary layer, where horizontal grid spacings are of the same order as
+the dominant eddies ($\Delta x \approx 100$--$2000\;\mathrm{m}$).  It builds
+on the YSU non-local scheme \citep{Hong_06} for stable conditions and the free
+atmosphere, and replaces the YSU treatment inside the convective PBL with
+scale-dependent non-local transport profiles derived from large-eddy simulation
+\citep{Shin_13}.  The surface layer is provided by the Janjic Eta
+surface-layer module (Section~\ref{sec:myj}), which supplies the friction
+velocity $u_*$ and the Obukhov stability parameter $\zeta = z_a/L$ to the scheme.
+
+\paragraph{PBL height.}
+The boundary layer height $h$ is determined by a three-pass bulk Richardson
+number search analogous to that of the GFS and Holtslag schemes.  For the
+unstable case a virtual thermal excess
+$\delta\theta_v = (\gamma_\theta + \gamma_q \varepsilon\theta)\,z_1/(0.1h)$
+is added to the surface parcel.  For the stable boundary layer a land-surface
+roughness-dependent critical Richardson number \citep{Vickers_04}
+\begin{equation}
+  \mathrm{Ri}_{cr,\mathrm{SBL}} = \min\!\left(0.16\,(Ro)^{-0.18},\,0.3\right),
+  \quad Ro = U_{10}/(f z_0)
+\end{equation}
+is used, where $Ro$ is the surface Rossby number.
+
+\paragraph{Scale-aware non-local transport.}
+Inside the convective PBL the eddy diffusivity for momentum follows
+
+\begin{equation}
+  K_m(z) = w_s(z)\,\kappa\,z\,\left(\frac{z_\mathrm{intf}(k+1)-z_1}{h-z_1}\right)^p,
+  \quad p = 2
+\end{equation}
+
+where $w_s(z) = (u_*^3 + \phi_{fac}\kappa w_*^3(1-z/h))^{1/3}$ is a
+height-varying turbulent velocity scale that blends shear-driven and
+buoyancy-driven contributions.  The scalar diffusivities $K_h$ and $K_q$ are
+reduced relative to $K_m$ by a stability-dependent Prandtl-number factor.
+Non-local counter-gradient terms for heat $\gamma_\theta$ and moisture
+$\gamma_q$ are computed as for the YSU scheme, and the
+momentum counter-gradient contains an additional term proportional to
+the buoyancy flux that accounts for large-eddy momentum transport.
+
+The key innovation of the Shin-Hong scheme is that all non-local transport terms
+are multiplied by scale-dependency functions $P_u(\Delta x,l_c)$ and
+$P_q(\Delta x,l_c)$ where $l_c$ is a scale characterising the convective layer
+and $\Delta x$ is the horizontal grid spacing.  These functions, derived from
+LES \citep{Shin_13}, smoothly reduce the non-local transport as $\Delta x$
+decreases below the convective length scale, recovering a purely local
+(gradient-diffusion) closure at LES resolutions and the full non-local
+YSU-like closure at mesoscale resolutions.  The entrainment at the PBL top
+follows a Turner-Deardorff approach with an inversion-strength-dependent
+fraction of the upward buoyancy flux returned as downward entrainment, also
+modulated by the scale-dependency function.  For stable conditions and in the
+free atmosphere the scheme reverts to the local Richardson-number-based
+diffusivity of \cite{Hong_10}.
 \subsection{Convective Precipitation Schemes}
 
 Convective precipitation is computed using one of three schemes: (1)
