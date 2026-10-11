@@ -1689,91 +1689,130 @@ for example, the MIT scheme is used over oceans and the Grell scheme over
 land, might be the most suitable option to pursue, and therefore this option
 was added to the model.
 
-\subsection{Large-Scale Precipitation Scheme}
+\subsection{Microphysics Schemes}
 
-Subgrid Explicit Moisture
-Scheme (SUBEX) is used to handle non-convective clouds and precipitation
-resolved by the model.  SUBEX accounts for the sub-grid variability in clouds
-by linking the average grid cell relative
-humidity to the cloud fraction and cloud water following the work of
-\cite{Sundqvist_89}.  
+\subsubsection{Subgrid Explicit Moisture Scheme (SUBEX)}
 
-The fraction of the grid cell covered by clouds, $FC$, is determined by,
+The Subgrid Explicit Moisture Scheme (SUBEX) handles non-convective clouds and
+precipitation resolved by the model.  It accounts for sub-grid variability in
+moisture by linking the grid-mean relative humidity to the cloud fraction and
+cloud water content following the statistical approach of \cite{Sundqvist_89}.
+A full description of the scheme and its parameter values is given in
+\cite{Pal_00}.
 
-\begin{eqnarray}
-FC = \sqrt{ { {RH - RH_{min}} \over {RH_{max} - RH_{min} }} }
-\end{eqnarray}
+\paragraph{Cloud fraction.}
+The fraction of the grid cell covered by clouds, $FC$, is computed from the
+grid-mean relative humidity $RH$ and a critical relative humidity threshold
+$RH_{crit}$:
 
-where ${RH_{min}}$ is the relative humidity threshold at which clouds
-begin to form, and ${RH_{max}}$ is the relative humidity where $FC$ reaches
-unity.  $FC$ is assumed to be zero when RH is less than ${RH_{min}}$ and unity
-when RH is greater than ${RH_{max}}$.  
-
-Precipitation $P$ forms when the cloud water content exceeds the auto-conversion
-threshold ${Q^{th}}_c$ according to the following relation:
-
-\begin{eqnarray}
-P = C_{ppt}(Q_c/FC - {{Q_c}^{th}})FC
-\end{eqnarray}
-
-where $1/C_{ppt}$ can be considered the characteristic time for which
-cloud droplets are converted to raindrops.  The threshold is obtained by scaling
-the median cloud liquid water content equation according to the following:
-
-\begin{eqnarray}
-{Q^{th}}_c = C_{acs} 10^{-0.49 + 0.013T}
-\end{eqnarray}
-
-where $T$ is temperature in degrees Celsius, and $C_{acs}$ is the
-auto-conversion scale factor.  Precipitation is assumed to fall instantaneously.
-
-SUBEX also includes simple formulations for raindrop accretion and evaporation.
-The formulation for the accretion of cloud droplets by falling rain droplets is
-based on the work of \cite{Beheng_94} and is as follows:
-
-\begin{eqnarray}
-P_{acc} = C_{acc} Q P_{sum}
-\end{eqnarray}
-
-where $P_{acc}$ is the amount of accreted cloud water, $C_{acc}$ is
-the accretion rate coefficient, and $P_{sum}$ is the accumulated precipitation
-from above falling through the cloud.  
-
-Precipitation evaporation is based on the work of \cite{Sundqvist_89} and is as
-follows
-
-\begin{eqnarray}
-P_{evap} = C_{evap} (1-RH) {P^{1/2}}_{sum}
-\end{eqnarray}
-
-where $P_{evap}$ is the amount of evaporated precipitation, and
-$C_{evap}$ is the rate coefficient.  For a more detailed description of SUBEX
-and a list of the parameter values refer to \cite{Pal_00}. 
-
-Traditionally, \ac{RegCM3} has shown a tendency to produce excessive
-precipitation, especially at high resolutions, and optimizations of 
-the in-cloud liquid water threshold for the activation of the auto-conversion
-term $Qcth$ and the rate of sub-cloud evaporation $Cevap$ parameters have
-proven effective in ameliorating this problem: greater values of $Qth$ and
-$Cevap$ lead to decreased precipitation amounts.
-
-\subsection{The new cloud microphysics scheme}
-
-The new scheme is built upon the European Centre for Medium Weather Forecast's Integrated Forecast System (IFS) (\citet{tiedtke:93}, \citet{tompkins:07}),
-\citet{gmd-9-2533-2016}. \\
-In the new scheme some important achievement have been added:
-\begin{itemize}
-\item Liquid and ice water content are independent, allowing the existence of supercooled liquid water and mixed-phase cloud.
-\item Rain and snow now precipitate with a fixed, finite, terminal fall speed and can be then advected by the three dimensional wind.
-\item The new scheme solves implicitly 5 prognostic equations for water vapor, cloud liquid water, rain, ice and snow. It is also easily suitable for a larger number of variables. Water vapor $q_v$, cloud liquid water $q_l$, rain $q_r$, ice $q_i$ and snow $q_s$ are all expressed in terms of the grid-mean mixing ratio.
-\item A check for the conservation of enthalpy and of total moisture is ensured
-at the end of each timestep.
-\end{itemize}
-The governing equation for each variable is:
 \begin{equation}
-\frac{\partial q_x}{\partial t}= S_x +\frac{1}{\rho}\frac{\partial}{\partial z}(\rho V_x q_x)
+  FC = RH_{max} - \sqrt{\frac{RH_{max} - RH}{RH_{max} - RH_{crit}}}
 \end{equation}
-The local variation of the mixing ratio $q_x$ of the variable $x$ is given by the sum of $S_x$, that contains the net sources and sinks of $q_x$ through 
+
+$FC$ is zero when $RH \leq RH_{crit}$ and unity when $RH \geq RH_{max}$.
+By default $RH_{crit}$ is a function of temperature following \cite{Pal_00}:
+it equals the user-specified minimum threshold $RH_0$ above the freezing level
+and increases toward $RH_{max}$ at low temperatures to reflect the reduced
+sub-grid variance in cirrus cloud layers.  When the dynamic critical relative
+humidity option is active, $RH_{crit}$ is additionally perturbed by a
+temperature-dependent polynomial correction \citep{Vavrus_08} to improve the
+simulation of low cloud.  The grid-mean relative humidity is bounded to the
+interval $[RH_{min}, RH_{max}]$ before the cloud fraction is evaluated.
+
+\paragraph{Autoconversion.}
+Precipitation $P$ forms when the in-cloud liquid water content exceeds the
+autoconversion threshold $Q_c^{th}$:
+
+\begin{equation}
+  P = \min\!\left(\frac{Q_c}{dt},\; C_{ppt}\,\max\!\left(\frac{Q_c}{FC} -
+      Q_c^{th},\,0\right) FC\right)
+\end{equation}
+
+where $1/C_{ppt}$ is the characteristic timescale for conversion of cloud
+droplets to raindrops.  The threshold is based on the in-cloud liquid water
+measurements of \cite{Gultepe_97}:
+
+\begin{equation}
+  Q_c^{th} = C_{acs}\,10^{-0.48911 + 0.01344\,T_C}
+\end{equation}
+
+where $T_C$ is temperature in degrees Celsius and $C_{acs}$ is a tunable
+autoconversion scale factor.  When the aerosol indirect effect is active the
+threshold is replaced by a CCN-dependent critical radius criterion following
+\cite{Beheng_94}.  Precipitation is assumed to fall instantaneously.
+
+\paragraph{Accretion.}
+The accretion of cloud droplets by falling raindrops follows \cite{Beheng_94}:
+
+\begin{equation}
+  P_{acc} = C_{acc}\,Q_c\,P_{sum}
+\end{equation}
+
+where $C_{acc}$ is the accretion rate coefficient and $P_{sum}$ is the
+accumulated precipitation flux from above.  In the layer where precipitation
+first forms, only half of the new precipitation is assumed available to accrete.
+
+\paragraph{Evaporation.}
+Raindrop evaporation in the clear-sky fraction of the grid cell follows
+\cite{Sundqvist_88}:
+
+\begin{equation}
+  P_{evap} = C_{evap}\,(RH_{max} - RH_{cs})\,\sqrt{P_{sum}}\,(1-FC)
+\end{equation}
+
+where $RH_{cs}$ is the clear-sky relative humidity reconstructed from the
+grid-mean $RH$ and the cloud fraction, and $C_{evap}$ is the evaporation rate
+coefficient.  When the latitude-dependent evaporation option is active,
+$C_{evap}$ is modulated by a seasonal and latitudinal factor that reduces
+evaporation at high latitudes in winter.
+
+\paragraph{Parameter sensitivity.}
+RegCM has historically shown a tendency to produce excessive precipitation at
+high resolutions.  Increasing $Q_c^{th}$ (via $C_{acs}$) and $C_{evap}$
+are the primary tuning levers: larger values of either reduce net precipitation.
+
+\subsubsection{The Nogherotto-Tompkins Cloud Microphysics Scheme}
+\label{sec:nogtom}
+
+The Nogherotto-Tompkins scheme \citep{gmd-9-2533-2016} is built upon the
+microphysics framework of the ECMWF Integrated Forecast System
+\citep{tiedtke:93,tompkins:07}.  It solves prognostic equations for five
+water species and advances them with an implicit matrix solver that
+simultaneously conserves total water and moist static energy.
+
+\paragraph{Prognostic variables.}
+The scheme carries five grid-mean mixing ratios: water vapour $q_v$, cloud
+liquid water $q_l$, cloud ice $q_i$, rain $q_r$, and snow $q_s$.  Liquid and
+ice condensate are treated independently, allowing the co-existence of
+supercooled liquid water and ice in mixed-phase layers.  The governing equation
+for each species $x$ is:
+
+\begin{equation}
+  \frac{\partial q_x}{\partial t} = S_x + \frac{1}{\rho}\frac{\partial}
+  {\partial z}\!\left(\rho\,V_x\,q_x\right)
+\end{equation}
+
+where $S_x$ collects all microphysical source and sink terms and the second
+term is sedimentation at the species-dependent terminal fall speed $V_x$.
+Fall speeds are fixed parameters: $V_{q_l} = 0$~m~s$^{-1}$ (cloud liquid is
+non-sedimenting), $V_{q_i} = 0.13$~m~s$^{-1}$ (diagnosed as a function of
+temperature and latitude), $V_{q_r} = 4.0$~m~s$^{-1}$, and
+$V_{q_s} = 1.0$~m~s$^{-1}$.  Because rain and snow fall with finite terminal
+velocities they can be advected by the three-dimensional wind between physics
+calls.
+
+\paragraph{Microphysical processes.}
+The microphysical pathways between the five species are illustrated
+schematically in Fig.~\ref{fig:newscheme}.  Warm-cloud processes include
+condensation, autoconversion of liquid to rain, collection of cloud water by
+rain, and evaporation of rain.  Cold-cloud processes include depositional
+growth, freezing, sublimation, and melting.  Each process is associated with a
+latent heat exchange.  Processes whose characteristic timescale is short
+relative to the model timestep are handled implicitly; slower processes are
+treated explicitly.  The full set of tendencies is assembled into a sparse
+source matrix $Q^{exp}_{mn}$ (explicit rates) and an implicit matrix
+$Q^{imp}_{mn}$ that together feed the NNLS solver.
+
 \begin{figure} [htpb!]% Inline image example
 \begin{center}
 \includegraphics[width=0.6\textwidth]{scheme_var2.jpg}
@@ -1781,19 +1820,136 @@ The local variation of the mixing ratio $q_x$ of the variable $x$ is given by th
 \caption{\small Schematics of the new scheme, showing the 5 prognostic variables and  how they are related to each other through microphysical processes}
 \label{fig:newscheme}
 \end{figure}
-\noindent microphysical properties (i.e. condensation, evaporation, auto-conversion, melting...), and the sedimentation term, that is a function of the fall speed $V_x$ that has a fixed value for each cloud variable. 
-To solve the equations the upstream approach is used.  The sources and sinks contributors are divided in two groups according to the duration of the process they describe: processes that are considered to be fast relative to the timestep of the model are treated implicitly while slow processes are treated explicitly. The processes taken into account (shown in Fig.~\ref{fig:newscheme})) are the microphysical pathways between the 5 considered variables: condensation, autoconversion, evaporation, collection for the warm clouds, and autoconversion, freezing, melting, deposition, evaporation for the cold clouds.\\
-For each microphysical pathway the change of phase is associated with a release or an absorption of latent heat, that has a significant impact on the temperature budget.
-The impact is calculated using the conservation of liquid water temperature $T_L$ defined as:
+
+\paragraph{Temperature tendency.}
+The impact on temperature is computed from the conservation of liquid-water
+potential temperature $T_L$:
+
 \begin{equation}
-T_L=T-\frac{L_v}{C_p}(q_l+q_r)-\frac{L_s}{C_p}(q_i+q_s).
+  T_L = T - \frac{L_v}{C_p}(q_l + q_r) - \frac{L_s}{C_p}(q_i + q_s)
 \end{equation}
-Being that $\frac{dT_L}{dt}=0$, the rate of change of the temperature is  given by the following equation:
+
+Since $dT_L/dt = 0$ in the absence of diabatic forcing, the temperature
+tendency is:
+
 \begin{equation}
-\frac{\partial T}{\partial t}=\sum_{x=1}^m\frac{L(x)}{C_p}\Big(\frac{dq_x}{dt}-D_{q_x}-\frac{1}{\rho}\frac{\partial}{\partial z}(\rho V_x q_x)\Big)
+  \frac{\partial T}{\partial t} = \sum_{x}\frac{L(x)}{C_p}\!\left(
+  \frac{dq_x}{dt} - D_{q_x} - \frac{1}{\rho}\frac{\partial}{\partial z}
+  (\rho V_x q_x)\right)
 \end{equation}
-where $L(x)$ is the latent heat (of fusion or evaporation depending on the processes considered), $D_{q_x}$ is the convective detrainment and the third term in the brackets is the sedimentation term.\\
-At the end of each timestep a routine checks the conservation of the total water and of the moist static energy $h=C_P T+gz+ Lq_x$.
+
+where $L(x)$ is the appropriate latent heat (vaporisation or sublimation),
+and $D_{q_x}$ is the convective detrainment rate for species $x$.
+
+\paragraph{Conservation check.}
+At the end of each timestep the scheme verifies conservation of total water
+and of moist static energy $h = C_p T + gz + L q_x$.  Any residual is
+redistributed proportionally to close the budget.
+
+\subsubsection{WRF Single-Moment 5-Class Scheme (WSM5)}
+\label{sec:wsm5}
+
+The WSM5 scheme \citep{Hong_04} is a bulk, single-moment microphysics
+parameterisation that predicts the mixing ratios of five water species: vapour
+$q_v$, cloud water $q_c$, cloud ice $q_i$, rain $q_r$, and snow $q_s$.  It
+was developed by \cite{Hong_04} based on earlier work by \cite{Dudhia_89} and
+Lin et al., and was ported to RegCM from the WRF model.  All precipitating
+species (rain and snow) are assumed to follow inverse-exponential size
+distributions with prescribed intercept parameters ($n_{0r} = 8\times10^6$
+m$^{-4}$, $n_{0s}$ temperature-dependent), and their terminal velocities scale
+with the local air density.  Cloud ice number concentration is diagnosed from
+the ice water content rather than prognosed.
+
+The scheme is integrated over each physics timestep using an inner sub-loop
+with a maximum sub-step of 120~s.  Within each sub-step, sedimentation of rain
+and snow is computed first using a semi-Lagrangian piecewise-linear method
+\citep{Juang_10}, followed by the full set of microphysical process rates.
+
+\paragraph{Cold processes.}
+Ice nucleation ($q_v \to q_i$) follows a temperature-threshold approach
+(Meyers et al.\ 1992 for heterogeneous nucleation below 0°C; homogeneous
+freezing below $-$40°C).  Ice deposition and sublimation ($q_v \leftrightarrow
+q_i$) are computed from the vapour supersaturation over ice.  Snow deposition
+($q_v \to q_s$) and snow autoconversion from ice ($q_i \to q_s$) are included,
+as well as collection of cloud ice by snow ($q_i \to q_s$, rate $P_{saci}$)
+capped at $q_i/\Delta t$.  Snow melts to rain ($q_s \to q_r$) when $T > 0$°C.
+
+\paragraph{Warm processes.}
+Cloud water autoconversion to rain ($q_c \to q_r$) follows a threshold
+formulation with a collection efficiency of 0.55 and a critical cloud droplet
+radius of $8$~\textmu m.  Collection of cloud water by rain ($q_c \to q_r$,
+accretion $P_{racw}$) and below-cloud evaporation of rain ($q_r \to q_v$) are
+also included.  Condensation is diagnosed from the saturation adjustment.
+
+\subsubsection{WRF Single-Moment 7-Class Scheme (WSM7)}
+\label{sec:wsm7}
+
+The WSM7 scheme \citep{HongLim_06} extends WSM5 by adding graupel and hail as
+two additional single-moment precipitating species, giving seven classes in
+total: vapour, cloud water, cloud ice, rain, snow, graupel, and hail.  Size
+distributions for graupel ($n_{0g} = 4\times10^6$ m$^{-4}$, density
+500~kg~m$^{-3}$) and hail ($n_{0h} = 4\times10^4$ m$^{-4}$, density
+912~kg~m$^{-3}$) are inverse-exponential.  Terminal velocities for all species
+follow power-law fits to the slope parameter of their respective distributions,
+with coefficients $(a_g, b_g) = (330.0, 0.8)$ for graupel and
+$(a_h, b_h) = (285.0, 0.8)$ for hail.
+
+Additional cold-cloud processes relative to WSM5 include: accretion of rain,
+cloud water, and cloud ice by graupel and hail; conversion of snow to graupel
+by riming; conversion of graupel to hail by wet growth; and deposition and
+sublimation of both graupel and hail.  Wet growth of graupel and hail is
+computed from the Bigg (1953) / Musil (1970) wet-growth criterion: when the
+latent heat released by riming cannot be shed fast enough, the hydrometeor
+surface becomes liquid and growth transitions to the wet-growth rate
+$P_{gwet}$ or $P_{hwet}$.  Ice supersaturation is consumed in priority order:
+rain evaporation, cloud-ice deposition, snow deposition, graupel deposition,
+hail deposition, then ice nucleation.
+
+\subsubsection{WRF Double-Moment 7-Class Scheme (WDM7)}
+\label{sec:wdm7}
+
+The WDM7 scheme \citep{LimHong_10} extends WSM7 to a partial double-moment
+formulation by adding prognostic number concentrations for cloud condensation
+nuclei $N_{CCN}$, cloud droplets $N_c$, and rain $N_r$.  All ice-phase species
+(cloud ice, snow, graupel, hail) remain single-moment with prescribed intercept
+parameters as in WSM7.  The scheme is the most physically complete
+microphysics option in RegCM.
+
+\paragraph{CCN and cloud droplet number.}
+The prognostic CCN number concentration $N_{CCN}$ is advected and diffused by
+the dynamical core.  When a grid cell is supersaturated over liquid
+($RH_l > 1$), a fraction of the available CCN activates into cloud droplets
+following the power-law activation spectrum of \cite{KhairoutdinovKogan_00}:
+
+\begin{equation}
+  N_{act} = \max\!\left(0,\; (N_{CCN} + N_c)\,
+            \min\!\left(1, \left(\frac{RH_l}{RH_{max}}\right)^{k_{act}}\right)
+            - N_c\right) \cdot \frac{1}{\Delta t}
+\end{equation}
+
+where $k_{act}$ is the activation exponent and $RH_{max}$ is the saturation
+cap.  The mass of newly activated droplets $q_{act}$ is diagnosed from an
+assumed initial droplet radius of $r_0 = 1$~\textmu m.  $N_{CCN}$ decreases
+and $N_c$ increases by $N_{act}\Delta t$ at each sub-step.
+
+\paragraph{Double-moment warm rain.}
+The cloud droplet size distribution is assumed to be a gamma distribution
+characterised by its number concentration $N_c$ and mixing ratio $q_c$, giving
+the slope parameter $\lambda_c = (N_c \pi \rho_w / (6 q_c \rho))^{1/3}$.  The
+rain size distribution is inverse-exponential with slope $\lambda_r$ diagnosed
+from $N_r$ and $q_r$.  Autoconversion of cloud water to rain follows
+\cite{KhairoutdinovKogan_00}:
+
+\begin{equation}
+  P_{raut} = K\,q_c^{a}\,N_c^{b},
+  \quad
+  N_{raut} = 3.5\times10^9\,\rho\,P_{raut}
+\end{equation}
+
+Self-collection of rain droplets ($P_{rcol}$), collection of cloud droplets by
+rain ($P_{racw}$), and their number counterparts are all computed from the
+double-moment distributions, giving rain that is sensitive to both the
+aerosol environment (via $N_{CCN}$) and the local drop size spectrum.
 
 \subsection{Ocean flux Parameterization}
 
