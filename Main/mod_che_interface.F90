@@ -60,6 +60,7 @@ module mod_che_interface
   public :: trac_io
   public :: chia_io
   public :: chib_io
+  public :: cra
   public :: convcldfra, cadvhdiag, cadvvdiag, cbdydiag, cconvdiag
   public :: cdifhdiag, ctbldiag
   public :: chem_bdyin, chem_bdyval
@@ -132,7 +133,6 @@ module mod_che_interface
 
     call assignpnt(sfs%ustar,custar)
     call assignpnt(sfs%w10m,cw10m)
-    call assignpnt(sfs%ram1,cra)
     call assignpnt(sfs%zo,czo)
     call assignpnt(convpr,cconvpr)
     call assignpnt(fcc,cfcc)

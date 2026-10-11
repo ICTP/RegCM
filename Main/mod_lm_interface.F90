@@ -372,6 +372,7 @@ module mod_lm_interface
     call assignpnt(sdelt,lm%deltat)
     call assignpnt(totcf,lm%totcf)
     if ( ichem == 1 ) then
+      call assignpnt(cra,lm%cram)
       call assignpnt(sdelt,lm%deltat)
       call assignpnt(sdelq,lm%deltaq)
       call assignpnt(ssw2da,lm%ssw2da)
@@ -543,9 +544,11 @@ module mod_lm_interface
     end do
 #endif
     if ( ichem == 1 ) then
+      !$acc kernels
       lm%deltat = sum(lms%deltat,1)*rdnnsg
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg
       lm%sxlai2d = sum(lms%xlai,1)*rdnnsg
+      lm%cram = lm%ram1/(vonkar*lm%ustar)   ! dimensionless -> [s/m]
 #ifdef CLM45
       ! FAB here take humidity of first soil layer, sw should be always defined
       lm%ssw2da = sum(lms%tsw(:,:,:),1)*rdnnsg
@@ -560,6 +563,7 @@ module mod_lm_interface
       lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
       lm%sfracb2d = sum(((d_one-lms%lncl)*(d_one-lms%scvk)),1)*rdnnsg
 #endif
+      !$acc end kernels
     end if
     if ( iocncpl == 1 .or. iwavcpl == 1) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )

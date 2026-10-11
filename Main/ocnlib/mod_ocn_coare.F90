@@ -139,7 +139,7 @@ module mod_ocn_coare
         wetc = pfqsdt(tgrd(i),sfps(i))
 
         ! Deltas
-        dt = ta - t995 - tzero
+        dt = ts - t995
         dq = qs - q995
         du = uv995 - us
 

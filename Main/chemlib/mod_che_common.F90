@@ -99,7 +99,7 @@ module mod_che_common
   real(rkx), pointer, contiguous, dimension(:,:) :: cpsb, ctg, ctga, clndcat, cht, &
          cssw2da, cvegfrac, cxlai2d, csol2d, csdeltk2d, csdelqk2d, &
          custar, csfracv2d, csfracb2d, csfracs2d, cxlat, crainc,  &
-         cps2d, cps0, cptrop, cw10m, cdlat,cdlon, cra,czo
+         cps2d, cps0, cptrop, cw10m, cdlat,cdlon, cra, czo
   real(rkx), pointer, contiguous, dimension(:,:) :: psbb0, psbb1, crho2d
   real(rkx), pointer, contiguous, dimension(:,:) :: czen
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: ctaucld
@@ -146,6 +146,7 @@ module mod_che_common
                   'che_common:rainout')
     call getmem(washout,jci1,jci2,ici1,ici2,1,kz,1,ntr, &
                   'che_common:washout')
+    call getmem(cra,jci1,jci2,ici1,ici2,'che_common:cra')
     call getmem(remdrd,jci1,jci2,ici1,ici2,1,ntr,'che_common:remdrd')
     call getmem(chtrsol,1,ntr,'mod_che_common:chtrsol')
     call getmem(idust,1,nbin,'mod_che_common:idust')
