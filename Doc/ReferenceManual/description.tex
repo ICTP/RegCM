@@ -915,23 +915,201 @@ $Z_p$ and $Z_m$ are:
 
 \section{Physics parametrizations} \label{sec:physics}
 
-\subsection{Radiation Scheme}
+\subsection{Radiation Schemes}
 
-\noindent \ac{RegCM}4 uses the radiation scheme of
-the \ac{NCAR} CCM3, which is described in \cite{Kiehl_96}.  Briefly, the solar
-component, which accounts for the effect of ${\rm O_3}$, ${\rm H_2O}$, ${\rm
-CO_2}$, and ${\rm O_2}$, follows the $\delta$-Eddington approximation of
-\cite{Kiehl_96}.  It includes 18 spectral intervals from 0.2 to 5 $\mu {\rm m}$.
-The cloud scattering and absorption parameterization follow that of
-\cite{Slingo_89}, whereby the optical properties of the cloud droplets
-(extinction optical depth, single scattering albedo, and asymmetry parameter)
-are expressed in terms of the cloud liquid water content and an effective
-droplet radius.  When cumulus clouds are formed, the gridpoint fractional cloud
-cover is such that the total cover for the column extending from the
-model-computed cloud-base level to the cloud-top level (calculated assuming
-random overlap) is a function of horizontal gridpoint spacing.  The thickness of
-the cloud layer is assumed to be equal to that of the model layer, and a
-different cloud water content is specified for middle and low clouds.
+RegCM offers two radiation schemes that can be selected at run time: the
+original \ac{NCAR} CCM3 scheme and the more recent Rapid Radiative Transfer
+Model for GCMs (RRTMG).  Both schemes compute shortwave (solar) and longwave
+(thermal infrared) radiative transfer through the atmosphere and return
+column heating rate profiles and surface flux components to the dynamical
+core and surface parameterisations.  Common inputs prepared before each
+radiation call include the solar zenith angle, surface temperature and
+emissivity, spectrally resolved surface albedos (direct and diffuse, visible
+and near-infrared), cloud fraction, cloud liquid and ice water paths with
+particle effective radii, a climatological or chemistry-module ozone profile,
+and aerosol optical properties when the chemistry or climatological aerosol
+module is active.
+
+\subsubsection{NCAR CCM3 Radiation Scheme}
+
+\ac{RegCM} can use the radiation scheme of the \ac{NCAR} Community Climate
+Model version 3 (CCM3), which is described in detail in \cite{Kiehl_96}.
+
+\paragraph{Shortwave.}
+The solar component accounts for absorption and scattering by \ch{O_3},
+\ch{H_2O}, \ch{CO_2}, and \ch{O_2} using the $\delta$-Eddington
+two-stream approximation of \cite{Kiehl_96}.  It spans 18 spectral
+intervals from 0.2 to 5~$\mu$m.  Rayleigh scattering is included in all
+intervals.  The earth--sun distance correction factor accounts for the
+eccentricity of the orbit.
+
+\paragraph{Longwave.}
+The thermal infrared component uses pre-computed look-up tables for the
+absorptivity and emissivity of the major greenhouse gases (\ch{H_2O},
+\ch{CO_2}, \ch{O_3}, and the \ch{CH_4}/\ch{N_2O} minor-gas pair) in a
+broadband scheme following \cite{Kiehl_96}.  Absorptivity tables are
+evaluated once per radiation timestep and stored for efficiency.  The
+surface emissivity supplied by the land and ocean modules is applied at the
+lower boundary.
+
+\paragraph{Cloud optical properties.}
+Cloud scattering and absorption in the shortwave follow \cite{Slingo_89},
+whereby the extinction optical depth, single-scattering albedo, and
+asymmetry parameter for liquid-water clouds are expressed as linear
+functions of the inverse of the effective droplet radius $r_e$.
+Ice-cloud shortwave properties are parameterised following \cite{Ebert_92}.
+For the longwave, the cloud emissivity is computed from the cloud liquid and
+ice water paths and their respective broadband absorption coefficients
+following Savij{\"a}rvi and R{\"a}is{\"a}nen, with separate coefficients for
+liquid ($k_l = 0.31\,\exp(-0.08\,r_e)$~m$^2$\,g$^{-1}$) and ice
+($k_i = 0.04 + 0.08\,\exp(-0.018\,r_i)$~m$^2$\,g$^{-1}$).
+
+\paragraph{Effective particle radii.}
+The liquid effective radius $r_e$ is diagnosed from the in-cloud liquid
+water content and an assumed cloud droplet number concentration following
+\cite{Martin_94}: $r_e = (3\,LWC / (4\pi\,\rho_w\,k\,N_c))^{1/3}$, where
+$k = 0.67$ over land and $k = 0.80$ over ocean, and $N_c = 300$~cm$^{-3}$
+over land and $100$~cm$^{-3}$ over ocean.  The result is bounded to
+$[4, 20]$~$\mu$m.  The ice effective radius follows the IWC- and
+temperature-dependent formula of \cite{Sun_99}, bounded to
+$[10, 100]$~$\mu$m.  When the microphysics scheme provides separate liquid
+and ice condensate fields (i.e.\ the Nogherotto-Tompkins or WRF schemes
+are active), $f_{ice}$ is computed directly from the prognostic condensate
+ratio; otherwise a temperature-based ramp from pure liquid at 0°C to
+pure ice at $-20$°C is used.
+
+\paragraph{Aerosol first indirect effect.}
+When the chemistry module is active, the sulfate aerosol mass mixing ratio
+can modify the cloud droplet effective radius through the first indirect
+(Twomey) effect \citep{Qian_01}.  For SO$_4$ concentrations above
+0.1~$\mu$g\,m$^{-3}$, the CCN number concentration is estimated as
+$N_c = 90.7\,c^{0.45} + 23$ (cm$^{-3}$), where $c$ is the SO$_4$
+concentration in $\mu$g\,m$^{-3}$, and the effective radius is recomputed
+accordingly using the Martin et al. formula above.
+
+\paragraph{Cumulus cloud treatment.}
+When convective clouds are formed, the fractional cloud cover is computed
+such that the total-column cover (assuming random overlap from cloud base to
+cloud top) is a function of horizontal grid spacing.  The cloud layer
+thickness is set equal to the model layer depth, and separate in-cloud
+liquid water contents are specified for middle and low clouds.
+
+\subsubsection{RRTMG Radiation Scheme}
+
+As an alternative to the CCM3 scheme, RegCM incorporates the Rapid Radiative
+Transfer Model for GCMs (RRTMG), which is a computationally efficient
+derivative of the line-by-line reference code RRTM \citep{Mlawer_97}.  The
+shortwave component is described in \cite{Iacono_08} and the longwave
+component in \cite{Mlawer_97} and \cite{Iacono_08}; the correlated-$k$
+methodology underlying both is detailed in \cite{Clough_05}.  The interface
+between RRTMG and RegCM was developed at ICTP.
+
+\paragraph{Shortwave.}
+The RRTMG shortwave scheme \citep{Iacono_08} divides the spectrum from
+0.2 to 12.2~$\mu$m into 14 spectral bands and uses the correlated-$k$
+method with 112 $g$-points (quadrature points in absorption coefficient
+space) to integrate over each band.  Gaseous absorbers include \ch{H_2O},
+\ch{O_3}, \ch{CO_2}, \ch{CH_4}, \ch{N_2O}, \ch{O_2}, and a Rayleigh
+scattering continuum.  A two-stream $\delta$-Eddington solver is used for
+each $g$-point.  Spectrally resolved upward and downward fluxes are
+returned at every model interface, from which the shortwave heating rate
+and the surface components (visible direct and diffuse, near-infrared
+direct and diffuse, and UV/IR band-separated downwelling fluxes) are
+derived.
+
+\paragraph{Longwave.}
+The RRTMG longwave scheme \citep{Mlawer_97,Iacono_08} covers 10 to
+3000~cm$^{-1}$ in 16 spectral bands with 140 $g$-points.  Absorbers are
+\ch{H_2O} (including the water vapour continuum), \ch{CO_2}, \ch{O_3},
+\ch{CH_4}, \ch{N_2O}, and the halocarbons \ch{CFC-11}, \ch{CFC-12},
+\ch{CFC-22}, and \ch{CCl_4}.  The longwave solver uses the two-stream
+source function technique.  Surface emission is computed from the
+spectrally constant emissivity provided by the land and ocean modules,
+applied over all 16 longwave bands.  In addition to the all-sky fluxes
+and heating rates, clear-sky counterparts are computed simultaneously,
+enabling direct diagnosis of the cloud radiative effect.
+
+\paragraph{Greenhouse gas concentrations.}
+Both the CCM3 and RRTMG schemes read time-varying concentrations of the
+well-mixed greenhouse gases from the IPCC scenario module.  For RRTMG, the
+volume mixing ratios of \ch{CO_2}, \ch{CH_4}, \ch{N_2O}, \ch{CFC-11}, and
+\ch{CFC-12} are interpolated in time to the current model year and month.
+\ch{O_2} is held fixed at 0.2095.  The mixing ratios of \ch{CH_4},
+\ch{N_2O}, and the CFCs vary with latitude and altitude through the
+\texttt{trcmix} parameterisation; \ch{CO_2} is uniform.  Above the model
+top, temperature, humidity, and ozone are extended to the top of the
+atmosphere using the US standard atmosphere climatology, enabling a
+physically consistent upper-boundary condition for the longwave flux.
+
+\paragraph{Cloud overlap and Monte Carlo Independent Column Approximation.}
+RRTMG offers several cloud overlap assumptions selectable at run time via
+the \texttt{icld} parameter: maximum-random overlap (default), random
+overlap, maximum overlap, and exponential or exponential-random overlap.
+When the exponential or exponential-random overlap is selected
+($\mathtt{icld} = 4$ or $5$), the decorrelation length is set to 5~km.
+The Monte Carlo Independent Column Approximation
+(McICA; \citealt{Pincus_03}) is optionally available: when enabled
+(\texttt{imcica=1}), stochastic sub-column cloud realisations are generated
+separately for the shortwave and longwave before each radiation call using
+a random-number generator with a unique seed that advances every call.
+Each realisation samples the joint probability distribution of cloud
+fraction, liquid water path, ice water path, and particle sizes within a
+column, and the full RRTMG solver is applied to each sub-column.  This
+approach avoids the plane-parallel homogeneous cloud bias and correctly
+represents partial cloudiness at modest additional cost.  When McICA is
+disabled, an effective optical depth that accounts for partial cloudiness
+is applied to the whole column.
+
+\paragraph{Cloud optical properties.}
+Two options are available for computing cloud optical properties in RRTMG,
+selected by the \texttt{inflgsw} flag.  When \texttt{inflgsw=0} the liquid
+and ice cloud optical depths, single-scattering albedos, and asymmetry
+parameters are pre-computed in the driver using the \cite{Slingo_89}
+parameterisation (four spectral intervals mapped to the 14 RRTMG SW bands
+via a look-up table) for liquid, and the \cite{Ebert_92} parameterisation
+for ice, before being passed to the RRTMG solver.  When \texttt{inflgsw=2}
+the optical properties are computed internally within RRTMG from the cloud
+water paths and effective radii.  The liquid effective radius over land is
+fixed at $r_e = 8.5$~$\mu$m and over ocean at $r_e = 11.0$~$\mu$m; these
+are also used as defaults in the CCM3 scheme when prognostic condensate
+fields are not available.  The ice effective radius follows a pressure-based
+ramp from $r_i = 10$~$\mu$m near the tropopause to $r_i = 30$~$\mu$m in
+the lower troposphere.  The ice fraction partitioning uses the prognostic
+liquid/ice split when a mixed-phase microphysics scheme is active, and
+otherwise a temperature ramp from pure liquid at $-10$°C to pure ice at
+$-30$°C.
+
+\paragraph{Aerosol optical properties.}
+When the chemistry module or the climatological aerosol module is active,
+spectrally resolved aerosol optical depths, single-scattering albedos, and
+asymmetry parameters are passed to RRTMG for both the 14 shortwave and
+16 longwave bands.  These are computed by the aerosol optical properties
+routine \texttt{aeroppt} on the RegCM top-to-surface grid and then
+re-ordered to the bottom-to-top convention used by RRTMG.  When neither the
+chemistry module nor the climatological aerosol module is active, the aerosol
+fields are set to zero.
+
+\paragraph{Vertical grid extension.}
+RegCM's native vertical grid typically extends to pressures of the order of
+10--50~hPa.  RRTMG requires fluxes from the surface to the top of the
+atmosphere.  The driver extends the temperature, humidity, and ozone profiles
+above the model top by splicing in climatological values from the US standard
+atmosphere (\texttt{mod\_stdatm}) at pressure levels defined by a fixed
+upper-atmosphere grid.  The interface temperatures at the model-top boundary
+are computed by interpolation in sigma or pressure coordinates.
+
+\paragraph{Output and coupling.}
+Both radiation schemes return to RegCM the same set of fields via the
+\texttt{radout} subroutine: shortwave and longwave heating rates on model
+levels, downwelling longwave flux at the surface, and spectrally separated
+shortwave surface components (visible direct and diffuse, near-infrared
+direct and diffuse) needed by the BATS and CLM land surface schemes for
+vegetation and bare-soil energy balance.  Total-column integrated cloud
+liquid and ice water paths and total precipitable water are also accumulated
+for diagnostic output.  Clear-sky shortwave and longwave fluxes are
+diagnosed in parallel with the all-sky computation in both schemes, enabling
+the direct computation of the shortwave and longwave cloud radiative effects
+at the top of the atmosphere and at the surface.
 
 \subsection{Land Surface Models}
 
