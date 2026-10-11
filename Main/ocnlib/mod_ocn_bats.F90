@@ -181,7 +181,7 @@ module mod_ocn_bats
       if ( ribl < d_zero ) then
         clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
       else
-        clead = cdrn/(d_one+11.5_rkx*br(i))
+        clead = cdrn/(d_one+11.5_rkx*ribl)
       end if
       cdrx = (d_one-aarea)*cdr + aarea*clead
       ram1(i) = vonkar * sqrt(vspda/cdrx)
@@ -230,7 +230,7 @@ module mod_ocn_bats
         ! assume lead ocean temp is -2
         ! flux of heat and moisture through leads
         fact = -drag(i)
-        qgrd = pfqsat(fact*tgrd(i),sfps(i))
+        qgrd = pfqsat(tgrd(i),sfps(i))
         qice = pfqsat(tgbrd(i),sfps(i))
         !
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
@@ -239,10 +239,10 @@ module mod_ocn_bats
         delq = qs - qgrnd
         ! output fluxes, averaged over leads and ice
         evpr(i) = max(fact*delq,d_zero)
-        sncv(i) = sncv(i) - dtocn*evpr(i)
+        sncv(i) = max(sncv(i) - dtocn*evpr(i), d_zero)
         sent(i) = fact*cpd*delt
         hrl = rhox(i)*vspda*clead * (qice-qs)
-        hsl = rhox(i)*vspda*clead * (tgrd(i)-tatm(i))*cpd
+        hsl = rhox(i)*vspda*clead * (tgbrd(i)-tatm(i))*cpd
         ! get fluxes over ice for sublimation (subrout snow)
         ! and melt (below) calculation
         fseng = (sent(i)-aarea*hsl)/(d_one-aarea)
