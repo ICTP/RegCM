@@ -936,8 +936,8 @@ module is active.
 Model version 3 (CCM3), which is described in detail in \cite{Kiehl_96}.
 
 \paragraph{Shortwave.}
-The solar component accounts for absorption and scattering by \ch{O_3},
-\ch{H_2O}, \ch{CO_2}, and \ch{O_2} using the $\delta$-Eddington
+The solar component accounts for absorption and scattering by \ce{O_3},
+\ce{H_2O}, \ce{CO_2}, and \ce{O_2} using the $\delta$-Eddington
 two-stream approximation of \cite{Kiehl_96}.  It spans 18 spectral
 intervals from 0.2 to 5~$\mu$m.  Rayleigh scattering is included in all
 intervals.  The earth--sun distance correction factor accounts for the
@@ -945,8 +945,8 @@ eccentricity of the orbit.
 
 \paragraph{Longwave.}
 The thermal infrared component uses pre-computed look-up tables for the
-absorptivity and emissivity of the major greenhouse gases (\ch{H_2O},
-\ch{CO_2}, \ch{O_3}, and the \ch{CH_4}/\ch{N_2O} minor-gas pair) in a
+absorptivity and emissivity of the major greenhouse gases (\ce{H_2O},
+\ce{CO_2}, \ce{O_3}, and the \ce{CH_4}/\ce{N_2O} minor-gas pair) in a
 broadband scheme following \cite{Kiehl_96}.  Absorptivity tables are
 evaluated once per radiation timestep and stored for efficiency.  The
 surface emissivity supplied by the land and ocean modules is applied at the
@@ -1008,8 +1008,8 @@ between RRTMG and RegCM was developed at ICTP.
 The RRTMG shortwave scheme \citep{Iacono_08} divides the spectrum from
 0.2 to 12.2~$\mu$m into 14 spectral bands and uses the correlated-$k$
 method with 112 $g$-points (quadrature points in absorption coefficient
-space) to integrate over each band.  Gaseous absorbers include \ch{H_2O},
-\ch{O_3}, \ch{CO_2}, \ch{CH_4}, \ch{N_2O}, \ch{O_2}, and a Rayleigh
+space) to integrate over each band.  Gaseous absorbers include \ce{H_2O},
+\ce{O_3}, \ce{CO_2}, \ce{CH_4}, \ce{N_2O}, \ce{O_2}, and a Rayleigh
 scattering continuum.  A two-stream $\delta$-Eddington solver is used for
 each $g$-point.  Spectrally resolved upward and downward fluxes are
 returned at every model interface, from which the shortwave heating rate
@@ -1020,9 +1020,9 @@ derived.
 \paragraph{Longwave.}
 The RRTMG longwave scheme \citep{Mlawer_97,Iacono_08} covers 10 to
 3000~cm$^{-1}$ in 16 spectral bands with 140 $g$-points.  Absorbers are
-\ch{H_2O} (including the water vapour continuum), \ch{CO_2}, \ch{O_3},
-\ch{CH_4}, \ch{N_2O}, and the halocarbons \ch{CFC-11}, \ch{CFC-12},
-\ch{CFC-22}, and \ch{CCl_4}.  The longwave solver uses the two-stream
+\ce{H_2O} (including the water vapour continuum), \ce{CO_2}, \ce{O_3},
+\ce{CH_4}, \ce{N_2O}, and the halocarbons \ce{CFC-11}, \ce{CFC-12},
+\ce{CFC-22}, and \ce{CCl_4}.  The longwave solver uses the two-stream
 source function technique.  Surface emission is computed from the
 spectrally constant emissivity provided by the land and ocean modules,
 applied over all 16 longwave bands.  In addition to the all-sky fluxes
@@ -1032,11 +1032,11 @@ enabling direct diagnosis of the cloud radiative effect.
 \paragraph{Greenhouse gas concentrations.}
 Both the CCM3 and RRTMG schemes read time-varying concentrations of the
 well-mixed greenhouse gases from the IPCC scenario module.  For RRTMG, the
-volume mixing ratios of \ch{CO_2}, \ch{CH_4}, \ch{N_2O}, \ch{CFC-11}, and
-\ch{CFC-12} are interpolated in time to the current model year and month.
-\ch{O_2} is held fixed at 0.2095.  The mixing ratios of \ch{CH_4},
-\ch{N_2O}, and the CFCs vary with latitude and altitude through the
-\texttt{trcmix} parameterisation; \ch{CO_2} is uniform.  Above the model
+volume mixing ratios of \ce{CO_2}, \ce{CH_4}, \ce{N_2O}, \ce{CFC-11}, and
+\ce{CFC-12} are interpolated in time to the current model year and month.
+\ce{O_2} is held fixed at 0.2095.  The mixing ratios of \ce{CH_4},
+\ce{N_2O}, and the CFCs vary with latitude and altitude through the
+\texttt{trcmix} parameterisation; \ce{CO_2} is uniform.  Above the model
 top, temperature, humidity, and ozone are extended to the top of the
 atmosphere using the US standard atmosphere climatology, enabling a
 physically consistent upper-boundary condition for the longwave flux.
