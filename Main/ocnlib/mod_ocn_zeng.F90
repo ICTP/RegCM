@@ -463,8 +463,6 @@ module mod_ocn_zeng
       t2m(i)  = tatm(i) - (dth * (sfps(i)/p00)**rovcp) * facttq
       q2m(i)  = q995 - dqh*facttq
       rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
-      ram1(i) = ram1(i)/(vonkar * ustar)
-      rah1(i) = rah1(i)/(vonkar * ustar)
       ! now feedback tskin in surface variables
       if ( .not. ldcsst ) then
         !tgbrd(i) = tgb(i) - 0.005_rkx * (sent(i)+lh+rlwf(i))/max(uv10,2.0)
