@@ -254,6 +254,7 @@ module mod_ocn_lake
       tlak(lp,:) = tp
       tgrd(i)  = tgl
       tgbrd(i) = tgl
+      sfice(i) = hi(lp)
       qgrd = pfqsat(tgrd(i),sfps(i))
       delt = tatm(i) - tgrd(i)
       qgrd = qgrd/(d_one+qgrd)
@@ -324,7 +325,7 @@ module mod_ocn_lake
         if ( ribl < d_zero ) then
           clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
         else
-          clead = cdrn/(d_one+11.5_rkx*br(i))
+          clead = cdrn/(d_one+11.5_rkx*ribl)
         end if
         cdrx = (d_one-aarea)*cdr + aarea*clead
         drag(i) = cdrx*vspda*rhox(i)
@@ -354,8 +355,8 @@ module mod_ocn_lake
       ram1(i) = vonkar*sqrt(vspda/cdrx)
       rah1(i) = ram1(i)
       call ocnrough(zoo(i),ustr(i),um10(i),vl,visa)
-      taux(i) = drag(i) * (u10m(i)/usw(i))
-      tauy(i) = drag(i) * (v10m(i)/vsw(i))
+      taux(i) = drag(i) * usw(i)
+      tauy(i) = drag(i) * vsw(i)
       t2m(i) = tatm(i) - delt*fact
       q2m(i) = qs - delq*fact
     end do
@@ -729,8 +730,8 @@ module mod_ocn_lake
        ((d_one-exp(-lams1*hs))                  / (ks*lams1)  + &
         (exp(-lams1*hs))*(d_one-exp(-lami1*hi)) / (ki*lami1)) + &
            fsw * 0.3_rkx *                                      &
-       ((d_one-exp(-lams2))                     / (ks*lams2)  + &
-        ((-lams2*hs))*(d_one-exp(-lami2*hi))    / (ki*lami2))
+       ((d_one-exp(-lams2*hs))                  / (ks*lams2)  + &
+        (exp(-lams2*hs))*(d_one-exp(-lami2*hi)) / (ki*lami2))
     t1 = -50.0_rkx
     f0 = f(t0)
     f1 = f(t1)
@@ -761,7 +762,7 @@ module mod_ocn_lake
                 theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) / &
               (rhosnowp*li)
         if ( ds > d_zero ) ds = d_zero
-        hs = hs + ds * 10.0_rkx
+        hs = hs + ds
         if ( hs < d_zero ) then
           hs = d_zero
         end if
