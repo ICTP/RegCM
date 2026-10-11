@@ -797,15 +797,6 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
     call glb_l2c_ss(lndcomm,clm_l2a%ram1,lms%ram1)
-    do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
-      ! CLM45 outputs Um/ustar**2 [s/m];
-      ! convert to dimensionless vonkar·Um/ustar to match BATS and Ocean
-      if (lm%ldmsk1(n,j,i) == 1) then
-        lms%ram1(n,j,i) = vonkar * &
-          sqrt(max(lms%ustar(n,j,i)**2 * lms%ram1(n,j,i), 1.e-10_rkx))
-        lms%rah1(n,j,i) = lms%ram1(n,j,i)
-      end if
-    end do
     call glb_l2c_ss(lndcomm,clm_l2a%br1,lms%br)
     call glb_l2c_ss(lndcomm,clm_l2a%ustar,lms%ustar)
     !$acc kernels
@@ -813,6 +804,14 @@ module mod_clm_regcm
               clm_a2l%forc_rho/clm_a2l%forc_wind
     !$acc end kernels
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
+    do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+      ! CLM45 outputs Um/ustar**2 [s/m];
+      ! convert to dimensionless vonkar·Um/ustar to match BATS and Ocean
+      if (lm%ldmsk1(n,j,i) == 1) then
+        lms%ram1(n,j,i) = vonkar * lms%ustar(n,j,i) * lms%ram1(n,j,i)
+        lms%rah1(n,j,i) = lms%ram1(n,j,i)
+      end if
+    end do
 
     call glb_l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
     ! For CLM45, we collect total fraction of ground emitting dust.
