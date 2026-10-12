@@ -587,9 +587,9 @@ module mod_rrtmg_driver
     do k = 1, kz
       kj = kzp1-k
       do n = 1, npr
-        totci(n) = totci(n) + &
-           clwp_int(n,k)*cld_int(n,k)*fice(n,kj)*0.001_rk8
         totcl(n) = totcl(n) + &
+           clwp_int(n,k)*cld_int(n,k)*fice(n,kj)*0.001_rk8
+        totci(n) = totci(n) + &
            clwp_int(n,k)*cld_int(n,k)*(1.0_rk8-fice(n,kj))*0.001_rk8
         totwv(n) =  totwv(n) + &
           h2ommr(n,k)*(play(n,k)*100.0_rk8)/(rgas*tlay(n,k))*deltaz(n,k)
@@ -665,7 +665,7 @@ module mod_rrtmg_driver
     real(rk8), dimension(4), parameter :: cbarl = &
          [ -5.620e-8_rk8, -6.940e-6_rk8, 4.640e-4_rk8, 0.201e+0_rk8 ]
     real(rk8), dimension(4), parameter :: dbarl = &
-         [  1.630e-7_rk8,  2.350e-5_rk8, 1.240e-3_rk8, 7.560e-3_rk8 ]
+         [  1.630e-8_rk8,  2.350e-5_rk8, 1.240e-3_rk8, 7.560e-3_rk8 ]
     real(rk8), dimension(4), parameter :: ebarl = &
          [  0.829e+0_rk8,  0.794e+0_rk8, 0.754e+0_rk8, 0.826e+0_rk8 ]
     real(rk8), dimension(4), parameter :: fbarl = &
@@ -1044,7 +1044,7 @@ module mod_rrtmg_driver
           !
           n = (j-jci1+1)+(i-ici1)*npj
           clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
-          if ( clwp(n,k) < 0.001_rk8 ) then
+          if ( clwp(n,k) > 0.001_rk8 ) then
             cldf(n,k) = m2r%cldfrc(j,i,kj)
           else
             clwp(n,k) = 0.0_rk8
