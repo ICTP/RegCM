@@ -587,10 +587,10 @@ module mod_rrtmg_driver
     do k = 1, kz
       kj = kzp1-k
       do n = 1, npr
-        totcl(n) = totcl(n) + &
-           clwp_int(n,k)*cld_int(n,k)*fice(n,kj)*0.001_rk8
         totci(n) = totci(n) + &
-           clwp_int(n,k)*cld_int(n,k)*(1.0_rk8-fice(n,kj))*0.001_rk8
+          clwp_int(n,k)*cld_int(n,k)*fice(n,k)*0.001_rk8
+        totcl(n) = totcl(n) + &
+          clwp_int(n,k)*cld_int(n,k)*(1.0_rk8-fice(n,k))*0.001_rk8
         totwv(n) =  totwv(n) + &
           h2ommr(n,k)*(play(n,k)*100.0_rk8)/(rgas*tlay(n,k))*deltaz(n,k)
       end do
