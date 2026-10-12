@@ -573,7 +573,7 @@ module mod_cu_grell
               end if
               cycle gotonext
             end if
-            lnext = .true.
+            lnext = .false.
           end do gotonext
           !
           ! after large-scale forcing is applied, possible lid should
@@ -734,7 +734,7 @@ module mod_cu_grell
         if ( xac(n) > xacact ) then
           if ( kk <= min(ktop(n),kzm1) .and. kk >= kbcon(n) ) then
             vshear(n) = vshear(n) + &
-                 (vsp(n,kk+1)-vsp(n,kk)/(z(n,kk+1)-z(n,kk))) * &
+                 (vsp(n,kk+1)-vsp(n,kk))/(z(n,kk+1)-z(n,kk)) * &
                  (po(n,kk)-po(n,kk+1))
             sdp(n) = sdp(n) + po(n,kk)-po(n,kk+1)
           end if
@@ -755,7 +755,6 @@ module mod_cu_grell
         hcd(n) = d_half*(he(n,kmin(n))+he(n,kmin(n)+1))
         qcd(n) = d_half*(q(n,kmin(n))+q(n,kmin(n)+1))
         qrcdo(n,kz) = qeso(n,kz)
-        hcdo(n) = heso(n,kz)
         hcdo(n) = d_half*(heo(n,kmin(n))+heo(n,kmin(n)+1))
         qcdo(n) = d_half*(qo(n,kmin(n))+qo(n,kmin(n)+1))
         bu(n) = d_zero
@@ -841,7 +840,7 @@ module mod_cu_grell
             ! specifiy detrainment of downdraft, has to be consistent
             ! with zd calculations in soundd.
             !
-            detdo = (dkk(n,kk+1)-dkk(n,k))*(hcd(n)-dv2)
+            detdo = (dkk(n,k+1)-dkk(n,k))*(hcd(n)-dv2)
             detdoq = (dkk(n,k+1)-dkk(n,k))*(qrcd(n,k)-dv2q)
             dz = d_half*(z(n,k+1)-z(n,k-1))
             !
