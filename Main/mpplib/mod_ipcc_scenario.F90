@@ -392,7 +392,7 @@ module mod_ipcc_scenario
     2047.0_rkx, 367.00_rkx, 1760.00_rkx, 316.00_rkx, 278.91_rkx, 548.67_rkx, &
     2048.0_rkx, 367.00_rkx, 1760.00_rkx, 316.00_rkx, 278.91_rkx, 548.67_rkx, &
     2049.0_rkx, 367.00_rkx, 1760.00_rkx, 316.00_rkx, 278.91_rkx, 548.67_rkx, &
-    2059.0_rkx, 367.00_rkx, 1760.00_rkx, 316.00_rkx, 278.91_rkx, 548.67_rkx ], &
+    2050.0_rkx, 367.00_rkx, 1760.00_rkx, 316.00_rkx, 278.91_rkx, 548.67_rkx ], &
         [6,50])
         cgas(1:6,2051:2100) = reshape([  &
     2051.0_rkx, 367.00_rkx, 1760.00_rkx, 316.00_rkx, 278.91_rkx, 548.67_rkx, &
@@ -2079,14 +2079,14 @@ module mod_ipcc_scenario
      ['000001-201412','201501-250012']
     character(len=*), dimension(imax), parameter :: var_name = &
      ['mole_fraction_of_carbon_dioxide_in_air', &
-      'mole_fraction_of_nitrous_oxide_in_air ', &
       'mole_fraction_of_methane_in_air       ', &
+      'mole_fraction_of_nitrous_oxide_in_air ', &
       'mole_fraction_of_cfc11_in_air         ', &
       'mole_fraction_of_cfc12_in_air         ' ]
     character(len=*), dimension(imax), parameter :: varname = &
      ['mole-fraction-of-carbon-dioxide-in-air', &
-      'mole-fraction-of-nitrous-oxide-in-air ', &
       'mole-fraction-of-methane-in-air       ', &
+      'mole-fraction-of-nitrous-oxide-in-air ', &
       'mole-fraction-of-cfc11-in-air         ', &
       'mole-fraction-of-cfc12-in-air         ' ]
     character(len=*), dimension(smax), parameter :: modelname = &
