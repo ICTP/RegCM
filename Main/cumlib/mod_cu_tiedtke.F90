@@ -22,7 +22,6 @@ module mod_cu_tiedtke
   use mod_stdio
   use mod_constants
   use mod_cu_common
-  use mod_cu_tables
   use mod_service
   use mod_runparams, only : sigma, iqc, iqv, iqi, dx, ichem, iaerosol, &
          iindirect, ipptls, ichcumtra, rcmtimer, icup, dtcum, io3
@@ -576,8 +575,8 @@ module mod_cu_tiedtke
     integer(ik4), dimension(kbdim) :: itopec2
     integer(ik4) :: ilevmin, jk, jl, jt
     logical, dimension(kbdim) :: locum
-    real(rkx), dimension(kbdim,klev) :: zlu, zmfd, zqp1, zqsat, zqu, &
-      zqude, ztp1, ztu, ztvp1, zup1, zvp1, zxp1, zcvrout
+    real(rkx), dimension(kbdim,klev) :: zlu, zmfd, zqp1, zqu, &
+      zqude, ztp1, ztu, zup1, zvp1, zxp1, zcvrout
     real(rkx), dimension(kbdim) :: zrain, ztopmax
     integer(ik4), dimension(kbdim) :: kbotsc
     logical, dimension(kbdim) :: ldsc
@@ -589,7 +588,6 @@ module mod_cu_tiedtke
     integer(ik4) :: it
     real(rkx) :: zxlp, zxip
 
-    lookupoverflow = .false.
     !
     !---------------------------------------
     ! 1. CALCULATE T,Q AND QS AT MAIN LEVELS
@@ -603,32 +601,7 @@ module mod_cu_tiedtke
       zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
       zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
       zxp1(jl,jk) = max(d_zero,zxlp+zxip)
-      it = int(ztp1(jl,jk)*d_1000)
-#ifdef DEBUG
-      if ( it < jptlucu1 .or. it > jptlucu2 ) then
-        lookupoverflow = .true.
-      end if
-#endif
-      it = max(min(it,jptlucu2),jptlucu1)
-      zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
-      zqsat(jl,jk) = min(qsmax,zqsat(jl,jk))
-      zqsat(jl,jk) = zqsat(jl,jk)/(d_one-ep1*zqsat(jl,jk))
-      ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
     end do
-    if ( lookupoverflow ) then
-      do jk = 1, klev
-        do jl = 1, kproma
-          it = int(ztp1(jl,jk)*d_1000)
-          if ( it < jptlucu1 .or. it > jptlucu2 ) then
-            write(stderr,'(a,f12.4,a,i8)') &
-              '! LOOKUP PROBLEM FOR T = ',real(ztp1(jl,jk)), &
-              ' at ', rcmtimer%str( )
-          end if
-        end do
-      end do
-      call fatal(__FILE__,__LINE__, &
-                 'Cumulus Tables lookup error: OVERFLOW')
-    end if
 
     do concurrent ( jl = 1:kproma, jk = 1:klev, jt = 1:ktrac)
       zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtc)
@@ -686,11 +659,11 @@ module mod_cu_tiedtke
     !
     do concurrent ( jl = 1:kproma )
       do jk = kz, 1, -1
-        pqhfl(jl,jk) = xpqfx(jl) * exp(-egrav*(d_one - sigma(jk)))
-        pahfs(jl,jk) = xphfx(jl) * exp(-egrav*(d_one - sigma(jk)))
+        pqhfl(jl,jk) = -xpqfx(jl) * exp(-egrav*(d_one - sigma(jk)))
+        pahfs(jl,jk) = -xphfx(jl) * exp(-egrav*(d_one - sigma(jk)))
       end do
-      pqhfl(jl,kzp1) = xpqfx(jl)
-      pahfs(jl,kzp1) = xphfx(jl)
+      pqhfl(jl,kzp1) = -xpqfx(jl)
+      pahfs(jl,kzp1) = -xphfx(jl)
     end do
     !
     ! Reset to zero output precipitation fluxes
