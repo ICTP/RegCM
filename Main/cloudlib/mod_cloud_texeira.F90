@@ -55,7 +55,7 @@ module mod_cloud_texeira
       rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
       liq = qc(j,i,k)
       spq = qs(j,i,k) / (d_one + qs(j,i,k))
-      if ( rhrng > rh0(j,i) ) then
+      if ( rhrng > rh0(j,i) .and. liq > 0.0_rkx ) then
         fcc(j,i,k) = d*liq / (d_two*spq*(d_one-rhrng)*kappa) * &
           ( -d_one + sqrt(d_one + &
           (d_four*spq*((d_one-rhrng)*kappa))/(d*liq)) )

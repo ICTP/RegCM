@@ -56,7 +56,7 @@ module mod_cloud_echam5
       ! Relative humidity
       rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
       sig = ps(j,i)/p(j,i,k)
-      rhcrit = ct + (ct-cs)*exp(1.0_rkx-sig**nx)
+      rhcrit = ct + (cs-ct)*exp(1.0_rkx-sig**nx)
       if ( rhrng < rhcrit ) then
         fcc(j,i,k) = d_zero
       else if ( rhrng > 0.99999_rkx ) then
