@@ -601,7 +601,7 @@ if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
   else
     OMPFLAGS="-fiopenmp -fno-openmp-target-do-concurrent"
   fi
-  FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
+  FCFLAGS="-convert big_endian -assume byterecl \
            -heap-arrays -qopt-report -fPIC"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
@@ -626,8 +626,7 @@ if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
   fi
 fi
 if test -z "$COMPILER_INTEL_TRUE"; then
-  FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
-           -heap-arrays -fPIC"
+  FCFLAGS="-convert big_endian -assume byterecl -heap-arrays -fPIC"
   IFORTVER=`ifort --version | grep IFORT | cut -d " " -f 3 | cut -d "." -f 1`
   if test $IFORTVER -ge 17; then
     OMPFLAGS="-qopenmp"
@@ -668,7 +667,7 @@ if test -z "$COMPILER_G95_TRUE"; then
   AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_PGI_TRUE"; then
-  FCFLAGS="$FCFLAGS -byteswapio"
+  FCFLAGS="-byteswapio"
   OMPFLAGS="-mp"
   CPRDEF="PGI"
   AC_SUBST(FCFLAGS)

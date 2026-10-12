@@ -120,14 +120,17 @@ module mod_pbl_holtbl
     call getmem(coefe,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coefe')
     call getmem(coeff1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff1')
     call getmem(coeff2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff2')
-    call getmem(tpred1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred1')
-    call getmem(tpred2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred2')
     call getmem(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
     call getmem(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
     if ( idynamic /= 3 ) then
       call getmem(akzz1,jci1ga,jci2,ici1ga,ici2,1,kz,'mod_holtbl:akzz1')
       call getmem(akzz2,jci1ga,jci2,ici1ga,ici2,1,kz,'mod_holtbl:akzz2')
       call getmem(uvdrage,jci1ga,jci2,ici1ga,ici2,'mod_holtbl:uvdrage')
+      call getmem(tpred1,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:tpred1')
+      call getmem(tpred2,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:tpred2')
+    else
+      call getmem(tpred1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred1')
+      call getmem(tpred2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred2')
     end if
     if ( ichem == 1 ) then
       call getmem(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')
@@ -675,9 +678,9 @@ module mod_pbl_holtbl
       !   predicted field
       !
       do concurrent ( j = jdii1:jdii2, i = idii1:idii2, k = 1:kz )
-        p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
+        p2m%utend(j,i,k) = p2m%utend(j,i,k) + &
                           (tpred1(j,i,k)-m2p%udatm(j,i,k))*rdt*m2p%psdotb(j,i)
-        p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
+        p2m%vtend(j,i,k) = p2m%vtend(j,i,k) + &
                           (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt*m2p%psdotb(j,i)
       end do
     end if

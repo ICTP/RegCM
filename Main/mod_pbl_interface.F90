@@ -76,13 +76,11 @@ module mod_pbl_interface
       tkemin = 0.005_rkx
       call init_shinhong_pbl
     end if
-    if ( ibltyp > 1 ) then
-      if ( idynamic /= 3 ) then
-        call getmem(utenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:utenx')
-        call getmem(vtenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:vtenx')
-        call getmem(utend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:utend')
-        call getmem(vtend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:vtend')
-      end if
+    if ( idynamic /= 3 ) then
+      call getmem(utenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:utenx')
+      call getmem(vtenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:vtenx')
+      call getmem(utend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:utend')
+      call getmem(vtend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:vtend')
     end if
   end subroutine allocate_pblscheme
 

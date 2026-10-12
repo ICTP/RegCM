@@ -111,10 +111,10 @@ module mod_cu_interface
     end if
     if ( any(icup == 4) .or. any(icup == 5) ) then
       if ( idynamic /= 3 ) then
-        call getmem(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
-        call getmem(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
-        call getmem(utenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:utenx')
-        call getmem(vtenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:vtenx')
+        call getmem(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'cu_interface:utend')
+        call getmem(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'cu_interface:vtend')
+        call getmem(utenx,jci1,jci2,ici1,ici2,1,kz,'cu_interface:utenx')
+        call getmem(vtenx,jci1,jci2,ici1,ici2,1,kz,'cu_interface:vtenx')
       end if
     end if
     if ( any(icup == 4) ) then
@@ -222,7 +222,6 @@ module mod_cu_interface
     use mod_atm_interface
     implicit none
     integer(ik4) :: i, j, k, n
-    integer(ik4) :: iplmlc, mintop, maxtop
     real(rkx) :: ijs, w1, mymean(kz), mymean_tmp
 
     if ( any(icup == 6) ) then

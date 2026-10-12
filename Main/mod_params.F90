@@ -1941,6 +1941,8 @@ module mod_params
 
     call allocate_mod_savefile
 
+    call allocate_cumulus
+
     call allocate_surface_model
 
     call allocate_radiation
@@ -2651,8 +2653,6 @@ module mod_params
             '  Condensation efficiency           : ', conf
       end if
     end if
-
-    call allocate_cumulus
     !
     !-----compute the vertical interpolation coefficients for t and qv.
     !
