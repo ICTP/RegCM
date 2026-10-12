@@ -1688,15 +1688,18 @@ fraction of the upward buoyancy flux returned as downward entrainment, also
 modulated by the scale-dependency function.  For stable conditions and in the
 free atmosphere the scheme reverts to the local Richardson-number-based
 diffusivity of \cite{Hong_10}.
+
 \subsection{Convective Precipitation Schemes}
 
-Convective precipitation is computed using one of three schemes: (1)
-Modified-Kuo scheme \cite{Anthes_77}; (2) Grell scheme \cite{Grell_93}; and (3)
-MIT-Emanuel scheme \citep{Emanuel_91,Emanuel_99}. In addition, the Grell
-parameterization is implemented using one of two closure assumptions: (1) the
-Arakawa and Schubert closure \cite{Grell_94} and (2) the Fritsch and Chappell
-closure \cite{Fritsch_80}, hereafter refered to as AS74 and FC80,
-respectively.\\
+Convective precipitation is computed using one of several schemes: (1) the
+Modified-Kuo scheme \cite{Anthes_77}; (2) the Grell scheme \cite{Grell_93};
+(3) the MIT-Emanuel scheme \citep{Emanuel_91,Emanuel_99}; (4) the
+Betts-Miller-Janjic scheme \citep{Betts_86a,BettsMiller_86b,Betts_93,Janjic_94};
+(5) the Tiedtke scheme \citep{Tiedtke_89}; and (6) the Kain-Fritsch scheme
+\citep{Kain_93,Kain_04}. In addition, the Grell parameterization is
+implemented using one of two closure assumptions: (1) the Arakawa and Schubert
+closure \cite{Grell_94} and (2) the Fritsch and Chappell closure
+\cite{Fritsch_80}, hereafter referred to as AS74 and FC80, respectively.\\
 
 \noindent{
 \begin{enumerate}
@@ -1719,42 +1722,41 @@ sounding as follows:
   \begin{array}
   {r@{\quad\quad}l} 2(1-\overline{RH}) & \overline{RH}\ge 0.5 \\
   1.0 & \mbox{otherwise}
-  \end{array} 
+  \end{array}
   \right\}
 \label{eqn_model:Bfact}
 \end{eqnarray}
 
-Note that the moisture
-convergence term includes only the advective tendencies for water vapor.
-However, evapotranspiration from the previous time step is indirectly included
-in $M$ since it tends to moisten the lower atmosphere. Hence, as the
-evapotranspiration increases, more and more of it is converted into rainfall
-assuming the column is unstable. The latent heating resulting from condensation
-is distributed between the cloud top and bottom by a function that allocates the
-maximum heating to the upper portion of the cloud layer. To eliminate numerical
-point storms, a horizontal diffusion term and a time release constant are
-included so that the redistributions of moisture and the latent heat release are
-not performed instantaneously \citep{Giorgi_89b, Giorgi_91c}. \\
+Note that the moisture convergence term includes only the advective tendencies
+for water vapor. However, evapotranspiration from the previous time step is
+indirectly included in $M$ since it tends to moisten the lower atmosphere.
+Hence, as the evapotranspiration increases, more and more of it is converted
+into rainfall assuming the column is unstable. The latent heating resulting from
+condensation is distributed between the cloud top and bottom by a function that
+allocates the maximum heating to the upper portion of the cloud layer. To
+eliminate numerical point storms, a horizontal diffusion term and a time release
+constant are included so that the redistributions of moisture and the latent
+heat release are not performed instantaneously
+\citep{Giorgi_89b, Giorgi_91c}.\\
 
-\item {\bf Grell Scheme:} The Grell scheme \cite{Grell_93}, similar
-to the AS74 parameterization, considers clouds as two steady-state circulations:
-an updraft and a downdraft. No direct mixing occurs between the cloudy air and
-the environmental air except at the top and bottom of the circulations. The mass
+\item {\bf Grell Scheme:} The Grell scheme \cite{Grell_93}, similar to the
+AS74 parameterization, considers clouds as two steady-state circulations: an
+updraft and a downdraft. No direct mixing occurs between the cloudy air and the
+environmental air except at the top and bottom of the circulations. The mass
 flux is constant with height and no entrainment or detrainment occurs along the
 cloud edges. The originating levels of the updraft and downdraft are given by
 the levels of maximum and minimum moist static energy, respectively. The Grell
 scheme is activated when a lifted parcel attains moist convection. Condensation
 in the updraft is calculated by lifting a saturated parcel. The downdraft mass
-flux ($m_0$) depends on the updraft mass flux ($m_b$) according to the following
-relation:
+flux ($m_0$) depends on the updraft mass flux ($m_b$) according to the
+following relation:
 
 \begin{eqnarray}
 m_0=\frac{\beta I_1}{I_2}m_b
 \end{eqnarray}
 
-where
-$I_1$ is the normalized updraft condensation, $I_2$ is the normalized downdraft
-evaporation, and $\beta$ is the fraction of updraft condensation that
+where $I_1$ is the normalized updraft condensation, $I_2$ is the normalized
+downdraft evaporation, and $\beta$ is the fraction of updraft condensation that
 re-evaporates in the downdraft. $\beta$ depends on the wind shear and typically
 varies between 0.3 and 0.5. Rainfall is given by
 
@@ -1763,13 +1765,12 @@ P^{CU}&=&I_1m_b(1-\beta)
 \label{eqn_model:GCCppt}
 \end{eqnarray}
 
-Heating and
-moistening in the Grell scheme are determined both by the mass fluxes and the
-detrainment at the cloud top and bottom. In addition, the cooling effect of
-moist downdrafts is included.
+Heating and moistening in the Grell scheme are determined both by the mass
+fluxes and the detrainment at the cloud top and bottom. In addition, the
+cooling effect of moist downdrafts is included.
 
 Due to the simplistic nature of the Grell scheme, several closure assumptions
-can be adopted. RegCM4's earlier version directly implements the
+can be adopted. RegCM's earlier version directly implements the
 quasi-equilibrium assumption of AS74. It assumes that convective clouds
 stabilize the environment as fast as non-convective processes destabilize it as
 follows:
@@ -1779,19 +1780,18 @@ m_b=\frac{ABE''-ABE}{NA\Delta t}
 \label{eqn_model:closureAS}
 \end{eqnarray}
 
-where $ABE$ is the buoyant energy
-available for convection, $ABE''$ is the amount of buoyant energy available for
-convection in addition to the buoyant energy generated by some of the
-non-convective processes during the time interval $\Delta t$, and $NA$ is the
-rate of change of $ABE$ per unit $m_b$. The difference $ABE''-ABE$ can be
-thought of as the rate of destabilization over time $\Delta t$. $ABE''$ is
-computed from the current fields plus the future tendencies resulting from the
-advection of heat and moisture and the dry adiabatic adjustment.
+where $ABE$ is the buoyant energy available for convection, $ABE''$ is the
+amount of buoyant energy available for convection in addition to the buoyant
+energy generated by some of the non-convective processes during the time
+interval $\Delta t$, and $NA$ is the rate of change of $ABE$ per unit $m_b$.
+The difference $ABE''-ABE$ can be thought of as the rate of destabilization
+over time $\Delta t$. $ABE''$ is computed from the current fields plus the
+future tendencies resulting from the advection of heat and moisture and the dry
+adiabatic adjustment.
 
-In the latest RegCM4 version, by default, we use a stability based closure
-assumption, the FC80 type closure assumption, that is commonly implemented in
-GCMs and RCMs. In this closure, it is assumed that convection removes the $ABE$
-over a given time scale as follows:
+In the latest RegCM version, by default, we use the stability-based FC80
+closure assumption, commonly implemented in GCMs and RCMs. In this closure, it
+is assumed that convection removes $ABE$ over a given time scale as follows:
 
 \begin{eqnarray}
 m_b=\frac{ABE}{NA \tau}
@@ -1809,63 +1809,218 @@ processes.
 
 A number of parameters present in the scheme can be used to optimize its
 performance, and \cite{Giorgi_93c} discusses a wide range of sensitivity
-experiments. We found that the parameter to which the scheme is most sensitive
-is by and large the fraction of precipitation evaporated in the downdraft
-(Peff, with values from 0 to 1), which essentially measures the precipitation
-efficiency. Larger values of Peff lead to reduced precipitation.
+experiments. The parameter to which the scheme is most sensitive is the
+fraction of precipitation evaporated in the downdraft ($\beta$, or Peff in
+the namelist, with values from 0 to 1), which essentially measures the
+precipitation efficiency. Larger values of Peff lead to reduced precipitation.\\
 
-\item {\bf MIT-Emanuel scheme:} 
-More detailed descriptions can be found
-in \citet{Emanuel_91} and\citet{Emanuel_99}.  The scheme assumes that the
-mixing in clouds is highly episodic and inhomogeneous (as opposed to a
-continuous entraining plume) and considers convective fluxes based on
-an idealized model of sub-cloud-scale updrafts and downdrafts.Convection is
-triggered when the level of neutral buoyancy is greater than the cloud base
-level.  Between these two levels, air is lifted and a fraction of the condensed
-moisture forms precipitation while the remaining fraction forms the cloud.  The
-cloud is assumed to mix with the air from the environment according to a
-uniform spectrum of mixtures that ascend or descend to their respective levels
-of neutral buoyancy.  The mixing entrainment and detrainment rates are
-functions of the vertical gradients of buoyancy in clouds.  The fraction of
-the total cloud base mass flux that mixes with its environment at each level
-is proportional to the undiluted buoyancy rate of change with altitude.  The
-cloud base upward mass flux is relaxed towards the sub-cloud layer quasi
-equilibrium.
+\item {\bf Betts-Miller-Janjic Scheme:} The Betts-Miller scheme
+\citep{Betts_86a,BettsMiller_86b} is a convective adjustment scheme that
+relaxes the temperature and moisture profiles toward empirically determined
+reference profiles on a fixed timescale. The scheme is triggered when a lifted
+parcel reaches its level of free convection (LFC). The reference temperature
+profile is constructed as a moist adiabat anchored at the level of convective
+initiation, while the reference moisture profile is defined so that the
+column-integrated relative humidity equals an empirically determined value that
+depends on the convective type (deep or shallow). The temperature and moisture
+tendencies are given by:
+
+\begin{eqnarray}
+\frac{\partial T}{\partial t}\bigg|_{cu} &=& \frac{T_{ref} - T}{\tau}
+\label{eqn_model:BMtend_T}\\
+\frac{\partial q}{\partial t}\bigg|_{cu} &=& \frac{q_{ref} - q}{\tau}
+\label{eqn_model:BMtend_q}
+\end{eqnarray}
+
+where $T_{ref}$ and $q_{ref}$ are the reference temperature and specific
+humidity profiles, and $\tau$ is the relaxation timescale (typically
+$O(1\,\mathrm{h})$ for deep convection). Precipitation is diagnosed from the
+column-integrated enthalpy budget:
+
+\begin{eqnarray}
+P^{CU} &=& -\frac{c_p}{L_v}\int_{p_{top}}^{p_{bot}}
+           \frac{T_{ref}-T}{\tau}\,\frac{dp}{g}
+\label{eqn_model:BMppt}
+\end{eqnarray}
+
+The scheme distinguishes deep and shallow convection through separate sets of
+reference-profile moisture deficits. For deep convection the reference
+profiles follow \citet{Betts_86a,Betts_93}, with moisture deficit values
+$\Delta p_b = -4843.75$\,Pa, $\Delta p_0 = -7050$\,Pa, and
+$\Delta p_t = -2250$\,Pa at cloud base, melting level, and cloud top
+respectively. For shallow convection the deficits are smaller in magnitude,
+reflecting a moister reference state. The scheme does not produce precipitation
+when the column-integrated entropy change of the reference state relative to
+the environment is negative (the Janjic entropy-based activation criterion),
+providing a physically consistent trigger condition in addition to the
+lifted-parcel LFC check.
+
+The implementation in RegCM follows the modified Betts-Miller-Janjic (BMJ)
+formulation described in \citet{Janjic_94}, which introduces a cloud
+efficiency $\eta$ derived from the entropy deficit of the column. When
+$\eta < 1$ convection is disorganised and the adjustment is partial, scaling
+both the temperature and moisture tendencies by $\eta$. A more complete
+description of the original scheme is given in \citet{Betts_93}.\\
+
+\item {\bf MIT-Emanuel Scheme:} More detailed descriptions can be found in
+\citet{Emanuel_91} and \citet{Emanuel_99}. The scheme assumes that mixing in
+clouds is highly episodic and inhomogeneous (as opposed to a continuous
+entraining plume) and considers convective fluxes based on an idealized model
+of sub-cloud-scale updrafts and downdrafts. Convection is triggered when the
+level of neutral buoyancy is greater than the cloud base level. Between these
+two levels, air is lifted and a fraction of the condensed moisture forms
+precipitation while the remaining fraction forms the cloud. The cloud is assumed
+to mix with the air from the environment according to a uniform spectrum of
+mixtures that ascend or descend to their respective levels of neutral buoyancy.
+The mixing entrainment and detrainment rates are functions of the vertical
+gradients of buoyancy in clouds. The fraction of the total cloud-base mass flux
+that mixes with its environment at each level is proportional to the undiluted
+buoyancy rate of change with altitude. The cloud-base upward mass flux is
+relaxed towards the sub-cloud-layer quasi-equilibrium.
 
 In addition to a more physical representation of convection, the MIT-Emanuel
-scheme offers several advantages compared to the other RegCM4 convection
-options.  For instance, it includes a formulation of the auto-conversion of
-cloud water into precipitation inside cumulus clouds, and ice processes are
-accounted for by allowing the auto-conversion threshold water content to be
-temperature dependent.  Additionally, the precipitation is added to a
-single,hydrostatic, unsaturated downdraft that transports heat and
-water. Lastly, the MIT-Emanuel scheme considers the transport of passive
-tracers.
+scheme offers several advantages compared to the other RegCM convection options.
+For instance, it includes a formulation of the auto-conversion of cloud water
+into precipitation inside cumulus clouds, and ice processes are accounted for
+by allowing the auto-conversion threshold water content to be temperature
+dependent. Additionally, the precipitation is added to a single, hydrostatic,
+unsaturated downdraft that transports heat and water. Lastly, the MIT-Emanuel
+scheme considers the transport of passive tracers.
 
-The MIT scheme is the most complex of the three and also includes a number of
-parameters that can be used to optimize the model performance in different
-climate regimes. Differently from the Grell scheme, however, test experiments
-did not identify a single parameter to which the model is most sensitive.
+The MIT scheme is the most complex of the available schemes and also includes a
+number of parameters that can be used to optimize the model performance in
+different climate regimes. Differently from the Grell scheme, however, test
+experiments did not identify a single parameter to which the model is most
+sensitive.\\
+
+\item {\bf Tiedtke Scheme:} The Tiedtke scheme \citep{Tiedtke_89} is a
+mass-flux scheme in which convective transport is represented by a spectrum of
+entraining and detraining plumes. The scheme represents three convective modes
+simultaneously: penetrative (deep) convection, shallow convection, and
+mid-level convection originating above the boundary layer. Each mode has a
+distinct triggering criterion and cloud-base mass-flux closure.
+
+For deep convection, the cloud-base mass flux $M_b$ is determined by a
+moisture-convergence closure in the original formulation, ensuring that
+convection consumes the column moisture convergence supplied by the large-scale
+flow:
+
+\begin{eqnarray}
+M_b = \frac{\displaystyle\int_{p_{bot}}^{p_{top}}
+            \nabla\cdot(q\,\mathbf{v})\,\frac{dp}{g}}
+           {\displaystyle q_{cb} - q^*_{cb}}
+\label{eqn_model:TIEDclosure}
+\end{eqnarray}
+
+where $q_{cb}$ and $q^*_{cb}$ are the specific humidity and its saturation
+value at cloud base. For shallow convection, the cloud-base mass flux is set
+proportional to the turbulent moisture flux at the surface, coupling the
+parameterization to the planetary boundary layer. The updraft and downdraft
+properties are computed from the entraining-plume equations:
+
+\begin{eqnarray}
+\frac{\partial}{\partial p}(M_u\,\phi_u) &=&
+  \epsilon\,\phi_e - \delta\,\phi_u
+\label{eqn_model:TIEDplume}
+\end{eqnarray}
+
+where $\phi$ is any conservative variable (moist static energy or specific
+humidity), $M_u$ is the updraft mass flux, and $\epsilon$ and $\delta$ are the
+lateral entrainment and detrainment rates. The downdraft originates at the
+level of minimum moist static energy within the cloud layer and is driven by
+the evaporation of precipitation. Precipitation is formed by a bulk
+auto-conversion of condensed water above a critical threshold, with the
+residual falling as rain or snow.
+
+The implementation in RegCM uses the ECMWF revision of the Tiedtke scheme
+described in \citet{Tiedtke_89}, with the CAPE-based convective trigger and
+the mixed-layer parcel perturbation formulation that couples the scheme to the
+planetary boundary layer. The cloud-base mass flux for deep and mid-level
+convection is determined by relaxing the convective available potential energy
+(CAPE) toward zero over the convective timescale $\tau_c$:
+
+\begin{eqnarray}
+M_b &=& \frac{CAPE}{\tau_c\,\partial CAPE / \partial M_b}
+\label{eqn_model:TIEDcape}
+\end{eqnarray}
+
+The scheme produces temperature and moisture tendencies from the vertical
+divergence of the mass-flux profiles, and generates separate liquid and ice
+precipitation fluxes that are passed to the microphysics.\\
+
+\item {\bf Kain-Fritsch Scheme:} The Kain-Fritsch scheme
+\citep{Kain_93,Kain_04} is a mass-flux scheme derived from the AS74
+framework, designed with explicit representation of entrainment, detrainment,
+and downdrafts for application in mesoscale models. Convection is triggered
+when an air parcel lifted from the updraft source layer (USL) — a shallow
+mixed layer near the surface — achieves positive buoyancy above its lifting
+condensation level. The trigger additionally requires the perturbation
+temperature of the lifted parcel to exceed a threshold that decreases with
+increasing vertical velocity, making the scheme responsive to resolved dynamical
+forcing.
+
+The updraft mass flux profile is determined by a bulk entrainment-detrainment
+formulation. Inside the cloud, the entrainment rate $\epsilon$ and detrainment
+rate $\delta$ are related to the buoyancy of the updraft parcel:
+
+\begin{eqnarray}
+\epsilon - \delta &=& \frac{1}{M_u}\frac{\partial M_u}{\partial z}
+\label{eqn_model:KFentrdet}
+\end{eqnarray}
+
+where net entrainment ($\epsilon > \delta$) occurs in buoyant layers and net
+detrainment ($\delta > \epsilon$) occurs where the updraft parcel approaches
+neutral buoyancy. The total detrainment at the cloud top is set so that the
+updraft mass flux goes to zero, ensuring mass conservation. A compensating
+subsidence is applied to the environment between cloud base and cloud top.
+
+The cloud-base mass flux is determined by the CAPE-based closure of
+\citet{Fritsch_80}: convection is assumed to consume the CAPE of the column
+over a specified adjustment timescale $\tau$, which scales with the convective
+overturn time:
+
+\begin{eqnarray}
+M_b &=& \frac{CAPE}{NA\,\tau}
+\label{eqn_model:KFclosure}
+\end{eqnarray}
+
+where $NA$ is the rate of CAPE change per unit cloud-base mass flux. The
+timescale $\tau$ is computed from the ratio of the cloud depth to the mean
+updraft velocity, giving values of order 30 minutes for typical deep
+convection.
+
+A saturated downdraft originates at the level of minimum equivalent potential
+temperature within the cloud layer. The downdraft entrains environmental air and
+evaporates precipitation, producing cooling and moistening in the lower
+troposphere. The fraction of total condensate that re-evaporates in the
+downdraft is a function of the environmental relative humidity, so that the
+downdraft is stronger in drier environments. Precipitation reaching the
+surface is the residual of updraft condensation minus the condensate detrained
+into the anvil and the amount re-evaporated by the downdraft.
+
+The implementation in RegCM follows the updated description of \citet{Kain_04},
+which introduced improvements to the trigger function, the treatment of
+convective inhibition (CIN), and the representation of mixed-phase
+microphysics within the updraft.\\
+
 \end{enumerate}
 
-A major augmentation in \ac{RegCM4} compared to previous versions of the model
+A major augmentation in \ac{RegCM} compared to previous versions of the model
 is the capability of running different convection schemes over land and ocean,
-a configuration which we refer to as “mixed convection”. Extensive test
+a configuration which we refer to as ``mixed convection''. Extensive test
 experiments showed that different schemes have different performance over
-different regions, and in particular over Land vs. Ocean areas.
+different regions, and in particular over land versus ocean areas.
 
 For example, the MIT scheme tends to produce excessive precipitation over land
 areas, especially through the occurrence of very intense individual
-precipitation events.
-
-In other words, once the scheme is activated, it becomes difficult to
-“decelerate”. Conversely, we found that the Grell scheme tends to produce
+precipitation events. In other words, once the scheme is activated, it becomes
+difficult to decelerate. Conversely, the Grell scheme tends to produce
 excessively weak precipitation over tropical oceans.
 
-These preliminary tests suggested that a mixed convection approach by which,
-for example, the MIT scheme is used over oceans and the Grell scheme over
-land, might be the most suitable option to pursue, and therefore this option
-was added to the model.
+These preliminary tests suggested that a mixed convection approach — by which,
+for example, the MIT scheme is used over oceans and the Grell scheme over land
+— might be the most suitable option to pursue, and therefore this option was
+added to the model.
 
 \subsection{Microphysics Schemes}
 
