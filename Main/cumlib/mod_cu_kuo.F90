@@ -171,6 +171,7 @@ module mod_cu_kuo
           ! 4) when seqt = eqt + deqt, cloud top is reached.
           !    eqt is the eqt of cloud (same as lcl eqt).
           !
+          ktop = max(kbase-3, 1)
           foundtop = .false.
           do k = 1, kbase
             kk = kbase + 1 - k
