@@ -150,15 +150,9 @@ module mod_cu_bm
     real(rkx), parameter :: efmnt = 0.70_rkx
     real(rkx), parameter :: fcc1 = 0.50_rkx
     real(rkx), parameter :: fcp = d_one - fcc1
-    !real(rkx), parameter :: dspbfl = -4843.75_rkx
-    !real(rkx), parameter :: dsp0fl = -7050.0_rkx
-    !real(rkx), parameter :: dsptfl = -2250.0_rkx
-    !real(rkx), parameter :: dspbfs = -3875.0_rkx
-    !real(rkx), parameter :: dsp0fs = -5875.0_rkx
-    !real(rkx), parameter :: dsptfs = -1875.0_rkx
-    real(rkx), parameter :: dspbfl = -3875.0_rkx
-    real(rkx), parameter :: dsp0fl = -5875.0_rkx
-    real(rkx), parameter :: dsptfl = -1875.0_rkx
+    real(rkx), parameter :: dspbfl = -4843.75_rkx
+    real(rkx), parameter :: dsp0fl = -7050.0_rkx
+    real(rkx), parameter :: dsptfl = -2250.0_rkx
     real(rkx), parameter :: dspbfs = -3875.0_rkx
     real(rkx), parameter :: dsp0fs = -5875.0_rkx
     real(rkx), parameter :: dsptfs = -1875.0_rkx
@@ -593,7 +587,7 @@ module mod_cu_bm
       !
       ! update precipitation, temperature & moisture
       !
-      pratec = ((m2c%psf(j,i)*preck*cprlg)*d_100)/dtsec
+      pratec = ((m2c%psf(j,i)*preck*cprlg)*d_1000)/dtsec
       if ( pratec > dlowval ) then
         ! precipitation rate for surface (mm/s)
         cu_prate(j,i) = cu_prate(j,i) + pratec
