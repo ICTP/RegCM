@@ -355,7 +355,7 @@
  icup_ocn =          4, ! Cumulus convection scheme Over Icean
                         !   1 => Kuo
                         !   2 => Grell
-                        !   3 => Betts-Miller (1986) DOES NOT WORK !!!
+                        !   3 => Betts-Miller (1986)
                         !   4 => Emanuel (1991)
                         !   5 => Tiedtke (1996)
                         !   6 => Kain-Fritsch (1990), Kain (2004)
@@ -685,28 +685,22 @@
 ! Tiedtke Cumulus scheme control
 !
  &tiedtkeparam
- iconv = 4,             ! Actual used scheme.
- entrmax = 1.75e-3,     ! Max entrainment iconv=[1,2,3]
  entrdd  = 3.0e-4,      ! Entrainment rate for cumulus downdrafts
+ entshalp = 2.0,        ! shallow entrainment factor for entrorg
  entrpen_lnd = 1.75e-3, ! Entrainment rate for penetrative convection
  entrpen_ocn = 1.75e-3, ! Entrainment rate for penetrative convection
- entrscv = 3.0e-4,      ! Entrainment rate for shallow convection iconv=[1,2,3]
- entrmid = 1.0e-4,      ! Entrainment rate for midlevel convection iconv=[1,2,3]
- cprcon = 1.0e-4,       ! Coefficient for determining conversion iconv=[1,2,3]
- detrpen_lnd = 0.75e-4, ! Detrainment rate for penetrative convection iconv=4
- detrpen_ocn = 0.75e-4, ! Detrainment rate for penetrative convection iconv=4
- rcuc_lnd = 0.05,       ! Convective cloud cover for rain evporation iconv=4
- rcuc_ocn = 0.05,       ! Convective cloud cover for rain evporation iconv=4
- rcpec_lnd = 5.55e-5,   ! Coefficient for rain evaporation below cloud iconv=4
- rcpec_ocn = 5.55e-5,   ! Coefficient for rain evaporation below cloud iconv=4
- rhebc_lnd = 0.8,       ! Critical rh below cloud for evaporation iconv=4
- rhebc_ocn = 0.8,       ! Critical rh below cloud for evaporation iconv=4
- rprc_lnd = 1.4e-3,     ! conversion coefficient from cloud water iconv=4
- rprc_ocn = 1.4e-3,     ! conversion coefficient from cloud water iconv=4
+ detrpen_lnd = 0.75e-4, ! Detrainment rate for penetrative convection
+ detrpen_ocn = 0.75e-4, ! Detrainment rate for penetrative convection
+ rcuc_lnd = 0.05,       ! Convective cloud cover for rain evporation
+ rcuc_ocn = 0.05,       ! Convective cloud cover for rain evporation
+ rcpec_lnd = 5.55e-5,   ! Coefficient for rain evaporation below cloud
+ rcpec_ocn = 5.55e-5,   ! Coefficient for rain evaporation below cloud
+ rhebc_lnd = 0.8,       ! Critical rh below cloud for evaporation
+ rhebc_ocn = 0.8,       ! Critical rh below cloud for evaporation
+ rprc_lnd = 1.4e-3,     ! conversion coefficient from cloud water
+ rprc_ocn = 1.4e-3,     ! conversion coefficient from cloud water
  revap_lnd = 1.0e-5,    ! Raindrop evap rate coef land
  revap_ocn = 1.0e-5,    ! Raindrop evap rate coef ocean
- entshalp = 2.0,        ! shallow entrainment factor for entrorg iconv=4
- cmtcape = 3600.0,      ! CAPE adjustment timescale iconv=[1,2,3]
  lmfpen    = .true.,    ! penetrative conv is switched on
  lmfmid    = .true.,    ! midlevel conv is switched on
  lmfdd     = .true.,    ! cumulus downdraft is switched on

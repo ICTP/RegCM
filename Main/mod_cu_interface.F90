@@ -35,7 +35,6 @@ module mod_cu_interface
       cu_convpr, cu_chiten, avg_ww, cu_srate
   use mod_cu_tiedtke, only : allocate_mod_cu_tiedtke, tiedtkedrv, &
       pmean, nmctop
-  use mod_cu_tables, only : init_convect_tables
   use mod_cu_bm, only : allocate_mod_cu_bm, bmpara, cldefi
   use mod_cu_em, only : allocate_mod_cu_em, cupemandrv, cbmf2d
   use mod_cu_kuo, only : allocate_mod_cu_kuo, cupara, twght, vqflx, k700
@@ -87,9 +86,6 @@ module mod_cu_interface
   real(rkx), pointer, contiguous, dimension(:,:,:) :: utend => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: vtend => null( )
 
-  ! Midlevel convection top pressure for Tiedtke iconv = 1
-  real(rkx), parameter :: cmcptop = 30000.0_rkx
-
   contains
 
   subroutine allocate_cumulus
@@ -125,7 +121,6 @@ module mod_cu_interface
       call allocate_mod_cu_em
     end if
     if ( any(icup == 5) ) then
-      if ( iconv /= 4 ) call init_convect_tables
       call allocate_mod_cu_tiedtke
     end if
     if ( any(icup == 6) ) then
@@ -298,49 +293,23 @@ module mod_cu_interface
           !$acc end kernels
         end if
         if ( any(icup == 5) ) then
-          if ( iconv == 1 ) then
-            ! Calculate average elevation of cmcptop level
-            nmctop = 0
+          ijs = real(((jci2-jci1)*(ici2-ici1)),rkx)
+          do concurrent ( k = 1:kz )
+            mymean_tmp = d_zero
 #ifdef STDPAR
-            do concurrent ( j = jci1:jci2, i = ici1:ici2 ) reduce(+:nmctop)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 ) reduce(+:mymean_tmp)
 #else
             do i = ici1, ici2
             do j = jci1, jci2
 #endif
-              iplmlc = 1
-              !$acc loop seq
-              do k = 1, kzp1
-                iplmlc = k
-                if ( m2c%pasf(j,i,k) >= cmcptop ) exit
-              end do
-              nmctop = nmctop + iplmlc
+              mymean_tmp = mymean_tmp + m2c%pas(j,i,k)
             end do
 #ifndef STDPAR
             end do
 #endif
-            iplmlc = nmctop / ((jci2-jci1)*(ici2-ici1))
-            call minall(iplmlc,mintop)
-            call maxall(iplmlc,maxtop)
-            nmctop = (mintop+maxtop)/2
-          else if ( iconv == 4 ) then
-            ijs = real(((jci2-jci1)*(ici2-ici1)),rkx)
-            do concurrent ( k = 1:kz )
-              mymean_tmp = d_zero
-#ifdef STDPAR
-              do concurrent ( j = jci1:jci2, i = ici1:ici2 ) reduce(+:mymean_tmp)
-#else
-            do i = ici1, ici2
-            do j = jci1, jci2
-#endif
-                mymean_tmp = mymean_tmp + m2c%pas(j,i,k)
-              end do
-              mymean(k) = mymean_tmp/ijs
-            end do
-#ifndef STDPAR
-            end do
-#endif
-            call meanall(mymean,pmean,kz)
-          end if
+            mymean(k) = mymean_tmp/ijs
+          end do
+          call meanall(mymean,pmean,kz)
           !$acc kernels
           cu_qdetr(:,:,:) = d_zero
           cu_raincc(:,:,:) = d_zero

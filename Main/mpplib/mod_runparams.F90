@@ -335,21 +335,13 @@ module mod_runparams
   logical, public :: lmfsmooth = .false. ! smoot of mass fluxes for tracers
   logical, public :: lmfwstar  = .false. ! Grant w* closure for shallow conv
 
-  integer(ik4), public :: iconv
-
   real(rkx), public :: entrdd  ! entrainment rate for cumulus downdrafts
 
   ! ICONV 1, 2, 3
   real(rkx), public :: entrpen_lnd ! entrainment rate for penetrative conv.
   real(rkx), public :: entrpen_ocn ! entrainment rate for penetrative conv.
-  real(rkx), public :: entrscv ! entrainment rate for shallow convection
-  real(rkx), public :: entrmid ! entrainment rate for midlevel convection
-  real(rkx), public :: cprcon  ! coefficients for determining conversion
-                                ! from cloud water to rain
-  real(rkx), public :: entrmax ! Max entrainment
 
   ! ICONV 4 paramters
-  real(rkx), public :: cmtcape   ! CAPE removal timestep
   real(rkx), public :: rcuc_lnd  ! Convective cloud cover for rain evporation
   real(rkx), public :: rcuc_ocn  ! Convective cloud cover for rain evporation
   real(rkx), public :: rcpec_lnd ! Coefficient for rain evaporation below cloud

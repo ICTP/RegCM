@@ -147,13 +147,11 @@ module mod_params
       elcrit_lnd_min, elcrit_lnd_max, sigs_min, sigs_max,   &
       sigd_min, sigd_max
 
-    namelist /tiedtkeparam/ iconv, entrmax, entrdd, entrpen_lnd, &
-      entrpen_ocn, entrscv, entrmid, cprcon, detrpen_lnd,        &
-      detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, rcpec_lnd,      &
-      rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd,       &
-      revap_lnd, revap_ocn, cmtcape, lmfpen, lmfmid, lmfdd,      &
-      lepcld, lmfdudv, lmfscv, lmfuvdis, lmftrac, lmfsmooth,     &
-      lmfwstar
+    namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
+      detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
+      rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
+      revap_lnd, revap_ocn, lmfpen, lmfmid, lmfdd, lepcld, lmfdudv,   &
+      lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar
 
     namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
       kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate,        &
@@ -474,16 +472,11 @@ module mod_params
     ! tiedtkeparam ;
     ! Taken from MPI Echam settings
     !
-    iconv    = 4            ! Selects the actual scheme
-    entrmax  = 1.75e-3_rkx  ! Max entrainment iconv=[1,2,3]
-    entrdd   = 3.0e-4_rkx   ! Entrainment rate for cumulus downdrafts
     entrpen_lnd  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
     entrpen_ocn  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
-    entrscv  = 3.0e-4_rkx   ! Entrainment rate for shallow convn iconv=[1,2,3]
-    entrmid  = 1.0e-4_rkx   ! Entrainment rate for midlevel convn iconv=[1,2,3]
-    cprcon   = 1.0e-4_rkx   ! Coefficient for determine conversion iconv=[1,2,3]
     detrpen_lnd = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
     detrpen_ocn = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
+    entrdd  = 3.0e-4_rkx   ! Entrainment rate for cumulus downdrafts
     entshalp = 2.0_rkx      ! shallow entrainment factor for entrpen
     rcuc_lnd = 0.05_rkx     ! Convective cloud cover for rain evporation
     rcuc_ocn = 0.05_rkx     ! Convective cloud cover for rain evporation
@@ -497,7 +490,6 @@ module mod_params
     rprc_ocn = 1.4e-3_rkx   ! coefficient for conversion from cloud water
     revap_lnd = 1.0e-5_rkx  ! coefficient for evaporation over land
     revap_ocn = 1.0e-5_rkx  ! coefficient for evaporation over ocean
-    cmtcape = 3600.0_rkx   ! CAPE adjustment timescale
     lmfpen    = .true.  ! penetrative conv is switched on
     lmfmid    = .true.  ! midlevel conv is switched on
     lmfdd     = .true.  ! cumulus downdraft is switched on
@@ -1813,17 +1805,12 @@ module mod_params
     end if
 
     if ( any(icup == 5) ) then
-      call bcast(iconv)
-      call bcast(entrmax)
       call bcast(entrdd)
+      call bcast(entshalp)
       call bcast(entrpen_lnd)
       call bcast(entrpen_ocn)
-      call bcast(entrscv)
-      call bcast(entrmid)
-      call bcast(cprcon)
       call bcast(detrpen_lnd)
       call bcast(detrpen_ocn)
-      call bcast(entshalp)
       call bcast(rcuc_lnd)
       call bcast(rcuc_ocn)
       call bcast(rcpec_lnd)
@@ -1834,7 +1821,6 @@ module mod_params
       call bcast(rprc_ocn)
       call bcast(revap_lnd)
       call bcast(revap_ocn)
-      call bcast(cmtcape)
       call bcast(lmfpen)
       call bcast(lmfmid)
       call bcast(lmfdd)
@@ -2848,24 +2834,10 @@ module mod_params
     if ( any(icup == 5)  ) then
       if ( myid == italk ) then
         write(stdout,*) 'Tiedtke (1986) Convection Scheme used.'
-        write(stdout,'(a,i2)')    &
-          '  Used Scheme                       : ',iconv
         write(stdout,'(a,f11.6)') &
           '  Entrainment rate pen. conv. land  : ',entrpen_lnd
         write(stdout,'(a,f11.6)') &
           '  Entrainment rate pen. conv. ocean : ',entrpen_ocn
-        write(stdout,'(a,f11.6)') &
-          '  Entrainment rate shallow conv.    : ',entrscv
-        write(stdout,'(a,f11.6)') &
-          '  Entrainment rate midlev conv.     : ',entrmid
-        write(stdout,'(a,f11.6)') &
-          '  Entrainment rate cumulus downdraft: ',entrdd
-        write(stdout,'(a,f11.6)') &
-          '  CLW to rain conversion factor     : ',cprcon
-        write(stdout,'(a,f11.6)') &
-          '  Max entrainment                   : ',entrmax
-        write(stdout,'(a,f12.6)') &
-          '  CAPE adjustment timescale         : ',cmtcape
       end if
     end if
     if ( any(icup == 6)  ) then
