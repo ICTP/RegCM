@@ -450,7 +450,7 @@ module mod_cu_kf
       do k = 2, kl
         dza(k-1) = z0(k,np)-z0(k-1,np)
       end do
-      dza(kl) = d_zero
+      dza(kl) = dza(kl-1) ! extend with previous layer thickness
       !
       !
       ! To save time, specify a pressure interval to move up in sequential
@@ -1812,14 +1812,14 @@ module mod_cu_kf
           umf_new = umf(nk)/dxsq
           xcldfra = kfac_shal*log(d_one+k2_const*umf_new)
           xcldfra = min(max(0.01_rkx,xcldfra),0.6_rkx)
-          cldfra_dp_kf(nk,np) = xcldfra
+          cldfra_sh_kf(nk,np) = xcldfra
         end do
       else
         do nk = klcl-1, ltop1
           umf_new = umf(nk)/dxsq
           xcldfra = kfac_deep*log(d_one+k2_const*umf_new)
           xcldfra = min(max(0.01_rkx,xcldfra),0.2_rkx)
-          cldfra_sh_kf(nk,np) = xcldfra
+          cldfra_dp_kf(nk,np) = xcldfra
         end do
       end if
       !
@@ -1958,8 +1958,8 @@ module mod_cu_kf
             es = aliq*exp((bliq*tg(k)-cliq)/(tg(k)-dliq))
           end if
           qgs = es*0.622_rkx/(p0(k,np)-es)
-          rh0 = max(q0(k,np)/qes(k,np),d_one)
-          rhg = max(qg(k)/qgs,d_one)
+          rh0 = min(q0(k,np)/qes(k,np),d_one)
+          rhg = min(qg(k)/qgs,d_one)
           write(stdout,1090) k,p0(k,np)/d_100,z0(k,np),t0(k,np)-tzero, &
                   tg(k)-tzero,dtt,tuc,tdc,q0(k,np)*d_1000,qg(k)*d_1000,   &
                   (qg(k)-q0(k,np))*d_1000,qu(k)*d_1000,QD(K)*d_1000,    &

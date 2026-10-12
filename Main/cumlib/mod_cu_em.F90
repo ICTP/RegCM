@@ -582,7 +582,7 @@ module mod_cu_em
       !
       ! if this point is reached, moist convective adjustment is necessary
       !
-      if ( iflag(n) /= 4 ) iflag = 1
+      if ( iflag(n) /= 4 ) iflag(n) = 1
       !
       ! Find the rest of the lifted parcel temperatures
       !
@@ -990,9 +990,9 @@ module mod_cu_em
       ! Calculate downdraft velocity scale and surface temperature and
       ! water vapor fluctuations
       !
-      wd = betae*abs(mp(icb))*0.01_rkx*rgas*t(n,icb)/(sigd*p(n,icb))
-      qprime = d_half*(qp(1)-q(n,1))
-      tprime = wlhv*qprime*rcpd
+      wd(n) = betae*abs(mp(icb))*0.01_rkx*rgas*t(n,icb)/(sigd*p(n,icb))
+      qprime(n) = d_half*(qp(1)-q(n,1))
+      tprime(n) = wlhv*qprime(n)*rcpd
       !
       ! Calculate tendencies of lowest level potential temperature
       ! and mixing ratio
@@ -1004,7 +1004,7 @@ module mod_cu_em
           am = am + m(k)
         end do
       end if
-      if ( (d_two*egrav*dpinv*am) >= d_one/dt ) iflag = 4
+      if ( (d_two*egrav*dpinv*am) >= d_one/dt ) iflag(n) = 4
       ft(n,1) = ft(n,1) + egrav*dpinv*am*(t(n,2)-t(n,1)+(gz(2)-gz(1))/cpn(1))
       ft(n,1) = ft(n,1) - lvcp(1)*sigd*evap(1)
       ft(n,1) = ft(n,1) + sigd*wt(2)*(cpw-cpd)*water(2)* &
@@ -1051,7 +1051,7 @@ module mod_cu_em
             amp1 = amp1 + ment(k,j)
           end do
         end do
-        if ( (d_two*egrav*dpinv*amp1) >= d_one/dt ) iflag = 4
+        if ( (d_two*egrav*dpinv*amp1) >= d_one/dt ) iflag(n) = 4
         do k = 1, i - 1
           do j = i, ict
             ad = ad + ment(j,k)

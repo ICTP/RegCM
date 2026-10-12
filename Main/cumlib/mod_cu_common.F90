@@ -61,9 +61,6 @@ module mod_cu_common
 
   subroutine init_mod_cumulus
     implicit none
-    integer(ik4), dimension(:), allocatable:: iseed
-    integer(ik4) :: k, nseed
-    real(rk4) :: cputime
 
     if ( any(icup == 4) .or. any(icup == 5) ) then
       if ( idynamic == 3 ) then
