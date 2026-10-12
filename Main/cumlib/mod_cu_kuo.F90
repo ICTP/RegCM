@@ -77,7 +77,7 @@ module mod_cu_kuo
             t1, tdmax, tdpt, tlcl, tmax, tmean, ttconv, ttp,      &
             ttsum, xsav, zlcl
     integer(ik4) :: i, j, k, kbase, kk, ktop
-    logical :: lconv
+    logical :: lconv, foundtop
     real(rkx), dimension(kz) :: tux, pux, qux, seqt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cupara'
@@ -171,17 +171,17 @@ module mod_cu_kuo
           ! 4) when seqt = eqt + deqt, cloud top is reached.
           !    eqt is the eqt of cloud (same as lcl eqt).
           !
-          ktop = max(kbase-3,1)
-          kk = 1
+          foundtop = .false.
           do k = 1, kbase
             kk = kbase + 1 - k
             deqt = seqt(kk) - eqtm
-            if ( deqt > dlt ) exit
+            if ( deqt > dlt ) then
+              foundtop = .true.
+              exit
+            end if
           end do
-          !
-          ! cloud top has been reached
-          !
-          ktop = min(kk,ktop)
+          if ( .not. foundtop ) cycle
+          ktop = min(kk, ktop)
           !
           ! 5) check cloud depth
           !    if cloud depth is less than critical depth (cdscld = 0.3),
@@ -213,7 +213,7 @@ module mod_cu_kuo
               sumb = d_zero
               arh = d_zero
               qwght(:) = d_zero
-              do k = ktop, kz
+              do k = ktop, kbase
                 psg = pux(k)
                 ttp = tux(k)
                 ee = svp1*exp(svp2*(tux(k)-svpt0)/(tux(k)-svp3))
@@ -247,7 +247,7 @@ module mod_cu_kuo
               cu_ktop(j,i) = ktop
               cu_kbot(j,i) = kbase
               ! the unit for rainfall is kg m-2 s-1
-              pratec = (d_one-c301)*sca*d_100*regrav
+              pratec = (d_one-c301)*sca*psx*d_100*regrav
               if ( pratec > dlowval ) then
                 ! instantaneous precipitation rate for use in surface (mm/s)
                 cu_prate(j,i) = cu_prate(j,i) + pratec
