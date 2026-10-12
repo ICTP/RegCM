@@ -482,7 +482,7 @@ module mod_moloch
     implicit none
     integer(ik4) :: i, j, k, n
     ! Newtonian factor
-    real(rkx), save :: tspectral = 0.0_rkx
+    integer(ik4), save :: ispnudge = 0
     !@acc call nvtxStartRange("boundary")
 
     if ( idiag > 0 ) then
@@ -529,9 +529,9 @@ module mod_moloch
     end if
 
     if ( mo_spectral_nudge ) then
-      tspectral = tspectral + dtsec
-      if ( int(mod(tspectral,dtrad)) == 0 ) then
-        call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci1,ici1,ici2,t,xtb)
+      ispnudge = ispnudge + 1
+      if ( ispnudge >= int(dtrad/dtsec,ik4) ) then
+        call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci2,ici1,ici2,t,xtb)
         call mospectral_nudge(jde1,jde2,ice1,ice2,jdi1,jdi2,ici1,ici2,u,dub)
         call mospectral_nudge(jce1,jce2,ide1,ide2,jci1,jci2,idi1,idi2,v,dvb)
       end if
@@ -756,7 +756,7 @@ module mod_moloch
     real(rkx), intent(in) :: dta
     integer(ik4) :: i, j, k, n
     real(rkx), pointer, contiguous, dimension(:,:,:) :: ptr => null( )
-    real(rkx) :: tanx, tany
+    real(rkx) :: tanx, tany, uux, vvx
 
     !@acc call nvtxStartRange("advection")
 
@@ -797,12 +797,10 @@ module mod_moloch
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       tanx = (mxu(j+1,i)-mxu(j,i))*rdx
       tany = (myv(j,i+1)-myv(j,i))*rdx
-      ux(j,i,k) = ux(j,i,k) + &
-            (ux(j,i,k) * vx(j,i,k) * tanx - &
-             vx(j,i,k) * vx(j,i,k) * tany) * dta
-      vx(j,i,k) = vx(j,i,k) + &
-            (ux(j,i,k) * vx(j,i,k) * tany - &
-             ux(j,i,k) * ux(j,i,k) * tanx) * dta
+      uux = ux(j,i,k)
+      vvx = vx(j,i,k)
+      ux(j,i,k) = ux(j,i,k) + (uux*vvx*tanx - vvx*vvx*tany) * dta
+      vx(j,i,k) = vx(j,i,k) + (uux*vvx*tany - uux*uux*tanx) * dta
     end do
 
     ! Interpolate on staggered points
