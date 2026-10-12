@@ -377,7 +377,7 @@ module mod_sun
         end if
         iidate = (rcmtimer%year-1850)*12 + rcmtimer%month
         if ( iidate < 1 ) then
-          iidate = mod(iidate,132)+1
+          iidate = mod(iidate-1+132,132) + 1
         else if ( iidate > 5400) then
           iidate = 5400 - 132 + mod(iidate,132)
         end if
@@ -393,11 +393,11 @@ module mod_sun
           iyear = rcmtimer%year-1
         end if
         iidate = rcmtimer%year*10000+rcmtimer%month*100+rcmtimer%day
-        if ( iidate > 20080630 ) then
-          iyear = mod(rcmtimer%year,12)+1996
-        end if
         if ( iidate < 16100101 ) then
           iyear = 1610 + mod(rcmtimer%year,12)
+        end if
+        if ( iidate > 20071231 ) then
+          iyear = mod(rcmtimer%year, 12) + 1996
         end if
         solar_irradiance = tsifac*(w1*tsi(3,iyear)+w2*tsi(3,iyear+1))
       end if
