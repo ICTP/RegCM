@@ -5017,6 +5017,17 @@ module mod_rad_radiation
     call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,co2vmr,rt%cld, &
                 rt%o3vmr,pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
     !
+    ! Compute Total Cloud fraction - Maximum-Random Overlap (MRO) scheme.
+    !
+    do concurrent ( n = rt%n1:rt%n2 )
+      rt%totcf(n) = 1.001_rk8-rt%cld(1,n)
+      do k = 2, kz
+        rt%totcf(n) = rt%totcf(n) * (1.001_rk8-max(rt%cld(k,n), &
+                          rt%cld(k-1,n)))/(1.001_rk8-rt%cld(k-1,n))
+      end do
+      rt%totcf(n) = max(0.0_rk8,min(1.0_rk8,1.001_rk8-rt%totcf(n)))
+    end do
+    !
     ! Solar radiation computation
     !
     if ( dosw ) then
@@ -5035,17 +5046,6 @@ module mod_rad_radiation
                   rt%solsd,rt%solld,rt%fsnirt,rt%fsnrtc,rt%fsnirtsq,  &
                   rt%abv,rt%sol,rt%aeradfo,rt%aeradfos,rt%tauxcl,     &
                   rt%tauxci,rt%outtaucl,rt%outtauci)
-      !
-      ! Compute Total Cloud fraction - Maximum-Random Overlap (MRO) scheme.
-      !
-      do concurrent ( n = rt%n1:rt%n2 )
-        rt%totcf(n) = 1.001_rk8-rt%cld(1,n)
-        do k = 2, kz
-          rt%totcf(n) = rt%totcf(n) * (1.001_rk8-max(rt%cld(k,n), &
-                            rt%cld(k-1,n)))/(1.001_rk8-rt%cld(k-1,n))
-        end do
-        rt%totcf(n) = max(0.0_rk8,min(1.0_rk8,1.001_rk8-rt%totcf(n)))
-      end do
 
       do concurrent ( n = rt%n1:rt%n2 )
         !
@@ -5063,12 +5063,7 @@ module mod_rad_radiation
         ! note : should be generalised to the whole column to be
         !        really in energy balance !
         !
-        ! maximum cld cover considered
-        ! rt%fsns(n) = rt%fsns(n) * maxval(rt%cld(:,n)) + &
-        !           rt%fsnsc(n) * (1-maxval(rt%cld(:,n)))
-        ! random overlap assumption is tocf(n)
         ! Now average btw rand ov and maximum cloud cover as fil suggest
-        ! rt%totcf(n) =  0.5_rk8 * ( rt%totcf(n) + maxval(rt%cld(:,n)) )
         ! abv is proportional to fsns in radcsw : Calculate the factor
         if ( rt%fsns(n) > 0.0_rk8 ) then
           betafac = rt%abv(n) / rt%fsns(n)
@@ -5203,8 +5198,6 @@ module mod_rad_radiation
         !            fslwdcs(n)*(1.0_rk8-maxval(rt%cld(:,n)))
         ! rt%flns(n) = rt%flns(n) * maxval(rt%cld(:,n)) + &
         !           rt%flnsc(n)*(1.0_rk8-maxval(rt%cld(:,n)))
-        !
-        ! rt%totcf(n) has been calculated for the SW, dolw is always true
         !
         if ( lsrfhack ) then
           rt%flwds(n) = rt%flwds(n) * rt%totcf(n) + &
