@@ -41,7 +41,7 @@ module mod_cu_shallow
 
     real(rkx), dimension(kz) :: t, q, p, outts, tns, qns, outqs
     real(rkx) :: xmb
-    real(rkx) :: ter11, pret, psur
+    real(rkx) :: ter11, psur
 
     integer(ik4) :: i, j, kbmax, k, kk, ier
 
@@ -68,19 +68,14 @@ module mod_cu_shallow
           outts(k) = d_zero
           outqs(k) = d_zero
         end do
-        pret = d_zero
         ter11 = m2c%ht(j,i)*regrav
         if ( ter11 <= d_zero ) ter11 = 1.e-05_rkx
         !
         ! Call cumulus parameterization
         !
         ier = 0
-        call shallow(t,q,ter11,tns,qns,p,kz,pret,p,outts,outqs,dtcum, &
+        call shallow(t,q,ter11,tns,qns,p,kz,p,outts,outqs,dtcum, &
                      kbmax,pcut,c0,psur,ier,rads,xmb)
-        if ( xmb > d_zero ) then
-          total_precip_points = total_precip_points+1
-          cu_prate(j,i) = pret/dt
-        end if
         do k = 1, kz
           kk = kzp1 - k
           cu_tten(j,i,kk) = outts(k)
@@ -90,14 +85,13 @@ module mod_cu_shallow
     end do
   end subroutine shallcu
 
-  subroutine shallow(ti,qi,z1,tio,qio,pio,klev,pre,pi,outtem,outq, &
+  subroutine shallow(ti,qi,z1,tio,qio,pio,klev,pi,outtem,outq, &
                   dtime,kbmax,pcut,c0,psur,ier,rads,xmb)
     implicit none
       integer(ik4), intent(in) :: klev, kbmax
       real(rkx), intent(in) :: z1, dtime, pcut, c0, psur, rads
       real(rkx), intent(out) :: xmb
       integer(ik4), intent(out) :: ier
-      real(rkx), intent(out) :: pre
       !
       ! Environmental properties before large scale forcing,
       ! only t,qe and p are needed for input!
@@ -168,7 +162,6 @@ module mod_cu_shallow
       lloop = 0
       ier = 0
       mbdt = dtime*5.0e-3_rkx
-      pre = d_zero
 
       do lloop = 1, 2
         if ( lloop == 2 ) then
@@ -471,33 +464,30 @@ module mod_cu_shallow
      !
      ! Calculate output
      !
-     call araouts(xmflux,xmb,zuo,dellt,dellq,kz,outtem,outq,ier,pre)
+     call araouts(xmflux,xmb,zuo,dellt,dellq,kz,outtem,outq,ier)
      if ( ier > 0 ) then
        do k = 1, kz
          outtem(k) = d_zero
          outq(k) = d_zero
        end do
-       pre = d_zero
        ier = 0
        return
      end if
 
   contains
 
-    subroutine araouts(xmc,xmb,zu,delt,delq,kz,outtem,outq,ier,pre)
+    subroutine araouts(xmc,xmb,zu,delt,delq,kz,outtem,outq,ier)
       implicit none
       integer(ik4), intent(in) :: kz
       real(rkx), intent(inout) :: xmb
       real(rkx), dimension(kz), intent(in) :: delt, delq, zu
       real(rkx), dimension(kz), intent(out) :: xmc, outtem, outq
       integer(ik4), intent(out) :: ier
-      real(rkx), intent(out) :: pre
       integer(ik4) :: k, ibcout
       real(rkx) :: outtes
 
       ier = 0
       ibcout = 0
-      pre = d_zero
       do k = 1, kz
         outtem(k) = d_zero
         outq(k) = d_zero
@@ -543,7 +533,7 @@ module mod_cu_shallow
       !
       ! Calculate cloud work function for updraft
       !
-      do  k = kbcon, ktop
+      do  k = kbcon, ktop-1
         gamma1 = (wlhv/cpd)*(wlhv/(rwat*(tempp(k)**2)))*qes(k)
         gamma2 = (wlhv/cpd)*(wlhv/(rwat*(tempp(k+1)**2)))*qes(k+1)
         dhh = hc(k)
@@ -581,7 +571,7 @@ module mod_cu_shallow
       kend = kz-1
       if ( kbc+1 > kend ) return
       do k = kbc+1, kend
-        dz = d_half*(p(k-1)+p(k+1))
+        dz = d_half*(p(k+1)-p(k-1))
         hc(k) = (hc(k-1)*(d_one - d_half*dz*ent) + ent*dz*h(k)) / &
                 (d_one + d_half*ent*dz)
         dby = hc(k) - d_half*(hsat(k)+hsat(k+1))
@@ -629,7 +619,6 @@ module mod_cu_shallow
         dv2 = var(k)
         della(kbeg) = (dv1-dv2)*egrav/dp
       endif
-      della(kbeg) = d_zero
 
       if ( kbeg+1 < ktop ) then
         do k = kbeg+1, ktop-1

@@ -2294,7 +2294,8 @@ module mod_micro_wdm7
         rslope2(i,k) = rsloper2max
         rslope3(i,k) = rsloper3max
       else
-        rslope(i,k) = min(1.0_rkx/lamdar(qrs(i,k),den(i,k),ncr(i,k),pidnr),1.e-3_rkx)
+        rslope(i,k) = min(1.0_rkx/ &
+          lamdar(qrs(i,k),den(i,k),ncr(i,k),pidnr),1.e-3_rkx)
         rslopeb(i,k) = rslope(i,k)**bvtr
         rslope2(i,k) = rslope(i,k)*rslope(i,k)
         rslope3(i,k) = rslope2(i,k)*rslope(i,k)
