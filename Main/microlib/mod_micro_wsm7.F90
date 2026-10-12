@@ -1698,7 +1698,7 @@ module mod_micro_wsm7
         rslope2(i,k,1) = rsloper2max
         rslope3(i,k,1) = rsloper3max
       else
-        rslope(i,k,1) = d_one/lamdar(qrs(i,k,1),den(i,k))
+        rslope(i,k,1) = d_one/lamdar(qrs(i,k,1),den(i,k),pidn0r)
         rslopeb(i,k,1) = exp(log(rslope(i,k,1))*(bvtr))
         rslope2(i,k,1) = rslope(i,k,1)*rslope(i,k,1)
         rslope3(i,k,1) = rslope2(i,k,1)*rslope(i,k,1)
@@ -1709,7 +1709,7 @@ module mod_micro_wsm7
         rslope2(i,k,2) = rslopes2max
         rslope3(i,k,2) = rslopes3max
       else
-        rslope(i,k,2) = d_one/lamdas(qrs(i,k,2),den(i,k),n0sfac)
+        rslope(i,k,2) = d_one/lamdas(qrs(i,k,2),den(i,k),n0sfac,pidn0s)
         rslopeb(i,k,2) = exp(log(rslope(i,k,2))*(bvts))
         rslope2(i,k,2) = rslope(i,k,2)*rslope(i,k,2)
         rslope3(i,k,2) = rslope2(i,k,2)*rslope(i,k,2)
@@ -1720,7 +1720,7 @@ module mod_micro_wsm7
         rslope2(i,k,3) = rslopeg2max
         rslope3(i,k,3) = rslopeg3max
       else
-        rslope(i,k,3) = d_one/lamdag(qrs(i,k,3),den(i,k))
+        rslope(i,k,3) = d_one/lamdag(qrs(i,k,3),den(i,k),pidn0g)
         rslopeb(i,k,3) = rslope(i,k,3)**bvtg
         rslope2(i,k,3) = rslope(i,k,3)*rslope(i,k,3)
         rslope3(i,k,3) = rslope2(i,k,3)*rslope(i,k,3)
@@ -1731,7 +1731,7 @@ module mod_micro_wsm7
         rslope2(i,k,4) = rslopeh2max
         rslope3(i,k,4) = rslopeh3max
       else
-        rslope(i,k,4) = d_one/lamdah(qrs(i,k,4),den(i,k))
+        rslope(i,k,4) = d_one/lamdah(qrs(i,k,4),den(i,k),pidn0h)
         rslopeb(i,k,4) = rslope(i,k,4)**bvth
         rslope2(i,k,4) = rslope(i,k,4)*rslope(i,k,4)
         rslope3(i,k,4) = rslope2(i,k,4)*rslope(i,k,4)
@@ -1750,32 +1750,36 @@ module mod_micro_wsm7
   ! size distributions: (x=mixing ratio, y=air density):
   ! valid for mixing ratio > 1.e-9 kg/kg.
   !
-  pure real(rkx) function lamdar(x,y)
+  pure real(rkx) function lamdar(x,y,pidn0r_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
-    lamdar = sqrt(sqrt(pidn0r/(x*y)))
+    real(rkx), value, intent(in) :: pidn0r_in
+    lamdar = sqrt(sqrt(pidn0r_in/(x*y)))
   end function lamdar
 
-  pure real(rkx) function lamdas(x,y,z)
+  pure real(rkx) function lamdas(x,y,z,pidn0s_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
-    lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
+    real(rkx), value, intent(in) :: pidn0s_in
+    lamdas = sqrt(sqrt(pidn0s_in*z/(x*y)))
   end function lamdas
 
-  pure real(rkx) function lamdag(x,y)
+  pure real(rkx) function lamdag(x,y,pidn0g_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
-    lamdag = sqrt(sqrt(pidn0g/(x*y)))
+    real(rkx), value, intent(in) :: pidn0g_in
+    lamdag = sqrt(sqrt(pidn0g_in/(x*y)))
   end function lamdag
 
-  pure real(rkx) function lamdah(x,y)
+  pure real(rkx) function lamdah(x,y,pidn0h_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
-    lamdah = sqrt(sqrt(pidn0h/(x*y)))
+    real(rkx), value, intent(in) :: pidn0h_in
+    lamdah = sqrt(sqrt(pidn0h_in/(x*y)))
   end function lamdah
 
   pure subroutine slope_rain(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
@@ -1792,7 +1796,7 @@ module mod_micro_wsm7
         rslope2(k) = rsloper2max
         rslope3(k) = rsloper3max
       else
-        rslope(k) = d_one/lamdar(qrs(k),den(k))
+        rslope(k) = d_one/lamdar(qrs(k),den(k),pidn0r)
         rslopeb(k) = rslope(k)**bvtr
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)
@@ -1822,7 +1826,7 @@ module mod_micro_wsm7
         rslope2(k) = rslopes2max
         rslope3(k) = rslopes3max
       else
-        rslope(k) = d_one/lamdas(qrs(k),den(k),n0sfac)
+        rslope(k) = d_one/lamdas(qrs(k),den(k),n0sfac,pidn0s)
         rslopeb(k) = rslope(k)**bvts
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)
@@ -1846,7 +1850,7 @@ module mod_micro_wsm7
         rslope2(k) = rslopeg2max
         rslope3(k) = rslopeg3max
       else
-        rslope(k) = d_one/lamdag(qrs(k),den(k))
+        rslope(k) = d_one/lamdag(qrs(k),den(k),pidn0g)
         rslopeb(k) = rslope(k)**bvtg
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)
@@ -1870,7 +1874,7 @@ module mod_micro_wsm7
         rslope2(k) = rslopeh2max
         rslope3(k) = rslopeh3max
       else
-        rslope(k) = d_one/lamdah(qrs(k),den(k))
+        rslope(k) = d_one/lamdah(qrs(k),den(k),pidn0h)
         rslopeb(k) = rslope(k)**bvth
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)

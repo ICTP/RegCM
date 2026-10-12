@@ -699,7 +699,7 @@ module mod_micro_wdm7
           rslopec2(i,k) = rslopec2max
           rslopec3(i,k) = rslopec3max
         else
-          rslopec(i,k) = 1.0_rkx/lamdac(qci(i,k,1),den(i,k),ncr(i,k,2))
+          rslopec(i,k) = 1.0_rkx/lamdac(qci(i,k,1),den(i,k),ncr(i,k,2),pidnc)
           rslopec2(i,k) = rslopec(i,k)*rslopec(i,k)
           rslopec3(i,k) = rslopec2(i,k)*rslopec(i,k)
         end if
@@ -1038,7 +1038,7 @@ module mod_micro_wdm7
           rslopec2(i,k) = rslopec2max
           rslopec3(i,k) = rslopec3max
         else
-          rslopec(i,k) = 1.0_rkx/lamdac(qci(i,k,1),den(i,k),ncr(i,k,2))
+          rslopec(i,k) = 1.0_rkx/lamdac(qci(i,k,1),den(i,k),ncr(i,k,2),pidnc)
           rslopec2(i,k) = rslopec(i,k)*rslopec(i,k)
           rslopec3(i,k) = rslopec2(i,k)*rslopec(i,k)
         end if
@@ -2151,7 +2151,7 @@ module mod_micro_wdm7
         if ( qci(i,k,1) <= qcimin ) qci(i,k,1) = 0.0_rkx
         if ( qci(i,k,2) <= qcimin ) qci(i,k,2) = 0.0_rkx
         if ( qrs(i,k,1) >= qrsmin .and. ncr(i,k,3) > nrmin ) then
-          lamdax = lamdar(qrs(i,k,1),den(i,k),ncr(i,k,3))
+          lamdax = lamdar(qrs(i,k,1),den(i,k),ncr(i,k,3),pidnr)
           if ( lamdax <= lamdarmin ) then
             lamdax = lamdarmin
             ncr(i,k,3) = den(i,k)*qrs(i,k,1)*(lamdax**3)/pidnr
@@ -2161,7 +2161,7 @@ module mod_micro_wdm7
           end if
         end if
         if ( qci(i,k,1) >= qcimin .and. ncr(i,k,2) > ncmin ) then
-          lamdax = lamdac(qci(i,k,1),den(i,k),ncr(i,k,2))
+          lamdax = lamdac(qci(i,k,1),den(i,k),ncr(i,k,2),pidnc)
           if ( lamdax <= lamdacmin ) then
             lamdax = lamdacmin
             ncr(i,k,2) = den(i,k)*qci(i,k,1)*(lamdax**3)/pidnc
@@ -2196,7 +2196,7 @@ module mod_micro_wdm7
         rslope2(i,k,1) = rsloper2max
         rslope3(i,k,1) = rsloper3max
       else
-        olr = 1.0_rkx/lamdar(qrs(i,k,1),den(i,k),ncr(i,k))
+        olr = 1.0_rkx/lamdar(qrs(i,k,1),den(i,k),ncr(i,k),pidnr)
         rslope(i,k,1) = min(olr,1.e-3_rkx)
         rslopeb(i,k,1) = rslope(i,k,1)**bvtr
         rslope2(i,k,1) = rslope(i,k,1)*rslope(i,k,1)
@@ -2210,7 +2210,7 @@ module mod_micro_wdm7
       else
         supcol = tzero-t(i,k)
         n0sfac = max(min(exp(alpha*supcol),nfacmax),1.0_rkx)
-        rslope(i,k,2) = 1.0_rkx/lamdas(qrs(i,k,2),den(i,k),n0sfac)
+        rslope(i,k,2) = 1.0_rkx/lamdas(qrs(i,k,2),den(i,k),n0sfac,pidn0s)
         rslopeb(i,k,2) = rslope(i,k,2)**bvts
         rslope2(i,k,2) = rslope(i,k,2)*rslope(i,k,2)
         rslope3(i,k,2) = rslope2(i,k,2)*rslope(i,k,2)
@@ -2221,7 +2221,7 @@ module mod_micro_wdm7
         rslope2(i,k,3) = rslopeg2max
         rslope3(i,k,3) = rslopeg3max
       else
-        rslope(i,k,3) = 1.0_rkx/lamdag(qrs(i,k,3),den(i,k))
+        rslope(i,k,3) = 1.0_rkx/lamdag(qrs(i,k,3),den(i,k),pidn0g)
         rslopeb(i,k,3) = rslope(i,k,3)**bvtg
         rslope2(i,k,3) = rslope(i,k,3)*rslope(i,k,3)
         rslope3(i,k,3) = rslope2(i,k,3)*rslope(i,k,3)
@@ -2232,7 +2232,7 @@ module mod_micro_wdm7
         rslope2(i,k,4) = rslopeh2max
         rslope3(i,k,4) = rslopeh3max
       else
-        rslope(i,k,4) = 1.0_rkx/lamdah(qrs(i,k,4),den(i,k))
+        rslope(i,k,4) = 1.0_rkx/lamdah(qrs(i,k,4),den(i,k),pidn0h)
         rslopeb(i,k,4) = rslope(i,k,4)**bvth
         rslope2(i,k,4) = rslope(i,k,4)*rslope(i,k,4)
         rslope3(i,k,4) = rslope2(i,k,4)*rslope(i,k,4)
@@ -2265,7 +2265,7 @@ module mod_micro_wdm7
         rslope2(k) = rsloper2max
         rslope3(k) = rsloper3max
       else
-        rslope(k) = min(1.0_rkx/lamdar(qrs(k),den(k),ncr(k)),1.e-3_rkx)
+        rslope(k) = min(1.0_rkx/lamdar(qrs(k),den(k),ncr(k),pidnr),1.e-3_rkx)
         rslopeb(k) = rslope(k)**bvtr
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)
@@ -2294,7 +2294,7 @@ module mod_micro_wdm7
         rslope2(i,k) = rsloper2max
         rslope3(i,k) = rsloper3max
       else
-        rslope(i,k) = min(1.0_rkx/lamdar(qrs(i,k),den(i,k),ncr(i,k)),1.e-3_rkx)
+        rslope(i,k) = min(1.0_rkx/lamdar(qrs(i,k),den(i,k),ncr(i,k),pidnr),1.e-3_rkx)
         rslopeb(i,k) = rslope(i,k)**bvtr
         rslope2(i,k) = rslope(i,k)*rslope(i,k)
         rslope3(i,k) = rslope2(i,k)*rslope(i,k)
@@ -2326,7 +2326,7 @@ module mod_micro_wdm7
      else
        supcol = tzero-t(k)
        n0sfac = max(min(exp(alpha*supcol),nfacmax),1.0_rkx)
-       rslope(k) = 1.0_rkx/lamdas(qrs(k),den(k),n0sfac)
+       rslope(k) = 1.0_rkx/lamdas(qrs(k),den(k),n0sfac,pidn0s)
        rslopeb(k) = rslope(k)**bvts
        rslope2(k) = rslope(k)*rslope(k)
        rslope3(k) = rslope2(k)*rslope(k)
@@ -2353,7 +2353,7 @@ module mod_micro_wdm7
         rslope2(k) = rslopeg2max
         rslope3(k) = rslopeg3max
       else
-        rslope(k) = 1.0_rkx/lamdag(qrs(k),den(k))
+        rslope(k) = 1.0_rkx/lamdag(qrs(k),den(k),pidn0g)
         rslopeb(k) = rslope(k)**bvtg
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)
@@ -2377,7 +2377,7 @@ module mod_micro_wdm7
         rslope2(k) = rslopeh2max
         rslope3(k) = rslopeh3max
       else
-        rslope(k) = 1.0_rkx/lamdah(qrs(k),den(k))
+        rslope(k) = 1.0_rkx/lamdah(qrs(k),den(k),pidn0h)
         rslopeb(k) = rslope(k)**bvth
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)
@@ -2984,39 +2984,44 @@ module mod_micro_wdm7
   ! size distributions: (x=mixing ratio, y=air density):
   ! valid for mixing ratio > 1.e-9 kg/kg.
   !
-  pure real(rkx) function lamdac(x,y,z)
+  pure real(rkx) function lamdac(x,y,z,pidnc_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
-    lamdac = exp(log(((pidnc*z)/(x*y)))*(1.0_rkx/3.0_rkx))
+    real(rkx), value, intent(in) :: pidnc_in
+    lamdac = exp(log(((pidnc_in*z)/(x*y)))*(1.0_rkx/3.0_rkx))
   end function lamdac
 
-  pure real(rkx) function lamdar(x,y,z)
+  pure real(rkx) function lamdar(x,y,z,pidnr_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
-    lamdar = exp(log(((pidnr*z)/(x*y)))*(1.0_rkx/3.0_rkx))
+    real(rkx), value, intent(in) :: pidnr_in
+    lamdar = exp(log(((pidnr_in*z)/(x*y)))*(1.0_rkx/3.0_rkx))
   end function lamdar
 
-  pure real(rkx) function lamdas(x,y,z)
+  pure real(rkx) function lamdas(x,y,z,pidn0s_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
-    lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
+    real(rkx), value, intent(in) :: pidn0s_in
+    lamdas = sqrt(sqrt(pidn0s_in*z/(x*y)))
   end function lamdas
 
-  pure real(rkx) function lamdag(x,y)
+  pure real(rkx) function lamdag(x,y,pidn0g_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
-    lamdag = sqrt(sqrt(pidn0g/(x*y)))
+    real(rkx), value, intent(in) :: pidn0g_in
+    lamdag = sqrt(sqrt(pidn0g_in/(x*y)))
   end function lamdag
 
-  pure real(rkx) function lamdah(x,y)
+  pure real(rkx) function lamdah(x,y,pidn0h_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
-    lamdah = sqrt(sqrt(pidn0h/(x*y)))
+    real(rkx), value, intent(in) :: pidn0h_in
+    lamdah = sqrt(sqrt(pidn0h_in/(x*y)))
   end function lamdah
   !
   !  Compute radiation effective radii of cloud water, ice, and snow for

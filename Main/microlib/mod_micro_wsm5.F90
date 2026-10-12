@@ -1012,7 +1012,7 @@ module mod_micro_wsm5
         rslope2(i,k,1) = rsloper2max
         rslope3(i,k,1) = rsloper3max
       else
-        rslope(i,k,1) = d_one/lamdar(qrs(i,k,1),den(i,k))
+        rslope(i,k,1) = d_one/lamdar(qrs(i,k,1),den(i,k),pidn0r)
         rslopeb(i,k,1) = exp(log(rslope(i,k,1))*(bvtr))
         rslope2(i,k,1) = rslope(i,k,1)*rslope(i,k,1)
         rslope3(i,k,1) = rslope2(i,k,1)*rslope(i,k,1)
@@ -1023,7 +1023,7 @@ module mod_micro_wsm5
         rslope2(i,k,2) = rslopes2max
         rslope3(i,k,2) = rslopes3max
       else
-        rslope(i,k,2) = d_one/lamdas(qrs(i,k,2),den(i,k),n0sfac)
+        rslope(i,k,2) = d_one/lamdas(qrs(i,k,2),den(i,k),n0sfac,pidn0s)
         rslopeb(i,k,2) = exp(log(rslope(i,k,2))*(bvts))
         rslope2(i,k,2) = rslope(i,k,2)*rslope(i,k,2)
         rslope3(i,k,2) = rslope2(i,k,2)*rslope(i,k,2)
@@ -1038,36 +1038,43 @@ module mod_micro_wsm5
   ! size distributions: (x=mixing ratio, y=air density):
   ! valid for mixing ratio > 1.e-9 kg/kg.
   !
-  pure real(rkx) function lamdar(x,y)
+  pure real(rkx) function lamdar(x,y,pidn0r_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
-    lamdar = sqrt(sqrt(pidn0r/(x*y)))
+    real(rkx), value, intent(in) :: pidn0r_in
+    lamdar = sqrt(sqrt(pidn0r_in/(x*y)))
   end function lamdar
 
-  pure real(rkx) function lamdas(x,y,z)
+  pure real(rkx) function lamdas(x,y,z,pidn0s_in)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
-    lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
+    real(rkx), value, intent(in) :: pidn0s_in
+    lamdas = sqrt(sqrt(pidn0s_in*z/(x*y)))
   end function lamdas
 
-  pure subroutine slope_rain(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
+  pure subroutine slope_rain(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt, &
+                            nz,pidn0r,rslopermax,rsloperbmax,rsloper2max, &
+                            rsloper3max,pvtr)
     !$acc routine seq
     implicit none
-    real(rkx), dimension(kz), intent(in) :: qrs, den, denfac
-    real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
-    real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
+    integer(ik4), value, intent(in) :: nz
+    real(rkx), value, intent(in) :: pidn0r, rslopermax, rsloperbmax, &
+                                   rsloper2max, rsloper3max, pvtr
+    real(rkx), dimension(nz), intent(in) :: qrs, den, denfac
+    real(rkx), dimension(nz), intent(out) :: rslope, rslopeb
+    real(rkx), dimension(nz), intent(out) :: rslope2, rslope3, vt
     integer(ik4) :: k
 
-    do k = 1, kz
+    do k = 1, nz
       if ( qrs(k) <= qrsmin ) then
         rslope(k) = rslopermax
         rslopeb(k) = rsloperbmax
         rslope2(k) = rsloper2max
         rslope3(k) = rsloper3max
       else
-        rslope(k) = d_one/lamdar(qrs(k),den(k))
+        rslope(k) = d_one/lamdar(qrs(k),den(k),pidn0r)
         rslopeb(k) = rslope(k)**bvtr
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)
@@ -1077,16 +1084,21 @@ module mod_micro_wsm5
     end do
   end subroutine slope_rain
 
-  pure subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt)
+  pure subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt, &
+                            nz,pidn0s,rslopesmax,rslopesbmax,rslopes2max, &
+                            rslopes3max,pvts)
     !$acc routine seq
     implicit none
-    real(rkx), dimension(kz), intent(in) :: t, qrs, den, denfac
-    real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
-    real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
+    integer(ik4), value, intent(in) :: nz
+    real(rkx), value, intent(in) :: pidn0s, rslopesmax, rslopesbmax, &
+                                   rslopes2max, rslopes3max, pvts
+    real(rkx), dimension(nz), intent(in) :: t, qrs, den, denfac
+    real(rkx), dimension(nz), intent(out) :: rslope, rslopeb
+    real(rkx), dimension(nz), intent(out) :: rslope2, rslope3, vt
     real(rkx) :: n0sfac, supcol
     integer(ik4) :: k
 
-    do k = 1, kz
+    do k = 1, nz
       supcol = tzero-t(k)
       !
       ! n0s: intercept parameter for snow [m-4] [hdc 6]
@@ -1098,7 +1110,7 @@ module mod_micro_wsm5
         rslope2(k) = rslopes2max
         rslope3(k) = rslopes3max
       else
-        rslope(k) = d_one/lamdas(qrs(k),den(k),n0sfac)
+        rslope(k) = d_one/lamdas(qrs(k),den(k),n0sfac,pidn0s)
         rslopeb(k) = rslope(k)**bvts
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)
@@ -1237,9 +1249,13 @@ module mod_micro_wsm5
         ! terminal velocity then back to use mean terminal velocity
         !
         if ( id == 1 ) then
-          call slope_rain(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
+          call slope_rain(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa, &
+                          kz,pidn0r,rslopermax,rsloperbmax,rsloper2max, &
+                          rsloper3max,pvtr)
         else
-          call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
+          call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa, &
+                          kz,pidn0s,rslopesmax,rslopesbmax,rslopes2max, &
+                          rslopes3max,pvts)
         end if
         if ( n >= 2 ) then
           do k = 1, kz
