@@ -308,13 +308,13 @@ module mod_diffusion
       if ( ma%has_bdyleft ) then
         j = jdi1
         do concurrent ( i = idi1:idi2, k = 1:kz )
-          uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) * &
+          uten(j,i,k) = uten(j,i,k) - xkd(j,i,k) * &
               (z4_c1*(u(j+1,i,k)/mpd(j+1,i) +  &
                       u(j-1,i,k)/mpd(j-1,i) +  &
                       u(j,i+1,k)/mpd(j,i+1) +  &
                       u(j,i-1,k)/mpd(j,i-1)) + &
                z4_c2*(u(j,i,k)/mpd(j,i)))
-          vten(j,i,k) = vten(j,i,k) + xkd(j,i,k) * &
+          vten(j,i,k) = vten(j,i,k) - xkd(j,i,k) * &
               (z4_c1*(v(j+1,i,k)/mpd(j+1,i) +  &
                       v(j-1,i,k)/mpd(j-1,i) +  &
                       v(j,i+1,k)/mpd(j,i+1) +  &
@@ -325,13 +325,13 @@ module mod_diffusion
       if ( ma%has_bdyright ) then
         j = jdi2
         do concurrent ( i = idi1:idi2, k = 1:kz )
-          uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) * &
+          uten(j,i,k) = uten(j,i,k) - xkd(j,i,k) * &
               (z4_c1*(u(j+1,i,k)/mpd(j+1,i) +  &
                       u(j-1,i,k)/mpd(j-1,i) +  &
                       u(j,i+1,k)/mpd(j,i+1) +  &
                       u(j,i-1,k)/mpd(j,i-1)) + &
                z4_c2*(u(j,i,k)/mpd(j,i)))
-          vten(j,i,k) = vten(j,i,k) + xkd(j,i,k) * &
+          vten(j,i,k) = vten(j,i,k) - xkd(j,i,k) * &
               (z4_c1*(v(j+1,i,k)/mpd(j+1,i) +  &
                       v(j-1,i,k)/mpd(j-1,i) +  &
                       v(j,i+1,k)/mpd(j,i+1) +  &
@@ -342,13 +342,13 @@ module mod_diffusion
       if ( ma%has_bdybottom ) then
         i = idi1
         do concurrent ( j = jdi1:jdi2, k = 1:kz )
-          uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) * &
+          uten(j,i,k) = uten(j,i,k) - xkd(j,i,k) * &
               (z4_c1*(u(j+1,i,k)/mpd(j+1,i) +  &
                       u(j-1,i,k)/mpd(j-1,i) +  &
                       u(j,i+1,k)/mpd(j,i+1) +  &
                       u(j,i-1,k)/mpd(j,i-1)) + &
                z4_c2*(u(j,i,k)/mpd(j,i)))
-          vten(j,i,k) = vten(j,i,k) + xkd(j,i,k) * &
+          vten(j,i,k) = vten(j,i,k) - xkd(j,i,k) * &
               (z4_c1*(v(j+1,i,k)/mpd(j+1,i) +  &
                       v(j-1,i,k)/mpd(j-1,i) +  &
                       v(j,i+1,k)/mpd(j,i+1) +  &
@@ -359,13 +359,13 @@ module mod_diffusion
       if ( ma%has_bdytop ) then
         i = idi2
         do concurrent ( j = jdi1:jdi2, k = 1:kz )
-          uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) * &
+          uten(j,i,k) = uten(j,i,k) - xkd(j,i,k) * &
               (z4_c1*(u(j+1,i,k)/mpd(j+1,i) +  &
                       u(j-1,i,k)/mpd(j-1,i) +  &
                       u(j,i+1,k)/mpd(j,i+1) +  &
                       u(j,i-1,k)/mpd(j,i-1)) + &
                z4_c2*(u(j,i,k)/mpd(j,i)))
-          vten(j,i,k) = vten(j,i,k) + xkd(j,i,k) * &
+          vten(j,i,k) = vten(j,i,k) - xkd(j,i,k) * &
               (z4_c1*(v(j+1,i,k)/mpd(j+1,i) +  &
                       v(j-1,i,k)/mpd(j-1,i) +  &
                       v(j,i+1,k)/mpd(j,i+1) +  &
@@ -408,7 +408,7 @@ module mod_diffusion
           ip1 = min(i+1,iy)
           ip2 = min(i+2,iy)
           ip3 = min(i+3,iy)
-          do j = jdi2, jdi2
+          do j = jdi1, jdi2
             jm1 = max(j-1,1)
             jm2 = max(j-2,1)
             jm3 = max(j-3,1)
@@ -541,16 +541,16 @@ module mod_diffusion
       !
       if ( ma%has_bdyleft ) then
         j = jci1
-        do concurrent ( i = ici1:ici2, k = 1:kz )
-          ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &
+        do concurrent ( i = ici1:ici2, k = 1:kzp1 )
+          ften(j,i,k) = ften(j,i,k) - fac * xkcf(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
         end do
       end if
       if ( ma%has_bdyright ) then
         j = jci2
-        do concurrent ( i = ici1:ici2, k = 1:kz )
-          ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &
+        do concurrent ( i = ici1:ici2, k = 1:kzp1 )
+          ften(j,i,k) = ften(j,i,k) - fac * xkcf(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
         end do
@@ -558,7 +558,7 @@ module mod_diffusion
       if ( ma%has_bdybottom ) then
         i = ici1
         do concurrent ( j = jci1:jci2, k = 1:kzp1 )
-          ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &
+          ften(j,i,k) = ften(j,i,k) - fac * xkcf(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
         end do
@@ -566,7 +566,7 @@ module mod_diffusion
       if ( ma%has_bdytop ) then
         i = ici2
         do concurrent ( j = jci1:jci2, k = 1:kzp1 )
-          ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &
+          ften(j,i,k) = ften(j,i,k) - fac * xkcf(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
         end do
@@ -590,7 +590,7 @@ module mod_diffusion
           ip1 = min(i+1,iym1)
           ip2 = min(i+2,iym1)
           ip3 = min(i+3,iym1)
-          do j = jci2, jci2
+          do j = jci1, jci2
             jm1 = max(j-1,1)
             jm2 = max(j-2,1)
             jm3 = max(j-3,1)
@@ -625,7 +625,7 @@ module mod_diffusion
                                 f(j,i,k)/mpd(j,i)) <= d_zero ) then
               dflux_y_p1 = d_zero
             end if
-            ften(j,i,k) = ften(j,i,k) + fac * xkc(j,i,k) * &
+            ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &
                      ( ( dflux_x_p1 - dflux_x_p0 ) + &
                        ( dflux_y_p1 - dflux_y_p0 ) )
           end do
@@ -668,7 +668,7 @@ module mod_diffusion
       if ( ma%has_bdyleft ) then
         j = jci1
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * &
+          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
         end do
@@ -676,7 +676,7 @@ module mod_diffusion
       if ( ma%has_bdyright ) then
         j = jci2
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * &
+          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
         end do
@@ -684,7 +684,7 @@ module mod_diffusion
       if ( ma%has_bdybottom ) then
         i = ici1
         do concurrent ( j = jci1:jci2, k = 1:kz )
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * &
+          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
         end do
@@ -692,7 +692,7 @@ module mod_diffusion
       if ( ma%has_bdytop ) then
         i = ici2
         do concurrent ( j = jci1:jci2, k = 1:kz )
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * &
+          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) * &
               (z4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
                z4_c2*(f(j,i,k)))
         end do
@@ -716,7 +716,7 @@ module mod_diffusion
           ip1 = min(i+1,iym1)
           ip2 = min(i+2,iym1)
           ip3 = min(i+3,iym1)
-          do j = jci2, jci2
+          do j = jci1, jci2
             jm1 = max(j-1,1)
             jm2 = max(j-2,1)
             jm3 = max(j-3,1)
@@ -811,7 +811,7 @@ module mod_diffusion
       if ( ma%has_bdyleft ) then
         j = jci1
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          ften(j,i,k,n) = ften(j,i,k,n) + fac * xkc(j,i,k) * &
+          ften(j,i,k,n) = ften(j,i,k,n) - fac * xkc(j,i,k) * &
              (z4_c1*(f(j+1,i,k,n)+f(j-1,i,k,n) +  &
                      f(j,i+1,k,n)+f(j,i-1,k,n)) + &
               z4_c2*f(j,i,k,n))
@@ -820,7 +820,7 @@ module mod_diffusion
       if ( ma%has_bdyright ) then
         j = jci2
         do concurrent ( i = ici1:ici2, k = 1:kz )
-          ften(j,i,k,n) = ften(j,i,k,n) + fac * xkc(j,i,k) * &
+          ften(j,i,k,n) = ften(j,i,k,n) - fac * xkc(j,i,k) * &
              (z4_c1*(f(j+1,i,k,n)+f(j-1,i,k,n) +  &
                      f(j,i+1,k,n)+f(j,i-1,k,n)) + &
               z4_c2*f(j,i,k,n))
@@ -829,7 +829,7 @@ module mod_diffusion
       if ( ma%has_bdybottom ) then
         i = ici1
         do concurrent ( j = jci1:jci2, k = 1:kz )
-          ften(j,i,k,n) = ften(j,i,k,n) + fac * xkc(j,i,k) * &
+          ften(j,i,k,n) = ften(j,i,k,n) - fac * xkc(j,i,k) * &
              (z4_c1*(f(j+1,i,k,n)+f(j-1,i,k,n) +  &
                      f(j,i+1,k,n)+f(j,i-1,k,n)) + &
               z4_c2*f(j,i,k,n))
@@ -838,7 +838,7 @@ module mod_diffusion
       if ( ma%has_bdytop ) then
         i = ici2
         do concurrent ( j = jci1:jci2, k = 1:kz )
-          ften(j,i,k,n) = ften(j,i,k,n) + fac * xkc(j,i,k) * &
+          ften(j,i,k,n) = ften(j,i,k,n) - fac * xkc(j,i,k) * &
              (z4_c1*(f(j+1,i,k,n)+f(j-1,i,k,n) +  &
                      f(j,i+1,k,n)+f(j,i-1,k,n)) + &
               z4_c2*f(j,i,k,n))
@@ -865,7 +865,7 @@ module mod_diffusion
           ip1 = min(i+1,iym1)
           ip2 = min(i+2,iym1)
           ip3 = min(i+3,iym1)
-          do j = jci2, jci2
+          do j = jci1, jci2
             jm1 = max(j-1,1)
             jm2 = max(j-2,1)
             jm3 = max(j-3,1)
