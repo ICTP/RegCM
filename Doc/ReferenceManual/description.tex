@@ -27,6 +27,7 @@ the atmospheric motion, with parametrizations for physical processes as per:
   \item Cloud fraction
   \item Microphysics
   \item Fluxes exchange with surface (Soil model and Ocean fluxes)
+  \item Lateral boundary condition
   \item Tracer transport and chemistry (Aerosols and full chemistry)
 \end{itemize}
 
@@ -2515,6 +2516,186 @@ model uses the partial ice cover scheme of \cite{Patterson_88} to represent the
 different heat and moisture exchanges between open water and ice surfaces and
 the atmosphere, and to calculate the surface energy of lake ice and overlying
 snow.  For further details refer to \cite{Hostetler_93} and \cite{Small_99b}. 
+
+\subsection{Lateral Boundary Conditions}
+
+Regional climate models require boundary conditions at the lateral edges of
+the computational domain to communicate information from the driving
+large-scale circulation. RegCM provides six lateral boundary condition
+strategies for the hydrostatic and nonhydrostatic pressure-coordinate
+dynamical cores (selected by the \texttt{iboudy} namelist parameter) and
+a dedicated boundary strategy for the MOLOCH height-coordinate core.
+All strategies share the same interpolation infrastructure: at each boundary
+timestep ($\Delta t_\mathrm{bdy}$), the boundary state is linearly interpolated
+in time between two successive driving fields stored in the boundary arrays
+\texttt{b0} (beginning) and \texttt{b1} (end of the interval) as
+\begin{equation}
+  \phi_\mathrm{bdy}(t) = \left(1 - \frac{t}{\Delta t_\mathrm{bdy}}\right)
+  \phi^{b0} + \frac{t}{\Delta t_\mathrm{bdy}} \phi^{b1},
+\end{equation}
+and the variables affected are surface pressure ($p^*$), temperature ($T$),
+water vapour ($q_v$), cloud liquid water ($q_c$), cloud ice ($q_i$), and
+the horizontal wind components ($u$, $v$). For the nonhydrostatic
+pressure-coordinate core the perturbation pressure ($p'$) and vertical
+velocity ($w$) are additionally constrained.
+
+\subsubsection{Hydrostatic and nonhydrostatic pressure-coordinate cores
+(\texttt{idynamic}=1,2)}
+
+\begin{enumerate}
+
+\item[\texttt{iboudy=0}] \textbf{Fixed boundary conditions.}
+The lateral boundary rows are set to the \texttt{b0} field of each
+driving variable and held constant throughout the model integration.
+No interior relaxation is applied. This mode is primarily used for testing.
+
+\item[\texttt{iboudy=1}] \textbf{Time-varying nudging (linear profile).}
+The boundary values follow the time-interpolated driving state described
+above. A relaxation tendency is applied to the interior prognostic variables
+within a sponge zone of width \texttt{nspgx} (cross-point variables) or
+\texttt{nspgd} (dot-point variables) grid columns inward from each wall.
+The nudging coefficient decreases linearly from $F_1$ at the outermost
+interior row ($n=2$) to zero at the innermost row ($n = \texttt{nspgx}$),
+following \citet{Giorgi_93}
+
+\item[\texttt{iboudy=2}] \textbf{Time-varying, no interior relaxation.}
+Boundary rows are updated with the time-interpolated driving state but no
+relaxation tendency is applied in the interior. The interior solution evolves
+freely from the boundary values. This mode is primarily used for testing.
+
+\item[\texttt{iboudy=3}] \textbf{Time-varying with inflow-only moisture.}
+As \texttt{iboudy=2}, but with an inflow-dependent moisture condition: on
+boundary rows experiencing outflow (based on the sign of the boundary-normal
+wind), the water vapour mixing ratio is replaced by the interior value rather
+than the driving value, preventing spurious moistening of outflow columns by
+the lateral boundary driving data. This mode is primarily used for testing.
+
+\item[\texttt{iboudy=4}] \textbf{Sponge layer (fixed weights).}
+Rather than nudging the prognostic variables toward the driving state, a
+relaxation tendency is applied to the time tendencies themselves within the
+sponge zone. The weights increase monotonically from zero at the inner edge
+of the sponge to unity at the outermost interior rows, with fixed values
+$w = (0.20, 0.55, 0.80, 0.95, 1.00, \ldots, 1.00)$ for the scalar sponge
+and $w = (0.40, 0.70, 0.90, 1.00, \ldots, 1.00)$ for the momentum sponge.
+This approach damps internal waves reaching the boundaries.
+
+\item[\texttt{iboudy=5}] \textbf{Time-varying nudging (exponential profile).}
+As \texttt{iboudy=1} but with an exponentially decaying nudging profile
+that varies with model level:
+\begin{equation}
+  \alpha(n,k) = F_1(k)\,\exp\!\left(-\frac{n-2}{\lambda(k)}\right),
+\end{equation}
+where the $e$-folding length $\lambda(k)$ is obtained from a cubic-spline
+interpolation of the user-specified values \texttt{high\_nudge},
+\texttt{medium\_nudge}, and \texttt{low\_nudge} at the top, mid-troposphere
+($\sigma \approx 0.4$), and surface sigma levels respectively.
+The Newtonian relaxation term, which continuously removes a
+fraction of the difference between the model and the large scale forcing, is
+complemented by a diffusive relaxation term to diffuse horizontally the
+applied correction.
+This is the recommended and most widely used boundary option.
+
+\item[\texttt{iboudy=6}] \textbf{Time-varying nudging (raised-cosine profile).}
+As \texttt{iboudy=5} but with a raised-cosine nudging profile, ensuring that
+the transition from full nudging at the boundary to zero nudging at the inner
+edge of the sponge zone is smooth in both value and gradient:
+\begin{equation}
+  \alpha(n,k) = F_1(k)\,\frac{1}{2}\!\left[1 -
+    \cos\!\left(\frac{\pi(n-2)}{\texttt{nspgx}-2}\right)\right].
+\end{equation}
+
+\end{enumerate}
+
+\subsubsection{MOLOCH height-coordinate core (\texttt{idynamic}=3)}
+
+In the MOLOCH core the lateral boundary treatment is applied directly
+to the status variables. Precomputed weight arrays are constructed at
+initialisation, and at each timestep the boundary-relaxation increment
+is added to the status variable tendencies:
+\begin{equation}
+  \frac{\partial C}{\partial t}\bigg|_\mathrm{bdy} =
+    w_\mathrm{bdy}(k) \left[C_\mathrm{driving} - C\right],
+\end{equation}
+Wind, Temperature, Exner function, water vapour and condensates if available
+are set on the boundary rows using exponential temporal interpolation nudging,
+analogous to \texttt{iboudy=5} for the other cores but without the diffusive
+term.
+
+An optional Lehmann optimal-coefficient variant \citep{Vannitsem_05} can be
+activated via \texttt{bdy\_use\_lehmann}, which computes the coefficients
+that minimise the amplitude of spurious wave reflections given the local
+CFL range across the sponge zone.
+
+In addition to the lateral boundary treatment, MOLOCH provides two optional
+interior forcing mechanisms, controlled independently from \texttt{iboudy}:
+
+\paragraph{Model-top sponge (\texttt{mo\_top\_nudge}).}
+A Rayleigh-damping layer is applied to temperature, $u$, $v$ and $w$ in the
+uppermost model levels above a configurable height threshold \texttt{zztop}.
+The damping coefficient follows a squared-sine profile:
+\begin{equation}
+  \tau_\mathrm{top}(k) = \sin^2\!\left[
+    \frac{\pi}{2}\frac{\bar{z}(k) - z_\mathrm{top}}{z_\mathrm{model} - z_\mathrm{top}}
+  \right], \quad \bar{z}(k) > z_\mathrm{top},
+\end{equation}
+where $\bar{z}(k)$ is the domain-mean height of level $k$,
+$z_\mathrm{top} = \texttt{zztop}$, and $z_\mathrm{model} = \texttt{mo\_h}$
+is the model top height. This absorber prevents reflection of vertically
+propagating gravity waves from the rigid lid.
+
+\paragraph{Spectral nudging (\texttt{mo\_spectral\_nudge}).}
+At intervals equal to the radiation timestep $\Delta t_\mathrm{rad}$, the
+large-scale components of temperature and the horizontal winds are nudged
+toward the driving fields through a low-pass ($1500 km$ wavelenght) spectral
+filter applied across the full interior domain.
+The nudging is applied to $T$, $u$ and $v$ and constrains the synoptic-scale
+circulation without affecting the mesoscale variability resolved within the
+domain.
+
+\subsection{Leapfrog Time Filter}
+
+The leapfrog time scheme in the \ac{NCAR} derived dynamical cores
+requires a time filter to suppress the computational mode that grows
+spuriously in the absence of damping.
+
+RegCM implements two formulations applied immediately after each leapfrog step.
+
+\paragraph{Robert-Asselin (RA) filter.}
+The classical filter of \citet{Robert_66} and \citet{Asselin_72} damps the
+computational mode by replacing the time-level $n$ value with:
+\begin{equation}
+  \phi^n \leftarrow \phi^n + \alpha\left(\phi^{n+1} + \phi^{n-1}
+    - 2\phi^n\right),
+\end{equation}
+where $\alpha$ is the filter coefficient (\texttt{gnu1} in the code,
+$\alpha = 0.0625$ for the hydrostatic core and $\alpha = 0.10$ for the
+nonhydrostatic pressure-coordinate core). The RA filter eliminates the
+computational mode but reduces the amplitude of the physical mode by a factor
+proportional to $\alpha$.
+
+\paragraph{Robert-Asselin-Williams (RAW) filter.}
+The modified filter of \citet{Williams_09} distributes the correction between
+both time levels to partially recover the amplitude lost by the RA filter:
+\begin{align}
+  \phi^{n-1} &\leftarrow \phi^{n-1} + \alpha\beta
+    \left(\phi^{n+1} + \phi^{n-1} - 2\phi^n\right), \\
+  \phi^n     &\leftarrow \phi^n + \alpha(\beta-1)
+    \left(\phi^{n+1} + \phi^{n-1} - 2\phi^n\right),
+\end{align}
+with $\beta = 0.53$ as recommended by \citet{Williams_09} for near-optimal
+amplitude accuracy. The RAW filter is applied to water vapour (with a
+surface-pressure-weighted positivity floor), hydrometeors, TKE, and chemistry
+tracers.
+
+\paragraph{Application schedule.}
+The RA filter (\texttt{gnu1}) is applied to surface pressure (hydrostatic
+core only), temperature, water vapour, and horizontal wind. The RAW filter
+(\texttt{gnu2}) is applied to hydrometeors, TKE, and chemistry tracers.
+Horizontal winds in the nonhydrostatic pressure-coordinate core are filtered
+after the acoustic sub-stepping.
+
+No leapfrog filter is applied in the MOLOCH core, which uses a forward-in-time
+split advection scheme.
 
 \subsection{Aerosols and Dust (Chemistry Model)}
 
