@@ -503,7 +503,7 @@ module mod_advection
               vaz2 = ( twt(k,1) * vavg2(j,i,k) + &
                        twt(k,2) * vavg2(j,i,k-1) )
               f1 = d_half*ul*(uaz2 + uaz1)/ps(j,i)
-              f2 = d_half*ul*(vaz1 + vaz1)/ps(j,i)
+              f2 = d_half*ul*(vaz2 + vaz1)/ps(j,i)
               fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
               fx2 = (d_one+f1)*f(j,i,k)   + (d_one-f1)*f(j+1,i,k)
               fy1 = (d_one+f2)*f(j,i-1,k) + (d_one-f2)*f(j,i,k)

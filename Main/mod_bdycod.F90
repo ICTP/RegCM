@@ -626,7 +626,7 @@ module mod_bdycod
           end do
           do n = 2, nspgd-1
             xfun = d_half * (d_one - cos(mathpi * &
-                         real(n-2,rkx)/real(nspgx-2,rkx)))
+                         real(n-2,rkx)/real(nspgd-2,rkx)))
             hefd(n,k) = fnudge*xfun
             hegd(n,k) = gnudge*xfun
           end do
@@ -2028,7 +2028,7 @@ module mod_bdycod
           end if
           if ( present_qi .and. ipptls > 1 ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              atm1%qx(jce1,i,k,iqi) = xlb%b0(jce1,i,k)
+              atm1%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k)
             end do
           end if
           if ( idynamic == 2 ) then
