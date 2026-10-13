@@ -292,7 +292,7 @@ module mod_cu_interface
           !$acc end kernels
         end if
         if ( any(icup == 5) ) then
-          ijs = real(((jci2-jci1)*(ici2-ici1)),rkx)
+          ijs = real(((jci2-jci1+1)*(ici2-ici1+1)),rkx)
           do concurrent ( k = 1:kz )
             mymean_tmp = d_zero
 #ifdef STDPAR
@@ -468,8 +468,8 @@ module mod_cu_interface
 
       if ( idynamic == 3 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          mo_atm%tten(j,i,k) = cu_tten(j,i,k)
-          mo_atm%qxten(j,i,k,iqv) = cu_qten(j,i,k,iqv)
+          mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + cu_tten(j,i,k)
+          mo_atm%qxten(j,i,k,iqv) = mo_atm%qxten(j,i,k,iqv) + cu_qten(j,i,k,iqv)
         end do
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )

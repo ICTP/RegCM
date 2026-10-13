@@ -242,7 +242,7 @@ module mod_micro_interface
     implicit none
     real(rkx), pointer, contiguous, &
       dimension(:,:,:), intent(inout) :: cldlwc, cldfra
-    real(rkx) :: w1, w2, liq, ice
+    real(rkx) :: w1, w2, liq, ice, fcc_ls
     integer(ik4) :: i, j, k
     integer(ik4) :: ichi
 
@@ -291,7 +291,8 @@ module mod_micro_interface
         call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case (7)
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          if ( totc(j,i,k) * mo2mc%delz(j,i,k) > 1.0e-2_rkx ) then
+          if ( totc(j,i,k)*mo2mc%rho(j,i,k) * &
+               mo2mc%delz(j,i,k) > 1.0e-2_rkx ) then
             mc2mo%fcc(j,i,k) = 1.0_rkx
           else
             mc2mo%fcc(j,i,k) = 0.0_rkx
@@ -384,11 +385,12 @@ module mod_micro_interface
           ! get overlap of clouds
           if ( cldfra(j,i,k) > lowcld ) then
             if ( mc2mo%fcc(j,i,k) > lowcld ) then
-              cldfra(j,i,k) = max(mc2mo%fcc(j,i,k),cldfra(j,i,k))
-              w2 = mc2mo%fcc(j,i,k) / cldfra(j,i,k)
-              w1 = 1.0_rkx-w2
-              cldlwc(j,i,k) = w1 * totc(j,i,k)/cldfra(j,i,k) + &
-                              w2 * clwfromt(mo2mc%t(j,i,k))
+              fcc_ls = mc2mo%fcc(j,i,k)
+              cldfra(j,i,k) = max(fcc_ls, cldfra(j,i,k))
+              w2 = fcc_ls / cldfra(j,i,k)
+              w1 = 1.0_rkx - w2
+              cldlwc(j,i,k) = w2 * totc(j,i,k)/fcc_ls + &
+                              w1 * clwfromt(mo2mc%t(j,i,k))
             else
               cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
             end if

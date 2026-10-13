@@ -585,7 +585,7 @@ module mod_lm_interface
             do nn = 1, nnsg
               write(stderr,*) 'N    = ',nn
               write(stderr,*) 'VAL  = ',lms%tgrd(nn,j,i)
-              write(stderr,*) 'MASK = ',lm%ldmsk1(n,j,i)
+              write(stderr,*) 'MASK = ',lm%ldmsk1(nn,j,i)
             end do
             write(stderr,*) 'VAL2 = ',lm%tgbb(j,i)
             ierr = ierr + 1
