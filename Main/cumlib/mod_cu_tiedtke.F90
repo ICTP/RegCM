@@ -76,6 +76,9 @@ module mod_cu_tiedtke
   ! Fractional massflux for downdrafts at lfs
   real(rkx), parameter :: rmfdeps = 0.3_rkx
 
+  ! approximate max PBL top in sigma
+  real(rkx), parameter :: sigma_pbl = 0.85_rkx
+
   ! evaporation coefficient for kuo0
   integer(ik4), pointer, contiguous, dimension(:,:) :: ilab
   integer(ik4), pointer, contiguous, dimension(:) :: ktype
@@ -659,8 +662,15 @@ module mod_cu_tiedtke
     !
     do concurrent ( jl = 1:kproma )
       do jk = kz, 1, -1
-        pqhfl(jl,jk) = -xpqfx(jl) * exp(-egrav*(d_one - sigma(jk)))
-        pahfs(jl,jk) = -xphfx(jl) * exp(-egrav*(d_one - sigma(jk)))
+        if ( sigma(jk) >= sigma_pbl ) then
+          pqhfl(jl,jk) = -xpqfx(jl) * &
+            (sigma(jk) - sigma_pbl) / (d_one - sigma_pbl)
+          pahfs(jl,jk) = -xphfx(jl) * &
+            (sigma(jk) - sigma_pbl) / (d_one - sigma_pbl)
+        else
+          pqhfl(jl,jk) = d_zero
+          pahfs(jl,jk) = d_zero
+        end if
       end do
       pqhfl(jl,kzp1) = -xpqfx(jl)
       pahfs(jl,kzp1) = -xphfx(jl)
@@ -1147,8 +1157,8 @@ module mod_cu_tiedtke
                 if ( khvfl < d_zero ) then
                   ws = 1.2_rkx*ws**.3333_rkx
                   iilab(n,kk) = 1
-                  texc = max(-1.5_rkx*ahfs(n,kk+1)/(rho*ws*cpd),d_zero)
-                  qexc = max(-1.5_rkx*qhfl(n,kk+1)/(rho*ws),d_zero)
+                  texc = max(-1.15_rkx*ahfs(n,kk+1)/(rho*ws*cpd),d_zero)
+                  qexc = max(-1.15_rkx*qhfl(n,kk+1)/(rho*ws),d_zero)
                   xqu(n,kk) = xqenh(n,kk) + qexc
                   suh(n,kk) = xsenh(n,kk) + cpd*texc
                   xtu(n,kk) = (xsenh(n,kk)-geof(n,kk))*rcpd + texc
