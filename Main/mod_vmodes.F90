@@ -613,7 +613,8 @@ module mod_vmodes
   !
   subroutine invmtrx(a,v,n,ier)
     implicit none
-    integer(ik4), intent(in) :: n, ier
+    integer(ik4), intent(in) :: n
+    integer(ik4), intent(inout) :: ier
     real(rkx), intent(in), dimension(n,n) :: a
     real(rkx), intent(out), dimension(n,n) :: v
     integer(ik4), dimension(n) :: ip
