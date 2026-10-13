@@ -470,7 +470,7 @@ module mod_bdycod
   subroutine setup_bdycon
     implicit none
     real(rkx), dimension(kz) :: anudge
-    real(rkx) :: xfun, nb2, cflmin, cflmax
+    real(rkx) :: xfun, cflmin, cflmax
     real(rk8) :: meanz, np, mpmeanz
     integer(ik4) :: i, j, k, n
     ! Using Supposedly maximum velocity
@@ -544,7 +544,7 @@ module mod_bdycod
       end if
       if ( mo_top_nudge ) then
         do k = 1, kz
-          if ( k <= nztop ) then
+          if ( gmeanz(k) > zztop ) then
             tnudge(k) = sin(d_half*mathpi*(gmeanz(k)-zztop)/(mo_h-zztop))**2
           else
             tnudge(k) = 0.0_rkx
@@ -618,15 +618,15 @@ module mod_bdycod
       end if
       if ( iboudy == 6 ) then
         do k = 1, kz
-          nb2 = d_two * nspgx
           do n = 2, nspgx-1
-            xfun = d_half * (d_one - cos(mathpi/((n-nb2)/nb2)))
+            xfun = d_half * (d_one - cos(mathpi * &
+                         real(n-2,rkx)/real(nspgx-2,rkx)))
             hefc(n,k) = fnudge*xfun
             hegc(n,k) = gnudge*xfun
           end do
-          nb2 = d_two * nspgd
           do n = 2, nspgd-1
-            xfun = d_half * (d_one - cos(mathpi/((n-nb2)/nb2)))
+            xfun = d_half * (d_one - cos(mathpi * &
+                         real(n-2,rkx)/real(nspgx-2,rkx)))
             hefd(n,k) = fnudge*xfun
             hegd(n,k) = gnudge*xfun
           end do
@@ -2023,12 +2023,12 @@ module mod_bdycod
           end do
           if ( present_qc ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              atm1%qx(jce1,i,k,iqv) = xlb%b0(jce1,i,k)
+              atm1%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k)
             end do
           end if
           if ( present_qi .and. ipptls > 1 ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              atm1%qx(jce1,i,k,iqv) = xlb%b0(jce1,i,k)
+              atm1%qx(jce1,i,k,iqi) = xlb%b0(jce1,i,k)
             end do
           end if
           if ( idynamic == 2 ) then
@@ -2346,7 +2346,6 @@ module mod_bdycod
         !
         if ( ma%has_bdytop ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
-            qext = atm1%qx(j,ice1,k,iqv)/sfs%psa(j,ice1)
             qext = atm1%qx(j,ice2,k,iqv)/sfs%psa(j,ice2)
             qint = atm1%qx(j,ici2,k,iqv)/sfs%psa(j,ici2)
             windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
@@ -2386,7 +2385,7 @@ module mod_bdycod
               qxint = atm1%qx(jci2,i,k,n)
               windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
               if ( windavg < d_zero ) then
-                atm1%qx(jce2,i,k,n) = qxzeroval(n)**sfs%psa(jce2,i)
+                atm1%qx(jce2,i,k,n) = qxzeroval(n)*sfs%psa(jce2,i)
               else
                 atm1%qx(jce2,i,k,n) = qxint
               end if

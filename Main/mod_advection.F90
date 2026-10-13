@@ -218,10 +218,10 @@ module mod_advection
               vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
               vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
               vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-              ff1 = ul*(u(j+1,i,k)+u(j,i,k))
-              ff2 = ul*(u(j-1,i,k)+u(j,i,k))
-              ff3 = ul*(v(j,i+1,k)+v(j,i,k))
-              ff4 = ul*(v(j,i-1,k)+v(j,i,k))
+              ff1 = ul*(ua(j+1,i,k)+ua(j,i,k))
+              ff2 = ul*(ua(j-1,i,k)+ua(j,i,k))
+              ff3 = ul*(va(j,i+1,k)+va(j,i,k))
+              ff4 = ul*(va(j,i-1,k)+va(j,i,k))
               ucmonb = (d_one+ff1)*ucmona + (d_one-ff1)*ucmonb
               ucmonc = (d_one+ff2)*ucmonc + (d_one-ff2)*ucmona
               vcmonb = (d_one+ff3)*vcmona + (d_one-ff3)*vcmonb
@@ -253,10 +253,10 @@ module mod_advection
               vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
               diag = divd - dmapf(j,i) * &
                       ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
-              ff1 = ul*(u(j+1,i,k)+u(j,i,k))
-              ff2 = ul*(u(j-1,i,k)+u(j,i,k))
-              ff3 = ul*(v(j,i+1,k)+v(j,i,k))
-              ff4 = ul*(v(j,i-1,k)+v(j,i,k))
+              ff1 = ul*(ua(j+1,i,k)+ua(j,i,k))
+              ff2 = ul*(ua(j-1,i,k)+ua(j,i,k))
+              ff3 = ul*(va(j,i+1,k)+va(j,i,k))
+              ff4 = ul*(va(j,i-1,k)+va(j,i,k))
               ucmonb = (d_one+ff1)*ucmona + (d_one-ff1)*ucmonb
               ucmonc = (d_one+ff2)*ucmonc + (d_one-ff2)*ucmona
               vcmonb = (d_one+ff3)*vcmona + (d_one-ff3)*vcmonb
@@ -502,8 +502,8 @@ module mod_advection
                        twt(k,2) * vavg1(j,i,k-1) )
               vaz2 = ( twt(k,1) * vavg2(j,i,k) + &
                        twt(k,2) * vavg2(j,i,k-1) )
-              f1 = d_half*ul*(uavg2(j,i,k)+uavg1(j,i,k))/ps(j,i)
-              f2 = d_half*ul*(vavg2(j,i,k)+vavg1(j,i,k))/ps(j,i)
+              f1 = d_half*ul*(uaz2 + uaz1)/ps(j,i)
+              f2 = d_half*ul*(vaz1 + vaz1)/ps(j,i)
               fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
               fx2 = (d_one+f1)*f(j,i,k)   + (d_one-f1)*f(j+1,i,k)
               fy1 = (d_one+f2)*f(j,i-1,k) + (d_one-f2)*f(j,i,k)
