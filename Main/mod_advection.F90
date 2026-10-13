@@ -131,8 +131,9 @@ module mod_advection
     !
     subroutine hadvuv(uten,vten,u,v)
       implicit none
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: u, v
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: uten, vten
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: u, v
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: uten
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: vten
 
       real(rkx) :: ucmona, ucmonb, ucmonc, vcmona, vcmonb, vcmonc
       real(rkx) :: divd, diag, ff1, ff2, ff3, ff4
@@ -218,10 +219,10 @@ module mod_advection
               vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
               vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
               vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-              ff1 = ul*(ua(j+1,i,k)+ua(j,i,k))
-              ff2 = ul*(ua(j-1,i,k)+ua(j,i,k))
-              ff3 = ul*(va(j,i+1,k)+va(j,i,k))
-              ff4 = ul*(va(j,i-1,k)+va(j,i,k))
+              ff1 = ul*(u(j+1,i,k)+u(j,i,k))
+              ff2 = ul*(u(j-1,i,k)+u(j,i,k))
+              ff3 = ul*(v(j,i+1,k)+v(j,i,k))
+              ff4 = ul*(v(j,i-1,k)+v(j,i,k))
               ucmonb = (d_one+ff1)*ucmona + (d_one-ff1)*ucmonb
               ucmonc = (d_one+ff2)*ucmonc + (d_one-ff2)*ucmona
               vcmonb = (d_one+ff3)*vcmona + (d_one-ff3)*vcmonb
@@ -253,10 +254,10 @@ module mod_advection
               vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
               diag = divd - dmapf(j,i) * &
                       ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
-              ff1 = ul*(ua(j+1,i,k)+ua(j,i,k))
-              ff2 = ul*(ua(j-1,i,k)+ua(j,i,k))
-              ff3 = ul*(va(j,i+1,k)+va(j,i,k))
-              ff4 = ul*(va(j,i-1,k)+va(j,i,k))
+              ff1 = ul*(u(j+1,i,k)+u(j,i,k))
+              ff2 = ul*(u(j-1,i,k)+u(j,i,k))
+              ff3 = ul*(v(j,i+1,k)+v(j,i,k))
+              ff4 = ul*(v(j,i-1,k)+v(j,i,k))
               ucmonb = (d_one+ff1)*ucmona + (d_one-ff1)*ucmonb
               ucmonc = (d_one+ff2)*ucmonc + (d_one-ff2)*ucmona
               vcmonb = (d_one+ff3)*vcmona + (d_one-ff3)*vcmonb
@@ -278,8 +279,9 @@ module mod_advection
 
     subroutine vadvuv(uten,vten,ud,vd)
       implicit none
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: ud, vd
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: uten, vten
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: ud, vd
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: uten
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: vten
 
       real(rkx) :: qq, uu, vv
       integer(ik4) :: i, j, k
@@ -318,8 +320,8 @@ module mod_advection
     !
     subroutine hadvt(ften,f)
       implicit none
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: f
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: ften
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
       integer(ik4) :: i, j, k
       real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
 #ifdef DEBUG
@@ -402,9 +404,9 @@ module mod_advection
 
     subroutine hadv3d(ften,f,ind)
       implicit none
-      integer(ik4), intent (in) :: ind
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: f
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: ften
+      integer(ik4), intent(in) :: ind
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
       integer(ik4) :: i, j, k
       real(rkx) :: uaz1, uaz2, vaz1, vaz2
       real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
@@ -525,8 +527,8 @@ module mod_advection
     subroutine hadvqv(ften,f,iv)
       implicit none
       integer(ik4), intent(in) :: iv
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
       real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
       integer(ik4) :: i, j, k
 #ifdef DEBUG
@@ -615,8 +617,8 @@ module mod_advection
     subroutine hadvqx(ften,f,n1,n2)
       implicit none
       integer(ik4), intent(in) :: n1, n2
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i, j, k, n
       real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
@@ -673,8 +675,8 @@ module mod_advection
     !
     subroutine hadvtr(ften,f)
       implicit none
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i, j, k, n
       real(rkx) :: f1, f2, fx1, fx2, fy1, fy2
@@ -738,8 +740,8 @@ module mod_advection
     subroutine vadv3d(ften,f,nk,ind)
       implicit none
       integer(ik4), intent(in) :: ind, nk
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:) :: f
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:) :: ften
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:) :: f
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: ften
 
       real(rkx) :: rdphf, rdplf, fx, qq
       real(rkx), dimension(jci1:jci2,ici1:ici2,kz) :: dotqdot
@@ -819,8 +821,8 @@ module mod_advection
     subroutine vadvqv(ften,f,n)
       implicit none
       integer(ik4), intent(in) :: n
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
       integer(ik4) :: i, j, k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadvqv'
@@ -857,8 +859,8 @@ module mod_advection
     subroutine vadv4d(ften,f,n1,n2,ind)
       implicit none
       integer(ik4), intent(in) :: ind, n1, n2
-      real(rkx), pointer, contiguous, intent (in), dimension(:,:,:,:) :: f
-      real(rkx), pointer, contiguous, intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx), pointer, contiguous, intent(in), dimension(:,:,:,:) :: f
+      real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:,:) :: ften
       real(rkx) :: slope
       integer(ik4) :: i, j, k, n
 #ifdef DEBUG
