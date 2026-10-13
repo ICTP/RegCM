@@ -48,7 +48,7 @@ prognostic variables used to identify the atmospheric state.
 
 \subsection{Hydrostatic dynamical core}
 The hydrostatic model dynamic equations and numerical discretization are
-described by \cite{Grell_94}.
+described by \cite{Anthes_87}.
 
 \subsubsection{Horizontal Momentum Equations}
 
@@ -488,7 +488,7 @@ because when the vertical profile $\mean{T}(\sigma)$ is statically stable the
 values of $H_i$ are positive valued and bounded.
 
 The problem has $kz$ independent solutions, and given as $\bm{Z}$ the
-$kx\times kz$ matrix whose columns are the eigenvectors $\bm{z_i}$ and
+$kz\times kz$ matrix whose columns are the eigenvectors $\bm{z_i}$ and
 $\bm{H}$ the diagonal matrix of correspondingly ordered $H_i$, it can
 be rewritten as:
 
@@ -633,14 +633,16 @@ known the matrix $\bm{Z}$, are thus:
 
 \newpage
 
-\subsection{Non-hydrostatic dynamical core with pressure vertical coordinate}
+\subsection{Non-hydrostatic dynamical core with sigma-pressure vertical
+coordinate}
 The non-hydrostatic model dynamic equations and numerical discretization are
-described by \cite{Grell_94}.
+described by \cite{Klemp_1978} and \cite{Grell_94}.
 
 \subsubsection{Model Equations}
 
-Being $p^{\ast}$ constant in time, in the non-hydrostatic the continuity
-equation no longer applies, thus the $DIV$ term appear in the equations
+In the nonhydrostatic formulation $p^{\ast}$ is the time-invariant base-state
+surface pressure, so the mass divergence no longer vanishes, and the DIV term
+must be retained explicitly in the equations
 \ref{non-hydro-eq-first}-\ref{non-hydro-eq-last}:
 
 \begin{gather}
@@ -791,10 +793,10 @@ $\Pi$ and the virtual potential temperature $\Theta_v$ defined as:
 \begin{eqnarray}
   \Pi &=& \left(\frac{P}{P_0}\right)^{\frac{R_d}{c_{p_d}}} \\
   \Theta_v &=& \frac{T_v}{\Pi} \\
-  T_v &\approx& T \left( 1 + e w \right)
+  T_v &\approx& T \left( 1 + e q_v \right)
 \end{eqnarray}
 
-where $P_0$ us a reference pressure, $C_{p_d}$ is the specific heat of dry
+where $P_0$ is a reference pressure, $C_{p_d}$ is the specific heat of dry
 air at constant pressure and $T_v$ is the virtual temperature with $M_v$ and
 $e$ is $M_d/M_v - 1$ with $M_d,M_v$ the effective molecular weights of dry air
 and water.
