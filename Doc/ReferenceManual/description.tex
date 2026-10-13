@@ -252,7 +252,7 @@ the horizontal momentum advection terms, and it is described in
 
 \subsubsection{Split-explicit timestep for fast waves removal}
 
-The vertical modes initialization is  described in \cite{Errico_88}.
+The vertical modes initialization is  described in \cite{Madala_81,Errico_88}.
 
 The hydrostatic model equations above (\ref{hydro_mom1}-
 \ref{hydrostatic_equation}) can be linearized about a state at rest,
@@ -636,7 +636,7 @@ known the matrix $\bm{Z}$, are thus:
 \subsection{Non-hydrostatic dynamical core with sigma-pressure vertical
 coordinate}
 The non-hydrostatic model dynamic equations and numerical discretization are
-described by \cite{Klemp_1978} and \cite{Grell_94}.
+described by \cite{Klemp_1978,Dudhia_93,Grell_94}.
 
 \subsubsection{Model Equations}
 
@@ -766,6 +766,8 @@ semi-implicit scheme in \cite{Klemp_1978} we solve the above by recursion.
 The step only depends on the horizontal grid size.
 
 \subsection{Non-hydrostatic dynamical core with height vertical coordinate}
+
+The MOLOCH code is described in \citep{Malguzzi_11,giorgi:23}.
 
 Given the definition of the $\zeta$ hybrid vertical coordinate in
 \ref{h_coordinate}, the factor to transform the vertical derivatives in
