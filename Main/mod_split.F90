@@ -124,11 +124,11 @@ module mod_split
         ltbark = d_zero
         do i = ice1, ice2
           do j = jce1, jce2
-            ltbark = ltbark + rnpts * map(j,i) * atm1%t(j,i,k)
+            ltbark = ltbark + rnpts * map(j,i) * atm1%t(j,i,k)/sfs%psa(j,i)
           end do
         end do
         call sumall(ltbark,tbarh(k))
-        tbarh(k) = tbarh(k)/(xmsf*xps)
+        tbarh(k) = tbarh(k)/xmsf
       end do
     end if
     !

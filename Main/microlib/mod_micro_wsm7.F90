@@ -1782,105 +1782,133 @@ module mod_micro_wsm7
     lamdah = sqrt(sqrt(pidn0h_in/(x*y)))
   end function lamdah
 
-  pure subroutine slope_rain(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
+  pure subroutine slope_rain(qrs,den,denfac,vt,nz,ims,ime,i, &
+                             pidn0r,rslopermax,rsloperbmax,rsloper2max, &
+                             rsloper3max,pvtr)
+    !$acc routine seq
     implicit none
-    real(rkx), dimension(kz), intent(in) :: qrs, den, denfac
-    real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
-    real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
+    integer(ik4), value, intent(in) :: nz, ims, ime, i
+    real(rkx), value, intent(in) :: pidn0r, pvtr
+    real(rkx), value, intent(in) :: rslopermax, rsloperbmax
+    real(rkx), value, intent(in) :: rsloper2max, rsloper3max
+    real(rkx), dimension(ims:ime,nz), intent(in) :: qrs, den, denfac
+    real(rkx), dimension(ims:ime,nz), intent(inout) :: vt
+    real(rkx) :: rslope, rslopeb
     integer(ik4) :: k
 
-    do k = 1, kz
-      if ( qrs(k) <= qrsmin ) then
-        rslope(k) = rslopermax
-        rslopeb(k) = rsloperbmax
-        rslope2(k) = rsloper2max
-        rslope3(k) = rsloper3max
+    do k = 1, nz
+      if ( qrs(i,k) <= qrsmin ) then
+        rslope = rslopermax
+        rslopeb = rsloperbmax
+        ! rslope2 = rsloper2max
+        ! rslope3 = rsloper3max
       else
-        rslope(k) = d_one/lamdar(qrs(k),den(k),pidn0r)
-        rslopeb(k) = rslope(k)**bvtr
-        rslope2(k) = rslope(k)*rslope(k)
-        rslope3(k) = rslope2(k)*rslope(k)
+        rslope = d_one/lamdar(qrs(i,k),den(i,k),pidn0r)
+        rslopeb = rslope**bvtr
+        ! rslope2 = rslope*rslope
+        ! rslope3 = rslope2*rslope
       end if
-      vt(k) = pvtr*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= 0.0_rkx ) vt(k) = d_zero
+      vt(i,k) = pvtr*rslopeb*denfac(i,k)
+      if ( qrs(i,k) <= 0.0_rkx ) vt(i,k) = d_zero
     end do
   end subroutine slope_rain
 
-  pure subroutine slope_snow(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt)
+  pure subroutine slope_snow(qrs,den,denfac,t,vt,nz,ims,ime,i, &
+                             pidn0s,rslopesmax,rslopesbmax,rslopes2max, &
+                             rslopes3max,pvts)
+    !$acc routine seq
     implicit none
-    real(rkx), dimension(kz), intent(in) :: t, qrs, den, denfac
-    real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
-    real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
+    integer(ik4), value, intent(in) :: nz, ims, ime, i
+    real(rkx), value, intent(in) :: pidn0s, pvts
+    real(rkx), value, intent(in) :: rslopesmax, rslopesbmax
+    real(rkx), value, intent(in) :: rslopes2max, rslopes3max
+    real(rkx), dimension(ims:ime,nz), intent(in) :: t, qrs, den, denfac
+    real(rkx), dimension(ims:ime,nz), intent(inout) :: vt
     real(rkx) :: n0sfac, supcol
+    real(rkx) :: rslope, rslopeb
     integer(ik4) :: k
 
-    do k = 1, kz
-      supcol = tzero-t(k)
+    do k = 1, nz
+      supcol = tzero-t(i,k)
       !
       ! n0s: intercept parameter for snow [m-4] [hdc 6]
       !
       n0sfac = max(min(exp(alpha*supcol),nfacmax),d_one)
-      if ( qrs(k) <= qrsmin ) then
-        rslope(k) = rslopesmax
-        rslopeb(k) = rslopesbmax
-        rslope2(k) = rslopes2max
-        rslope3(k) = rslopes3max
+      if ( qrs(i,k) <= qrsmin ) then
+        rslope = rslopesmax
+        rslopeb = rslopesbmax
+        ! rslope2 = rslopes2max
+        ! rslope3 = rslopes3max
       else
-        rslope(k) = d_one/lamdas(qrs(k),den(k),n0sfac,pidn0s)
-        rslopeb(k) = rslope(k)**bvts
-        rslope2(k) = rslope(k)*rslope(k)
-        rslope3(k) = rslope2(k)*rslope(k)
+        rslope = d_one/lamdas(qrs(i,k),den(i,k),n0sfac,pidn0s)
+        rslopeb = rslope**bvts
+        ! rslope2 = rslope*rslope
+        ! rslope3 = rslope2*rslope
       end if
-      vt(k) = pvts*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= 0.0_rkx ) vt(k) = d_zero
+      vt(i,k) = pvts*rslopeb*denfac(i,k)
+      if ( qrs(i,k) <= 0.0_rkx ) vt(i,k) = d_zero
     end do
   end subroutine slope_snow
 
-  pure subroutine slope_graup(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
+  pure subroutine slope_graup(qrs,den,denfac,vt,nz,ims,ime,i, &
+                              pidn0g,rslopegmax,rslopegbmax,rslopeg2max, &
+                              rslopeg3max,pvtg)
+    !$acc routine seq
     implicit none
-    real(rkx), dimension(kz), intent(in) :: qrs, den, denfac
-    real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
-    real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
+    integer(ik4), value, intent(in) :: nz, ims, ime, i
+    real(rkx), value, intent(in) :: pidn0g, pvtg
+    real(rkx), value, intent(in) :: rslopegmax, rslopegbmax
+    real(rkx), value, intent(in) :: rslopeg2max, rslopeg3max
+    real(rkx), dimension(ims:ime,nz), intent(in) :: qrs, den, denfac
+    real(rkx), dimension(ims:ime,nz), intent(inout) :: vt
+    real(rkx) :: rslope, rslopeb
     integer(ik4) :: k
 
-    do k = 1, kz
-      if ( qrs(k) <= qrsmin ) then
-        rslope(k) = rslopegmax
-        rslopeb(k) = rslopegbmax
-        rslope2(k) = rslopeg2max
-        rslope3(k) = rslopeg3max
+    do k = 1, nz
+      if ( qrs(i,k) <= qrsmin ) then
+        rslope = rslopegmax
+        rslopeb = rslopegbmax
+        ! rslope2 = rslopeg2max
+        ! rslope3 = rslopeg3max
       else
-        rslope(k) = d_one/lamdag(qrs(k),den(k),pidn0g)
-        rslopeb(k) = rslope(k)**bvtg
-        rslope2(k) = rslope(k)*rslope(k)
-        rslope3(k) = rslope2(k)*rslope(k)
+        rslope = d_one/lamdag(qrs(i,k),den(i,k),pidn0g)
+        rslopeb = rslope**bvtg
+        ! rslope2 = rslope*rslope
+        ! rslope3 = rslope2*rslope
       end if
-      vt(k) = pvtg*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= 0.0_rkx ) vt(k) = d_zero
+      vt(i,k) = pvtg*rslopeb*denfac(i,k)
+      if ( qrs(i,k) <= 0.0_rkx ) vt(i,k) = d_zero
     end do
   end subroutine slope_graup
 
-  pure subroutine slope_hail(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
+  pure subroutine slope_hail(qrs,den,denfac,vt,nz,ims,ime,i, &
+                             pidn0h,rslopehmax,rslopehbmax,rslopeh2max, &
+                             rslopeh3max,pvth)
+    !$acc routine seq
     implicit none
-    real(rkx), dimension(kz), intent(in) :: qrs, den, denfac
-    real(rkx), dimension(kz), intent(out) :: rslope, rslopeb
-    real(rkx), dimension(kz), intent(out) :: rslope2, rslope3, vt
+    integer(ik4), value, intent(in) :: nz, ims, ime, i
+    real(rkx), value, intent(in) :: pidn0h, pvth
+    real(rkx), value, intent(in) :: rslopehmax, rslopehbmax
+    real(rkx), value, intent(in) :: rslopeh2max, rslopeh3max
+    real(rkx), dimension(ims:ime,nz), intent(in) :: qrs, den, denfac
+    real(rkx), dimension(ims:ime,nz), intent(inout) :: vt
+    real(rkx) :: rslope, rslopeb
     integer(ik4) :: k
 
-    do k = 1, kz
-      if ( qrs(k) <= qrsmin ) then
-        rslope(k) = rslopehmax
-        rslopeb(k) = rslopehbmax
-        rslope2(k) = rslopeh2max
-        rslope3(k) = rslopeh3max
+    do k = 1, nz
+      if ( qrs(i,k) <= qrsmin ) then
+        rslope = rslopehmax
+        rslopeb = rslopehbmax
+        ! rslope2 = rslopeh2max
+        ! rslope3 = rslopeh3max
       else
-        rslope(k) = d_one/lamdah(qrs(k),den(k),pidn0h)
-        rslopeb(k) = rslope(k)**bvth
-        rslope2(k) = rslope(k)*rslope(k)
-        rslope3(k) = rslope2(k)*rslope(k)
+        rslope = d_one/lamdah(qrs(i,k),den(i,k),pidn0h)
+        rslopeb = rslope**bvth
+        ! rslope2 = rslope*rslope
+        ! rslope3 = rslope2*rslope
       end if
-      vt(k) = pvth*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= 0.0_rkx ) vt(k) = d_zero
+      vt(i,k) = pvth*rslopeb*denfac(i,k)
+      if ( qrs(i,k) <= 0.0_rkx ) vt(i,k) = d_zero
     end do
   end subroutine slope_hail
   !
@@ -1921,30 +1949,27 @@ module mod_micro_wsm7
     real(rkx) :: th, th2, qqh, dqh
     real(rkx) :: zsum, qsum, xdim, xdip, con1
     real(rkx) :: allold, decfl
-    real(rkx), dimension(kz) :: dz, ww, qq, wd, wa, was
-    real(rkx), dimension(kz) :: den, denfac, tk
-    real(rkx), dimension(kzp1) :: wi, zi, za
-    real(rkx), dimension(kz) :: qn, qr ,tmp, tmp1, tmp2, tmp3
-    real(rkx), dimension(kzp1) :: dza, qa, qmi, qpi
+    real(rkx), dimension(ims:ime,kz) :: ww, wa, was
+    real(rkx), dimension(ims:ime,kz+1) :: wi, zi, za
+    real(rkx), dimension(ims:ime,kz) :: qn, qr
+    real(rkx), dimension(ims:ime,kz+1) :: dza, qa, qmi, qpi
     real(rkx), parameter :: fa1 = 9.0_rkx/16.0_rkx
     real(rkx), parameter :: fa2 = 1.0_rkx/16.0_rkx
 
+    !$acc parallel loop gang vector
     i_loop : &
     do i = ims, ime
       precip(i) = d_zero
 
+      !$acc loop seq
       do k = 1, kz
-        dz(k) = dzl(i,k)
-        qq(k) = rql(i,k)
-        ww(k) = wwl(i,k)
-        den(k) = denl(i,k)
-        denfac(k) = denfacl(i,k)
-        tk(k) = tkl(i,k)
+        ww(i,k) = wwl(i,k)
       end do
       ! skip for no precipitation for all layers
       allold = d_zero
+      !$acc loop seq
       do k = 1, kz
-        allold = allold + qq(k)
+        allold = allold + rql(i,k)
       end do
       if ( allold <= d_zero ) then
         cycle i_loop
@@ -1952,135 +1977,152 @@ module mod_micro_wsm7
       !
       ! compute interface values
       !
-      zi(1) = d_zero
+      zi(i,1) = d_zero
+      !$acc loop seq
       do k = 1, kz
-        zi(k+1) = zi(k)+dz(k)
-        ! save departure wind
-        wd(k) = ww(k)
+        zi(i,k+1) = zi(i,k)+dzl(i,k)
       end do
       n = 1
       do
         ! plm is 2nd order, we can use 2nd order wi or 3rd order wi
         ! 2nd order interpolation to get wi
-        wi(1) = ww(1)
-        wi(kzp1) = ww(kz)
+        wi(i,1) = ww(i,1)
+        wi(i,kzp1) = ww(i,kz)
+        !$acc loop seq
         do k = 2, kz
-          wi(k) = (ww(k)*dz(k-1)+ww(k-1)*dz(k))/(dz(k-1)+dz(k))
+          wi(i,k) = (ww(i,k)*dzl(i,k-1) + &
+            ww(i,k-1)*dzl(i,k))/(dzl(i,k-1)+dzl(i,k))
         end do
         ! 3rd order interpolation to get wi
-        wi(1) = ww(1)
-        wi(2) = d_half*(ww(2)+ww(1))
+        wi(i,1) = ww(i,1)
+        wi(i,2) = d_half*(ww(i,2)+ww(i,1))
+        !$acc loop seq
         do k = 3, kzm1
-          wi(k) = fa1*(ww(k)+ww(k-1))-fa2*(ww(k+1)+ww(k-2))
+          wi(i,k) = fa1*(ww(i,k)+ww(i,k-1))-fa2*(ww(i,k+1)+ww(i,k-2))
         end do
-        wi(kz) = d_half*(ww(kz)+ww(kz-1))
-        wi(kzp1) = ww(kz)
+        wi(i,kz) = d_half*(ww(i,kz)+ww(i,kz-1))
+        wi(i,kzp1) = ww(i,kz)
         !
         ! terminate of top of raingroup
         !
+        !$acc loop seq
         do k = 2, kz
-          if ( ww(k) == 0.0_rkx ) wi(k) = ww(k-1)
+          if ( ww(i,k) == 0.0_rkx ) wi(i,k) = ww(i,k-1)
         end do
         !
         ! diffusivity of wi
         !
         con1 = 0.05_rkx
+        !$acc loop seq
         do k = kz, 1, -1
-          decfl = (wi(k+1)-wi(k))*dt/dz(k)
+          decfl = (wi(i,k+1)-wi(i,k))*dt/dzl(i,k)
           if ( decfl > con1 ) then
-            wi(k) = wi(k+1) - con1*dz(k)/dt
+            wi(i,k) = wi(i,k+1) - con1*dzl(i,k)/dt
           end if
         end do
         ! compute arrival point
+        !$acc loop seq
         do k = 1, kzp1
-          za(k) = zi(k) - wi(k)*dt
+          za(i,k) = zi(i,k) - wi(i,k)*dt
         end do
+        !$acc loop seq
         do k = 1, kz
-          dza(k) = za(k+1)-za(k)
+          dza(i,k) = za(i,k+1)-za(i,k)
         end do
-        dza(kzp1) = zi(kzp1) - za(kzp1)
+        dza(i,kzp1) = zi(i,kzp1) - za(i,kzp1)
         !
         ! compute deformation at arrival point
         !
+        !$acc loop seq
         do k = 1, kz
-          qa(k) = qq(k)*dz(k)/dza(k)
-          qr(k) = qa(k)/den(k)
+          qa(i,k) = rql(i,k)*dzl(i,k)/dza(i,k)
+          qr(i,k) = qa(i,k)/denl(i,k)
         end do
-        qa(kzp1) = d_zero
+        qa(i,kzp1) = d_zero
         if ( n > maxiter ) exit
         !
         ! compute arrival terminal velocity, and estimate mean
         ! terminal velocity then back to use mean terminal velocity
         !
         if ( id == 1 ) then
-          call slope_rain(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
+          call slope_rain(qr,denl,denfacl,wa,kz,ims,ime,i, &
+            pidn0r,rslopermax,rsloperbmax,rsloper2max,rsloper3max,pvtr)
         else if ( id == 2 ) then
-          call slope_hail(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
+          call slope_hail(qr,denl,denfacl,wa,kz,ims,ime,i,&
+            pidn0h,rslopehmax,rslopehbmax,rslopeh2max,rslopeh3max,pvth)
         else
-          call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
+          call slope_snow(qr,denl,denfacl,tkl,wa,kz,ims,ime,i, &
+            pidn0s,rslopesmax,rslopesbmax,rslopes2max,rslopes3max,pvts)
         end if
         if ( n >= 2 ) then
+          !$acc loop seq
           do k = 1, kz
-            wa(k) = d_half*(wa(k)+was(k))
+            wa(i,k) = d_half*(wa(i,k)+was(i,k))
           end do
         end if
+        !$acc loop seq
         do k = 1, kz
           ! mean wind is average of departure and new arrival winds
-          ww(k) = d_half * ( wd(k)+wa(k) )
-          was(k) = wa(k)
+          ww(i,k) = d_half * ( wwl(i,k)+wa(i,k) )
+          was(i,k) = wa(i,k)
         end do
         n = n + 1
       end do
       !
       ! estimate values at arrival cell interface with monotone
       !
+      !$acc loop seq
       do k = 2, kz
-        xdip = (qa(k+1)-qa(k)) / (dza(k+1)+dza(k))
-        xdim = (qa(k)-qa(k-1)) / (dza(k-1)+dza(k))
+        xdip = (qa(i,k+1)-qa(i,k)) / (dza(i,k+1)+dza(i,k))
+        xdim = (qa(i,k)-qa(i,k-1)) / (dza(i,k-1)+dza(i,k))
         if ( xdip*xdim <= d_zero ) then
-          qmi(k) = qa(k)
-          qpi(k) = qa(k)
+          qmi(i,k) = qa(i,k)
+          qpi(i,k) = qa(i,k)
         else
-          qpi(k) = qa(k) + d_half*(xdip+xdim)*dza(k)
-          qmi(k) = d_two*qa(k) - qpi(k)
-          if ( qpi(k) < d_zero .or. qmi(k) < d_zero ) then
-            qpi(k) = qa(k)
-            qmi(k) = qa(k)
+          qpi(i,k) = qa(i,k) + d_half*(xdip+xdim)*dza(i,k)
+          qmi(i,k) = d_two*qa(i,k) - qpi(i,k)
+          if ( qpi(i,k) < d_zero .or. qmi(i,k) < d_zero ) then
+            qpi(i,k) = qa(i,k)
+            qmi(i,k) = qa(i,k)
           end if
         end if
       end do
-      qpi(1) = qa(1)
-      qmi(1) = qa(1)
-      qmi(kzp1) = qa(kzp1)
-      qpi(kzp1) = qa(kzp1)
+      qpi(i,1) = qa(i,1)
+      qmi(i,1) = qa(i,1)
+      qmi(i,kzp1) = qa(i,kzp1)
+      qpi(i,kzp1) = qa(i,kzp1)
       !
       ! interpolation to regular point
       !
+      !$acc loop seq
       do k = 1, kz
-        qn(k) = d_zero
+        qn(i,k) = d_zero
       end do
       kb = 1
       kt = 1
+      !$acc loop seq
       intp : &
       do k = 1, kz
         kb = max(kb-1,1)
         kt = max(kt-1,1)
         ! find kb and kt
-        if ( zi(k) >= za(kzp1) ) then
+        if ( zi(i,k) >= za(i,kzp1) ) then
           exit intp
         else
+          !$acc loop seq
           find_kb : &
           do kk = kb, kz
-            if ( zi(k) <= za(kk+1) ) then
+            if ( zi(i,k) <= za(i,kk+1) ) then
               kb = kk
               exit find_kb
             else
               cycle find_kb
             end if
           end do find_kb
+          !$acc loop seq
           find_kt : &
           do kk = kt, kz
-            if ( zi(k+1) <= za(kk) ) then
+            if ( zi(i,k+1) <= za(i,kk) ) then
               kt = kk
               exit find_kt
             else
@@ -2090,35 +2132,36 @@ module mod_micro_wsm7
           kt = kt - 1
           ! compute q with piecewise constant method
           if ( kt == kb ) then
-            tl = (zi(k)-za(kb)) / dza(kb)
-            th = (zi(k+1)-za(kb)) / dza(kb)
+            tl = (zi(i,k)-za(i,kb)) / dza(i,kb)
+            th = (zi(i,k+1)-za(i,kb)) / dza(i,kb)
             tl2 = tl*tl
             th2 = th*th
-            qqd = d_half*(qpi(kb)-qmi(kb))
-            qqh = qqd*th2+qmi(kb)*th
-            qql = qqd*tl2+qmi(kb)*tl
-            qn(k) = (qqh-qql)/(th-tl)
+            qqd = d_half*(qpi(i,kb)-qmi(i,kb))
+            qqh = qqd*th2+qmi(i,kb)*th
+            qql = qqd*tl2+qmi(i,kb)*tl
+            qn(i,k) = (qqh-qql)/(th-tl)
           else if ( kt > kb ) then
-            tl = (zi(k)-za(kb))/dza(kb)
+            tl = (zi(i,k)-za(i,kb))/dza(i,kb)
             tl2 = tl*tl
-            qqd = d_half*(qpi(kb)-qmi(kb))
-            qql = qqd*tl2+qmi(kb)*tl
-            dql = qa(kb)-qql
-            zsum = (d_one-tl)*dza(kb)
-            qsum = dql*dza(kb)
+            qqd = d_half*(qpi(i,kb)-qmi(i,kb))
+            qql = qqd*tl2+qmi(i,kb)*tl
+            dql = qa(i,kb)-qql
+            zsum = (d_one-tl)*dza(i,kb)
+            qsum = dql*dza(i,kb)
             if ( kt-kb > 1 ) then
+              !$acc loop seq
               do m = kb+1, kt-1
-                zsum = zsum + dza(m)
-                qsum = qsum + qa(m) * dza(m)
+                zsum = zsum + dza(i,m)
+                qsum = qsum + qa(i,m) * dza(i,m)
               end do
             end if
-            th = (zi(k+1)-za(kt))/dza(kt)
+            th = (zi(i,k+1)-za(i,kt))/dza(i,kt)
             th2 = th*th
-            qqd = d_half*(qpi(kt)-qmi(kt))
-            dqh = qqd*th2+qmi(kt)*th
-            zsum = zsum + th*dza(kt)
-            qsum = qsum + dqh*dza(kt)
-            qn(k) = qsum/zsum
+            qqd = d_half*(qpi(i,kt)-qmi(i,kt))
+            dqh = qqd*th2+qmi(i,kt)*th
+            zsum = zsum + th*dza(i,kt)
+            qsum = qsum + dqh*dza(i,kt)
+            qn(i,k) = qsum/zsum
           end if
           cycle intp
         end if
@@ -2126,13 +2169,14 @@ module mod_micro_wsm7
       !
       ! rain out
       !
+      !$acc loop seq
       sum_precip: &
       do k = 1, kz
-        if ( za(k) < d_zero .and. za(k+1) < d_zero ) then
-          precip(i) = precip(i) + qa(k)*dza(k)
+        if ( za(i,k) < d_zero .and. za(i,k+1) < d_zero ) then
+          precip(i) = precip(i) + qa(i,k)*dza(i,k)
           cycle sum_precip
-        else if ( za(k) < d_zero .and. za(k+1) >= d_zero ) then
-          precip(i) = precip(i) + qa(k)*(d_zero-za(k))
+        else if ( za(i,k) < d_zero .and. za(i,k+1) >= d_zero ) then
+          precip(i) = precip(i) + qa(i,k)*(d_zero-za(i,k))
           exit sum_precip
         else
           exit sum_precip
@@ -2141,8 +2185,9 @@ module mod_micro_wsm7
       !
       ! replace the new values
       !
+      !$acc loop seq
       do k = 1, kz
-        rql(i,k) = qn(k)
+        rql(i,k) = qn(i,k)
       end do
     end do i_loop
   end subroutine nislfv_rain_plm
@@ -2165,174 +2210,189 @@ module mod_micro_wsm7
     real(rkx) :: th, th2, qqh, dqh
     real(rkx) :: zsum, qsum, xdim, xdip
     real(rkx) :: allold, decfl
-    real(rkx), dimension(ims:ime) :: precip
-    real(rkx), dimension(kz) :: dz, ww, qq, wd, wa, wa2, was
-    real(rkx), dimension(kz) :: den, denfac, tk
-    real(rkx), dimension(kzp1) :: wi, zi, za
-    real(rkx), dimension(kz) :: qn, qr, qr2, qq2, tmp, tmp1, tmp2, tmp3
-    real(rkx), dimension(kzp1) :: dza, qa, qa2, qmi, qpi
+    real(rkx) :: precip_col, tmp
+    real(rkx), dimension(ims:ime,kz) :: ww, wa, wa2, was
+    real(rkx), dimension(ims:ime,kz+1) :: wi, zi, za
+    real(rkx), dimension(ims:ime,kz) :: qn, qr, qr2
+    real(rkx), dimension(ims:ime,kz+1) :: dza, qa, qa2, qmi, qpi
     real(rkx), parameter :: fa1 = 9.0_rkx/16.0_rkx
     real(rkx), parameter :: fa2 = 1.0_rkx/16.0_rkx
     real(rkx), parameter :: con1 = 0.05_rkx
 
+    !$acc parallel loop gang vector
     i_loop : &
     do i = ims, ime
-      precip(i) = d_zero
+      precip_col = d_zero
       precip1(i) = d_zero
       precip2(i) = d_zero
+      !$acc loop seq
       do k = 1, kz
-        dz(k) = dzl(i,k)
-        qq(k) = rql(i,k)
-        qq2(k) = rql2(i,k)
-        ww(k) = wwl(i,k)
-        den(k) = denl(i,k)
-        denfac(k) = denfacl(i,k)
-        tk(k) = tkl(i,k)
+        ww(i,k) = wwl(i,k)
       end do
       ! skip for no precipitation for all layers
       allold = d_zero
+      !$acc loop seq
       do k=1, kz
-        allold = allold + qq(k) + qq2(k)
+        allold = allold + rql(i,k) + rql2(i,k)
       end do
       if ( allold <= d_zero ) then
         cycle i_loop
       end if
       ! compute interface values
-      zi(1) = d_zero
+      zi(i,1) = d_zero
+      !$acc loop seq
       do k = 1, kz
-        zi(k+1) = zi(k)+dz(k)
-        ! save departure wind
-        wd(k) = ww(k)
+        zi(i,k+1) = zi(i,k)+dzl(i,k)
       end do
       n = 1
       do !inf
         ! plm is 2nd order, we can use 2nd order wi or 3rd order wi
         ! 2nd order interpolation to get wi
-        wi(1) = ww(1)
-        wi(kzp1) = ww(kz)
+        wi(i,1) = ww(i,1)
+        wi(i,kzp1) = ww(i,kz)
+        !$acc loop seq
         do k = 2, kz
-          wi(k) = (ww(k)*dz(k-1)+ww(k-1)*dz(k))/(dz(k-1)+dz(k))
+          wi(i,k) = (ww(i,k)*dzl(i,k-1) + &
+            ww(i,k-1)*dzl(i,k))/(dzl(i,k-1)+dzl(i,k))
         end do
         ! 3rd order interpolation to get wi
-        wi(1) = ww(1)
-        wi(2) = d_half*(ww(2)+ww(1))
+        wi(i,1) = ww(i,1)
+        wi(i,2) = d_half*(ww(i,2)+ww(i,1))
+        !$acc loop seq
         do k = 3, kzm1
-          wi(k) = fa1*(ww(k)+ww(k-1))-fa2*(ww(k+1)+ww(k-2))
+          wi(i,k) = fa1*(ww(i,k)+ww(i,k-1))-fa2*(ww(i,k+1)+ww(i,k-2))
         end do
-        wi(kz) = d_half*(ww(kz)+ww(kz-1))
-        wi(kzp1) = ww(kz)
+        wi(i,kz) = d_half*(ww(i,kz)+ww(i,kz-1))
+        wi(i,kzp1) = ww(i,kz)
         !
         ! terminate of top of raingroup
         !
+        !$acc loop seq
         do k = 2, kz
-          if ( ww(k) == 0.0_rkx ) wi(k) = ww(k-1)
+          if ( ww(i,k) == 0.0_rkx ) wi(i,k) = ww(i,k-1)
         end do
         !diffusivity of wi
+        !$acc loop seq
         do k = kz, 1, -1
-          decfl = (wi(k+1)-wi(k))*dt/dz(k)
+          decfl = (wi(i,k+1)-wi(i,k))*dt/dzl(i,k)
           if ( decfl > con1 ) then
-            wi(k) = wi(k+1) - con1*dz(k)/dt
+            wi(i,k) = wi(i,k+1) - con1*dzl(i,k)/dt
           end if
         end do
         ! compute arrival point
+        !$acc loop seq
         do k = 1, kzp1
-          za(k) = zi(k) - wi(k)*dt
+          za(i,k) = zi(i,k) - wi(i,k)*dt
         end do
+        !$acc loop seq
         do k = 1, kz
-          dza(k) = za(k+1)-za(k)
+          dza(i,k) = za(i,k+1)-za(i,k)
         end do
-        dza(kzp1) = zi(kzp1) - za(kzp1)
+        dza(i,kzp1) = zi(i,kzp1) - za(i,kzp1)
         ! compute deformation at arrival point
+        !$acc loop seq
         do k = 1, kz
-          qa(k) = qq(k)*dz(k)/dza(k)
-          qa2(k) = qq2(k)*dz(k)/dza(k)
-          qr(k) = qa(k)/den(k)
-          qr2(k) = qa2(k)/den(k)
+          qa(i,k) = rql(i,k)*dzl(i,k)/dza(i,k)
+          qa2(i,k) = rql2(i,k)*dzl(i,k)/dza(i,k)
+          qr(i,k) = qa(i,k)/denl(i,k)
+          qr2(i,k) = qa2(i,k)/denl(i,k)
         end do
-        qa(kzp1) = d_zero
-        qa2(kzp1) = d_zero
+        qa(i,kzp1) = d_zero
+        qa2(i,kzp1) = d_zero
         if ( n > maxiter ) exit
         !
         ! compute arrival terminal velocity, and estimate mean
         ! terminal velocity then back to use mean terminal velocity
         !
-        call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
-        call slope_graup(qr2,den,denfac,tmp,tmp1,tmp2,tmp3,wa2)
+        call slope_snow(qr,denl,denfacl,tkl,wa,kz,ims,ime,i, &
+          pidn0s,rslopesmax,rslopesbmax,rslopes2max,rslopes3max,pvts)
+        call slope_graup(qr2,denl,denfacl,wa2,kz,ims,ime,i, &
+          pidn0g,rslopegmax,rslopegbmax,rslopeg2max,rslopeg3max,pvtg)
+        !$acc loop seq
         do k = 1, kz
-          tmp(k) = max((qr(k)+qr2(k)), 1.e-15_rkx)
-          if ( tmp(k) > 1.1e-15_rkx ) then
-            wa(k) = (wa(k)*qr(k) + wa2(k)*qr2(k))/tmp(k)
+          tmp = max((qr(i,k)+qr2(i,k)), 1.e-15_rkx)
+          if ( tmp > 1.1e-15_rkx ) then
+            wa(i,k) = (wa(i,k)*qr(i,k) + wa2(i,k)*qr2(i,k))/tmp
           else
-            wa(k) = d_zero
+            wa(i,k) = d_zero
           end if
         end do
         if ( n >= 2 ) then
+          !$acc loop seq
           do k = 1, kz
-            wa(k) = d_half*(wa(k)+was(k))
+            wa(i,k) = d_half*(wa(i,k)+was(i,k))
           end do
         end if
+        !$acc loop seq
         do k = 1, kz
          ! mean wind is average of departure and new arrival winds
-          ww(k) = d_half * ( wd(k)+wa(k) )
-          was(k) = wa(k)
+          ww(i,k) = d_half * ( wwl(i,k)+wa(i,k) )
+          was(i,k) = wa(i,k)
         end do
         n = n + 1
       end do
+      !$acc loop seq
       ist_loop : &
       do ist = 1, 2
         if ( ist == 2 ) then
+          !$acc loop seq
           do k = 1, kzp1
-            qa(k) = qa2(k)
+            qa(i,k) = qa2(i,k)
           end do
         end if
-        precip(i) = d_zero
+        precip_col = d_zero
         ! estimate values at arrival cell interface with monotone
+        !$acc loop seq
         do k = 2, kz
-          xdip = (qa(k+1)-qa(k)) / (dza(k+1)+dza(k))
-          xdim = (qa(k)-qa(k-1)) / (dza(k-1)+dza(k))
+          xdip = (qa(i,k+1)-qa(i,k)) / (dza(i,k+1)+dza(i,k))
+          xdim = (qa(i,k)-qa(i,k-1)) / (dza(i,k-1)+dza(i,k))
           if ( xdip*xdim <= d_zero ) then
-            qmi(k) = qa(k)
-            qpi(k) = qa(k)
+            qmi(i,k) = qa(i,k)
+            qpi(i,k) = qa(i,k)
           else
-            qpi(k) = qa(k) + d_half*(xdip+xdim)*dza(k)
-            qmi(k) = d_two*qa(k) - qpi(k)
-            if ( qpi(k) < d_zero .or. qmi(k) < d_zero ) then
-              qpi(k) = qa(k)
-              qmi(k) = qa(k)
+            qpi(i,k) = qa(i,k) + d_half*(xdip+xdim)*dza(i,k)
+            qmi(i,k) = d_two*qa(i,k) - qpi(i,k)
+            if ( qpi(i,k) < d_zero .or. qmi(i,k) < d_zero ) then
+              qpi(i,k) = qa(i,k)
+              qmi(i,k) = qa(i,k)
             end if
           end if
         end do
-        qpi(1) = qa(1)
-        qmi(1) = qa(1)
-        qmi(kzp1) = qa(kzp1)
-        qpi(kzp1) = qa(kzp1)
+        qpi(i,1) = qa(i,1)
+        qmi(i,1) = qa(i,1)
+        qmi(i,kzp1) = qa(i,kzp1)
+        qpi(i,kzp1) = qa(i,kzp1)
         ! interpolation to regular point
         !
+        !$acc loop seq
         do k = 1, kz
-          qn(k) = d_zero
+          qn(i,k) = d_zero
         end do
         kb = 1
         kt = 1
+        !$acc loop seq
         intp : &
         do k = 1, kz
           kb = max(kb-1,1)
           kt = max(kt-1,1)
           ! find kb and kt
-          if ( zi(k) >= za(kzp1) ) then
+          if ( zi(i,k) >= za(i,kzp1) ) then
             exit intp
           else
+            !$acc loop seq
             find_kb : &
             do kk = kb, kz
-              if ( zi(k) <= za(kk+1) ) then
+              if ( zi(i,k) <= za(i,kk+1) ) then
                 kb = kk
                 exit find_kb
               else
                 cycle find_kb
               end if
             end do find_kb
+            !$acc loop seq
             find_kt : &
             do kk = kt, kz
-              if ( zi(k+1) <= za(kk) ) then
+              if ( zi(i,k+1) <= za(i,kk) ) then
                 kt = kk
                 exit find_kt
               else
@@ -2342,63 +2402,67 @@ module mod_micro_wsm7
             kt = kt - 1
             ! compute q with piecewise constant method
             if ( kt == kb ) then
-              tl = (zi(k)-za(kb)) / dza(kb)
-              th = (zi(k+1)-za(kb)) / dza(kb)
+              tl = (zi(i,k)-za(i,kb)) / dza(i,kb)
+              th = (zi(i,k+1)-za(i,kb)) / dza(i,kb)
               tl2 = tl*tl
               th2 = th*th
-              qqd = d_half*(qpi(kb)-qmi(kb))
-              qqh = qqd*th2+qmi(kb)*th
-              qql = qqd*tl2+qmi(kb)*tl
-              qn(k) = (qqh-qql)/(th-tl)
+              qqd = d_half*(qpi(i,kb)-qmi(i,kb))
+              qqh = qqd*th2+qmi(i,kb)*th
+              qql = qqd*tl2+qmi(i,kb)*tl
+              qn(i,k) = (qqh-qql)/(th-tl)
             else if ( kt > kb ) then
-              tl = (zi(k)-za(kb))/dza(kb)
+              tl = (zi(i,k)-za(i,kb))/dza(i,kb)
               tl2 = tl*tl
-              qqd = d_half*(qpi(kb)-qmi(kb))
-              qql = qqd*tl2+qmi(kb)*tl
-              dql = qa(kb)-qql
-              zsum = (d_one-tl)*dza(kb)
-              qsum = dql*dza(kb)
+              qqd = d_half*(qpi(i,kb)-qmi(i,kb))
+              qql = qqd*tl2+qmi(i,kb)*tl
+              dql = qa(i,kb)-qql
+              zsum = (d_one-tl)*dza(i,kb)
+              qsum = dql*dza(i,kb)
               if ( kt-kb > 1 ) then
+                !$acc loop seq
                 do m = kb+1, kt-1
-                  zsum = zsum + dza(m)
-                  qsum = qsum + qa(m) * dza(m)
+                  zsum = zsum + dza(i,m)
+                  qsum = qsum + qa(i,m) * dza(i,m)
                 end do
               end if
-              th = (zi(k+1)-za(kt))/dza(kt)
+              th = (zi(i,k+1)-za(i,kt))/dza(i,kt)
               th2 = th*th
-              qqd = d_half*(qpi(kt)-qmi(kt))
-              dqh = qqd*th2+qmi(kt)*th
-              zsum = zsum + th*dza(kt)
-              qsum = qsum + dqh*dza(kt)
-              qn(k) = qsum/zsum
+              qqd = d_half*(qpi(i,kt)-qmi(i,kt))
+              dqh = qqd*th2+qmi(i,kt)*th
+              zsum = zsum + th*dza(i,kt)
+              qsum = qsum + dqh*dza(i,kt)
+              qn(i,k) = qsum/zsum
             end if
             cycle intp
           end if
         end do intp
         ! rain out
         !
+        !$acc loop seq
         sum_precip1: &
         do k = 1, kz
-          if ( za(k) < d_zero .and. za(k+1) < d_zero ) then
-            precip(i) = precip(i) + qa(k)*dza(k)
+          if ( za(i,k) < d_zero .and. za(i,k+1) < d_zero ) then
+            precip_col = precip_col + qa(i,k)*dza(i,k)
             cycle sum_precip1
-          else if ( za(k) < d_zero .and. za(k+1) >= d_zero ) then
-            precip(i) = precip(i) + qa(k)*(d_zero-za(k))
+          else if ( za(i,k) < d_zero .and. za(i,k+1) >= d_zero ) then
+            precip_col = precip_col + qa(i,k)*(d_zero-za(i,k))
             exit sum_precip1
           else
             exit sum_precip1
           end if
         end do sum_precip1
         if ( ist == 1 ) then
+          !$acc loop seq
           do k = 1, kz
-            rql(i,k) = qn(k)
+            rql(i,k) = qn(i,k)
           end do
-          precip1(i) = precip(i)
+          precip1(i) = precip_col
         else
+          !$acc loop seq
           do k = 1, kz
-            rql2(i,k) = qn(k)
+            rql2(i,k) = qn(i,k)
           end do
-          precip2(i) = precip(i)
+          precip2(i) = precip_col
         end if
       end do ist_loop
     end do i_loop

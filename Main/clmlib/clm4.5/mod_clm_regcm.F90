@@ -395,12 +395,16 @@ module mod_clm_regcm
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     real(rkx), dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
-    integer(ik4) :: i, j, n
+    integer(ik4) :: i, j, n, ibeg, iend
+
+    call get_proc_bounds(ibeg,iend)
     ! Just get albedoes from clm_l2a
-    !$acc kernels
-    lastgood = lms%swdiralb
-    clm_l2a%notused = clm_l2a%albd(:,1)
-    !$acc end kernels
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      lastgood(n,j,i) = lms%swdiralb(n,j,i)
+    end do
+    do concurrent ( i = ibeg:iend )
+      clm_l2a%notused(i) = clm_l2a%albd(i,1)
+    end do
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       if ( lm%ldmsk1(n,j,i) == 1 ) then
@@ -409,10 +413,12 @@ module mod_clm_regcm
         end if
       end if
     end do
-    !$acc kernels
-    lastgood = lms%lwdiralb
-    clm_l2a%notused = clm_l2a%albd(:,2)
-    !$acc end kernels
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      lastgood(n,j,i) = lms%lwdiralb(n,j,i)
+    end do
+    do concurrent ( i = ibeg:iend )
+      clm_l2a%notused(i) = clm_l2a%albd(i,2)
+    end do
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       if ( lm%ldmsk1(n,j,i) == 1 ) then
@@ -421,10 +427,12 @@ module mod_clm_regcm
         end if
       end if
     end do
-    !$acc kernels
-    lastgood = lms%swdifalb
-    clm_l2a%notused = clm_l2a%albi(:,1)
-    !$acc end kernels
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      lastgood(n,j,i) = lms%swdifalb(n,j,i)
+    end do
+    do concurrent ( i = ibeg:iend )
+      clm_l2a%notused(i) = clm_l2a%albi(i,1)
+    end do
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       if ( lm%ldmsk1(n,j,i) == 1 ) then
@@ -433,10 +441,12 @@ module mod_clm_regcm
         end if
       end if
     end do
-    !$acc kernels
-    lastgood = lms%lwdifalb
-    clm_l2a%notused = clm_l2a%albi(:,2)
-    !$acc end kernels
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      lastgood(n,j,i) = lms%lwdifalb(n,j,i)
+    end do
+    do concurrent ( i = ibeg:iend )
+      clm_l2a%notused(i) = clm_l2a%albi(i,2)
+    end do
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       if ( lm%ldmsk1(n,j,i) == 1 ) then
