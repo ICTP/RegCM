@@ -2027,25 +2027,30 @@ added to the model.
 
 The cloud fraction $FC$ passed to the radiation schemes is computed by merging
 the large-scale (grid-resolved) and convective contributions. The large-scale
-fraction is provided by one of seven diagnostic or prognostic schemes selected
-by the user; the convective fraction is supplied directly by the active
-cumulus parameterization. The merged fraction follows a maximum-overlap
-assumption,
+fraction is provided by one of eight diagnostic or prognostic schemes selected
+by the user through the \texttt{icldfrac} namelist parameter; the convective
+fraction is supplied directly by the active cumulus parameterization. The merged
+fraction follows a maximum-overlap assumption,
 \begin{equation}
   FC = \max\!\left(FC_\mathrm{LS},\; FC_\mathrm{CU}\right),
 \end{equation}
 and the corresponding in-cloud liquid water content (LWC) is a weighted blend
 of the large-scale condensate and a temperature-based estimate for the
-convective part \citep{Liang_05}. The seven large-scale schemes are described
-below.\\
+convective part. The scheme-weighted LWC is optionally scaled following the
+observational constraint of \citet{Liang_05} to account for the systematic
+relationship between cloud fraction and optical depth at the grid scale.
+The eight large-scale schemes, indexed by \texttt{icldfrac} from 0 to 7,
+are described below.\\
 
 \noindent{
 \begin{enumerate}
+\setcounter{enumi}{-1}
 
-\item {\bf SUBEX (Sundqvist--Pal):} The Subgrid Explicit Moisture Scheme
-follows the statistical framework of \citet{Sundqvist_89} and is fully
-described in \citet{Pal_00}. The cloud fraction is a function of grid-mean
-relative humidity $RH$ and a critical threshold $RH_\mathrm{crit}$:
+\item {\bf SUBEX (Sundqvist--Pal, \texttt{icldfrac}=0):} The default scheme.
+The Subgrid Explicit Moisture Scheme follows the statistical framework of
+\citet{Sundqvist_89} and is fully described in \citet{Pal_00}. The cloud
+fraction is a function of grid-mean relative humidity $RH$ and a critical
+threshold $RH_\mathrm{crit}$:
 \begin{equation}
   FC = RH_\mathrm{max} - \sqrt{\frac{RH_\mathrm{max} - RH}{RH_\mathrm{max} -
        RH_\mathrm{crit}}},
@@ -2053,33 +2058,35 @@ relative humidity $RH$ and a critical threshold $RH_\mathrm{crit}$:
 with $FC = 0$ for $RH \leq RH_\mathrm{crit}$ and $FC = 1$ for $RH \geq
 RH_\mathrm{max}$. The critical relative humidity $RH_\mathrm{crit}$ is a
 function of temperature and pressure following \citet{Pal_00}, with an optional
-correction for Arctic low cloud based on \citet{Vavrus_08}. This is the default
-large-scale cloud fraction scheme in RegCM.\\
+correction for Arctic low cloud based on \citet{Vavrus_08}.\\
 
-\item {\bf Xu--Randall:} The semiempirical scheme of \citet{xu:96a} expresses
-cloud fraction as a function of both relative humidity and the grid-mean
-cloud liquid water mixing ratio $q_c$:
+\item {\bf Xu--Randall (\texttt{icldfrac}=1):} The semiempirical scheme of
+\citet{xu:96a} expresses cloud fraction as a joint function of both the
+grid-mean relative humidity $RH$ and the grid-mean cloud liquid water mixing
+ratio $q_c$:
 \begin{equation}
-  FC = RH^p\!\left[1 - \exp\!\left(-\frac{\alpha_0\,q_c}
+  FC = RH^{\,p}\!\left[1 - \exp\!\left(-\frac{\alpha_0\,q_c}
        {(1 - RH)\,q_\mathrm{sat}^{\,\gamma}}\right)\right],
 \end{equation}
 where $p$, $\alpha_0$, and $\gamma$ are empirical constants fitted to
 large-eddy simulation data, and $q_\mathrm{sat}$ is the saturation mixing
 ratio. The formula captures the joint dependence of cloud fraction on both
-thermodynamic state and the amount of condensate produced by the microphysics.\\
+thermodynamic state and the amount of condensate produced by the
+microphysics.\\
 
-\item {\bf Thompson:} The scheme adapts the treatment used in the WRF Thompson
-microphysics \citep{Thompson_08} to diagnose cloud fraction from the relative
-humidity state and the in-cloud condensate. Separate formulations are applied
-for warm liquid clouds, mixed-phase clouds in the temperature range
-$-20\,^\circ\mathrm{C} \leq T \leq -12\,^\circ\mathrm{C}$ (linear
-interpolation between liquid and ice saturation), and cold cirrus clouds
-($T < -12\,^\circ\mathrm{C}$), where a Sundqvist-type formula is applied
-with respect to ice supersaturation.\\
+\item {\bf Thompson (\texttt{icldfrac}=2):} The scheme adapts the treatment
+used in the WRF Thompson microphysics \citep{Thompson_08} to diagnose cloud
+fraction from the relative humidity state and the in-cloud condensate.
+Separate formulations are applied for warm liquid clouds, mixed-phase clouds
+in the temperature range $-20\,^\circ\mathrm{C} \leq T \leq
+-12\,^\circ\mathrm{C}$ (linear interpolation between liquid and ice
+saturation), and cold cirrus clouds ($T < -12\,^\circ\mathrm{C}$), where a
+Sundqvist-type formula is applied with respect to ice supersaturation.\\
 
-\item {\bf Gultepe--Isaac:} The cloud fraction is diagnosed from the
-grid-mean in-cloud liquid water content $q_c$ using the empirical cubic
-polynomial fit of \citet{GultepeIsaac_07} to aircraft observations:
+\item {\bf Gultepe--Isaac (\texttt{icldfrac}=3):} The cloud fraction is
+diagnosed from the grid-mean in-cloud liquid water content $q_c$ using the
+empirical cubic polynomial fit of \citet{GultepeIsaac_07} to aircraft
+observations:
 \begin{equation}
   FC = a_3\,q_c^3 + a_2\,q_c^2 + a_1\,q_c + a_0,
 \end{equation}
@@ -2088,30 +2095,37 @@ dataset of \citet{Gultepe_97}, clamped to the range $[0,1]$. A local
 standard-deviation term accounting for the vertical structure of the boundary
 layer further modulates the fraction near the surface.\\
 
-\item {\bf Sundqvist--Berge--Kristj\'{a}nsson:} The scheme of
-\citet{Sundqvist_89} expresses the cloud fraction diagnostically from the
-degree of large-scale supersaturation relative to a pressure-dependent
-critical relative humidity $RH_0(p)$. A single-level diagnostic formula is
-used:
+\item {\bf Teixeira (\texttt{icldfrac}=4):} The scheme of \citet{Teixeira_01}
+is derived from the equilibrium solution of a prognostic cloud fraction
+equation that balances a condensation source term (proportional to the
+clear-sky fraction and the rate constant $d$) against an evaporation sink term
+(proportional to the cloud fraction, the rate constant $\kappa$, and the
+subsaturation of the environment). Setting $\mathrm{d}FC/\mathrm{d}t = 0$
+and solving the resulting quadratic yields:
 \begin{equation}
-  FC = 1 - \sqrt{1 - \frac{RH - RH_0(p)}{1 - RH_0(p)}},
+  FC = \frac{d\,q_c}{2\,\hat{q}_s\,(1-RH)\,\kappa}
+       \left[-1 + \sqrt{1 + \frac{4\,\hat{q}_s\,(1-RH)\,\kappa}
+       {d\,q_c}}\right],
 \end{equation}
-valid for $RH > RH_0(p)$, with $FC = 0$ otherwise. The critical threshold
-decreases from approximately $RH_0 \approx 0.9$ near the surface to
-$RH_0 \approx 0.6$ in the upper troposphere.\\
+where $\hat{q}_s = q_s/(1+q_s)$ is the saturation specific humidity,
+$q_c$ is the in-cloud condensate, $\kappa = 10^{-6}$\,s$^{-1}$ is the
+evaporation rate, and $d = 4 \times 10^{-6}$\,s$^{-1}$ is the condensation
+rate. Unlike purely thermodynamic schemes, this formulation requires a
+non-zero condensate and a relative humidity above the local threshold to
+produce cloud.\\
 
-\item {\bf Tompkins:} The scheme of \citet{tompkins:02} is a prognostic
-parameterization that carries the subgrid-scale probability density function
-(PDF) of total water as a prognostic variable, represented as a
-beta distribution. Cloud fraction and condensate are derived from the integral
-of this PDF above the saturation mixing ratio. The PDF variance evolves
-according to sources from convection, turbulent mixing, and microphysical
-processes, making the scheme sensitive to the dynamic history of the column
-rather than only to the instantaneous thermodynamic state.\\
+\item {\bf Tompkins (\texttt{icldfrac}=5):} The scheme of \citet{tompkins:02}
+is a prognostic parameterization that carries the subgrid-scale probability
+density function (PDF) of total water as a prognostic variable, represented
+as a beta distribution. Cloud fraction and condensate are derived from the
+integral of this PDF above the saturation mixing ratio. The PDF variance
+evolves according to sources from convection, turbulent mixing, and
+microphysical processes, making the scheme sensitive to the dynamic history
+of the column rather than only to the instantaneous thermodynamic state.\\
 
-\item {\bf ECHAM5 (Quaas):} Following \citet{Quaas_04}, the critical relative
-humidity is parameterized as a function of the normalized pressure coordinate
-$\tilde{\sigma} = p_s / p$:
+\item {\bf ECHAM5 (Quaas, \texttt{icldfrac}=6):} Following \citet{Quaas_04},
+the critical relative humidity is parameterized as a function of the
+normalized pressure coordinate $\tilde{\sigma} = p_s / p$:
 \begin{equation}
   RH_\mathrm{crit} = \sigma_t + \left(\sigma_s - \sigma_t\right)
                      \exp\!\left(1 - \tilde{\sigma}^{\,n_x}\right),
@@ -2120,6 +2134,13 @@ where $\sigma_t = 0.35$ and $\sigma_s = 0.85$ are the critical thresholds in
 the free troposphere and near the surface respectively, and $n_x = 4$. The
 cloud fraction is then diagnosed with the \citet{Sundqvist_88} formula applied
 to this vertically varying threshold.\\
+
+\item {\bf Condensate threshold (\texttt{icldfrac}=7):} A simple binary
+scheme that sets $FC = 1$ wherever the vertically integrated in-cloud liquid
+water path $\rho\,q_c\,\Delta z$ exceeds a threshold of
+$10^{-2}$\,kg\,m$^{-2}$ (10\,g\,m$^{-2}$), and $FC = 0$ otherwise. This
+scheme is intended for process studies and idealized experiments rather than
+operational climate simulations.\\
 
 \end{enumerate}
 }
