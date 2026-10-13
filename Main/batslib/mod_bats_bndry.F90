@@ -500,12 +500,12 @@ module mod_bats_bndry
       !
       ! 3.2  update root zone
       !
-      rsw(i) = rsw(i) + dtbat * (max(gwatr-srnof(i),d_zero) + wflux2(i))
+      rsw(i) = rsw(i) + dtbat * (wflux2(i)-wflux1(i))
       rsw(i) = max(rsw(i),gwmx1(i)*minwrat)
       !
       ! 3.3  update total water
       !
-      tsw(i) = tsw(i) + dtbat * (max(gwatr-srnof(i),d_zero) - rsubst(i))
+      tsw(i) = tsw(i) + dtbat * (-rsubst(i)-wflux2(i))
       tsw(i) = max(tsw(i),gwmx2(i)*minwrat)
     end do
 

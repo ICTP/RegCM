@@ -193,7 +193,7 @@ module mod_bats_param
                100.0_rkx, 100.0_rkx, 100.0_rkx, 100.0_rkx, 100.0_rkx, &
                100.0_rkx, 100.0_rkx, 100.0_rkx, 100.0_rkx, 100.0_rkx, &
                100.0_rkx, 100.0_rkx, 100.0_rkx, 100.0_rkx, 100.0_rkx, &
-               100.0_rkx, 100.0_rkx /
+                13.0_rkx,  13.0_rkx /
   !
   ! deprv is depth of root zone (mm)
   ! BATS 1e, Table 2, d, pag 21
@@ -209,7 +209,7 @@ module mod_bats_param
                1000.0_rkx, 1000.0_rkx, 1000.0_rkx, 1000.0_rkx, &
                1000.0_rkx, 1000.0_rkx, 1000.0_rkx, 1000.0_rkx, &
                1000.0_rkx, 2000.0_rkx, 2000.0_rkx, 2000.0_rkx, &
-               1000.0_rkx, 1000.0_rkx /
+                130.0_rkx,  130.0_rkx /
   !
   ! deptv is depth of total soil (mm)
   !

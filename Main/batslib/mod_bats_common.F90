@@ -121,7 +121,7 @@ module mod_bats_common
           do j = jci1, jci2
             if (lm%rmoist(j,i,1) < 1.0e+10_rkx ) then
               do n = 1, nsg
-                lms%ssw(n,:,:) = lm%rmoist(:,:,1)
+                lms%ssw(n,j,i) = lm%rmoist(j,i,1)
               end do
             end if
           end do
@@ -132,7 +132,7 @@ module mod_bats_common
           do j = jci1, jci2
             if (lm%rmoist(j,i,2) < 1.0e+10_rkx ) then
               do n = 1, nsg
-                lms%rsw(n,:,:) = lm%rmoist(:,:,2)
+                lms%rsw(n,j,i) = lm%rmoist(j,i,2)
               end do
             end if
           end do
@@ -143,7 +143,7 @@ module mod_bats_common
           do j = jci1, jci2
             if (lm%rmoist(j,i,3) < 1.0e+10_rkx ) then
               do n = 1, nsg
-                lms%tsw(n,:,:) = lm%rmoist(:,:,3)
+                lms%tsw(n,j,i) = lm%rmoist(j,i,3)
               end do
             end if
           end do
