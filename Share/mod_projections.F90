@@ -303,7 +303,7 @@ module mod_projections
         do i = 1, nlat
           do j = 1, nlon
             call uvrot_rc(pj,lat(i),lon(j),f1,f2)
-            p(j,i) = real(acos(f1),rkx)
+            p(j,i) = real(atan2(f2,f1),rkx)
           end do
         end do
       case ('POLSTR')
@@ -409,10 +409,10 @@ module mod_projections
     pj%p%dlat = pj%p%dlon
     pj%p%rlat0 = clat - cj*pj%p%dlat
     pj%p%rlon0 = clon - ci*pj%p%dlon
-    if ( pj%p%rlat0 >  deg90 )  pj%p%rlat0 = deg90 - pj%p%rlat0
-    if ( pj%p%rlat0 < -deg90 )  pj%p%rlat0 = pj%p%rlat0 + deg90
-    if ( pj%p%rlon0 >  deg180 ) pj%p%rlon0 = deg360 - pj%p%rlon0
-    if ( pj%p%rlon0 < -deg180 ) pj%p%rlon0 = pj%p%rlon0 + deg360
+    if ( pj%p%rlat0 >  deg90 )  pj%p%rlat0 =  deg180 - pj%p%rlat0
+    if ( pj%p%rlat0 < -deg90 )  pj%p%rlat0 = -deg180 - pj%p%rlat0
+    if ( pj%p%rlon0 >  deg180 ) pj%p%rlon0 =  deg360 - pj%p%rlon0
+    if ( pj%p%rlon0 < -deg180 ) pj%p%rlon0 =  deg360 + pj%p%rlon0
   end subroutine setup_ll
 
   pure subroutine ijll_ll(pj,i,j,lat,lon)
@@ -498,7 +498,7 @@ module mod_projections
             dlam = plam - lam
             arg1 = cos(pphi)*sin(dlam)
             arg2 = cos(phi)*sin(pphi) - sin(phi)*cos(pphi)*cos(dlam)
-            delta = atan(arg1/arg2)
+            delta = atan2(arg1,arg2)
             pj%f1(i,j) = cos(delta)
             pj%f2(i,j) = sin(delta)
           end do

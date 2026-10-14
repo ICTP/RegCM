@@ -78,7 +78,7 @@ module mod_intldtr
     else
       inear = nint(x)
       if (inear < 1) then
-        inear = m - inear
+        inear = inear + m
       end if
       if (inear > m) then
         inear = inear - m
@@ -347,11 +347,11 @@ module mod_intldtr
           im = i
           imp1 = i+1
           imn1 = i-1
-          if ( i < 1 ) im = m-i
+          if ( i < 1 ) im = im+m
           if ( i > m ) im = i-m
-          if ( imp1 < 1 ) imp1 = m-i+1
+          if ( imp1 < 1 ) imp1 = imp1+m
           if ( imp1 > m ) imp1 = i+1-m
-          if ( imn1 < 1 ) imn1 = m-i-1
+          if ( imn1 < 1 ) imn1 = imn1+m
           if ( imn1 > m ) imn1 = i-1-m
         else
           im = i
@@ -596,7 +596,7 @@ module mod_intldtr
       cnt(:) = 0
       do ii = i-1, i+1
         do jj = j-1, j+1
-          if ( jj == j .or. ii == i .or. &
+          if ( jj == j .and. ii == i .or. &
                jj < 1 .or. jj > nj .or. &
                ii < 1 .or. ii > ni ) cycle
           kk = int(omt(jj,ii))

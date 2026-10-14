@@ -254,7 +254,7 @@ module mod_rdldtr
 
     istatus = nf90_inquire_dimension(ncid,idims(3),len=nd)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading lon dimelen in file '//trim(cfile))
+         'Error reading 3rd dimlen in file '//trim(cfile))
 
     call get_window(glat,glon,xlat,xlon,iband,gdomain)
 
@@ -507,7 +507,7 @@ module mod_rdldtr
                     'Missing lat dimension in file '//trim(cfile))
     istatus = nf90_inquire_dimension(ncid,idimid,len=jlat)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading lat dimelen in file '//trim(cfile))
+         'Error reading lat dimlen in file '//trim(cfile))
 
     istatus = nf90_inq_dimid(ncid,'lon',idimid)
     if ( istatus /= nf90_noerr ) then
@@ -526,7 +526,7 @@ module mod_rdldtr
                     'Missing lon dimension in file '//trim(cfile))
     istatus = nf90_inquire_dimension(ncid,idimid,len=ilon)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading lon dimelen in file '//trim(cfile))
+         'Error reading lon dimlen in file '//trim(cfile))
 
     allocate(glat(jlat))
     allocate(glon(ilon))
@@ -663,7 +663,7 @@ module mod_rdldtr
         jb = jmin+jcnt-1
         if ( iband == 1 ) then
           if (ib < 1) then
-            ib = ni - ib
+            ib = ib + ni
           else if (ib > ni) then
             ib = ib - ni
           end if
@@ -774,7 +774,7 @@ module mod_rdldtr
                     'Missing lat dimension in file '//trim(cfile))
     istatus = nf90_inquire_dimension(gfile%ncid,idimid,len=jlat)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading lat dimelen in file '//trim(cfile))
+         'Error reading lat dimlen in file '//trim(cfile))
 
     istatus = nf90_inq_dimid(gfile%ncid,'lon',idimid)
     if ( istatus /= nf90_noerr ) then
@@ -793,7 +793,7 @@ module mod_rdldtr
                     'Missing lon dimension in file '//trim(cfile))
     istatus = nf90_inquire_dimension(gfile%ncid,idimid,len=ilon)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading lon dimelen in file '//trim(cfile))
+         'Error reading lon dimlen in file '//trim(cfile))
 
     allocate(glat(jlat))
     allocate(glon(ilon))
@@ -1054,7 +1054,7 @@ module mod_rdldtr
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     istatus = nf90_inquire_dimension(gfile%ncid,idims(3),len=nd)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading dimelens for variable '//trim(vname))
+         'Error reading dimlen for variable '//trim(vname))
 
     if ( isel > nd ) then
       call die('rdldtr','Variable '//trim(vname)// &
@@ -1115,7 +1115,7 @@ module mod_rdldtr
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     istatus = nf90_inquire_dimension(gfile%ncid,idims(3),len=nd)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading dimelens for variable '//trim(vname))
+         'Error reading dimlen for variable '//trim(vname))
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -1181,7 +1181,7 @@ module mod_rdldtr
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     istatus = nf90_inquire_dimension(gfile%ncid,idims(3),len=nd)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading dimelens for variable '//trim(vname))
+         'Error reading dimlen for variable '//trim(vname))
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -1358,10 +1358,10 @@ module mod_rdldtr
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     istatus = nf90_inquire_dimension(gfile%ncid,idims(3),len=nd)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading dimelens for variable '//trim(vname))
+         'Error reading dimlen for variable '//trim(vname))
     istatus = nf90_inquire_dimension(gfile%ncid,idims(4),len=ne)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading dimelens for variable '//trim(vname))
+         'Error reading dimlen for variable '//trim(vname))
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -1554,13 +1554,13 @@ module mod_rdldtr
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     istatus = nf90_inquire_dimension(gfile%ncid,idims(3),len=nd)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading dimelens for variable '//trim(vname))
+         'Error reading dimlen for variable '//trim(vname))
     istatus = nf90_inquire_dimension(gfile%ncid,idims(4),len=ne)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading dimelens for variable '//trim(vname))
+         'Error reading dimlen for variable '//trim(vname))
     istatus = nf90_inquire_dimension(gfile%ncid,idims(5),len=nf)
     call checkncerr(istatus,__FILE__,__LINE__, &
-         'Error reading dimelens for variable '//trim(vname))
+         'Error reading dimlen for variable '//trim(vname))
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -1654,6 +1654,7 @@ module mod_rdldtr
         'Cannot read variable dimension '//trim(vname)//' in file')
     do i = 1, 4
       istatus = nf90_inquire_dimension(gfile%ncid,vdims(i),len=dimlen(i))
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     end do
 
     istatus = nf90_inq_varid(gfile%ncid, lkvar, ilook)
@@ -1905,7 +1906,7 @@ module mod_rdldtr
     jje = ubound(grid,1)
     iie = ubound(grid,2)
     kke = ubound(grid,3)
-    nne = lbound(grid,4)
+    nne = ubound(grid,4)
 
     allocate(igrid(jjs:jje,iis:iie),jgrid(jjs:jje,iis:iie))
     igrid = -1
