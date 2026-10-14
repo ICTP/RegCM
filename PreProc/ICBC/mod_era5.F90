@@ -756,7 +756,7 @@ module mod_era5
           do j = 1, jlat
             do i = 1, ilon
               hvar(i,j,:) = real(real(iwork3(i,j,:),rkx) * &
-                        xscale+xadd,rkx)/9.80616_rk4
+                        xscale+xadd,rkx)/9.80665_rk4
             end do
           end do
         else if ( kkrec == 3 ) then
@@ -790,7 +790,7 @@ module mod_era5
         if ( kkrec == 1 ) then
           tvar = rwork3
         else if ( kkrec == 2 ) then
-          hvar = rwork3/9.80616_rkx
+          hvar = rwork3/9.80665_rkx
         else if ( kkrec == 3 ) then
           qvar = max(rwork3,0.0_rkx)
           call sph2mxr(qvar,ilon,jlat,klev)
