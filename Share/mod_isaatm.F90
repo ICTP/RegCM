@@ -63,8 +63,8 @@ module mod_isaatm
       o = m * (n/h)**(-(egrav/(rgas*0.001_rkx)))
       n = h + 0.001_rkx*(height3-height2)
       temperature = n + 0.0028_rkx*(height-height3)
-      pressure = o * (height/n)**(-(egrav/(rgas*0.0028_rkx)))
-      density = pressure/(rgas/temperature)
+      pressure = o * (temperature/n)**(-(egrav/(rgas*0.0028_rkx)))
+      density = pressure/(rgas*temperature)
     end if
   end subroutine isaatm
 

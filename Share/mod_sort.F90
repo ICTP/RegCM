@@ -374,6 +374,10 @@ module mod_sort
     integer :: imax, nmax
     real(rk4), dimension(n) :: b
 
+    if ( n <= 1 ) then
+      mostfrequent_r4 = b(1)
+      return
+    end if
     b(:) = a(:)
     call sort_real32(b)
     n1 = 1
@@ -405,7 +409,10 @@ module mod_sort
     integer :: i, j, n1
     integer :: imax, nmax
     real(rk8), dimension(n) :: b
-
+    if ( n <= 1 ) then
+      mostfrequent_r4 = b(1)
+      return
+    end if
     b(:) = a(:)
     call sort_real64(b)
     n1 = 1

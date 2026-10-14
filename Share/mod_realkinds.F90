@@ -176,7 +176,7 @@ module mod_realkinds
   logical elemental function is_inf_double(x)
     implicit none
     real(rk8), intent(in) :: x
-    is_inf_double = ( x > huge(x) )
+    is_inf_double = (( x > huge(x) ) .or. ( x < -huge(x) ))
   end function is_inf_double
 
   logical elemental function is_nan_single(x)
@@ -188,7 +188,7 @@ module mod_realkinds
   logical elemental function is_inf_single(x)
     implicit none
     real(rk4), intent(in) :: x
-    is_inf_single = ( x > huge(x) )
+    is_inf_single = (( x > huge(x) ) .or. ( x < -huge(x) ))
   end function is_inf_single
 
 #endif
