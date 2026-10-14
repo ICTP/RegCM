@@ -72,7 +72,7 @@ module mod_earth
     cdlon = cos((lon1-lon2)*degrad)
     crd   = slat1*slat2+clat1*clat2*cdlon
     ! Have it in km to avoid numerical problems :)
-    gcdist_simple_r8 = real(erkm*acos(crd), rk8)
+    gcdist_simple_r8 = real(erkm*acos(max(-1.0_rk8,min(1.0_rk8, crd))),rk8)
   end function gcdist_simple_r8
 
   pure real(rk4) function gcdist_simple_r4(lat1,lon1,lat2,lon2)
@@ -87,7 +87,7 @@ module mod_earth
     cdlon = cos((lon1-lon2)*degrad)
     crd   = slat1*slat2+clat1*clat2*cdlon
     ! Have it in km to avoid numerical problems :)
-    gcdist_simple_r4 = real(erkm*acos(crd), rk4)
+    gcdist_simple_r4 = real(erkm*acos(max(-1.0_rk8,min(1.0_rk8,crd))),rk4)
   end function gcdist_simple_r4
 
   pure real(rkx) function gcdist(ds,lat1,lon1,lat2,lon2)
