@@ -166,12 +166,12 @@ module mod_hgt
     ! HEIGHT IS COMPUTED IN THE RCM MODEL.
     !
     do concurrent ( i = i1:i2, j = j1:j2 )
-      h(i,j,nk) = topo(i,j) + srovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
+      h(i,j,nk) = topo(i,j) + rovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
     end do
     do k = nk-1, 1, -1
       do concurrent ( i = i1:i2, j = j1:j2 )
         tbar = d_half*(t0(i,j,k)+t0(i,j,k+1))
-        h(i,j,k) = h(i,j,k+1) + srovg * tbar * log(p0(i,j,k+1)/p0(i,j,k))
+        h(i,j,k) = h(i,j,k+1) + rovg * tbar * log(p0(i,j,k+1)/p0(i,j,k))
       end do
     end do
   end subroutine nonhydrost_single_2
@@ -566,7 +566,7 @@ module mod_hgt
     else
       do concurrent ( i = 1:im, j = 1:jm )
         if ( ps(i,j) > -9995.0_rkx ) then
-          h(i,j,1) = ht(i,j) + rovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,1))
+          h(i,j,1) = ht(i,j) + rovg*t(i,j,1)*log(ps(i,j)/p3d(i,j,1))
         else
           h(i,j,1) = -9999.0_rkx
         end if
@@ -722,8 +722,8 @@ module mod_hgt
     real(rkx), parameter :: blhgt = 1000.0_rkx
 
     do j = 1, jm
-      kbc = km
       do i = 1, im
+        kbc = km
         do k = 1, km
           if ( h(i,j,k) > blhgt ) then
             kbc = k

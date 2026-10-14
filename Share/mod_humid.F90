@@ -42,7 +42,7 @@ module mod_humid
     module procedure rh2mxr_p1
   end interface rh2mxr
 
-  public :: mxr2rh, ecmwf_rh2mxr, rh2mxr
+  public :: mxr2rh, rh2mxr
   public :: sph2mxr, mxr2sph
 
   contains
@@ -247,30 +247,6 @@ module mod_humid
     end do
 
   end subroutine rh2mxr_p3d
-
-  subroutine ecmwf_rh2mxr(t,q,ps,ptop,sigma,ni,nj,nk)
-    implicit none
-    integer(ik4), intent(in) :: ni, nj, nk
-    real(rkx), intent(in) :: ptop
-    real(rkx), intent(in), dimension(ni,nj) :: ps
-    real(rkx), intent(in), dimension(ni,nj,nk) :: t
-    real(rkx), intent(inout), dimension(ni,nj,nk) :: q
-    real(rkx), intent(in), dimension(nk) :: sigma
-
-    real(rkx) :: p, qs, hl, satvp
-    integer(ik4) :: i, j, k
-    !
-    ! THIS ROUTINE REPLACES ECMWF RELATIVE HUMIDITY BY MIXING RATIO
-    !
-    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk )
-      p = (ptop + sigma(k)*ps(i,j))*d_10
-      hl = 597.3_rkx - 0.566_rkx * (t(i,j,k) - tzero)
-      satvp = 6.11_rkx * exp(9.045_rkx*hl*(rtzero - d_one/t(i,j,k)))
-      qs = ep2 * satvp/(p-satvp)
-      qs = qs/(d_one+qs)
-      q(i,j,k) = max(q(i,j,k)*qs,d_zero)
-    end do
-  end subroutine ecmwf_rh2mxr
 
 end module mod_humid
 

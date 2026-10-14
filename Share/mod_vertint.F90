@@ -335,7 +335,7 @@ module mod_vertint
           do n = 1, kz
             if ( z(1) >= hz(i,j,n) ) then
               fz(i,j,n) = f(i,j,1)
-            else if ( z(km) <= hz(i,j,km) ) then
+            else if ( z(km) <= hz(i,j,n) ) then
               fz(i,j,n) = f(i,j,km)
             else
               kx = km
@@ -391,7 +391,7 @@ module mod_vertint
           do n = 1, kz
             if ( z(1) >= hz(i,j,n) ) then
               fz(i,j,n) = f(i,j,1)
-            else if ( z(km) <= hz(i,j,km) ) then
+            else if ( z(km) <= hz(i,j,n) ) then
               fz(i,j,n) = f(i,j,km)
             else
               kx = km
@@ -447,7 +447,7 @@ module mod_vertint
           do n = 1, kz
             if ( z(1) >= hz(i,j,n) ) then
               fz(i,j,n) = f(i,j,1)
-            else if ( z(km) <= hz(i,j,km) ) then
+            else if ( z(km) <= hz(i,j,n) ) then
               fz(i,j,n) = f(i,j,km)
             else
               kx = km
@@ -1917,13 +1917,18 @@ module mod_vertint
             tvb = tp(i,j,1)
             dz = zb - zrcm(i,j)
             lrt = (tva-tvb)/(za-zb)
-            if ( .false. ) then
-              lrt = 0.65_rk8*lrt + 0.35_rk8*stdlrate(jday,dayspy,lat(i,j))
-            else
-              lrt = 0.65_rk8*lrt - 0.35_rk8*lrate
+            if ( lrt < -govcp ) then
+              lrt = -govcp
+            else if ( lrt > -0.005_rkx ) then
+              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
             end if
             tlayer = tvb - dz*lrt
             tlayer = (tvb + tlayer) * 0.5_rk8
+            if ( tlayer < 255.0_rkx ) then
+              tlayer = (tlayer+255.0_rkx)*0.5_rkx
+            else if ( tlayer > 290.5_rkx ) then
+              tlayer = 290.5_rkx + (0.005_rkx*(tlayer-290.5_rkx))**2
+            end if
             psrcm(i,j) = real(pb * exp(govr*dz/tlayer),rkx)
           else if ( zp(i,j,nk) < zrcm(i,j) ) then
             psrcm(i,j) = missl
@@ -1965,13 +1970,18 @@ module mod_vertint
             tvb = tp(i,j,nk)
             dz = za - zrcm(i,j)
             lrt = (tva-tvb)/(za-zb)
-            if ( .false. ) then
-              lrt = 0.65_rk8*lrt + 0.35_rk8*stdlrate(jday,dayspy,lat(i,j))
-            else
-              lrt = 0.65_rk8*lrt - 0.35_rk8*lrate
+            if ( lrt < -govcp ) then
+              lrt = -govcp
+            else if ( lrt > -0.005_rkx ) then
+              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
             end if
             tlayer = tvb - dz*lrt
             tlayer = (tvb + tlayer) * 0.5_rk8
+            if ( tlayer < 255.0_rkx ) then
+              tlayer = (tlayer+255.0_rkx)*0.5_rkx
+            else if ( tlayer > 290.5_rkx ) then
+              tlayer = 290.5_rkx + (0.005_rkx*(tlayer-290.5_rkx))**2
+            end if
             psrcm(i,j) = real(pb * exp(govr*dz/tlayer),rkx)
           else if ( zp(i,j,1) < zrcm(i,j) ) then
             psrcm(i,j) = missl
@@ -2033,12 +2043,17 @@ module mod_vertint
             za = zp(i,j,1)
             dz = zrcm(i,j)-za
             lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
-            if ( .false. ) then
-              lrt = 0.65_rk8*lrt + 0.35_rk8*stdlrate(jday,dayspy,lat(i,j))
-            else
-              lrt = 0.65_rk8*lrt - 0.35_rk8*lrate
+            if ( lrt < -govcp ) then
+              lrt = -govcp
+            else if ( lrt > -0.005_rkx ) then
+              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
             end if
             tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
+            if ( tlayer < 255.0_rkx ) then
+              tlayer = (tlayer+255.0_rkx)*0.5_rkx
+            else if ( tlayer > 290.5_rkx ) then
+              tlayer = 290.5_rkx + (0.005_rkx*(tlayer-290.5_rkx))**2
+            end if
           end if
           psrcm(i,j) = real(pa * exp(-govr*dz/tlayer),rkx)
         end do
@@ -2047,12 +2062,12 @@ module mod_vertint
       do j = 1, nj
         do i = 1, ni
           kb = 2
-          do k = 2, nk - 1
+          do k = 2, nk
             if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
                  zrcm(i,j) > zp(i,j,k) ) exit
             kb = kb+1
           end do
-          if ( kb /= 0 ) then
+          if ( kb <= nk ) then
             kt = kb - 1
             pa = pp(i,j,kt)
             za = zp(i,j,kt)
@@ -2066,12 +2081,17 @@ module mod_vertint
             za = zp(i,j,nk)
             dz = zrcm(i,j)-za
             lrt = (tp(i,j,nk-1)-tp(i,j,nk))/(zp(i,j,nk-1)-zp(i,j,nk))
-            if ( .false. ) then
-              lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(i,j))
-            else
+            if ( lrt < -govcp ) then
+              lrt = -govcp
+            else if ( lrt > -0.005_rkx ) then
               lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
             end if
             tlayer = tp(i,j,nk) - 0.5_rkx*dz*lrt
+            if ( tlayer < 255.0_rkx ) then
+              tlayer = (tlayer+255.0_rkx)*0.5_rkx
+            else if ( tlayer > 290.5_rkx ) then
+              tlayer = 290.5_rkx + (0.005_rkx*(tlayer-290.5_rkx))**2
+            end if
           end if
           psrcm(i,j) = real(pa * exp(-govr*dz/tlayer),rkx)
         end do
