@@ -39,6 +39,7 @@ module mod_spbarcoord
   end type vpoint
 
   real(rk8), dimension(3) :: centroid
+  real(rk8), dimension(3) :: query_point
   real(rk8), parameter :: notzero = epsilon(1.0_rk8)
 
   interface
@@ -78,6 +79,7 @@ module mod_spbarcoord
       centroid(3) = centroid(3) + v(3,i)
     end do
     centroid = centroid / real(np,rk8)
+    query_point(:) = p(:)
 
     call set_clockwise_order
     call compute_angles
@@ -87,7 +89,7 @@ module mod_spbarcoord
     end do
     norm = 0.0_rk8
     do i = 1, np
-      xs = tan(theta(i))
+      xs = sin(theta(i))
       norm = norm + tansum(i) / sign(max(xs,notzero),xs)
     end do
     norm = max(norm,notzero)
@@ -97,10 +99,8 @@ module mod_spbarcoord
     end do
 
     ! Double check sum weights is one
-    norm = sum(lambda(1:np))-1.0_rk8
-    if ( abs(norm) > epsilon(1.0_rk8) ) then
-      lambda(:) = lambda(:) - norm * (1.0_rk8-lambda(:))
-    end if
+    norm = sum(lambda(1:np))
+    if ( norm > notzero ) lambda(1:np) = lambda(1:np) / norm
 
     contains
 
@@ -184,7 +184,7 @@ module mod_spbarcoord
     n(2) = p1(3)*p2(1) - p1(1)*p2(3)
     n(3) = p1(1)*p2(2) - p1(2)*p2(1)
 
-    xres = ((n(1)*centroid(1) + n(2)*centroid(2) + n(3)*centroid(3)))
+    xres = ((n(1)*query_point(1) + n(2)*query_point(2) + n(3)*query_point(3)))
 
     if ( xres < 0 ) then
       res = -1
