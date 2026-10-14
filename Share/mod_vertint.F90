@@ -2023,22 +2023,7 @@ module mod_vertint
     if ( zp(1,1,1) < zp(1,1,nk) ) then
       do j = 1, nj
         do i = 1, ni
-          kb = 1
-          do k = 1, nk - 1
-            if ( zrcm(i,j) <= zp(i,j,k+1) .and. &
-                 zrcm(i,j) > zp(i,j,k) ) exit
-            kb = kb+1
-          end do
-          if ( kb /= 0 ) then
-            kt = kb + 1
-            pa = pp(i,j,kt)
-            za = zp(i,j,kt)
-            dz = zrcm(i,j)-za
-            wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
-            wl = d_one - wu
-            tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
-            tlayer = (tp(i,j,kt) + tlayer)/d_two
-          else
+          if ( zrcm(i,j) < zp(1,1,1) ) then
             pa = pp(i,j,1)
             za = zp(i,j,1)
             dz = zrcm(i,j)-za
@@ -2054,21 +2039,18 @@ module mod_vertint
             else if ( tlayer > 290.5_rkx ) then
               tlayer = 290.5_rkx + (0.005_rkx*(tlayer-290.5_rkx))**2
             end if
-          end if
-          psrcm(i,j) = real(pa * exp(-govr*dz/tlayer),rkx)
-        end do
-      end do
-    else
-      do j = 1, nj
-        do i = 1, ni
-          kb = 2
-          do k = 2, nk
-            if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
-                 zrcm(i,j) > zp(i,j,k) ) exit
-            kb = kb+1
-          end do
-          if ( kb <= nk ) then
-            kt = kb - 1
+          else if ( zrcm(i,j) > zp(1,1,nk) ) then
+            pa = pp(i,j,nk)
+            tlayer = tp(i,j,nk)
+            dz = 0.0_rk8
+          else
+            kb = 1
+            do k = 1, nk - 1
+              if ( zrcm(i,j) <= zp(i,j,k+1) .and. &
+                   zrcm(i,j) > zp(i,j,k) ) exit
+              kb = kb+1
+            end do
+            kt = kb + 1
             pa = pp(i,j,kt)
             za = zp(i,j,kt)
             dz = zrcm(i,j)-za
@@ -2076,7 +2058,14 @@ module mod_vertint
             wl = d_one - wu
             tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
             tlayer = (tp(i,j,kt) + tlayer)/d_two
-          else
+          end if
+          psrcm(i,j) = real(pa * exp(-govr*dz/tlayer),rkx)
+        end do
+      end do
+    else
+      do j = 1, nj
+        do i = 1, ni
+          if ( zrcm(i,j) < zp(i,j,nk) ) then
             pa = pp(i,j,nk)
             za = zp(i,j,nk)
             dz = zrcm(i,j)-za
@@ -2092,6 +2081,25 @@ module mod_vertint
             else if ( tlayer > 290.5_rkx ) then
               tlayer = 290.5_rkx + (0.005_rkx*(tlayer-290.5_rkx))**2
             end if
+          else if ( zrcm(i,j) > zp(i,j,1) ) then
+            pa = pp(i,j,1)
+            tlayer = tp(i,j,1)
+            dz = 0.0_rk8
+          else
+            kb = 2
+            do k = 2, nk
+              if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
+                   zrcm(i,j) > zp(i,j,k) ) exit
+              kb = kb+1
+            end do
+            kt = kb - 1
+            pa = pp(i,j,kt)
+            za = zp(i,j,kt)
+            dz = zrcm(i,j)-za
+            wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
+            wl = d_one - wu
+            tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
+            tlayer = (tp(i,j,kt) + tlayer)/d_two
           end if
           psrcm(i,j) = real(pa * exp(-govr*dz/tlayer),rkx)
         end do

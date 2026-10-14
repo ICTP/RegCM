@@ -771,6 +771,11 @@ module mod_write
           lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
         end if
         tv = tv1 - lrt*0.5_rkx*z(j,i,kz)
+        if ( tv < 255.0_rkx ) then
+          tv = (tv+255.0_rkx)*0.5_rkx
+        else if ( tv > 290.5_rkx ) then
+          tv = 290.5_rkx + (0.005_rkx*(tv-290.5_rkx))**2
+        end if
         ps(j,i) = p(j,i,kz) * exp(govr*z(j,i,kz)/tv)
       end do
     end do
