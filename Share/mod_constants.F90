@@ -187,16 +187,16 @@ module mod_constants
   ! Specific heat of water at 15 Celsius J/kg/K
   real(rkx), parameter :: cpw = 4186.95_rkx
   ! Specific heat of ice at 0 Celsius J/kg/K
-  real(rkx), parameter :: cpi = 2117.27_rkx
+  real(rkx), parameter :: cpi = 2106.00_rkx ! ECMWF value
   ! Specific heat of water at 0 Celsius J/kg/K
   real(rkx), parameter :: cpw0 = 4218.0_rkx
 
   ! Specific heats per m**3  (joules/m**3/k)
-  real(rkx), parameter :: ch2o = 4.18695e6_rkx
-  real(rkx), parameter :: shice = 0.45_rkx*ch2o
-  real(rkx), parameter :: cwi = d_one/0.45_rkx
-  real(rkx), parameter :: csnw = 0.49_rkx*ch2o
-  real(rkx), parameter :: cws = d_one/0.49_rkx
+  real(rkx), parameter :: ch2o = 4.18695e6_rkx   ! ISO standard at 15C
+  real(rkx), parameter :: cwi = d_one/0.46_rkx   ! Pure solid ice = 0.46
+  real(rkx), parameter :: cws = d_one/0.20_rkx   ! Windpack/Dense Snow
+  real(rkx), parameter :: shice = 0.46_rkx*ch2o  ! Consistent with above
+  real(rkx), parameter :: csnw = 0.20_rkx*ch2o   ! Consistent with above
 
   ! Specific heats per kg (J/kg/K)
   real(rkx), parameter :: spcpfw = 4.188e3_rkx    ! fresh h2o
@@ -275,7 +275,7 @@ module mod_constants
   real(rkx), parameter :: stdpmb = 1013.250_rkx
   real(rkx), parameter :: stdpcb = 101.3250_rkx
   real(rkx), parameter :: stdt = 288.15_rkx
-  real(rkx), parameter :: stdrho = 1.28_rkx
+  real(rkx), parameter :: stdrho = 1.2250_rkx
 #ifdef RCEMIP
   real(rkx), parameter :: lrate = 0.0067_rkx  ! K/m
 #else

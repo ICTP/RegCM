@@ -302,9 +302,9 @@ module mod_capecin
                            lhs*(qi2-qi1)/(cpm*tbar) +   &
                            (rm/cpm-rgas/cpd)*log(p2/p1) )
             if ( abs(th2-thlast) < converge ) then
-              thlast = thlast+0.3_rkx*(th2-thlast)
-            else
               not_converged = .false.
+            else
+              thlast = thlast+0.3_rkx*(th2-thlast)
             end if
           end do
 
@@ -393,12 +393,13 @@ module mod_capecin
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: p, t, td, q
-    real(rkx) :: tlcl
+    real(rkx) :: tlcl, e_hpa
     if ( (td-t) >= -0.1_rkx ) then
       tlcl = t
     else
-      tlcl = 56.0_rkx + ( (td-56.0_rkx)**(-1.0_rkx) + &
-             0.00125_rkx * log(t/td) )**(-1.0_rkx)
+      ! Bolton (1980) Eq. 22: T in K, e in hPa, tlcl in K
+      e_hpa = p * q / ( (ep2 + q) * 100.0_rkx )   ! Pa -> hPa
+      tlcl  = 2840.0_rkx/(3.5_rkx*log(t)-log(e_hpa)-4.805_rkx )+55.0_rkx
     end if
     getthe = t*((100000.0_rkx/p)**(0.2854_rkx*(1.0_rkx-0.28_rkx*q))) * &
              exp( ((3376.0_rkx/tlcl)-2.54_rkx)*q*(1.0_rkx+0.81_rkx*q) )
@@ -603,9 +604,9 @@ module mod_capecin
                          lhs*(qi2-qi1)/(cpm*tbar) +   &
                          (rm/cpm-rgas/cpd)*log(p2/p1) )
           if ( abs(th2-thlast) < converge ) then
-            thlast = thlast+0.3_rkx*(th2-thlast)
-          else
             not_converged = .false.
+          else
+            thlast = thlast+0.3_rkx*(th2-thlast)
           end if
         end do
 
@@ -710,7 +711,7 @@ module mod_capecin
       do concurrent ( i = ista:iend, j = jsta:jend )
         tbt = t(i,j,kk)
         ! Specific Humidity expected.
-        qbt = q(i,j,kk)/(1.0_rkx+q(i,j,kk))
+        qbt = q(i,j,kk)/(1.0_rkx-q(i,j,kk))
         apebt = (p00/p(i,j,kk))**rovcp
         ! Scaling potential temperature & table index----------
         tthbt = tbt*apebt
