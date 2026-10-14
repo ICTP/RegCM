@@ -210,8 +210,8 @@ module mod_sigma
           dsmax = 0.05_rkx
           dsmin = 0.01_rkx
         else
-          dsmax = 0.005_rkx
-          dsmin = 0.01_rkx
+          dsmax = 0.01_rkx
+          dsmin = 0.005_rkx
         end if
         if ( present(dmax) ) dsmax = dmax
         if ( present(dmin) ) dsmin = dmin

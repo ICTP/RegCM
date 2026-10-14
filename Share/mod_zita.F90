@@ -237,7 +237,7 @@ module mod_zita
                   exit
                 end if
               end do
-              iw1 = (pz(k)/psigma(ik-1))/(psigma(ik)/psigma(ik-1))
+              iw1 = (pz(k)-psigma(ik-1))/(psigma(ik)-psigma(ik-1))
               iw2 = 1.0_rkx - iw1
               fz(k) = iw1 * f(i,j,ik) + iw2 * f(i,j,ik-1)
             end if
@@ -310,7 +310,7 @@ module mod_zita
                   exit
                 end if
               end do
-              iw1 = (pz(k)/psigma(ik-1))/(psigma(ik)/psigma(ik-1))
+              iw1 = (pz(k)-psigma(ik-1))/(psigma(ik)-psigma(ik-1))
               iw2 = 1.0_rkx - iw1
               fz(k) = iw1 * f(i,j,ik) + iw2 * f(i,j,ik-1)
             end if
@@ -386,7 +386,7 @@ module mod_zita
                     exit
                   end if
                 end do
-                iw1 = (pz(k)/psigma(ik-1))/(psigma(ik)/psigma(ik-1))
+                iw1 = (pz(k)-psigma(ik-1))/(psigma(ik)-psigma(ik-1))
                 iw2 = 1.0_rkx - iw1
                 fz(k) = iw1 * f(i,j,ik,n) + iw2 * f(i,j,ik-1,n)
               end if
@@ -463,7 +463,7 @@ module mod_zita
                     exit
                   end if
                 end do
-                iw1 = (pz(k)/psigma(ik-1))/(psigma(ik)/psigma(ik-1))
+                iw1 = (pz(k)-psigma(ik-1))/(psigma(ik)-psigma(ik-1))
                 iw2 = 1.0_rkx - iw1
                 fz(k) = iw1 * f(i,j,ik,n) + iw2 * f(i,j,ik-1,n)
               end if
