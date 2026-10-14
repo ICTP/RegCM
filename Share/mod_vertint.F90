@@ -2023,7 +2023,7 @@ module mod_vertint
     if ( zp(1,1,1) < zp(1,1,nk) ) then
       do j = 1, nj
         do i = 1, ni
-          if ( zrcm(i,j) < zp(1,1,1) ) then
+          if ( zrcm(i,j) < zp(i,j,1) ) then
             pa = pp(i,j,1)
             za = zp(i,j,1)
             dz = zrcm(i,j)-za
@@ -2039,7 +2039,7 @@ module mod_vertint
             else if ( tlayer > 290.5_rkx ) then
               tlayer = 290.5_rkx + (0.005_rkx*(tlayer-290.5_rkx))**2
             end if
-          else if ( zrcm(i,j) > zp(1,1,nk) ) then
+          else if ( zrcm(i,j) > zp(i,j,nk) ) then
             pa = pp(i,j,nk)
             tlayer = tp(i,j,nk)
             dz = 0.0_rk8
