@@ -79,7 +79,7 @@ module mod_init
     real(rkx) :: zzi, zdgz, zh
     real(rkx), dimension(kzp1) :: ozprnt
     real(rkx), dimension(:,:,:), pointer :: tccn => null( )
-    real(rk8) :: np, meanz
+    real(rk8) :: np, meanz, meanz_global
     real(rk8), dimension(kz) :: gmeanz
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
@@ -1007,15 +1007,19 @@ module mod_init
     !
     if ( idynamic == 3 ) then
       np = real(njcross*nicross,rk8)
+      !$acc update host(gmeanz)
       do k = 1, kz
         meanz = 0.0_rkx
         do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           meanz = meanz + real(mo_atm%zeta(j,i,k),rk8)/np
         end do
-        call sumall(meanz,gmeanz(k))
+        ! Use local scalars for both MPI buffers to avoid mixed memory types.
+        call sumall(meanz,meanz_global)
+        gmeanz(k) = meanz_global
       end do
+      !$acc update device(gmeanz)
       ! Sponge layer at the top of the atmosphere
-      do k = 1, kz
+      do concurrent ( k = 1:kz )
         if ( gmeanz(k) < 18000.0_rkx ) then
           ffilt(k) = d_zero
         else
