@@ -10,7 +10,7 @@
     real(rkx) , intent(in) :: t     ! Temperature (K)
 
     real(rkx) , parameter :: es0 = 611.655_rkx ! Pa
-    real(rkx) , parameter :: cplmcpv = 2180.0_rkx ! J kg-1 K-1
+    real(rkx) , parameter :: cplmcpv = 2320.0_rkx ! J kg-1 K-1
     real(rkx) , parameter :: arg = cplmcpv/rwat
     real(rkx) , parameter :: t0 = 273.16_rkx
     real(rkx) , parameter :: lv0 = 2.501e6_rkx

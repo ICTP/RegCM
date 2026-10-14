@@ -7,15 +7,12 @@
     implicit none
     real(rkx), intent(in)  :: t     ! Temperature (K)
 
-    real(rkx) :: tc , es
-
-    tc = t - tzero
+    real(rkx) :: es
     es = pfesat(t)
-
-    if ( tc > 0.0_rkx ) then
-      esdt = es * c3les/((tc-c4les)**2)
+    if ( t < tzero ) then
+      esdt = es * c3ies * (tzero - c4ies) / (t - c4ies)**2
     else
-      esdt = es * c3ies/((tc-c4ies)**2)
+      esdt = es * c3les * (tzero - c4les) / (t - c4les)**2
     end if
   end function pfesdt
 
