@@ -589,8 +589,8 @@ module mod_nhinterp
           check(j,i) = checkl + checkr
         end do
         if ( any(abs(check) > 1.e-2_rkx) ) then
-          write(stderr,'(A,3I4,3g14.6)') &
-              'NHPP vert gradient check error at ',i,j,k,check,checkl,checkr
+          write(stderr,'(A,3I4,g14.6)') &
+              'NHPP vert gradient check error at ',i,j,k,check(j,i)
         end if
       end do
     end subroutine nhpp
