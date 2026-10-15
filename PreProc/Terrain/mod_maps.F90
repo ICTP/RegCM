@@ -93,8 +93,8 @@ module mod_maps
       call getmem(xmap,1,jx,1,iy,'maps:xmap')
       call getmem(umap,1,jx,1,iy,'maps:umap')
       call getmem(vmap,1,jx,1,iy,'maps:vmap')
-      call getmem(topou,1,jx,1,iy,'maps:vmap')
-      call getmem(topov,1,jx,1,iy,'maps:vmap')
+      call getmem(topou,1,jx,1,iy,'maps:topou')
+      call getmem(topov,1,jx,1,iy,'maps:topov')
     else
       call getmem(dmap,1,jx,1,iy,'maps:dmap')
       call getmem(xmap,1,jx,1,iy,'maps:xmap')

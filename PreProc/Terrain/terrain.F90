@@ -330,7 +330,7 @@ program terrain
                          nlatin,nlonin,values,month)
         where ( values > d_zero )
           ! The data are mm content in a column of 1.6 m
-          values = values * 0.0016_rkx
+          values = values * 0.000625_rkx
         end where
       else if ( smsrc(1:6) == 'ERA20C' ) then
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'//              &
@@ -1096,9 +1096,9 @@ program terrain
     real(rk8) :: countcc
     real(rk8), save :: mincc, maxcc
     if ( laround0 ) then
-      countcc = 1.0_rk8
-      maxcc = 0.0_rk8
-      mincc = 0.0_rk8
+      countcc = 0.0_rk8
+      maxcc = -huge(0.0_rk8)
+      mincc = huge(0.0_rk8)
       do ii = 1, imax
         do jj = 1, jmax
           if ( xx(jj,ii) > 0.0_rkx ) then

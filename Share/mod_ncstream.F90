@@ -260,7 +260,7 @@ module mod_ncstream
           ! Slight inprecision if unit is in "months since", as
           ! we here assume a regular increment in time computed as hours
           ! from the reference day.
-          stream%deltat = (stream%xtime(2)-stream%xtime(1))/stream%nrec
+          stream%deltat = (stream%xtime(2)-stream%xtime(1))/(stream%nrec-1)
         end if
       end if
 #ifdef PNETCDF
@@ -1376,7 +1376,7 @@ module mod_ncstream
         if ( search < stream%xtime(1) .or. search > stream%xtime(2) ) then
           return
         end if
-        record = 1.0_rk8+(search-stream%xtime(1))/stream%deltat
+        record = 1.0_rk8+(search-stream%xtime(1))monthly/stream%deltat
       end if
     end subroutine instream_findrec
 
