@@ -53,8 +53,11 @@ module mod_cnrm_helper
         y2 = y1 + 9
       end if
     else
-      if ( y >= 2100 ) then
+      if ( y > 2100 ) then
         y1 = (y)/10*10+1
+      else if ( y == 2100 ) then
+        y1=2096
+        y2=2100
       else
         y1 = (y-6)/10*10+6
       end if

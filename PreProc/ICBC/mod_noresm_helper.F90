@@ -121,6 +121,9 @@ module mod_noresm_helper
         else
           write(d2,'(i0.4,i0.2,i0.2,i0.2)') y1+9, 12, 31, 18
         end if
+      else if ( y == 2100 ) then
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') 2096, 1, 1, 0
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2100, 12, 31, 18
       else
         y = y/10*10+1
         write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 0

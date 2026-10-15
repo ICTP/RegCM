@@ -145,7 +145,7 @@ module mod_ecearth_helper
       else
         ecearth_filename = trim(inpglob)//pthsep//'EC-EARTH'//pthsep// &
                 'RCP'//dattyp(4:5)//pthsep//trim(var)//pthsep//trim(var)// &
-                '_6hrLev_ICHEC-EC-EARTH_historical_r12i1p1_'// &
+                '_6hrLev_ICHEC-EC-EARTH_rcp'//dattyp(4:5)//'_r12i1p1_'// &
                 d1//'00-'//d2//'00.nc'
       end if
     else
