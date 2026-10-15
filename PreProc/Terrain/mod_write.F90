@@ -25,7 +25,7 @@ module mod_write
 
   private
 
-  public :: setup_outvars, write_domain, lrmoist, lrts
+  public :: setup_outvars, write_domain, lrmoist, lrts, domain_datafile
 
   logical :: lrmoist, lrts
 
@@ -43,6 +43,48 @@ module mod_write
   type(ncvariable3d_double), save, dimension(:), allocatable :: v3dvar_base
   type(ncvariable2d_double), save :: v2dvar_lake
 #endif
+
+  type domain_datafile
+    character (len=256) :: fname
+    logical :: lsub, lndfudge, texfudge, lakfudge
+    integer(ik4) :: ntype
+    real(rkx) :: ts0
+    real(rkx), dimension(:), pointer, contiguous :: sigma
+    real(rkx), dimension(:,:), pointer, contiguous :: xlat
+    real(rkx), dimension(:,:), pointer, contiguous :: xlon
+    real(rkx), dimension(:,:), pointer, contiguous :: dlat
+    real(rkx), dimension(:,:), pointer, contiguous :: dlon
+    real(rkx), dimension(:,:), pointer, contiguous :: ulat
+    real(rkx), dimension(:,:), pointer, contiguous :: ulon
+    real(rkx), dimension(:,:), pointer, contiguous :: vlat
+    real(rkx), dimension(:,:), pointer, contiguous :: vlon
+    real(rkx), dimension(:,:), pointer, contiguous :: xmap
+    real(rkx), dimension(:,:), pointer, contiguous :: dmap
+    real(rkx), dimension(:,:), pointer, contiguous :: umap
+    real(rkx), dimension(:,:), pointer, contiguous :: vmap
+    real(rkx), dimension(:,:), pointer, contiguous :: coriol
+    real(rkx), dimension(:,:), pointer, contiguous :: mask
+    real(rkx), dimension(:,:), pointer, contiguous :: htgrid
+    real(rkx), dimension(:,:), pointer, contiguous :: topou
+    real(rkx), dimension(:,:), pointer, contiguous :: topov
+    real(rkx), dimension(:,:), pointer, contiguous :: lndout
+    real(rkx), dimension(:,:), pointer, contiguous :: snowam
+    real(rkx), dimension(:,:), pointer, contiguous :: smoist
+    real(rkx), dimension(:,:), pointer, contiguous :: dpth
+    real(rkx), dimension(:,:), pointer, contiguous :: texout
+    real(rkx), dimension(:,:,:), pointer, contiguous :: rmoist
+    real(rkx), dimension(:,:,:), pointer, contiguous :: rts
+    real(rkx), dimension(:,:,:), pointer, contiguous :: frac_tex
+    real(rkx), dimension(:,:), pointer, contiguous :: ps0
+    real(rkx), dimension(:,:,:), pointer, contiguous :: pr0
+    real(rkx), dimension(:,:,:), pointer, contiguous :: t0
+    real(rkx), dimension(:,:,:), pointer, contiguous :: rho0
+    real(rkx), dimension(:,:,:), pointer, contiguous :: z0
+    real(rkx), dimension(:,:,:), pointer, contiguous :: zeta
+    real(rkx), dimension(:,:,:), pointer, contiguous :: zetau
+    real(rkx), dimension(:,:,:), pointer, contiguous :: zetav
+    real(rkx), dimension(:,:,:), pointer, contiguous :: fmz
+  end type domain_datafile
 
   character(len=512) :: landuse_legend =                     &
                '1  => Crop/mixed farming'//char(10)//        &
@@ -284,55 +326,20 @@ module mod_write
 
   end subroutine setup_outvars
 
-  subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
-         xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,dmap,umap,vmap,coriol, &
-         mask,htgrid,topou,topov,lndout,snowam,smoist,rmoist,rts,dpth,       &
-         texout,frac_tex,ps0,pr0,t0,rho0,z0,ts0,zeta,zetau,zetav,fmz)
+  subroutine write_domain(df)
     implicit none
-    character (len=*), intent(in) :: fname
-    logical, intent(in) :: lsub, lndfudge, texfudge, lakfudge
-    integer(ik4), intent(in) :: ntype
-    real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigma
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: xlat, xlon
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: dlat, dlon
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ulat, ulon
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: vlat, vlon
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: xmap, dmap
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: umap, vmap
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: coriol
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: mask
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: htgrid
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: topou, topov
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: lndout
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: snowam
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: smoist
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: dpth
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: texout
-    real(rkx), dimension(:,:), pointer, contiguous, intent(in) :: ps0
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: rmoist
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: rts
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: frac_tex
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: pr0
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: t0
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: rho0
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: z0
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zeta
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zetau
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: zetav
-    real(rkx), dimension(:,:,:), pointer, contiguous, intent(in) :: fmz
-    real(rkx), intent(in) :: ts0
-
+    type(domain_datafile), intent(in) :: df
     type(nc_output_stream) :: ncout
     type(ncoutstream_params) :: opar
     real(rkx) :: dx
     integer(ik4) :: ivar
 
-    allocate(v2dvar_base(12)%rval(size(xlat,1), size(xlat,2)))
+    allocate(v2dvar_base(12)%rval(size(df%xlat,1), size(df%xlat,2)))
 
-    opar%fname = fname
+    opar%fname = df%fname
     opar%pname = 'terrain'
     opar%l_bound = .true.
-    opar%l_subgrid = lsub
+    opar%l_subgrid = df%lsub
     opar%l_full_sigma = .true.
     call outstream_setup(ncout,opar)
 
@@ -353,14 +360,14 @@ module mod_write
     call outstream_addatt(ncout, &
       ncattribute_logical('h2o_hgt_over_water',h2ohgt))
     call outstream_addatt(ncout, &
-      ncattribute_integer('intermediate_resolution',ntype))
+      ncattribute_integer('intermediate_resolution',df%ntype))
     call outstream_addatt(ncout, &
-      ncattribute_logical('landuse_fudging',lndfudge))
+      ncattribute_logical('landuse_fudging',df%lndfudge))
     call outstream_addatt(ncout, &
-      ncattribute_logical('texture_fudging',texfudge))
+      ncattribute_logical('texture_fudging',df%texfudge))
     if ( idynamic == 2 ) then
       call outstream_addatt(ncout, &
-        ncattribute_real8('base_state_surface_temperature',ts0))
+        ncattribute_real8('base_state_surface_temperature',df%ts0))
     else if ( idynamic == 3 ) then
       call outstream_addatt(ncout, &
         ncattribute_real8('top_pressure_stdatm',ptop))
@@ -368,7 +375,7 @@ module mod_write
 
     if ( lakedpth ) then
       call outstream_addatt(ncout, &
-        ncattribute_logical('lake_fudging',lakfudge))
+        ncattribute_logical('lake_fudging',df%lakfudge))
     end if
 
     call outstream_addatt(ncout, &
@@ -391,17 +398,17 @@ module mod_write
       ncattribute_string('legend',landuse_legend))
     call outstream_addvaratt(ncout,v2dvar_base(idtxt), &
       ncattribute_string('legend',texture_legend))
-    v2dvar_base(1)%rval => xlon
-    v2dvar_base(2)%rval => xlat
-    v2dvar_base(3)%rval => dlon
-    v2dvar_base(4)%rval => dlat
-    v2dvar_base(5)%rval => coriol
-    v2dvar_base(6)%rval => mask
-    v2dvar_base(7)%rval => htgrid
-    v2dvar_base(8)%rval => lndout
-    v2dvar_base(9)%rval => snowam
-    v2dvar_base(10)%rval => smoist
-    v2dvar_base(11)%rval => texout
+    v2dvar_base(1)%rval => df%xlon
+    v2dvar_base(2)%rval => df%xlat
+    v2dvar_base(3)%rval => df%dlon
+    v2dvar_base(4)%rval => df%dlat
+    v2dvar_base(5)%rval => df%coriol
+    v2dvar_base(6)%rval => df%mask
+    v2dvar_base(7)%rval => df%htgrid
+    v2dvar_base(8)%rval => df%lndout
+    v2dvar_base(9)%rval => df%snowam
+    v2dvar_base(10)%rval => df%smoist
+    v2dvar_base(11)%rval => df%texout
 
     do ivar = 1, nvar3d
       v3dvar_base(ivar)%j1 = -1
@@ -413,9 +420,9 @@ module mod_write
       call outstream_addvar(ncout,v3dvar_base(ivar))
     end do
 
-    v3dvar_base(1)%rval => rmoist
-    v3dvar_base(2)%rval => rts
-    v3dvar_base(3)%rval => frac_tex
+    v3dvar_base(1)%rval => df%rmoist
+    v3dvar_base(2)%rval => df%rts
+    v3dvar_base(3)%rval => df%frac_tex
 
     if ( lakedpth ) then
       v2dvar_lake%j1 = -1
@@ -423,46 +430,46 @@ module mod_write
       v2dvar_lake%i1 = -1
       v2dvar_lake%i2 = -1
       call outstream_addvar(ncout,v2dvar_lake)
-      v2dvar_lake%rval => dpth
+      v2dvar_lake%rval => df%dpth
     end if
 
     if ( idynamic == 2 ) then
-      v3dvar_base(4)%rval => pr0
-      v3dvar_base(5)%rval => t0
-      v3dvar_base(6)%rval => rho0
-      v3dvar_base(7)%rval => z0
+      v3dvar_base(4)%rval => df%pr0
+      v3dvar_base(5)%rval => df%t0
+      v3dvar_base(6)%rval => df%rho0
+      v3dvar_base(7)%rval => df%z0
     end if
 
     if ( idynamic == 3 ) then
-      v2dvar_base(13)%rval => ulon
-      v2dvar_base(14)%rval => ulat
-      v2dvar_base(15)%rval => vlon
-      v2dvar_base(16)%rval => vlat
-      v2dvar_base(17)%rval => xmap
-      v2dvar_base(18)%rval => umap
-      v2dvar_base(19)%rval => vmap
-      v2dvar_base(20)%rval => topou
-      v2dvar_base(21)%rval => topov
-      v3dvar_base(4)%rval => zeta
-      v3dvar_base(5)%rval => fmz
-      v3dvar_base(6)%rval => zetau
-      v3dvar_base(7)%rval => zetav
+      v2dvar_base(13)%rval => df%ulon
+      v2dvar_base(14)%rval => df%ulat
+      v2dvar_base(15)%rval => df%vlon
+      v2dvar_base(16)%rval => df%vlat
+      v2dvar_base(17)%rval => df%xmap
+      v2dvar_base(18)%rval => df%umap
+      v2dvar_base(19)%rval => df%vmap
+      v2dvar_base(20)%rval => df%topou
+      v2dvar_base(21)%rval => df%topov
+      v3dvar_base(4)%rval => df%zeta
+      v3dvar_base(5)%rval => df%fmz
+      v3dvar_base(6)%rval => df%zetau
+      v3dvar_base(7)%rval => df%zetav
     else
-      v2dvar_base(13)%rval => xmap
-      v2dvar_base(14)%rval => dmap
+      v2dvar_base(13)%rval => df%xmap
+      v2dvar_base(14)%rval => df%dmap
       if ( idynamic == 2 ) then
-        v2dvar_base(15)%rval => ps0
+        v2dvar_base(15)%rval => df%ps0
       end if
     end if
 
     dx = ds * 1000.0
     if ( iproj == 'ROTLLR' ) then
-      v2dvar_base(12)%rval = (dx*dx)/xmap
+      v2dvar_base(12)%rval = (dx*dx)/df%xmap
     else
-      v2dvar_base(12)%rval = (dx/xmap)**2
+      v2dvar_base(12)%rval = (dx/df%xmap)**2
     end if
 
-    call outstream_enable(ncout,sigma)
+    call outstream_enable(ncout,df%sigma)
 
     do ivar = 1, nvar2d
       call outstream_writevar(ncout,v2dvar_base(ivar))

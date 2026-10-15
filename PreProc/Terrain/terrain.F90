@@ -107,6 +107,7 @@ program terrain
   character(len=*), parameter :: f99001 = '(a,a,a,a,i0.3)'
   character(len=*), parameter :: f99002 = '(a,a,a,a)'
   logical :: laround0 = .true.
+  type(domain_datafile) :: df
 
   data ibndry /.false./
 
@@ -968,15 +969,53 @@ program terrain
       end do
     end if
 
-    write (outname,'(a,i0.3,a)') &
+    write (df%fname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
-    call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s, &
-                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,ulat_s,  &
-                      ulon_s,vlat_s,vlon_s,xmap_s,dmap_s,umap_s,vmap_s,   &
-                      coriol_s,mask_s,htgrid_s,topou_s,topov_s,lndout_s,  &
-                      snowam_s,smoist_s,rmoist_s,rts_s,dpth_s,texout_s,   &
-                      frac_tex_s,ps0_s,pr0_s,t0_s,rho0_s,z0_s,ts0,zeta_s, &
-                      zetau_s,zetav_s,fmz_s)
+    df%lsub = .true.
+    df%lndfudge = fudge_lnd_s
+    df%texfudge = fudge_tex_s
+    df%lakfudge = fudge_lak_s
+    df%ntype = ntypec_s
+    df%sigma => sigma
+    df%xlat => xlat_s
+    df%xlon => xlon_s
+    df%dlat => dlat_s
+    df%dlon => dlon_s
+    df%xmap => xmap_s
+    df%dmap => dmap_s
+    df%coriol => coriol_s
+    df%mask => mask_s
+    df%htgrid => htgrid_s
+    df%lndout => lndout_s
+    df%snowam => snowam_s
+    df%smoist => smoist_s
+    df%dpth => dpth_s
+    df%texout => texout_s
+    df%rmoist => rmoist_s
+    df%rts => rts_s
+    df%frac_tex => frac_tex_s
+    if ( idynamic == 3 ) then
+      df%ulat => ulat_s
+      df%ulon => ulon_s
+      df%vlat => vlat_s
+      df%vlon => vlon_s
+      df%umap => umap_s
+      df%vmap => vmap_s
+      df%topou => topou_s
+      df%topov => topov_s
+      df%zeta => zeta_s
+      df%zetau => zetau_s
+      df%zetav => zetav_s
+      df%fmz => fmz_s
+    else if ( idynamic == 2 ) then
+      df%ts0 = ts0
+      df%ps0 => ps0_s
+      df%pr0 => pr0_s
+      df%t0 => t0_s
+      df%rho0 => rho0_s
+      df%z0 => z0_s
+    end if
+    call write_domain(df)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
@@ -1056,13 +1095,53 @@ program terrain
     ptop = psig * d_r100 ! Approximation of top pressure. hPa
   end if
 
-  write (outname,'(a,i0.3,a)') &
+  write (df%fname,'(a,i0.3,a)') &
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
-  call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
-                    sigma,xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,   &
-                    dmap,umap,vmap,coriol,mask,htgrid,topou,topov,lndout, &
-                    snowam,smoist,rmoist,rts,dpth,texout,frac_tex,ps0,pr0,&
-                    t0,rho0,z0,ts0,zeta,zetau,zetav,fmz)
+  df%lsub = .false.
+  df%lndfudge = fudge_lnd
+  df%texfudge = fudge_tex
+  df%lakfudge = fudge_lak
+  df%ntype = ntypec
+  df%sigma => sigma
+  df%xlat => xlat
+  df%xlon => xlon
+  df%dlat => dlat
+  df%dlon => dlon
+  df%xmap => xmap
+  df%dmap => dmap
+  df%coriol => coriol
+  df%mask => mask
+  df%htgrid => htgrid
+  df%lndout => lndout
+  df%snowam => snowam
+  df%smoist => smoist
+  df%dpth => dpth
+  df%texout => texout
+  df%rmoist => rmoist
+  df%rts => rts
+  df%frac_tex => frac_tex
+  if ( idynamic == 3 ) then
+    df%ulat => ulat
+    df%ulon => ulon
+    df%vlat => vlat
+    df%vlon => vlon
+    df%umap => umap
+    df%vmap => vmap
+    df%topou => topou
+    df%topov => topov
+    df%zeta => zeta
+    df%zetau => zetau
+    df%zetav => zetav
+    df%fmz => fmz
+  else if ( idynamic == 2 ) then
+    df%ts0 = ts0
+    df%ps0 => ps0
+    df%pr0 => pr0
+    df%t0 => t0
+    df%rho0 => rho0
+    df%z0 => z0
+  end if
+  call write_domain(df)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then
