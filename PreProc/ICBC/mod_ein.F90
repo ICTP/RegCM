@@ -244,7 +244,7 @@ module mod_ein
     !
     if ( idynamic == 3 ) then
       call pju%wind_rotate(u3,v3u)
-      call pju%wind_rotate(u3v,v3)
+      call pjv%wind_rotate(u3v,v3)
     else
       call pjd%wind_rotate(u3,v3)
     end if

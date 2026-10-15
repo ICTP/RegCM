@@ -111,7 +111,7 @@ module mod_vectutil
         jm1 = j-1
         jm2 = j-2
         jp1 = j+1
-        if (jp1 > ni) jp1 = 1
+        if (jp1 > nj) jp1 = 1
         if (jm1 == 0) jm1 = nj
         if (jm2 == 0) jm2 = nj
         if (jm2 == -1) jm2 = nj-1

@@ -290,7 +290,7 @@ program icbc
 
   if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
     call conclude_cmip6
-  else if ( dattyp == 'CMIP8' ) then
+  else if ( dattyp == 'CMIP7' ) then
     call conclude_cmip7
   else if ( dattyp(1:4) == 'ERA5' .or. dattyp == 'ERAXX' ) then
     call conclude_era5
@@ -300,10 +300,12 @@ program icbc
     call conclude_ein
   else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
     call conclude_ncep
-  else if ( dattyp == 'ECDAY' ) then
-    call conclude_ecday
   else if ( dattyp == 'FNEST' ) then
     call conclude_nest
+  else if ( dattyp == 'IFSXX' ) then
+    call conclude_ifs
+  else if ( dattyp == 'ECDAY' ) then
+    call conclude_ecday
   else
     call conclude_gnhnc
   end if

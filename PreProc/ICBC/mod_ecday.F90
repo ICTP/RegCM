@@ -304,7 +304,7 @@ module mod_ecday
         istatus = nf90_get_var(inet,ivar6(kkrec),hvar,istart,icount)
       else if ( kkrec == 3 ) then
         istatus = nf90_get_var(inet,ivar6(kkrec),qvar,istart,icount)
-      else if ( kkrec == 3 ) then
+      else if ( kkrec == 4 ) then
         istatus = nf90_get_var(inet,ivar6(kkrec),uvar,istart,icount)
       else if ( kkrec == 5 ) then
         istatus = nf90_get_var(inet,ivar6(kkrec),vvar,istart,icount)

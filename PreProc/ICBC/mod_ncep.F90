@@ -488,9 +488,9 @@ module mod_ncep
       if ( month == 10 ) it = it + 273*4
       if ( month == 11 ) it = it + 304*4
       if ( month == 12 ) it = it + 334*4
-      if ( mod(day,4) == 0 .and. month > 2 ) it = it + 4
-      if ( mod(day,100) == 0 .and. month > 2 ) it = it - 4
-      if ( mod(day,400) == 0 .and. month > 2 ) it = it + 4
+      if ( mod(year,4) == 0 .and. month > 2 ) it = it + 4
+      if ( mod(year,100) == 0 .and. month > 2 ) it = it - 4
+      if ( mod(year,400) == 0 .and. month > 2 ) it = it + 4
 
       istart(1) = 1
       icount(1) = ilon
@@ -550,7 +550,7 @@ module mod_ncep
         else if ( kkrec == 3 ) then
           istatus = nf90_get_var(inet,ivar5(kkrec),rhvar,istart,icount)
           rhvar = min(1.0_rkx,rhvar)
-        else if ( kkrec == 3 ) then
+        else if ( kkrec == 4 ) then
           istatus = nf90_get_var(inet,ivar5(kkrec),uvar,istart,icount)
         else if ( kkrec == 5 ) then
           istatus = nf90_get_var(inet,ivar5(kkrec),vvar,istart,icount)
