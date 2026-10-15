@@ -512,7 +512,7 @@ module mod_sst_1deg
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname)
     if (idate < 1989123100) then
-      istart(3) = kkk-1
+      if ( kkk > 1 ) istart(3) = kkk-1
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work1,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &

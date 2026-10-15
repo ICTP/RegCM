@@ -228,21 +228,21 @@ module mod_sst_gnhnc
 
     if (ssttyp(1:3) == 'LGM' ) then
       ccal = 'gregorian'
-    else if ( ssttyp /= 'EIXXX' .and. ssttyp(1:3) /= 'CFS' .and. &
-              ssttyp(1:3) /= 'EIN' .and. ssttyp(1:4) /= 'ERA5' ) then
+    else if ( ssttyp /= 'EIXXX' .and. ssttyp(1:3) /= 'CFS' ) then
       istart(1) = 1
       icount(1) = timlen
       istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(1))
-
       istatus = nf90_myget_att_text(inet1,ivar2(1),'units',cunit)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read attribute units of '//varname(1))
       istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
       if ( istatus /= nf90_noerr ) ccal = 'gregorian'
       fidate1 = timeval2date(work1(1),cunit,ccal)
-    else
+    end if
+    if (  ssttyp == 'EIXXX' .or. ssttyp(1:3) == 'CFS' .or. &
+          ssttyp(1:3) == 'EIN' .or. ssttyp(1:4) == 'ERA5' ) then
       istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
       if ( istatus /= nf90_noerr ) then
         add_offset = 0.0_rkx

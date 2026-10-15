@@ -61,9 +61,7 @@ module mod_sst_ersst
     integer(ik4) :: dimi, vari
     integer(ik4) :: nsteps
     type(rcm_time_and_date) :: idate, idatef, idateo
-    logical :: lfirst
-
-    data lfirst /.true./
+    logical, save :: lfirst = .true.
 
     idateo = monfirst(globidate1)
     idatef = monfirst(globidate2)
