@@ -765,9 +765,9 @@ module mod_write
         tv1 = t(j,i,kz) * (1.0_rkx + ep1*q(j,i,kz))
         tv2 = t(j,i,kzm1) * (1.0_rkx + ep1*q(j,i,kzm1))
         lrt = (tv2-tv1)/(z(j,i,kzm1)-z(j,i,kz))
-        if ( lrt > govcp ) then
-          lrt = govcp
-        else if ( lrt < -0.005_rkx ) then
+        if ( lrt < -govcp ) then
+          lrt = -govcp
+        else if ( lrt > -0.005_rkx ) then
           lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
         end if
         tv = tv1 - lrt*0.5_rkx*z(j,i,kz)
