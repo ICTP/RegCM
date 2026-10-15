@@ -160,7 +160,7 @@ module mod_cmip6_canesm
       if ( v%ivar == -1 ) then
         istatus = nf90_inq_varid(v%ncid,v%vname,v%ivar)
         call cmip6_error(istatus,__FILE__,__LINE__, &
-          'Error searchong '//trim(v%vname)//' var in file '// &
+          'Error searching '//trim(v%vname)//' var in file '// &
           trim(v%filename)//'.')
       end if
       if ( v%nrec == -1 ) then
@@ -259,7 +259,7 @@ module mod_cmip6_canesm
       if ( v%ivar == -1 ) then
         istatus = nf90_inq_varid(v%ncid,v%vname,v%ivar)
         call cmip6_error(istatus,__FILE__,__LINE__, &
-          'Error searchong '//trim(v%vname)//' var in file '// &
+          'Error searching '//trim(v%vname)//' var in file '// &
           trim(v%filename)//'.')
       end if
       if ( v%nrec == -1 ) then
@@ -334,7 +334,7 @@ module mod_cmip6_canesm
 #endif
       istatus = nf90_inq_varid(v%ncid,v%vname,v%ivar)
       call cmip6_error(istatus,__FILE__,__LINE__, &
-        'Error searchong '//trim(v%vname)//' var in file '// &
+        'Error searching '//trim(v%vname)//' var in file '// &
         trim(v%filename)//'.')
       istatus = nf90_get_var(v%ncid,v%ivar,v%var)
       call cmip6_error(istatus,__FILE__,__LINE__, &
@@ -403,7 +403,7 @@ module mod_cmip6_canesm
       if ( v%ivar == -1 ) then
         istatus = nf90_inq_varid(v%ncid,trim(v%vname),v%ivar)
         call cmip6_error(istatus,__FILE__,__LINE__, &
-          'Error searchong '//trim(v%vname)// &
+          'Error searching '//trim(v%vname)// &
           ' var in file '//trim(v%filename)//'.')
       end if
       if ( v%nrec == -1 ) then

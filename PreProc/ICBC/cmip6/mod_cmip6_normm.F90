@@ -56,6 +56,9 @@ module mod_cmip6_normm
       implicit none
       integer(ik8), intent(in) :: icode
       integer(ik4) :: i
+      if ( icode < nrmm_start(1) .or. icode > nrmm_end(nfiles) ) then
+        call die(__FILE__, 'Date out of NorESM2-MM range', __LINE__)
+      end if
       do i = 1, nfiles
         ic = i
         if ( icode >= nrmm_start(ic) .and. icode <= nrmm_end(ic) ) exit
@@ -275,6 +278,7 @@ module mod_cmip6_normm
 #ifdef DEBUG
         write(stderr, *) 'Closed file, switching to the next in series...'
 #endif
+        if ( allocated(v1) ) deallocate(v1)
         call read_3d_normm(idate,v)
       end if
       istart(1) = 1
@@ -419,6 +423,7 @@ module mod_cmip6_normm
 #ifdef DEBUG
         write(stderr, *) 'Closed file, switching to the next in series...'
 #endif
+        if ( allocated(v1) ) deallocate(v1)
         call read_2d_normm(idate,v)
       end if
       istart(1) = 1
