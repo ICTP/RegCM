@@ -1333,7 +1333,7 @@ module mod_nchelper
     if ( istat == nf90_noerr ) then
       if ( xtype == nf90_string .and. nlen == 1 ) then
         c_ncid = ncid
-        c_varid = varid - 1
+        if ( varid /= nf90_global ) c_varid = varid - 1
         c_aname = aname//char(0)
         c_status = nc_get_att_string(c_ncid, c_varid, c_aname, c_str)
         istat = c_status
