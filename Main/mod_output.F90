@@ -1134,7 +1134,7 @@ module mod_output
                 end do
                 tsurf = atm1%t(j,i,kz)/sfs%psa(j,i)
                 t500 = atm1%t(j,i,kk)/sfs%psa(j,i)
-                srf_li_out(j,i) = (tsurf-atms%za(j,i,k)*lrate) - t500
+                srf_li_out(j,i) = (tsurf-atms%za(j,i,kk)*lrate) - t500
               end do
             end do
           end if
