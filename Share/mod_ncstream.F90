@@ -1376,7 +1376,7 @@ module mod_ncstream
         if ( search < stream%xtime(1) .or. search > stream%xtime(2) ) then
           return
         end if
-        record = 1.0_rk8+(search-stream%xtime(1))monthly/stream%deltat
+        record = 1.0_rk8+(search-stream%xtime(1))/stream%deltat
       end if
     end subroutine instream_findrec
 
