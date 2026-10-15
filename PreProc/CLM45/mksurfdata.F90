@@ -1017,7 +1017,6 @@ program mksurfdata
     var3d(:,:,2) = vmisdat
   end where
   call mypack(var3d(:,:,1),gcvar)
-  gcvar = gcvar*real(raddeg,rkx)
   istatus = nf90_put_var(ncid, islopevar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write slope')
   call mypack(var3d(:,:,2),gcvar)
@@ -1223,26 +1222,6 @@ program mksurfdata
   istatus = nf90_put_var(ncid, isoilcolvar, igcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
   deallocate(ivar2d)
-
-#ifdef HAMSTER_ALBEDO
-  allocate(var3d(jxsg,iysg,2))
-  call mkalbedo('mksrf_albedo.nc',xmask,var3d)
-  call mypack(var3d(:,:,1),gcvar)
-  istart(1) = 1
-  icount(1) = ngcells
-  istart(2) = 1
-  icount(2) = 1
-  istatus = nf90_put_var(ncid, ialbedovar, gcvar, istart(1:2), icount(1:2))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write albedo')
-  call mypack(var3d(:,:,2),gcvar)
-  istart(1) = 1
-  icount(1) = ngcells
-  istart(2) = 2
-  icount(2) = 1
-  istatus = nf90_put_var(ncid, ialbedovar, gcvar, istart(1:2), icount(1:2))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write albedo')
-  deallocate(var3d)
-#endif
 
   allocate(var4d(jxsg,iysg,nsoil,2))
   call mksoitex('mksrf_soitex.nc',xmask,var4d(:,:,:,1),var4d(:,:,:,2))
@@ -1568,22 +1547,22 @@ program mksurfdata
 
     istatus = nf90_def_var(ncid, 'xclon', regcm_vartype, idims(5), ilonvar)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var xclon')
-    istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+    istatus = nf90_put_att(ncid, ilonvar, 'compress','xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add xclon')
 
     istatus = nf90_def_var(ncid, 'yclat', regcm_vartype, idims(5), ilatvar)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var yclat')
-    istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+    istatus = nf90_put_att(ncid, ilatvar, 'compress','xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add yclat')
 
     istatus = nf90_def_var(ncid, 'jx2d', nf90_int, idims(5), ijxvar)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var jx2d')
-    istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+    istatus = nf90_put_att(ncid, ijxvar, 'compress','xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add jx2d')
 
     istatus = nf90_def_var(ncid, 'iy2d', nf90_int, idims(5), iiyvar)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var iy2d')
-    istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+    istatus = nf90_put_att(ncid, iiyvar, 'compress','xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add iy2d')
 
     ivdims(1) = idims(5)
