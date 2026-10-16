@@ -2,7 +2,7 @@
 
 all: DeveloperGuide.pdf
 
-TEXFILES = MainDeveloperGuide.tex \
+TEXFILES = MainDeveloperGuide.tex share_and_utility.tex \
            DeveloperGuide.tex    TitleDeveloperGuide.tex \
 	   OASISInterface.tex
 BIBFILLES = Biblio_Developer.bib

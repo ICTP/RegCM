@@ -1,0 +1,3487 @@
+
+%==============================================================================
+\section{Basic Numeric Types --- \texttt{mod\_intkinds.F90} and
+         \texttt{mod\_realkinds.F90}}
+\label{sec:kinds}
+%==============================================================================
+
+\subsection{Overview}
+
+The two modules \code{mod\_intkinds} and \code{mod\_realkinds} form the
+foundation of RegCM's numeric type system. Every other module in the model
+depends --- directly or indirectly --- on one or both of them. Together they:
+
+\begin{itemize}
+  \item define portable, machine-independent kind parameters for integers
+        and reals at four widths each;
+  \item expose a single \emph{working-precision} alias \code{rkx} that is
+        resolved at compile time, allowing the entire model to be built in
+        either single or double precision by toggling one preprocessor flag;
+  \item provide IEEE-754 special-value constants (\code{nan}, \code{inf})
+        and the utility predicates \code{is\_nan} and \code{is\_inf} in a
+        portable, compiler-agnostic manner.
+\end{itemize}
+
+Neither module contains subroutines or data variables (with the sole exception
+of \code{init\_realkinds} under NAG Fortran, described below). Both use
+\code{public} visibility, so all names they export are directly accessible to
+any \code{use}ing module.
+
+\subsection{Dependency Graph}
+
+\begin{lstlisting}
+mod_intkinds       (no dependencies)
+mod_realkinds
+    |-- [optional] iso_fortran_env   (F2008 mode)
+    |-- [optional] ieee_arithmetic   (F2008 mode)
+mod_constants
+    |-- mod_realkinds
+        ...
+\end{lstlisting}
+
+\code{mod\_intkinds} has no Fortran-level dependencies at all; under
+\code{F2008} it uses the intrinsic \code{iso\_fortran\_env} module purely to
+import the named kind constants \code{int8}, \code{int16}, \code{int32}, and
+\code{int64}.
+
+%------------------------------------------------------------------------------
+\subsection{\texttt{mod\_intkinds} --- Integer Kind Parameters}
+\label{subsec:intkinds}
+
+\subsubsection{Purpose}
+
+\code{mod\_intkinds} provides four named integer kind values (\code{ik1},
+\code{ik2}, \code{ik4}, \code{ik8}) covering 1-byte to 8-byte widths, plus
+a convenience constant \code{bigint} equal to \code{HUGE(integer(ik4))}.
+Having named kinds avoids relying on the default integer kind, which is
+implementation-defined, and prevents silent truncation when mixing 32-bit
+and 64-bit integers in index or counter arithmetic.
+
+\subsubsection{Compile-Time Modes}
+
+The module supports two implementations selected by the preprocessor flag
+\code{F2008}:
+
+\begin{longtable}{L{3.5cm} L{5.5cm} L{5cm}}
+  \toprule
+  \textbf{Name} & \textbf{\texttt{F2008} mode} & \textbf{Fallback (Fortran 95/2003)} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ik1} & \code{int8}  & \code{selected\_int\_kind(R=2)}  \\
+  \code{ik2} & \code{int16} & \code{selected\_int\_kind(R=4)}  \\
+  \code{ik4} & \code{int32} & \code{selected\_int\_kind(R=9)}  \\
+  \code{ik8} & \code{int64} & \code{selected\_int\_kind(R=18)} \\
+\end{longtable}
+
+The \code{F2008} path binds directly to the \code{iso\_fortran\_env} named
+constants, which are guaranteed by the standard to map to the corresponding
+ISO C fixed-width types. The fallback path uses \code{selected\_int\_kind(R)}
+which requests the smallest available kind that can represent integers with at
+least $R$ decimal digits (e.g.\ $R=9$ gives at least $\pm10^9$, safely
+covering the 32-bit signed range).
+
+\subsubsection{Kind Parameters}
+
+\begin{longtable}{L{2.5cm} L{2cm} L{3cm} L{3cm} L{4.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Width} & \textbf{Range} & \textbf{Typical use} & \textbf{Note} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ik1} & 8-bit  & $[-128,\,127]$                     & Flags, masks           & Rarely used directly \\
+  \code{ik2} & 16-bit & $[-32768,\,32767]$                 & Compact index fields   & \\
+  \code{ik4} & 32-bit & $[\approx{-2.1\times10^9},\,\approx{2.1\times10^9}]$ & Loop indices, counts & Default in most loops \\
+  \code{ik8} & 64-bit & $[\approx{-9.2\times10^{18}},\,\approx{9.2\times10^{18}}]$ & Large file offsets, NetCDF record counts & \\
+\end{longtable}
+
+\subsubsection{\texttt{bigint} --- Maximum 32-bit Signed Integer}
+
+\begin{lstlisting}
+integer(ik4), parameter :: bigint = 2147483647   ! = HUGE(integer(ik4))
+\end{lstlisting}
+
+\code{bigint} holds the value $2^{31}-1 = 2\,147\,483\,647$, the largest
+representable \code{ik4} integer. It is defined via the preprocessor macro
+\code{\_\_SYSTEM\_INTMAX\_32\_\_} (which also exists as a 64-bit variant
+\code{\_\_SYSTEM\_INTMAX\_64\_\_} for documentation purposes but is not exposed
+as a named parameter). \code{bigint} is used in the rest of the model wherever
+a sentinel ``not-set'' or ``unlimited'' integer value is needed.
+
+%------------------------------------------------------------------------------
+\subsection{\texttt{mod\_realkinds} --- Real Kind Parameters and IEEE Utilities}
+\label{subsec:realkinds}
+
+\subsubsection{Purpose}
+
+\code{mod\_realkinds} provides three real kind parameters (\code{rk4},
+\code{rk8}, \code{rk16}) and the critical working-precision alias \code{rkx},
+together with IEEE-754 special values (\code{nan}, \code{inf} and their
+precision-specific variants) and two generic interfaces (\code{is\_nan},
+\code{is\_inf}) for portable floating-point diagnostics.
+
+\subsubsection{Compile-Time Modes}
+
+Three orthogonal preprocessor flags interact in this module:
+
+\begin{longtable}{L{4cm} L{10cm}}
+  \toprule
+  \textbf{Flag} & \textbf{Effect} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{F2008} &
+    Uses \code{iso\_fortran\_env} for kind constants (\code{real32},
+    \code{real64}, \code{real128}) and \code{ieee\_arithmetic} for
+    special-value construction and IEEE class queries.
+    Without this flag the module falls back to \code{kind(1.0)},
+    \code{selected\_real\_kind}, and octal-literal bit patterns. \\
+  \code{NAGFOR} &
+    Active only when \code{F2008} is also set. NAG Fortran does not allow
+    \code{ieee\_value} in a \code{parameter} initialiser, so \code{nan}
+    and \code{inf} are declared as non-constant variables initialised by
+    the auxiliary subroutine \code{init\_realkinds}, which must be called
+    once at model startup. \\
+  \code{SINGLE\_PRECISION\_REAL} &
+    Sets \code{rkx = rk4} (32-bit working precision). The default (flag
+    absent) sets \code{rkx = rk8} (64-bit working precision). \\
+\end{longtable}
+
+\subsubsection{Kind Parameters}
+
+\begin{longtable}{L{2.5cm} L{2cm} L{3.5cm} L{3cm} L{4cm}}
+  \toprule
+  \textbf{Name} & \textbf{Width} & \textbf{\texttt{F2008} value} & \textbf{Fallback value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{rk4}  & 32-bit  & \code{real32}  & \code{kind(1.0)}                          & Single precision (IEEE-754 \texttt{binary32}) \\
+  \code{rk8}  & 64-bit  & \code{real64}  & \code{selected\_real\_kind(2*precision(rk4))} & Double precision (IEEE-754 \texttt{binary64}) \\
+  \code{rk16} & 128-bit & \code{real128} & \code{selected\_real\_kind(2*precision(rk8))} & Quad precision; available on supported compilers only \\
+  \code{rkx}  & ---     & \code{rk4} or \code{rk8} & same & \textbf{Model working precision} (see below) \\
+\end{longtable}
+
+The fallback definitions for \code{rk8} and \code{rk16} follow the
+``double-the-precision'' pattern recommended in Metcalf, Reid \& Cohen,
+\textit{Fortran 95/2003 Explained} (2004, p.~71): each successive kind is
+requested to have at least twice the decimal precision of the previous one,
+yielding approximately 7, 15, and 30 significant decimal digits respectively.
+
+\subsubsection{The Working Precision \texttt{rkx}}
+
+\code{rkx} is the single most important symbol in the RegCM type system.
+Every physical field, every named constant in \code{mod\_constants}, and every
+function argument in the \code{Share/*.inc} include files is typed
+\code{real(rkx)}. This means:
+
+\begin{itemize}
+  \item Compiling \emph{without} \code{SINGLE\_PRECISION\_REAL} (the default)
+        produces a fully double-precision executable --- \code{rkx = rk8}.
+  \item Compiling \emph{with} \code{SINGLE\_PRECISION\_REAL} produces a
+        single-precision executable --- \code{rkx = rk4} --- at roughly half
+        the memory footprint and higher vectorisation throughput, at the cost
+        of reduced accuracy.
+\end{itemize}
+
+Internal computations inside the thermodynamic kernels
+(e.g.\ the Flatau polynomial evaluations in \code{pfesat.inc}) promote
+intermediate values to \code{rk8} regardless of \code{rkx}, then cast the
+result back. This guards against rounding error in the polynomial evaluation
+when the model is built in single precision.
+
+\subsubsection{IEEE Special Values}
+
+Four precision-specific constants and two working-precision aliases are provided:
+
+\begin{longtable}{L{3cm} L{5cm} L{6cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value / construction} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{nan\_r4} &
+    \code{transfer(-4194304\_int32, 1.\_real32)} &
+    Quiet NaN, 32-bit \\
+  \code{inf\_r4} &
+    \code{transfer(2139095040\_int32, 1.\_real32)} &
+    Positive infinity, 32-bit \\
+  \code{nan\_r8} &
+    \code{transfer(-2251799813685248\_int64, 1.\_real64)} &
+    Quiet NaN, 64-bit \\
+  \code{inf\_r8} &
+    \code{transfer(9218868437227405312\_int64, 1.\_real64)} &
+    Positive infinity, 64-bit \\
+  \code{nan}     & alias of \code{nan\_r4} or \code{nan\_r8} & Working-precision NaN \\
+  \code{inf}     & alias of \code{inf\_r4} or \code{inf\_r8} & Working-precision positive infinity \\
+\end{longtable}
+
+The integer bit patterns used in the \code{transfer} calls are hardwired via
+the preprocessor macros \code{\_\_SYSTEM\_NAN\_32\_\_} etc., whose values
+were generated by a small self-contained test program (preserved as a comment
+at the top of the source file) that calls \code{ieee\_value} and converts the
+result to integer via \code{transfer}. This two-step approach allows the
+constants to be \code{parameter} (compile-time) rather than requiring runtime
+initialisation, while remaining binary-portable across IEEE-754 compliant
+platforms.
+
+Under \textbf{NAG Fortran} with \code{F2008}, the standard prohibits
+\code{ieee\_value} in a \code{parameter} context; in that case \code{nan} and
+\code{inf} are declared as plain (non-constant) module variables and must be
+set by calling \code{init\_realkinds()} before any other module is used.
+
+Under the Fortran 95/2003 fallback (no \code{F2008}), the special values are
+constructed from octal literals (\code{O'07760000000'} for single-precision
+\code{inf}, etc.), which directly encode the IEEE-754 bit patterns and are
+accepted as \code{parameter} initialisers by most legacy compilers.
+
+\subsubsection{Generic Interfaces \texttt{is\_nan} and \texttt{is\_inf}}
+
+Two overloaded generic interfaces provide portable special-value detection:
+
+\begin{lstlisting}
+interface is_nan
+  module procedure is_nan_single   ! real(rk4)
+  module procedure is_nan_double   ! real(rk8)
+end interface
+
+interface is_inf
+  module procedure is_inf_single   ! real(rk4)
+  module procedure is_inf_double   ! real(rk8)
+end interface
+\end{lstlisting}
+
+All four underlying functions are \code{logical elemental}, making them
+applicable to arrays of any shape. Their implementations differ by mode:
+
+\begin{longtable}{L{3cm} L{5.5cm} L{5.5cm}}
+  \toprule
+  \textbf{Function} & \textbf{\texttt{F2008} implementation} & \textbf{Fallback implementation} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{is\_nan\_*} &
+    \code{ieee\_class(x) == ieee\_quiet\_nan .or.} \newline
+    \code{ieee\_class(x) == ieee\_signaling\_nan} &
+    \code{(x /= x) .or.} \newline
+    \code{((x > 0) .eqv. (x <= 0))} \\
+  \code{is\_inf\_*} &
+    \code{ieee\_class(x) == ieee\_negative\_inf .or.} \newline
+    \code{ieee\_class(x) == ieee\_positive\_inf} &
+    \code{x > huge(x) .or. x < -huge(x)} \\
+\end{longtable}
+
+The fallback NaN test exploits the IEEE-754 property that NaN is unordered
+with respect to any value, including itself (\code{x /= x} is \code{.true.}
+for NaN). The second clause \code{(x > 0) .eqv. (x <= 0)} is a supplementary
+guard for compilers that may short-circuit or optimise away the self-comparison.
+The fallback Inf test relies on \code{huge(x)} returning the largest finite
+representable value, so a value strictly greater in magnitude must be infinite.
+
+%------------------------------------------------------------------------------
+\subsection{Design Notes}
+
+\textbf{Foundation role.} These two modules sit at the root of the entire
+dependency tree. No other \code{Share/} module or physics parameterisation
+can be compiled without them, yet they themselves have no RegCM-level
+dependencies. Changes to either file propagate to every module at the next
+full build.
+
+\textbf{Single entry point for precision.} The \code{rkx} alias in
+\code{mod\_realkinds} is the sole control point for model-wide floating-point
+precision. Changing precision does not require modifying any physics code;
+the compiler resolves all \code{real(rkx)} declarations and all \code{rkx}
+literal suffixes through the kind parameter at compile time.
+
+\textbf{Portability layers.} The three-level structure ---
+\code{F2008} $\supset$ \code{NAGFOR} exception $\supset$ Fortran~95 fallback
+--- ensures that the model can be built with compilers ranging from those
+supporting only the Fortran~95 standard to fully conforming Fortran~2008
+implementations, including the stricter NAG compiler. The IEEE special-value
+approach (precomputed bit patterns as \code{parameter} constants, with a
+runtime fallback for NAG) is a pragmatic solution to the long-standing
+portability problem of NaN and Inf initialisation in module scope.
+
+\textbf{No \texttt{rk16} in physics.} Although \code{rk16} (quad precision)
+is defined, it is not used in any physics module. It is available for
+developers who need extended-precision diagnostics or reference computations
+during code validation.
+
+%======================================================================
+\section{Constants --- \texttt{mod\_constants.F90}}
+\label{sec:constants}
+%======================================================================
+
+\subsection{Overview}
+
+\code{mod\_constants} is the single authoritative source of all named
+physical, mathematical, and numerical constants used throughout the RegCM
+model. It is a pure parameter module --- it declares no variables, no
+procedures, and no derived types --- and exposes everything with
+\code{public} visibility.
+
+The module depends only on \code{mod\_realkinds}, which defines the
+precision kinds \code{rk4}, \code{rk8}, and \code{rkx} (the model working
+precision). This single dependency means that the precision of nearly every
+constant in the model can be controlled by editing \code{mod\_realkinds} alone.
+
+\textbf{Design philosophy:}
+\begin{itemize}
+  \item All constants are \code{parameter} (compile-time literals) to allow
+        constant folding.
+  \item Precision-sensitive constants (geometry, trigonometry) are provided
+        in all three precisions (\code{\_r4}, \code{\_r8}, \code{rkx}) so
+        callers can avoid implicit conversion.
+  \item Two compile-time preprocessor flags alter a subset of values:
+    \begin{itemize}
+      \item \texttt{RCEMIP} --- selects values appropriate for the
+            Radiative-Convective Equilibrium Model Intercomparison Project.
+      \item \texttt{SINGLE\_PRECISION\_REAL} --- adjusts the tracer minimum
+            threshold.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Dependency}
+
+\begin{lstlisting}
+mod_constants
+    |-- mod_realkinds   (provides: rk4, rk8, rkx)
+\end{lstlisting}
+
+\subsection{Compile-Time Flags}
+
+\begin{longtable}{L{4cm} L{10cm}}
+  \toprule
+  \textbf{Flag} & \textbf{Effect} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{RCEMIP} &
+    Uses RCEMIP-prescribed values for \code{egrav}, \code{rgas},
+    \code{rwat}, \code{cpd}, \code{cpv}, \code{cvd}, \code{wlhv},
+    \code{wlhf}, \code{wlhs}, \code{lrate}, \code{earthrad},
+    \code{minqq}, \code{minqc}. \\
+  \code{SINGLE\_PRECISION\_REAL} &
+    Raises \code{mintr} from $10^{-30}$ to $10^{-20}$ to stay above the
+    single-precision underflow threshold. \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 1 --- Numeric Literals}
+
+Plain real literals named to improve readability and avoid magic numbers.
+All are \code{real(rkx)} unless noted.
+
+\begin{longtable}{L{3cm} L{3.5cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{d\_zero}   & 0.0       & Zero \\
+  \code{d\_one}    & 1.0       & One \\
+  \code{d\_two}    & 2.0       & Two \\
+  \code{d\_three}  & 3.0       & Three \\
+  \code{d\_four}   & 4.0       & Four \\
+  \code{d\_five}   & 5.0       & Five \\
+  \code{d\_six}    & 6.0       & Six \\
+  \code{d\_nine}   & 9.0       & Nine \\
+  \code{d\_half}   & 0.5       & One half \\
+  \code{d\_rfour}  & 0.25      & One quarter \\
+  \code{d\_twelve} & 12.0      & Twelve \\
+  \code{d\_10}     & 10.0      & Ten \\
+  \code{d\_r10}    & 0.1       & $1/10$ \\
+  \code{d\_100}    & 100.0     & One hundred \\
+  \code{d\_r100}   & 0.01      & $1/100$ \\
+  \code{d\_1000}   & 1000.0    & One thousand \\
+  \code{d\_r1000}  & 0.001     & $1/1000$ \\
+  \code{onet}      & $1/3$     & One third \\
+  \code{twot}      & $2/3$     & Two thirds \\
+  \code{fourt}     & $4/3$     & Four thirds \\
+  \code{sqrt2}     & $\sqrt{2}$        & Square root of two \\
+  \code{rsqrt2}    & $1/\sqrt{2}$      & Reciprocal of $\sqrt{2}$ \\
+\end{longtable}
+
+\textbf{Angle literals} (\code{real(rk8)}, operations must be in double precision):
+
+\begin{longtable}{L{3cm} L{3.5cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{deg00}  & 0.0   & $0^\circ$ \\
+  \code{deg45}  & 45.0  & $45^\circ$ \\
+  \code{deg90}  & 90.0  & $90^\circ$ \\
+  \code{deg180} & 180.0 & $180^\circ$ \\
+  \code{deg360} & 360.0 & $360^\circ$ \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 2 --- Minimum Threshold Values}
+
+Lower bounds applied to moisture and tracer fields to prevent numerical
+underflow, negative values, or division by zero.
+
+\begin{longtable}{L{2.5cm} L{3.5cm} L{3.5cm} L{4.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Standard} & \textbf{RCEMIP} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{minqq} & $10^{-8}$  & $10^{-14}$ & Generic moisture minimum \\
+  \code{minqc} & $10^{-10}$ & $10^{-16}$ & Cloud condensate minimum \\
+  \code{minqv} & $100\times\text{minqq}$ & --- & Water vapour minimum \\
+  \code{mintr} & $10^{-30}$ (double) & --- & Tracer minimum; $10^{-20}$ single \\
+  \code{minqx} & $10^{-16}$ & --- & Extra-strict microphysics minimum \\
+\end{longtable}
+
+Missing/sentinel values (all $\approx 10^{\pm20}$; provided in \code{rk4},
+\code{rk8} and \code{rkx} variants for NetCDF I/O compatibility):
+\code{dlowval}, \code{dhival}, \code{slowval}, \code{shival},
+\code{dmissval}, \code{smissval}.
+
+%----------------------------------------------------------------------
+\subsection{Group 3 --- Time Conversion}
+
+\begin{longtable}{L{3cm} L{3cm} L{3cm} L{5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{secpm}  & 60.0     & s min$^{-1}$ & Seconds per minute \\
+  \code{secph}  & 3600.0   & s h$^{-1}$   & Seconds per hour \\
+  \code{secpd}  & 86400.0  & s d$^{-1}$   & Seconds per day \\
+  \code{rsecpd} & 1/86400  & d s$^{-1}$   & Reciprocal seconds per day \\
+  \code{minph}  & 60.0     & min h$^{-1}$ & Minutes per hour \\
+  \code{minpd}  & 1440.0   & min d$^{-1}$ & Minutes per day \\
+  \code{houpd}  & 24.0     & h d$^{-1}$   & Hours per day \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 4 --- Fundamental Physical Constants}
+
+\subsubsection{Universal Constants}
+
+\begin{longtable}{L{3.5cm} L{4.5cm} L{2.5cm} L{3cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Units} & \textbf{Standard} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{egrav}        & 9.80665 / 9.79764 (RCEMIP)    & m s$^{-2}$       & 3rd CGPM \\
+  \code{speedoflight} & 299\,792\,458.0               & m s$^{-1}$       & SI 2019 (exact) \\
+  \code{plankconstant}& $6.62607015\times10^{-34}$    & J s              & SI 2019 \\
+  \code{sigm}         & $5.670374419\times10^{-8}$    & W m$^{-2}$ K$^{-4}$ & Stefan-Boltzmann, SI 2019 \\
+  \code{boltzk}       & $1.3806490\times10^{-23}$     & J K$^{-1}$       & Boltzmann, SI 2019 \\
+  \code{navgdr}       & $6.02214076\times10^{23}$     & mol$^{-1}$       & Avogadro, SI 2019 \\
+  \code{rgasmol}      & $\text{navgdr}\times\text{boltzk}\approx8.31446$ & J mol$^{-1}$ K$^{-1}$ & Universal gas constant \\
+  \code{m\_euler}     & 0.57721566\ldots               & ---              & Euler-Mascheroni (rk4, rk8, rkx) \\
+\end{longtable}
+
+\subsubsection{Molecular Weights}
+
+All in g mol$^{-1}$. Source: CRC Handbook (1997) for air composition;
+PubChem for trace gases.
+
+\begin{longtable}{L{3cm} L{3cm} L{4cm} L{4cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Species} & \textbf{Note} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{amd}    & 28.96454  & Dry air          & Weighted composition: N$_2$, O$_2$, Ar, CO$_2$, traces \\
+  \code{amw}    & 18.01528  & Water (H$_2$O)   & \\
+  \code{amo2}   & 31.9988   & O$_2$            & \\
+  \code{amo3}   & 47.9982   & O$_3$            & \\
+  \code{amco2}  & 44.0095   & CO$_2$           & \\
+  \code{amn2o}  & 44.0128   & N$_2$O           & \\
+  \code{amch4}  & 16.04246  & CH$_4$           & \\
+  \code{amcfc11}& 137.3681  & CFC-11 (CCl$_3$F)& \\
+  \code{amcfc12}& 120.9135  & CFC-12 (CCl$_2$F$_2$)& \\
+  \code{pdbratio}& 0.0112372& ---              & $^{13}$C/$^{12}$C Pee Dee Belemnite standard \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 5 --- Gas Constants and Specific Heats}
+
+\subsubsection{Gas Constants}
+
+\begin{longtable}{L{2.8cm} L{3.5cm} L{3cm} L{2cm} L{2.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Standard} & \textbf{RCEMIP} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{rgas} (\code{rdry}) & $(R_\text{mol}/M_d)\times1000\approx287.057$ & 287.04 & J kg$^{-1}$ K$^{-1}$ & Dry air \\
+  \code{rwat}               & $(R_\text{mol}/M_w)\times1000\approx461.523$ & 461.50 & J kg$^{-1}$ K$^{-1}$ & Water vapour \\
+  \code{rgow}               & $R_d/R_v\approx0.6220$ & --- & --- & Ratio $R_d/R_v$ \\
+  \code{rgowi}              & $R_v/R_d\approx1.6078$ & --- & --- & Ratio $R_v/R_d$ \\
+\end{longtable}
+
+\subsubsection{Specific Heats for Air}
+
+\begin{longtable}{L{2.5cm} L{3.5cm} L{3cm} L{2cm} L{3.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Standard} & \textbf{RCEMIP} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{cpd} & $\frac{7}{2}R_d\approx1004.70$ & 1004.64 & J kg$^{-1}$ K$^{-1}$ & Dry air at constant pressure \\
+  \code{cpv} & $4R_v\approx1846.09$           & 1846.00 & J kg$^{-1}$ K$^{-1}$ & Water vapour at constant pressure \\
+  \code{cvd} & $\frac{5}{2}R_d\approx717.64$  & 717.6   & J kg$^{-1}$ K$^{-1}$ & Dry air at constant volume \\
+\end{longtable}
+
+\textit{Note:} The source comment ``Assume dry air is biatomic gas'' reflects
+the idealised diatomic derivation $c_p = \frac{7}{2}R$, $c_v = \frac{5}{2}R$.
+
+\subsubsection{Specific Heats for Water Phases}
+
+\begin{longtable}{L{3cm} L{3cm} L{3cm} L{5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{cpw}      & 4186.95              & J kg$^{-1}$ K$^{-1}$   & Liquid water at 15\,°C \\
+  \code{cpw0}     & 4218.0               & J kg$^{-1}$ K$^{-1}$   & Liquid water at 0\,°C \\
+  \code{cpi}      & 2106.00              & J kg$^{-1}$ K$^{-1}$   & Ice at 0\,°C (ECMWF value) \\
+  \code{ch2o}     & $4.18695\times10^6$  & J m$^{-3}$ K$^{-1}$    & Liquid water volumetric, ISO 15\,°C \\
+  \code{shice}    & $0.46\times\text{ch2o}$ & J m$^{-3}$ K$^{-1}$ & Solid ice \\
+  \code{csnw}     & $0.20\times\text{ch2o}$ & J m$^{-3}$ K$^{-1}$ & Wind-packed snow \\
+  \code{spcpfw}   & 4188.0               & J kg$^{-1}$ K$^{-1}$   & Fresh water \\
+  \code{spcpsw}   & 3996.0               & J kg$^{-1}$ K$^{-1}$   & Sea water \\
+  \code{spcpice}  & 2117.27              & J kg$^{-1}$ K$^{-1}$   & Fresh ice \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 6 --- Latent Heats and Thermodynamic Compounds}
+
+\subsubsection{Latent Heats at 0\,°C}
+
+\begin{longtable}{L{3cm} L{4cm} L{3.5cm} L{3.5cm} L{2cm}}
+  \toprule
+  \textbf{Name} & \textbf{Standard} & \textbf{RCEMIP} & \textbf{Description} & \textbf{Units} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{wlhv} & 2\,500\,610.0              & $2.501\times10^6$ & Vaporisation   & J kg$^{-1}$ \\
+  \code{wlhf} & 333\,560.5                 & $3.337\times10^5$ & Fusion         & J kg$^{-1}$ \\
+  \code{wlhs} & $\text{wlhv}+\text{wlhf}$ & $2.834\times10^6$ & Sublimation    & J kg$^{-1}$ \\
+\end{longtable}
+
+\subsubsection{Precomputed Utility Compounds}
+
+\begin{longtable}{L{3cm} L{4.5cm} L{2cm} L{5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Expression} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{regrav}   & $1/g$                    & s$^2$ m$^{-1}$  & Reciprocal gravity \\
+  \code{rcpd}     & $1/c_{pd}$               & kg K J$^{-1}$   & Reciprocal of $c_{pd}$ \\
+  \code{rovcp}    & $R_d/c_{pd}\approx0.2857$& ---             & Poisson exponent $\kappa$ \\
+  \code{cpovr}    & $c_{pd}/R_d\approx3.5$   & ---             & $c_p/R_d$ \\
+  \code{gdry}     & $-g/c_{pd}$              & K m$^{-1}$      & Dry adiabatic lapse rate (negative) \\
+  \code{govcp}    & $g/c_{pd}$               & K m$^{-1}$      & Magnitude of dry lapse rate \\
+  \code{wlhvocp}  & $L_v/c_{pd}$             & K               & Vaporisation latent heat / $c_p$ \\
+  \code{wlhsocp}  & $L_s/c_{pd}$             & K               & Sublimation latent heat / $c_p$ \\
+  \code{wlhfocp}  & $L_f/c_{pd}$             & K               & Fusion latent heat / $c_p$ \\
+  \code{hcratio}  & $c_{pv}/c_{pd}$          & ---             & Heat capacity ratio for moist corrections \\
+  \code{hcrm1}    & $c_{pv}/c_{pd}-1$        & ---             & Moist correction increment \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 7 --- Temperature and Saturation Pressure Constants}
+
+\subsubsection{Reference Temperatures and Phase Thresholds}
+
+\begin{longtable}{L{3.5cm} L{3cm} L{2cm} L{5.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{tzero}           & 273.15  & K & Ice-point (0\,°C) \\
+  \code{tiso}            & 216.65  & K & ICAO isothermal layer temperature (11--20\,km) \\
+  \code{wattp}           & 273.16  & K & Triple point of water \\
+  \code{tboil}           & 373.1339& K & Boiling point at 1\,atm \\
+  \code{rtber}           & 268.15  & K & Threshold: mixed-phase / liquid cloud \\
+  \code{rtice}           & 250.15  & K & Threshold: pure ice cloud \\
+  \code{mpcrt}           & $\approx256.4$& K & Mixed-phase critical temperature \\
+  \code{rtwat\_rtice\_r} & $1/(T_w-T_i)$& K$^{-1}$ & Reciprocal of liquid--ice temperature range \\
+\end{longtable}
+
+\subsubsection{Tetens Formula Coefficients}
+
+Used by \code{tetens\_pfesat.inc} and \code{tetens\_pfesdt.inc}.
+The formula is $e_s = c_{1es}\exp\!\bigl(c_{3x}(T-T_w)/(T-c_{4x})\bigr)$.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{c1es}    & 610.78          & Reference saturation pressure at \code{wattp} [Pa] \\
+  \code{c3les}   & 17.2693882      & Exponent numerator coefficient -- liquid \\
+  \code{c3ies}   & 21.875          & Exponent numerator coefficient -- ice \\
+  \code{c4les}   & 35.86\,K        & Exponent denominator offset -- liquid \\
+  \code{c4ies}   & 7.66\,K         & Exponent denominator offset -- ice \\
+  \code{c5les}   & $c_{3l}(T_0-c_{4l})$ & Precomputed product -- liquid \\
+  \code{c5ies}   & $c_{3i}(T_0-c_{4i})$ & Precomputed product -- ice \\
+  \code{c5alvcp} & $c_{5l}\,L_v/c_p$    & Compound for equivalent potential temperature -- liquid \\
+  \code{c5alscp} & $c_{5i}\,L_s/c_p$    & Compound for equivalent potential temperature -- ice \\
+\end{longtable}
+
+\subsubsection{Kain-Fritsch / WSM5 Saturation Constants}
+
+Alternative exponential fits used in convective and microphysics schemes.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{aliq} & 613.3   & Reference pressure -- liquid [Pa] \\
+  \code{bliq} & 17.502  & Exponent numerator -- liquid \\
+  \code{cliq} & 4780.8  & Exponent denominator offset -- liquid [K] \\
+  \code{dliq} & 32.19   & Exponent denominator shift -- liquid [K] \\
+  \code{aice} & 613.20  & Reference pressure -- ice [Pa] \\
+  \code{bice} & 22.452  & Exponent numerator -- ice \\
+  \code{cice} & 6133.0  & Exponent denominator offset -- ice [K] \\
+  \code{dice} & 0.61    & Exponent denominator shift -- ice [K] \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 8 --- Standard Atmosphere (ICAO 1993)}
+
+\begin{longtable}{L{3cm} L{3.5cm} L{3cm} L{5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{p00}    & $1.00000\times10^5$ & Pa   & Reference pressure \\
+  \code{stdp}   & $1.01325\times10^5$ & Pa   & Standard sea-level pressure \\
+  \code{stdpmb} & 1013.250            & hPa  & \code{stdp} in millibar \\
+  \code{stdpcb} & 101.325             & cbar & \code{stdp} in centibar \\
+  \code{stdt}   & 288.15              & K    & Standard sea-level temperature (15\,°C) \\
+  \code{stdrho} & 1.2250              & kg m$^{-3}$ & Standard sea-level air density \\
+  \code{lrate}  & 0.00649 / 0.0067 (RCEMIP) & K m$^{-1}$ & Standard tropospheric lapse rate \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 9 --- Geometric and Geodetic Constants}
+
+\subsubsection{Earth Shape and Rotation}
+
+All quantities are provided in \code{rk4}, \code{rk8}, and \code{rkx} variants.
+
+\begin{longtable}{L{3.5cm} L{4.5cm} L{2.5cm} L{3.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Standard value} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{earthrad}  & $6.371229\times10^6$ & m          & Mean Earth radius \\
+  \code{erkm}      & $6371.229$           & km         & Earth radius in kilometres \\
+  \code{rearthrad} & $1/\text{earthrad}$  & m$^{-1}$   & Reciprocal Earth radius \\
+  \code{eomeg}     & $7.2921159\times10^{-5}$ & rad s$^{-1}$ & Earth angular velocity $\Omega$ \\
+  \code{eomeg2}    & $2\Omega$            & rad s$^{-1}$& Coriolis parameter at equator \\
+\end{longtable}
+
+\textit{RCEMIP:} \code{earthrad} $= 6.371\times10^6$\,m.
+
+\subsubsection{Trigonometric Constants}
+
+Provided in \code{rk4}, \code{rk8}, and working-precision \code{rkx}.
+
+\begin{longtable}{L{3.5cm} L{4cm} L{6.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{mathpi}  & $3.14159265358979\ldots$ & $\pi$ \\
+  \code{invpi}   & $1/\pi$                  & Reciprocal of $\pi$ \\
+  \code{halfpi}  & $\pi/2$                  & $\pi/2$ \\
+  \code{quartpi} & $\pi/4$                  & $\pi/4$ \\
+  \code{twopi}   & $2\pi$                   & $2\pi$ \\
+  \code{pisqr}   & $\pi^2$                  & $\pi$ squared \\
+  \code{degrad}  & $\pi/180$                & Degrees-to-radians conversion \\
+  \code{raddeg}  & $180/\pi$                & Radians-to-degrees conversion \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 10 --- Surface, Turbulence, and Vegetation}
+
+\begin{longtable}{L{3.5cm} L{3cm} L{3cm} L{4.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{zlnd}    & 0.01    & m            & Aerodynamic roughness length, soil \\
+  \code{zoce}    & 0.00023 & m            & Aerodynamic roughness length, ocean \\
+  \code{zsno}    & 0.00040 & m            & Aerodynamic roughness length, snow \\
+  \code{vonkar}  & 0.4     & ---          & Von Kármán constant \\
+  \code{csoilc}  & $4\times10^{-3}$ & --- & Drag coefficient for soil under canopy \\
+  \code{wtur}    & 0.1     & m s$^{-1}$   & Minimum turbulent wind speed (stable) \\
+  \code{rmax0}   & $2\times10^4$ & s m$^{-1}$ & Maximum stomatal resistance \\
+  \code{dewmax}  & 0.1     & mm           & Maximum allowed dew accumulation \\
+  \code{trsmx0}  & $2\times10^{-4}$ & kg m$^{-2}$ s$^{-1}$ & Max transpiration rate (saturated soil) \\
+  \code{drain}   & $4\times10^{-4}$ & mm s$^{-1}$ & Drainage out of 10\,m soil layer \\
+  \code{minwrat} & $10^{-4}$& ---          & Minimum actual/potential soil water ratio \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 11 --- Vapour--Dry Air Ratio Constants}
+
+\begin{longtable}{L{3cm} L{3cm} L{4cm} L{5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Expression} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ep1}  & $\approx0.6078$ & $M_d/M_w - 1$ & Virtual temperature correction \\
+  \code{ep2}  & $\approx0.6220$ & $M_w/M_d$     & Saturation mixing ratio factor \\
+  \code{rep2} & $\approx1.6078$ & $M_d/M_w$     & Reciprocal of \code{ep2} \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 12 --- Density Constants}
+
+\begin{longtable}{L{3.5cm} L{3cm} L{3cm} L{4.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{rhoh2o}   & 1000.0 & kg m$^{-3}$ & Fresh liquid water \\
+  \code{rhosea}   & 1026.0 & kg m$^{-3}$ & Sea water \\
+  \code{rhosnow}  & 100.0  & kg m$^{-3}$ & Fresh snow \\
+  \code{rhosnowp} & 330.0  & kg m$^{-3}$ & Packed/wind-packed snow \\
+  \code{rhoice}   & 917.0  & kg m$^{-3}$ & Pure ice \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 13 --- Microphysics: Terminal Velocity}
+
+Power-law fall speed: $v = A_t\, D^{b_{vt}}$.
+
+\begin{longtable}{L{3cm} L{4cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{avt}  & 841.99667  & Pre-exponential factor \\
+  \code{bvt}  & 0.8        & Power-law exponent \\
+  \code{g4pb} & 17.837825  & $\Gamma(4+b_{vt})$ \\
+  \code{g3pb} & \code{g4pb}$/(3+b_{vt})$ & $\Gamma(3+b_{vt})$ \\
+  \code{g5pb} & 1.8273     & $\Gamma(5/2+b_{vt}/2)$ (reflectivity) \\
+  \code{vtc}  & \code{avt}$\times$\code{g4pb}$/6$ & Composite terminal velocity constant \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 14 --- Radiative and Emissivity Constants}
+
+\begin{longtable}{L{3.5cm} L{3cm} L{7.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{emsw}         & 0.996  & Emissivity of open water \\
+  \code{lnd\_sfcemiss}& 0.985  & Land surface longwave emissivity \\
+  \code{ocn\_sfcemiss}& 0.996  & Ocean surface longwave emissivity (alias \code{emsw}) \\
+  \code{ice\_sfcemiss}& 0.982  & Sea-ice surface longwave emissivity \\
+  \code{lowcld}       & 0.01   & Minimum allowed cloud fraction \\
+  \code{hicld}        & 0.99   & Maximum allowed cloud fraction \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Group 15 --- Chemistry and Ocean / Sea-Ice Constants}
+
+\begin{longtable}{L{3.5cm} L{4cm} L{3cm} L{4cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{atmos}   & $2.247\times10^{19}$ & mol cm$^{-3}$ & Atmospheric surface concentration \\
+  \code{rtcon}   & $8.314\times10^{-2}$ & L atm mol$^{-1}$ K$^{-1}$ & Henry's law gas constant \\
+  \code{dropdif} & $2\times10^{-5}$     & cm$^2$ s$^{-1}$ & Droplet diffusion coefficient \\
+  \code{difgas}  & 0.1                  & cm$^2$ s$^{-1}$ & Gas-phase diffusion coefficient \\
+  \code{hdmw}    & $1.3889\times10^{-7}$& m$^2$ s$^{-1}$ & Molecular heat diffusion in water \\
+  \code{iceminh} & 0.01                 & m               & Minimum sea-ice depth \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Design Notes}
+
+\textbf{Derived constants.} Wherever possible, compound constants
+(\code{rovcp}, \code{gdry}, \code{wlhvocp}, etc.) are expressed as arithmetic
+combinations of primitives. Changing a fundamental constant (e.g.\ \code{egrav}
+under \code{RCEMIP}) propagates automatically through all derived quantities
+at compile time.
+
+\textbf{Triple-precision strategy.} Angle, geometry, and trigonometric constants
+are provided in \code{rk4}, \code{rk8}, and \code{rkx} forms to avoid hidden
+precision loss in map-projection and solar-orbit code that must remain in double
+precision regardless of the model working precision.
+
+\textbf{No procedures.} The module contains no subroutines or functions. All
+thermodynamic kernels live in the include files or in other modules, keeping
+\code{mod\_constants} a pure compile-time data store with zero runtime cost.
+
+\clearpage
+
+%======================================================================
+\section{Include Files --- \texttt{Share/*.inc}}
+\label{sec:includes}
+%======================================================================
+
+\subsection{Overview}
+
+The \code{Share/} directory contains 20 small, self-contained Fortran functions
+that are \emph{textually included} (via \code{include} statements) into multiple
+modules across the RegCM codebase. This design allows the same thermodynamic
+kernel to be compiled with different precision kinds (\code{rkx}) without code
+duplication, and enables aggressive inlining by the compiler
+(\code{!DIR\$ ATTRIBUTES FORCEINLINE}).
+
+The files fall into four thematic groups:
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Group} & \textbf{Files} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Saturation vapour pressure (\code{pfesat}) &
+    \code{pfesat.inc}, \code{flatau\_pfesat.inc}, \code{tetens\_pfesat.inc},
+    \code{vaisala\_pfesat.inc}, \code{esatliq.inc}, \code{esatice.inc} \\
+  Saturation derivatives and specific humidity &
+    \code{pfesdt.inc}, \code{flatau\_pfesdt.inc}, \code{tetens\_pfesdt.inc},
+    \code{pfqsat.inc}, \code{pfqsdt.inc}, \code{pfwsat.inc}, \code{pfmxsat.inc} \\
+  Latent heat and thermodynamic scalars &
+    \code{wlh.inc}, \code{cpmf.inc}, \code{clwfromt.inc}, \code{moistlr.inc} \\
+  Vertical and surface diagnostics &
+    \code{sig2p.inc}, \code{lapserate.inc}, \code{evpt.inc} \\
+\end{longtable}
+
+All functions are declared \code{pure elemental} (or \code{pure} for
+non-elemental variants), making them safe for OpenACC GPU kernels
+(\code{!\$acc routine seq}) and Fortran array contexts.
+
+\subsection{Common Conventions}
+
+\begin{longtable}{L{3cm} L{11cm}}
+  \toprule
+  \textbf{Symbol} & \textbf{Meaning} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{rkx}   & Working-precision real kind (set by the including module) \\
+  \code{rk8}   & Double-precision real kind \\
+  \code{tzero} & $273.15$\,K --- the ice-point offset \\
+  \code{ep2}   & $M_w/M_d \approx 0.622$ \\
+  \code{d\_one}, \code{d\_zero} & Double-precision $1.0$ and $0.0$ \\
+\end{longtable}
+
+%----------------------------------------------------------------------
+\subsection{Saturation Vapour Pressure Functions}
+
+\subsubsection{\texttt{pfesat.inc} --- Flatau 1992 (default, with pressure cap)}
+
+\textbf{Function:} \code{pfesat(t, p) $\to$ es}
+
+\textbf{Purpose:} Computes saturation vapour pressure using 8th-order Flatau
+polynomial fits, capped at $0.15\,p$.
+
+\textbf{Arguments:}
+\begin{longtable}{L{2cm} L{2cm} L{3.5cm} L{2cm} L{4.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Intent} & \textbf{Type} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{t} & \code{in} & \code{real(rkx)} & K  & Temperature \\
+  \code{p} & \code{in} & \code{real(rkx)} & Pa & Total pressure \\
+\end{longtable}
+
+\textbf{Algorithm:} Converts $T$ to Celsius offset
+$t_d = \text{clamp}(T - 273.15,\,-75,\,100)$. For $t_d \geq 0$ (liquid),
+evaluates the 9-coefficient polynomial $a_0 + t_d(a_1 + t_d(\cdots))$ in Pa.
+For $t_d < 0$ (ice), uses the ice-phase polynomial ($c$ coefficients).
+Result is capped at $0.15\,p$.
+
+\textbf{Reference:} Flatau, P.J., Walko, R.L., Cotton, W.R. (1992),
+\textit{J.\ Appl.\ Meteor.}, 31, 1507--1513.
+
+%----
+\subsubsection{\texttt{flatau\_pfesat.inc} --- Flatau 1992 (hPa-based, no pressure cap)}
+
+\textbf{Function:} \code{pfesat(t) $\to$ es}
+
+Same polynomial structure as \code{pfesat.inc} but polynomial constants stored
+in hPa; result multiplied by 100 to return Pa. Does not accept a pressure
+argument; no $0.15p$ cap applied.
+
+%----
+\subsubsection{\texttt{tetens\_pfesat.inc} --- Tetens (1930)}
+
+\textbf{Function:} \code{pfesat(t) $\to$ es}
+
+Classic Tetens exponential formula. Less expensive than the Flatau polynomials.
+
+\[
+  e_s =
+  \begin{cases}
+    c_{1es}\exp\!\left(\dfrac{c_{3les}(T - T_w)}{T - c_{4les}}\right) & T > T_w \\[8pt]
+    c_{1es}\exp\!\left(\dfrac{c_{3ies}(T - T_w)}{T - c_{4ies}}\right) & T \leq T_w
+  \end{cases}
+\]
+
+Constants $c_{1es}$, $c_{3les}$, $c_{4les}$, $c_{3ies}$, $c_{4ies}$ and
+$T_w$ (\code{wattp}) are taken from \code{mod\_constants}.
+
+\textbf{Reference:} Tetens, O. (1930), \textit{Zeitschrift f\"ur Geophysik}, 6, 297.
+
+%----
+\subsubsection{\texttt{vaisala\_pfesat.inc} --- Wagner \& Pru\ss{} (2002) / IAPWS-95}
+
+\textbf{Function:} \code{pfesat(t) $\to$ es}
+
+High-accuracy formulation valid from $-100$\,°C to $373$\,°C.
+
+\begin{itemize}
+  \item For $T > 273.15$\,K (liquid): 6-term reduced-temperature series with
+        $T_c = 647.096$\,K, $p_c = 220640$\,hPa.
+  \item For $T \leq 273.15$\,K (ice): 2-term series relative to triple point
+        $T_n = 273.16$\,K, $p_n = 6.11657$\,hPa.
+\end{itemize}
+
+\textbf{Reference:} Wagner, W. \& Pru\ss, A. (2002),
+\textit{J.\ Phys.\ Chem.\ Ref.\ Data}, 31, 387--535.
+
+%----
+\subsubsection{\texttt{esatliq.inc} --- Ambaum (2020), liquid water}
+
+\textbf{Function:} \code{esatliq(t) $\to$ es}
+
+Exact analytic saturation pressure over liquid water from the Clausius-Clapeyron
+equation with temperature-dependent latent heat:
+\[
+  e_s = e_{s0}\left(\frac{T_0}{T}\right)^{(c_{pl}-c_{pv})/R_v}
+        \exp\!\left(\frac{L_{v0}}{R_v T_0} - \frac{L_v(T)}{R_v T}\right)
+\]
+Parameters: $e_{s0} = 611.655$\,Pa, $T_0 = 273.16$\,K,
+$L_{v0} = 2.501\times10^6$\,J\,kg$^{-1}$,
+$c_{pl} - c_{pv} = 2320$\,J\,kg$^{-1}$\,K$^{-1}$.
+
+\textbf{Reference:} Ambaum, M.H.P. (2020), \textit{QJRMS},
+\href{https://doi.org/10.1002/qj.3899}{doi:10.1002/qj.3899}.
+
+%----
+\subsubsection{\texttt{esatice.inc} --- Ambaum (2020), ice}
+
+\textbf{Function:} \code{esatice(t) $\to$ es}
+
+Same Clausius-Clapeyron structure as \code{esatliq.inc} but uses sublimation
+latent heat $L_{i0} = 2.835\times10^6$\,J\,kg$^{-1}$ and
+$c_{pi} - c_{pv} = 220$\,J\,kg$^{-1}$\,K$^{-1}$.
+
+%----------------------------------------------------------------------
+\subsection{Saturation Pressure Derivatives and Specific Humidity}
+
+\subsubsection{\texttt{pfesdt.inc} --- Derivative of $e_s$ w.r.t.\ $T$ (default)}
+
+\textbf{Function:} \code{pfesdt(t) $\to$ esdt}
+
+Returns $\mathrm{d}e_s/\mathrm{d}T$ [Pa\,K$^{-1}$] using Flatau polynomial
+fits for the derivative; coefficients in Pa\,K$^{-1}$ ($b$ for liquid,
+$d$ for ice).
+
+\subsubsection{\texttt{flatau\_pfesdt.inc} --- Flatau derivative + \texttt{pfqsdt}}
+
+Contains two functions:
+\begin{itemize}
+  \item \code{pfesdt(t) $\to$ esdt}: derivative of $e_s$ (hPa-based
+        coefficients, converted to Pa\,K$^{-1}$).
+  \item \code{pfqsdt(t, p[, e][, dedt]) $\to$ qsdt}: derivative of saturation
+        specific humidity [K$^{-1}$]:
+        \[
+          \frac{\mathrm{d}q_s}{\mathrm{d}T}
+          = \frac{\mathrm{d}e_s}{\mathrm{d}T}
+            \cdot \frac{\varepsilon_2\,p}{(p - 0.378\,e_s)^2}
+        \]
+        Pre-computed $e_s$ and $\mathrm{d}e_s/\mathrm{d}T$ may be passed
+        as optional arguments.
+\end{itemize}
+
+\subsubsection{\texttt{tetens\_pfesdt.inc} --- Tetens derivative + \texttt{pfqsdt}}
+
+\begin{itemize}
+  \item \code{pfesdt(t) $\to$ esdt}: analytic Tetens derivative,
+        $\mathrm{d}e_s/\mathrm{d}T = e_s \cdot c_{3x}(T_0 - c_{4x})/(T-c_{4x})^2$.
+  \item \code{pfqsdt(t, p) $\to$ qsdt}: uses internal \code{pfesat} call.
+\end{itemize}
+
+\subsubsection{\texttt{pfqsat.inc} --- Saturation specific humidity}
+
+\textbf{Function:} \code{pfqsat(t, p) $\to$ qs}
+
+Saturation specific humidity [kg\,kg$^{-1}$] via embedded Flatau polynomials:
+\[
+  w_s = \frac{\varepsilon_2\,e_s}{p - e_s}, \quad
+  q_s = \frac{w_s}{1 + w_s}
+\]
+
+\subsubsection{\texttt{pfqsdt.inc} --- Derivative of $q_s$ (self-contained)}
+
+\textbf{Function:} \code{pfqsdt(t, p) $\to$ qsdt}
+
+Most self-contained variant: embeds all four Flatau polynomial sets (liquid
+$e_s$, liquid $\mathrm{d}e_s/\mathrm{d}T$, ice $e_s$, ice
+$\mathrm{d}e_s/\mathrm{d}T$) so it has no external dependency on
+\code{pfesdt}.
+
+\subsubsection{\texttt{pfwsat.inc} --- Saturation mixing ratio}
+
+\textbf{Function:} \code{pfwsat(t, p) $\to$ ws}
+
+Returns $w_s = \varepsilon_2\,e_s/(p - e_s)$ [kg\,kg$^{-1}$] without the
+specific-humidity conversion applied in \code{pfqsat}.
+
+\subsubsection{\texttt{pfmxsat.inc} --- Mixed-phase saturation (subroutine)}
+
+\textbf{Subroutine:} \code{pfmxsat(t, p, ws, Leff)}
+
+Computes saturation mixing ratio and effective latent heat for a mixed
+liquid/ice condensate.
+
+\textbf{Arguments:}
+\begin{longtable}{L{2cm} L{2cm} L{3.5cm} L{2cm} L{4.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Intent} & \textbf{Type} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{t}    & \code{in}  & \code{real(rkx)} & K         & Temperature \\
+  \code{p}    & \code{in}  & \code{real(rkx)} & Pa        & Pressure \\
+  \code{ws}   & \code{out} & \code{real(rkx)} & kg kg$^{-1}$ & Saturation mixing ratio \\
+  \code{Leff} & \code{out} & \code{real(rkx)} & J kg$^{-1}$ & Effective latent heat \\
+\end{longtable}
+
+\textbf{Phase blending} (Chaboureau \& Bechtold 2002):
+\[
+  \alpha(T) =
+  \begin{cases}
+    1 & T \geq T_\text{liq} = 273.15\,\text{K} \\
+    \left(\dfrac{T - T_\text{ice}}{T_\text{liq} - T_\text{ice}}\right)^2
+      & T_\text{ice} \leq T < T_\text{liq} \\
+    0 & T \leq T_\text{ice} = 233.15\,\text{K}
+  \end{cases}
+\]
+\[
+  e_{s,\text{eff}} = \alpha\,e_{s,l} + (1-\alpha)\,e_{s,i}, \quad
+  L_\text{eff} = \alpha\,L_v^0 + (1-\alpha)\,L_s^0
+\]
+
+\textbf{References:} Flatau et al.\ (1992); Chaboureau \& Bechtold (2002),
+\textit{J.\ Atmos.\ Sci.}, 59, 2362; Bretherton et al.\ (2004),
+\textit{Mon.\ Wea.\ Rev.}, 132.
+
+%----------------------------------------------------------------------
+\subsection{Latent Heat and Thermodynamic Scalars}
+
+\subsubsection{\texttt{wlh.inc} --- Latent heat of condensation/sublimation}
+
+\textbf{Function:} \code{wlh(t) $\to$ latent\_heat}
+
+Temperature-dependent latent heat [J\,kg$^{-1}$] (Rogers \& Yau 1989):
+\[
+  L =
+  \begin{cases}
+    (2500.79 - 2.36418\,t_c + 1.58927\times10^{-3}\,t_c^2
+      - 6.14342\times10^{-5}\,t_c^3)\times10^3 & t_c > 0 \\
+    (2834.1 - 0.29\,t_c - 0.004\,t_c^2)\times10^3 & t_c \leq 0
+  \end{cases}
+\]
+where $t_c = T - 273.15$ in \textdegree C.
+
+\textbf{Reference:} Rogers, R.R. \& Yau, M.K. (1989),
+\textit{A Short Course in Cloud Physics}, 3rd ed.
+
+\subsubsection{\texttt{cpmf.inc} --- Moist-air heat capacity}
+
+\textbf{Function:} \code{cpmf(qv) $\to$ cp\_moist}
+
+\[
+  c_{pm} = c_{pd}(1 + 0.80\,q_v)
+\]
+
+Alternative weightings (0.856 and 0.84) are retained as comments, reflecting
+the spread in published values of $c_{pv}/c_{pd}$.
+
+\subsubsection{\texttt{clwfromt.inc} --- In-cloud liquid water content}
+
+\textbf{Function:} \code{clwfromt(t) $\to$ clw}
+
+In-cloud liquid water content [g\,m$^{-3}$], clamped to $[0.001,\,0.1]$:
+\[
+  \text{clw} =
+  \begin{cases}
+    0.001 & t_c < -50\,\text{\textdegree C} \\
+    0.127 + 6.78\times10^{-3}\,t_c + 1.29\times10^{-4}\,t_c^2
+         + 8.68\times10^{-7}\,t_c^3 & \text{otherwise}
+  \end{cases}
+\]
+
+\textbf{Reference:} Lemus, L. et al.\ (1997).
+
+\subsubsection{\texttt{moistlr.inc} --- Moist adiabatic lapse rate}
+
+\textbf{Function:} \code{mlrate(t, q) $\to$ lr}
+
+\[
+  \Gamma_m = \frac{g\bigl(1 + L\,q/(R_d\,T)\bigr)}
+                  {c_{pd} + L^2\,q/(R_v\,T^2)}
+\]
+
+Latent heat $L$ is computed inline using the same polynomial as \code{wlh.inc}
+(avoiding a function call in tight loops).
+
+%----------------------------------------------------------------------
+\subsection{Vertical and Surface Diagnostic Functions}
+
+\subsubsection{\texttt{sig2p.inc} --- Sigma to pressure coordinate}
+
+\textbf{Function:} \code{sig2p(ps, sigma, ptop) $\to$ p}
+
+\[
+  p = \sigma\,(p_s - p_\text{top}) + p_\text{top}
+\]
+
+All three arguments and the result must be in Pa (noted explicitly in
+the source). This is the standard linear sigma definition used by RegCM's
+hydrostatic dynamical core.
+
+\subsubsection{\texttt{lapserate.inc} --- Climatological lapse rate}
+
+\textbf{Function:} \code{lapse\_rate(jday, lat) $\to$ gammac}
+
+Seasonally and latitudinally varying climatological lapse rate [K\,m$^{-1}$]:
+\[
+  \delta =
+  \begin{cases}
+    \tfrac{1}{2}\bigl(1 - \cos(2\pi\,d/365)\bigr) & \phi > 30^\circ\text{ (NH)} \\
+    \tfrac{1}{2}\bigl(1 + \cos(2\pi\,d/365)\bigr) & \phi < -30^\circ\text{ (SH)} \\
+    0.5                                             & |\phi| \leq 30^\circ\text{ (tropics)}
+  \end{cases}
+\]
+\[
+  \Gamma_c = 4.5\times10^{-3} + 2.8\times10^{-3}\,\delta \quad[\text{K m}^{-1}]
+\]
+
+Range: $4.5\times10^{-3}$ (polar winter) to $7.3\times10^{-3}$\,K\,m$^{-1}$
+(summer mid-latitudes).
+
+\subsubsection{\texttt{evpt.inc} --- Potential evapotranspiration (two variants)}
+
+\textbf{Function 1:} \code{evpt(p, t, u, e, es, m, sw, lw) $\to$ ET}
+[kg\,m$^{-2}$\,s$^{-1}$]
+
+Penman-Monteith combination equation (Shuttleworth 1993):
+\[
+  \text{ET} =
+  \frac{(\gamma\cdot6.43(1+0.536\,u)\,\Delta e/\lambda) + m\,R_n}
+       {(m + \gamma)\cdot86400}
+\]
+where $\gamma = 0.0016286\,p/\lambda$ is the psychrometric constant,
+$\lambda = L_v(T)\times10^{-6}$\,MJ\,kg$^{-1}$, and
+$R_n = \max(R_{sw}-R_{lw},\,0)/\lambda$ is net radiation converted to
+equivalent evaporation.
+
+\textbf{Function 2:} \code{evpt\_fao(p, t2, u10, e, es, m, sw, lw) $\to$ ET}
+
+ASCE-EWRI standardised reference evapotranspiration (FAO-56 method).
+Key differences from \code{evpt}: wind corrected to 2\,m equivalent
+($u_2 = \max(u_{10}\times0.7342,\,0.1)$\,m\,s$^{-1}$), radiation in
+MJ\,m$^{-2}$\,h$^{-1}$, fixed aerodynamic resistance numerator $37/T_2$.
+
+\textbf{References:} Shuttleworth (1993); ASCE-EWRI (2005).
+
+%----------------------------------------------------------------------
+\subsection{Design Notes}
+
+\textbf{Inlining strategy.} The \code{!DIR\$ ATTRIBUTES FORCEINLINE} directive
+(Intel Fortran) combined with \code{pure elemental} declarations allows the
+compiler to inline these kernels into tight physics loops with zero call
+overhead. The \code{!\$acc routine seq} annotation enables the same functions
+on GPU devices without modification.
+
+\textbf{Multiple \texttt{pfesat} variants.} The codebase maintains six
+alternative implementations of the same \code{pfesat} interface. The including
+module selects the desired accuracy/cost trade-off at compile time simply by
+choosing the appropriate \code{include} statement.
+
+\textbf{Precision portability.} All internal computations are promoted to
+\code{rk8} (double precision) even when \code{rkx} is single precision, to
+avoid rounding errors in polynomial evaluations. Results are cast back to
+\code{rkx} on return.
+
+\textbf{Pressure cap.} Both \code{pfesat.inc} and related files cap $e_s$ at
+$0.15\,p$, preventing the saturation specific humidity from exceeding
+$\sim15$\% of the atmospheric column --- a safeguard against numerical
+blow-up in very warm and moist conditions.
+
+%==============================================================================
+\section{I/O Infrastructure --- \texttt{mod\_stdio.F90} and
+         \texttt{mod\_message.F90}}
+\label{sec:stdio_message}
+%==============================================================================
+
+These two modules form the lowest-level I/O infrastructure of RegCM. They sit
+immediately above the kind modules in the dependency hierarchy and are used by
+virtually every other module in the model. \code{mod\_stdio} manages Fortran
+I/O unit numbers and exposes the three standard streams; \code{mod\_message}
+builds on top of it to provide diagnostic output, a portable abort mechanism,
+and a lightweight terminal visualisation facility.
+
+\subsection{Dependency Graph}
+
+\begin{lstlisting}
+mod_stdio
+    |-- mod_intkinds          (ik4)
+    |-- iso_fortran_env       (input_unit, output_unit, error_unit)
+
+mod_message
+    |-- mod_stdio             (stdout, stderr)
+    |-- mod_intkinds          (ik4)
+    |-- mod_realkinds         (rkx)
+\end{lstlisting}
+
+Both modules use \code{private} as their default accessibility; every public
+symbol is explicitly listed.
+
+%------------------------------------------------------------------------------
+\subsection{\texttt{mod\_stdio} --- Standard Streams and Unit Management}
+\label{subsec:stdio}
+
+\subsubsection{Overview}
+
+\code{mod\_stdio} solves two related problems:
+
+\begin{enumerate}
+  \item It exposes the three standard Fortran I/O streams (\code{stdin},
+        \code{stdout}, \code{stderr}) as named \code{integer(ik4)} parameters
+        derived from the Fortran 2003 intrinsic module \code{iso\_fortran\_env},
+        so that all model code refers to them by name rather than by magic
+        numbers.
+  \item It maintains a registry of Fortran logical unit numbers in the range
+        10--99, preventing two parts of the model from accidentally opening
+        files on the same unit.
+\end{enumerate}
+
+\subsubsection{Public Constants}
+
+\begin{longtable}{L{3cm} L{4cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{stdin}  & \code{input\_unit}  & Standard input stream (Fortran 2003
+    \code{iso\_fortran\_env}; typically unit 5 on most platforms). \\
+  \code{stdout} & \code{output\_unit} & Standard output stream (typically
+    unit 6). \\
+  \code{stderr} & \code{error\_unit}  & Standard error stream (typically
+    unit 0 or 6 depending on the compiler). \\
+\end{longtable}
+
+Binding to \code{iso\_fortran\_env} rather than hardwiring the traditional
+values 5, 6, and 0 ensures portability across compilers and operating systems
+that may assign different unit numbers to the standard streams.
+
+\subsubsection{Private State}
+
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{file\_minunit} & 10 & Lowest unit number managed by the registry. \\
+  \code{file\_maxunit} & 99 & Highest unit number managed by the registry. \\
+  \code{unit\_tag(10:99)} & \code{logical} array & Per-unit occupancy flag.
+    \code{.true.} means the unit has been granted or is known to be open.
+    Initialised to \code{.false.}. \\
+\end{longtable}
+
+Units 0--9 are left unmanaged: unit 5 (\code{stdin}) and unit 6
+(\code{stdout}) are the traditional standard streams, and units 0--9 may be
+reserved by the compiler or runtime library.
+
+\subsubsection{Public Procedures}
+
+\paragraph{\texttt{file\_getunit([unitn])} $\to$ \texttt{integer(ik4)}}
+
+Allocates a Fortran logical unit number from the managed pool and returns it.
+Returns $-1$ on failure.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{unitn} & \code{in}, optional & Preferred unit number.
+    If present and the unit is free, it is granted. If absent, the routine
+    scans from 99 downward for the first available unit. \\
+\end{longtable}
+
+\textbf{Algorithm:}
+\begin{itemize}
+  \item \textbf{Requested unit path} (when \code{unitn} is present): validates
+        that \code{unitn} is in $[10, 99]$ and not already tagged. Then calls
+        \code{inquire} to check whether some other part of the program has
+        opened it outside the registry. If the unit is free, tags it and
+        returns it; otherwise returns $-1$.
+  \item \textbf{Auto-allocation path} (no \code{unitn}): scans from
+        \code{file\_maxunit} down to \code{file\_minunit}. For each unit,
+        calls \code{inquire}; if the unit is found open but not tagged (i.e.\
+        opened outside the registry), it is tagged retroactively to prevent
+        double-use. The first unit that is neither open nor tagged is granted
+        and returned.
+  \item If no unit is available after the full scan, returns $-1$.
+\end{itemize}
+
+The downward scan (from 99 to 10) means higher-numbered units are preferred,
+leaving lower-numbered ones available for code that may hard-code unit numbers.
+
+\paragraph{\texttt{file\_freeunit(unitn)}}
+
+Releases a previously allocated unit back to the pool.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{unitn} & \code{in} & Unit number to release. Must be in the
+    managed range. \\
+\end{longtable}
+
+If the unit is tagged (\code{unit\_tag(unitn) == .true.}), the routine closes
+the unit and clears the tag. If the unit was not tagged, the call is a no-op.
+This ensures that \code{close} is always called exactly once per
+\code{file\_getunit} call, even if the caller forgot to close the file
+explicitly.
+
+\subsubsection{Usage Pattern}
+
+\begin{lstlisting}
+use mod_stdio, only : file_getunit, file_freeunit, stdout, stderr
+
+integer(ik4) :: iunit
+
+iunit = file_getunit()
+if ( iunit < 0 ) then
+  write(stderr,*) 'No available unit'
+  stop
+end if
+open(iunit, file='output.dat', status='replace')
+write(iunit, '(f12.6)') result
+call file_freeunit(iunit)   ! closes and releases
+\end{lstlisting}
+
+%------------------------------------------------------------------------------
+\subsection{\texttt{mod\_message} --- Diagnostics, Abort, and Visualisation}
+\label{subsec:message}
+
+\subsubsection{Overview}
+
+\code{mod\_message} provides:
+\begin{itemize}
+  \item A shared character buffer \code{aline} into which callers format
+        messages, and a family of output subroutines (\code{say}, \code{note},
+        \code{cry}) that write it to the appropriate stream.
+  \item An overloaded \code{die} interface for fatal error termination,
+        wrapping an external \code{myabort} routine that is linked separately
+        (typically to an MPI abort or a simple \code{stop}).
+  \item A \code{fatal} subroutine for compiler-macro-style source location
+        reporting.
+  \item A \code{checkalloc} subroutine for checking \code{allocate} return
+        codes in debug builds.
+  \item A self-contained ANSI terminal text-mode visualisation subsystem
+        (\code{viz\_*}) for quick inline inspection of 2D arrays during
+        development.
+\end{itemize}
+
+\subsubsection{Private Module State}
+
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Type/Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{aline}    & \code{character(len=512)} &
+    Shared message buffer. Callers write into this with \code{write(aline,*)}
+    before calling \code{say}, \code{note}, or \code{cry}. Declared
+    \code{public} so that calling modules can format it directly. \\
+  \code{cline}    & \code{character(len=8)} &
+    Scratch buffer for converting line numbers to strings in \code{fatal}
+    and \code{checkalloc}. \\
+  \code{esc}      & \code{character} &
+    ASCII escape character (\code{achar(27)}), used to build ANSI terminal
+    escape sequences in the visualisation routines. \\
+  \code{iprank}   & \code{integer(ik4)} &
+    MPI rank of the current process. Defaults to 0 (serial or rank-0 in
+    parallel). Set by \code{setup\_mesg}. Controls whether messages are
+    printed: most output is suppressed on non-zero ranks. \\
+  \code{maxplot}  & 10 & Number of distinct printable levels in
+    \code{viz\_plot}. \\
+  \code{plot(0:10)} & \code{character} array &
+    Ordered ASCII characters used as density symbols in the text-mode plot:
+    \texttt{[` `, `.`, `,`, `:`, `=`, `+`, `o`, `x`, `X`, `\#`, `@`]}. \\
+  \code{rows}     & 24 & Default terminal height for \code{viz\_plot}. \\
+  \code{cols}     & 48 & Default terminal width for \code{viz\_plot}. \\
+  \code{mrows}, \code{mcols} & & Effective dimensions (possibly clamped to
+    array size in \code{viz\_plot}). \\
+\end{longtable}
+
+\subsubsection{MPI Rank Registration}
+
+\paragraph{\texttt{setup\_mesg(ipid)}}
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ipid} & \code{in} & MPI process rank. \\
+\end{longtable}
+
+Must be called once at model startup, after \code{MPI\_Init}, with the
+process rank. Sets the module-level \code{iprank} variable, which is then
+consulted by \code{say}, \code{cry}, and \code{die} to suppress duplicate
+output from non-zero ranks. In serial runs, the default value of 0 means
+all output is emitted.
+
+\subsubsection{Message Output Subroutines}
+
+\paragraph{\texttt{say}}
+
+Writes \code{trim(aline)} to \code{stdout}, but \emph{only} on rank 0.
+Intended for informational messages that should appear exactly once in the
+output log regardless of MPI decomposition.
+
+\paragraph{\texttt{note}}
+
+Writes a notice banner to \code{stderr} from \emph{every} rank, prefixed
+with the rank number. Used for per-process status messages during
+initialisation or when each process must report independently.
+Overwrites \code{aline} with the banner text.
+
+\paragraph{\texttt{cry}}
+
+Writes an ``important notice'' banner to \code{stderr}, but only on rank 0.
+Used for warnings that are more serious than \code{say} but do not abort the
+run.
+
+\subsubsection{Error and Abort Routines}
+
+\paragraph{\texttt{die} (generic interface)}
+
+The primary fatal-error mechanism. Writes a diagnostic to \code{stderr} and
+calls \code{myabort}. Four overloaded variants are provided, allowing
+increasingly detailed error messages:
+
+\begin{longtable}{L{4.5cm} L{9.5cm}}
+  \toprule
+  \textbf{Signature} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{die(msg)} &
+    Writes a single message string to \code{stderr} and aborts. \\
+  \code{die(msg, msg1)} &
+    Writes \texttt{msg : msg1} (two strings). Used throughout the codebase
+    as \code{die('ModuleName', 'Descriptive error text')}. \\
+  \code{die(msg, msg1, ier1)} &
+    Appends an integer error code: \texttt{msg : msg1 : ier1}. \\
+  \code{die(msg, msg1, ier1, msg2, ier2)} &
+    Two string/integer pairs: \texttt{msg : msg1 : ier1 : msg2 : ier2}.
+    Used when two related error codes (e.g.\ two NetCDF status codes) must
+    be reported simultaneously. \\
+\end{longtable}
+
+All four variants suppress output on non-zero MPI ranks (\code{iprank /= 0})
+and call \code{myabort} unconditionally.
+
+\paragraph{\texttt{myabort} (external interface)}
+
+\begin{lstlisting}
+interface myabort
+  subroutine myabort( )
+    implicit none
+  end subroutine myabort
+end interface myabort
+\end{lstlisting}
+
+\code{myabort} is declared as an external interface but not implemented in
+this module. It must be provided by the linking application. This design
+allows the abort strategy to be chosen at link time:
+
+\begin{itemize}
+  \item In \textbf{MPI} builds, \code{myabort} calls \code{MPI\_Abort} to
+        cleanly tear down all ranks rather than leaving them hanging.
+  \item In \textbf{serial} builds, \code{myabort} contains a bare
+        \code{stop} or \code{error stop} statement.
+\end{itemize}
+
+This separation keeps \code{mod\_message} free of any MPI dependency,
+which is important because it is used in pre-processing tools that do not
+link against MPI.
+
+\paragraph{\texttt{fatal(filename, line, str)}}
+
+A higher-level fatal error reporter that includes source file location.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{filename} & \code{in} & Source file name (typically \code{\_\_FILE\_\_}). \\
+  \code{line}     & \code{in} & Source line number (typically \code{\_\_LINE\_\_}). \\
+  \code{str}      & \code{in} & Error message string. \\
+\end{longtable}
+
+Formats and writes a ``FATAL CALLED'' banner, the file and line location, and
+the error message to \code{stderr}, then delegates to \code{die} with the
+string representations of the arguments. Intended to be invoked via a
+preprocessor macro:
+
+\begin{lstlisting}
+#define FATAL(msg) call fatal(__FILE__,__LINE__,msg)
+\end{lstlisting}
+
+\paragraph{\texttt{checkalloc(ival, filename, line, arg)}}
+
+Checks the status code \code{ival} returned by a Fortran \code{allocate}
+statement and calls \code{die} if it is non-zero.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ival}     & \code{in} & \code{allocate} \code{stat=} return value. \\
+  \code{filename} & \code{in} & Source file name. \\
+  \code{line}     & \code{in} & Source line number. \\
+  \code{arg}      & \code{in} & Name of the array being allocated (for
+    the error message). \\
+\end{longtable}
+
+\textbf{Debug mode only.} When compiled \emph{without} the \code{DEBUG}
+preprocessor flag, \code{checkalloc} is declared \code{pure} and compiles
+to a no-op \code{return}. When compiled \emph{with} \code{DEBUG}, it writes
+a detailed error message and aborts. This means allocation checks carry zero
+runtime cost in production builds.
+
+\subsubsection{ANSI Terminal Visualisation (\texttt{viz\_*})}
+
+A self-contained text-mode visualisation subsystem for interactive inspection
+of 2D real arrays during development or debugging. It uses ANSI/VT100 escape
+sequences and is therefore only useful on terminals that support them.
+
+\paragraph{Attribution}
+
+The \code{viz\_*} routines are adapted from a package by
+Axel Kohlmeyer (\texttt{akohlmey@gmail.com}), Copyright \copyright{} 2013,
+as noted in the source comments.
+
+\paragraph{\texttt{viz\_init([x, y])}}
+
+Initialises the visualisation subsystem and optionally sets the plot
+dimensions.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{x} & \code{in}, optional & Number of columns (default: 48). \\
+  \code{y} & \code{in}, optional & Number of rows (default: 24). \\
+\end{longtable}
+
+Hides the terminal cursor to reduce flicker during animation by emitting
+the escape sequence \texttt{ESC[?25l}.
+
+\paragraph{\texttt{viz\_clear}}
+
+Clears the terminal screen by emitting \texttt{ESC[2J}.
+
+\paragraph{\texttt{viz\_plot(val [, rmax])}}
+
+Renders a 2D real array as a coloured ASCII density plot on the terminal.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{val(:,:)} & \code{in} & 2D \code{real(rkx)} array to plot. \\
+  \code{rmax}     & \code{in}, optional & Maximum absolute value for
+    scaling. If absent, computed from the data. \\
+\end{longtable}
+
+\textbf{Algorithm:}
+\begin{enumerate}
+  \item Clamps the plot area to \code{min(cols, nx)} $\times$
+        \code{min(rows, ny)}.
+  \item Computes a block-averaging stride \code{dx = nx/mcols},
+        \code{dy = ny/mrows} so that the full array is summarised
+        into the available character cells.
+  \item Finds the maximum absolute value in the averaged data (unless
+        \code{rmax} is supplied) and scales to the 11-level character
+        palette \code{plot(0:10)}.
+  \item Renders rows from top (high index) to bottom (low index),
+        colouring negative values blue/cyan and positive values
+        red/black using ANSI foreground colour codes:
+        \texttt{ESC[34m} (blue), \texttt{ESC[36m} (cyan),
+        \texttt{ESC[30m} (black), \texttt{ESC[31m} (red).
+  \item Appends a \texttt{|} gutter character at the right edge of each row.
+\end{enumerate}
+
+\paragraph{\texttt{viz\_done}}
+
+Restores the terminal to a clean state: positions the cursor at the last row,
+resets the foreground colour, re-enables the cursor (\texttt{ESC[?25h}),
+and emits a full terminal reset (\texttt{ESC[0m}).
+
+%------------------------------------------------------------------------------
+\subsection{Design Notes}
+\label{subsec:stdio_message_design}
+
+\textbf{Separation of concerns between the two modules.}
+\code{mod\_stdio} is intentionally minimal: it manages units and exposes
+stream names, nothing more. This allows it to be used even in the smallest
+utility programs without pulling in the diagnostic machinery of
+\code{mod\_message}. The split also means \code{mod\_stdio} itself never
+calls \code{die}, avoiding a circular dependency.
+
+\textbf{MPI-aware output without an MPI dependency.}
+By using the module-level \code{iprank} variable (defaulting to 0), all
+\code{mod\_message} routines behave correctly in both serial and parallel
+contexts. The MPI rank is injected once via \code{setup\_mesg} rather than
+being passed as an argument to every call, keeping call sites clean. No MPI
+header or library is referenced inside the module.
+
+\textbf{Link-time abort strategy via \texttt{myabort}.}
+Declaring \code{myabort} as an external interface (a Fortran \emph{interface
+block} without a body) defers its implementation to the link step.
+This is the Fortran equivalent of a C weak symbol or a virtual function:
+any object file providing a subroutine named \code{myabort} with no arguments
+will satisfy the reference. The RegCM build system provides two implementations
+--- one for MPI builds and one for serial builds --- selected by the Makefile
+target.
+
+\textbf{Zero-cost allocation checks.}
+The \code{pure}/non-\code{pure} duality of \code{checkalloc} controlled by
+the \code{DEBUG} flag is a classical Fortran technique for assertions that
+disappear entirely in optimised builds. Because \code{pure} procedures cannot
+have side effects (no I/O, no \code{stop}), the compiler is guaranteed to
+eliminate the no-op body; no branch or call instruction reaches the binary.
+
+\textbf{The \texttt{aline} buffer pattern.}
+Rather than requiring each message-printing call to accept a
+\code{character(*)} argument (which complicates interfaces and forces callers
+to declare local strings), the module exposes the public \code{aline} buffer.
+Callers write into it with \code{write(aline,'(...)')} and then call
+\code{say} or \code{cry}. This trades thread safety (the buffer is a shared
+module variable) for simplicity of the calling interface, which is acceptable
+in a model that serialises all diagnostic output through rank 0.
+
+%==============================================================================
+\section{Date and Time Arithmetic --- \texttt{mod\_date.F90}}
+\label{sec:moddate}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_date} provides the complete calendar and time-management layer for
+RegCM. It defines the model's two core derived types --- \code{rcm\_time\_and\_date}
+and \code{rcm\_time\_interval} --- together with a rich set of overloaded
+operators, conversion utilities, calendar arithmetic, and NetCDF-compatible
+time-string parsers.
+
+The module is \code{private} by default; every symbol it exposes is listed
+explicitly in a \code{public} statement, making the public interface unambiguous.
+It supports three calendar systems (proleptic Gregorian, no-leap, and 360-day),
+all selectable at runtime without recompilation.
+
+\textbf{Key capabilities:}
+\begin{itemize}
+  \item Portable internal representation of date and time as a pair of 64-bit
+        integers, independent of calendar system.
+  \item Overloaded Fortran operators (\code{=}, \code{+}, \code{-},
+        \code{==}, \code{/=}, \code{<}, \code{>}, \code{<=}, \code{>=})
+        for natural-looking date and interval arithmetic in physics code.
+  \item Conversion to/from multiple external formats: packed 10-digit integer
+        (\code{YYYYMMDDYH}), ISO~8601 string, human-readable UTC string, hours,
+        and seconds.
+  \item Month, week, and day navigation helpers (\code{nextmon}, \code{prevmon},
+        \code{monfirst}, \code{monlast}, \code{monmiddle}, \code{nextwk},
+        \code{yrfirst}, etc.).
+  \item Julian Day Number computation for Gregorian dates (with correct
+        Julian/Gregorian switchover on 1582-10-15).
+  \item Parsing of CF-Conventions time-unit strings
+        (\texttt{hours since YYYY-MM-DD HH:MM:SS}).
+  \item CMIP scenario boundary detection (\code{date\_in\_scenario}).
+\end{itemize}
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_date
+    |-- mod_realkinds   (rk4, rk8, rkx)
+    |-- mod_intkinds    (ik4, ik8)
+    |-- mod_stdio       (stdout, stderr)
+    |-- mod_message     (die)
+\end{lstlisting}
+
+\code{mod\_stdio} supplies the unit numbers \code{stdout} and \code{stderr}
+used in error reporting. \code{mod\_message} supplies the \code{die} subroutine
+that writes a fatal diagnostic and terminates the run.
+
+%------------------------------------------------------------------------------
+\subsection{Named Constants}
+\label{subsec:date_constants}
+
+\subsubsection{Module-Private Time Conversion Factors}
+
+All are \code{integer(ik8)} to prevent overflow in interval calculations.
+
+\begin{longtable}{L{3cm} L{3cm} L{3cm} L{5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Units} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{i8spw} & 604\,800  & s week$^{-1}$ & Seconds per week \\
+  \code{i8spd} & 86\,400   & s d$^{-1}$    & Seconds per day \\
+  \code{i8mpd} & 1\,440    & min d$^{-1}$  & Minutes per day \\
+  \code{i8hpd} & 24        & h d$^{-1}$    & Hours per day \\
+  \code{i8sph} & 3\,600    & s h$^{-1}$    & Seconds per hour \\
+  \code{i8spm} & 60        & s min$^{-1}$  & Seconds per minute \\
+  \code{i8mph} & 60        & min h$^{-1}$  & Minutes per hour \\
+  \code{i8mpy} & 12        & month yr$^{-1}$& Months per year \\
+  \code{i8mpc} & 1\,200    & month century$^{-1}$ & Months per century \\
+  \code{i8ypc} & 100       & yr century$^{-1}$ & Years per century \\
+\end{longtable}
+
+\subsubsection{Public Calendar Selectors}
+
+\begin{longtable}{L{3cm} L{2cm} L{9cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{gregorian} & 1 & Proleptic Gregorian calendar (leap years via the
+    400/4/100 rule). Accepted string aliases: \texttt{gregorian},
+    \texttt{standard}, \texttt{proleptic\_gregorian}. \\
+  \code{noleap}    & 2 & 365-day calendar with no leap years. Accepted string
+    aliases: \texttt{noleap}, \texttt{365\_day}, \texttt{days\_365}, etc. \\
+  \code{y360}      & 3 & Idealised 360-day calendar (12 months of exactly 30
+    days each). Accepted string aliases: \texttt{360\_day}, \texttt{days\_360},
+    etc. \\
+\end{longtable}
+
+\subsubsection{Public Time Unit Selectors}
+
+Used in \code{rcm\_time\_interval\%iunit} and the \code{set\_timeunit} routine.
+
+\begin{longtable}{L{3cm} L{2cm} L{9cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{usec} & 1 & Seconds \\
+  \code{umin} & 2 & Minutes \\
+  \code{uhrs} & 3 & Hours \\
+  \code{uday} & 4 & Days \\
+  \code{umnt} & 5 & Months \\
+  \code{uyrs} & 6 & Years \\
+  \code{ucnt} & 7 & Centuries \\
+\end{longtable}
+
+\subsubsection{Public Season Selectors}
+
+\begin{longtable}{L{3.5cm} L{2cm} L{8.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{isea\_djf} & 1 & December--January--February (boreal winter) \\
+  \code{isea\_mam} & 2 & March--April--May (boreal spring) \\
+  \code{isea\_jja} & 3 & June--July--August (boreal summer) \\
+  \code{isea\_son} & 4 & September--October--November (boreal autumn) \\
+\end{longtable}
+
+\subsubsection{Reference and Auxiliary Constants}
+
+\begin{longtable}{L{4cm} L{4cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{reference\_year}  & 1900          & Epoch year for the internal
+    days-from-reference counter. \\
+  \code{cordex\_refdate}  & 1950010100    & Packed date (1 Jan 1950, 00:00 UTC)
+    used as origin for CORDEX time output (\code{curr\_time}). \\
+  \code{mlen(1:12)}       & [31,28,31,\ldots] & Standard (non-leap) month
+    lengths. \\
+  \code{cintstr(1:7)}     & string array  & Human-readable labels for the seven
+    time-unit selectors (\texttt{seconds}, \texttt{minutes}, \ldots,
+    \texttt{centuries}). \\
+  \code{calstr(1:3)}      & string array  & CF-Conventions calendar names
+    (\texttt{proleptic\_gregorian}, \texttt{noleap}, \texttt{360\_day}). \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Derived Types}
+\label{subsec:date_types}
+
+\subsubsection{\texttt{rcm\_time\_and\_date} --- The Primary Timestamp}
+
+\begin{lstlisting}
+type rcm_time_and_date
+  integer(ik4) :: calendar            = gregorian
+  integer(ik8) :: days_from_reference = 0
+  integer(ik8) :: second_of_day       = 0
+end type rcm_time_and_date
+\end{lstlisting}
+
+This is the model's universal timestamp. Every date in RegCM --- simulation
+start, current model time, output trigger, boundary-condition timestamp ---
+is stored as a value of this type.
+
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+  \toprule
+  \textbf{Field} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{calendar}            & \code{integer(ik4)} &
+    Calendar system in use (\code{gregorian}, \code{noleap}, or \code{y360}).
+    Default: \code{gregorian}. \\
+  \code{days\_from\_reference} & \code{integer(ik8)} &
+    Signed count of days elapsed since 1 January of \code{reference\_year}
+    (1900). Negative values represent dates before 1900. The use of \code{ik8}
+    avoids overflow for multi-millennium simulations. \\
+  \code{second\_of\_day}      & \code{integer(ik8)} &
+    Seconds elapsed since midnight of the current day, in the range
+    $[0,\,86399]$. Storing time separately from the day count makes
+    sub-daily arithmetic exact and free of floating-point rounding. \\
+\end{longtable}
+
+\textbf{Internal representation rationale.} Splitting the timestamp into
+integer days and integer seconds rather than using a single real-valued
+counter (as in, e.g., Julian Day fractions) avoids accumulated rounding errors
+over long simulations with short time steps. Two 64-bit integers can represent
+any date from roughly $-2.5\times10^{16}$ to $+2.5\times10^{16}$ years from
+1900 at one-second resolution, well beyond any conceivable climate simulation.
+
+\subsubsection{\texttt{rcm\_time\_interval} --- A Duration}
+
+\begin{lstlisting}
+type rcm_time_interval
+  integer(ik8) :: ival  = 0
+  integer(ik4) :: iunit = usec
+end type rcm_time_interval
+\end{lstlisting}
+
+Represents a signed duration in a specified unit. The unit is carried alongside
+the magnitude so that unit-aware arithmetic (e.g.\ adding 1 month vs.\ adding
+30 days) is unambiguous.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Field} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ival}  & \code{integer(ik8)} &
+    Magnitude of the interval in \code{iunit} units. May be negative
+    (intervals are signed). \\
+  \code{iunit} & \code{integer(ik4)} &
+    Unit selector: one of \code{usec}, \code{umin}, \code{uhrs},
+    \code{uday}, \code{umnt}, \code{uyrs}, \code{ucnt}.
+    Default: \code{usec}. \\
+\end{longtable}
+
+\textbf{Note on calendar-dependent units.} Conversions between calendar-independent
+units (\code{usec}--\code{uday}) are exact and handled by the module's
+\code{isequalit} and comparison functions. Conversions involving \code{umnt},
+\code{uyrs}, and \code{ucnt} depend on the calendar; the comparison functions
+correctly return \code{.false.} when mixing these with day-based units, and
+\code{die} is called in \code{tohours}/\code{toseconds} if such a conversion
+is attempted, because the result is calendar-dependent and potentially
+ambiguous.
+
+\subsubsection{Auxiliary Input/Output Types}
+
+Three lightweight types are provided to carry a value \emph{together with} a
+calendar selector, used as intermediate representations in the overloaded
+assignment interface.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Type} & \textbf{Fields} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{i4wcal}  & \code{i}: \code{integer(ik4)}, \code{cal}: \code{integer(ik4)} &
+    Packed 10-digit date integer (32-bit) with calendar. \\
+  \code{i8wcal}  & \code{i}: \code{integer(ik8)}, \code{cal}: \code{integer(ik4)} &
+    Packed 10-digit date integer (64-bit) with calendar. \\
+  \code{c10wcal} & \code{c}: \code{character(len=11)}, \code{cal}: \code{integer(ik4)} &
+    Date as 11-character string with calendar. \\
+\end{longtable}
+
+\subsubsection{Internal Date/Time Types}
+
+Two further types are used purely inside the module as a human-readable
+decomposed representation; they are not public.
+
+\begin{longtable}{L{3cm} L{8cm}}
+  \toprule
+  \textbf{Type} & \textbf{Fields and purpose} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{iadate} &
+    \code{calendar} (\code{ik4}), \code{year} (\code{ik4}),
+    \code{month} (\code{ik4}), \code{day} (\code{ik4}).
+    Decomposed calendar date. Default values: Gregorian, year 1900,
+    January 1. \\
+  \code{iatime} &
+    \code{hour} (\code{ik4}), \code{minute} (\code{ik4}),
+    \code{second} (\code{ik4}).
+    Time of day in hours, minutes, seconds. Default: all zero. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Overloaded Operators}
+\label{subsec:date_operators}
+
+All date arithmetic in model code is expressed through Fortran operator syntax.
+The module implements the following generic interfaces.
+
+\subsubsection{Assignment (\texttt{=})}
+
+Converts any of six source representations into an \code{rcm\_time\_and\_date},
+and any of four source representations into an \code{rcm\_time\_interval},
+by dispatching to the appropriate \code{initfrom*} procedure.
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Source type} & \textbf{Target and behaviour} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{character} (via \code{c10wcal})  &
+    Reads a packed date string + calendar into \code{rcm\_time\_and\_date}. \\
+  \code{integer(ik4)} &
+    Interprets as packed \code{YYYYMMDDYH}; assumes Gregorian calendar. \\
+  \code{i4wcal} &
+    As above but with explicit calendar. \\
+  \code{integer(ik8)} &
+    64-bit packed date; assumes Gregorian calendar. \\
+  \code{i8wcal} &
+    64-bit packed date with explicit calendar. \\
+  \code{rcm\_time\_and\_date} &
+    Deep copy. \\
+  \code{integer(ik4)} $\to$ \code{rcm\_time\_interval} &
+    Sets \code{ival} to the integer, \code{iunit} to \code{usec}. \\
+  \code{real(rk4)} $\to$ \code{rcm\_time\_interval} &
+    Truncates to integer seconds. \\
+  \code{real(rk8)} $\to$ \code{rcm\_time\_interval} &
+    Truncates to integer seconds. \\
+  \code{rcm\_time\_interval} &
+    Deep copy of interval. \\
+\end{longtable}
+
+\textbf{Packed date format.} The integer encoding is
+$\text{date} = \text{YYYY} \times 10^6 + \text{MM} \times 10^4
+             + \text{DD} \times 10^2 + \text{HH}$,
+which is the legacy RegCM date format used throughout the namelist and
+restart files. The \code{split\_i10} / \code{split\_i10\_8} routines decode
+this by successive integer division and modulo operations.
+
+\subsubsection{Equality (\texttt{==})}
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Operands} & \textbf{Behaviour} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{rcm\_time\_and\_date} == \code{rcm\_time\_and\_date} &
+    Checks calendar compatibility (calls \code{die} if calendars differ), then
+    compares \code{days\_from\_reference} and \code{second\_of\_day}. \\
+  \code{rcm\_time\_and\_date} == \code{integer(ik4)} &
+    Converts the integer to \code{rcm\_time\_and\_date} (in the lhs calendar),
+    then delegates to the type-type comparison. \\
+  \code{rcm\_time\_interval} == \code{rcm\_time\_interval} &
+    Unit-aware comparison. Converts both operands to a common unit before
+    comparing; returns \code{.false.} when units are incompatible
+    (e.g.\ months vs.\ seconds). \\
+\end{longtable}
+
+\subsubsection{Addition and Subtraction (\texttt{+}, \texttt{-})}
+
+\begin{longtable}{L{5.5cm} L{8.5cm}}
+  \toprule
+  \textbf{Expression} & \textbf{Result and behaviour} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{rcm\_time\_and\_date + rcm\_time\_interval} &
+    Returns a new \code{rcm\_time\_and\_date} advanced by the interval.
+    Handles all seven unit cases; seconds, minutes, hours, and days update
+    \code{second\_of\_day} and \code{days\_from\_reference} by integer
+    arithmetic. Month, year, and century increments first decompose the date,
+    adjust the year/month, then recompose; a proportional day-of-month
+    fraction is preserved to avoid landing on day~1 after every monthly step. \\
+  \code{rcm\_time\_and\_date - rcm\_time\_interval} &
+    Symmetric subtraction; negative second-of-day values are wrapped back
+    into the previous day correctly. \\
+  \code{rcm\_time\_and\_date - rcm\_time\_and\_date} &
+    Returns an \code{rcm\_time\_interval} in \code{usec}, equal to the
+    signed difference $(x_\text{days} - y_\text{days}) \times 86400 +
+    (x_\text{sod} - y_\text{sod})$. Calls \code{die} if calendars differ. \\
+  \code{rcm\_time\_interval + rcm\_time\_interval} &
+    Returns a new interval. If units match, adds magnitudes directly;
+    otherwise converts both to seconds and returns a \code{usec} interval. \\
+\end{longtable}
+
+\subsubsection{Ordering (\texttt{>}, \texttt{<}, \texttt{>=}, \texttt{<=}, \texttt{/=})}
+
+All six relational operators are overloaded for \code{rcm\_time\_and\_date}
+(type-type and type-integer variants) and for \code{rcm\_time\_interval}
+(type-type only). Date comparisons first check calendar consistency via
+\code{check\_cal} and then compare the pair
+(\code{days\_from\_reference}, \code{second\_of\_day})
+lexicographically. Interval comparisons are unit-aware, using the same
+conversion logic as equality.
+
+%------------------------------------------------------------------------------
+\subsection{Calendar Arithmetic Routines}
+\label{subsec:date_calendar}
+
+\subsubsection{Leap Year and Month Length}
+
+\begin{longtable}{L{4.5cm} L{4cm} L{6cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Signature} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{lleap} & \code{(iyear) $\to$ logical} &
+    Returns \code{.true.} if \code{iyear} is a Gregorian leap year
+    ($\text{mod}(y,400)=0$, or $\text{mod}(y,4)=0$ and
+    $\text{mod}(y,100)\ne0$). Pure function. \\
+  \code{mdays\_leap} & \code{(iyear, imon) $\to$ integer(ik4)} &
+    Returns the number of days in month \code{imon} of year \code{iyear}
+    for the Gregorian calendar, accounting for leap February. Pure. \\
+  \code{ndaypm} & \code{(y, m, cal) $\to$ integer(ik4)} &
+    Days in month \code{m} for any calendar: calls \code{mdays\_leap}
+    for Gregorian, returns \code{mlen(m)} for \code{noleap},
+    and 30 for \code{y360}. Pure. \\
+  \code{yeardays} & \code{(y, c) $\to$ integer(ik4)} &
+    Total days in year \code{y} under calendar \code{c}:
+    365 or 366 (Gregorian), 365 (\code{noleap}), 360 (\code{y360}). Pure. \\
+\end{longtable}
+
+\subsubsection{Internal Representation Conversion}
+
+The internal representation and the human-readable \code{(year, month, day)}
+decomposition are related by two complementary pairs of private routines:
+
+\begin{longtable}{L{5.5cm} L{8.5cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{date\_to\_days\_from\_reference} &
+    Converts an \code{iadate} to the \code{days\_from\_reference} counter by
+    iterating over whole years from \code{reference\_year} (1900) using
+    \code{yeardays}, then adding the day-of-year computed by \code{idayofyear}.
+    Pure. \\
+  \code{days\_from\_reference\_to\_date} &
+    Inverse: iterates forward or backward year-by-year until the remaining
+    day count fits within one year, then calls
+    \code{idayofyear\_to\_monthdate} to find month and day. \\
+  \code{time\_to\_second\_of\_day} &
+    Packs \code{(hour, minute, second)} into \code{second\_of\_day}:
+    $\text{sod} = 3600h + 60m + s$. \\
+  \code{second\_of\_day\_to\_time} &
+    Inverse: recovers \code{(hour, minute, second)} from \code{second\_of\_day}
+    by integer division and modulo. \\
+  \code{date\_time\_to\_internal} &
+    Calls both conversion routines to construct a full
+    \code{rcm\_time\_and\_date} from an \code{(iadate, iatime)} pair. \\
+  \code{internal\_to\_date\_time} &
+    Calls both inverse routines to recover \code{(iadate, iatime)}
+    from a full \code{rcm\_time\_and\_date}. \\
+\end{longtable}
+
+\subsubsection{Day-of-Year Utilities}
+
+\begin{longtable}{L{4cm} L{9cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{idayofyear(x)} &
+    Returns the day-of-year (1-based) of an \code{iadate} \code{x},
+    accumulating month lengths. Pure, calendar-aware. \\
+  \code{dayofyear(x)} &
+    Public wrapper: converts \code{rcm\_time\_and\_date} to \code{iadate}
+    and calls \code{idayofyear}. \\
+  \code{idayofyear\_to\_monthdate} &
+    Inverse: given a zero-based day-of-year, iterates through months to
+    find \code{(month, day)}. Calendar-aware, pure. \\
+\end{longtable}
+
+\subsubsection{Day Arithmetic Helpers (Private, Recursive)}
+
+Four private recursive subroutines handle day-level addition and subtraction
+while correctly rolling over month and year boundaries:
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{add\_days\_leap(d,m,y,a)} &
+    Adds \code{a} days to (day \code{d}, month \code{m}, year \code{y})
+    in Gregorian calendar, rolling months/years forward via recursion. \\
+  \code{sub\_days\_leap(d,m,y,a)} &
+    Subtracts \code{a} days, rolling backward. \\
+  \code{add\_days\_noleap(d,m,y,a)} &
+    As above for the no-leap calendar. \\
+  \code{sub\_days\_noleap(d,m,y,a)} &
+    As above for the no-leap calendar. \\
+\end{longtable}
+
+The helper subroutines \code{adjustpm} and \code{adjustmp} carry month-overflow
+($m > 12$) and month-underflow ($m < 1$) into the year field respectively,
+used after month/year arithmetic.
+
+%------------------------------------------------------------------------------
+\subsection{Julian Day Computation}
+\label{subsec:date_julian}
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Function} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ymd\_julianday(iy, im, id) $\to$ real(rk8)} &
+    Computes the Julian Day Number for a proleptic Gregorian date. Applies
+    the standard algorithm with the Gregorian correction term
+    $B = 2 - \lfloor y/100 \rfloor + \lfloor y/400 \rfloor$ for dates
+    on or after 1582-10-15, and $B = 0$ (Julian calendar) for dates on or
+    before 1582-10-04. Dates falling in the gap 1582-10-05 to 1582-10-14
+    are treated as non-existent and cause a fatal error via
+    \code{die}. \\
+  \code{idate\_julianday(x) $\to$ real(rkx)} &
+    Wrapper: extracts year, month, day from an
+    \code{rcm\_time\_and\_date} and calls \code{ymd\_julianday}. \\
+  \code{idayofweek(x) $\to$ integer(ik4)} &
+    Returns the day of week (1 = Sunday, \ldots, 7 = Saturday) from the
+    Julian Day Number: $\text{dow} = \text{mod}(JD + 1.5, 7) + 1$.
+    Requires Gregorian calendar; aborts otherwise. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Public Conversion and Formatting Functions}
+\label{subsec:date_conversion}
+
+\subsubsection{Date/Time to String}
+
+\begin{longtable}{L{4cm} L{4cm} L{6cm}}
+  \toprule
+  \textbf{Function} & \textbf{Returns} & \textbf{Format} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{tochar(x)} &
+    \code{character(len=32)} &
+    \texttt{YYYY-MM-DD HH:MM:SS UTC} (or \texttt{-YYYY-\ldots}
+    for negative years). \\
+  \code{toiso8601(x)} &
+    \code{character(len=21)} &
+    \texttt{YYYY-MM-DDTHH:MM:SSZ} (ISO~8601 basic). \\
+  \code{tochar10(x)} &
+    \code{character(len=11)} &
+    Zero-padded packed integer \texttt{YYYYMMDDYH}. \\
+\end{longtable}
+
+\subsubsection{Date/Time to Numeric}
+
+\begin{longtable}{L{4cm} L{4cm} L{6cm}}
+  \toprule
+  \textbf{Function} & \textbf{Returns} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{toint10(x)} &
+    \code{integer(ik8)} &
+    Packed integer $\text{YYYY}\times10^6 + \text{MM}\times10^4
+    + \text{DD}\times10^2 + \text{HH}$. \\
+  \code{tohours(x)} &
+    \code{real(rk8)} &
+    Converts an \code{rcm\_time\_interval} to hours. Returns 0 and calls
+    \code{die} for calendar-dependent units. \\
+  \code{toseconds(x)} &
+    \code{integer(ik8)} &
+    Converts an \code{rcm\_time\_interval} to seconds. Same restriction. \\
+  \code{yeardayfrac(x)} &
+    \code{real(rkx)} &
+    Day-of-year as a fractional real (including hour, minute, second
+    contributions), 0-based. \\
+  \code{yearpoint(x)} &
+    \code{real(rk8)} &
+    Fractional day-of-year with a leap-year correction factor, used in
+    solar orbit calculations. \\
+\end{longtable}
+
+\subsubsection{Component Extractors}
+
+Six scalar functions each decode one field from an
+\code{rcm\_time\_and\_date}:
+
+\begin{longtable}{L{4.5cm} L{4cm} L{5.5cm}}
+  \toprule
+  \textbf{Function} & \textbf{Returns} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{getyear(x)}   & \code{integer(ik4)} & Calendar year \\
+  \code{getmonth(x)}  & \code{integer(ik4)} & Month (1--12) \\
+  \code{getday(x)}    & \code{integer(ik4)} & Day of month \\
+  \code{gethour(x)}   & \code{integer(ik4)} & Hour of day (0--23) \\
+  \code{getminute(x)} & \code{integer(ik4)} & Minute of hour (0--59) \\
+  \code{getsecond(x)} & \code{integer(ik4)} & Second of minute (0--59) \\
+\end{longtable}
+
+\subsubsection{Decomposition Subroutines (\texttt{split\_idate})}
+
+The generic interface \code{split\_idate} is overloaded across five procedures
+that unpack an \code{rcm\_time\_and\_date} (or an integer date) into its
+components:
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Procedure} & \textbf{Outputs} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{split\_i10} &
+    From \code{integer(ik4)}: year, month, day, hour. \\
+  \code{split\_i10\_8} &
+    From \code{integer(ik8)}: year, month, day, hour. \\
+  \code{split\_rcm\_date} &
+    From \code{rcm\_time\_and\_date}: year, month, day. \\
+  \code{split\_rcm\_time\_and\_date} &
+    From \code{rcm\_time\_and\_date}: year, month, day, hour. \\
+  \code{split\_rcm\_time\_and\_date\_complete} &
+    From \code{rcm\_time\_and\_date}: year, month, day, hour, minute, second. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Navigation and Comparison Functions}
+\label{subsec:date_navigation}
+
+\subsubsection{Month and Year Navigation}
+
+\begin{longtable}{L{4.5cm} L{4cm} L{5.5cm}}
+  \toprule
+  \textbf{Function/Subroutine} & \textbf{Returns} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{monfirst(x)}  & \code{rcm\_time\_and\_date} &
+    First day of the month containing \code{x}, at midnight. \\
+  \code{monlast(x)}   & \code{rcm\_time\_and\_date} &
+    Last day of the month containing \code{x}, at midnight. \\
+  \code{monmiddle(x)} & \code{rcm\_time\_and\_date} &
+    Middle of the month: day $\lfloor N/2 \rfloor$ at hour 0 or 12
+    depending on whether $N$ is odd. For \code{y360} always day 15. \\
+  \code{nextmon(x)}   & \code{rcm\_time\_and\_date} &
+    Same date one month later. \\
+  \code{prevmon(x)}   & \code{rcm\_time\_and\_date} &
+    Same date one month earlier. \\
+  \code{yrfirst(x)}   & \code{rcm\_time\_and\_date} &
+    January 1 of the year containing \code{x}, at midnight. \\
+  \code{nextwk(x)}    & \code{rcm\_time\_and\_date} &
+    Same time 7 days later. \\
+  \code{prevwk(x)}    & \code{rcm\_time\_and\_date} &
+    Same time 7 days earlier. \\
+\end{longtable}
+
+\subsubsection{Week Navigation (Gregorian Only)}
+
+\begin{longtable}{L{4.5cm} L{4cm} L{5.5cm}}
+  \toprule
+  \textbf{Function} & \textbf{Returns} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ifdoweek(x)} & \code{rcm\_time\_and\_date} &
+    First day (Sunday) of the week containing \code{x}, at midnight. \\
+  \code{ildoweek(x)} & \code{rcm\_time\_and\_date} &
+    Last day (Saturday) of the week containing \code{x}, at midnight. \\
+  \code{iwkdiff(x,y)}& \code{integer(ik4)} &
+    Signed number of weeks between two dates. \\
+  \code{lsameweek(x,y)} & \code{logical} &
+    True if \code{x} and \code{y} fall in the same Sunday-to-Saturday week. \\
+\end{longtable}
+
+\subsubsection{Logical Predicates}
+
+\begin{longtable}{L{4.5cm} L{4cm} L{5.5cm}}
+  \toprule
+  \textbf{Function} & \textbf{Returns} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{lmidnight(x)}    & \code{logical} &
+    True if \code{second\_of\_day} is zero. \\
+  \code{lfdomonth(x)}    & \code{logical} &
+    True if \code{x} falls on day 1 of its month. \\
+  \code{lfdoyear(x)}     & \code{logical} &
+    True if \code{x} falls on January 1 of its year. \\
+  \code{lfhomonth(x)}    & \code{logical} &
+    True if \code{x} is in the first half of its month
+    (i.e.\ \code{x < monmiddle(x)}). \\
+  \code{lsamemonth(x,y)} & \code{logical} &
+    True if \code{x} and \code{y} share the same month (calendar check). \\
+\end{longtable}
+
+\subsubsection{Difference Functions}
+
+\begin{longtable}{L{4.5cm} L{4cm} L{5.5cm}}
+  \toprule
+  \textbf{Function} & \textbf{Returns} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{hourdiff(x,y)}  & \code{real(rk8)} &
+    Signed difference in hours: $(x - y)$ computed exactly from the integer
+    internal fields. \\
+  \code{imondiff(x,y)}  & \code{integer(ik4)} &
+    Absolute difference in months. \\
+  \code{iyeardiff(x,y)} & \code{integer(ik4)} &
+    Absolute difference in years. \\
+\end{longtable}
+
+\subsubsection{Date and Time Predicates}
+
+The generic interfaces \code{date\_is} and \code{time\_is} provide
+tolerance-aware moment testing:
+
+\begin{longtable}{L{5.5cm} L{8.5cm}}
+  \toprule
+  \textbf{Function} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{date\_is(x, y, m, d)} &
+    True if the date part of \code{x} equals year \code{y}, month \code{m},
+    day \code{d}. \\
+  \code{date\_is(x, m, d)} &
+    True if the month and day of \code{x} equal \code{m} and \code{d}
+    (year-independent). \\
+  \code{time\_is(x, h, m, s [,delta])} &
+    True if the time of day of \code{x} equals (h, m, s). With optional
+    \code{delta} [s], uses a tolerance window
+    $|t_x - t_\text{ref}| < \delta$ instead. \\
+  \code{time\_is(x, s [,delta])} &
+    As above but compares \code{second\_of\_day} directly to \code{s}. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{CF-Conventions and External Time Interface}
+\label{subsec:date_cf}
+
+\subsubsection{\texttt{timeval2date} --- Numeric Time Value to Date}
+
+The generic interface \code{timeval2date} converts a real-valued ``time since
+reference'' (as stored in CF-Conventions NetCDF files) to an
+\code{rcm\_time\_and\_date}. It is overloaded for single (\code{rk4}) and
+double (\code{rk8}) precision inputs.
+
+\begin{lstlisting}
+dd = timeval2date(xval, cunit, ccal)
+\end{lstlisting}
+
+\begin{longtable}{L{2.5cm} L{3cm} L{8.5cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{xval}  & \code{real(rk4/rk8)} &
+    Numeric time value (e.g.\ \texttt{hours since 1979-01-01} $\to$
+    \code{xval} in hours). May be negative. \\
+  \code{cunit} & \code{character(*)} &
+    CF time-unit string, e.g.\ \texttt{hours since 1979-01-01 00:00:00}. \\
+  \code{ccal}  & \code{character(*)} &
+    CF calendar name (\texttt{noleap}, \texttt{360\_day}, or
+    \texttt{gregorian}/\texttt{standard}). \\
+\end{longtable}
+
+The routine caches \code{cunit} and \code{ccal} in \code{save} variables so
+that the expensive string parse (via \code{parse\_timestring}) is only
+performed on the first call or when the unit string changes. Fractional days
+are handled specially: a value of 15.5 days is interpreted as 15 days plus
+12 hours, consistent with common NetCDF practice.
+
+\subsubsection{\texttt{timeval2ym} --- Numeric Time Value to Year/Month}
+
+\begin{lstlisting}
+call timeval2ym(xval, cunit, year, month)
+\end{lstlisting}
+
+Lighter-weight variant that parses only the year and month from a
+\texttt{months since \ldots} unit string. Uses the same caching strategy.
+
+\subsubsection{\texttt{parse\_timestring} --- CF Time-Unit String Parser}
+
+Private function that parses a CF-Conventions time-unit string of the form
+\texttt{UNIT since YYYY-MM-DD HH:MM:SS}, tolerating various date-separator
+styles (\texttt{-}, space, \texttt{T}). Returns:
+\begin{itemize}
+  \item The unit selector (\code{aunit}): one of \code{usec}--\code{uyrs}.
+  \item The reference date components: year, month, day, hour, minute, second.
+  \item An integer result code: 0 on success, $-1$ on error.
+\end{itemize}
+
+%------------------------------------------------------------------------------
+\subsection{Model Interface Routines}
+\label{subsec:date_model}
+
+\subsubsection{Reference and Current Time}
+
+\begin{longtable}{L{5.5cm} L{8.5cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ref\_date(iy, im, id, isec)} &
+    Returns the fixed CORDEX reference date: 1 January 1950, 00:00:00.
+    Hard-coded; the year 1950 is the WCRP CORDEX standard epoch. \\
+  \code{curr\_date(x, iy, im, id, isec [, offset])} &
+    Decomposes an \code{rcm\_time\_and\_date} into (year, month, day,
+    second-of-day). The optional \code{offset} argument (in seconds) shifts
+    the timestamp before decomposition, used to advance to the next time
+    step for output labelling. \\
+  \code{curr\_time(x, iday, isec)} &
+    Returns days and seconds elapsed since the CORDEX reference date
+    (1950-01-01). Uses a \code{save}d copy of the reference date to avoid
+    recomputing it on every call; reinitialises if the calendar changes. \\
+\end{longtable}
+
+\subsubsection{Calendar String/Integer Conversion}
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Function} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{calendar\_str(x)} &
+    Returns the CF-Conventions calendar string
+    (\texttt{proleptic\_gregorian}, \texttt{noleap}, or \texttt{360\_day})
+    for the calendar stored in \code{x}. \\
+  \code{calendar\_int(calstr)} &
+    Pure function: maps a CF calendar string to the corresponding integer
+    constant (\code{gregorian}, \code{noleap}, or \code{y360}).
+    Unknown strings silently default to \code{gregorian}. \\
+\end{longtable}
+
+\subsubsection{Calendar Setting}
+
+The generic interface \code{setcal} changes the calendar of an existing
+\code{rcm\_time\_and\_date}, recomputing \code{days\_from\_reference}
+for the new calendar:
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Procedure} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{set\_calint(x, c)} &
+    Sets the calendar to the integer constant \code{c}. If the calendar
+    changes, decomposes the current date and recomposes it under the new
+    system. Pure. \\
+  \code{set\_calstring(x, c)} &
+    Parses the string \code{c} (accepting all CF aliases) and delegates
+    to \code{set\_calint}. \\
+  \code{set\_caltype(x, y)} &
+    Copies the calendar from \code{y} into \code{x}, calling
+    \code{set\_calint} only if they differ. \\
+  \code{set\_timeunit(x, u)} &
+    Sets the unit of an \code{rcm\_time\_interval}; validates against the
+    seven legal unit selectors and defaults to \code{uhrs} with a warning
+    for unknown values. \\
+\end{longtable}
+
+\subsubsection{Diagnostic Utilities}
+
+\begin{longtable}{L{5.5cm} L{8.5cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{print\_rcm\_time\_and\_date(x)} &
+    Writes the formatted timestamp to \code{stdout} via \code{tochar}. \\
+  \code{print\_rcm\_time\_interval(x)} &
+    Writes the interval magnitude and unit name to \code{stdout}. \\
+  \code{season\_index(x)} &
+    Returns the meteorological season index
+    (\code{isea\_djf}, \ldots, \code{isea\_son}). \\
+  \code{date\_in\_scenario(x, cmip\_cycle [, l2006])} &
+    Returns \code{.true.} if \code{x} falls in the CMIP scenario period:
+    after 2000 for CMIP3, after 2005 (or December 2005, controlled by
+    \code{l2006}) for CMIP5. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Design Notes}
+\label{subsec:date_design}
+
+\textbf{Integer-only internal state.} All time quantities stored in
+\code{rcm\_time\_and\_date} are exact integers. This means that date
+comparisons (\code{==}, \code{<}, etc.) are exact and never suffer from
+floating-point epsilon issues, which would be a serious problem in
+output-trigger logic run at every model time step.
+
+\textbf{Calendar enforcement.} Every multi-date operation (\code{-},
+comparison operators, \code{lsamemonth}, etc.) calls the private
+\code{check\_cal} guard, which terminates the run if the two operands use
+different calendars. This prevents silent incorrect results from mixing,
+say, a Gregorian simulation date with a no-leap boundary date.
+
+\textbf{Month arithmetic and day-of-month preservation.} Adding or subtracting
+months is inherently ambiguous (what is 31 January + 1 month?). The module
+resolves this by computing a fractional position $\alpha$ within the source
+month and mapping it proportionally onto the target month, so that the
+``middle of January'' becomes the ``middle of February'' rather than day 28
+or day 1. This is noted in source comments as ``a trick'' and is consistent
+with how other climate model frameworks handle monthly stepping.
+
+\textbf{CF-Conventions compatibility.} The \code{timeval2date},
+\code{timeval2ym}, and \code{parse\_timestring} routines ensure that any
+time axis read from a CF-compliant NetCDF file can be decoded directly into
+the internal representation, regardless of the reference date, unit, or
+calendar stored in the file's \texttt{time:units} and
+\texttt{time:calendar} attributes.
+
+\textbf{CORDEX time output.} The \code{curr\_time} subroutine expresses the
+model time as (days, seconds) from 1950-01-01 00:00:00, which is the standard
+CORDEX time reference used in all output NetCDF files. The reference date is
+initialised once using a \code{save}d variable to avoid repeated construction.
+
+%==============================================================================
+\section{Global Parameters and Namelist Interface --- \texttt{mod\_dynparam.F90}}
+\label{sec:dynparam}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_dynparam} is the central configuration registry of RegCM. It
+declares --- as public module-level variables --- every parameter that
+controls a simulation: grid dimensions, map projection, physics switches,
+dynamical core selection, I/O frequencies, boundary condition settings,
+ensemble perturbation fractions, and CMIP/PMIP dataset identifiers. It also
+provides the single entry point for reading the model namelist file
+(\code{initparam}) and exposes helper subroutines for nested-domain and
+global-window configuration.
+
+Because all parameters are plain module variables (not derived-type members),
+any module that \code{use}s \code{mod\_dynparam} gains read/write access to
+the entire global configuration without argument passing. This is the
+traditional RegCM design pattern: a single \code{initparam} call early in
+the main program populates the module, and all subsequent modules read from
+it directly.
+
+\textbf{Key responsibilities:}
+\begin{itemize}
+  \item Hard-coded array-size ceilings (\code{maxvert}, \code{maxtracer})
+        that are used as compile-time bounds in CUDA/OpenACC kernel launches.
+  \item Grid-dimension variables (\code{iy}, \code{jx}, \code{kz}) and the
+        full set of derived convenience dimensions (\code{iym1}, \code{kzp1},
+        etc.).
+  \item Staggered-grid index ranges for cross and dot points, MPI
+        subdomain decomposition bounds, ghost-cell stencil extents, and
+        sub-grid index ranges.
+  \item Calendar, date, and simulation-period state (\code{globidate1},
+        \code{globidate2}, \code{dayspy}, \code{dpd}, etc.).
+  \item NetCDF I/O mode selection at compile time via preprocessor flags.
+  \item Random number generator seeding (CPU and optional GPU/CUDA paths).
+\end{itemize}
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_dynparam
+    |-- mod_stdio       (stderr, stdout)
+    |-- mod_intkinds    (ik4, ik8)
+    |-- mod_realkinds   (rkx, rk8)
+    |-- mod_constants   (erkm, degrad, twopi, d_two, d_r1000, ...)
+    |-- mod_date        (rcm_time_and_date, i8wcal, gregorian, noleap, y360)
+    |-- netcdf          [conditional: absent when PNETCDF is defined]
+    |-- mpi_f08         (mpi_comm type only)
+\end{lstlisting}
+
+The \code{netcdf} module is omitted when the build uses PnetCDF
+(\code{PNETCDF} macro), in which case NetCDF constants such as
+\code{nf90\_clobber} are provided through the PnetCDF interface instead.
+Only the \code{mpi\_comm} derived type is imported from \code{mpi\_f08};
+no MPI communication calls are made inside this module.
+
+\subsection{Compile-Time Preprocessor Flags}
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Flag} & \textbf{Effect} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{PNETCDF} &
+    Excludes the \code{use netcdf} statement; \code{iomode} is set to 0
+    (PnetCDF sets its own mode). \\
+  \code{NETCDF4\_HDF5} &
+    Sets \code{iomode = ior(nf90\_clobber, nf90\_netcdf4)} for HDF5-backed
+    NetCDF4 output. \\
+  \code{NETCDF4\_HDF5 + NETCDF4\_COMPRESS} &
+    Additionally reads the \code{ncfilters} namelist to configure HDF5
+    compression filter parameters. \\
+  \code{NETCDF\_CDF5} &
+    Sets \code{iomode = ior(nf90\_clobber, nf90\_cdf5)} for 64-bit data
+    CDF-5 format. \\
+  \code{CLM45} &
+    Enables the CLM 4.5 land-surface scheme; adds the \code{scalez},
+    \code{num\_soil\_layers} (10 instead of 3), and
+    \code{clm\_regcm} namelist group, and the four CLM feature flags. \\
+  \code{OPENACC} &
+    Exposes \code{init\_gpu\_random\_number\_generator}, which seeds the
+    cuRAND XORWOW generator used by OpenACC device kernels. \\
+  \code{NAGFOR} &
+    Triggers a call to \code{init\_realkinds} at the start of
+    \code{initparam} (see \code{mod\_realkinds} documentation). \\
+  \code{DEBUG} &
+    Enables \code{checkalloc} checks in \code{mod\_message}
+    (used transitively). \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Hard-Coded Compile-Time Ceilings}
+\label{subsec:dynparam_ceilings}
+
+\begin{longtable}{L{3.5cm} L{2.5cm} L{8cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{maxvert}   & 256 &
+    Maximum number of vertical levels. Fixed to permit static allocation in
+    CUDA/OpenACC kernels, where dynamic allocation is expensive. Comment
+    notes that ECMWF uses 137 levels and MIROC-ESM uses 80 levels; 256
+    provides ample headroom. Must be $\geq$ \code{kz}; \code{initparam}
+    enforces this at runtime. \\
+  \code{maxtracer} & 64 &
+    Maximum number of chemical tracer species. The MINE chemistry
+    configuration used approximately 56 tracers as of September 2026. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Grid and Projection Variables}
+\label{subsec:dynparam_grid}
+
+All variables in this section are module-level \code{public} scalars; they
+are set by reading the \code{dimparam} and \code{geoparam} namelists inside
+\code{initparam}.
+
+\subsubsection{Primary Grid Dimensions}
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Name} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{iy}  & \code{integer(ik4)} &
+    Number of grid points in the Y (latitude) direction, including boundary
+    zones. \\
+  \code{jx}  & \code{integer(ik4)} &
+    Number of grid points in the X (longitude) direction. \\
+  \code{kz}  & \code{integer(ik4)} &
+    Number of vertical levels. Must satisfy \code{kz} $\leq$ \code{maxvert}. \\
+  \code{nsg} & \code{integer(ik4)} &
+    Sub-grid refinement factor for CLM or statistical downscaling.
+    Default: 1 (no sub-gridding). \\
+  \code{ds}  & \code{real(rkx)} &
+    Horizontal grid spacing in km. For ROTLLR projection a negative value
+    (degrees) is accepted and converted automatically. \\
+  \code{dsmax}, \code{dsmin} & \code{real(rkx)} &
+    Maximum and minimum normalised sigma level spacing. Defaults
+    0.05 and 0.01 respectively; used to bound the sigma-level
+    distribution. \\
+  \code{ptop} & \code{real(rkx)} &
+    Pressure at the model top in cbar (centibars). Set to 0 for the
+    non-hydrostatic Moloch core (\code{idynamic}~=~3). \\
+\end{longtable}
+
+\subsubsection{Derived Convenience Dimensions}
+
+Computed from \code{iy}, \code{jx}, \code{kz}, and \code{nsg} at the end
+of \code{initparam}. Named to avoid repeated off-by-one arithmetic
+throughout the model.
+
+\begin{longtable}{L{3.5cm} L{8.5cm}}
+  \toprule
+  \textbf{Name(s)} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{iym1}, \code{iym2}, \code{iym3} &
+    $\text{iy}-1$, $\text{iy}-2$, $\text{iy}-3$. \\
+  \code{jxm1}, \code{jxm2}, \code{jxm3} &
+    $\text{jx}-1$, $\text{jx}-2$, $\text{jx}-3$. \\
+  \code{kzm1}, \code{kzm2} &
+    $\text{kz}-1$, $\text{kz}-2$ (below top layer indices). \\
+  \code{kzp1}, \code{kzp2}, \code{kzp3}, \code{kzp4} &
+    $\text{kz}+1$ through $\text{kz}+4$ (interface and ghost layer indices). \\
+  \code{iysg}, \code{jxsg} &
+    Sub-grid dimensions: $\text{iy}\times\text{nsg}$, $\text{jx}\times\text{nsg}$. \\
+  \code{iym1sg}\ldots\code{iym3sg}, \code{jxm1sg}\ldots\code{jxm3sg} &
+    Sub-grid analogues of the $-1$, $-2$, $-3$ offsets. \\
+  \code{nnsg} &
+    $\text{nsg}^2$; number of sub-grid cells per coarse cell. \\
+\end{longtable}
+
+\subsubsection{Map Projection Parameters}
+
+Read from the \code{geoparam} namelist.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Name} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{iproj} & \code{character(6)} &
+    Projection identifier. Accepted values: \texttt{LAMCON} (Lambert
+    Conformal), \texttt{POLSTR} (Polar Stereographic), \texttt{NORMER}
+    (Normal Mercator), \texttt{ROTMER} (Rotated Mercator),
+    \texttt{ROTLLR} (Rotated Lat-Lon, degree spacing). \\
+  \code{clat}, \code{clon} & \code{real(rkx)} &
+    Central latitude and longitude of the projection [degrees].
+    North/East positive. \\
+  \code{plat}, \code{plon} & \code{real(rkx)} &
+    Pole latitude/longitude for rotated Mercator; equals \code{clat}/\code{clon}
+    for other projections. \\
+  \code{cntri}, \code{cntrj} & \code{real(rkx)} &
+    Grid index (I, J) of the projection centre. Defaults to
+    $\text{iy}/2$, $\text{jx}/2$ if not specified (value $< 0$). \\
+  \code{truelatl}, \code{truelath} & \code{real(rkx)} &
+    Lower and upper true latitudes for Lambert Conformal. If both are zero
+    on entry, \code{initparam} warns and sets both to \code{clat}. \\
+  \code{xcone} & \code{real(rkx)} &
+    Lambert/Polar cone factor (computed elsewhere from the true latitudes). \\
+  \code{i\_band} & \code{integer(ik4)} &
+    Tropical band mode flag (1 = active). In band mode \code{jcross2 = jx}
+    (periodic zonal boundary). Automatically set to 1 when \code{i\_crm = 1}. \\
+  \code{i\_crm} & \code{integer(ik4)} &
+    Cloud-Resolving Model mode flag. Activates periodic boundaries in both
+    directions. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Staggered-Grid Index Ranges}
+\label{subsec:dynparam_stagger}
+
+RegCM uses an Arakawa B-grid with \emph{cross} (scalar/thermodynamic) and
+\emph{dot} (vorticity/wind) points. The following index-range variables
+define the active portions of each grid type in the global (non-decomposed)
+domain.
+
+\subsubsection{Cross-Point Ranges}
+
+\begin{longtable}{L{4cm} L{8cm}}
+  \toprule
+  \textbf{Name(s)} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ice1}, \code{ice2} & External (boundary-inclusive) I range: 1 to $\text{iym1}$
+    (or \code{iy} in CRM mode). \\
+  \code{jce1}, \code{jce2} & External J range: 1 to $\text{jxm1}$
+    (or \code{jx} in band mode). \\
+  \code{ici1}, \code{ici2} & Internal I range (first and last boundary row excluded). \\
+  \code{jci1}, \code{jci2} & Internal J range. \\
+  \code{icii1}, \code{icii2} & Doubly-internal I range (two boundary rows excluded). \\
+  \code{jcii1}, \code{jcii2} & Doubly-internal J range. \\
+  \code{nicross}, \code{njcross} & Number of cross points in I and J. \\
+\end{longtable}
+
+\subsubsection{Dot-Point Ranges}
+
+\begin{longtable}{L{4cm} L{8cm}}
+  \toprule
+  \textbf{Name(s)} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ide1}, \code{ide2} & External I range for dot points: 1 to \code{iy}. \\
+  \code{jde1}, \code{jde2} & External J range: 1 to \code{jx}. \\
+  \code{idi1}, \code{idi2} & Internal I range. \\
+  \code{jdi1}, \code{jdi2} & Internal J range. \\
+  \code{idii1}, \code{idii2} & Doubly-internal I. \\
+  \code{jdii1}, \code{jdii2} & Doubly-internal J. \\
+  \code{nidot}, \code{njdot} & Number of dot points in I and J. \\
+\end{longtable}
+
+\subsubsection{Output, Sub-Grid, and Ghost-Cell Ranges}
+
+\begin{longtable}{L{4cm} L{8cm}}
+  \toprule
+  \textbf{Name(s)} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{iout1/2}, \code{jout1/2} &
+    Output domain I/J range (interior only, excluding boundary sponge rows). \\
+  \code{ioutsg1/2}, \code{joutsg1/2} &
+    Sub-grid output domain range. \\
+  \code{ide1sg/2sg}, \code{jde1sg/2sg} &
+    Sub-grid dot-point external range. \\
+  \code{ice1ga/2ga}\ldots & Ghost-layer A extents for cross and dot points
+    (used in halo exchange). Analogous \code{gb} and \code{gc} sets for
+    deeper halo depths. \\
+  \code{ice1sl/2sl}\ldots & Semi-Lagrangian stencil extents. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{MPI Decomposition Variables}
+\label{subsec:dynparam_mpi}
+
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{mycomm}   & \code{type(mpi\_comm)} &
+    MPI communicator for the model domain. \\
+  \code{nproc}    & \code{integer(ik4)} &
+    Total number of MPI processes. \\
+  \code{nprocshm} & \code{integer(ik4)} &
+    Number of processes sharing memory (shared-memory window). \\
+  \code{myid}     & \code{integer(ik4)} &
+    Rank of the current process in \code{mycomm}. \\
+  \code{myidshm}  & \code{integer(ik4)} &
+    Rank within the shared-memory group. \\
+  \code{njxcpus}, \code{niycpus} & \code{integer(ik4)} &
+    Requested decomposition: number of subdomains in J and I. $-1$ means
+    auto-select (default). \\
+  \code{iyp}, \code{jxp} & \code{integer(ik4)} &
+    Local subdomain size in I and J for the current rank. \\
+  \code{iypsg}, \code{jxpsg} & \code{integer(ik4)} &
+    Local sub-grid subdomain size. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Dynamical Core and Physics Configuration}
+\label{subsec:dynparam_core}
+
+\subsubsection{Dynamical Core}
+
+\begin{longtable}{L{3.5cm} L{3cm} L{7.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value(s)} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{idynamic} & 1, 2, or 3 &
+    Dynamical core selector. 1 = hydrostatic RegCM (default), 2 = non-hydrostatic
+    MM5-style, 3 = non-hydrostatic Moloch. Validated in \code{initparam};
+    values outside [1,3] are fatal. \\
+  \code{base\_state\_pressure} & \code{real(rkx)} &
+    Base-state reference pressure [Pa] for \code{idynamic}~=~2.
+    Default: 101\,325~Pa. \\
+  \code{logp\_lrate} & \code{real(rkx)} &
+    Log-pressure lapse rate $\mathrm{d}T/\mathrm{d}(\ln p)$ [K\,ln(Pa)$^{-1}$]
+    for \code{idynamic}~=~2. Default: 47.70. \\
+\end{longtable}
+
+\subsubsection{Moloch Non-Hydrostatic Parameters}
+
+Read from the \code{molochparam} namelist only when \code{idynamic}~=~3.
+
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Default} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{mo\_ztop}           & 30\,000~m & Model top height for Moloch. \\
+  \code{mo\_h}              & 8\,000~m  & Reference scale height. \\
+  \code{mo\_a0}             & 0.0       & Orography perturbation amplitude. \\
+  \code{mo\_divdamp}        & \code{.true.} & Divergence damping switch. \\
+  \code{mo\_spectral\_nudge}& \code{.true.} & Spectral nudging towards driving fields. \\
+  \code{mo\_divfilter}      & \code{.true.} & Divergence filter switch. \\
+  \code{mo\_top\_nudge}     & \code{.true.} & Upper-boundary nudging. \\
+  \code{mo\_nadv}           & 2  & Number of advection sub-steps. \\
+  \code{mo\_nsound}         & 5  & Number of acoustic sub-steps per advection step. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Boundary Conditions and Sponge Zone}
+\label{subsec:dynparam_bdy}
+
+\begin{longtable}{L{4.5cm} L{3cm} L{6.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Default} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{nspgx}            & 6 (scaled) &
+    Sponge zone depth in J (cross points). Scaled automatically to the grid
+    spacing: $\max(\lfloor 6 \times 50\,\text{km}/ds \rfloor,\,6)$, then
+    overridden by the \code{boundaryparam} namelist. For Moloch with Lehmann
+    BCs, rounded to the next power-of-2 plus 2. \\
+  \code{nspgd}            & 6 (scaled) &
+    Sponge zone depth in I (dot points). Same scaling as \code{nspgx}. \\
+  \code{bdy\_use\_lehmann}& \code{.false.} &
+    Use the Lehmann spectral lateral boundary condition instead of the
+    standard relaxation scheme. \\
+  \code{high\_nudge}      & 3.0  & Nudging coefficient for the outermost sponge ring. \\
+  \code{medium\_nudge}    & 2.0  & Nudging coefficient for intermediate ring. \\
+  \code{low\_nudge}       & 1.0  & Nudging coefficient for innermost ring. \\
+  \code{bdy\_nm}          & $-1$ & Normal-mode boundary coefficient ($-1$ = auto). \\
+  \code{bdy\_dm}          & $-1$ & Diffusive boundary coefficient ($-1$ = auto). \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Calendar and Simulation Period}
+\label{subsec:dynparam_calendar}
+
+\begin{longtable}{L{4.5cm} L{3cm} L{6.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{calendar}        & \code{character(24)} &
+    CF-Conventions calendar name from the namelist. \\
+  \code{ical}            & \code{integer(ik4)} &
+    Integer calendar selector (\code{gregorian}, \code{noleap}, or
+    \code{y360} from \code{mod\_date}). \\
+  \code{globidate1}      & \code{rcm\_time\_and\_date} &
+    Global simulation start date (from \code{gdate1} in namelist). \\
+  \code{globidate2}      & \code{rcm\_time\_and\_date} &
+    Global simulation end date (from \code{gdate2} in namelist). \\
+  \code{dayspy}          & \code{real(rkx)} &
+    Days per year: 365.2422 (Gregorian), 365.0 (no-leap), 360.0 (360-day). \\
+  \code{dpd}             & \code{real(rkx)} &
+    Degrees of longitude per day: $360/\text{dayspy}$. \\
+  \code{vernal\_equinox} & \code{real(rkx)} &
+    Julian day of the vernal equinox, computed as
+    $(80.50/\text{dayspy})\times365$ (fractional day-of-year). \\
+  \code{half\_dayspy}    & \code{real(rkx)} & $\text{dayspy}/2$. \\
+  \code{sixteenth\_dayspy} & \code{real(rkx)} & $\text{dayspy}/16$. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Input Data Source Variables}
+\label{subsec:dynparam_data}
+
+\subsubsection{Standard Analysis and Surface Datasets}
+
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Default} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{dattyp}  & \texttt{UNKNW} &
+    5-character code for the global analysis dataset used in pre-processing.
+    Examples: \texttt{ERA5}, \texttt{CMIP6}, \texttt{CMIP7}, \texttt{PMIP4}. \\
+  \code{ssttyp}  & ---           &
+    5-character code for the sea-surface temperature dataset.
+    Examples: \texttt{OI2ST}, \texttt{CMIP6}, \texttt{ERSST}. \\
+  \code{chemtyp} & \texttt{MZCLM}&
+    5-character code for the chemistry boundary conditions.
+    \texttt{MZ6HR} (MOZART 6-hourly) or \texttt{MZCLM} (MOZART climatology). \\
+  \code{tersrc}  & \texttt{GMTED}& Terrain data source. \\
+  \code{texsrc}  & \texttt{GLZB} & Soil texture data source. \\
+  \code{smsrc}   & \texttt{ESACCI}& Soil moisture data source. \\
+\end{longtable}
+
+\subsubsection{CMIP6, CMIP7, and PMIP4 Identifiers}
+
+Read from the \code{cmip6param}, \code{cmip7param}, or \code{pmip4param}
+namelists when \code{dattyp} or \code{ssttyp} matches the corresponding
+protocol identifier.
+
+\begin{longtable}{L{4.5cm} L{6.5cm} L{3cm}}
+  \toprule
+  \textbf{Name} & \textbf{Description} & \textbf{Default} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{cmip6\_inp}        & OPeNDAP or local root URL/path for CMIP6 data &
+    \texttt{https://esgf3.dkrz.de/\ldots} \\
+  \code{cmip6\_model}      & Model identifier & \texttt{MPI-ESM1-2-HR} \\
+  \code{cmip6\_variant}    & Variant label & \texttt{r1i1p1f1} \\
+  \code{cmip6\_experiment} & Experiment identifier & \texttt{ssp585} \\
+  \code{cmip6\_grid}       & Grid label & \texttt{gn} \\
+  \code{cmip7\_inp}        & Root path for CMIP7 data & \texttt{cmip7} \\
+  \code{cmip7\_model}      & Model identifier & \texttt{EC-Earth3-ESM-1-1} \\
+  \code{cmip7\_experiment} & Experiment & \texttt{HL-ext} \\
+  \code{cmip7\_region}     & Region tag & \texttt{glb} \\
+  \code{cmip7\_atmo\_grid\_label} & Atmosphere grid label & \texttt{g114} \\
+  \code{cmip7\_ocn\_grid\_label}  & Ocean grid label & \texttt{g102} \\
+  \code{pmip4\_inp}        & Root URL for PMIP4 data & \texttt{https://esgf3.dkrz.de/\ldots} \\
+  \code{pmip4\_model}      & Model identifier & \texttt{MPI-ESM1-2-LR} \\
+  \code{pmip4\_experiment} & Experiment & \texttt{lgm} \\
+  \code{pmip4\_variant}    & Variant label & \texttt{r1i1p1f2} \\
+  \code{pmip4\_grid}       & Grid label & \texttt{gn} \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{I/O Control and Output Frequencies}
+\label{subsec:dynparam_io}
+
+\subsubsection{Output Switches}
+
+\begin{longtable}{L{3cm} L{9cm}}
+  \toprule
+  \textbf{Name} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ifsave}   & Write restart files. \\
+  \code{ifatm}    & Write atmospheric output. \\
+  \code{ifshf}    & Write surface heat flux output. \\
+  \code{ifrad}    & Write radiation output. \\
+  \code{ifsrf}    & Write surface variable output. \\
+  \code{ifsub}    & Write sub-grid output. \\
+  \code{ifsts}    & Write surface temperature/soil output. \\
+  \code{iflak}    & Write lake model output. \\
+  \code{ifopt}    & Write optical depth / aerosol output. \\
+  \code{ifchem}   & Write chemistry output. \\
+  \code{ifcordex} & Write CORDEX-format output (additional variable set). \\
+\end{longtable}
+
+\subsubsection{Output Frequencies}
+
+All frequencies are in hours unless the name implies a different unit.
+
+\begin{longtable}{L{3.5cm} L{9cm}}
+  \toprule
+  \textbf{Name} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{outnwf}  & Nominal output frequency [h]. \\
+  \code{savfrq}  & Restart save frequency [h]. \\
+  \code{atmfrq}  & Atmospheric output frequency [h]. \\
+  \code{radfrq}  & Radiation output frequency [h]. \\
+  \code{lakfrq}  & Lake model output frequency [h]. \\
+  \code{subfrq}  & Sub-grid output frequency [h]. \\
+  \code{srffrq}  & Surface output frequency [h]. \\
+  \code{chemfrq} & Chemistry output frequency [h]. \\
+  \code{optfrq}  & Optical/aerosol output frequency [h]. \\
+  \code{ibdyfrq} & Boundary condition update frequency [h]. Default: 6. \\
+\end{longtable}
+
+\subsubsection{NetCDF I/O Mode}
+
+\code{iomode} is an \code{integer(ik4)} whose value is set at compile time:
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Condition} & \textbf{\texttt{iomode} value} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{PNETCDF}              & 0 (PnetCDF manages mode internally) \\
+  \code{NETCDF4\_HDF5}        & \code{ior(nf90\_clobber, nf90\_netcdf4)} \\
+  \code{NETCDF\_CDF5}         & \code{ior(nf90\_clobber, nf90\_cdf5)} \\
+  neither                     & \code{nf90\_clobber} (classic NetCDF-3) \\
+\end{longtable}
+
+The HDF5 compression filter is configured via \code{ncfilter} (default:
+gzip, code 1), \code{ncfilter\_nparams}, and \code{ncfilter\_params}
+(up to 8 integer parameters, first entry defaults to compression level 1).
+
+%------------------------------------------------------------------------------
+\subsection{Terrain and Surface Processing}
+\label{subsec:dynparam_terrain}
+
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Default} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{domname}    & ---          & 64-character domain name (output file prefix). \\
+  \code{prestr}     & ---          & 64-character pre-processing string prefix. \\
+  \code{dirter}     & \texttt{../../Input} & Terrain input directory. \\
+  \code{inpter}     & \texttt{../DATA}     & Terrain auxiliary data directory. \\
+  \code{dirglob}    & \texttt{../../Input} & Global analysis input directory. \\
+  \code{inpglob}    & \texttt{../DATA}     & Global auxiliary data directory. \\
+  \code{dirout}     & ---          & Model output directory. \\
+  \code{moist\_filename} & \texttt{moist.nc} & Initial soil moisture file name. \\
+  \code{smthbdy}    & \code{.false.} & Apply extra smoothing at lateral boundaries. \\
+  \code{nsmthbdy}   & 5 (min)      & Number of boundary smoothing passes ($\geq5$
+    when \code{smthbdy} is true). \\
+  \code{lresamp}    & \code{.false.} & Perform a first resampling pass before
+    final terrain interpolation. \\
+  \code{ismthlev}   & 1 & Terrain smoothness level. \\
+  \code{h2opct}     & 50.0 & Minimum land-fraction percentage to classify a cell
+    as water [$\%$]. \\
+  \code{h2ohgt}     & \code{.false.} & Allow water grid cells to carry elevation. \\
+  \code{roidem}     & $0.5\sqrt{2}$ & Interpolation search radius [grid spacings]
+    for terrain resampling. \\
+  \code{lakedpth}   & \code{.false.} & Create lake bathymetry for the Hostetler
+    lake model. \\
+  \code{lsmoist}    & \code{.false.} & Generate initial soil moisture dataset. \\
+  \code{fudge\_lnd}, \code{fudge\_lnd\_s} & \code{.false.} &
+    Override land-use classification for grid / sub-grid. \\
+  \code{fudge\_tex}, \code{fudge\_tex\_s} & \code{.false.} &
+    Override soil texture classification for grid / sub-grid. \\
+  \code{fudge\_lak}, \code{fudge\_lak\_s} & \code{.false.} &
+    Override lake mask for grid / sub-grid. \\
+  \code{nveg}       & 22 & Number of land-use vegetation categories. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Fixed-Size Domain Parameters}
+\label{subsec:dynparam_fixed}
+
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{mpy}       & 12  & Months per year. \\
+  \code{ntex}      & 17  & Number of soil texture categories (STATSGO/USDA). \\
+  \code{nats}      & 12  & Number of soil classes ($\text{ntex}-5$). \\
+  \code{ndpmax}    & 200 & Maximum number of depth levels in the lake model. \\
+  \code{nspi}      & 19  & Number of spectral bins in the solar radiation scheme. \\
+  \code{npgwlev}   & 17  & Number of pressure levels for pseudo-global-warming
+    perturbations. \\
+  \code{num\_soil\_layers} & 3 (10 with CLM45) &
+    Number of soil layers. \\
+  \code{scalez}    & 0.025\,m (CLM45 only) &
+    Soil layer thickness discretisation for CLM 4.5. \\
+  \code{pthsep}    & \texttt{/} & OS path separator character. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Ensemble and Perturbation Parameters}
+\label{subsec:dynparam_ensemble}
+
+\begin{longtable}{L{4.5cm} L{3cm} L{6.5cm}}
+  \toprule
+  \textbf{Name} & \textbf{Default} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ensemble\_run}      & \code{.false.} &
+    Enable ensemble mode (reads \code{perturbparam} namelist). \\
+  \code{lperturb\_topo}     & \code{.false.} & Perturb topography. \\
+  \code{lperturb\_ts}       & \code{.false.} & Perturb surface temperature IC. \\
+  \code{lperturb\_ps}       & \code{.false.} & Perturb surface pressure IC. \\
+  \code{lperturb\_t}        & \code{.false.} & Perturb atmospheric temperature IC. \\
+  \code{lperturb\_q}        & \code{.false.} & Perturb specific humidity IC. \\
+  \code{lperturb\_u}        & \code{.false.} & Perturb zonal wind IC. \\
+  \code{lperturb\_v}        & \code{.false.} & Perturb meridional wind IC. \\
+  \code{perturb\_frac\_*}   & $10^{-3}$      &
+    Fractional perturbation amplitude for each field (all default to
+    \code{d\_r1000} $=0.001$). \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Public Procedures}
+\label{subsec:dynparam_procs}
+
+\subsubsection{\texttt{initparam(filename, ierr)}}
+
+The primary initialisation routine. Reads the model namelist file
+sequentially and populates all module-level variables.
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{filename} & \code{in} &
+    Path to the RegCM namelist file (typically \texttt{regcm.in}). \\
+  \code{ierr}     & \code{out} &
+    Error code. 0 on success; positive values indicate which namelist
+    group failed (see table below). \\
+\end{longtable}
+
+\textbf{Namelist groups read and corresponding error codes:}
+
+\begin{longtable}{L{3cm} L{2cm} L{9cm}}
+  \toprule
+  \textbf{Namelist group} & \textbf{\texttt{ierr}} & \textbf{Contents} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{dimparam}      & 2 & \code{iy}, \code{jx}, \code{kz}, \code{dsmax},
+    \code{dsmin}, \code{nsg}, \code{njxcpus}, \code{niycpus}. \\
+  \code{coreparam}     & 3 & \code{idynamic}. \\
+  \code{referenceatm}  & --- & \code{base\_state\_pressure}, \code{logp\_lrate}
+    (only when \code{idynamic}~=~2). \\
+  \code{molochparam}   & --- & Moloch NH settings
+    (only when \code{idynamic}~=~3). \\
+  \code{ncfilters}     & --- & NetCDF compression parameters
+    (only with \code{NETCDF4\_HDF5+NETCDF4\_COMPRESS}). \\
+  \code{geoparam}      & 4 & Projection, \code{ds}, \code{ptop}, center
+    coordinates, true latitudes, band/CRM flags. \\
+  \code{terrainparam}  & 5 & Terrain processing switches and directory paths. \\
+  \code{debugparam}    & --- & \code{debug\_level}, \code{dbgfrq}
+    (optional; failure ignored). \\
+  \code{boundaryparam} & --- & Sponge zone and nudging (optional). \\
+  \code{globdatparam}  & 6 & Dataset types, dates, directories,
+    \code{ibdyfrq}, calendar, \code{ensemble\_run}. \\
+  \code{cmip6param}    & 7 & CMIP6 model/experiment identifiers
+    (only when \code{dattyp} or \code{ssttyp} is \texttt{CMIP6}). \\
+  \code{cmip7param}    & 7 & CMIP7 identifiers (conditional). \\
+  \code{pmip4param}    & 7 & PMIP4 identifiers (conditional). \\
+  \code{perturbparam}  & 8 & Perturbation flags and fractions
+    (only when \code{ensemble\_run}~=~\code{.true.}). \\
+  \code{clm\_regcm}    & --- & CLM 4.5 feature flags
+    (only with \code{CLM45}; failure ignored). \\
+\end{longtable}
+
+After all namelists are read, \code{initparam} derives the convenience
+dimensions (\code{iym1}, \code{kzp1}, etc.), the staggered-grid index
+ranges, the sub-grid dimensions, the calendar scalars (\code{dayspy},
+\code{dpd}, \code{vernal\_equinox}), and the global date variables
+(\code{globidate1}, \code{globidate2}). It then calls
+\code{init\_random\_number\_generator}.
+
+\subsubsection{\texttt{init\_random\_number\_generator}}
+
+Seeds the Fortran intrinsic random number generator with a reproducible but
+rank-dependent seed:
+\[
+  \text{seed}_i = \texttt{regcm\_magick} + \texttt{myid} \times jx \times iy
+                + 37 \times (i-1)
+\]
+where \code{regcm\_magick} = 19\,590\,209 (a fixed salt constant). The
+rank-dependent term ensures that different MPI processes draw from
+uncorrelated sequences, which is required for ensemble perturbations.
+
+\subsubsection{\texttt{init\_gpu\_random\_number\_generator} (OpenACC only)}
+
+Seeds the cuRAND XORWOW pseudo-random generator on the GPU device using the
+same seed formula (adapted to \code{ik8} arithmetic). Uses the \code{curand}
+and \code{cutensorex} modules; only compiled and exposed when the
+\code{OPENACC} preprocessor flag is set.
+
+\subsubsection{\texttt{init\_fnestparam(filename, coarse\_outdir, coarse\_domname)}}
+
+Reads the \code{fnestparam} namelist group from \code{filename} to retrieve
+the output directory and domain name of the coarse-resolution parent domain
+in a one-way nested simulation. Silent on failure (defaults to empty strings).
+
+\subsubsection{\texttt{init\_globwindow(filename, lat0, lon0, lat1, lon1)}}
+
+Reads the \code{globwindow} namelist group to define a geographic bounding
+box for extracting a subset of global input data. Defaults to
+$(0, 0, 0, 0)$ (global) on failure.
+
+%------------------------------------------------------------------------------
+\subsection{Design Notes}
+\label{subsec:dynparam_design}
+
+\textbf{Global mutable state.} The deliberate use of public module-level
+variables rather than a configuration derived type makes \code{mod\_dynparam}
+a global mutable singleton. This is idiomatic Fortran~90/95 practice and
+avoids the need to thread a configuration object through every subroutine
+call. It does mean that the entire configuration is implicitly shared across
+all threads in an OpenMP context; the model serialises configuration
+access by ensuring \code{initparam} completes before any parallel region.
+
+\textbf{Computed index ranges.} The large number of named index bounds
+(\code{ice1}--\code{jcii2}, ghost-cell ranges, etc.) is a deliberate
+performance optimisation: it prevents repeated subtraction and boundary
+checks inside inner loops, and it makes loop bounds self-documenting.
+The naming convention --- \code{i}~=~I direction (latitude), \code{j}~=~J
+direction (longitude), \code{c}~=~cross, \code{d}~=~dot, \code{e}~=~external,
+\code{i} suffix~=~internal, \code{ii}~=~doubly internal, \code{g\{a,b,c\}}~=~ghost
+layers A/B/C, \code{sl}~=~semi-Lagrangian stencil --- is consistent
+throughout the codebase.
+
+\textbf{Sponge zone scaling.} Rather than requiring users to specify the
+sponge width in grid points for every resolution, \code{initparam} scales
+a reference width (6 points at 50\,km) to the actual grid spacing. This
+ensures that the physical width of the sponge zone (in km) is approximately
+constant across resolutions. The user can override the scaled value via the
+\code{boundaryparam} namelist.
+
+\textbf{NetCDF format selection at compile time.} The \code{iomode} variable
+is a compile-time constant (though declared as a variable to allow
+initialisation from NetCDF constants). This means the output format cannot
+be changed at runtime; switching between NetCDF-3 classic, CDF-5, and
+NetCDF4/HDF5 requires a rebuild. This is consistent with the requirement that
+all output files within a simulation use the same format.
+
+\textbf{Dependency on \texttt{mpi\_f08}.} Only \code{type(mpi\_comm)} is
+imported; no MPI procedures are called. The communicator variable
+\code{mycomm} is set by the parallel initialisation code in the main program,
+not by \code{initparam}. This keeps \code{mod\_dynparam} free of MPI
+call semantics while still being able to store and pass the communicator
+handle.
+

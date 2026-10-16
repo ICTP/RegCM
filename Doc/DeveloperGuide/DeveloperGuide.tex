@@ -1,3 +1,86 @@
+\documentclass[11pt,a4paper]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{natbib}
+
+% Hyperref setup
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  urlcolor=blue!60!black,
+  citecolor=blue!60!black,
+  pdftitle={RegCM -- Fortran Documentation},
+  pdfauthor={RegCM Documentation},
+}
+
+% Listings setup for Fortran
+\lstdefinelanguage{Fortran2008}{
+  morekeywords={module,use,implicit,none,public,private,parameter,
+                real,integer,logical,character,type,end,contains,
+                function,subroutine,intent,in,out,inout,elemental,
+                pure,result,only,call,if,then,else,end if,do,end do,
+                include},
+  sensitive=false,
+  morecomment=[l]{!},
+  morestring=[b]",
+}
+\lstset{
+  language=Fortran2008,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries\color{blue!70!black},
+  commentstyle=\itshape\color{green!50!black},
+  stringstyle=\color{orange!80!black},
+  numbers=none,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{gray!40},
+  backgroundcolor=\color{gray!5},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=2,
+  xleftmargin=6pt,
+  xrightmargin=6pt,
+}
+ 
+% Table column types
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+ 
+% Section title formatting
+\titleformat{\section}{\large\bfseries}{}{0pt}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0pt}{}
+\titleformat{\subsubsection}{\normalsize\itshape\bfseries}{}{0pt}{}
+ 
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small RegCM --- Fortran Documentation}
+\fancyhead[R]{\small \texttt{ICTP/RegCM}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+ 
+% Utility macro for code names
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\param}[1]{\texttt{\bfseries #1}}
+ 
+% Caption setup
+\captionsetup{font=small, labelfont=bf}
+
+\renewcommand{\baselinestretch}{0.5} 
+
 \newcommand{\Rule}{\rule[-.7ex]{0ex}{2.9ex}}
 \newcommand{\un}{\underline}
 \newcommand{\be}{\begin{equation}}
@@ -14,8 +97,8 @@
 \newcommand{\build}{{\rout build\_all}}
 \newcommand{\dlgen}{{\rout dlgen}}
 \newcommand{\merge}{{\rout merge\_field}}
-\newcommand{\D}{{\rout REGCM\_4.0{ }}}
-\newcommand{\PR}{{\rout REGCM\_4.3{ }}}
+\newcommand{\D}{{\rout RegCM{ }}}
+\newcommand{\PR}{{\rout RegCM{ }}}
 \newcommand{\OA}{{\rout OASIS3-MCT\_5.0}}
 \newcommand{\dir}{\it}
 \newcommand{\macro}{\bf}
@@ -36,7 +119,6 @@
 
 \newcommand{\ddd}{........................}
 
-
 \def\goodgap{
 \hspace{\subfigtopskip}
 \hspace{\subfigbottomskip}}
@@ -45,17 +127,7 @@
  \kern-1pt \nointerlineskip}$\hfil\displaystyle{#1}\hfil$\crcr}}}
 
 %
-\documentclass[12pt,epsf]{report}
-\usepackage{listings}
-\usepackage{natbib}
-
-\lstset{language=Fortran}
-\lstset{basicstyle=\scriptsize,commentstyle=\scriptsize,stringstyle=\scriptsize}
-
-\renewcommand{\baselinestretch}{0.5} 
-
 \begin{document}
-
 %
 \baselineskip=0.8truecm
 \parindent=1.2truecm
@@ -79,6 +151,11 @@
 \pagenumbering{roman}
 
 \include{MainDeveloperGuide}
+
+\chapter{Shared code}
+\include{share_and_utility.tex}
+
+\chapter{Couplers}
 \include{OASISInterface}
 
 \addcontentsline{toc}{chapter}{References}    % suppressed by * option 
