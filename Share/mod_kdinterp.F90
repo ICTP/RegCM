@@ -569,7 +569,7 @@ module mod_kdinterp
       do i = 1, ni
         do j = 1, nj
           if ( h_i%tg%ft(j,i)%np > 0 ) then
-            deallocate(h_i%tg%ft(j,i)%wgt)
+            if ( associated(h_i%tg%ft(j,i)%wgt) ) deallocate(h_i%tg%ft(j,i)%wgt)
           end if
         end do
       end do

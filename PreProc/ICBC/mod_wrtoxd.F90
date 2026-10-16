@@ -47,6 +47,7 @@ module mod_wrtoxd
   !aero species in chemistry lateral boundaries
   integer(ik4), parameter :: naero = 12
   integer(ik4), parameter :: maxaeout = 16
+  integer(ik4), parameter :: nvarbnds = 2
 
   integer(ik4) :: naesp = -1
 
@@ -119,6 +120,7 @@ module mod_wrtoxd
   type(nc_output_stream), save :: ncoutae
 
   type(ncvariable2d_mixed), save, dimension(2) :: v2dvar_base
+  type(ncvariable3d_mixed), save, dimension(2) :: v3dvar_bnds_oxd
   type(ncvariable3d_mixed), save, dimension(ncbmz) :: v3dvar_ch
   type(ncvariable3d_mixed), save, dimension(noxsp) :: v3dvar_ox
   type(ncvariable3d_mixed), save, dimension(maxaeout) :: v3dvar_ae
@@ -239,6 +241,26 @@ module mod_wrtoxd
     v2dvar_base(2)%standard_name = 'latitude'
     v2dvar_base(1)%rval => xlon
     v2dvar_base(2)%rval => xlat
+    v3dvar_bnds_oxd(1)%vname = 'xlon_bnds'
+    v3dvar_bnds_oxd(1)%vunit = 'degrees_east'
+    v3dvar_bnds_oxd(1)%long_name = 'Cell corner longitudes on Cross Points'
+    v3dvar_bnds_oxd(1)%standard_name = 'longitude'
+    v3dvar_bnds_oxd(1)%axis = 'nxy'
+    v3dvar_bnds_oxd(1)%rval => xlon_bnds
+    v3dvar_bnds_oxd(2)%vname = 'xlat_bnds'
+    v3dvar_bnds_oxd(2)%vunit = 'degrees_north'
+    v3dvar_bnds_oxd(2)%long_name = 'Cell corner latitudes on Cross Points'
+    v3dvar_bnds_oxd(2)%standard_name = 'latitude'
+    v3dvar_bnds_oxd(2)%axis = 'nxy'
+    v3dvar_bnds_oxd(2)%rval => xlat_bnds
+    do i = 1, nvarbnds
+      v3dvar_bnds_oxd(i)%j1 = -1
+      v3dvar_bnds_oxd(i)%j2 = -1
+      v3dvar_bnds_oxd(i)%i1 = -1
+      v3dvar_bnds_oxd(i)%i2 = -1
+      v3dvar_bnds_oxd(i)%k1 = -1
+      v3dvar_bnds_oxd(i)%k2 = -1
+    end do
   end subroutine init_outoxd
 
   subroutine close_outoxd
@@ -266,6 +288,12 @@ module mod_wrtoxd
       ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutch,v2dvar_base(1))
     call outstream_addvar(ncoutch,v2dvar_base(2))
+    call outstream_addvar(ncoutch,v3dvar_bnds_oxd(1))
+    call outstream_addvar(ncoutch,v3dvar_bnds_oxd(2))
+    call outstream_addvaratt(ncoutch,v2dvar_base(1), &
+      ncattribute_string('bounds','xlon_bnds'))
+    call outstream_addvaratt(ncoutch,v2dvar_base(2), &
+      ncattribute_string('bounds','xlat_bnds'))
     do ivar = 1, ncbmz
       v3dvar_ch(ivar)%vname = cbmzspec(ivar)
       v3dvar_ch(ivar)%vunit = 'kg kg-1'
@@ -280,6 +308,8 @@ module mod_wrtoxd
     call outstream_enable(ncoutch,sigmah)
     call outstream_writevar(ncoutch,v2dvar_base(1))
     call outstream_writevar(ncoutch,v2dvar_base(2))
+    call outstream_writevar(ncoutch,v3dvar_bnds_oxd(1))
+    call outstream_writevar(ncoutch,v3dvar_bnds_oxd(2))
   end subroutine newfile_ch_icbc
 
   subroutine newfile_ox_icbc(idate1)
@@ -300,6 +330,12 @@ module mod_wrtoxd
       ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutox,v2dvar_base(1))
     call outstream_addvar(ncoutox,v2dvar_base(2))
+    call outstream_addvar(ncoutox,v3dvar_bnds_oxd(1))
+    call outstream_addvar(ncoutox,v3dvar_bnds_oxd(2))
+    call outstream_addvaratt(ncoutox,v2dvar_base(1), &
+      ncattribute_string('bounds','xlon_bnds'))
+    call outstream_addvaratt(ncoutox,v2dvar_base(2), &
+      ncattribute_string('bounds','xlat_bnds'))
     do ivar = 1, noxsp
       v3dvar_ox(ivar)%vname = oxspec(ivar)
       v3dvar_ox(ivar)%vunit = 'kg kg-1'
@@ -314,6 +350,8 @@ module mod_wrtoxd
     call outstream_enable(ncoutox,sigmah)
     call outstream_writevar(ncoutox,v2dvar_base(1))
     call outstream_writevar(ncoutox,v2dvar_base(2))
+    call outstream_writevar(ncoutox,v3dvar_bnds_oxd(1))
+    call outstream_writevar(ncoutox,v3dvar_bnds_oxd(2))
   end subroutine newfile_ox_icbc
 
   subroutine newfile_ae_icbc(idate1)
@@ -334,6 +372,12 @@ module mod_wrtoxd
       ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutae,v2dvar_base(1))
     call outstream_addvar(ncoutae,v2dvar_base(2))
+    call outstream_addvar(ncoutae,v3dvar_bnds_oxd(1))
+    call outstream_addvar(ncoutae,v3dvar_bnds_oxd(2))
+    call outstream_addvaratt(ncoutae,v2dvar_base(1), &
+      ncattribute_string('bounds','xlon_bnds'))
+    call outstream_addvaratt(ncoutae,v2dvar_base(2), &
+      ncattribute_string('bounds','xlat_bnds'))
     do ivar = 1, naero
       v3dvar_ae(ivar)%vname = aerospec(ivar)
       v3dvar_ae(ivar)%vunit = 'kg kg-1'
@@ -348,6 +392,8 @@ module mod_wrtoxd
     call outstream_enable(ncoutae,sigmah)
     call outstream_writevar(ncoutae,v2dvar_base(1))
     call outstream_writevar(ncoutae,v2dvar_base(2))
+    call outstream_writevar(ncoutae,v3dvar_bnds_oxd(1))
+    call outstream_writevar(ncoutae,v3dvar_bnds_oxd(2))
   end subroutine newfile_ae_icbc
 
   subroutine newfile_ae_icbc1(idate1)
@@ -369,6 +415,12 @@ module mod_wrtoxd
           ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutae,v2dvar_base(1))
     call outstream_addvar(ncoutae,v2dvar_base(2))
+    call outstream_addvar(ncoutae,v3dvar_bnds_oxd(1))
+    call outstream_addvar(ncoutae,v3dvar_bnds_oxd(2))
+    call outstream_addvaratt(ncoutae,v2dvar_base(1), &
+      ncattribute_string('bounds','xlon_bnds'))
+    call outstream_addvaratt(ncoutae,v2dvar_base(2), &
+      ncattribute_string('bounds','xlat_bnds'))
     do ivar = 1, naesp
       if ( aespec(ivar) == 'SOA' ) cycle
       if ( aespec(ivar) == 'SSLT03' ) cycle
@@ -401,6 +453,8 @@ module mod_wrtoxd
     call outstream_enable(ncoutae,sigmah)
     call outstream_writevar(ncoutae,v2dvar_base(1))
     call outstream_writevar(ncoutae,v2dvar_base(2))
+    call outstream_writevar(ncoutae,v3dvar_bnds_oxd(1))
+    call outstream_writevar(ncoutae,v3dvar_bnds_oxd(2))
   end subroutine newfile_ae_icbc1
 
   subroutine write_ch_icbc(idate)

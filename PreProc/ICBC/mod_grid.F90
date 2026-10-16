@@ -30,16 +30,32 @@ module mod_grid
 
   private
 
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat, xlon
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: dlat, dlon
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: ulat, ulon
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: vlat, vlon
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: topogm, mask
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: xlon
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: xlat_bnds
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: xlon_bnds
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: dlat
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: dlon
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: dlat_bnds
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: dlon_bnds
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ulat
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: ulon
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: ulat_bnds
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: ulon_bnds
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: vlat
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: vlon
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: vlat_bnds
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: vlon_bnds
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: topogm
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: mask
   real(rkx), public, pointer, contiguous, dimension(:,:) :: topou
   real(rkx), public, pointer, contiguous, dimension(:,:) :: topov
   real(rkx), public, pointer, contiguous, dimension(:,:) :: landuse
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: msfx, msfd
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: pa, tlayer, za
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: msfx
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: msfd
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: pa
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: tlayer
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: za
   real(rkx), public, pointer, contiguous, dimension(:) :: sigmah
   real(rkx), public, pointer, contiguous, dimension(:) :: sigmaf
   real(rkx), public, pointer, contiguous, dimension(:) :: dsigma
@@ -71,6 +87,8 @@ module mod_grid
     call getmem(topogm,1,nx,1,ny,'mod_grid:topogm')
     call getmem(mask,1,nx,1,ny,'mod_grid:mask')
     call getmem(sigmaf,1,nz+1,'mod_grid:sigmaf')
+    call getmem(xlat_bnds,1,4,1,nx,1,ny,'mod_grid:xlat_bnds')
+    call getmem(xlon_bnds,1,4,1,nx,1,ny,'mod_grid:xlon_bnds')
     call read_domain_hinfo
   end subroutine init_hgrid
 
@@ -80,16 +98,24 @@ module mod_grid
     integer(ik4), intent(in) :: nx, ny, nz
     call getmem(xlat,1,nx,1,ny,'mod_grid:xlat')
     call getmem(xlon,1,nx,1,ny,'mod_grid:xlon')
+    call getmem(xlat_bnds,1,4,1,nx,1,ny,'mod_grid:xlat_bnds')
+    call getmem(xlon_bnds,1,4,1,nx,1,ny,'mod_grid:xlon_bnds')
     if ( idynamic == 3 ) then
       call getmem(ulat,1,nx,1,ny,'mod_grid:ulat')
       call getmem(ulon,1,nx,1,ny,'mod_grid:ulon')
+      call getmem(ulat_bnds,1,4,1,nx,1,ny,'mod_grid:ulat_bnds')
+      call getmem(ulon_bnds,1,4,1,nx,1,ny,'mod_grid:ulon_bnds')
       call getmem(vlat,1,nx,1,ny,'mod_grid:vlat')
       call getmem(vlon,1,nx,1,ny,'mod_grid:vlon')
+      call getmem(vlat_bnds,1,4,1,nx,1,ny,'mod_grid:vlat_bnds')
+      call getmem(vlon_bnds,1,4,1,nx,1,ny,'mod_grid:vlon_bnds')
       call getmem(topou,1,nx,1,ny,'mod_grid:topou')
       call getmem(topov,1,nx,1,ny,'mod_grid:topov')
     else
       call getmem(dlat,1,nx,1,ny,'mod_grid:dlat')
       call getmem(dlon,1,nx,1,ny,'mod_grid:dlon')
+      call getmem(dlat_bnds,1,4,1,nx,1,ny,'mod_grid:dlat_bnds')
+      call getmem(dlon_bnds,1,4,1,nx,1,ny,'mod_grid:dlon_bnds')
     end if
     call getmem(topogm,1,nx,1,ny,'mod_grid:topogm')
     call getmem(mask,1,nx,1,ny,'mod_grid:mask')
@@ -124,7 +150,8 @@ module mod_grid
     character(len=256) :: fname
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
-    call read_domain(incin,sigmaf,xlat,xlon,ht=topogm,mask=mask)
+    call read_domain(incin,sigmaf,xlat,xlon,ht=topogm,mask=mask, &
+                     xlat_bnds=xlat_bnds,xlon_bnds=xlon_bnds)
     call closefile(incin)
   end subroutine read_domain_hinfo
 
@@ -139,8 +166,10 @@ module mod_grid
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
     if ( idynamic == 2 ) then
-      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,ht=topogm, &
-                       mask=mask,lndcat=landuse,msfx=msfx,msfd=msfd)
+      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,ht=topogm,   &
+                       mask=mask,lndcat=landuse,msfx=msfx,msfd=msfd, &
+                       xlat_bnds=xlat_bnds,xlon_bnds=xlon_bnds,      &
+                       dlat_bnds=dlat_bnds,dlon_bnds=dlon_bnds)
       call read_reference_surface_temp(incin,ts0)
       call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
       do k = 1, kz
@@ -150,7 +179,10 @@ module mod_grid
     else if ( idynamic == 3 ) then
       call read_domain(incin,sigmaf,xlat,xlon,ulat=ulat,ulon=ulon, &
                        vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
-                       lndcat=landuse,topou=topou,topov=topov)
+                       lndcat=landuse,topou=topou,topov=topov,     &
+                       xlat_bnds=xlat_bnds,xlon_bnds=xlon_bnds,    &
+                       ulat_bnds=ulat_bnds,ulon_bnds=ulon_bnds,    &
+                       vlat_bnds=vlat_bnds,vlon_bnds=vlon_bnds)
       mo_dzita = mo_ztop/real(kz,rkx)
       call model_zitaf(zitaf,mo_ztop)
       call model_zitah(zitah,mo_ztop)
@@ -173,8 +205,10 @@ module mod_grid
         end do
       end do
     else
-      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,ht=topogm, &
-                       mask=mask,lndcat=landuse)
+      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,ht=topogm,   &
+                       mask=mask,lndcat=landuse,xlat_bnds=xlat_bnds, &
+                       xlon_bnds=xlon_bnds,dlat_bnds=dlat_bnds,      &
+                       dlon_bnds=dlon_bnds)
       do k = 1, kz
         sigmah(k) = d_half*(sigmaf(k+1)+sigmaf(k))
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))

@@ -31,12 +31,15 @@ module mod_sst_grid
 
   real(rkx), public, pointer, contiguous, dimension(:,:) :: sstmm, icemm
   real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat, xlon
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xlat_bnds, xlon_bnds
   real(rkx), pointer, contiguous, dimension(:,:) :: topo, mask
   real(rkx), pointer, contiguous, dimension(:) :: sigma
 
   type(nc_output_stream), save :: ncout
   integer(ik4), parameter :: nvar2d = 4
+  integer(ik4), parameter :: nvar_bnds = 2   ! xlon_bnds, xlat_bnds
   type(ncvariable2d_mixed), save, dimension(nvar2d) :: v2dvar_base
+  type(ncvariable3d_mixed), save, dimension(nvar_bnds) :: v3dvar_bnds
   type(ncvariable2d_mixed), save :: v2dvar_sst
 
   public :: init_grid, read_domain_info, setup_outvars, open_sstfile, &
@@ -50,6 +53,8 @@ module mod_sst_grid
     call getmem(icemm,1,jx,1,iy,'mod_sst_grid:icemm')
     call getmem(xlat,1,jx,1,iy,'mod_sst_grid:xlat')
     call getmem(xlon,1,jx,1,iy,'mod_sst_grid:xlon')
+    call getmem(xlat_bnds,1,4,1,jx,1,iy,'mod_sst_grid:xlat_bnds')
+    call getmem(xlon_bnds,1,4,1,jx,1,iy,'mod_sst_grid:xlon_bnds')
     call getmem(topo,1,jx,1,iy,'mod_sst_grid:topo')
     call getmem(mask,1,jx,1,iy,'mod_sst_grid:mask')
     call getmem(sigma,1,kzp1,'mod_sst_grid:sigma')
@@ -60,7 +65,16 @@ module mod_sst_grid
     character(len=256), intent(in) :: terfile
     integer(ik4) :: incin
     call openfile_withname(terfile,incin)
-    call read_domain(incin,sigma,xlat,xlon,ht=topo,mask=mask)
+    ! Use the type reader so that mddom_io (including bound arrays) is fully
+    ! populated; then alias the fields we need into local pointers.
+    call read_domain(incin)
+    sigma    => mddom_io%sigma
+    xlat     => mddom_io%xlat
+    xlon     => mddom_io%xlon
+    xlat_bnds => mddom_io%xlat_bnds
+    xlon_bnds => mddom_io%xlon_bnds
+    topo     => mddom_io%ht
+    mask     => mddom_io%mask
     call closefile(incin)
   end subroutine read_domain_info
 
@@ -82,6 +96,29 @@ module mod_sst_grid
     v2dvar_base(4)%vunit = 'm'
     v2dvar_base(4)%long_name = 'Surface Model Elevation'
     v2dvar_base(4)%standard_name = 'surface_altitude'
+
+    v3dvar_bnds(1)%vname = 'xlon_bnds'
+    v3dvar_bnds(1)%vunit = 'degrees_east'
+    v3dvar_bnds(1)%long_name = 'Cell corner longitudes on Cross Points'
+    v3dvar_bnds(1)%standard_name = 'longitude'
+    v3dvar_bnds(1)%axis = 'nxy'
+    v3dvar_bnds(2)%vname = 'xlat_bnds'
+    v3dvar_bnds(2)%vunit = 'degrees_north'
+    v3dvar_bnds(2)%long_name = 'Cell corner latitudes on Cross Points'
+    v3dvar_bnds(2)%standard_name = 'latitude'
+    v3dvar_bnds(2)%axis = 'nxy'
+    v3dvar_bnds(1)%j1 = -1
+    v3dvar_bnds(1)%j2 = -1
+    v3dvar_bnds(1)%i1 = -1
+    v3dvar_bnds(1)%i2 = -1
+    v3dvar_bnds(1)%k1 = -1
+    v3dvar_bnds(1)%k2 = -1
+    v3dvar_bnds(2)%j1 = -1
+    v3dvar_bnds(2)%j2 = -1
+    v3dvar_bnds(2)%i1 = -1
+    v3dvar_bnds(2)%i2 = -1
+    v3dvar_bnds(2)%k1 = -1
+    v3dvar_bnds(2)%k2 = -1
 
     v2dvar_sst%vname = 'sst'
     v2dvar_sst%vunit = 'K'
@@ -110,14 +147,27 @@ module mod_sst_grid
     v2dvar_base(2)%rval => xlat
     v2dvar_base(3)%rval => mask
     v2dvar_base(4)%rval => topo
+    v3dvar_bnds(1)%rval => xlon_bnds
+    v3dvar_bnds(2)%rval => xlat_bnds
     do ivar = 1, nvar2d
       call outstream_addvar(ncout,v2dvar_base(ivar))
     end do
+    do ivar = 1, nvar_bnds
+      call outstream_addvar(ncout,v3dvar_bnds(ivar))
+    end do
+    ! CF 'bounds' attributes on coordinate variables
+    call outstream_addvaratt(ncout,v2dvar_base(1), &
+      ncattribute_string('bounds','xlon_bnds'))
+    call outstream_addvaratt(ncout,v2dvar_base(2), &
+      ncattribute_string('bounds','xlat_bnds'))
     call outstream_addvar(ncout,v2dvar_sst)
     v2dvar_sst%rval => sstmm
     call outstream_enable(ncout,sigma)
     do ivar = 1, nvar2d
       call outstream_writevar(ncout,v2dvar_base(ivar))
+    end do
+    do ivar = 1, nvar_bnds
+      call outstream_writevar(ncout,v3dvar_bnds(ivar))
     end do
   end subroutine open_sstfile
 

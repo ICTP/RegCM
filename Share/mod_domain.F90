@@ -33,12 +33,20 @@ module mod_domain
     real(rkx), pointer, contiguous, dimension(:) :: sigma => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: xlat => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: xlon => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: xlat_bnds => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: xlon_bnds => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: dlat => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: dlon => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: dlat_bnds => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: dlon_bnds => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: ulat => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: ulon => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: ulat_bnds => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: ulon_bnds => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: vlat => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: vlon => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: vlat_bnds => null()
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: vlon_bnds => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: ht => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: mask => null()
     real(rkx), pointer, contiguous, dimension(:,:) :: lndcat => null()
@@ -77,14 +85,22 @@ module mod_domain
     end if
     call read_var2d_static(ncid,'xlat',mddom_io%xlat)
     call read_var2d_static(ncid,'xlon',mddom_io%xlon)
+    call read_var3d_static(ncid,'xlat_bnds',mddom_io%xlat_bnds)
+    call read_var3d_static(ncid,'xlon_bnds',mddom_io%xlon_bnds)
     if ( idynamic == 3 ) then
       call read_var2d_static(ncid,'ulat',mddom_io%ulat)
       call read_var2d_static(ncid,'ulon',mddom_io%ulon)
+      call read_var3d_static(ncid,'ulat_bnds',mddom_io%ulat_bnds)
+      call read_var3d_static(ncid,'ulon_bnds',mddom_io%ulon_bnds)
       call read_var2d_static(ncid,'vlat',mddom_io%vlat)
       call read_var2d_static(ncid,'vlon',mddom_io%vlon)
+      call read_var3d_static(ncid,'vlat_bnds',mddom_io%vlat_bnds)
+      call read_var3d_static(ncid,'vlon_bnds',mddom_io%vlon_bnds)
     else
       call read_var2d_static(ncid,'dlat',mddom_io%dlat)
       call read_var2d_static(ncid,'dlon',mddom_io%dlon)
+      call read_var3d_static(ncid,'dlat_bnds',mddom_io%dlat_bnds)
+      call read_var3d_static(ncid,'dlon_bnds',mddom_io%dlon_bnds)
       call read_var2d_static(ncid,'xmap',mddom_io%msfx)
       call read_var2d_static(ncid,'dmap',mddom_io%msfd)
     end if
@@ -97,30 +113,64 @@ module mod_domain
   end subroutine read_domain_type
 
   subroutine read_domain_array_double(ncid,sigma,xlat,xlon,dlat,dlon, &
-                                      ulat,ulon,vlat,vlon,ht,mask,    &
-                                      lndcat,msfx,msfd,coriol,snowam, &
-                                      hlake,topou,topov,lsubgrid)
+          ulat,ulon,vlat,vlon,ht,mask,lndcat,msfx,msfd,coriol,snowam, &
+          hlake,topou,topov,xlat_bnds,xlon_bnds,dlat_bnds,dlon_bnds,  &
+          ulat_bnds,ulon_bnds,vlat_bnds,vlon_bnds,lsubgrid)
     implicit none
     integer(ik4), intent(in) :: ncid
     real(rk8), pointer, contiguous, dimension(:), intent(inout) :: sigma
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlat
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlon
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: dlat
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: dlon
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: ulat
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: ulon
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: vlat
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: vlon
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: ht
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: mask
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: lndcat
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: msfx
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: msfd
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: coriol
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: snowam
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: hlake
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: topou
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout), optional :: topov
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: xlat
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: xlon
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: dlat
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: dlon
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: ulat
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: ulon
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: vlat
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: vlon
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: ht
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: mask
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: lndcat
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: msfx
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: msfd
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: coriol
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: snowam
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: hlake
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: topou
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: topov
+    real(rk8), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: xlat_bnds
+    real(rk8), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: xlon_bnds
+    real(rk8), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: dlat_bnds
+    real(rk8), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: dlon_bnds
+    real(rk8), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: ulat_bnds
+    real(rk8), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: vlon_bnds
+    real(rk8), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: vlat_bnds
+    real(rk8), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: ulon_bnds
     logical, intent(in), optional :: lsubgrid
     logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
@@ -156,33 +206,75 @@ module mod_domain
     if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
     if ( present(topou) ) call read_var2d_static(ncid,'topou',topou)
     if ( present(topov) ) call read_var2d_static(ncid,'topov',topov)
+    if ( present(xlat_bnds) ) call read_var3d_static(ncid,'xlat_bnds',xlat_bnds)
+    if ( present(xlon_bnds) ) call read_var3d_static(ncid,'xlon_bnds',xlon_bnds)
+    if ( present(dlat_bnds) ) call read_var3d_static(ncid,'dlat_bnds',dlat_bnds)
+    if ( present(dlon_bnds) ) call read_var3d_static(ncid,'dlon_bnds',dlon_bnds)
+    if ( present(ulat_bnds) ) call read_var3d_static(ncid,'ulat_bnds',ulat_bnds)
+    if ( present(ulon_bnds) ) call read_var3d_static(ncid,'ulon_bnds',ulon_bnds)
+    if ( present(vlat_bnds) ) call read_var3d_static(ncid,'vlat_bnds',vlat_bnds)
+    if ( present(vlon_bnds) ) call read_var3d_static(ncid,'vlon_bnds',vlon_bnds)
   end subroutine read_domain_array_double
 
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon, &
-                                      ulat,ulon,vlat,vlon,ht,mask,    &
-                                      lndcat,msfx,msfd,coriol,snowam, &
-                                      hlake,topou,topov,lsubgrid)
+          ulat,ulon,vlat,vlon,ht,mask,lndcat,msfx,msfd,coriol,snowam, &
+          hlake,topou,topov,xlat_bnds,xlon_bnds,dlat_bnds,dlon_bnds,  &
+          ulat_bnds,ulon_bnds,vlat_bnds,vlon_bnds,lsubgrid)
     implicit none
     integer(ik4), intent(in) :: ncid
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: sigma
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlat
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: xlon
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: dlat
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: dlon
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: ulat
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: ulon
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: vlat
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: vlon
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: ht
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: mask
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: lndcat
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: msfx
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: msfd
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: coriol
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: snowam
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: hlake
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: topou
-    real(rk4), pointer, contiguous, dimension(:,:), intent(inout), optional :: topov
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: xlat
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: xlon
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: dlat
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: dlon
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: ulat
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: ulon
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: vlat
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: vlon
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: ht
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: mask
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: lndcat
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: msfx
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: msfd
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: coriol
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: snowam
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: hlake
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: topou
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: topov
+    real(rk4), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: xlat_bnds
+    real(rk4), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: xlon_bnds
+    real(rk4), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: dlat_bnds
+    real(rk4), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: dlon_bnds
+    real(rk4), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: ulat_bnds
+    real(rk4), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: vlon_bnds
+    real(rk4), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: vlat_bnds
+    real(rk4), pointer, contiguous, dimension(:,:,:), &
+                       intent(inout), optional :: ulon_bnds
     logical, intent(in), optional :: lsubgrid
     logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
@@ -218,15 +310,27 @@ module mod_domain
     if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
     if ( present(topou) ) call read_var2d_static(ncid,'topou',topou)
     if ( present(topov) ) call read_var2d_static(ncid,'topov',topov)
+    if ( present(xlat_bnds) ) call read_var3d_static(ncid,'xlat_bnds',xlat_bnds)
+    if ( present(xlon_bnds) ) call read_var3d_static(ncid,'xlon_bnds',xlon_bnds)
+    if ( present(dlat_bnds) ) call read_var3d_static(ncid,'dlat_bnds',dlat_bnds)
+    if ( present(dlon_bnds) ) call read_var3d_static(ncid,'dlon_bnds',dlon_bnds)
+    if ( present(ulat_bnds) ) call read_var3d_static(ncid,'ulat_bnds',ulat_bnds)
+    if ( present(ulon_bnds) ) call read_var3d_static(ncid,'ulon_bnds',ulon_bnds)
+    if ( present(vlat_bnds) ) call read_var3d_static(ncid,'vlat_bnds',vlat_bnds)
+    if ( present(vlon_bnds) ) call read_var3d_static(ncid,'vlon_bnds',vlon_bnds)
   end subroutine read_domain_array_single
 
   subroutine read_reference_state(ncid,ps0,pr0,t0,rho0,ts0)
     implicit none
     integer, intent(in) :: ncid
-    real(rkx), pointer, contiguous, dimension(:,:), intent(inout), optional :: ps0
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout), optional :: pr0
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout), optional :: t0
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout), optional :: rho0
+    real(rkx), pointer, contiguous, &
+      dimension(:,:), intent(inout), optional :: ps0
+    real(rkx), pointer, contiguous, &
+      dimension(:,:,:), intent(inout), optional :: pr0
+    real(rkx), pointer, contiguous, &
+      dimension(:,:,:), intent(inout), optional :: t0
+    real(rkx), pointer, contiguous, &
+      dimension(:,:,:), intent(inout), optional :: rho0
     real(rkx), intent(out) :: ts0
     call read_var2d_static(ncid,'ps0',ps0)
     call read_var3d_static(ncid,'pr0',pr0)
@@ -247,14 +351,22 @@ module mod_domain
     call getmem(mddom_io%sigma,1,kz+1,'domain:sigma')
     call getmem(mddom_io%xlat,1,jx,1,iy,'domain:xlat')
     call getmem(mddom_io%xlon,1,jx,1,iy,'domain:xlon')
+    call getmem(mddom_io%xlat_bnds,1,4,1,jx,1,iy,'domain:xlat_bnds')
+    call getmem(mddom_io%xlon_bnds,1,4,1,jx,1,iy,'domain:xlon_bnds')
     if ( idynamic == 3 ) then
       call getmem(mddom_io%ulat,1,jx,1,iy,'domain:ulat')
       call getmem(mddom_io%ulon,1,jx,1,iy,'domain:ulon')
+      call getmem(mddom_io%ulat_bnds,1,4,1,jx,1,iy,'domain:ulat_bnds')
+      call getmem(mddom_io%ulon_bnds,1,4,1,jx,1,iy,'domain:ulon_bnds')
       call getmem(mddom_io%vlat,1,jx,1,iy,'domain:vlat')
       call getmem(mddom_io%vlon,1,jx,1,iy,'domain:vlon')
+      call getmem(mddom_io%vlat_bnds,1,4,1,jx,1,iy,'domain:vlat_bnds')
+      call getmem(mddom_io%vlon_bnds,1,4,1,jx,1,iy,'domain:vlon_bnds')
     else
       call getmem(mddom_io%dlat,1,jx,1,iy,'domain:dlat')
       call getmem(mddom_io%dlon,1,jx,1,iy,'domain:dlon')
+      call getmem(mddom_io%dlat_bnds,1,4,1,jx,1,iy,'domain:dlat_bnds')
+      call getmem(mddom_io%dlon_bnds,1,4,1,jx,1,iy,'domain:dlon_bnds')
       call getmem(mddom_io%msfx,1,jx,1,iy,'domain:msfx')
       call getmem(mddom_io%msfd,1,jx,1,iy,'domain:msfd')
     end if

@@ -375,7 +375,7 @@ module mod_sort
     real(rk4), dimension(n) :: b
 
     if ( n <= 1 ) then
-      mostfrequent_r4 = b(1)
+      mostfrequent_r4 = a(1)
       return
     end if
     b(:) = a(:)
@@ -410,7 +410,7 @@ module mod_sort
     integer :: imax, nmax
     real(rk8), dimension(n) :: b
     if ( n <= 1 ) then
-      mostfrequent_r8 = b(1)
+      mostfrequent_r8 = a(1)
       return
     end if
     b(:) = a(:)

@@ -422,6 +422,9 @@ module mod_sst_gndnc
       end if
     else
       call getworkf(2,workf)
+      where ( is_nan(workf) )
+        workf = 1.0E20_rkx
+      end where
     end if
     if ( ssttyp == 'TMIST' ) then
       do j = 1, jlat

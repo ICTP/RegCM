@@ -93,7 +93,7 @@ program terrain
 
   implicit none
   character(len=256) :: char_lnd, char_tex, char_lak
-  character(len=256) :: namelistfile, prgname, outname
+  character(len=256) :: namelistfile, prgname
   integer(ik4) :: i, j, k, ierr, ism, mmx
   integer(ik4) :: year, month, day, hour
   logical :: ibndry

@@ -50,8 +50,10 @@ module mod_write
   type(nc_output_stream), save :: ncout
   integer(ik4) :: nvar3d
   integer(ik4) :: nvar2d
+  integer(ik4) :: nvar_bnds   ! number of CF cell-bound coordinate variables
   type(ncvariable2d_mixed), allocatable, save, dimension(:) :: v2dvar_icbc
   type(ncvariable3d_mixed), allocatable, save, dimension(:) :: v3dvar_icbc
+  type(ncvariable3d_mixed), allocatable, save, dimension(:) :: v3dvar_bnds
   logical :: qli_present = .false.
   logical, parameter :: do_wavelet_denoise = .true.
   integer, parameter :: ntt = 3
@@ -68,7 +70,7 @@ module mod_write
   subroutine init_outpgw(plevs)
     implicit none
     real(rkx), pointer, contiguous, dimension(:), intent(in) :: plevs
-    integer :: nplevs, ierr
+    integer :: i, nplevs, ierr
 
     nplevs = size(plevs)
     call getmem(pcoord,1,nplevs,'mod_write:pcoord')
@@ -82,11 +84,14 @@ module mod_write
     call getmem(v4,1,jx,1,iy,1,nplevs,'mod_write:v4')
     if ( idynamic == 3 ) then
       nvar2d = 10
+      nvar_bnds = 6
     else
       nvar2d = 8
+      nvar_bnds = 4
     end if
     nvar3d = 5
-    allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), stat=ierr)
+    allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), &
+             v3dvar_bnds(nvar_bnds), stat=ierr)
     if ( ierr /= 0 ) then
       write(stderr,*) 'Allocation error in init_output'
       call die('icbc','Allocation error',1)
@@ -169,17 +174,71 @@ module mod_write
       v2dvar_icbc(8)%long_name = 'Latitude on Dot Points'
       v2dvar_icbc(8)%standard_name = 'latitude'
     end if
+    ! ---- CF cell-boundary coordinate variables (nv=4, jx, iy) ----
+    v3dvar_bnds(1)%vname = 'xlon_bnds'
+    v3dvar_bnds(1)%vunit = 'degrees_east'
+    v3dvar_bnds(1)%long_name = 'Cell corner longitudes on Cross Points'
+    v3dvar_bnds(1)%standard_name = 'longitude'
+    v3dvar_bnds(1)%axis = 'nxy'
+    v3dvar_bnds(2)%vname = 'xlat_bnds'
+    v3dvar_bnds(2)%vunit = 'degrees_north'
+    v3dvar_bnds(2)%long_name = 'Cell corner latitudes on Cross Points'
+    v3dvar_bnds(2)%standard_name = 'latitude'
+    v3dvar_bnds(2)%axis = 'nxy'
+    if ( idynamic == 3 ) then
+      v3dvar_bnds(3)%vname = 'ulon_bnds'
+      v3dvar_bnds(3)%vunit = 'degrees_east'
+      v3dvar_bnds(3)%long_name = 'Cell corner longitudes on U Points'
+      v3dvar_bnds(3)%standard_name = 'longitude'
+      v3dvar_bnds(3)%axis = 'nxy'
+      v3dvar_bnds(4)%vname = 'ulat_bnds'
+      v3dvar_bnds(4)%vunit = 'degrees_north'
+      v3dvar_bnds(4)%long_name = 'Cell corner latitudes on U Points'
+      v3dvar_bnds(4)%standard_name = 'latitude'
+      v3dvar_bnds(4)%axis = 'nxy'
+      v3dvar_bnds(5)%vname = 'vlon_bnds'
+      v3dvar_bnds(5)%vunit = 'degrees_east'
+      v3dvar_bnds(5)%long_name = 'Cell corner longitudes on V Points'
+      v3dvar_bnds(5)%standard_name = 'longitude'
+      v3dvar_bnds(5)%axis = 'nxy'
+      v3dvar_bnds(6)%vname = 'vlat_bnds'
+      v3dvar_bnds(6)%vunit = 'degrees_north'
+      v3dvar_bnds(6)%long_name = 'Cell corner latitudes on V Points'
+      v3dvar_bnds(6)%standard_name = 'latitude'
+      v3dvar_bnds(6)%axis = 'nxy'
+    else
+      v3dvar_bnds(3)%vname = 'dlon_bnds'
+      v3dvar_bnds(3)%vunit = 'degrees_east'
+      v3dvar_bnds(3)%long_name = 'Cell corner longitudes on Dot Points'
+      v3dvar_bnds(3)%standard_name = 'longitude'
+      v3dvar_bnds(3)%axis = 'nxy'
+      v3dvar_bnds(4)%vname = 'dlat_bnds'
+      v3dvar_bnds(4)%vunit = 'degrees_north'
+      v3dvar_bnds(4)%long_name = 'Cell corner latitudes on Dot Points'
+      v3dvar_bnds(4)%standard_name = 'latitude'
+      v3dvar_bnds(4)%axis = 'nxy'
+    end if
+    do i = 1, nvar_bnds
+      v3dvar_bnds(i)%j1 = -1
+      v3dvar_bnds(i)%j2 = -1
+      v3dvar_bnds(i)%i1 = -1
+      v3dvar_bnds(i)%i2 = -1
+      v3dvar_bnds(i)%k1 = -1
+      v3dvar_bnds(i)%k2 = -1
+    end do
   end subroutine init_outpgw
 
   subroutine init_houtput
     implicit none
-    integer(ik4) :: ierr
+    integer(ik4) :: i, ierr
     call getmem(pr,1,jx,1,iy,'mod_write:pr')
     call getmem(ssr,1,jx,1,iy,'mod_write:ssr')
     call getmem(strd,1,jx,1,iy,'mod_write:strd')
     call getmem(clt,1,jx,1,iy,'mod_write:clt')
     nvar2d = 8
+    nvar_bnds = 2
     allocate(v2dvar_icbc(nvar2d), stat=ierr)
+    allocate(v3dvar_bnds(nvar_bnds), stat=ierr)
     if ( ierr /= 0 ) then
       write(stderr,*) 'Allocation error in init_houtput'
       call die('icbc','Allocation error',1)
@@ -220,11 +279,29 @@ module mod_write
     v2dvar_icbc(8)%long_name = 'Total Cloud Fraction'
     v2dvar_icbc(8)%standard_name = 'cloud_area_fraction'
     v2dvar_icbc(8)%lrecords = .true.
+    v3dvar_bnds(1)%vname = 'xlon_bnds'
+    v3dvar_bnds(1)%vunit = 'degrees_east'
+    v3dvar_bnds(1)%long_name = 'Cell corner longitudes on Cross Points'
+    v3dvar_bnds(1)%standard_name = 'longitude'
+    v3dvar_bnds(1)%axis = 'nxy'
+    v3dvar_bnds(2)%vname = 'xlat_bnds'
+    v3dvar_bnds(2)%vunit = 'degrees_north'
+    v3dvar_bnds(2)%long_name = 'Cell corner latitudes on Cross Points'
+    v3dvar_bnds(2)%standard_name = 'latitude'
+    v3dvar_bnds(2)%axis = 'nxy'
+    do i = 1, nvar_bnds
+      v3dvar_bnds(i)%j1 = -1
+      v3dvar_bnds(i)%j2 = -1
+      v3dvar_bnds(i)%i1 = -1
+      v3dvar_bnds(i)%i2 = -1
+      v3dvar_bnds(i)%k1 = -1
+      v3dvar_bnds(i)%k2 = -1
+    end do
   end subroutine init_houtput
 
   subroutine init_output
     implicit none
-    integer(ik4) :: ierr, i3i
+    integer(ik4) :: ierr, i3i, i
     if ( dattyp == 'FNEST' .or. dattyp == 'IFSXX' ) then
       qli_present = .true.
     else
@@ -243,10 +320,12 @@ module mod_write
     if ( idynamic == 1 ) then
       nvar2d = 8
       nvar3d = 4
+      nvar_bnds = 4
       call getmem(pd4,1,jx,1,iy,'mod_write:pd4')
     else if ( idynamic == 2 ) then
       nvar2d = 11
       nvar3d = 8
+      nvar_bnds = 4
       call getmem(pd4,1,jx,1,iy,'mod_write:pd4')
       call getmem(wtop4,1,jx,1,iy,'mod_write:wtop4')
       call getmem(psd0,1,jx,1,iy,'mod_write:psd0')
@@ -258,6 +337,7 @@ module mod_write
     else if ( idynamic == 3 ) then
       nvar2d = 10
       nvar3d = 5
+      nvar_bnds = 6
       call getmem(pai4,1,jx,1,iy,1,kz,'mod_write:pai4')
       call getmem(p4,1,jx,1,iy,1,kz,'mod_write:p4')
       call getmem(qs,1,jx,1,iy,1,kz,'mod_write:qs')
@@ -265,7 +345,8 @@ module mod_write
     if ( qli_present ) then
       nvar3d = nvar3d + 2
     end if
-    allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), stat=ierr)
+    allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), &
+             v3dvar_bnds(nvar_bnds), stat=ierr)
     if ( ierr /= 0 ) then
       write(stderr,*) 'Allocation error in init_output'
       call die('icbc','Allocation error',1)
@@ -406,6 +487,59 @@ module mod_write
       call crs2dot(psd0,ps0,jx,iy,i_band,i_crm)
       call crs2dot(topod,topogm,jx,iy,i_band,i_crm)
     end if
+
+    ! ---- CF cell-boundary coordinate variables (nv=4, jx, iy) ----
+    v3dvar_bnds(1)%vname = 'xlon_bnds'
+    v3dvar_bnds(1)%vunit = 'degrees_east'
+    v3dvar_bnds(1)%long_name = 'Cell corner longitudes on Cross Points'
+    v3dvar_bnds(1)%standard_name = 'longitude'
+    v3dvar_bnds(1)%axis = 'nxy'
+    v3dvar_bnds(2)%vname = 'xlat_bnds'
+    v3dvar_bnds(2)%vunit = 'degrees_north'
+    v3dvar_bnds(2)%long_name = 'Cell corner latitudes on Cross Points'
+    v3dvar_bnds(2)%standard_name = 'latitude'
+    v3dvar_bnds(2)%axis = 'nxy'
+    if ( idynamic == 3 ) then
+      v3dvar_bnds(3)%vname = 'ulon_bnds'
+      v3dvar_bnds(3)%vunit = 'degrees_east'
+      v3dvar_bnds(3)%long_name = 'Cell corner longitudes on U Points'
+      v3dvar_bnds(3)%standard_name = 'longitude'
+      v3dvar_bnds(3)%axis = 'nxy'
+      v3dvar_bnds(4)%vname = 'ulat_bnds'
+      v3dvar_bnds(4)%vunit = 'degrees_north'
+      v3dvar_bnds(4)%long_name = 'Cell corner latitudes on U Points'
+      v3dvar_bnds(4)%standard_name = 'latitude'
+      v3dvar_bnds(4)%axis = 'nxy'
+      v3dvar_bnds(5)%vname = 'vlon_bnds'
+      v3dvar_bnds(5)%vunit = 'degrees_east'
+      v3dvar_bnds(5)%long_name = 'Cell corner longitudes on V Points'
+      v3dvar_bnds(5)%standard_name = 'longitude'
+      v3dvar_bnds(5)%axis = 'nxy'
+      v3dvar_bnds(6)%vname = 'vlat_bnds'
+      v3dvar_bnds(6)%vunit = 'degrees_north'
+      v3dvar_bnds(6)%long_name = 'Cell corner latitudes on V Points'
+      v3dvar_bnds(6)%standard_name = 'latitude'
+      v3dvar_bnds(6)%axis = 'nxy'
+    else
+      v3dvar_bnds(3)%vname = 'dlon_bnds'
+      v3dvar_bnds(3)%vunit = 'degrees_east'
+      v3dvar_bnds(3)%long_name = 'Cell corner longitudes on Dot Points'
+      v3dvar_bnds(3)%standard_name = 'longitude'
+      v3dvar_bnds(3)%axis = 'nxy'
+      v3dvar_bnds(4)%vname = 'dlat_bnds'
+      v3dvar_bnds(4)%vunit = 'degrees_north'
+      v3dvar_bnds(4)%long_name = 'Cell corner latitudes on Dot Points'
+      v3dvar_bnds(4)%standard_name = 'latitude'
+      v3dvar_bnds(4)%axis = 'nxy'
+    end if
+    do i = 1, nvar_bnds
+      v3dvar_bnds(i)%j1 = -1
+      v3dvar_bnds(i)%j2 = -1
+      v3dvar_bnds(i)%i1 = -1
+      v3dvar_bnds(i)%i2 = -1
+      v3dvar_bnds(i)%k1 = -1
+      v3dvar_bnds(i)%k2 = -1
+    end do
   end subroutine init_output
 
   subroutine close_output
@@ -417,6 +551,7 @@ module mod_write
     implicit none
     if ( allocated(v2dvar_icbc) ) deallocate(v2dvar_icbc)
     if ( allocated(v3dvar_icbc) ) deallocate(v3dvar_icbc)
+    if ( allocated(v3dvar_bnds) ) deallocate(v3dvar_bnds)
   end subroutine dispose_output
 
   subroutine newhfile(idate1)
@@ -444,13 +579,25 @@ module mod_write
     v2dvar_icbc(6)%rval => ssr
     v2dvar_icbc(7)%rval => strd
     v2dvar_icbc(8)%rval => clt
+    v3dvar_bnds(1)%rval => xlon_bnds
+    v3dvar_bnds(2)%rval => xlat_bnds
     do ivar = 1, nvar2d
       call outstream_addvar(ncout,v2dvar_icbc(ivar))
     end do
-    call outstream_enable(ncout,sigmaf)
+    do ivar = 1, nvar_bnds
+      call outstream_addvar(ncout,v3dvar_bnds(ivar))
+    end do
+    call outstream_addvaratt(ncout,v2dvar_icbc(1), &
+      ncattribute_string('bounds','xlon_bnds'))
+    call outstream_addvaratt(ncout,v2dvar_icbc(2), &
+      ncattribute_string('bounds','xlat_bnds'))
     do ivar = 1, 4
       call outstream_writevar(ncout,v2dvar_icbc(ivar))
     end do
+    do ivar = 1, nvar_bnds
+      call outstream_writevar(ncout,v3dvar_bnds(ivar))
+    end do
+    call outstream_enable(ncout)
   end subroutine newhfile
 
   subroutine newpgwfile(idate1)
@@ -482,14 +629,22 @@ module mod_write
     v3dvar_icbc(3)%rval => u4
     v3dvar_icbc(4)%rval => v4
     v3dvar_icbc(5)%rval => z4
+    v3dvar_bnds(1)%rval => xlon_bnds
+    v3dvar_bnds(2)%rval => xlat_bnds
     if ( idynamic == 3 ) then
       v2dvar_icbc(7)%rval => ulon
       v2dvar_icbc(8)%rval => ulat
       v2dvar_icbc(9)%rval => vlon
       v2dvar_icbc(10)%rval => vlat
+      v3dvar_bnds(3)%rval => ulon_bnds
+      v3dvar_bnds(4)%rval => ulat_bnds
+      v3dvar_bnds(5)%rval => vlon_bnds
+      v3dvar_bnds(6)%rval => vlat_bnds
     else
       v2dvar_icbc(7)%rval => dlon
       v2dvar_icbc(8)%rval => dlat
+      v3dvar_bnds(3)%rval => dlon_bnds
+      v3dvar_bnds(4)%rval => dlat_bnds
     end if
     do ivar = 1, nvar2d
       call outstream_addvar(ncout,v2dvar_icbc(ivar))
@@ -497,11 +652,36 @@ module mod_write
     do ivar = 1, nvar3d
       call outstream_addvar(ncout,v3dvar_icbc(ivar))
     end do
+    do ivar = 1, nvar_bnds
+      call outstream_addvar(ncout,v3dvar_bnds(ivar))
+    end do
+    call outstream_addvaratt(ncout,v2dvar_icbc(1), &
+      ncattribute_string('bounds','xlon_bnds'))
+    call outstream_addvaratt(ncout,v2dvar_icbc(2), &
+      ncattribute_string('bounds','xlat_bnds'))
+    if ( idynamic == 3 ) then
+      call outstream_addvaratt(ncout,v2dvar_icbc(7), &
+        ncattribute_string('bounds','ulon_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_icbc(8), &
+        ncattribute_string('bounds','ulat_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_icbc(9), &
+        ncattribute_string('bounds','vlon_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_icbc(10), &
+        ncattribute_string('bounds','vlat_bnds'))
+    else
+      call outstream_addvaratt(ncout,v2dvar_icbc(7), &
+        ncattribute_string('bounds','dlon_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_icbc(8), &
+        ncattribute_string('bounds','dlat_bnds'))
+    end if
     call outstream_enable(ncout,pcoord)
     do ivar = 1, nvar2d
       if ( .not. v2dvar_icbc(ivar)%lrecords ) then
         call outstream_writevar(ncout,v2dvar_icbc(ivar))
       end if
+    end do
+    do ivar = 1, nvar_bnds
+      call outstream_writevar(ncout,v3dvar_bnds(ivar))
     end do
   end subroutine newpgwfile
 
@@ -572,17 +752,55 @@ module mod_write
       v2dvar_icbc(7)%rval => dlon
       v2dvar_icbc(8)%rval => dlat
     end if
+    ! Assign bound data pointers
+    v3dvar_bnds(1)%rval => xlon_bnds
+    v3dvar_bnds(2)%rval => xlat_bnds
+    if ( idynamic == 3 ) then
+      v3dvar_bnds(3)%rval => ulon_bnds
+      v3dvar_bnds(4)%rval => ulat_bnds
+      v3dvar_bnds(5)%rval => vlon_bnds
+      v3dvar_bnds(6)%rval => vlat_bnds
+    else
+      v3dvar_bnds(3)%rval => dlon_bnds
+      v3dvar_bnds(4)%rval => dlat_bnds
+    end if
     do ivar = 1, nvar2d
       call outstream_addvar(ncout,v2dvar_icbc(ivar))
     end do
     do ivar = 1, nvar3d
       call outstream_addvar(ncout,v3dvar_icbc(ivar))
     end do
+    do ivar = 1, nvar_bnds
+      call outstream_addvar(ncout,v3dvar_bnds(ivar))
+    end do
+    ! CF 'bounds' attributes on centre-point coordinate variables
+    call outstream_addvaratt(ncout,v2dvar_icbc(1), &
+      ncattribute_string('bounds','xlon_bnds'))
+    call outstream_addvaratt(ncout,v2dvar_icbc(2), &
+      ncattribute_string('bounds','xlat_bnds'))
+    if ( idynamic == 3 ) then
+      call outstream_addvaratt(ncout,v2dvar_icbc(7), &
+        ncattribute_string('bounds','ulon_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_icbc(8), &
+        ncattribute_string('bounds','ulat_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_icbc(9), &
+        ncattribute_string('bounds','vlon_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_icbc(10), &
+        ncattribute_string('bounds','vlat_bnds'))
+    else
+      call outstream_addvaratt(ncout,v2dvar_icbc(7), &
+        ncattribute_string('bounds','dlon_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_icbc(8), &
+        ncattribute_string('bounds','dlat_bnds'))
+    end if
     call outstream_enable(ncout,sigmah)
     do ivar = 1, nvar2d
       if ( .not. v2dvar_icbc(ivar)%lrecords ) then
         call outstream_writevar(ncout,v2dvar_icbc(ivar))
       end if
+    end do
+    do ivar = 1, nvar_bnds
+      call outstream_writevar(ncout,v3dvar_bnds(ivar))
     end do
     if ( idynamic == 2 ) then
       do ivar = 1, nvar3d

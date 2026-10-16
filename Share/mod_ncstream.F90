@@ -561,8 +561,9 @@ module mod_ncstream
 #endif
       implicit none
       type(nc_output_stream), intent(inout) :: ncout
-      real(rkx), dimension(:), pointer, contiguous, intent(in) :: sigma
-      real(rkx), dimension(size(sigma)) :: zita
+      real(rkx), dimension(:), pointer, &
+        contiguous, intent(in), optional :: sigma
+      real(rkx), allocatable, dimension(:) :: zita
 
       type(ncoutstream), pointer :: stream
       type(internal_obuffer), pointer :: buffer
@@ -1076,9 +1077,12 @@ module mod_ncstream
           write(*,*) 'cudaMallocHost failed with status: ',istat
           stop
         end if
-        if ( maxnum_int > 0 ) call c_f_pointer(buffer%cptr, buffer%intbuff, [maxnum_int])
-        if ( maxnum_real > 0 ) call c_f_pointer(buffer%cptr, buffer%realbuff, [maxnum_real])
-        if ( maxnum_double > 0 ) call c_f_pointer(buffer%cptr, buffer%doublebuff, [maxnum_double])
+        if ( maxnum_int > 0 ) &
+          call c_f_pointer(buffer%cptr, buffer%intbuff, [maxnum_int])
+        if ( maxnum_real > 0 ) &
+          call c_f_pointer(buffer%cptr, buffer%realbuff, [maxnum_real])
+        if ( maxnum_double > 0 ) &
+          call c_f_pointer(buffer%cptr, buffer%doublebuff, [maxnum_double])
       end if
 #else
       if ( maxnum_int > 0 ) allocate(buffer%intbuff(maxnum_int))
@@ -1149,18 +1153,22 @@ module mod_ncstream
         end do
         call outstream_writevar(ncout,stvar%iy_var,nocopy)
       end if
-      buffer%doublebuff(1:size(sigma)) = real(sigma,rk8)
-      call outstream_writevar(ncout,stvar%sigma_var,nocopy)
-      if ( .not. stream%l_plev ) then
-        if ( idynamic < 3 ) then
-          stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
-          call outstream_writevar(ncout,stvar%ptop_var)
-        else
-          zita = zitasigma(sigma,mo_ztop)
-          buffer%doublebuff(1:size(sigma)) = md_ak(zita,mo_ztop,mo_h)
-          call outstream_writevar(ncout,stvar%ak_var,nocopy)
-          buffer%doublebuff(1:size(sigma)) = md_bk(zita,mo_ztop,mo_a0)
-          call outstream_writevar(ncout,stvar%bk_var,nocopy)
+      if ( present(sigma) ) then
+        buffer%doublebuff(1:size(sigma)) = real(sigma,rk8)
+        call outstream_writevar(ncout,stvar%sigma_var,nocopy)
+        if ( .not. stream%l_plev ) then
+          if ( idynamic < 3 ) then
+            stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
+            call outstream_writevar(ncout,stvar%ptop_var)
+          else
+            allocate(zita(size(sigma)))
+            zita = zitasigma(sigma,mo_ztop)
+            buffer%doublebuff(1:size(sigma)) = md_ak(zita,mo_ztop,mo_h)
+            call outstream_writevar(ncout,stvar%ak_var,nocopy)
+            buffer%doublebuff(1:size(sigma)) = md_bk(zita,mo_ztop,mo_a0)
+            call outstream_writevar(ncout,stvar%bk_var,nocopy)
+            deallocate(zita)
+           end if
         end if
       end if
       if ( stream%l_has2mlev ) then
@@ -1227,6 +1235,7 @@ module mod_ncstream
         buffer%doublebuff(8) = 0.00000400_rk8
         call outstream_writevar(ncout,stvar%spectral_var,nocopy)
       end if
+
       contains
 
       subroutine compute_zero_rotated(rlat0,rlon0)
@@ -1758,7 +1767,7 @@ module mod_ncstream
         call add_attribute(stream, &
           ncattribute_string('notes',var%notes),var%id,var%vname)
       if ( var%lgridded ) then
-        if ( var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
+        if ( var%vname(2:4) /= 'lat' .and. var%vname(2:4) /= 'lon' ) then
           if ( stream%l_bound ) then
             if ( idynamic < 3 ) then
               if (var%vname == 'u' .or. var%vname == 'v') then
