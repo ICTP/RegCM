@@ -1525,6 +1525,10 @@ module mod_ncstream
           the_name = 'spec_bound'
           pdim = spectral_b_dim
           stream%l_hasspectral = .true.
+        case ('NV','nv','ncorner','nvertex')
+          num = 4
+          the_name = 'nv'
+          pdim = nv_dim
         case default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', 'Cannot add dimension to file '// &
@@ -2005,7 +2009,8 @@ module mod_ncstream
           var%nval(1) = len_dim(1)
           var%totsize = product(var%nval)
         class is (ncvariable_2d)
-          if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 ) then
+          if ( scan(var%axis,'x') > 0 .and. &
+               scan(var%axis,'y') > 0 ) then
             var%lgridded = .true.
           end if
           if ( var%lrecords ) then
@@ -2022,7 +2027,9 @@ module mod_ncstream
           var%nval(2) = len_dim(2)
           var%totsize = product(var%nval)
         class is (ncvariable_3d)
-          if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 ) then
+          if ( scan(var%axis,'x') > 0 .and. &
+               scan(var%axis,'y') > 0 .and. &
+               scan(var%axis,'v') == 0 ) then
             var%lgridded = .true.
           end if
           if ( var%lrecords ) then
@@ -2040,7 +2047,8 @@ module mod_ncstream
           var%nval(3) = len_dim(3)
           var%totsize = product(var%nval)
         class is (ncvariable_4d)
-          if ( scan(var%axis,'x') > 0 .and. scan(var%axis,'y') > 0 ) then
+          if ( scan(var%axis,'x') > 0 .and. &
+               scan(var%axis,'y') > 0 ) then
             var%lgridded = .true.
           end if
           if ( var%lrecords ) then
@@ -2174,30 +2182,30 @@ module mod_ncstream
         class is (ncvariable2d_integer)
           buffer%lhas2dint = .true.
           if ( stream%l_parallel .and. var%lgridded ) then
-            buffer%max2d_int(1) = max(buffer%max2d_int(1),len_dim(1))
-            buffer%max2d_int(2) = max(buffer%max2d_int(2),len_dim(2))
-          else
             buffer%max2d_int(1) = max(buffer%max2d_int(1),stream%global_nj)
             buffer%max2d_int(2) = max(buffer%max2d_int(2),stream%global_ni)
+          else
+            buffer%max2d_int(1) = max(buffer%max2d_int(1),len_dim(1))
+            buffer%max2d_int(2) = max(buffer%max2d_int(2),len_dim(2))
           end if
         class is (ncvariable3d_integer)
           buffer%lhas3dint = .true.
           if ( stream%l_parallel .and. var%lgridded ) then
-            buffer%max3d_int(1) = max(buffer%max3d_int(1),len_dim(1))
-            buffer%max3d_int(2) = max(buffer%max3d_int(2),len_dim(2))
-          else
             buffer%max3d_int(1) = max(buffer%max3d_int(1),stream%global_nj)
             buffer%max3d_int(2) = max(buffer%max3d_int(2),stream%global_ni)
+          else
+            buffer%max3d_int(1) = max(buffer%max3d_int(1),len_dim(1))
+            buffer%max3d_int(2) = max(buffer%max3d_int(2),len_dim(2))
           end if
           buffer%max3d_int(3) = max(buffer%max3d_int(3),len_dim(3))
         class is (ncvariable4d_integer)
           buffer%lhas4dint = .true.
           if ( stream%l_parallel .and. var%lgridded ) then
-            buffer%max4d_int(1) = max(buffer%max4d_int(1),len_dim(1))
-            buffer%max4d_int(2) = max(buffer%max4d_int(2),len_dim(2))
-          else
             buffer%max4d_int(1) = max(buffer%max4d_int(1),stream%global_nj)
             buffer%max4d_int(2) = max(buffer%max4d_int(2),stream%global_ni)
+          else
+            buffer%max4d_int(1) = max(buffer%max4d_int(1),len_dim(1))
+            buffer%max4d_int(2) = max(buffer%max4d_int(2),len_dim(2))
           end if
           buffer%max4d_int(3) = max(buffer%max4d_int(3),len_dim(3))
           buffer%max4d_int(4) = max(buffer%max4d_int(4),len_dim(4))
@@ -2315,9 +2323,15 @@ module mod_ncstream
             end if
             id_dim(ic) = stream%id_dims(spectral_b_dim)
             len_dim(ic) = stream%len_dims(spectral_b_dim)
+          case ('n')
+            if ( stream%id_dims(nv_dim) < 0 ) then
+              call add_dimension(stream,'nv')
+            end if
+            id_dim(ic) = stream%id_dims(nv_dim)
+            len_dim(ic) = stream%len_dims(nv_dim)
           case default
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-            write(stderr,*) 'Not in list. Known dimension codes: xyztbT2wsd'
+            write(stderr,*) 'Not in list. Known dimension codes: xyztbT2wsdnBSM'
             call die('nc_stream', &
               'Cannot select dimension '//safecode(ic:ic)//' on file '// &
               trim(stream%filename), 1)
@@ -2457,7 +2471,7 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 write(stderr,*) 'file     : ', stream%icount(1)
                 write(stderr,*) 'internal : ', var%j2-var%j1+1
                 call die('nc_stream','Cannot write variable '// &
@@ -2470,7 +2484,7 @@ module mod_ncstream
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
@@ -2569,35 +2583,35 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%k1 > 0 .and. var%k2 > 0 ) then
               if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes KZ different from file'
+                write(stderr,*) 'Internal indexes dim3 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%k1 = 1
-              var%k2 = stream%icount(3)
+              var%k2 = var%nval(3)
             end if
             if ( var%is_slice ) then
               if ( .not. present(is) ) then
@@ -2691,46 +2705,46 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%k1 > 0 .and. var%k2 > 0 ) then
               if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes KZ different from file'
+                write(stderr,*) 'Internal indexes dim3 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%k1 = 1
-              var%k2 = stream%icount(3)
+              var%k2 = var%nval(3)
             end if
             if ( var%n1 > 0 .and. var%n2 > 0 ) then
               if ( (var%n2-var%n1+1) /= stream%icount(4) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes 4 different from file'
+                write(stderr,*) 'Internal indexes dim4 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%n1 = 1
-              var%n2 = stream%icount(4)
+              var%n2 = var%nval(4)
             end if
             if ( .not. associated(var%rval) ) then
               write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -2920,7 +2934,7 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 write(stderr,*) 'file     : ', stream%icount(1)
                 write(stderr,*) 'internal : ', var%j2-var%j1+1
                 call die('nc_stream','Cannot write variable '// &
@@ -2928,18 +2942,18 @@ module mod_ncstream
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%is_slice ) then
               if ( .not. present(is) ) then
@@ -3001,7 +3015,7 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 write(stderr,*) 'file     : ', stream%icount(1)
                 write(stderr,*) 'internal : ', var%j2-var%j1+1
                 call die('nc_stream','Cannot write variable '// &
@@ -3009,18 +3023,18 @@ module mod_ncstream
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%is_slice ) then
               if ( .not. present(is) ) then
@@ -3126,35 +3140,35 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%k1 > 0 .and. var%k2 > 0 ) then
               if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes KZ different from file'
+                write(stderr,*) 'Internal indexes dim3 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%k1 = 1
-              var%k2 = stream%icount(3)
+              var%k2 = var%nval(3)
             end if
             if ( var%is_slice ) then
               if ( .not. present(is) ) then
@@ -3219,35 +3233,35 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%k1 > 0 .and. var%k2 > 0 ) then
               if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes KZ different from file'
+                write(stderr,*) 'Internal indexes dim3 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%k1 = 1
-              var%k2 = stream%icount(3)
+              var%k2 = var%nval(3)
             end if
             if ( var%is_slice ) then
               if ( .not. present(is) ) then
@@ -3353,46 +3367,46 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%k1 > 0 .and. var%k2 > 0 ) then
               if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes KZ different from file'
+                write(stderr,*) 'Internal indexes dim3 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%k1 = 1
-              var%k2 = stream%icount(3)
+              var%k2 = var%nval(3)
             end if
             if ( var%n1 > 0 .and. var%n2 > 0 ) then
               if ( (var%n2-var%n1+1) /= stream%icount(4) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes 4 different from file'
+                write(stderr,*) 'Internal indexes dim4 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%n1 = 1
-              var%n2 = stream%icount(4)
+              var%n2 = var%nval(4)
             end if
             if ( .not. associated(var%rval) ) then
               write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -3451,46 +3465,46 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%k1 > 0 .and. var%k2 > 0 ) then
               if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes KZ different from file'
+                write(stderr,*) 'Internal indexes dim3 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%k1 = 1
-              var%k2 = stream%icount(3)
+              var%k2 = var%nval(3)
             end if
             if ( var%n1 > 0 .and. var%n2 > 0 ) then
               if ( (var%n2-var%n1+1) /= stream%icount(4) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes 4 different from file'
+                write(stderr,*) 'Internal indexes dim4 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%n1 = 1
-              var%n2 = stream%icount(4)
+              var%n2 = var%nval(4)
             end if
             if ( .not. associated(var%rval) ) then
               write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -3618,24 +3632,24 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%is_slice ) then
               if ( .not. present(is) ) then
@@ -3695,35 +3709,35 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%k1 > 0 .and. var%k2 > 0 ) then
               if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes KZ different from file'
+                write(stderr,*) 'Internal indexes dim3 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%k1 = 1
-              var%k2 = stream%icount(3)
+              var%k2 = var%nval(3)
             end if
             if ( var%is_slice ) then
               if ( .not. present(is) ) then
@@ -3784,46 +3798,46 @@ module mod_ncstream
             if ( var%j1 > 0 .and. var%j2 > 0 ) then
               if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'Internal indexes dim1 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%j1 = 1
-              var%j2 = stream%icount(1)
+              var%j2 = var%nval(1)
             end if
             if ( var%i1 > 0 .and. var%i2 > 0 ) then
               if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes IY different from file'
+                write(stderr,*) 'Internal indexes dim2 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%i1 = 1
-              var%i2 = stream%icount(2)
+              var%i2 = var%nval(2)
             end if
             if ( var%k1 > 0 .and. var%k2 > 0 ) then
               if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes KZ different from file'
+                write(stderr,*) 'Internal indexes dim3 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%k1 = 1
-              var%k2 = stream%icount(3)
+              var%k2 = var%nval(3)
             end if
             if ( var%n1 > 0 .and. var%n2 > 0 ) then
               if ( (var%n2-var%n1+1) /= stream%icount(4) ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) 'Internal indexes 4 different from file'
+                write(stderr,*) 'Internal indexes dim4 different from file'
                 call die('nc_stream','Cannot write variable '// &
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
             else
               var%n1 = 1
-              var%n2 = stream%icount(4)
+              var%n2 = var%nval(4)
             end if
             if ( .not. associated(var%ival) ) then
               write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__

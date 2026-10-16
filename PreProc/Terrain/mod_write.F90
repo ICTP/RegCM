@@ -31,16 +31,23 @@ module mod_write
 
   integer(ik4) :: nvar2d
   integer(ik4) :: nvar3d
+  integer(ik4) :: nvar_bnds  ! number of CF cell-boundary coordinate variables
   integer(ik4) :: idlnd ! The position of landuse in the v2dvar_base
   integer(ik4) :: idtxt ! The position of texture in the v2dvar_base
+  ! Indices for centre-point coordinate variables in v2dvar_base,
+  ! used to attach 'bounds' attributes after the variables are defined
+  integer(ik4) :: idxlat, idxlon, iddlat, iddlon
+  integer(ik4) :: idulat, idulon, idvlat, idvlon
 
 #ifdef SINGLE_PRECISION_REAL
   type(ncvariable2d_real), save, dimension(:), allocatable :: v2dvar_base
   type(ncvariable3d_real), save, dimension(:), allocatable :: v3dvar_base
+  type(ncvariable3d_real), save, dimension(:), allocatable :: v3dvar_bnds
   type(ncvariable2d_real), save :: v2dvar_lake
 #else
   type(ncvariable2d_double), save, dimension(:), allocatable :: v2dvar_base
   type(ncvariable3d_double), save, dimension(:), allocatable :: v3dvar_base
+  type(ncvariable3d_double), save, dimension(:), allocatable :: v3dvar_bnds
   type(ncvariable2d_double), save :: v2dvar_lake
 #endif
 
@@ -52,12 +59,20 @@ module mod_write
     real(rkx), dimension(:), pointer, contiguous :: sigma
     real(rkx), dimension(:,:), pointer, contiguous :: xlat
     real(rkx), dimension(:,:), pointer, contiguous :: xlon
+    real(rkx), dimension(:,:,:), pointer, contiguous :: xlat_bnds
+    real(rkx), dimension(:,:,:), pointer, contiguous :: xlon_bnds
     real(rkx), dimension(:,:), pointer, contiguous :: dlat
     real(rkx), dimension(:,:), pointer, contiguous :: dlon
+    real(rkx), dimension(:,:,:), pointer, contiguous :: dlat_bnds
+    real(rkx), dimension(:,:,:), pointer, contiguous :: dlon_bnds
     real(rkx), dimension(:,:), pointer, contiguous :: ulat
     real(rkx), dimension(:,:), pointer, contiguous :: ulon
+    real(rkx), dimension(:,:,:), pointer, contiguous :: ulat_bnds
+    real(rkx), dimension(:,:,:), pointer, contiguous :: ulon_bnds
     real(rkx), dimension(:,:), pointer, contiguous :: vlat
     real(rkx), dimension(:,:), pointer, contiguous :: vlon
+    real(rkx), dimension(:,:,:), pointer, contiguous :: vlat_bnds
+    real(rkx), dimension(:,:,:), pointer, contiguous :: vlon_bnds
     real(rkx), dimension(:,:), pointer, contiguous :: xmap
     real(rkx), dimension(:,:), pointer, contiguous :: dmap
     real(rkx), dimension(:,:), pointer, contiguous :: umap
@@ -137,18 +152,33 @@ module mod_write
     lrmoist = .false.
     lrts = .false.
 
+    ! Cross-grid bounds (xlat_bnds, xlon_bnds) and dot/B-grid bounds
+    ! (dlat_bnds, dlon_bnds) are always present.  For idynamic==3 we also
+    ! have u- and v-grid bounds, giving 8 bound variables total.
     if ( idynamic == 1 ) then
       nvar2d = 14
       nvar3d = 3
+      nvar_bnds = 4    ! xlat_bnds, xlon_bnds, dlat_bnds, dlon_bnds
     else if ( idynamic == 2 ) then
       nvar2d = 15
       nvar3d = 7
+      nvar_bnds = 4
     else if ( idynamic == 3 ) then
       nvar2d = 21
       nvar3d = 7
+      nvar_bnds = 8    ! + ulat_bnds, ulon_bnds, vlat_bnds, vlon_bnds
     end if
     allocate(v2dvar_base(nvar2d))
     allocate(v3dvar_base(nvar3d))
+    allocate(v3dvar_bnds(nvar_bnds))
+
+    ! Record positions of centre-point coordinate variables so we can
+    ! attach 'bounds' attributes to them after outstream_addvar.
+    idxlon = 1
+    idxlat = 2
+    iddlon = 3
+    iddlat = 4
+
     v2dvar_base(1)%vname = 'xlon'
     v2dvar_base(1)%vunit = 'degrees_east'
     v2dvar_base(1)%long_name = 'Longitude on Cross Points'
@@ -324,6 +354,64 @@ module mod_write
       v3dvar_base(7)%axis = 'xyz'
     end if
 
+    ! ----------------------------------------------------------------
+    ! CF cell-boundary coordinate variables  shape: (nv=4, jx, iy)
+    ! axis code 'nxy' : n=nv dimension first (CF convention), then x, y
+    ! ----------------------------------------------------------------
+    v3dvar_bnds(1)%vname = 'xlon_bnds'
+    v3dvar_bnds(1)%vunit = 'degrees_east'
+    v3dvar_bnds(1)%long_name = 'Cell corner longitudes on Cross Points'
+    v3dvar_bnds(1)%standard_name = 'longitude'
+    v3dvar_bnds(1)%axis = 'nxy'
+    v3dvar_bnds(2)%vname = 'xlat_bnds'
+    v3dvar_bnds(2)%vunit = 'degrees_north'
+    v3dvar_bnds(2)%long_name = 'Cell corner latitudes on Cross Points'
+    v3dvar_bnds(2)%standard_name = 'latitude'
+    v3dvar_bnds(2)%axis = 'nxy'
+    v3dvar_bnds(3)%vname = 'dlon_bnds'
+    v3dvar_bnds(3)%vunit = 'degrees_east'
+    v3dvar_bnds(3)%long_name = 'Cell corner longitudes on Dot Points'
+    v3dvar_bnds(3)%standard_name = 'longitude'
+    v3dvar_bnds(3)%axis = 'nxy'
+    v3dvar_bnds(4)%vname = 'dlat_bnds'
+    v3dvar_bnds(4)%vunit = 'degrees_north'
+    v3dvar_bnds(4)%long_name = 'Cell corner latitudes on Dot Points'
+    v3dvar_bnds(4)%standard_name = 'latitude'
+    v3dvar_bnds(4)%axis = 'nxy'
+
+    if ( idynamic == 3 ) then
+      ! For idynamic==3 the u/v coords live at positions 13/14 and 15/16
+      idulon = 13
+      idulat = 14
+      idvlon = 15
+      idvlat = 16
+      v3dvar_bnds(5)%vname = 'ulon_bnds'
+      v3dvar_bnds(5)%vunit = 'degrees_east'
+      v3dvar_bnds(5)%long_name = 'Cell corner longitudes on U Points'
+      v3dvar_bnds(5)%standard_name = 'longitude'
+      v3dvar_bnds(5)%axis = 'nxy'
+      v3dvar_bnds(6)%vname = 'ulat_bnds'
+      v3dvar_bnds(6)%vunit = 'degrees_north'
+      v3dvar_bnds(6)%long_name = 'Cell corner latitudes on U Points'
+      v3dvar_bnds(6)%standard_name = 'latitude'
+      v3dvar_bnds(6)%axis = 'nxy'
+      v3dvar_bnds(7)%vname = 'vlon_bnds'
+      v3dvar_bnds(7)%vunit = 'degrees_east'
+      v3dvar_bnds(7)%long_name = 'Cell corner longitudes on V Points'
+      v3dvar_bnds(7)%standard_name = 'longitude'
+      v3dvar_bnds(7)%axis = 'nxy'
+      v3dvar_bnds(8)%vname = 'vlat_bnds'
+      v3dvar_bnds(8)%vunit = 'degrees_north'
+      v3dvar_bnds(8)%long_name = 'Cell corner latitudes on V Points'
+      v3dvar_bnds(8)%standard_name = 'latitude'
+      v3dvar_bnds(8)%axis = 'nxy'
+    else
+      idulat = 0
+      idulon = 0
+      idvlat = 0
+      idvlon = 0
+    end if
+
   end subroutine setup_outvars
 
   subroutine write_domain(df)
@@ -387,6 +475,7 @@ module mod_write
     call outstream_addatt(ncout, &
        ncattribute_logical('initialized_surface_moisture',lsmoist))
 
+    ! ---- Define all 2D centre-point variables ----
     do ivar = 1, nvar2d
       v2dvar_base(ivar)%j1 = -1
       v2dvar_base(ivar)%j2 = -1
@@ -398,6 +487,50 @@ module mod_write
       ncattribute_string('legend',landuse_legend))
     call outstream_addvaratt(ncout,v2dvar_base(idtxt), &
       ncattribute_string('legend',texture_legend))
+
+    ! ---- Define all 3D atmospheric variables ----
+    do ivar = 1, nvar3d
+      v3dvar_base(ivar)%j1 = -1
+      v3dvar_base(ivar)%j2 = -1
+      v3dvar_base(ivar)%i1 = -1
+      v3dvar_base(ivar)%i2 = -1
+      v3dvar_base(ivar)%k1 = -1
+      v3dvar_base(ivar)%k2 = -1
+      call outstream_addvar(ncout,v3dvar_base(ivar))
+    end do
+
+    ! ---- Define CF cell-boundary coordinate variables ----
+    do ivar = 1, nvar_bnds
+      v3dvar_bnds(ivar)%j1 = -1
+      v3dvar_bnds(ivar)%j2 = -1
+      v3dvar_bnds(ivar)%i1 = -1
+      v3dvar_bnds(ivar)%i2 = -1
+      v3dvar_bnds(ivar)%k1 = -1
+      v3dvar_bnds(ivar)%k2 = -1
+      call outstream_addvar(ncout,v3dvar_bnds(ivar))
+    end do
+
+    ! ---- Attach CF 'bounds' attributes to centre-point coordinate vars ----
+    call outstream_addvaratt(ncout,v2dvar_base(idxlon), &
+      ncattribute_string('bounds','xlon_bnds'))
+    call outstream_addvaratt(ncout,v2dvar_base(idxlat), &
+      ncattribute_string('bounds','xlat_bnds'))
+    call outstream_addvaratt(ncout,v2dvar_base(iddlon), &
+      ncattribute_string('bounds','dlon_bnds'))
+    call outstream_addvaratt(ncout,v2dvar_base(iddlat), &
+      ncattribute_string('bounds','dlat_bnds'))
+    if ( idynamic == 3 ) then
+      call outstream_addvaratt(ncout,v2dvar_base(idulon), &
+        ncattribute_string('bounds','ulon_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_base(idulat), &
+        ncattribute_string('bounds','ulat_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_base(idvlon), &
+        ncattribute_string('bounds','vlon_bnds'))
+      call outstream_addvaratt(ncout,v2dvar_base(idvlat), &
+        ncattribute_string('bounds','vlat_bnds'))
+    end if
+
+    ! ---- Assign data pointers for 2D centre-point variables ----
     v2dvar_base(1)%rval => df%xlon
     v2dvar_base(2)%rval => df%xlat
     v2dvar_base(3)%rval => df%dlon
@@ -410,16 +543,7 @@ module mod_write
     v2dvar_base(10)%rval => df%smoist
     v2dvar_base(11)%rval => df%texout
 
-    do ivar = 1, nvar3d
-      v3dvar_base(ivar)%j1 = -1
-      v3dvar_base(ivar)%j2 = -1
-      v3dvar_base(ivar)%i1 = -1
-      v3dvar_base(ivar)%i2 = -1
-      v3dvar_base(ivar)%k1 = -1
-      v3dvar_base(ivar)%k2 = -1
-      call outstream_addvar(ncout,v3dvar_base(ivar))
-    end do
-
+    ! ---- Assign data pointers for 3D atmospheric variables ----
     v3dvar_base(1)%rval => df%rmoist
     v3dvar_base(2)%rval => df%rts
     v3dvar_base(3)%rval => df%frac_tex
@@ -462,6 +586,18 @@ module mod_write
       end if
     end if
 
+    ! ---- Assign data pointers for cell-boundary variables ----
+    v3dvar_bnds(1)%rval => df%xlon_bnds
+    v3dvar_bnds(2)%rval => df%xlat_bnds
+    v3dvar_bnds(3)%rval => df%dlon_bnds
+    v3dvar_bnds(4)%rval => df%dlat_bnds
+    if ( idynamic == 3 ) then
+      v3dvar_bnds(5)%rval => df%ulon_bnds
+      v3dvar_bnds(6)%rval => df%ulat_bnds
+      v3dvar_bnds(7)%rval => df%vlon_bnds
+      v3dvar_bnds(8)%rval => df%vlat_bnds
+    end if
+
     dx = ds * 1000.0
     if ( iproj == 'ROTLLR' ) then
       v2dvar_base(12)%rval = (dx*dx)/df%xmap
@@ -471,12 +607,17 @@ module mod_write
 
     call outstream_enable(ncout,df%sigma)
 
+    ! ---- Write all variables ----
     do ivar = 1, nvar2d
       call outstream_writevar(ncout,v2dvar_base(ivar))
     end do
 
     do ivar = 1, nvar3d
       call outstream_writevar(ncout,v3dvar_base(ivar))
+    end do
+
+    do ivar = 1, nvar_bnds
+      call outstream_writevar(ncout,v3dvar_bnds(ivar))
     end do
 
     if ( lakedpth ) then

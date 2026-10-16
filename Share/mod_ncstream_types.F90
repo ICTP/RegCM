@@ -30,7 +30,7 @@ module mod_ncstream_types
 
   public
 
-  integer(ik4), parameter :: ncmaxdims = 16
+  integer(ik4), parameter :: ncmaxdims = 17
   integer(ik4), private, parameter :: maxname = 64
   integer(ik4), private, parameter :: maxunit = 36
   integer(ik4), private, parameter :: maxattarr = 8
@@ -53,6 +53,7 @@ module mod_ncstream_types
   integer(ik4), parameter :: months_dim      = 14
   integer(ik4), parameter :: spectral_dim    = 15
   integer(ik4), parameter :: spectral_b_dim  = 16
+  integer(ik4), parameter :: nv_dim          = 17
 
   type ncinstream_params
     ! The name of the input file

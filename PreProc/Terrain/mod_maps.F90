@@ -26,6 +26,11 @@ module mod_maps
         dmap, htgrid, lndout, mask, dpth, snowam, smoist, texout, xlat,  &
         xlon, xmap, ps0, ulat, ulon, vlat, vlon, umap, vmap, topou, topov
   real(rkx), pointer, contiguous, dimension(:,:) :: ulnd, vlnd
+  ! CF cell boundary coordinates (nv=4 corners, counterclockwise SW-SE-NE-NW)
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xlat_bnds, xlon_bnds
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: dlat_bnds, dlon_bnds
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ulat_bnds, ulon_bnds
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vlat_bnds, vlon_bnds
   real(rkx), pointer, contiguous, dimension(:,:,:) :: frac_tex, rmoist, rts
   real(rkx), pointer, contiguous, dimension(:,:,:) :: pr0, t0, rho0, z0
   real(rkx), pointer, contiguous, dimension(:,:,:) :: zeta, zetau, zetav, fmz
@@ -35,6 +40,11 @@ module mod_maps
         smoist_s, texout_s, xlat_s, xlon_s, xmap_s, ulat_s, ulon_s,   &
         vlat_s, vlon_s, umap_s, vmap_s, ps0_s, topou_s, topov_s
   real(rkx), pointer, contiguous, dimension(:,:) :: ulnd_s, vlnd_s
+  ! CF cell boundary coordinates for subgrid (nv=4 corners)
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: xlat_bnds_s, xlon_bnds_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: dlat_bnds_s, dlon_bnds_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: ulat_bnds_s, ulon_bnds_s
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: vlat_bnds_s, vlon_bnds_s
   real(rkx), pointer, contiguous, dimension(:,:,:) :: frac_tex_s, rmoist_s
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rts_s, z0_s, t0_s
   real(rkx), pointer, contiguous, dimension(:,:,:) :: pr0_s, rho0_s
@@ -57,8 +67,12 @@ module mod_maps
     call getmem(coriol,1,jx,1,iy,'maps:coriol')
     call getmem(xlat,1,jx,1,iy,'maps:xlat')
     call getmem(xlon,1,jx,1,iy,'maps:xlon')
+    call getmem(xlat_bnds,1,4,1,jx,1,iy,'maps:xlat_bnds')
+    call getmem(xlon_bnds,1,4,1,jx,1,iy,'maps:xlon_bnds')
     call getmem(dlat,1,jx,1,iy,'maps:dlat')
     call getmem(dlon,1,jx,1,iy,'maps:dlon')
+    call getmem(dlat_bnds,1,4,1,jx,1,iy,'maps:dlat_bnds')
+    call getmem(dlon_bnds,1,4,1,jx,1,iy,'maps:dlon_bnds')
     call getmem(htgrid,1,jx,1,iy,'maps:htgrid')
     call getmem(dpth,1,jx,1,iy,'maps:dpth')
     call getmem(lndout,1,jx,1,iy,'maps:lndout')
@@ -88,8 +102,12 @@ module mod_maps
       call getmem(vlnd,1,jx,1,iy,'maps:vlnd')
       call getmem(ulat,1,jx,1,iy,'maps:ulat')
       call getmem(ulon,1,jx,1,iy,'maps:ulon')
+      call getmem(ulat_bnds,1,4,1,jx,1,iy,'maps:ulat_bnds')
+      call getmem(ulon_bnds,1,4,1,jx,1,iy,'maps:ulon_bnds')
       call getmem(vlat,1,jx,1,iy,'maps:vlat')
       call getmem(vlon,1,jx,1,iy,'maps:vlon')
+      call getmem(vlat_bnds,1,4,1,jx,1,iy,'maps:vlat_bnds')
+      call getmem(vlon_bnds,1,4,1,jx,1,iy,'maps:vlon_bnds')
       call getmem(xmap,1,jx,1,iy,'maps:xmap')
       call getmem(umap,1,jx,1,iy,'maps:umap')
       call getmem(vmap,1,jx,1,iy,'maps:vmap')
@@ -107,8 +125,12 @@ module mod_maps
     call getmem(coriol_s,1,jxsg,1,iysg,'maps:coriol_s')
     call getmem(xlat_s,1,jxsg,1,iysg,'maps:xlat_s')
     call getmem(xlon_s,1,jxsg,1,iysg,'maps:xlon_s')
+    call getmem(xlat_bnds_s,1,4,1,jxsg,1,iysg,'maps:xlat_bnds_s')
+    call getmem(xlon_bnds_s,1,4,1,jxsg,1,iysg,'maps:xlon_bnds_s')
     call getmem(dlat_s,1,jxsg,1,iysg,'maps:dlat_s')
     call getmem(dlon_s,1,jxsg,1,iysg,'maps:dlon_s')
+    call getmem(dlat_bnds_s,1,4,1,jxsg,1,iysg,'maps:dlat_bnds_s')
+    call getmem(dlon_bnds_s,1,4,1,jxsg,1,iysg,'maps:dlon_bnds_s')
     call getmem(htgrid_s,1,jxsg,1,iysg,'maps:htgrid_s')
     call getmem(dpth_s,1,jxsg,1,iysg,'maps:dpth_s')
     call getmem(lndout_s,1,jxsg,1,iysg,'maps:lndout_s')
@@ -135,8 +157,12 @@ module mod_maps
       call getmem(vlnd_s,1,jxsg,1,iysg,'maps:vlnd_s')
       call getmem(ulat_s,1,jxsg,1,iysg,'maps:ulat_s')
       call getmem(ulon_s,1,jxsg,1,iysg,'maps:ulon_s')
+      call getmem(ulat_bnds_s,1,4,1,jxsg,1,iysg,'maps:ulat_bnds_s')
+      call getmem(ulon_bnds_s,1,4,1,jxsg,1,iysg,'maps:ulon_bnds_s')
       call getmem(vlat_s,1,jxsg,1,iysg,'maps:vlat_s')
       call getmem(vlon_s,1,jxsg,1,iysg,'maps:vlon_s')
+      call getmem(vlat_bnds_s,1,4,1,jxsg,1,iysg,'maps:vlat_bnds_s')
+      call getmem(vlon_bnds_s,1,4,1,jxsg,1,iysg,'maps:vlon_bnds_s')
       call getmem(xmap_s,1,jxsg,1,iysg,'maps:xmap_s')
       call getmem(umap_s,1,jxsg,1,iysg,'maps:umap_s')
       call getmem(vmap_s,1,jxsg,1,iysg,'maps:vmap_s')

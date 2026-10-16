@@ -232,20 +232,25 @@ program terrain
     pjpara%staggerx = .false.
     pjpara%staggery = .false.
     call getcoord(pjpara,xlon_s,xlat_s,pjx,jxsg,iysg)
+    call get_coord_bounds(pjx,xlon_bnds_s,xlat_bnds_s,jxsg,iysg)
     if ( idynamic == 3 ) then
       pjpara%staggerx = .true.
       pjpara%staggery = .false.
       call getcoord(pjpara,ulon_s,ulat_s,pju,jxsg,iysg)
+      call get_coord_bounds(pju,ulon_bnds_s,ulat_bnds_s,jxsg,iysg)
       pjpara%staggerx = .false.
       pjpara%staggery = .true.
       call getcoord(pjpara,vlon_s,vlat_s,pjv,jxsg,iysg)
+      call get_coord_bounds(pjv,vlon_bnds_s,vlat_bnds_s,jxsg,iysg)
       pjpara%staggerx = .true.
       pjpara%staggery = .true.
       call getcoord(pjpara,dlon_s,dlat_s,pjd,jxsg,iysg)
+      call get_coord_bounds(pjd,dlon_bnds_s,dlat_bnds_s,jxsg,iysg)
     else
       pjpara%staggerx = .true.
       pjpara%staggery = .true.
       call getcoord(pjpara,dlon_s,dlat_s,pjd,jxsg,iysg)
+      call get_coord_bounds(pjd,dlon_bnds_s,dlat_bnds_s,jxsg,iysg)
     end if
 
     if ( idynamic == 3 ) then
@@ -451,20 +456,25 @@ program terrain
   pjpara%staggerx = .false.
   pjpara%staggery = .false.
   call getcoord(pjpara,xlon,xlat,pjx,jx,iy)
+  call get_coord_bounds(pjx,xlon_bnds,xlat_bnds,jx,iy)
   if ( idynamic == 3 ) then
     pjpara%staggerx = .true.
     pjpara%staggery = .false.
     call getcoord(pjpara,ulon,ulat,pju,jx,iy)
+    call get_coord_bounds(pju,ulon_bnds,ulat_bnds,jx,iy)
     pjpara%staggerx = .false.
     pjpara%staggery = .true.
     call getcoord(pjpara,vlon,vlat,pjv,jx,iy)
+    call get_coord_bounds(pjv,vlon_bnds,vlat_bnds,jx,iy)
     pjpara%staggerx = .true.
     pjpara%staggery = .true.
     call getcoord(pjpara,dlon,dlat,pjd,jx,iy)
+    call get_coord_bounds(pjd,dlon_bnds,dlat_bnds,jx,iy)
   else
     pjpara%staggerx = .true.
     pjpara%staggery = .true.
     call getcoord(pjpara,dlon,dlat,pjd,jx,iy)
+    call get_coord_bounds(pjd,dlon_bnds,dlat_bnds,jx,iy)
   end if
 
   if ( idynamic == 3 ) then
@@ -979,8 +989,12 @@ program terrain
     df%sigma => sigma
     df%xlat => xlat_s
     df%xlon => xlon_s
+    df%xlat_bnds => xlat_bnds_s
+    df%xlon_bnds => xlon_bnds_s
     df%dlat => dlat_s
     df%dlon => dlon_s
+    df%dlat_bnds => dlat_bnds_s
+    df%dlon_bnds => dlon_bnds_s
     df%xmap => xmap_s
     df%dmap => dmap_s
     df%coriol => coriol_s
@@ -997,8 +1011,12 @@ program terrain
     if ( idynamic == 3 ) then
       df%ulat => ulat_s
       df%ulon => ulon_s
+      df%ulat_bnds => ulat_bnds_s
+      df%ulon_bnds => ulon_bnds_s
       df%vlat => vlat_s
       df%vlon => vlon_s
+      df%vlat_bnds => vlat_bnds_s
+      df%vlon_bnds => vlon_bnds_s
       df%umap => umap_s
       df%vmap => vmap_s
       df%topou => topou_s
@@ -1105,8 +1123,12 @@ program terrain
   df%sigma => sigma
   df%xlat => xlat
   df%xlon => xlon
+  df%xlat_bnds => xlat_bnds
+  df%xlon_bnds => xlon_bnds
   df%dlat => dlat
   df%dlon => dlon
+  df%dlat_bnds => dlat_bnds
+  df%dlon_bnds => dlon_bnds
   df%xmap => xmap
   df%dmap => dmap
   df%coriol => coriol
@@ -1123,8 +1145,12 @@ program terrain
   if ( idynamic == 3 ) then
     df%ulat => ulat
     df%ulon => ulon
+    df%ulat_bnds => ulat_bnds
+    df%ulon_bnds => ulon_bnds
     df%vlat => vlat
     df%vlon => vlon
+    df%vlat_bnds => vlat_bnds
+    df%vlon_bnds => vlon_bnds
     df%umap => umap
     df%vmap => vmap
     df%topou => topou
