@@ -502,6 +502,15 @@ module mod_ncout
   real(rkx), pointer, contiguous, dimension(:,:,:) :: io3d, io3dsg
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: io4d
 
+  ! CF cell-bound coordinate variable descriptors.
+  ! These are written once per file by rank 0 only via outstream_writevar_rank0.
+  ! They are NOT added to outstream%ncvars%vlist so they bypass the per-timestep
+  ! collective write loop entirely.
+  type(ncvariable3d_mixed), save :: v3d_xlon_bnds, v3d_xlat_bnds
+  type(ncvariable3d_mixed), save :: v3d_sub_xlon_bnds, v3d_sub_xlat_bnds
+  logical, save :: l_bnds_setup = .false.
+  logical, save :: l_sub_bnds_setup = .false.
+
   interface setup_var
     module procedure setup_var_2d
     module procedure setup_var_3d
@@ -2147,6 +2156,36 @@ module mod_ncout
         sub_area_out => v2dvar_sub(sub_area)%rval
         sub_ps_out => v2dvar_sub(sub_ps)%rval
 
+        ! CF cell-boundary coordinate variables for subgrid
+        if ( .not. l_sub_bnds_setup ) then
+          v3d_sub_xlon_bnds%lgridded = .false.
+          v3d_sub_xlon_bnds%vname = 'xlon_bnds'
+          v3d_sub_xlon_bnds%vunit = 'degrees_east'
+          v3d_sub_xlon_bnds%long_name = 'Cell corner longitudes on Cross Points'
+          v3d_sub_xlon_bnds%standard_name = 'longitude'
+          v3d_sub_xlon_bnds%axis = 'nxy'
+          v3d_sub_xlon_bnds%lrecords = .false.
+          v3d_sub_xlon_bnds%j1 = -1
+          v3d_sub_xlon_bnds%j2 = -1
+          v3d_sub_xlon_bnds%i1 = -1
+          v3d_sub_xlon_bnds%i2 = -1
+          v3d_sub_xlon_bnds%k1 = -1
+          v3d_sub_xlon_bnds%k2 = -1
+          v3d_sub_xlat_bnds%lgridded = .false.
+          v3d_sub_xlat_bnds%vname = 'xlat_bnds'
+          v3d_sub_xlat_bnds%vunit = 'degrees_north'
+          v3d_sub_xlat_bnds%long_name = 'Cell corner latitudes on Cross Points'
+          v3d_sub_xlat_bnds%standard_name = 'latitude'
+          v3d_sub_xlat_bnds%axis = 'nxy'
+          v3d_sub_xlat_bnds%lrecords = .false.
+          v3d_sub_xlat_bnds%j1 = -1
+          v3d_sub_xlat_bnds%j2 = -1
+          v3d_sub_xlat_bnds%i1 = -1
+          v3d_sub_xlat_bnds%i2 = -1
+          v3d_sub_xlat_bnds%k1 = -1
+          v3d_sub_xlat_bnds%k2 = -1
+          l_sub_bnds_setup = .true.
+        end if
         ! The following may be enabled/disabled
 
         if ( enable_sub2d_vars(sub_uvdrag) ) then
@@ -3939,7 +3978,60 @@ module mod_ncout
           call outstream_addvar(outstream(i)%ncout(j),vp)
         end do
 
+        ! ---- CF cell-boundary coordinate variables ----
+        ! Define them in this file and attach 'bounds' attributes to xlon/xlat.
+        ! lgridded is forced .false. so buffer sizing uses the full (4,jx,iy)
+        ! shape, not the per-rank tile.
+        if ( outstream(i)%l_sub ) then
+          if ( l_sub_bnds_setup .and. associated(sub_xlon_bnds_out) ) then
+            v3d_sub_xlon_bnds%rval => sub_xlon_bnds_out
+            v3d_sub_xlat_bnds%rval => sub_xlat_bnds_out
+            call outstream_addvar(outstream(i)%ncout(j),v3d_sub_xlon_bnds)
+            call outstream_addvar(outstream(i)%ncout(j),v3d_sub_xlat_bnds)
+            call outstream_addvaratt(outstream(i)%ncout(j), &
+              v2dvar_sub(sub_xlon),ncattribute_string('bounds','xlon_bnds'))
+            call outstream_addvaratt(outstream(i)%ncout(j), &
+              v2dvar_sub(sub_xlat),ncattribute_string('bounds','xlat_bnds'))
+          end if
+        else
+          if ( l_bnds_setup .and. associated(xlon_bnds_out) ) then
+            v3d_xlon_bnds%rval => xlon_bnds_out
+            v3d_xlat_bnds%rval => xlat_bnds_out
+            call outstream_addvar(outstream(i)%ncout(j),v3d_xlon_bnds)
+            call outstream_addvar(outstream(i)%ncout(j),v3d_xlat_bnds)
+            ! Locate xlon/xlat in the stream var list to attach attributes
+            do ivar = 1, outstream(i)%nvar
+              vp => outstream(i)%ncvars%vlist(ivar)%vp
+              select type(vp)
+                type is (ncvariable2d_mixed)
+                  if ( vp%vname == 'xlon' ) &
+                    call outstream_addvaratt(outstream(i)%ncout(j), &
+                      vp, ncattribute_string('bounds','xlon_bnds'))
+                  if ( vp%vname == 'xlat' ) &
+                    call outstream_addvaratt(outstream(i)%ncout(j), &
+                      vp, ncattribute_string('bounds','xlat_bnds'))
+              end select
+            end do
+          end if
+        end if
+
         call outstream_enable(outstream(i)%ncout(j),hsigma)
+
+        if ( outstream(i)%l_sub ) then
+          if ( l_sub_bnds_setup .and. associated(sub_xlon_bnds_out) ) then
+            call outstream_writevar_rank0(outstream(i)%ncout(j), &
+              v3d_sub_xlon_bnds, myid)
+            call outstream_writevar_rank0(outstream(i)%ncout(j), &
+              v3d_sub_xlat_bnds, myid)
+          end if
+        else
+          if ( l_bnds_setup .and. associated(xlon_bnds_out) ) then
+            call outstream_writevar_rank0(outstream(i)%ncout(j), &
+              v3d_xlon_bnds, myid)
+            call outstream_writevar_rank0(outstream(i)%ncout(j), &
+              v3d_xlat_bnds, myid)
+          end if
+        end if
 
         if ( .not. parallel_out ) then
           if ( outstream(i)%l_sub ) then
@@ -4059,6 +4151,40 @@ module mod_ncout
         call setup_var(var,ps0,vsize,'p0','Pa', &
           'Model reference pressure', 'model_reference_surface_air_pressure')
         p0_out => var(ps0)%rval
+      end if
+
+      ! ---- CF cell-boundary coordinate variables ----
+      ! Set up metadata once (first stream to call setup_common_vars).
+      ! These are written rank-0-only via outstream_writevar_rank0; they are NOT
+      ! added to the stream variable list so they bypass the collective loops.
+      if ( .not. l_bnds_setup ) then
+        v3d_xlon_bnds%lgridded = .false.
+        v3d_xlon_bnds%vname = 'xlon_bnds'
+        v3d_xlon_bnds%vunit = 'degrees_east'
+        v3d_xlon_bnds%long_name = 'Cell corner longitudes on Cross Points'
+        v3d_xlon_bnds%standard_name = 'longitude'
+        v3d_xlon_bnds%axis = 'nxy'
+        v3d_xlon_bnds%lrecords = .false.
+        v3d_xlon_bnds%j1 = -1
+        v3d_xlon_bnds%j2 = -1
+        v3d_xlon_bnds%i1 = -1
+        v3d_xlon_bnds%i2 = -1
+        v3d_xlon_bnds%k1 = -1
+        v3d_xlon_bnds%k2 = -1
+        v3d_xlat_bnds%lgridded = .false.
+        v3d_xlat_bnds%vname = 'xlat_bnds'
+        v3d_xlat_bnds%vunit = 'degrees_north'
+        v3d_xlat_bnds%long_name = 'Cell corner latitudes on Cross Points'
+        v3d_xlat_bnds%standard_name = 'latitude'
+        v3d_xlat_bnds%axis = 'nxy'
+        v3d_xlat_bnds%lrecords = .false.
+        v3d_xlat_bnds%j1 = -1
+        v3d_xlat_bnds%j2 = -1
+        v3d_xlat_bnds%i1 = -1
+        v3d_xlat_bnds%i2 = -1
+        v3d_xlat_bnds%k1 = -1
+        v3d_xlat_bnds%k2 = -1
+        l_bnds_setup = .true.
       end if
     end if
   end subroutine setup_common_vars

@@ -23,6 +23,9 @@ module mod_outvars
 
   real(rkx), dimension(:,:), pointer, contiguous :: xlon_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: xlat_out => null()
+  ! CF cell-boundary coordinate variables: shape (4, jx, iy) on rank 0
+  real(rkx), dimension(:,:,:), pointer, contiguous :: xlon_bnds_out => null()
+  real(rkx), dimension(:,:,:), pointer, contiguous :: xlat_bnds_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: topo_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: mask_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: area_out => null()
@@ -31,6 +34,9 @@ module mod_outvars
 
   real(rkx), dimension(:,:), pointer, contiguous :: sub_xlon_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: sub_xlat_out => null()
+  ! CF cell-boundary coordinate variables for subgrid: shape (4, jxsg, iysg) on rank 0
+  real(rkx), dimension(:,:,:), pointer, contiguous :: sub_xlon_bnds_out => null()
+  real(rkx), dimension(:,:,:), pointer, contiguous :: sub_xlat_bnds_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: sub_topo_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: sub_mask_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: sub_area_out => null()

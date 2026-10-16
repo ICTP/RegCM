@@ -131,6 +131,15 @@ module mod_output
           topo_out(j,i) = mddom%ht(j,i)
         end do
         topo_out = topo_out*regrav
+        ! CF cell-bound coordinates: full-domain data lives on rank 0 only.
+        ! Point the output pointers at the domain type arrays; newoutfiles
+        ! will write them via outstream_writevar_rank0.
+        if ( myid == 0 ) then
+          if ( associated(mddom%xlon_bnds) ) &
+            xlon_bnds_out => mddom%xlon_bnds
+          if ( associated(mddom%xlat_bnds) ) &
+            xlat_bnds_out => mddom%xlat_bnds
+        end if
       end if
       if ( associated(sub_xlon_out) ) then
         call reorder_subgrid(mdsub%xlon,sub_xlon_out)
@@ -139,6 +148,12 @@ module mod_output
         call reorder_subgrid(mdsub%area,sub_area_out)
         call reorder_subgrid(mdsub%ht,sub_topo_out)
         sub_topo_out = sub_topo_out*regrav
+        if ( myid == 0 ) then
+          if ( associated(mdsub%xlon_bnds) ) &
+            sub_xlon_bnds_out => mdsub%xlon_bnds
+          if ( associated(mdsub%xlat_bnds) ) &
+            sub_xlat_bnds_out => mdsub%xlat_bnds
+        end if
       end if
       if ( idynamic == 2 ) then
         if ( associated(p0_out) ) then

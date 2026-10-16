@@ -96,6 +96,7 @@ module mod_ncstream
   public :: outstream_addvar, outstream_addatt
   public :: outstream_addvaratt
   public :: outstream_writevar
+  public :: outstream_writevar_rank0
   public :: outstream_addrec
   public :: outstream_sync
   public :: outstream_async_flush
@@ -3887,6 +3888,100 @@ module mod_ncstream
       end if
       !@acc call nvtxEndRange
     end subroutine outstream_writevar
+
+    ! Write a 3D static variable from rank 0 only.
+    !
+    ! Used for CF cell-bound coordinate variables (e.g. xlat_bnds, xlon_bnds)
+    ! whose full-domain data lives in model main only on rank 0.
+    ! In serial or non-parallel mode this is identical to a regular
+    ! outstream_writevar call.  In parallel mode it switches to independent
+    ! I/O (PnetCDF: nf90mpi_begin/end_indep_data;
+    ! NetCDF4-parallel: nf90_var_par_access nf90_independent) so that only rank
+    ! 0 issues the actual put, writing the complete (nv,jx,iy) array from
+    ! istart=(1,1,1).  All other ranks enter and leave independent mode without
+    ! issuing a put.  Collective mode is restored afterwards.
+    ! The variable's lgridded flag must be .false. (set by the caller before
+    ! outstream_addvar) so that buffer sizing uses the full global dimensions.
+    subroutine outstream_writevar_rank0(ncout, var, myrank)
+      implicit none
+      type(nc_output_stream), intent(inout) :: ncout
+      type(ncvariable3d_mixed), intent(inout) :: var
+      integer(ik4), intent(in) :: myrank
+      type(ncoutstream), pointer :: stream
+      type(internal_obuffer), pointer :: buffer
+      integer(ik4) :: nd, totsize, ncstat
+
+      if ( .not. associated(ncout%ncp%xs) ) return
+      stream => ncout%ncp%xs
+      if ( .not. stream%l_enabled ) return
+      if ( stream%id < 0 ) return
+      buffer => ncout%obp%xb
+
+#ifdef PNETCDF
+      if ( stream%l_parallel ) then
+        ncstat = nf90mpi_begin_indep_data(stream%id)
+        if ( ncstat /= nf90_noerr ) &
+          call die('nc_stream','Cannot enter independent I/O mode for '// &
+            trim(var%vname)//' in '//trim(stream%filename), 1)
+      end if
+#else
+      if ( stream%l_parallel ) then
+        ncstat = nf90_var_par_access(stream%id, var%id, nf90_independent)
+        if ( ncstat /= nf90_noerr ) &
+          call die('nc_stream','Cannot set independent access for '// &
+            trim(var%vname)//' in '//trim(stream%filename), 1)
+      end if
+#endif
+
+      if ( myrank == 0 ) then
+        if ( var%j1 <= 0 ) var%j1 = 1
+        if ( var%j2 <= 0 ) var%j2 = var%nval(1)
+        if ( var%i1 <= 0 ) var%i1 = 1
+        if ( var%i2 <= 0 ) var%i2 = var%nval(2)
+        if ( var%k1 <= 0 ) var%k1 = 1
+        if ( var%k2 <= 0 ) var%k2 = var%nval(3)
+        stream%istart(1) = 1
+        stream%icount(1) = var%nval(1)
+        stream%istart(2) = 1
+        stream%icount(2) = var%nval(2)
+        stream%istart(3) = 1
+        stream%icount(3) = var%nval(3)
+        nd = 3
+        totsize = var%totsize
+        buffer%realbuff(1:totsize) = &
+          real(reshape(var%rval(var%j1:var%j2, &
+                                var%i1:var%i2, &
+                                var%k1:var%k2), [totsize]), rk4)
+#ifdef PNETCDF
+        ncstat = nf90mpi_put_var(stream%id, var%id, &
+          buffer%realbuff, stream%istart(1:nd), stream%icount(1:nd))
+#else
+        ncstat = nf90_put_var(stream%id, var%id, &
+          buffer%realbuff, stream%istart(1:nd), stream%icount(1:nd))
+#endif
+        if ( ncstat /= nf90_noerr ) &
+          call die('nc_stream','Cannot write rank-0 variable '// &
+            trim(var%vname)//' in '//trim(stream%filename), 1)
+      end if
+
+      ! ---- Restore collective I/O mode on all ranks ----
+#ifdef PNETCDF
+      if ( stream%l_parallel ) then
+        ncstat = nf90mpi_end_indep_data(stream%id)
+        if ( ncstat /= nf90_noerr ) &
+          call die('nc_stream','Cannot restore collective I/O mode after '// &
+            trim(var%vname)//' in '//trim(stream%filename), 1)
+      end if
+#else
+      if ( stream%l_parallel ) then
+        ncstat = nf90_var_par_access(stream%id, var%id, nf90_collective)
+        if ( ncstat /= nf90_noerr ) &
+          call die('nc_stream','Cannot restore collective access for '// &
+            trim(var%vname)//' in '//trim(stream%filename), 1)
+      end if
+#endif
+
+    end subroutine outstream_writevar_rank0
 
     subroutine cdumlogical(cdum,yesno)
       implicit none
