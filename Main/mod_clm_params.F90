@@ -379,7 +379,7 @@ module mod_clm_params
                           mddom%msfu,mddom%msfv,mddom%coriol,mddom%snowam, &
                           mddom%smoist,mddom%rmoist,mddom%rts,mddom%dhlake,&
                           base_state_ts0,mddom%htu,mddom%htv,mddom%rlat,   &
-                          mddom%rlon)
+                          mddom%rlon,mddom%xlat_bnds,mddom%xlon_bnds)
     call bcast(ptop)
     call bcast(xcone)
 
@@ -419,7 +419,8 @@ module mod_clm_params
 
     if ( nsg > 1 ) then
       call read_subdomain_info(mdsub%ht,mdsub%lndcat,mdsub%lndtex,mdsub%mask, &
-               mdsub%area,mdsub%xlat,mdsub%xlon,mdsub%dhlake)
+               mdsub%area,mdsub%xlat,mdsub%xlon,mdsub%dhlake,mdsub%xlat_bnds, &
+               mdsub%xlon_bnds)
       mdsub%ht = mdsub%ht*egrav
     else
       do i = ici1, ici2

@@ -2140,8 +2140,8 @@ module mod_params
                             mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
                             mddom%coriol,mddom%snowam,mddom%smoist,        &
                             mddom%rmoist,mddom%rts,mddom%dhlake,           &
-                            base_state_ts0,mddom%htu,mddom%htv,            &
-                            mddom%rlat,mddom%rlon)
+                            base_state_ts0,mddom%htu,mddom%htv,mddom%rlat, &
+                            mddom%rlon,mddom%xlat_bnds,mddom%xlon_bnds)
     end if
     if ( moloch_do_test_1 ) then
       ifrayd = 0
@@ -2381,7 +2381,8 @@ module mod_params
           'The idealized cases can run only with nsg == 1')
       end if
       call read_subdomain_info(mdsub%ht,mdsub%lndcat,mdsub%lndtex,mdsub%mask, &
-               mdsub%area,mdsub%xlat,mdsub%xlon,mdsub%dhlake)
+               mdsub%area,mdsub%xlat,mdsub%xlon,mdsub%dhlake,mdsub%xlat_bnds, &
+               mdsub%xlon_bnds)
       mdsub%ht = mdsub%ht*egrav
     else
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )

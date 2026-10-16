@@ -364,6 +364,10 @@ module mod_atm_stub
         call getmem(dom%dmdy,jdi1,jdi2,idi1,idi2,'storage:dmdy')
         call getmem(dom%dmdx,jdi1,jdi2,idi1,idi2,'storage:dmdx')
       end if
+      if ( myid == 0 ) then
+        call getmem(dom%xlat_bnds,1,4,1,jx,1,iy,'sorage:xlat_bnds')
+        call getmem(dom%xlon_bnds,1,4,1,jx,1,iy,'sorage%xlon_bnds')
+      end if
     end subroutine allocate_domain
 
     subroutine allocate_domain_subgrid(sub)
@@ -381,6 +385,10 @@ module mod_atm_stub
       call getmem(sub%itex,1,nnsg,jci1,jci2,ici1,ici2,'storage:itex')
       if ( lakemod == 1 ) then
         call getmem(sub%dhlake,1,nnsg,jde1,jde2,ide1,ide2,'storage:dhlake')
+      end if
+      if ( myid == 0 ) then
+        call getmem(sub%xlat_bnds,1,4,1,jxsg,1,iysg,'sorage:xlat_bnds')
+        call getmem(sub%xlon_bnds,1,4,1,jxsg,1,iysg,'sorage%xlon_bnds')
       end if
     end subroutine allocate_domain_subgrid
 

@@ -162,7 +162,7 @@ module mod_ncio
   subroutine read_domain_info(ht,lnd,tex,mask,area,xlat,xlon,dlat,dlon, &
                               ulat,ulon,vlat,vlon,msfx,msfd,msfu,msfv,  &
                               coriol,snowam,smoist,rmoist,rts,hlake,ts0,&
-                              htu,htv,rlat,rlon)
+                              htu,htv,rlat,rlon,latb,lonb)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: ht
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: lnd
@@ -191,6 +191,8 @@ module mod_ncio
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: htv
     real(rkx), pointer, contiguous, dimension(:), intent(inout) :: rlat
     real(rkx), pointer, contiguous, dimension(:), intent(inout) :: rlon
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: latb
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: lonb
     real(rkx), intent(out) :: ts0
     real(rkx), dimension(:,:), pointer, contiguous :: tempmoist
     character(len=256) :: dname
@@ -341,8 +343,25 @@ module mod_ncio
       if ( idynamic == 2 ) then
         call read_reference_surface_temp(idmin,ts0)
       end if
-      call closefile(idmin)
       deallocate(rspace)
+      ! latb, lonb are alive only on rank 0
+      if ( myid == 0 ) then
+        istart3(1) = 1
+        istart3(2) = 1
+        istart3(3) = 1
+        icount3(1) = 4
+        icount3(2) = jx
+        icount3(3) = iy
+        allocate(rspace3(icount3(1),icount3(2),icount3(3)))
+        call read_var3d_static(idmin,'xlat_bnds', &
+                         rspace3,istart=istart3,icount=icount3)
+        latb(:,:,:) = rspace3(:,:,:)
+        call read_var3d_static(idmin,'xlon_bnds', &
+                         rspace3,istart=istart3,icount=icount3)
+        lonb(:,:,:) = rspace3(:,:,:)
+        deallocate(rspace3)
+      end if
+      call closefile(idmin)
     else
       if ( myid == iocpu ) then
         istart(1) = 1
@@ -500,8 +519,22 @@ module mod_ncio
                    istart=istart,icount=icount)
           call grid_distribute(rspace,hlake,jde1,jde2,ide1,ide2)
         end if
-        call closefile(idmin)
         deallocate(rspace)
+        istart3(1) = 1
+        istart3(2) = 1
+        istart3(3) = 1
+        icount3(1) = 4
+        icount3(2) = jx
+        icount3(3) = iy
+        allocate(rspace3(icount3(1),icount3(2),icount3(3)))
+        call read_var3d_static(idmin,'xlat_bnds', &
+                         rspace3,istart=istart3,icount=icount3)
+        latb(:,:,:) = rspace3(:,:,:)
+        call read_var3d_static(idmin,'xlon_bnds', &
+                         rspace3,istart=istart3,icount=icount3)
+        lonb(:,:,:) = rspace3(:,:,:)
+        deallocate(rspace3)
+        call closefile(idmin)
       else
         call bcast(ts0)
         call bcast(replacemoist)
@@ -556,6 +589,7 @@ module mod_ncio
         if ( lakemod == 1 ) then
           call grid_distribute(rspace,hlake,jde1,jde2,ide1,ide2)
         end if
+        ! latb, lonb are alive only on rank 0
       end if
     end if
     if ( idynamic == 2 ) then
@@ -566,7 +600,7 @@ module mod_ncio
     end if
   end subroutine read_domain_info
 
-  subroutine read_subdomain_info(ht,lnd,tex,mask,area,xlat,xlon,hlake)
+  subroutine read_subdomain_info(ht,lnd,tex,mask,area,xlat,xlon,hlake,latb,lonb)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ht
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: lnd
@@ -576,9 +610,12 @@ module mod_ncio
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: xlat
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: xlon
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: hlake
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: latb
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: lonb
     character(len=256) :: dname
     integer(ik4) :: idmin
     integer(ik4), dimension(2) :: istart, icount
+    integer(ik4), dimension(3) :: istart3, icount3
     real(rkx), dimension(:,:), pointer, contiguous :: rspace
     real(rkx), dimension(:,:,:), pointer, contiguous :: rspace0
     logical :: has_dhlake
@@ -632,8 +669,25 @@ module mod_ncio
                                istart=istart,icount=icount)
         if ( has_dhlake ) call input_reorder(rspace,hlake,jde1,jde2,ide1,ide2)
       end if
-      call closefile(idmin)
       deallocate(rspace)
+      ! latb, lonb are alive only on rank 0
+      if ( myid == 0 ) then
+        istart3(1) = 1
+        istart3(2) = 1
+        istart3(3) = 1
+        icount3(1) = 4
+        icount3(2) = jxsg
+        icount3(3) = iysg
+        allocate(rspace3(icount3(1),icount3(2),icount3(3)))
+        call read_var3d_static(idmin,'xlat_bnds', &
+                         rspace3,istart=istart3,icount=icount3)
+        latb(:,:,:) = rspace3(:,:,:)
+        call read_var3d_static(idmin,'xlon_bnds', &
+                         rspace3,istart=istart3,icount=icount3)
+        lonb(:,:,:) = rspace3(:,:,:)
+        deallocate(rspace3)
+      end if
+      call closefile(idmin)
     else
       if ( myid == iocpu ) then
         istart(1) = 1
@@ -685,9 +739,26 @@ module mod_ncio
           if ( has_dhlake ) call input_reorder(rspace,rspace0,1,jx,1,iy)
           call subgrid_distribute(rspace0,hlake,jci1,jci2,ici1,ici2)
         end if
-        call closefile(idmin)
         deallocate(rspace)
         deallocate(rspace0)
+        ! latb, lonb are alive only on rank 0
+        if ( myid == 0 ) then
+          istart3(1) = 1
+          istart3(2) = 1
+          istart3(3) = 1
+          icount3(1) = 4
+          icount3(2) = jxsg
+          icount3(3) = iysg
+          allocate(rspace3(icount3(1),icount3(2),icount3(3)))
+          call read_var3d_static(idmin,'xlat_bnds', &
+                           rspace3,istart=istart3,icount=icount3)
+          latb(:,:,:) = rspace3(:,:,:)
+          call read_var3d_static(idmin,'xlon_bnds', &
+                           rspace3,istart=istart3,icount=icount3)
+          lonb(:,:,:) = rspace3(:,:,:)
+          deallocate(rspace3)
+        end if
+        call closefile(idmin)
       else
         call subgrid_distribute(rspace0,xlat,jde1,jde2,ide1,ide2)
         call subgrid_distribute(rspace0,xlon,jde1,jde2,ide1,ide2)
