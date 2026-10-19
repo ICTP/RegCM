@@ -152,7 +152,7 @@ Three orthogonal preprocessor flags interact in this module:
 
 \subsubsection{Kind Parameters}
 
-\begin{longtable}{L{2.5cm} L{2cm} L{3.5cm} L{3cm} L{4cm}}
+\begin{longtable}{L{0.9cm} L{1.2cm} L{2.2cm} L{7cm} L{4cm}}
   \toprule
   \textbf{Name} & \textbf{Width} & \textbf{\texttt{F2008} value} & \textbf{Fallback value} & \textbf{Description} \\
   \midrule
@@ -197,7 +197,7 @@ when the model is built in single precision.
 
 Four precision-specific constants and two working-precision aliases are provided:
 
-\begin{longtable}{L{3cm} L{5cm} L{6cm}}
+\begin{longtable}{L{2cm} L{7cm} L{5cm}}
   \toprule
   \textbf{Name} & \textbf{Value / construction} & \textbf{Description} \\
   \midrule
@@ -2371,7 +2371,7 @@ The generic interface \code{split\_idate} is overloaded across five procedures
 that unpack an \code{rcm\_time\_and\_date} (or an integer date) into its
 components:
 
-\begin{longtable}{L{5cm} L{9cm}}
+\begin{longtable}{L{6.5cm} L{8.5cm}}
   \toprule
   \textbf{Procedure} & \textbf{Outputs} \\
   \midrule
@@ -3485,3 +3485,436 @@ not by \code{initparam}. This keeps \code{mod\_dynparam} free of MPI
 call semantics while still being able to store and pass the communicator
 handle.
 
+%==============================================================================
+\section{Spherical Geometry --- \texttt{mod\_earth.F90}}
+\label{sec:earth}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_earth} provides the spherical-geometry primitives used throughout
+the RegCM pre-processing and interpolation pipeline. It supplies three
+categories of functionality:
+
+\begin{itemize}
+  \item \textbf{Great-circle distance functions} --- two complementary
+        implementations (\code{gcdist\_simple} and \code{gcdist}) that
+        compute arc lengths on a sphere, both overloaded for single and
+        double precision and annotated for OpenACC GPU execution.
+  \item \textbf{Geodetic-to-Cartesian coordinate conversion} (\code{ll2xyz})
+        --- five overloaded variants covering scalar pairs, 3-element array
+        output, 1-D point clouds, structured 1-D latitude/longitude vectors,
+        and full 2-D curvilinear grids.
+  \item \textbf{Global-to-regional window extraction} (\code{get\_window},
+        \code{global\_domain}) --- a derived type and overloaded subroutine
+        that compute the index range on a global regular grid that fully
+        encloses a (potentially curvilinear) regional model domain, handling
+        all longitude-convention cases (0--360 vs.\ $-180$--180), dateline
+        crossing, Greenwich meridian crossing, band mode, and polar domains.
+\end{itemize}
+
+The module is \code{private} by default; all public symbols are explicitly
+listed.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_earth
+    |-- mod_realkinds   (rk4, rk8, rkx)
+    |-- mod_intkinds    (ik4)
+    |-- mod_constants   (degrad, erkm, mathpi, d_two)
+\end{lstlisting}
+
+\subsection{Private Constants}
+
+\begin{longtable}{L{3cm} L{3cm} L{8cm}}
+  \toprule
+  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{mindist} & $10^{-10}$ (\code{rk8}) &
+    Minimum distance floor applied in \code{gcdist} to prevent a zero
+    return value when two points are numerically coincident. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Derived Type: \texttt{global\_domain}}
+\label{subsec:earth_globaldom}
+
+\begin{lstlisting}
+type global_domain
+  integer(ik4) :: global_ni
+  integer(ik4) :: global_nj
+  integer(ik4) :: ntiles
+  integer(ik4), dimension(2) :: ni
+  integer(ik4), dimension(2) :: igstart
+  integer(ik4), dimension(2) :: igstop
+  integer(ik4) :: nj
+  integer(ik4) :: jgstart
+  integer(ik4) :: jgstop
+end type global_domain
+\end{lstlisting}
+
+\code{global\_domain} is the output descriptor produced by \code{get\_window}.
+It describes how the global regular input grid must be sliced to cover the
+regional model domain. Because the domain may straddle the dateline or the
+Greenwich meridian, the I (longitude) dimension is split into up to two
+contiguous \emph{tiles}; the J (latitude) dimension is always a single
+contiguous range.
+
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+  \toprule
+  \textbf{Field} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{global\_ni} & \code{integer(ik4)} &
+    Total number of longitude points in the global source grid. \\
+  \code{global\_nj} & \code{integer(ik4)} &
+    Total number of latitude points in the global source grid. \\
+  \code{ntiles}     & \code{integer(ik4)} &
+    Number of I-direction tiles required: 1 (domain fits in a single
+    contiguous longitude block) or 2 (domain wraps around a longitude
+    boundary). \\
+  \code{igstart(2)} & \code{integer(ik4)} &
+    Start longitude index of each tile in the global grid. The second
+    element is 0 when \code{ntiles}~=~1. \\
+  \code{igstop(2)}  & \code{integer(ik4)} &
+    End longitude index of each tile. \\
+  \code{ni(2)}      & \code{integer(ik4)} &
+    Width of each tile: \code{igstop(i) - igstart(i) + 1}. \\
+  \code{jgstart}    & \code{integer(ik4)} &
+    Start latitude index in the global grid (clamped to $[1, \text{global\_nj}]$). \\
+  \code{jgstop}     & \code{integer(ik4)} &
+    End latitude index (clamped). \\
+  \code{nj}         & \code{integer(ik4)} &
+    Height of the window: \code{jgstop - jgstart + 1}. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Great-Circle Distance Functions}
+\label{subsec:earth_gcdist}
+
+\subsubsection{\texttt{gcdist\_simple} --- Arc Length in Kilometres}
+
+\textbf{Generic interface overloaded for \code{rk4} and \code{rk8}.}
+
+\begin{lstlisting}
+pure real(rk8) function gcdist_simple_r8(lat1,lon1,lat2,lon2)
+pure real(rk4) function gcdist_simple_r4(lat1,lon1,lat2,lon2)
+\end{lstlisting}
+
+\begin{longtable}{L{2.5cm} L{2.5cm} L{3cm} L{6cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{lat1}, \code{lon1} & \code{in} & \code{real(rk4/rk8)} &
+    Geodetic latitude and longitude of point 1 [degrees]. \\
+  \code{lat2}, \code{lon2} & \code{in} & \code{real(rk4/rk8)} &
+    Geodetic latitude and longitude of point 2 [degrees]. \\
+\end{longtable}
+
+\textbf{Returns:} great-circle arc length in kilometres (\code{rk8} or
+\code{rk4} respectively).
+
+\textbf{Algorithm:} Spherical law of cosines. All intermediate computation
+is performed in \code{rk8} regardless of the input precision:
+\[
+  c = \sin\phi_1\sin\phi_2 + \cos\phi_1\cos\phi_2\cos(\lambda_1-\lambda_2)
+\]
+\[
+  d = R_\text{km}\arccos\!\bigl(\max(-1,\,\min(1,\,c))\bigr)
+\]
+The \code{max}/\code{min} clamp prevents \code{acos} domain errors from
+floating-point rounding when the two points are coincident or antipodal.
+
+\textbf{GPU availability:} both variants are annotated \code{!\$acc routine seq},
+making them callable from OpenACC device kernels.
+
+\subsubsection{\texttt{gcdist} --- Arc Length in Grid Spacings}
+
+\begin{lstlisting}
+pure real(rkx) function gcdist(ds, lat1, lon1, lat2, lon2)
+\end{lstlisting}
+
+\begin{longtable}{L{2.5cm} L{2.5cm} L{3cm} L{6cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ds}           & \code{in} & \code{real(rkx)} &
+    Grid spacing [km] used to normalise the result. \\
+  \code{lat1}, \code{lon1} & \code{in} & \code{real(rkx)} &
+    Latitude and longitude of point 1 [degrees]. \\
+  \code{lat2}, \code{lon2} & \code{in} & \code{real(rkx)} &
+    Latitude and longitude of point 2 [degrees]. \\
+\end{longtable}
+
+\textbf{Returns:} great-circle distance normalised by \code{ds}
+[dimensionless grid spacings], floored at \code{mindist} ($10^{-10}$).
+
+\textbf{Algorithm:} Vincenty formula (numerically stable for all
+separations, including near-antipodal points):
+\[
+  y = \sqrt{(\cos\phi_2\sin\Delta\lambda)^2 +
+            (\cos\phi_1\sin\phi_2 - \sin\phi_1\cos\phi_2\cos\Delta\lambda)^2}
+\]
+\[
+  x = \sin\phi_1\sin\phi_2 + \cos\phi_1\cos\phi_2\cos\Delta\lambda
+\]
+\[
+  d = \max\!\left(\frac{R_\text{km}\,\text{atan2}(y,x)}{ds},\;
+                  \text{mindist}\right)
+\]
+Using \code{atan2} rather than \code{acos} avoids the clamping requirement
+and gives better accuracy near zero separation. This function is the one
+used in the kd-tree search (\code{mod\_kdinterp}) to convert geographic
+distances to grid-point units.
+
+\textbf{GPU availability:} annotated \code{!\$acc routine seq}.
+
+%------------------------------------------------------------------------------
+\subsection{Geodetic-to-Cartesian Conversion: \texttt{ll2xyz}}
+\label{subsec:earth_ll2xyz}
+
+The generic interface \code{ll2xyz} converts geographic coordinates
+(latitude, longitude in degrees) to unit-sphere Cartesian coordinates
+$(x, y, z)$ using the convention:
+\[
+  x = \cos\phi\,\sin\lambda, \quad
+  y = \sin\phi, \quad
+  z = \cos\phi\,\cos\lambda
+\]
+where $\phi$ is latitude and $\lambda$ is longitude, both in radians.
+All variants clamp latitude to $[-89.999°, +89.999°]$ to avoid exact pole
+singularities, and promote all computation to \code{rk8} regardless of
+input precision. Output is always \code{real(rk8)}.
+
+Five overloaded procedures are provided:
+
+\begin{longtable}{L{4.5cm} L{9.5cm}}
+  \toprule
+  \textbf{Procedure} & \textbf{Signature and description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{ll2xyz\_values} &
+    \code{(lat, lon, x, y, z)}: scalar inputs; three scalar \code{rk8}
+    outputs. The most explicit form. \\
+  \code{ll2xyz\_array} &
+    \code{(lat, lon, x(3))}: scalar inputs; output as a 3-element vector
+    \code{x(1:3)} = $(x,y,z)$. Suitable for passing to kd-tree point
+    insertion routines. \\
+  \code{ll2xyz\_1d} &
+    \code{(ni, lat(ni), lon(ni), x(3,ni))}: 1-D arrays of $N$ points;
+    output is a $3\times N$ matrix. Uses \code{do concurrent} for
+    compiler-assisted parallelism. \\
+  \code{ll2xyz\_arrays} &
+    \code{(lat(:), lon(:), x(3,:))}: separate 1-D latitude and longitude
+    vectors forming a structured grid; output is $3\times(n_\text{lat}
+    \times n_\text{lon})$, packed in row-major order $n = (j-1)n_\text{lon}+i$.
+    Returns silently if the output array has the wrong shape. Uses
+    \code{do concurrent}. \\
+  \code{ll2xyz\_grid} &
+    \code{(lat(:,:), lon(:,:), x(3,:))}: 2-D curvilinear grid; output is
+    $3\times(n_i\times n_j)$, same packing. Validates shape consistency
+    between \code{lat}, \code{lon}, and \code{x}; returns silently on
+    mismatch. Uses \code{do concurrent}. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{\texttt{longitude\_circle} --- Zonal Circumference}
+\label{subsec:earth_loncircle}
+
+\begin{lstlisting}
+pure real(rk8) function longitude_circle(lat) result(er)
+  !$acc routine seq
+  real(rk8), intent(in) :: lat
+\end{lstlisting}
+
+Returns the circumference of the circle of latitude \code{lat} [degrees]
+in kilometres:
+\[
+  C(\phi) = 2\pi\,R_\text{km}\cos\phi
+\]
+Used in pre-processing to determine the zonal extent of the domain relative
+to the full equatorial circumference, e.g.\ to detect whether a band-mode
+domain effectively spans the globe. Annotated \code{!\$acc routine seq}.
+
+%------------------------------------------------------------------------------
+\subsection{\texttt{get\_window} --- Global Grid Window Extraction}
+\label{subsec:earth_getwindow}
+
+\textbf{Generic interface overloaded for \code{rk4} and \code{rk8} global
+grid coordinate arrays.}
+
+\begin{lstlisting}
+subroutine get_window_r8(glat, glon, xlat, xlon, i_band, domain)
+subroutine get_window_r4(glat, glon, xlat, xlon, i_band, domain)
+\end{lstlisting}
+
+\begin{longtable}{L{3cm} L{2.5cm} L{3.5cm} L{5cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{glat(:)} & \code{in} & \code{real(rk8/rk4)} &
+    Latitudes of the global regular grid, monotone, ordered South-to-North
+    or North-to-South. \\
+  \code{glon(:)} & \code{in} & \code{real(rk8/rk4)} &
+    Longitudes of the global regular grid, either $0$--$360$ or
+    $-180$--$180$. \\
+  \code{xlat(:,:)} & \code{in} & \code{real(rkx)} &
+    2-D latitude array of the regional model domain, ordered
+    South-to-North in J. \\
+  \code{xlon(:,:)} & \code{in} & \code{real(rkx)} &
+    2-D longitude array of the regional domain in the range
+    $-180$--$180$. \\
+  \code{i\_band} & \code{in} & \code{integer(ik4)} &
+    Tropical band mode flag from \code{mod\_dynparam}. When 1, the
+    full zonal extent of the global grid is always selected. \\
+  \code{domain} & \code{out} & \code{type(global\_domain)} &
+    Populated window descriptor (see above). \\
+\end{longtable}
+
+\subsubsection{Algorithm}
+
+The subroutine handles five distinct longitude-convention cases, determined
+by inspecting \code{glon} and \code{xlon}:
+
+\begin{longtable}{L{4cm} L{10cm}}
+  \toprule
+  \textbf{Case} & \textbf{Handling} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Band mode (\code{i\_band}~=~1) &
+    Full zonal extent: \code{igstart(1)=1}, \code{igstop(1)=gi},
+    \code{ntiles=1}. No longitude search needed. \\
+  Global grid 0--360, domain crosses Greenwich ($\lambda=0$) &
+    The western edge (\code{xlon(1,:)}) contains negative longitudes
+    and the eastern edge (\code{xlon(xi,:)}) contains positive ones.
+    Converts both edge longitudes to 0--360 and sets
+    \code{ntiles=2}: tile~1 runs from the western limit to \code{gi},
+    tile~2 from 1 to the eastern limit. \\
+  Global grid 0--360, domain entirely within 0--360 &
+    Maps negative \code{xlon} values to 0--360 via an \code{allocate}d
+    temporary array, then computes a single tile. \\
+  Global grid $-180$--180, domain does not cross $\pm180$ &
+    Simple min/max search; single tile. \\
+  Global grid $-180$--180, domain crosses the dateline ($\pm180$) &
+    Detected by a large longitude jump ($>350°$) along the western or
+    eastern boundary column, or by the western column being entirely
+    positive while the eastern column is entirely negative. Sets
+    \code{ntiles=2}: tile~1 covers from the limit to \code{gi},
+    tile~2 from 1 to the other limit. \\
+\end{longtable}
+
+After the longitude tile computation, three polar cases are checked by the
+internal functions \code{has\_north\_pole} and \code{has\_south\_pole}:
+
+\begin{longtable}{L{4cm} L{10cm}}
+  \toprule
+  \textbf{Case} & \textbf{Handling} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Domain contains the North Pole &
+    Sets \code{jgstop=gj} (or \code{jgstart=1} for a N-to-S grid),
+    forces \code{ntiles=1} and selects the full zonal extent, because
+    a polar domain always wraps zonally. \\
+  Domain contains the South Pole &
+    Symmetric treatment: \code{jgstart=1} (S-to-N) extended to the
+    southernmost row, full zonal extent. \\
+  Normal (no pole inside) &
+    \code{jgstart}/\code{jgstop} from \code{minlat}/\code{maxlat},
+    with a $\pm2$--$\pm3$ grid-point margin. For N-to-S global grids,
+    the index arithmetic is reflected about the grid midpoint. \\
+\end{longtable}
+
+A final clipping step after both longitude and latitude computations:
+\begin{itemize}
+  \item If \code{igstart(1) < 1} with \code{ntiles=1}, the window wraps
+        westward past the start of the global grid; \code{ntiles} is
+        promoted to 2 and \code{igstart(1)} is shifted by \code{gi}.
+  \item If \code{igstop(1) > gi} with \code{ntiles=1}, the window wraps
+        eastward; similarly promoted to 2 tiles.
+  \item \code{jgstart} and \code{jgstop} are clamped to $[1, \text{gj}]$.
+\end{itemize}
+
+\subsubsection{Internal Functions}
+
+Both \code{get\_window\_r4} and \code{get\_window\_r8} contain two identical
+internal functions (internal to each subroutine via \code{contains}):
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Function} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{has\_north\_pole(l, i)} &
+    Returns \code{.true.} if the latitude column at index \code{i}
+    (the domain mid-column) contains values that decrease from south
+    to north, indicating the North Pole is enclosed. Early exit if all
+    latitudes in the column are negative. \\
+  \code{has\_south\_pole(l, i)} &
+    Symmetric: returns \code{.true.} if the mid-column latitudes
+    decrease from north to south (South Pole enclosed), with early
+    exit if all latitudes are positive. \\
+\end{longtable}
+
+\textbf{Note:} The polar-detection heuristic checks the middle column of
+the domain (\code{xi/2}). It assumes that the domain is convex enough that
+the central meridian is representative. Highly skewed or rotated domains
+near a pole may in principle defeat the heuristic, but such configurations
+are not used in standard RegCM setups.
+
+%------------------------------------------------------------------------------
+\subsection{Design Notes}
+\label{subsec:earth_design}
+
+\textbf{Double-precision arithmetic throughout.} Even when the generic
+interface selects the \code{rk4} overload of \code{gcdist\_simple} or
+\code{get\_window}, all trigonometric and distance calculations are performed
+in \code{rk8}. This is important because trigonometric functions of
+degree-valued arguments that have been converted to radians can lose
+significant bits in single precision, especially near the poles.
+
+\textbf{Vincenty vs.\ law-of-cosines.} \code{gcdist} uses the two-argument
+arctangent form (Vincenty) while \code{gcdist\_simple} uses the law-of-cosines
+form with a clamp. The Vincenty form is more accurate for small separations
+(the kd-tree use case, where nearby points are searched), while the cosine
+form is simpler and sufficient when only order-of-magnitude distances are
+needed (e.g.\ domain-size checks).
+
+\textbf{Grid-spacing normalisation in \texttt{gcdist}.} Returning the
+distance in units of \code{ds} rather than kilometres allows the kd-tree
+radius search (\code{mod\_kdinterp}) to express its search radius as a pure
+number of grid spacings, which is resolution-independent and directly
+comparable to the interpolation weight cutoffs.
+
+\textbf{Two-tile window design.} The \code{global\_domain} type's
+\code{ntiles} field abstracts the dateline/Greenwich wrap-around problem
+into a single descriptor that the calling pre-processing code can handle
+with a simple loop over \code{ntiles}. This avoids duplicating the
+longitude-convention logic in every module that reads global input data.
+
+\textbf{Margin of $\pm2$--$\pm3$ grid points.} The window bounds are
+expanded by 2 points on the ``near'' side and 3 on the ``far'' side to
+ensure that interpolation stencils at the domain boundary always have
+global data available, even for high-order schemes.
