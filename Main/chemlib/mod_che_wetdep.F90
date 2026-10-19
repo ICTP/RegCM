@@ -786,7 +786,7 @@ module mod_che_wetdep
       totppt(:,:) = strappt(:,:) + convppt(:,:)
     elseif ( ichremcvc == 0 .and. ichremlsc == 1) then
       totppt(:,:) = strappt(:,:)
-    elseif ( ichremcvc == 0 .and. ichremlsc == 1) then
+    elseif ( ichremcvc == 1 .and. ichremlsc == 0) then
       totppt(:,:) = convppt(:,:)
     else
       ! Should not get here with any of the above not set, but...
