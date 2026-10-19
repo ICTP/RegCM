@@ -170,10 +170,6 @@ module mod_params
     namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
       ifaholtth10, ifaholt, holtth10iter
 
-#ifdef CLM
-    namelist /clmparam/ dirclm, imask, clmfrq, ilawrence_albedo
-#endif
-
     namelist /cplparam/ cpldt, zomax, ustarmax
 
 #ifdef OASIS
@@ -590,14 +586,6 @@ module mod_params
     iisoropia = 0
     ioxclim = 0
 
-#ifdef CLM
-    !
-    ! clmparam ; (read in case clm surface model compiled in)
-    !
-    imask = 1
-    ilawrence_albedo = 1
-    clmfrq = 24.0_rkx
-#endif
     !
     ! cplparam ;
     !
@@ -689,16 +677,6 @@ module mod_params
     ! OASIS field +++
 #endif
 
-#ifdef CLM
-    if ( myid == italk ) then
-      if (nsg /= 1 ) then
-        write (stderr,*) 'Running SUBGRID with CLM: not implemented'
-        write (stderr,*) 'Please set nsg to 1 in regcm.in'
-        call fatal(__FILE__,__LINE__, &
-                   'CLM & SUBGRID TOGETHER')
-      end if
-    end if
-#endif
 
     if ( myid == iocpu ) then
       open(newunit=ipunit, file=namelistfile, status='old', &
@@ -994,12 +972,6 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED PBL SCHEME.')
       end if
-#ifdef CLM
-      if ( ibltyp > 2 ) then
-        call fatal(__FILE__,__LINE__, &
-                   'UNSUPPORTED PBL SCHEME FOR CLM 3.5')
-      end if
-#endif
       if ( ibltyp == 1 ) then
         rewind(ipunit)
         read (ipunit, nml=holtslagparam, iostat=iretval, err=114)
@@ -1085,17 +1057,6 @@ module mod_params
         write(stderr,*) 'Snow Darkening effect active only with CLM45'
         write(stderr,*) 'Reset it to zero.'
         isnowdark = 0
-      end if
-#endif
-#ifdef CLM
-      rewind(ipunit)
-      read (ipunit, clmparam, iostat=iretval, err=119)
-      if ( iretval /= 0 ) then
-        write(stdout,*) 'Using default CLM parameter.'
-#ifdef DEBUG
-      else
-        write(stdout,*) 'Read clmparam OK'
-#endif
       end if
 #endif
       if ( iocncpl == 1 .or. iwavcpl == 1 .or. icopcpl == 1 ) then
@@ -1407,15 +1368,7 @@ module mod_params
 
     ! Check if really do output
 
-#ifdef CLM
-    if ( lakemod /= 0 ) then
-      if ( myid == italk ) then
-        write(stderr,*) 'Disabling BATS lake model, this is a CLM run'
-      end if
-      lakemod = 0
-    end if
-#endif
-#if defined(CLM45) || defined(CLM)
+#ifdef CLM45
     if ( iemiss /= 0 ) then
       if ( myid == italk ) then
         write(stderr,*) 'Using CLM Radiant Temperature'
@@ -1652,12 +1605,6 @@ module mod_params
       idcsst = 0
     end if
 
-#ifdef CLM
-    call bcast(dirclm,256)
-    call bcast(imask)
-    call bcast(clmfrq)
-    call bcast(ilawrence_albedo)
-#endif
 
     !
     ! Cloud parameters
@@ -2330,11 +2277,9 @@ module mod_params
       write(stdout,'(a,i2)') '  Coupling with COP           : ', icopcpl
       write(stdout,'(a,i2)') '  Pressure gradient force     : ', ipgf
       write(stdout,'(a,i2)') '  Prescribed LW emissivity    : ', iemiss
-#ifndef CLM
       write(stdout,'(a,i2)') '  Lake model in BATS          : ', lakemod
       write(stdout,'(a,i2)') '  Simulate diurnal sst cycle  : ', idcsst
       write(stdout,'(a,i2)') '  Simulate sea ice cover      : ', iseaice
-#endif
       write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ', ichem
       write(stdout,'(a,i2)') '  Large scale LWP as convect. : ', iconvlwp
       write(stdout,'(a,i2)') '  Cloud fraction scheme       : ', icldfrac
@@ -2352,11 +2297,6 @@ module mod_params
         write(stdout,'(a,f9.6)') '  Nm paramter                : ', bdy_nm
         write(stdout,'(a,f9.6)') '  Dm paramter                : ', bdy_dm
       end if
-#endif
-#ifdef CLM
-      write(stdout,*) 'CLM Pameterizations'
-      write(stdout,'(a,i2)' ) '  CLM imask                       : ', imask
-      write(stdout,'(a,f9.6)') '  Frequency in hours to write CLM : ', clmfrq
 #endif
       write(stdout,*) 'Model Timestep Pameterizations'
       write(stdout,'(a,f18.6)') '  time step for dynamical '// &
@@ -3147,9 +3087,6 @@ module mod_params
 116 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
 117 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
 118 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
-#ifdef CLM
-119 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
-#endif
 120 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
 121 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
 #ifdef OASIS

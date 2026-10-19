@@ -1856,19 +1856,11 @@ module mod_output
           fsw_io = fsw
           sinc_io = sinc
           ldmsk_io = mddom%ldmsk
-#ifndef CLM
           if ( lakemod == 1 ) then
             eta_io = lms%eta
             hi_io = lms%hi
             tlak_io = lms%tlake
           end if
-#else
-          if ( imask == 2 ) then
-            do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-              lndcat_io(j,i) = mddom%lndcat(j,i)
-            end do
-          end if
-#endif
           if ( idcsst == 1 ) then
             sst_io = lms%sst
             tskin_io = lms%tskin
@@ -2047,17 +2039,11 @@ module mod_output
           call grid_collect(fsw,fsw_io,jci1,jci2,ici1,ici2)
           call grid_collect(sinc,sinc_io,jci1,jci2,ici1,ici2)
           call grid_collect(mddom%ldmsk,ldmsk_io,jci1,jci2,ici1,ici2)
-#ifndef CLM
           if ( lakemod == 1 ) then
             call subgrid_collect(lms%eta,eta_io,jci1,jci2,ici1,ici2)
             call subgrid_collect(lms%hi,hi_io,jci1,jci2,ici1,ici2)
             call subgrid_collect(lms%tlake,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
           end if
-#else
-          if ( imask == 2 ) then
-            call grid_collect(mddom%lndcat,lndcat_io,jci1,jci2,ici1,ici2)
-          end if
-#endif
           if ( idcsst == 1 ) then
             call subgrid_collect(lms%sst,sst_io,jci1,jci2,ici1,ici2)
             call subgrid_collect(lms%tskin,tskin_io,jci1,jci2,ici1,ici2)

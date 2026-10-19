@@ -3274,20 +3274,9 @@ module mod_ncout
 
         ! Land-surface model
 
-#if defined(CLM) || defined(CLM45)
 #ifdef CLM45
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_string('landsurface_model','clm4.5'))
-#endif
-#ifdef CLM
-        call outstream_addatt(outstream(i)%ncout(j), &
-           ncattribute_string('landsurface_model','clm3.5'))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('clm_land_surface_dataset_selection', imask))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('clm_use_modified_lawrence_albedo', &
-              ilawrence_albedo))
-#endif
 #else
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_string('landsurface_model','bats1e'))

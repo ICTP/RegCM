@@ -187,9 +187,6 @@ module mod_savefile
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
     qflux_restore_sst_io => null( )
 
-#ifdef CLM
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: lndcat_io => null( )
-#endif
 
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: swalb_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: lwalb_io => null( )
@@ -371,17 +368,11 @@ module mod_savefile
       if ( any(icup == 6) .or. any(icup == 5) ) then
         call getmem(cu_avg_ww_io,jci1,jci2,ici1,ici2,1,kz,'cu_avg_ww_io')
       end if
-#ifdef CLM
-      if ( imask == 2 ) then
-        call getmem(lndcat_io,jce1,jce2,ice1,ice2,'lndcat_io')
-      end if
-#else
       if ( lakemod == 1 ) then
         call getmem(eta_io,1,nnsg,jci1,jci2,ici1,ici2,'eta_io')
         call getmem(hi_io,1,nnsg,jci1,jci2,ici1,ici2,'hi_io')
         call getmem(tlak_io,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'tlak_io')
       end if
-#endif
       call getmem(swalb_io,1,nnsg,jci1,jci2,ici1,ici2,'swalb')
       call getmem(lwalb_io,1,nnsg,jci1,jci2,ici1,ici2,'lwalb')
       call getmem(swdiralb_io,1,nnsg,jci1,jci2,ici1,ici2,'swdiralb')
@@ -565,18 +556,12 @@ module mod_savefile
           call getmem(cu_avg_ww_io,jcross1,jcross2, &
                                      icross1,icross2,1,kz,'cu_avg_ww_io')
         end if
-#ifdef CLM
-        if ( imask == 2 ) then
-          call getmem(lndcat_io,jcross1,jcross2,icross1,icross2,'lndcat_io')
-        end if
-#else
         if ( lakemod == 1 ) then
           call getmem(eta_io,1,nnsg,jcross1,jcross2,icross1,icross2,'eta_io')
           call getmem(hi_io,1,nnsg,jcross1,jcross2,icross1,icross2,'hi_io')
           call getmem(tlak_io,1,nnsg,jcross1,jcross2, &
                                 icross1,icross2,1,ndpmax,'tlak_io')
         end if
-#endif
         call getmem(swalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'swalb')
         call getmem(lwalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'lwalb')
         call getmem(swdiralb_io,1,nnsg,jcross1,jcross2, &
@@ -727,13 +712,11 @@ module mod_savefile
     call mygetvar(ncid,'ldmsk1',ldmsk1_io)
     call mygetvar(ncid,'emiss',emisv_io)
     call mygetvar(ncid,'um10',um10_io)
-#ifndef CLM
     if ( lakemod == 1 ) then
       call mygetvar(ncid,'eta',eta_io)
       call mygetvar(ncid,'hi',hi_io)
       call mygetvar(ncid,'tlak',tlak_io)
     end if
-#endif
     call mygetvar(ncid,'cldfra',cldfra_io)
     call mygetvar(ncid,'heatrt',heatrt_io)
     call mygetvar(ncid,'o3prof',o3prof_io)
@@ -782,11 +765,6 @@ module mod_savefile
       call mygetvar(ncid,'qflux_restore_sst',qflux_restore_sst_io)
       call mygetvar(ncid,'stepcount',stepcount,get_varid(ncid,'stepcount'))
     end if
-#ifdef CLM
-    if ( imask == 2 ) then
-      call mygetvar(ncid,'lndcat',lndcat_io)
-    end if
-#endif
     call mygetvar(ncid,'swalb',swalb_io)
     call mygetvar(ncid,'lwalb',lwalb_io)
     call mygetvar(ncid,'swdiralb',swdiralb_io)
@@ -809,19 +787,9 @@ module mod_savefile
     integer(ik4), dimension(maxvars) :: varids
     character(256) :: ffout
     character(32) :: fbname
-#ifdef CLM
-    integer(ik4) :: ioff
-#endif
 
     if ( .not. do_parallel_save ) then
       if ( myid /= iocpu ) then
-#ifdef CLM
-        ioff = dtsrf-dtsec
-        filer_rest = restFile_filename(type='netcdf',offset=ioff)
-        call restFile_write(filer_rest)
-        filer_rest = restFile_filename(type='binary',offset=ioff)
-        call restFile_write_binary(filer_rest)
-#endif
         return
       end if
     end if
@@ -1018,14 +986,12 @@ module mod_savefile
       call savedefvar(ncid,'deltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'tdeltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
     end if
-#ifndef CLM
     if ( lakemod == 1 ) then
       call savedefvar(ncid,'eta',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'hi',regcm_vartype,wrkdim,1,3,varids,ivcc)
       wrkdim(4) = dimids(iddpt)
       call savedefvar(ncid,'tlak',regcm_vartype,wrkdim,1,4,varids,ivcc)
     end if
-#endif
     wrkdim(1) = dimids(idjcross)
     wrkdim(2) = dimids(idicross)
     wrkdim(3) = dimids(idkh)
@@ -1097,13 +1063,6 @@ module mod_savefile
       wrkdim(1) = dimids(idmonth)
       call savedefvar(ncid,'stepcount',nf90_int,wrkdim,1,1,varids,ivcc)
     end if
-#ifdef CLM
-    wrkdim(1) = dimids(idjcross)
-    wrkdim(2) = dimids(idicross)
-    if ( imask == 2 ) then
-      call savedefvar(ncid,'lndcat',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    end if
-#endif
     wrkdim(1) = dimids(idnnsg)
     wrkdim(2) = dimids(idjcross)
     wrkdim(3) = dimids(idicross)
@@ -1240,13 +1199,11 @@ module mod_savefile
       call myputvar(ncid,'deltas',deltas_io,varids,ivcc)
       call myputvar(ncid,'tdeltas',tdeltas_io,varids,ivcc)
     end if
-#ifndef CLM
     if ( lakemod == 1 ) then
       call myputvar(ncid,'eta',eta_io,varids,ivcc)
       call myputvar(ncid,'hi',hi_io,varids,ivcc)
       call myputvar(ncid,'tlak',tlak_io,varids,ivcc)
     end if
-#endif
     call myputvar(ncid,'cldfra',cldfra_io,varids,ivcc)
     call myputvar(ncid,'heatrt',heatrt_io,varids,ivcc)
     call myputvar(ncid,'o3prof',o3prof_io,varids,ivcc)
@@ -1295,11 +1252,6 @@ module mod_savefile
       call myputvar(ncid,'qflux_restore_sst',qflux_restore_sst_io,varids,ivcc)
       call myputvar(ncid,'stepcount',stepcount,size(stepcount),varids,ivcc)
     end if
-#ifdef CLM
-    if ( imask == 2 ) then
-      call myputvar(ncid,'lndcat',lndcat_io,varids,ivcc)
-    end if
-#endif
     call myputvar(ncid,'swalb',swalb_io,varids,ivcc)
     call myputvar(ncid,'lwalb',lwalb_io,varids,ivcc)
     call myputvar(ncid,'swdiralb',swdiralb_io,varids,ivcc)
@@ -1313,13 +1265,6 @@ module mod_savefile
 
     call saveclose(ffout,ncid)
 
-#ifdef CLM
-    ioff = dtsrf-dtsec
-    filer_rest = restFile_filename(type='netcdf',offset=ioff)
-    call restFile_write(filer_rest)
-    filer_rest = restFile_filename(type='binary',offset=ioff)
-    call restFile_write_binary(filer_rest)
-#endif
 
     if ( myid == iocpu ) then
       write(stdout,*) 'SAV variables written at ', rcmtimer%str( )

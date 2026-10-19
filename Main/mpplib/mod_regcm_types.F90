@@ -579,9 +579,6 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:) :: zo => null( )     ! zo
     real(rkx), pointer, contiguous, dimension(:,:) :: ustar => null( )  ! ustar
     real(rkx), pointer, contiguous, dimension(:,:) :: w10m => null( )   ! w10m
-#ifdef CLM
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: dep_vels => null( )
-#endif
   end type lm_exchange
 
   type mod_2_rad

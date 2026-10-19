@@ -236,32 +236,6 @@ if eval "test x"$USEECLM" = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-USECLM="0"
-USEMEGAN="0"
-AC_ARG_ENABLE(clm,
-  AC_HELP_STRING([--enable-clm],
-                 [Supply this option if you plan on using CLM option.]),
-  [USECLM="1"],
-)
-AM_CONDITIONAL(DO_COMPILE_LIBCLM, [test x"$USECLM" = x1])
-
-AC_ARG_ENABLE(megan,
-  AC_HELP_STRING([--enable-megan],
-                 [Supply this option if you plan on using CLM option with MEGAN.]),
-  [USEMEGAN="1"],
-)
-
-if eval "test x"$USECLM" = x1"; then
-  AC_MSG_WARN([Compiling CLM enabled code])
-  AM_CPPFLAGS="-DCLM $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
-  if eval "test x"$USEMEGAN" = x1"; then
-    AC_MSG_WARN([Compiling CLM with MEGAN enabled code])
-    AM_CPPFLAGS="-DVOC $AM_CPPFLAGS"
-    AC_SUBST(AM_CPPFLAGS)
-  fi
-fi
-
 USECLM45="0"
 AC_ARG_ENABLE(clm45,
   AC_HELP_STRING([--enable-clm45],
@@ -583,10 +557,6 @@ if test -z "$COMPILER_GNU_TRUE"; then
     FCFLAGS="$FCFLAGS -march=nehalem"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$USECLM" = x1"; then
-    FCFLAGS="$FCFLAGS -fallow-invalid-boz"
-    AC_SUBST(FCFLAGS)
-  fi
 fi
 if test -z "$COMPILER_NAG_TRUE"; then
   FCFLAGS="$FCFLAGS -convert=big-endian -pic -f2018"
@@ -726,9 +696,6 @@ if eval "test x$DEBUG = x1"; then
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
             -Wintrinsic-shadow -fcheck=array-temps,bounds,do,mem,recursion"
             # -ffpe-trap=zero,invalid,overflow,underflow
-    fi
-    if eval "test x"$USECLM" = x1"; then
-      FCFLAGS="$FCFLAGS -fallow-invalid-boz"
     fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
@@ -998,7 +965,7 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/tools/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/Makefile \
-                 PreProc/CLM/Makefile PreProc/CLM45/Makefile PostProc/Makefile \
+                 PreProc/CLM45/Makefile PostProc/Makefile \
                  Main/mpplib/Makefile Main/netlib/Makefile \
                  Main/Makefile Main/batslib/Makefile Main/clmlib/Makefile \
                  Main/ocnlib/Makefile Main/clmlib/clm4.5/Makefile \

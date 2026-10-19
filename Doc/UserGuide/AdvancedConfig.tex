@@ -81,8 +81,7 @@ memory space to store the model internal variables.
  dsmin  = 0.01, ! Minimum sigma spacing (only used if kz is not 14, 18, 23, 41)
  dsmax  = 0.05, ! Maximum sigma spacing (only used if kz is not 14, 18, 23, 41)
  nsg    = 1,    ! For subgridding, number of points to decompose. If nsg=1,
-                ! no subgridding is performed. CLM3.5 does NOT work with
-                ! subgridding enabled.
+                ! no subgridding is performed.
  njxcpus = -1,  ! Number of CPUS to be used in the jx (lon) dimension.
                 ! If <=0 , the executable will try to figure out a suitable
                 ! decomposition.
@@ -1608,98 +1607,6 @@ itself. If you are not a developer you may find this flags useless.
 Just note that with current implementation, the output file syncing is left
 to the netCDF library. If You want to examine step by step the output while
 the model is running, set the \verb=debug_level= at value 3.
-
-\section{The CLM options}
-\label{clm}
-
-We will now discuss from the user point of view how to use the model
-setup which need to be activated at configure stage.
-
-The \verb=CLM= option if activated allows the user to run a simulation using
-the CLM surface model instead of the default BATS1e model. We will not here go
-in deep in the difference between the two models, read the Reference Manual
-for this.
-The executable of the model is different in the case of the \verb=CLM=, and is
-named \verb=regcmMPICLM=.
-Note that in the CLM case only the MPI enabled compilation is supported (no
-serial), and no subgridding is possible (\verb=nsg= is always $1$).
-
-\subsubsection{Enable}
-
-At configure stage (see \ref{modconf}), the option is to be enabled with the
-right command line argument to the configure script
-
-\begin{Verbatim}
-  --enable-clm   Supply this option if you plan on using CLM option.
-\end{Verbatim}
-
-This will enable a preprocessing flag, and build a different model executable.
-Note that no modifications are needed for any other part of the model, but
-this triggers the building of another pre-processing program, \verb=clm2rcm=.
-
-\subsubsection{Prepare and run}
-\label{clmrun}
-
-The \verb=CLM= configuration requires a separate namelist in the namelist input
-file.
-
-{\footnotesize
-\begin{Verbatim}
- &clmparam
- dirclm = 'input/', ! CLM path to Input data produced by clm2rcm. If 
-                    ! relative, It should be how to reach the Input dir
-                    ! from the Run dir.
- clmfrq =  12.,     ! Frequency for CLM own output write
- imask  =   1,      ! For CLM, Type of land surface parameterization
-                    !   1 => using DOMAIN.INFO for landmask (same as BATS)
-                    !   2 => using mksrf_navyoro file landfraction for
-                    !        landmask and perform a weighted average over
-                    !        ocean/land gridcells; for example:
-                    ! tgb = tgb_ocean*(1-landfraction)+tgb_land*landfraction
- /
-\end{Verbatim}
-}
-
-Things you need to know here:
-
-\begin{enumerate}
-\item The \verb=inpter= path defined in \verb=terrainparam= namelist
-described in \ref{terparam} is used also by the \verb=clm2rcm= program.
-See in section \ref{obtaindata} how to obtain needed datasets.
-\item The file \verb=pft-physiology.c070207= should be manually copied in the
-\verb=dirclm= directory before running the model.
-\item The clmfrq is relative to the output produced by the \verb=CLM= model
-itself, and does not control the RegCM model output. To know the \verb=CLM=
-output file content, refer to CLM 3.5 documentation.
-\item The \verb'imask = 2' option cannot be used with the \verb'icup_lnd' or
-\verb'icup_ocn' cumulus convection schemes $2$, which rely on the BATS1e
-landmask.
-\end{enumerate}
-
-In the case of \verb=CLM= run, the user needs to run, after the \verb=terrain=
-program, the \verb=clm2rcm= program, and copy the \verb=pft-physiology.c070207=
-in the input directory:
-
-\begin{Verbatim}
-$> cd $REGCM_RUN
-$> ./bin/terrain regcm.in
-$> ./bin/clm2rcm regcm.in
-$> cp $REGCM_GLOBEDAT/CLM/pft-physiology.c070207 input/
-\end{Verbatim}
-
-The \verb=clm2rcm= program interpolates global land characteristics datasets
-to the RegCM projected grid. The content of the \verb=pft-physiology.c070207=
-file are described in the \verb=pft-physiology.c070207.readme= file.
-All the other pre-processing steps are just equal to the one detailed in
-chapter \ref{tutorial}. To run the \verb=CLM= option in the RegCM model, just
-substitute the executable name:
-
-\begin{Verbatim}
-$> mpirun -np 2 ./bin/regcmMPICLM regcm.in
-\end{Verbatim}
-
-Note that the \verb=CLM= land model is much heavier than the BATS1e model, and
-computing time increases.
 
 \section{The CLM 4.5 options}
 \label{clm45}

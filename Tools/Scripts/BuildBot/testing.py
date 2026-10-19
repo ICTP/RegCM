@@ -45,7 +45,6 @@ def main(argv):
     mpistring=options["MPISTRING"]
     run_serial=int(options["SERIAL"])
     run_preproc=int(options["PREPROC"])
-    run_clm=int(options["USECLM"])
     run_band=int(options["USEBAND"])
     run_diff=int(options["DIFF"])
     simdays=int(options["SIMDAYS"])
@@ -59,14 +58,8 @@ def main(argv):
 
     main_bin = "regcmMPI"
 
-    if (run_clm + run_band) > 1:
-        print "Running with BAND and CLM enabled is currently not supported!"
-        os.sys.exit(1)
-
     if run_serial == 1 :
         main_bin = "regcmSerial"
-    elif run_clm == 1 :
-        main_bin = "regcm_clM"
     elif run_band == 1 :
         main_bin = "regcm_band"
 
@@ -134,13 +127,6 @@ def main(argv):
         namelist = simdir+"/regcm.in"
         shutil.copy(namelistdir+"/"+testname+".in",namelist)
 
-        if (run_clm == 1) :
-            try :
-                shutil.copy(datadir+"/CLM/pft-physiology.c070207",simdir+"/input") # hardcoded for now
-            except IOError :
-                print "File",datadir+"/CLM/pft-physiology.c070207","not found. Stopping execution."
-                os.sys.exit(1)
-            
         # find idate0 and edit namelist for desired sim length
         idate0 = parsing_editing.parse_dates(namelist,simdays)
         
@@ -207,22 +193,6 @@ def main(argv):
             else :
                 print "ICBC in",testname,"passed."
             
-            if run_clm == 1:
-                if not (os.path.isfile(bindir+"/clm2rcm")) :
-                    print "clm2rcm binary not found! Skipping further steps."
-                    os.sys.exit(exit_status)
-                    
-                p_clmpre=subprocess.Popen(bindir+"/clm2rcm "+namelist,stdout=log,stderr=log,shell=True)
-                while not p_clmpre.poll():
-                    if p_clmpre.returncode is not None: break
-                    print "   ...CLMPRE: still alive..."
-                    time.sleep(10)
-                if p_clmpre.wait() != 0:
-                    print "\nError: clm2rcm in",testname,"crashed!!\n"
-                    exit_status = 1
-                else :
-                    print "clm2rcm in",testname,"passed."
-
             # compare preproc output only if everything went ok
             # and diff selected
             if (exit_status == 0) and (run_diff == 1) :

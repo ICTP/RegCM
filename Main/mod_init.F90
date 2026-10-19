@@ -586,19 +586,11 @@ module mod_init
         fsw = fsw_io
         sinc = sinc_io
         mddom%ldmsk = ldmsk_io
-#ifndef CLM
         if ( lakemod == 1 ) then
           lms%eta = eta_io
           lms%hi = hi_io
           lms%tlake = tlak_io
         end if
-#else
-        if ( imask == 2 ) then
-          do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-            mddom%lndcat(j,i) = lndcat_io(j,i)
-          end do
-        end if
-#endif
         if ( idcsst == 1 ) then
           lms%sst = sst_io
           lms%tskin = tskin_io
@@ -784,18 +776,12 @@ module mod_init
         call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
         call grid_distribute(sinc_io,sinc,jci1,jci2,ici1,ici2)
         call grid_distribute(ldmsk_io,mddom%ldmsk,jci1,jci2,ici1,ici2)
-#ifndef CLM
         if ( lakemod == 1 ) then
           call subgrid_distribute(eta_io,lms%eta,jci1,jci2,ici1,ici2)
           call subgrid_distribute(hi_io,lms%hi,jci1,jci2,ici1,ici2)
           call subgrid_distribute(tlak_io,lms%tlake, &
                                   jci1,jci2,ici1,ici2,1,ndpmax)
         endif
-#else
-        if ( imask == 2 ) then
-          call grid_distribute(lndcat_io,mddom%lndcat,jci1,jci2,ici1,ici2)
-        end if
-#endif
         if ( idcsst == 1 ) then
           call subgrid_distribute(sst_io,lms%sst,jci1,jci2,ici1,ici2)
           call subgrid_distribute(tskin_io,lms%tskin,jci1,jci2,ici1,ici2)
@@ -853,16 +839,6 @@ module mod_init
           sfs%psc(j,i) = sfs%psa(j,i)
         end do
       end if
-#ifdef CLM
-      !
-      ! CLM modifies landuse table. Get the modified one from restart file
-      !
-      if ( imask == 2 ) then
-        do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-          mdsub%lndcat(n,j,i) = mddom%lndcat(j,i)
-        end do
-      end if
-#endif
       rdnnsg = d_one/real(nnsg,rkx)
       emiss = sum(lms%emisv,1)*rdnnsg
       aldirs = sum(lms%swdiralb,1)*rdnnsg

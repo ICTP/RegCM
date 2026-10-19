@@ -358,10 +358,6 @@ module mod_regcm_interface
     call dispose_output_streams
     call checktime(myid,trim(dirout)//pthsep//trim(prestr)//trim(domname)// &
                        '.'//tochar10(lastout),'final timeslice')
-#ifdef CLM
-    call t_prf('timing_all',mpicom)
-    call t_finalizef()
-#endif
 
     if ( iclimao3 == 1 ) then
       call closeo3

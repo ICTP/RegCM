@@ -196,7 +196,7 @@ module mod_che_common
       call getmem(cemisdiag,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:cemisdiag')
     end if
-#if defined CLM45 || (defined CLM && defined VOC)
+#ifdef CLM45
     call getmem(bvoc_trmask,1,ntr,'mod_che_common:bvoc_trmask')
 #endif
   end subroutine allocate_mod_che_common

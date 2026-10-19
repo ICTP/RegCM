@@ -156,14 +156,6 @@ PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.opt.yaml
 PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.optrpt
 PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.o
 
-PreProc/CLM/Makefile
-PreProc/CLM/Makefile.in
-PreProc/CLM/clm2rcm
-PreProc/CLM/*.mod
-PreProc/CLM/*.opt.yaml
-PreProc/CLM/*.optrpt
-PreProc/CLM/*.o
-
 PreProc/CLM45/Makefile
 PreProc/CLM45/Makefile.in
 PreProc/CLM45/interpinic

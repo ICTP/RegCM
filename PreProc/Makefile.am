@@ -13,4 +13,4 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SUBDIRS = Terrain ICBC CLM CLM45 CH_EMISSIONS
+SUBDIRS = Terrain ICBC CLM45 CH_EMISSIONS

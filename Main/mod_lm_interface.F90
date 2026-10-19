@@ -31,17 +31,6 @@ module mod_lm_interface
   use mod_stdio
   use mod_slabocean
   use mod_heatindex
-#ifdef CLM
-  use mod_clm
-  use mod_mtrxclm
-  use clm_varsur, only : landmask, numdays
-  use clm_varctl, only : filer_rest
-  use clm_time_manager, only : get_step_size
-  use restFileMod, only : restFile_write, restFile_write_binary
-  use restFileMod, only : restFile_filename
-  use spmdMod, only : mpicom
-  use perf_mod, only : t_prf, t_finalizef
-#endif
 
 #ifdef CLM45
   use mod_clm_regcm
@@ -66,18 +55,6 @@ module mod_lm_interface
   public :: surface_model
   public :: init_surface_model
   public :: initialize_surface_model
-#ifdef CLM
-  public :: get_step_size
-  public :: filer_rest
-  public :: restFile_write
-  public :: restFile_write_binary
-  public :: restFile_filename
-  public :: numdays
-  public :: r2ceccf
-  public :: mpicom
-  public :: t_prf
-  public :: t_finalizef
-#endif
 
   real(rkx), pointer, contiguous, dimension(:,:) :: slp => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: slp1 => null( )
@@ -161,83 +138,12 @@ module mod_lm_interface
                                   ici1,ici2,1,num_soil_layers,'lm:tsoi')
 #endif
 
-#ifdef CLM
-    call getmem(r2ctb,jde1,jde2,ide1,ide2,'clm:r2ctb')
-    call getmem(r2cqb,jde1,jde2,ide1,ide2,'clm:r2cqb')
-    call getmem(r2czga,jde1,jde2,ide1,ide2,'clm:r2czga')
-    call getmem(r2cpsb,jde1,jde2,ide1,ide2,'clm:r2cpsb')
-    call getmem(r2cuxb,jde1,jde2,ide1,ide2,'clm:r2cuxb')
-    call getmem(r2cvxb,jde1,jde2,ide1,ide2,'clm:r2cvxb')
-    call getmem(r2crnc,jde1,jde2,ide1,ide2,'clm:r2crnc')
-    call getmem(r2crnnc,jde1,jde2,ide1,ide2,'clm:r2crnnc')
-    call getmem(r2csols,jde1,jde2,ide1,ide2,'clm:r2csols')
-    call getmem(r2csoll,jde1,jde2,ide1,ide2,'clm:r2csoll')
-    call getmem(r2csolsd,jde1,jde2,ide1,ide2,'clm:r2csolsd')
-    call getmem(r2csolld,jde1,jde2,ide1,ide2,'clm:r2csolld')
-    call getmem(r2cflwd,jde1,jde2,ide1,ide2,'clm:r2cflwd')
-    call getmem(r2cxlat,jde1,jde2,ide1,ide2,'clm:r2cxlat')
-    call getmem(r2cxlon,jde1,jde2,ide1,ide2,'clm:r2cxlon')
-    call getmem(r2cxlatd,jde1,jde2,ide1,ide2,'clm:r2cxlatd')
-    call getmem(r2cxlond,jde1,jde2,ide1,ide2,'clm:r2cxlond')
-
-    call getmem(r2ctb_all,1,jx,1,iy,'clm:r2ctb_all')
-    call getmem(r2cqb_all,1,jx,1,iy,'clm:r2cqb_all')
-    call getmem(r2czga_all,1,jx,1,iy,'clm:r2czga_all')
-    call getmem(r2cpsb_all,1,jx,1,iy,'clm:r2cpsb_all')
-    call getmem(r2cuxb_all,1,jx,1,iy,'clm:r2cuxb_all')
-    call getmem(r2cvxb_all,1,jx,1,iy,'clm:r2cvxb_all')
-    call getmem(r2crnc_all,1,jx,1,iy,'clm:r2crnc_all')
-    call getmem(r2crnnc_all,1,jx,1,iy,'clm:r2crnnc_all')
-    call getmem(r2csols_all,1,jx,1,iy,'clm:r2csols_all')
-    call getmem(r2csoll_all,1,jx,1,iy,'clm:r2csoll_all')
-    call getmem(r2csolsd_all,1,jx,1,iy,'clm:r2csolsd_all')
-    call getmem(r2csolld_all,1,jx,1,iy,'clm:r2csolld_all')
-    call getmem(r2cflwd_all,1,jx,1,iy,'clm:r2cflwd_all')
-    call getmem(r2ccosz_all,1,jx,1,iy,'clm:r2ccosz_all')
-    call getmem(r2cxlat_all,1,jx,1,iy,'clm:r2cxlat_all')
-    call getmem(r2cxlon_all,1,jx,1,iy,'clm:r2cxlon_all')
-    call getmem(r2cxlatd_all,1,jx,1,iy,'clm:r2cxlatd_all')
-    call getmem(r2cxlond_all,1,jx,1,iy,'clm:r2cxlond_all')
-
-    call getmem(c2rtgb,1,jx,1,iy,'clm:c2rtgb')
-    call getmem(c2rsenht,1,jx,1,iy,'clm:c2rsenht')
-    call getmem(c2rlatht,1,jx,1,iy,'clm:c2rlatht')
-    call getmem(c2ralbdirs,1,jx,1,iy,'clm:c2ralbdirs')
-    call getmem(c2ralbdirl,1,jx,1,iy,'clm:c2ralbdirl')
-    call getmem(c2ralbdifs,1,jx,1,iy,'clm:c2ralbdifs')
-    call getmem(c2ralbdifl,1,jx,1,iy,'clm:c2ralbdifl')
-    call getmem(c2rtaux,1,jx,1,iy,'clm:c2rtaux')
-    call getmem(c2rtauy,1,jx,1,iy,'clm:c2rtauy')
-    call getmem(c2ruvdrag,1,jx,1,iy,'clm:c2ruvdrag')
-    call getmem(c2rlsmask,1,jx,1,iy,'clm:c2rlsmask')
-    call getmem(c2rtgbb,1,jx,1,iy,'clm:c2rtgbb')
-    call getmem(c2rsnowc,1,jx,1,iy,'clm:c2rsnowc')
-    call getmem(c2rtest,1,jx,1,iy,'clm:c2rtest')
-    call getmem(c2r2mt,1,jx,1,iy,'clm:c2r2mt')
-    call getmem(c2r2mq,1,jx,1,iy,'clm:c2r2mq')
-    call getmem(c2rtlef,1,jx,1,iy,'clm:c2rtlef')
-    call getmem(c2ru10,1,jx,1,iy,'clm:c2ru10')
-    call getmem(c2rsm10cm,1,jx,1,iy,'clm:c2rsm10cm')
-    call getmem(c2rsm1m,1,jx,1,iy,'clm:c2rsm1m')
-    call getmem(c2rsmtot,1,jx,1,iy,'clm:c2rsmtot')
-    call getmem(c2rinfl,1,jx,1,iy,'clm:c2rinfl')
-    call getmem(c2rro_sur,1,jx,1,iy,'clm:c2rro_sur')
-    call getmem(c2rro_sub,1,jx,1,iy,'clm:c2rro_sub')
-    call getmem(c2rfracsno,1,jx,1,iy,'clm:c2rfracsno')
-    call getmem(c2rfvegnosno,1,jx,1,iy,'clm:c2rfvegnosno')
-    call getmem(c2rprocmap,1,jx,1,iy,'clm:c2rprocmap')
-    call getmem(c2rngc,1,nproc,'clm:c2rngc')
-    call getmem(c2rdisps,1,nproc,'clm:c2rdisps')
-    call getmem(rs2d,jci1,jci2,ici1,ici2,'clm:rs2d')
-    call getmem(ra2d,jci1,jci2,ici1,ici2,'clm:ra2d')
-#else
     if ( lakemod == 1 ) then
       call getmem(lms%eta,1,nnsg,jci1,jci2,ici1,ici2,'lake:eta')
       call getmem(lms%hi,1,nnsg,jci1,jci2,ici1,ici2,'lake:hi')
       call getmem(lms%lakmsk,1,nnsg,jci1,jci2,ici1,ici2,'lake:lakmsk')
       call getmem(lms%tlake,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'lake:tlake')
     end if
-#endif
     if ( idcsst == 1 ) then
       call getmem(lms%deltas,1,nnsg,jci1,jci2,ici1,ici2,'sst:deltas')
       call getmem(lms%tdeltas,1,nnsg,jci1,jci2,ici1,ici2,'sst:tdeltas')
@@ -389,14 +295,11 @@ module mod_lm_interface
       call assignpnt(idust,lm%idust)
 #endif
     end if
-#ifdef CLM
-    allocate(landmask(jx,iy))
-#endif
   end subroutine init_surface_model
 
   subroutine initialize_surface_model
     implicit none
-#if defined(CLM) || defined(ECLM)
+#ifdef ECLM
     integer(ik4) :: i, j, n
 #endif
     if ( irceideal == 0 ) then
@@ -424,26 +327,6 @@ module mod_lm_interface
 #endif
     end if
     call initocn(lm,lms)
-#ifdef CLM
-    if ( irceideal == 0 ) then
-      call initclm(lm,lms)
-      if ( rcmtimer%start( ) .and. imask == 2 ) then
-        ! CLM may have changed the landuse again !
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          lm%iveg(j,i) = nint(lm%lndcat(j,i))
-        end do
-        ! Correct land/water misalign : set to short grass
-        where ( (lm%iveg == 14 .or. lm%iveg == 15) .and. lm%ldmsk == 1 )
-          lm%iveg = 2
-          lm%lndcat = d_two
-        end where
-        do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-          lm%iveg1(n,j,i) = lm%iveg(j,i)
-          lm%lndcat1(n,j,i) = lm%lndcat(j,i)
-        end do
-      end if
-    end if
-#endif
     lm%emissivity = sum(lms%emisv,1) * rdnnsg
   end subroutine initialize_surface_model
 
@@ -453,24 +336,10 @@ module mod_lm_interface
 #endif
     !@acc use nvtx
     implicit none
-    integer(ik4) :: i, j, n, nn, ierr
+    integer(ik4) :: i, j, n
 #ifndef CLM45
     real(rkx) :: wspd
 #endif
-#ifdef CLM
-    if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
-      r2cdoalb = .true.
-    else
-      r2cdoalb = .false.
-    end if
-    ! Timestep used is the same as for bats
-    if ( rcmtimer%start( ) ) then
-      r2cnstep = 0
-    else
-      r2cnstep = syncro_srf%lcount + 1
-    end if
-    if ( irceideal == 0 ) call mtrxclm(lm,lms)
-#else
 #ifdef CLM45
     if ( irceideal == 0 ) call runclm45(lm,lms)
     !coupling of biogenic VOC and other stuff from CLM45 speicif to chemistry
@@ -490,7 +359,6 @@ module mod_lm_interface
     write(stdout, *) 'ECLM version ENABLED!'
 #endif
     if ( irceideal == 0 ) call vecbats(lm,lms)
-#endif
 #endif
     if ( islab_ocean == 1 ) then
       !@acc call nvtxStartRange("update_slabocean")
@@ -602,14 +470,6 @@ module mod_lm_interface
   subroutine surface_albedo
     !@acc use nvtx
     implicit none
-#ifdef CLM
-    logical :: do_call_albedo_bats_for_clm = .false.
-    if ( do_call_albedo_bats_for_clm ) then
-      if ( irceideal == 0 ) call albedobats(lm,lms)
-    else
-      if ( irceideal == 0 ) call albedoclm(lm,lms)
-    end if
-#else
 #ifdef CLM45
     !@acc call nvtxStartRange("albedoclm45")
     if ( irceideal == 0 ) call albedoclm45(lm,lms)
@@ -617,7 +477,6 @@ module mod_lm_interface
 #else
 #ifndef ECLM
     if ( irceideal == 0 ) call albedobats(lm,lms)
-#endif
 #endif
 #endif
     !@acc call nvtxStartRange("albedoocn")
@@ -888,9 +747,7 @@ module mod_lm_interface
 
   subroutine collect_output
     implicit none
-#ifndef CLM
     integer(ik4) :: k
-#endif
     integer(ik4) :: i, j, n, ns, nl
     real(rkx) :: tas, ps, es, qs, qas, uas, rh, desdt
     real(rkx) :: sws, lws, xsum
@@ -940,10 +797,8 @@ module mod_lm_interface
     real(rkx), pointer, contiguous :: lms_tlef(:,:,:) => null( )
     real(rkx), pointer, contiguous :: lms_sfice(:,:,:) => null( )
     real(rkx), pointer, contiguous :: lms_sw(:,:,:,:) => null( )
-#ifndef CLM
     logical, pointer, contiguous :: lms_lakmsk(:,:,:) => null( )
     real(rkx), pointer, contiguous :: lms_tlake(:,:,:,:) => null( )
-#endif
 #ifdef CLM45
     real(rkx), pointer, contiguous :: lms_hfso(:,:,:) => null( )
     real(rkx), pointer, contiguous :: lms_tsoi(:,:,:,:) => null( )
@@ -993,12 +848,10 @@ module mod_lm_interface
     lms_tlef => lms%tlef
     lms_sfice => lms%sfice
     lms_sw => lms%sw
-#ifndef CLM
     if ( lakemod == 1 ) then
       lms_lakmsk => lms%lakmsk
       lms_tlake => lms%tlake
     end if
-#endif
 #ifdef CLM45
     lms_hfso => lms%hfso
     lms_tsoi => lms%tsoi
@@ -1801,7 +1654,6 @@ module mod_lm_interface
         end if
       end if
 
-#ifndef CLM
       if ( iflak ) then
         if ( associated(lak_tg_out) ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -1848,7 +1700,6 @@ module mod_lm_interface
           end do
         end if
       end if
-#endif
 
     end if ! IF output time
 

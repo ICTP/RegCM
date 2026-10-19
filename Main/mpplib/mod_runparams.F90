@@ -500,13 +500,6 @@ module mod_runparams
   real(rkx), public :: mixed_layer_depth
   integer(ik4), dimension(mpy), public :: stepcount
 
-#ifdef CLM
-  ! CLM options
-  integer(ik4), public :: imask
-  integer(ik4), public :: ilawrence_albedo
-  real(rkx), public :: clmfrq
-  character(len=256), public :: dirclm
-#endif
 
   !
   ! New microphys parameters
