@@ -131,7 +131,11 @@ module mod_che_ncio
           n_aebcvar = 2
           aebcname => aesslt
         case ( 'CARB' )
-          n_aebcvar = 4
+          if ( ismoke == 1 ) then
+            n_aebcvar = 6
+          else
+            n_aebcvar = 4
+          end if
           aebcname => aecarb
         case ( 'SULF' )
           n_aebcvar = 2
@@ -1213,7 +1217,7 @@ module mod_che_ncio
         icbcname = trim(dirglob)//pthsep//trim(domname)// &
                    '_OXBC.'//trim(ctime)//'.nc'
         call openfile_withname(icbcname,ioxin)
-        call check_dims(iaein)
+        call check_dims(ioxin)
         ibcid = ioxin
       end if
       ibcrec = 1

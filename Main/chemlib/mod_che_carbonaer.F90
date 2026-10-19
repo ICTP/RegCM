@@ -219,7 +219,7 @@ module mod_che_carbonaer
                   save_ncon(j,i,k,id) = kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
                 end if
                 ! unit of surf m2/kg
-                surf(j,i,k) = surf(j,i,k)+mathpi*reffso4*reffso4*kav/pm*1e-12
+                surf(j,i,k) = surf(j,i,k)+mathpi*refx*refx*kav/pm*1e-12
               end do
             end do
           end do

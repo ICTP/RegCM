@@ -63,7 +63,9 @@ module mod_che_chemistry
           zenith   = acos(czen(j,i))*raddeg
           cfactor  = crhob3d(j,i,k) * 1.e-3_rkx * navgdr
           dens     = cfactor / amd
-          C_M      = altmid*10.0_rkx/(kb*temp)
+          ! Pressure is now in Pa! Below the formula for mb!
+          !C_M      = altmid*10.0_rkx/(kb*temp)
+          C_M      = altmid/(1.0e2_rkx*kb*temp)
           deptha   = d_zero
           depthb   = d_zero
           altabove = d_zero

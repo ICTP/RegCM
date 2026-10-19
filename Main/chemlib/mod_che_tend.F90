@@ -273,7 +273,7 @@ module mod_che_tend
       ! pollen emission
       !
       if ( ipollen > 0 ) then
-        call pollen_emission(ustar,wid10,rh10,ncpc(:,:,kz),convprec(:,:,kz))
+        call pollen_emission(ustar,wid10,rh10,ncpc(:,:,kz),cconvpr(:,:,kz))
       end if
       !
       ! biogenic nox emission

@@ -109,7 +109,7 @@ module mod_che_molwg
 
   ! Organic Peroxid
   real(rkx), parameter  :: w_ch3ooh   = 48.0_rkx
-  real(rkx), parameter  :: w_ethooh   = 74.0_rkx
+  real(rkx), parameter  :: w_ethooh   = 62.0_rkx
   real(rkx), parameter :: w_rooh    = 48.0_rkx
 
   ! Other species

@@ -475,7 +475,7 @@ module mod_che_wetdep
       if ( iisopooh > 0 ) then
         het_rates(:,k,iisopooh) = work3(:)
       end if
-      if ( iso2 > 0 ) then
+      if ( iso2 > 0 .and. ih2o2 > 0 ) then
         het_rates(:,k,iso2) = het_rates(:,k,ih2o2)
       end if
       ! SOA is Secondary Organic aerosols
@@ -786,6 +786,11 @@ module mod_che_wetdep
       totppt(:,:) = strappt(:,:) + convppt(:,:)
     elseif ( ichremcvc == 0 .and. ichremlsc == 1) then
       totppt(:,:) = strappt(:,:)
+    elseif ( ichremcvc == 0 .and. ichremlsc == 1) then
+      totppt(:,:) = convppt(:,:)
+    else
+      ! Should not get here with any of the above not set, but...
+      totppt(:,:) = 0.0_rkx
     end if
 
     call blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv,rhop,wetdep,colef)

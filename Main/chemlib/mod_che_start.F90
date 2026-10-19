@@ -51,12 +51,13 @@ module mod_che_start
     implicit none
     integer(ik4) :: i, j, k, n, itr, ibin, jbin, kbin, mmin, mbin
     integer(ik4) :: ipunit
-    character(len=8) :: minamesav
+    character(len=8) :: miname
 
     ! A : Intialise chemistry tracer indices
 
     dtchsolv = dtche
 
+    miname = 'XXXXXXXX'
     iso2  = 0
     iso4  = 0
     isulf = 0
@@ -234,22 +235,22 @@ module mod_che_start
       end if
       ! mineralogical dust tracer
       if ( any(mine_name == chtrname(itr)(1:4)) ) then
-        if ( chtrname(itr)(1:4) /= minamesav(1:4) ) then
+        if ( chtrname(itr)(1:4) /= miname(1:4) ) then
           mbin = 0
           mmin = mmin+1
         end if
         mbin = mbin + 1
         imine(mbin,mmin) = itr
-        minamesav = chtrname(itr)
+        miname = chtrname(itr)
       end if
 !      if ( chtrname(itr)(1:3) == 'DMI' ) then
-!        if ( chtrname(itr)(1:4) /= minamesav(1:4) ) then
+!        if ( chtrname(itr)(1:4) /= miname(1:4) ) then
 !          mbin = 0
 !          mmin = mmin+1
 !        end if
 !        mbin = mbin + 1
 !        imine(mbin,mmin) = itr
-!        minamesav = chtrname(itr)
+!        miname = chtrname(itr)
 !      end if
 
       ! gas phas species (CBMZ),

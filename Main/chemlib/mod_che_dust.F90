@@ -530,10 +530,9 @@ module mod_che_dust
       real(rkx), intent(in) :: dum, rhoa, rhodust
       real(rkx), parameter :: agamma = 3.0e-4_rkx
       real(rkx), parameter :: f = 0.0123_rkx
-      real(rkx) :: dm, sigma
+      real(rkx) :: sigma
       sigma = rhodust/rhoa
-      dm = dum*1.0e-2_rkx
-      ustart0 = f*(sigma*egrav*dm+agamma/(rhoa*dm))
+      ustart0 = f*(sigma*egrav*dum+agamma/(rhoa*dum))
       ustart0 = sqrt(ustart0)
       ustart0 = ustart0*d_100
     end function ustart0
@@ -656,21 +655,23 @@ module mod_che_dust
             ieff = 1
             do i = ici1, ici2
               do j = jci1, jci2
-                if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
-                  if ( idynamic == 3 ) then
-                    chiten(j,i,kz,imine(n,m)) = &
-                         chiten(j,i,kz,imine(n,m)) + xrsfrow(ieff,n) * &
-                         (cminer(j,i,m)*cfrac(n) + sminer(j,i,m)*sfrac(n)) / &
-                         (cdzq(j,i,kz)*crhob3d(j,i,kz))
-                  else
-                    chiten(j,i,kz,imine(n,m)) = &
-                         chiten(j,i,kz,imine(n,m)) + xrsfrow(ieff,n) * &
-                         (cminer(j,i,m)*cfrac(n) + sminer(j,i,m)*sfrac(n)) / &
-                         (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cpsb(j,i)
+                if (vegfrac(j,i) < 0.999_rkx .and. ivegcov(j,i) > 0) then
+                  if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
+                    if ( idynamic == 3 ) then
+                      chiten(j,i,kz,imine(n,m)) = &
+                           chiten(j,i,kz,imine(n,m)) + xrsfrow(ieff,n) * &
+                           (cminer(j,i,m)*cfrac(n) + sminer(j,i,m)*sfrac(n)) / &
+                           (cdzq(j,i,kz)*crhob3d(j,i,kz))
+                    else
+                      chiten(j,i,kz,imine(n,m)) = &
+                           chiten(j,i,kz,imine(n,m)) + xrsfrow(ieff,n) * &
+                           (cminer(j,i,m)*cfrac(n) + sminer(j,i,m)*sfrac(n)) / &
+                           (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cpsb(j,i)
+                    end if
+                    cemtrac(j,i,imine(n,m)) = cemtrac(j,i,imine(n,m)) + &
+                           xrsfrow(ieff,n)* (cminer(j,i,m) *cfrac(n)  + &
+                                         sminer(j,i,m) *sfrac(n)) * cfdout
                   end if
-                  cemtrac(j,i,imine(n,m)) = cemtrac(j,i,imine(n,m)) + &
-                         xrsfrow(ieff,n)* (cminer(j,i,m) *cfrac(n)  + &
-                                       sminer(j,i,m) *sfrac(n)) * cfdout
                   ieff = ieff + 1
                 end if
               end do

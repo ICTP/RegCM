@@ -789,11 +789,11 @@ module mod_che_bdyco
                 ib = cba%ibnd(j,i)
                 xf = cefc(ib,k)
                 xg = cegc(ib,k)
-                fls0 = f(j-1,ici1,k,n) - f(j,i,k,n)
+                fls0 = f(j,ici1,k,n)   - f(j,i,k,n)
                 fls1 = f(j-1,ici1,k,n) - f(j-1,i,k,n)
                 fls2 = f(j+1,ici1,k,n) - f(j+1,i,k,n)
-                fls3 = f(j,ice1,k,n)   - f(j,i-1,k,n)
-                fls4 = f(j,ici1+1,k,n) - f(j,i+1,k,n)
+                fls3 = f(j,ici1+1,k,n) - f(j,i+1,k,n)
+                fls4 = f(j,ice1,k,n)   - f(j,i-1,k,n)
                 ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do

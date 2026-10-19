@@ -1399,10 +1399,9 @@ module mod_che_drydep
           fsnow = sd(j)/sdmax(lcov)
           fsnow = min(1.0_rkx, fsnow)   !snow cover fraction for leaves
 !         print *, ' fsnow=  ', fsnow
-          if ( fsnow > 0.0001_rkx .and. lcov /= 20 .or. &
-                                        lcov /= 15 .or. &
-                                        lcov /= 14 .or. &
-                                        lcov /= 12 ) then
+          if ( fsnow > 0.0001_rkx .and. &
+               lcov /= 20 .and. lcov /= 15 .and. &
+               lcov /= 14 .and. lcov /= 12 ) then
             rsnows = min(70.0_rkx*(275.15_rkx-ts(j)), 500._rkx)
             rsnows = max(rsnows, 100._rkx)
             rcuts_f = 1.0_rkx/((1.0_rkx - fsnow)/rcuts_f + fsnow/rsnows)

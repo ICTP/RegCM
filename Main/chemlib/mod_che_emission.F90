@@ -111,6 +111,8 @@ module mod_che_emission
     !
     99 continue
 
+    chemsrc(:,:,:) = chemsrcan(:,:,:)
+
     if ( ismoke == 1 ) then
       if ( ifreqbb == ifrqmon ) then
         if ( currybb == lyear .and. currmbb == lmonth ) then
@@ -150,9 +152,7 @@ module mod_che_emission
         chemsrcbb(:,:,ibchb) = d_zero
       end if
       ! finally add biomass burning emissions to anthropogenic emissions
-      chemsrc(:,:,:) = chemsrcbb(:,:,:) + chemsrcan(:,:,:)
-    else
-      chemsrc(:,:,:) = chemsrcan(:,:,:)
+      chemsrc(:,:,:) = chemsrc(:,:,:) + chemsrcbb(:,:,:)
     end if
 
 #ifdef DEBUG
@@ -195,8 +195,6 @@ module mod_che_emission
             tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
             chemsrc(j,i,iisop) = 0.0_rkx
           else
-            daylen = 2.0_rk8*acos(-tan(declin) * &
-                       tan(cxlat(j,i)*degrad_r8))*raddeg_r8
             daylen = 2.0_rk8*acos(dayhr)*raddeg_r8
             daylen = daylen*24.0_rk8/360.0_rk8
             ! Maximum sun elevation
@@ -232,7 +230,6 @@ module mod_che_emission
           tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
           chemsrc(j,i,iisop) = 0.0
         else
-          daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
           daylen = d_two*acos(dayhr)*raddeg
           daylen = daylen*24.0_rkx/360.0_rkx
           ! Maximum sun elevation

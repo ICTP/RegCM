@@ -53,7 +53,7 @@ module mod_che_pollen
 
     subroutine pollen_emission(ustar, wind10, rh10, prec, convprec)
       implicit none
-      real(rkx), dimension(luc,jci1:jci2,ici1:ici2), intent(in) :: ustar
+      real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: ustar
       real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: wind10, rh10
       real(rkx), dimension(jci1:jci2,ici1:ici2), intent(in) :: prec, convprec
       real(rkx), dimension(jci1:jci2,ici1:ici2) :: emispol
@@ -68,8 +68,13 @@ module mod_che_pollen
       do i = ici1, ici2
         do j = jci1, jci2
 
-          ! in particle/m2 + derniere correction
-          emispot = chemsrc(j,i,ipollen) * 24._rkx
+          ! emispot = chemsrc(j,i,ipollen) * 24._rkx <== Why this?
+          ! I read in the input file the data is in grain/day ?
+          ! Should it not be * .0417 (/24.0 ?) to have it in hour-1?
+          ! Leave it for now as in the input, but needs review, maybe
+          ! setting correct units in the interpolator.
+          ! in particle/m2 ?? + derniere correction
+          emispot = chemsrc(j,i,ipollen)
           if ( emispot < 1.e-20_rkx ) cycle
           ! in kg/m2
           emispol(j,i) = emispot * mathpi / 6._rkx * &
@@ -97,7 +102,7 @@ module mod_che_pollen
           fw = 0.5_rkx + 1.0_rkx * ( 1._rkx - &
                      exp( -(wind10(j,i) + uconv) / 5._rkx ))
 
-          emispol(j,i) = emispol(j,i) * ustar(1,j,i)/htc * ce * fh * fw * fr
+          emispol(j,i) = emispol(j,i) * ustar(j,i)/htc * ce * fh * fw * fr
 
         end do
       end do

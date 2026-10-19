@@ -248,7 +248,7 @@ module mod_che_common
                               'KALO01', 'KALO02', 'KALO03', 'KALO04' ,&
                               'ILIT01', 'ILIT02', 'ILIT03', 'ILIT04' ]
       iaerosol = 1
-      if ( myid == italk ) write(stdout,*) 'MINERALS 70 bins simulation'
+      if ( myid == italk ) write(stdout,*) 'MINERALS simulation'
     else if ( chemsimtype(1:4) == 'SSLT' ) then
       ntr = sbin
       allocate(chtrname(ntr))
