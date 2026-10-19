@@ -574,7 +574,7 @@ module mod_moloch
 
     !@acc call nvtxStartRange("sound")
     dtrdx = dts*rdx
-    dtrdy = dts*rdx
+    dtrdy = dts*rdx  ! DY == DX for RegCM grid
     dtrdz = dts*rdzita
     zcs2 = dtrdz**2*rdrcv
 
@@ -832,7 +832,7 @@ module mod_moloch
     integer(ik4) :: jh, jhm1
 
     dtrdx = dta*rdx
-    dtrdy = dta*rdx
+    dtrdy = dta*rdx ! DY == DX for RegCM grid
     dtrdz = dta*rdzita
     if ( do_vadvtwice ) then
       dtrdz = 0.5_rkx * dtrdz
