@@ -17,7 +17,7 @@
  /
  &geoparam
  iproj = 'NORMER',
- ds = -0.018,
+ ds = 2.0,
  ptop = 5.0,
  clat = 0.0,
  clon = 90.0,
