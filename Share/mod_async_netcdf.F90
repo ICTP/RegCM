@@ -30,6 +30,7 @@ module mod_async_netcdf
   public :: async_netcdf_put_var
   public :: async_netcdf_put_var_device
   public :: async_netcdf_put_var_rkx_as_r4_device
+  public :: async_netcdf_put_var_rkx_as_r4_device_3d
   public :: async_netcdf_get_var_rkx
   public :: async_netcdf_configured_cap_bytes
   public :: async_netcdf_initialize
@@ -469,6 +470,85 @@ module mod_async_netcdf
       end if
       async_netcdf_initialize = enabled .and. first_error == async_ok
     end function async_netcdf_initialize
+
+    integer(ik4) function async_netcdf_put_var_rkx_as_r4_device_3d(ncid,varid, &
+        values,first,extent,start,count,synchronous) result(ncstat)
+      implicit none
+      integer(ik4), intent(in) :: ncid, varid, first(3), extent(3)
+      real(rkx), contiguous, target, intent(in) :: values(:,:,:)
+      integer(ik4), intent(in), optional :: start(:), count(:)
+      logical, intent(in), optional :: synchronous
+      type(async_item), pointer :: item
+      real(rk4), pointer, contiguous :: r4_1d(:)
+      real(rkx), pointer, contiguous :: rkx_3d(:,:,:)
+      integer(ik4) :: nvals, stat, ib, j, i, k, nj, ni, j1, i1, k1
+      integer(c_int64_t) :: bytes
+      logical :: queued
+
+      ncstat = async_err
+      if ( any(extent <= 0) .or. any(first < 1) ) return
+      if ( any(first+extent-1 > shape(values)) ) return
+      call async_init()
+      if ( first_error /= async_ok ) then
+        ncstat = first_error
+        return
+      end if
+      queued = enabled
+      if ( present(synchronous) ) then
+        if ( synchronous ) queued = .false.
+      end if
+      nvals = product(extent)
+      bytes = int(nvals,c_int64_t)*bytes_r4
+      if ( queued ) then
+        call reserve_memory(bytes,stat)
+        if ( stat /= async_ok ) then
+          ncstat = stat
+          return
+        end if
+      end if
+      allocate(item,stat=stat)
+      if ( stat /= 0 ) then
+        if ( queued ) call release_reservation(bytes)
+        return
+      end if
+      item%op = async_write_r4
+      item%ncid = ncid
+      item%varid = varid
+      item%nvals = nvals
+      item%bytes = bytes
+      call copy_bounds(item,start,count)
+      call allocate_item_r4(item,nvals,bytes,stat)
+      if ( stat /= async_ok ) then
+        if ( queued ) call release_reservation(bytes)
+        call free_item(item)
+        ncstat = stat
+        return
+      end if
+
+      r4_1d => item%r4
+      rkx_3d => values
+      nj = extent(1)
+      ni = extent(2)
+      j1 = first(1)
+      i1 = first(2)
+      k1 = first(3)
+      !$acc parallel loop deviceptr(r4_1d)
+      do ib = 1, nvals
+        j = j1 + mod(ib-1,nj)
+        i = i1 + mod((ib-1)/nj,ni)
+        k = k1 + (ib-1)/(nj*ni)
+        r4_1d(ib) = real(rkx_3d(j,i,k),rk4)
+      end do
+      if ( queued ) then
+        call enqueue_item(item)
+        ncstat = async_ok
+      else
+        call async_netcdf_lock()
+        ncstat = put_var_r4(item)
+        call async_netcdf_unlock()
+        call free_item(item)
+      end if
+    end function async_netcdf_put_var_rkx_as_r4_device_3d
 
     logical function async_netcdf_is_enabled()
       implicit none

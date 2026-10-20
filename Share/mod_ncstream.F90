@@ -35,6 +35,7 @@ module mod_ncstream
                                async_netcdf_shutdown, &
                                async_netcdf_put_var_device, &
                                async_netcdf_put_var_rkx_as_r4_device, &
+                               async_netcdf_put_var_rkx_as_r4_device_3d, &
                                async_netcdf_lock, async_netcdf_unlock, &
                                async_netcdf_is_enabled, &
                                async_netcdf_defer_wake_begin, &
@@ -2039,7 +2040,8 @@ module mod_ncstream
         class is (ncvariable_3d)
           if ( scan(var%axis,'x') > 0 .and. &
                scan(var%axis,'y') > 0 .and. &
-               scan(var%axis,'v') == 0 ) then
+               scan(var%axis,'v') == 0 .and. &
+               scan(var%axis,'n') == 0 ) then
             var%lgridded = .true.
           end if
           if ( var%lrecords ) then
@@ -3910,6 +3912,14 @@ module mod_ncstream
       type(ncoutstream), pointer :: stream
       type(internal_obuffer), pointer :: buffer
       integer(ik4) :: nd, totsize, ncstat
+#ifdef PNETCDF
+      integer(ik4) :: j, i, k, ib
+#ifdef OPENACC
+      real(rk4), pointer, contiguous :: real_1d(:)
+      real(rkx), pointer, contiguous :: mixed_3d(:,:,:)
+      integer(ik4) :: nj, ni, j1, i1, k1
+#endif
+#endif
 
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
@@ -3926,7 +3936,9 @@ module mod_ncstream
       end if
 #else
       if ( stream%l_parallel ) then
+        call async_netcdf_lock()
         ncstat = nf90_var_par_access(stream%id, var%id, nf90_independent)
+        call async_netcdf_unlock()
         if ( ncstat /= nf90_noerr ) &
           call die('nc_stream','Cannot set independent access for '// &
             trim(var%vname)//' in '//trim(stream%filename), 1)
@@ -3934,6 +3946,8 @@ module mod_ncstream
 #endif
 
       if ( myrank == 0 ) then
+        if ( .not. associated(var%rval) ) &
+          call die('nc_stream','Missing rank-0 data for '//trim(var%vname),1)
         if ( var%j1 <= 0 ) var%j1 = 1
         if ( var%j2 <= 0 ) var%j2 = var%nval(1)
         if ( var%i1 <= 0 ) var%i1 = 1
@@ -3948,16 +3962,52 @@ module mod_ncstream
         stream%icount(3) = var%nval(3)
         nd = 3
         totsize = var%totsize
-        buffer%realbuff(1:totsize) = &
-          real(reshape(var%rval(var%j1:var%j2, &
-                                var%i1:var%i2, &
-                                var%k1:var%k2), [totsize]), rk4)
+        if ( any(var%nval /= [var%j2-var%j1+1, &
+                               var%i2-var%i1+1, &
+                               var%k2-var%k1+1]) .or. &
+             totsize /= product(var%nval) ) &
+          call die('nc_stream','Invalid rank-0 shape for '//trim(var%vname),1)
+        if ( any([var%j1,var%i1,var%k1] < lbound(var%rval)) .or. &
+             any([var%j2,var%i2,var%k2] > ubound(var%rval)) ) &
+          call die('nc_stream','Rank-0 data bounds invalid for '// &
+            trim(var%vname),1)
 #ifdef PNETCDF
+        if ( totsize > size(buffer%realbuff) ) &
+          call die('nc_stream','Rank-0 output buffer too small for '// &
+            trim(var%vname),1)
+#ifdef OPENACC
+        real_1d => buffer%realbuff(1:totsize)
+        mixed_3d => var%rval
+        nj = var%nval(1)
+        ni = var%nval(2)
+        j1 = var%j1
+        i1 = var%i1
+        k1 = var%k1
+        !$acc parallel loop deviceptr(real_1d)
+        do ib = 1, totsize
+          j = j1 + mod(ib-1,nj)
+          i = i1 + mod((ib-1)/nj,ni)
+          k = k1 + (ib-1)/(nj*ni)
+          real_1d(ib) = real(mixed_3d(j,i,k),rk4)
+        end do
+#else
+        ib = 0
+        do k = var%k1, var%k2
+          do i = var%i1, var%i2
+            do j = var%j1, var%j2
+              ib = ib + 1
+              buffer%realbuff(ib) = real(var%rval(j,i,k),rk4)
+            end do
+          end do
+        end do
+#endif
         ncstat = nf90mpi_put_var(stream%id, var%id, &
           buffer%realbuff, stream%istart(1:nd), stream%icount(1:nd))
 #else
-        ncstat = nf90_put_var(stream%id, var%id, &
-          buffer%realbuff, stream%istart(1:nd), stream%icount(1:nd))
+        ncstat = async_netcdf_put_var_rkx_as_r4_device_3d(stream%id,var%id, &
+          var%rval,[var%j1,var%i1,var%k1]-lbound(var%rval)+1,var%nval, &
+          stream%istart(1:nd),stream%icount(1:nd), &
+          synchronous=stream%l_parallel)
 #endif
         if ( ncstat /= nf90_noerr ) &
           call die('nc_stream','Cannot write rank-0 variable '// &
@@ -3974,7 +4024,9 @@ module mod_ncstream
       end if
 #else
       if ( stream%l_parallel ) then
+        call async_netcdf_lock()
         ncstat = nf90_var_par_access(stream%id, var%id, nf90_collective)
+        call async_netcdf_unlock()
         if ( ncstat /= nf90_noerr ) &
           call die('nc_stream','Cannot restore collective access for '// &
             trim(var%vname)//' in '//trim(stream%filename), 1)
