@@ -24,11 +24,7 @@ LDADD = $(OMPFLAGS)
 
 include $(REGCM_ROOT)/makeinc
 
-if REGCM_PARALLEL
 rcsuffix = MPI
-else
-rcsuffix = Serial
-endif
 
 MPPLIBPTH = ./mpplib
 CLMLIBPTH = ./clmlib

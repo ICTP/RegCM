@@ -1,0 +1,115 @@
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    Use of this source code is governed by an MIT-style license that can
+!    be found in the LICENSE file or at
+!
+!         https://opensource.org/licenses/MIT.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+! Clear the macros set by mpp_tk_real8.inc / mpp_tk_real4.inc.
+! Must be included after in the sequence after the two type/kinds
+
+#undef TK_TYPE
+#undef TK_KIND
+#undef TK_MPI
+#undef TK_NAME
+#undef TK_VEC1
+#undef TK_VEC2
+#undef TK_SUBGRID
+#undef TK_GLOBAL_SUBGRID
+#undef TK_MISSVAL
+#undef BCAST_TK
+#undef BCAST_ARR_TK
+#undef BCAST_MATR_TK
+#undef SUMALL_TK
+#undef MAXALL_TK
+#undef MEANALL_1D_TK
+#undef MEANALL_TK
+#undef MINALL_TK
+#undef EXCHANGE_ARRAY_TK
+#undef CYCLIC_EXCHANGE_ARRAY_TK
+#undef TK_2D_DO_DISTRIBUTE
+#undef TK_2D_DISTRIBUTE
+#undef TK_3D_DISTRIBUTE
+#undef TK_4D_DISTRIBUTE
+#undef TK_2D_DO_SUB_DISTRIBUTE
+#undef TK_2D_SUB_DISTRIBUTE
+#undef TK_3D_SUB_DISTRIBUTE
+#undef TK_2D_DO_COLLECT
+#undef TK_2D_COLLECT
+#undef TK_2D_3D_COLLECT
+#undef TK_3D_COLLECT
+#undef TK_3D_2D_COLLECT
+#undef TK_4D_COLLECT
+#undef TK_4D_2D_COLLECT
+#undef TK_2D_DO_SUB_COLLECT
+#undef TK_2D_SUB_COLLECT
+#undef TK_3D_SUB_COLLECT
+#undef TK_2D_EXCHANGE
+#undef TK_3D_EXCHANGE
+#undef TK_4D_EXCHANGE
+#undef TK_2D_EXCHANGE_LEFT_RIGHT_BOTTOM_TOP
+#undef TK_3D_EXCHANGE_LEFT_RIGHT_BOTTOM_TOP
+#undef TK_4D_EXCHANGE_LEFT_RIGHT_BOTTOM_TOP
+#undef TK_2D_EXCHANGE_LEFT_RIGHT
+#undef TK_3D_EXCHANGE_LEFT_RIGHT
+#undef TK_4D_EXCHANGE_LEFT_RIGHT
+#undef TK_2D_EXCHANGE_BOTTOM_TOP
+#undef TK_3D_EXCHANGE_BOTTOM_TOP
+#undef TK_4D_EXCHANGE_BOTTOM_TOP
+#undef TK_2D_EXCHANGE_LEFT_BOTTOM
+#undef TK_3D_EXCHANGE_LEFT_BOTTOM
+#undef TK_4D_EXCHANGE_LEFT_BOTTOM
+#undef TK_2D_EXCHANGE_RIGHT_TOP
+#undef TK_3D_EXCHANGE_RIGHT_TOP
+#undef TK_4D_EXCHANGE_RIGHT_TOP
+#undef TK_BDY_EXCHANGE_LEFT_RIGHT
+#undef TK_BDY_EXCHANGE_BOTTOM_TOP
+#undef TK_2D_GRID_FILL_EXTEND1
+#undef TK_2D_GRID_FILL_EXTEND2
+#undef REORDER_ADD_SUBGRID_2D_TK
+#undef REORDER_SUBGRID_2D_TK
+#undef REORDER_ADD_SUBGRID_2D3D_TK
+#undef REORDER_SUBGRID_2D3D_TK
+#undef REORDER_ADD_SUBGRID_3D_TK
+#undef REORDER_SUBGRID_3D_TK
+#undef REORDER_SUBGRID_4D_TK
+#undef INPUT_REORDER_TK
+#undef CL_SETUP_TK
+#undef CARTESIAN_TO_LINEAR_TK_SUBGRID_SUBGRID_4D
+#undef LINEAR_TO_CARTESIAN_TK_SUBGRID_SUBGRID_4D
+#undef CARTESIAN_TO_LINEAR_TK_SUBGRID_SUBGRID
+#undef LINEAR_TO_CARTESIAN_TK_SUBGRID_SUBGRID
+#undef CARTESIAN_TO_LINEAR_TK_GRID_SUBGRID
+#undef GLOBAL_TO_LINEAR_TK_SUBGRID_SUBGRID
+#undef LINEAR_TO_GLOBAL_TK_SUBGRID_SUBGRID
+#undef GLOBAL_TO_LINEAR_TK_SUBGRID_SUBGRID_4D
+#undef LINEAR_TO_GLOBAL_TK_SUBGRID_SUBGRID_4D
+#undef GLOBAL_TO_LINEAR_TK_GRID_SUBGRID
+#undef MYPACK_TK_GRID
+#undef MYPACK_TK_SUBGRID
+#undef MYPACK_TK_SUBGRID_4D
+#undef MYPACK_TK_SUBGRID_SLICE
+#undef MYUNPACK_TK_GRID
+#undef MYUNPACK_TK_SUBGRID
+#undef MYUNPACK_TK_SUBGRID_4D
+#undef MYUNPACK_TK_SUBGRID_SLICE
+#undef MYPACK_GLOBAL_TK_GRID
+#undef MYPACK_GLOBAL_TK_SUBGRID
+#undef MYPACK_GLOBAL_TK_SUBGRID_4D
+#undef MYPACK_GLOBAL_TK_SUBGRID_SLICE
+#undef MYUNPACK_GLOBAL_TK_GRID
+#undef MYUNPACK_GLOBAL_TK_SUBGRID
+#undef MYUNPACK_GLOBAL_TK_SUBGRID_4D
+#undef MYUNPACK_GLOBAL_TK_SUBGRID_SLICE
+#undef TK_COLUMN_REDUCE
+#undef TK_ROW_REDUCE
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

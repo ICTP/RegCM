@@ -540,12 +540,12 @@ AC_DEFUN([RCM_MPI_CHECK_MPI3],[
        call mpi_ineighbor_alltoallv
     ]])], [mpifc_has_mpi3="yes"])
   AC_LANG_POP([Fortran])
+  FC="$acx_mpi_save_FC"
+  AC_MSG_RESULT([${mpifc_has_mpi3}])
   if test "${mpifc_has_mpi3}" = "yes"; then
     AC_DEFINE([HAVE_MPI3],1,
       [Define to 1 if your MPI library supports MPI3 interfaces.])
-    FCFLAGS="-DUSE_MPI3 $FCFLAGS"
-    AC_SUBST(FCFLAGS)
+  else
+    AC_MSG_ERROR([RegCM requires an MPI library with MPI-3 support (mpi_f08, neighborhood collectives).])
   fi
-  FC="$acx_mpi_save_FC"
-  AC_MSG_RESULT([${mpifc_has_mpi3}])
 ]) # RCM_MPI_CHECK_MPI3

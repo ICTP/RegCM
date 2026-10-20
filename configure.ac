@@ -62,13 +62,6 @@ AC_ARG_WITH([oasis-comm],
   [OASIS_CHAN="$withval"], [OASIS_CHAN="MPI1"]
 )
 
-PARALLEL="1"
-AC_ARG_ENABLE(mpiserial,
-  AC_HELP_STRING([--enable-mpiserial],
-                 [Use the included MPI replacement library for single processor]),
-  [DONOTCHECKMPI="DONOTCHECKMPI"; PARALLEL="0"]
-)
-
 SP_REAL="0"
 AC_ARG_ENABLE(singleprecision,
   AC_HELP_STRING([--enable-singleprecision],
@@ -514,8 +507,6 @@ AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
                                       -z "${FCPROG##mpiifort*}" ] )
 AM_CONDITIONAL(COMPILER_INTEL_LLVM, [ test -z "${FCPROG##ifx*}" -o \
                                            -z "${FCPROG##mpiifx*}" ] )
-AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
-
 # Force Big endian I/O for known compilers
 if test -z "$COMPILER_GNU_TRUE"; then
   # Following check seems not to work on SuSE, need investigation
@@ -893,19 +884,8 @@ else
 fi
 AM_LDFLAGS="-L$MCTPATH $AM_LDFLAGS"
 AC_SUBST(AM_LDFLAGS)
-if eval "test x"$PARALLEL" = x1"; then
-  ACX_MPI
-  RCM_MPI_CHECK_MPI3
-else
-  FORT_SIZE="real4double8"
-  AC_SUBST(FORT_SIZE)
-  MPIFC=$FC
-  AC_SUBST(MPIFC)
-  LIBS="$LIBS -lmpiser"
-  AC_SUBST(LIBS)
-  AM_CPPFLAGS="-DMPI_SERIAL $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
-fi
+ACX_MPI
+RCM_MPI_CHECK_MPI3
 
 MPEUCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF -D$name_mangling"
 MPEUFCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF"
