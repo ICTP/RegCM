@@ -3320,6 +3320,7 @@ module mod_mppparam
       call relmem(cl%global_gmask_id)
       call relmem(cl%global_sgmask)
       call relmem(cl%global_sgmask_id)
+      call relmem(cl%global_out_sgmask)
       call mpi_comm_free(cl%linear_communicator,mpierr)
 #ifdef DEBUG
       if ( mpierr /= mpi_success ) then
