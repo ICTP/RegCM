@@ -170,6 +170,7 @@ module mod_micro_wdm7
              rslopesbmax, rslopegbmax, rslopehbmax, rsloper2max,   &
              rslopes2max, rslopeg2max, rslopeh2max, rsloper3max,   &
              rslopes3max, rslopeg3max, rslopeh3max
+  !$acc declare create(pidnc, pidnr, pidn0s, pidn0g, pidn0h)
 
   public :: allocate_mod_wdm7, init_wdm7, wdm7
 
@@ -308,6 +309,7 @@ module mod_micro_wdm7
     rslopes3max = rslopes2max * rslopesmax
     rslopeg3max = rslopeg2max * rslopegmax
     rslopeh3max = rslopeh2max * rslopehmax
+    !$acc update device(pidnc, pidnr, pidn0s, pidn0g, pidn0h)
   end subroutine init_wdm7
 
   subroutine wdm7(mo2mc,mc2mo)
