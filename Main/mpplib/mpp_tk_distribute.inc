@@ -15,9 +15,11 @@
 
 ! Distribution of global fields to the processors and collection back.
 !
-! Template included by mod_mppparam.F90 once per real kind: the TK_*
+! Template included by mod_mppparam.F90 once per kind: the TK_*
 ! macros (type, MPI datatype, buffers and routine names) are set by
-! mpp_tk_real8.inc or mpp_tk_real4.inc.
+! the mpp_tk_<kind>.inc headers; routines not meaningful
+! for every kind are guarded by TK_REAL (real kinds only) or
+! TK_LOGICAL (not for logical).
 ! It must be included AFTER the type/kind is included
 
   subroutine TK_2D_DO_DISTRIBUTE(mg,ml,j1,j2,i1,i2,tsize)
@@ -178,6 +180,7 @@
     call TK_2D_DO_SUB_DISTRIBUTE(mg,ml,j1,j2,i1,i2,tsize,mask)
   end subroutine TK_2D_SUB_DISTRIBUTE
 
+#ifndef TK_LOGICAL
   subroutine TK_3D_SUB_DISTRIBUTE(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
     TK_TYPE, pointer, contiguous, dimension(:,:,:,:), intent(in) :: mg
@@ -194,6 +197,7 @@
       call TK_2D_DO_SUB_DISTRIBUTE(mg2,ml2,j1,j2,i1,i2,tsize,mask)
     end do
   end subroutine TK_3D_SUB_DISTRIBUTE
+#endif
 
   subroutine TK_2D_DO_COLLECT(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
@@ -250,22 +254,7 @@
     call TK_2D_DO_COLLECT(ml,mg,j1,j2,i1,i2,tsize)
   end subroutine TK_2D_COLLECT
 
-  subroutine TK_2D_3D_COLLECT(ml,mg,j1,j2,i1,i2,k)
-    implicit none
-    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: ml
-    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
-    integer(ik4), intent(in) :: j1, j2, i1, i2
-    integer(ik4), intent(in), optional :: k
-    TK_TYPE, pointer, contiguous, dimension(:,:) :: mg2 => null( )
-    integer(ik4) :: kk
-    integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)
-    kk = 1
-    if ( present(k) ) kk = k
-    if ( ccid == ccio )  call assignpnt(mg,mg2,kk)
-    call TK_2D_DO_COLLECT(ml,mg2,j1,j2,i1,i2,tsize)
-  end subroutine TK_2D_3D_COLLECT
-
+#ifndef TK_LOGICAL
   subroutine TK_3D_COLLECT(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(in) :: ml
@@ -281,18 +270,6 @@
       call TK_2D_DO_COLLECT(ml2,mg2,j1,j2,i1,i2,tsize)
     end do
   end subroutine TK_3D_COLLECT
-
-  subroutine TK_3D_2D_COLLECT(ml,mg,j1,j2,i1,i2,k)
-    implicit none
-    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(in) :: ml
-    TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: mg
-    integer(ik4), intent(in) :: j1, j2, i1, i2, k
-    TK_TYPE, pointer, contiguous, dimension(:,:) :: ml2 => null( )
-    integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)
-    call assignpnt(ml,ml2,k)
-    call TK_2D_DO_COLLECT(ml2,mg,j1,j2,i1,i2,tsize)
-  end subroutine TK_3D_2D_COLLECT
 
   subroutine TK_4D_COLLECT(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
@@ -311,6 +288,36 @@
       end do
     end do
   end subroutine TK_4D_COLLECT
+#endif
+
+#ifdef TK_REAL
+  subroutine TK_2D_3D_COLLECT(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: ml
+    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    integer(ik4), intent(in), optional :: k
+    TK_TYPE, pointer, contiguous, dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: kk
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    kk = 1
+    if ( present(k) ) kk = k
+    if ( ccid == ccio )  call assignpnt(mg,mg2,kk)
+    call TK_2D_DO_COLLECT(ml,mg2,j1,j2,i1,i2,tsize)
+  end subroutine TK_2D_3D_COLLECT
+
+  subroutine TK_3D_2D_COLLECT(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(in) :: ml
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: mg
+    integer(ik4), intent(in) :: j1, j2, i1, i2, k
+    TK_TYPE, pointer, contiguous, dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call assignpnt(ml,ml2,k)
+    call TK_2D_DO_COLLECT(ml2,mg,j1,j2,i1,i2,tsize)
+  end subroutine TK_3D_2D_COLLECT
 
   subroutine TK_4D_2D_COLLECT(ml,mg,j1,j2,i1,i2,k,n)
     implicit none
@@ -323,6 +330,7 @@
     call assignpnt(ml,ml2,k,n)
     call TK_2D_DO_COLLECT(ml2,mg,j1,j2,i1,i2,tsize)
   end subroutine TK_4D_2D_COLLECT
+#endif
 
   subroutine TK_2D_DO_SUB_COLLECT(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
@@ -396,6 +404,7 @@
     end do
   end subroutine TK_3D_SUB_COLLECT
 
+#ifdef TK_REAL
   subroutine TK_2D_GRID_FILL_EXTEND1(a,b)
     implicit none
     TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: a
@@ -437,5 +446,6 @@
     end if
 #endif
   end subroutine TK_2D_GRID_FILL_EXTEND2
+#endif
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

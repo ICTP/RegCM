@@ -15,9 +15,11 @@
 
 ! Broadcasts, reductions and point to point helpers.
 !
-! Template included by mod_mppparam.F90 once per real kind: the TK_*
+! Template included by mod_mppparam.F90 once per kind: the TK_*
 ! macros (type, MPI datatype, buffers and routine names) are set by
-! mpp_tk_real8.inc or mpp_tk_real4.inc.
+! the mpp_tk_<kind>.inc headers; routines not meaningful
+! for every kind are guarded by TK_REAL (real kinds only) or
+! TK_LOGICAL (not for logical).
 ! It must be included AFTER the type/kind is included
 
   subroutine BCAST_TK(rval)
@@ -42,18 +44,7 @@
 #endif
   end subroutine BCAST_ARR_TK
 
-  subroutine BCAST_MATR_TK(rval)
-    implicit none
-    TK_TYPE, dimension(:,:), intent(inout) :: rval
-    call mpi_bcast(rval,size(rval,1)*size(rval,2), &
-                   TK_MPI,iocpu,mycomm,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
-    end if
-#endif
-  end subroutine BCAST_MATR_TK
-
+#ifndef TK_LOGICAL
   subroutine SUMALL_TK(rlval,rtval)
     implicit none
     TK_TYPE, intent(in) :: rlval
@@ -77,6 +68,32 @@
     end if
 #endif
   end subroutine MAXALL_TK
+
+  subroutine MINALL_TK(rlval,rtval)
+    implicit none
+    TK_TYPE, intent(in) :: rlval
+    TK_TYPE, intent(out) :: rtval
+    call mpi_allreduce(rlval,rtval,1,TK_MPI,mpi_min,mycomm,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+  end subroutine MINALL_TK
+#endif
+
+#ifdef TK_REAL
+  subroutine BCAST_MATR_TK(rval)
+    implicit none
+    TK_TYPE, dimension(:,:), intent(inout) :: rval
+    call mpi_bcast(rval,size(rval,1)*size(rval,2), &
+                   TK_MPI,iocpu,mycomm,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    end if
+#endif
+  end subroutine BCAST_MATR_TK
 
   subroutine MEANALL_1D_TK(rlval,rtval,elem)
     implicit none
@@ -111,18 +128,6 @@
 #endif
     rtval = rtval/real(nproc,TK_KIND)
   end subroutine MEANALL_TK
-
-  subroutine MINALL_TK(rlval,rtval)
-    implicit none
-    TK_TYPE, intent(in) :: rlval
-    TK_TYPE, intent(out) :: rtval
-    call mpi_allreduce(rlval,rtval,1,TK_MPI,mpi_min,mycomm,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
-    end if
-#endif
-  end subroutine MINALL_TK
 
   subroutine EXCHANGE_ARRAY_TK(rv1,rv2,isize,icpu,tag1,tag2,srq,rrq)
     implicit none
@@ -191,5 +196,6 @@
     end if
 #endif
   end subroutine TK_ROW_REDUCE
+#endif
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

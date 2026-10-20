@@ -18,6 +18,8 @@
 
 #include "mpp_tk_clear.inc"
 
+#define TK_REAL
+
 #define TK_TYPE                                   real(rk8)
 #define TK_KIND                                   rk8
 #define TK_MPI                                    mpi_real8

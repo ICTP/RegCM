@@ -13,9 +13,11 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-! Clear the macros set by mpp_tk_real8.inc / mpp_tk_real4.inc.
-! Must be included after in the sequence after the two type/kinds
+! Clear the macros set by the mpp_tk_<kind>.inc headers.
+! Must be included after in the sequence after the type/kinds
 
+#undef TK_REAL
+#undef TK_LOGICAL
 #undef TK_TYPE
 #undef TK_KIND
 #undef TK_MPI

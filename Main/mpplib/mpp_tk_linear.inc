@@ -15,11 +15,14 @@
 
 ! Masked transfers between the cartesian and linear decompositions.
 !
-! Template included by mod_mppparam.F90 once per real kind: the TK_*
+! Template included by mod_mppparam.F90 once per kind: the TK_*
 ! macros (type, MPI datatype, buffers and routine names) are set by
-! mpp_tk_real8.inc or mpp_tk_real4.inc.
+! the mpp_tk_<kind>.inc headers; routines not meaningful
+! for every kind are guarded by TK_REAL (real kinds only) or
+! TK_LOGICAL (not for logical).
 ! It must be included AFTER the type/kind is included
 
+#ifdef TK_REAL
   subroutine CL_SETUP_TK(cl,gmask,sgmask,lrev)
     implicit none
     type(masked_comm), intent(inout) :: cl
@@ -120,91 +123,7 @@
       end do
     end do
   end subroutine CL_SETUP_TK
-
-  subroutine CARTESIAN_TO_LINEAR_TK_SUBGRID_SUBGRID_4D(cl,matrix,vector)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
-    TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: vector
-    integer(ik4) :: nval, npt, nlev, k
-    nval = cl%cartesian_npoint_sg(ccid+1)
-    npt  = cl%linear_npoint_sg(myid+1)
-    nlev = size(matrix,4)
-    if ( nproc == 1 ) then
-      call mypack(cl,matrix,vector,nlev)
-      return
-    end if
-    !$acc data create(TK_VEC1,TK_VEC2)
-    do k = 1, nlev
-      if ( nval > 0 ) then
-        call mypack(cl,matrix,TK_VEC1,k)
-      end if
-      !$acc host_data use_device(TK_VEC1,TK_VEC2)
-      call mpi_gatherv(TK_VEC1,nval,TK_MPI,                               &
-                       TK_VEC2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
-                       TK_MPI,ccio,cartesian_communicator,mpierr)
-      !$acc end host_data
-#ifdef DEBUG
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-      end if
 #endif
-      !$acc host_data use_device(TK_VEC2,vector)
-      call mpi_scatterv(TK_VEC2,cl%linear_npoint_sg,cl%linear_displ_sg, &
-                        TK_MPI,vector(:,k),npt,TK_MPI,              &
-                        iocpu,cl%linear_communicator,mpierr)
-      !$acc end host_data
-#ifdef DEBUG
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-      end if
-#endif
-    end do
-    !$acc end data
-  end subroutine CARTESIAN_TO_LINEAR_TK_SUBGRID_SUBGRID_4D
-
-  subroutine LINEAR_TO_CARTESIAN_TK_SUBGRID_SUBGRID_4D(cl,vector,matrix)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: vector
-    TK_TYPE, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
-    integer(ik4) :: nval, npt, nlev, k
-    nval = cl%cartesian_npoint_sg(ccid+1)
-    npt  = cl%linear_npoint_sg(myid+1)
-    nlev = size(vector,2)
-    if ( nproc == 1 ) then
-      call myunpack(cl,vector,matrix,nlev)
-      return
-    end if
-    !$acc data create(TK_VEC1,TK_VEC2)
-    do k = 1, nlev
-      !$acc host_data use_device(vector,TK_VEC2)
-      call mpi_gatherv(vector(:,k),npt,TK_MPI,                        &
-                       TK_VEC2,cl%linear_npoint_sg,cl%linear_displ_sg, &
-                       TK_MPI,iocpu,cl%linear_communicator,mpierr)
-      !$acc end host_data
-#ifdef DEBUG
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-      end if
-#endif
-      !$acc host_data use_device(TK_VEC2,TK_VEC1)
-      call mpi_scatterv(TK_VEC2,cl%cartesian_npoint_sg, &
-                        cl%cartesian_displ_sg,TK_MPI,  &
-                        TK_VEC1,nval,TK_MPI,         &
-                        ccio,cartesian_communicator,mpierr)
-      !$acc end host_data
-#ifdef DEBUG
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-      end if
-#endif
-      if ( nval > 0 ) then
-        call myunpack(cl,TK_VEC1,matrix,k)
-      end if
-    end do
-    !$acc end data
-  end subroutine LINEAR_TO_CARTESIAN_TK_SUBGRID_SUBGRID_4D
 
   subroutine CARTESIAN_TO_LINEAR_TK_SUBGRID_SUBGRID(cl,matrix,vector)
     implicit none
@@ -365,6 +284,218 @@
     !@acc call nvtxEndRange
   end subroutine LINEAR_TO_GLOBAL_TK_SUBGRID_SUBGRID
 
+  subroutine GLOBAL_TO_LINEAR_TK_GRID_SUBGRID(cl,matrix,vector)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, n
+    !$acc data create(TK_SUBGRID)
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      TK_SUBGRID(n,j,i) = matrix(j,i)
+    end do
+    call GLOBAL_TO_LINEAR_TK_SUBGRID_SUBGRID(cl,TK_SUBGRID,vector)
+    !$acc end data
+  end subroutine GLOBAL_TO_LINEAR_TK_GRID_SUBGRID
+
+  subroutine MYPACK_TK_GRID(cl,matrix,vector)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, iv
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%gmask_id(j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(j,i)
+      end if
+    end do
+  end subroutine MYPACK_TK_GRID
+
+  subroutine MYPACK_TK_SUBGRID(cl,matrix,vector)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
+    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(n,j,i)
+      end if
+    end do
+  end subroutine MYPACK_TK_SUBGRID
+
+  subroutine MYUNPACK_TK_GRID(cl,vector,matrix)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:), intent(in) :: vector
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%gmask_id(j,i)
+      if ( iv > 0 ) then
+        matrix(j,i) = vector(iv)
+      end if
+    end do
+  end subroutine MYUNPACK_TK_GRID
+
+  subroutine MYUNPACK_TK_SUBGRID(cl,vector,matrix)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:), intent(in) :: vector
+    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      iv = cl%sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i) = vector(iv)
+      end if
+    end do
+  end subroutine MYUNPACK_TK_SUBGRID
+
+  subroutine MYPACK_GLOBAL_TK_GRID(cl,matrix,vector)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: matrix
+    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
+    integer(ik4) :: i, j, iv
+    do concurrent ( j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_gmask_id(j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(j,i)
+      end if
+    end do
+  end subroutine MYPACK_GLOBAL_TK_GRID
+
+  subroutine MYPACK_GLOBAL_TK_SUBGRID(cl,matrix,vector)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
+    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
+    integer(ik4) :: i, j, n, iv
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        vector(iv) = matrix(n,j,i)
+      end if
+    end do
+  end subroutine MYPACK_GLOBAL_TK_SUBGRID
+
+  subroutine MYUNPACK_GLOBAL_TK_GRID(cl,vector,matrix)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:), intent(in) :: vector
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, iv
+    do concurrent ( j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_gmask_id(j,i)
+      if ( iv > 0 ) then
+        matrix(j,i) = vector(iv)
+      end if
+    end do
+  end subroutine MYUNPACK_GLOBAL_TK_GRID
+
+  subroutine MYUNPACK_GLOBAL_TK_SUBGRID(cl,vector,matrix)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:), intent(in) :: vector
+    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
+    integer(ik4) :: i, j, n, iv
+    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
+      iv = cl%global_sgmask_id(n,j,i)
+      if ( iv > 0 ) then
+        matrix(n,j,i) = vector(iv)
+      end if
+    end do
+  end subroutine MYUNPACK_GLOBAL_TK_SUBGRID
+
+#ifdef TK_REAL
+  subroutine CARTESIAN_TO_LINEAR_TK_SUBGRID_SUBGRID_4D(cl,matrix,vector)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:,:,:,:), intent(in) :: matrix
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: vector
+    integer(ik4) :: nval, npt, nlev, k
+    nval = cl%cartesian_npoint_sg(ccid+1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    nlev = size(matrix,4)
+    if ( nproc == 1 ) then
+      call mypack(cl,matrix,vector,nlev)
+      return
+    end if
+    !$acc data create(TK_VEC1,TK_VEC2)
+    do k = 1, nlev
+      if ( nval > 0 ) then
+        call mypack(cl,matrix,TK_VEC1,k)
+      end if
+      !$acc host_data use_device(TK_VEC1,TK_VEC2)
+      call mpi_gatherv(TK_VEC1,nval,TK_MPI,                               &
+                       TK_VEC2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
+                       TK_MPI,ccio,cartesian_communicator,mpierr)
+      !$acc end host_data
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+#endif
+      !$acc host_data use_device(TK_VEC2,vector)
+      call mpi_scatterv(TK_VEC2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                        TK_MPI,vector(:,k),npt,TK_MPI,              &
+                        iocpu,cl%linear_communicator,mpierr)
+      !$acc end host_data
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
+#endif
+    end do
+    !$acc end data
+  end subroutine CARTESIAN_TO_LINEAR_TK_SUBGRID_SUBGRID_4D
+
+  subroutine LINEAR_TO_CARTESIAN_TK_SUBGRID_SUBGRID_4D(cl,vector,matrix)
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: vector
+    TK_TYPE, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: matrix
+    integer(ik4) :: nval, npt, nlev, k
+    nval = cl%cartesian_npoint_sg(ccid+1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    nlev = size(vector,2)
+    if ( nproc == 1 ) then
+      call myunpack(cl,vector,matrix,nlev)
+      return
+    end if
+    !$acc data create(TK_VEC1,TK_VEC2)
+    do k = 1, nlev
+      !$acc host_data use_device(vector,TK_VEC2)
+      call mpi_gatherv(vector(:,k),npt,TK_MPI,                        &
+                       TK_VEC2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                       TK_MPI,iocpu,cl%linear_communicator,mpierr)
+      !$acc end host_data
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+#endif
+      !$acc host_data use_device(TK_VEC2,TK_VEC1)
+      call mpi_scatterv(TK_VEC2,cl%cartesian_npoint_sg, &
+                        cl%cartesian_displ_sg,TK_MPI,  &
+                        TK_VEC1,nval,TK_MPI,         &
+                        ccio,cartesian_communicator,mpierr)
+      !$acc end host_data
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
+#endif
+      if ( nval > 0 ) then
+        call myunpack(cl,TK_VEC1,matrix,k)
+      end if
+    end do
+    !$acc end data
+  end subroutine LINEAR_TO_CARTESIAN_TK_SUBGRID_SUBGRID_4D
+
   subroutine GLOBAL_TO_LINEAR_TK_SUBGRID_SUBGRID_4D(cl,matrix,vector)
     implicit none
     type(masked_comm), intent(in) :: cl
@@ -438,48 +569,6 @@
     !$acc end data
   end subroutine LINEAR_TO_GLOBAL_TK_SUBGRID_SUBGRID_4D
 
-  subroutine GLOBAL_TO_LINEAR_TK_GRID_SUBGRID(cl,matrix,vector)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: matrix
-    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
-    integer(ik4) :: i, j, n
-    !$acc data create(TK_SUBGRID)
-    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-      TK_SUBGRID(n,j,i) = matrix(j,i)
-    end do
-    call GLOBAL_TO_LINEAR_TK_SUBGRID_SUBGRID(cl,TK_SUBGRID,vector)
-    !$acc end data
-  end subroutine GLOBAL_TO_LINEAR_TK_GRID_SUBGRID
-
-  subroutine MYPACK_TK_GRID(cl,matrix,vector)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
-    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: matrix
-    integer(ik4) :: i, j, iv
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      iv = cl%gmask_id(j,i)
-      if ( iv > 0 ) then
-        vector(iv) = matrix(j,i)
-      end if
-    end do
-  end subroutine MYPACK_TK_GRID
-
-  subroutine MYPACK_TK_SUBGRID(cl,matrix,vector)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
-    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
-    integer(ik4) :: i, j, n, iv
-    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-      iv = cl%sgmask_id(n,j,i)
-      if ( iv > 0 ) then
-        vector(iv) = matrix(n,j,i)
-      end if
-    end do
-  end subroutine MYPACK_TK_SUBGRID
-
   subroutine MYPACK_TK_SUBGRID_4D(cl,matrix,vector,klev)
     implicit none
     type(masked_comm), intent(in) :: cl
@@ -511,34 +600,6 @@
       end if
     end do
   end subroutine MYPACK_TK_SUBGRID_SLICE
-
-  subroutine MYUNPACK_TK_GRID(cl,vector,matrix)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:), intent(in) :: vector
-    TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: matrix
-    integer(ik4) :: i, j, iv
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      iv = cl%gmask_id(j,i)
-      if ( iv > 0 ) then
-        matrix(j,i) = vector(iv)
-      end if
-    end do
-  end subroutine MYUNPACK_TK_GRID
-
-  subroutine MYUNPACK_TK_SUBGRID(cl,vector,matrix)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:), intent(in) :: vector
-    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
-    integer(ik4) :: i, j, n, iv
-    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-      iv = cl%sgmask_id(n,j,i)
-      if ( iv > 0 ) then
-        matrix(n,j,i) = vector(iv)
-      end if
-    end do
-  end subroutine MYUNPACK_TK_SUBGRID
 
   subroutine MYUNPACK_TK_SUBGRID_4D(cl,vector,matrix,klev)
     implicit none
@@ -572,34 +633,6 @@
     end do
   end subroutine MYUNPACK_TK_SUBGRID_SLICE
 
-  subroutine MYPACK_GLOBAL_TK_GRID(cl,matrix,vector)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: matrix
-    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
-    integer(ik4) :: i, j, iv
-    do concurrent ( j = jout1:jout2, i = iout1:iout2 )
-      iv = cl%global_gmask_id(j,i)
-      if ( iv > 0 ) then
-        vector(iv) = matrix(j,i)
-      end if
-    end do
-  end subroutine MYPACK_GLOBAL_TK_GRID
-
-  subroutine MYPACK_GLOBAL_TK_SUBGRID(cl,matrix,vector)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:), intent(inout) :: vector
-    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(in) :: matrix
-    integer(ik4) :: i, j, n, iv
-    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
-      iv = cl%global_sgmask_id(n,j,i)
-      if ( iv > 0 ) then
-        vector(iv) = matrix(n,j,i)
-      end if
-    end do
-  end subroutine MYPACK_GLOBAL_TK_SUBGRID
-
   subroutine MYPACK_GLOBAL_TK_SUBGRID_4D(cl,matrix,vector,klev)
     implicit none
     type(masked_comm), intent(in) :: cl
@@ -632,34 +665,6 @@
     end do
   end subroutine MYPACK_GLOBAL_TK_SUBGRID_SLICE
 
-  subroutine MYUNPACK_GLOBAL_TK_GRID(cl,vector,matrix)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:), intent(in) :: vector
-    TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: matrix
-    integer(ik4) :: i, j, iv
-    do concurrent ( j = jout1:jout2, i = iout1:iout2 )
-      iv = cl%global_gmask_id(j,i)
-      if ( iv > 0 ) then
-        matrix(j,i) = vector(iv)
-      end if
-    end do
-  end subroutine MYUNPACK_GLOBAL_TK_GRID
-
-  subroutine MYUNPACK_GLOBAL_TK_SUBGRID(cl,vector,matrix)
-    implicit none
-    type(masked_comm), intent(in) :: cl
-    TK_TYPE, pointer, contiguous, dimension(:), intent(in) :: vector
-    TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(inout) :: matrix
-    integer(ik4) :: i, j, n, iv
-    do concurrent ( n = 1:nnsg, j = jout1:jout2, i = iout1:iout2 )
-      iv = cl%global_sgmask_id(n,j,i)
-      if ( iv > 0 ) then
-        matrix(n,j,i) = vector(iv)
-      end if
-    end do
-  end subroutine MYUNPACK_GLOBAL_TK_SUBGRID
-
   subroutine MYUNPACK_GLOBAL_TK_SUBGRID_4D(cl,vector,matrix,klev)
     implicit none
     type(masked_comm), intent(in) :: cl
@@ -691,5 +696,6 @@
       end if
     end do
   end subroutine MYUNPACK_GLOBAL_TK_SUBGRID_SLICE
+#endif
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
