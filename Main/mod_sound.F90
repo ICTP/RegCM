@@ -570,8 +570,10 @@ module mod_sound
       !
       ! Downward sweep calculation of w
       !
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        do k = 1, kz
+          atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
+        end do
       end do
       !
       ! Zero-out gradient for W

@@ -1045,13 +1045,16 @@ module mod_tendency
             pten(j,i) = pten(j,i) - mdv%cr(j,i,k) * dsigma(k)
           end do
         end do
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           !
           ! The coordinate vertical velocity in the   hydrostatic model:
           ! Eq. 2.1.6 & Eq. 2.4.3 in the MM5 manual
+          ! (integrated from the top: sequential in k)
           !
-          qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
-                         mdv%cr(j,i,k-1)) * dsigma(k-1) * rpsa(j,i)
+          do k = 2, kz
+            qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
+                           mdv%cr(j,i,k-1)) * dsigma(k-1) * rpsa(j,i)
+          end do
         end do
       else if ( idynamic == 2 ) then
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )

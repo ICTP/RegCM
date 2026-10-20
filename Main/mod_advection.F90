@@ -787,9 +787,11 @@ module mod_advection
                     (twt(k,1)*f(j,i,k)  *(pfs(j,i,k)/phs(j,i,k))  **c287 + &
                      twt(k,2)*f(j,i,k-1)*(pfs(j,i,k)/phs(j,i,k-1))**c287)
           end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:nk )
-            ften(j,i,k-1) = ften(j,i,k-1) - dotqdot(j,i,k)*xds(k-1)
-            ften(j,i,k)   = ften(j,i,k)   + dotqdot(j,i,k)*xds(k)
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            do k = 2, nk
+              ften(j,i,k-1) = ften(j,i,k-1) - dotqdot(j,i,k)*xds(k-1)
+              ften(j,i,k)   = ften(j,i,k)   + dotqdot(j,i,k)*xds(k)
+            end do
           end do
         else
           do i = ici1, ici2
@@ -838,9 +840,11 @@ module mod_advection
           fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
         end if
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-        ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
-        ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        do k = 2, kz
+          ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
+          ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
+        end do
       end do
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -971,9 +975,11 @@ module mod_advection
             fg(j,i,k) = fg(j,i,k) * svv(j,i,k)
           end do
         end if
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-          ften(j,i,k-1,n) = ften(j,i,k-1,n)-fg(j,i,k)*xds(k-1)
-          ften(j,i,k,n)   = ften(j,i,k,n)  +fg(j,i,k)*xds(k)
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          do k = 2, kz
+            ften(j,i,k-1,n) = ften(j,i,k-1,n)-fg(j,i,k)*xds(k-1)
+            ften(j,i,k,n)   = ften(j,i,k,n)  +fg(j,i,k)*xds(k)
+          end do
         end do
       end do
 #ifdef DEBUG

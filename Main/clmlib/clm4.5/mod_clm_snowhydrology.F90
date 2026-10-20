@@ -2238,12 +2238,14 @@ module mod_clm_snowhydrology
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
 
-    do concurrent ( fc = 1:num_snowc, j = 0:-nlevsno+1:-1 )
+    do concurrent ( fc = 1:num_snowc )
       c = filter_snowc(fc)
-      if (j >= snl(c)+1) then
-        z(c,j)    = zi(c,j) - 0.5_rk8*dz(c,j)
-        zi(c,j-1) = zi(c,j) - dz(c,j)
-      end if
+      do j = 0, -nlevsno+1, -1
+        if (j >= snl(c)+1) then
+          z(c,j)    = zi(c,j) - 0.5_rk8*dz(c,j)
+          zi(c,j-1) = zi(c,j) - dz(c,j)
+        end if
+      end do
     end do
 
   end subroutine DivideSnowLayers_Lake

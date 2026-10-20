@@ -2246,6 +2246,11 @@ module mod_output
     real(rkx) :: cell, zz, zz1, ww, tv
     integer(ik4) :: i, j, k
     if ( associated(u) .and. associated(v) ) then
+      if ( idynamic /= 3 ) then
+        ! The interpolation to cross points uses the j+1 and i+1 dot points
+        call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
+      end if
       if ( idynamic == 3 ) then
         do i = ici1, ici2
           do j = jci1, jci2
