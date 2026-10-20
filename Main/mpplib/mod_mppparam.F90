@@ -531,14 +531,14 @@ module mod_mppparam
 
   type(model_area), public :: ma
 
-  real(rk8), pointer, contiguous, dimension(:) :: r8vector1
-  real(rk8), pointer, contiguous, dimension(:) :: r8vector2
-  real(rk4), pointer, contiguous, dimension(:) :: r4vector1
-  real(rk4), pointer, contiguous, dimension(:) :: r4vector2
-  integer(ik4), pointer, contiguous, dimension(:) :: i4vector1
-  integer(ik4), pointer, contiguous, dimension(:) :: i4vector2
-  logical, pointer, contiguous, dimension(:) :: lvector1
-  logical, pointer, contiguous, dimension(:) :: lvector2
+  real(rk8), pointer, contiguous, dimension(:) :: r8vector1 => null( )
+  real(rk8), pointer, contiguous, dimension(:) :: r8vector2 => null( )
+  real(rk4), pointer, contiguous, dimension(:) :: r4vector1 => null( )
+  real(rk4), pointer, contiguous, dimension(:) :: r4vector2 => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: i4vector1 => null( )
+  integer(ik4), pointer, contiguous, dimension(:) :: i4vector2 => null( )
+  logical, pointer, contiguous, dimension(:) :: lvector1 => null( )
+  logical, pointer, contiguous, dimension(:) :: lvector2 => null( )
   integer(ik4), dimension(4) :: window
   integer(ik4), pointer, contiguous, dimension(:) :: windows
   integer(ik4), dimension(1), target :: ifake

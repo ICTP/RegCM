@@ -1603,10 +1603,15 @@
     irc = 0
     ipos = 1
     ssize = 2*ksize
-    if ( size(TK_VEC1) < ssize ) then
+    ! Not allocated by set_nproc when running on one processor
+    if ( .not. associated(TK_VEC1) ) then
+      call getmem(TK_VEC1,1,ssize,TK_NAME//'_bdy_exchange_left_right')
+    else if ( size(TK_VEC1) < ssize ) then
       call getmem(TK_VEC1,1,ssize,TK_NAME//'_bdy_exchange_left_right')
     end if
-    if ( size(TK_VEC2) < ssize ) then
+    if ( .not. associated(TK_VEC2) ) then
+      call getmem(TK_VEC2,1,ssize,TK_NAME//'_bdy_exchange_left_right')
+    else if ( size(TK_VEC2) < ssize ) then
       call getmem(TK_VEC2,1,ssize,TK_NAME//'_bdy_exchange_left_right')
     end if
     if ( ma%bandflag ) then
@@ -1642,8 +1647,8 @@
           ib = ib + 1
         end do
         irc = irc + 1
-        call exchange_array(TK_VEC1(ipos:ipos+ksize), &
-                            TK_VEC2(ipos:ipos+ksize),ksize, &
+        call exchange_array(TK_VEC1(ipos:ipos+ksize-1), &
+                            TK_VEC2(ipos:ipos+ksize-1),ksize, &
                             ma%right,tag_rl,tag_lr, &
                             req(irc),req(irc+2))
         ipos = ipos + ksize
@@ -1655,8 +1660,8 @@
           ib = ib + 1
         end do
         irc = irc + 1
-        call exchange_array(TK_VEC1(ipos:ipos+ksize), &
-                            TK_VEC2(ipos:ipos+ksize),ksize, &
+        call exchange_array(TK_VEC1(ipos:ipos+ksize-1), &
+                            TK_VEC2(ipos:ipos+ksize-1),ksize, &
                             ma%left,tag_lr,tag_rl, &
                             req(irc),req(irc+2))
         ipos = ipos + ksize
@@ -1698,10 +1703,15 @@
     req(:) = mpi_request_null
     ksize = k2-k1+1
     ssize = 2*ksize
-    if ( size(TK_VEC1) < ssize ) then
+    ! Not allocated by set_nproc when running on one processor
+    if ( .not. associated(TK_VEC1) ) then
+      call getmem(TK_VEC1,1,ssize,TK_NAME//'_bdy_exchange_bottom_top')
+    else if ( size(TK_VEC1) < ssize ) then
       call getmem(TK_VEC1,1,ssize,TK_NAME//'_bdy_exchange_bottom_top')
     end if
-    if ( size(TK_VEC2) < ssize ) then
+    if ( .not. associated(TK_VEC2) ) then
+      call getmem(TK_VEC2,1,ssize,TK_NAME//'_bdy_exchange_bottom_top')
+    else if ( size(TK_VEC2) < ssize ) then
       call getmem(TK_VEC2,1,ssize,TK_NAME//'_bdy_exchange_bottom_top')
     end if
     irc = 0
@@ -1713,8 +1723,8 @@
         ib = ib + 1
       end do
       irc = irc + 1
-      call exchange_array(TK_VEC1(ipos:ipos+ksize), &
-                          TK_VEC2(ipos:ipos+ksize),ksize, &
+      call exchange_array(TK_VEC1(ipos:ipos+ksize-1), &
+                          TK_VEC2(ipos:ipos+ksize-1),ksize, &
                           ma%top,tag_tb,tag_bt, &
                           req(irc),req(irc+2))
       ipos = ipos + ksize
@@ -1726,8 +1736,8 @@
         ib = ib + 1
       end do
       irc = irc + 1
-      call exchange_array(TK_VEC1(ipos:ipos+ksize), &
-                          TK_VEC2(ipos:ipos+ksize),ksize, &
+      call exchange_array(TK_VEC1(ipos:ipos+ksize-1), &
+                          TK_VEC2(ipos:ipos+ksize-1),ksize, &
                           ma%bottom,tag_bt,tag_tb, &
                           req(irc),req(irc+2))
       ipos = ipos + ksize
