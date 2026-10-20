@@ -93,7 +93,8 @@ module mod_rrtmg_driver
   real(rk8), pointer, contiguous, dimension(:,:) :: tlay => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: h2ovmr => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: o3vmr => null( )
-  real(rk8), pointer, contiguous, dimension(:,:) :: co2vmrk => null( )
+  real(rk8), pointer, contiguous, dimension(:,:) :: co2mmr => null( )
+  real(rk8), pointer, contiguous, dimension(:,:) :: co2vmr => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: play => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: ch4vmr => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: n2ovmr => null( )
@@ -198,8 +199,7 @@ module mod_rrtmg_driver
   real(rk8), pointer, contiguous, dimension(:) :: cfc110 => null( )
   real(rk8), pointer, contiguous, dimension(:) :: cfc120 => null( )
   real(rk8), pointer, contiguous, dimension(:) :: ch40 => null( )
-  real(rk8), pointer, contiguous, dimension(:) :: co2mmr => null( )
-  real(rk8), pointer, contiguous, dimension(:) :: co2vmr => null( )
+  real(rk8), pointer, contiguous, dimension(:) :: co20 => null( )
   real(rk8), pointer, contiguous, dimension(:) :: n2o0 => null( )
 
   integer(ik4) :: npr, npj
@@ -260,8 +260,7 @@ module mod_rrtmg_driver
     call getmem(totwv,1,npr,'rrtmg:totwv')
     call getmem(totcl,1,npr,'rrtmg:totlf')
     call getmem(totci,1,npr,'rrtmg:totif')
-    call getmem(co2mmr,1,npr,'rrtmg:co2mmr')
-    call getmem(co2vmr,1,npr,'rrtmg:co2vmr')
+    call getmem(co20,1,npr,'rrtmg:co20')
     call getmem(n2o0,1,npr,'rrtmg:n2o0')
     call getmem(ch40,1,npr,'rrtmg:ch40')
     call getmem(cfc110,1,npr,'rrtmg:cfc110')
@@ -280,7 +279,8 @@ module mod_rrtmg_driver
     end if
     call getmem(h2ovmr,1,npr,1,kth,'rrtmg:h2ovmr')
     call getmem(o3vmr,1,npr,1,kth,'rrtmg:o3vmr')
-    call getmem(co2vmrk,1,npr,1,kth,'rrtmg:co2vmrk')
+    call getmem(co2mmr,1,npr,1,kth,'rrtmg:co2mmr')
+    call getmem(co2vmr,1,npr,1,kth,'rrtmg:co2vmr')
     call getmem(ch4vmr,1,npr,1,kth,'rrtmg:ch4vmr')
     call getmem(n2ovmr,1,npr,1,kth,'rrtmg:n2ovmr')
     call getmem(o2vmr,1,npr,1,kth,'rrtmg:o2vmr')
@@ -448,7 +448,7 @@ module mod_rrtmg_driver
                              reicmcl,relqmcl,taucmcl,ssacmcl,       &
                              asmcmcl,fsfcmcl)
         call rrtmg_sw(npr,kth,icld,iaer,lradfor,ldirect,play,plev,  &
-                      tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,   &
+                      tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,    &
                       n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,    &
                       adjes,-1,solcon,isolvar,inflgsw,iceflgsw,     &
                       liqflgsw,cldfmcl,taucmcl,ssacmcl,asmcmcl,     &
@@ -460,7 +460,7 @@ module mod_rrtmg_driver
       else
         call rrtmg_sw_nomcica(npr,kth,icld,iaer,lradfor,ldirect,play,   &
                               plev,tlay,tlev,tsfc,h2ovmr,o3vmr,         &
-                              co2vmrk,ch4vmr,n2ovmr,o2vmr,asdir,        &
+                              co2vmr,ch4vmr,n2ovmr,o2vmr,asdir,         &
                               asdif,aldir,aldif,czen,adjes,-1,          &
                               solcon,isolvar,inflgsw,iceflgsw,liqflgsw, &
                               cldf,tauc,ssac,asmc,fsfc,ciwp,clwp,       &
@@ -483,7 +483,7 @@ module mod_rrtmg_driver
                            cldfmcl_lw,ciwpmcl_lw,clwpmcl_lw,     &
                            reicmcl,relqmcl,taucmcl_lw)
       call rrtmg_lw(npr,kth,icld,idrv,lradfor,ldirect,play,plev,tlay,tlev, &
-                    tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,         &
+                    tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,          &
                     cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,          &
                     inflglw,iceflglw,liqflglw,cldfmcl_lw,                  &
                     taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,              &
@@ -492,7 +492,7 @@ module mod_rrtmg_driver
                     duflx_dt,duflxc_dt)
     else
       call rrtmg_lw_nomcica(npr,kth,icld,idrv,lradfor,ldirect,play,plev, &
-                            tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,  &
+                            tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,   &
                             n2ovmr,o2vmr,cfc11vmr,cfc12vmr,cfc22vmr,     &
                             ccl4vmr,emis_surf,inflglw,iceflglw,liqflglw, &
                             cldf,tauc,ciwp,clwp,rei,rel,tauaer_lw,lwuflx,&
@@ -914,8 +914,7 @@ module mod_rrtmg_driver
     !
 #ifdef RCEMIP
     do n = 1, npr
-      co2vmr(n) = ghgval(igh_co2,iyear,imonth,0.0_rk8)
-      co2mmr(n) = co2vmr(n)*(amco2/amd)
+      co20(n) = ghgval(igh_co2,iyear,imonth,0.0_rk8)*(amco2/amd)
       ch40(n) = ghgval(igh_ch4,iyear,imonth,0.0_rk8)*(amch4/amd)
       n2o0(n) = ghgval(igh_n2o,iyear,imonth,0.0_rk8)*(amn2o/amd)
       cfc110(n) = ghgval(igh_cfc11,iyear,imonth,0.0_rk8)*(amcfc11/amd)
@@ -923,8 +922,7 @@ module mod_rrtmg_driver
     end do
 #else
     do n = 1, npr
-      co2vmr(n) = ghgval(igh_co2,iyear,imonth,dlat(n))
-      co2mmr(n) = co2vmr(n)*(amco2/amd)
+      co20(n) = ghgval(igh_co2,iyear,imonth,dlat(n))*(amco2/amd)
       ch40(n) = ghgval(igh_ch4,iyear,imonth,dlat(n))*(amch4/amd)
       n2o0(n) = ghgval(igh_n2o,iyear,imonth,dlat(n))*(amn2o/amd)
       cfc110(n) = ghgval(igh_cfc11,iyear,imonth,dlat(n))*(amcfc11/amd)
@@ -932,14 +930,14 @@ module mod_rrtmg_driver
     end do
 #endif
 
+    call trcmix(1,npr,dlat,xptrop,play,co20,n2o0,ch40,cfc110,cfc120, &
+                co2mmr,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
+
     do k = 1, kth
       do n = 1, npr
-        co2vmrk(n,k) = co2vmr(n)
+        co2vmr(n,k) = co2mmr(n,k)*(amd/amco2)
       end do
     end do
-
-    call trcmix(1,npr,dlat,xptrop,play,n2o0,ch40,cfc110,cfc120, &
-                n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
     do k = 1, kth
       do n = 1, npr

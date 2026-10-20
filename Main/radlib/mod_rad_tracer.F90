@@ -51,11 +51,13 @@ module mod_rad_tracer
   !
   ! This is now inline in CCM, and is used here by RRTM
   !
-  pure subroutine trcmix(n1,n2,dlat,ptrop,pmid,n2o0,ch40,cfc110,cfc120, &
-                         n2o,ch4,cfc11,cfc12)
+  pure subroutine trcmix(n1,n2,dlat,ptrop,pmid, &
+                         co20,n2o0,ch40,cfc110,cfc120, &
+                         co2,n2o,ch4,cfc11,cfc12)
     implicit none
     !
     ! dlat   - latitude in degrees
+    ! xco2   - pressure scale height for co2 (zero, constant well mixed)
     ! xn2o   - pressure scale height for n2o
     ! xch4   - pressure scale height for ch4
     ! xcfc11 - pressure scale height for cfc11
@@ -66,15 +68,16 @@ module mod_rad_tracer
     integer(ik4), intent(in) :: n1, n2
     real(rk8), dimension(n1:n2), intent(in) :: dlat, ptrop
     real(rk8), dimension(n1:n2,kz), intent(in) :: pmid
-    real(rk8), dimension(n1:n2), intent(in) :: n2o0, ch40, cfc110, cfc120
-    real(rk8), dimension(n1:n2,kz), intent(out) :: cfc11, cfc12, ch4, n2o
+    real(rk8), dimension(n1:n2), intent(in) :: co20, n2o0, ch40, cfc110, cfc120
+    real(rk8), dimension(n1:n2,kz), intent(out) :: co2, cfc11, cfc12, ch4, n2o
 #ifndef RCEMIP
     real(rk8) :: alat
 #endif
-    real(rk8) :: pratio, xcfc11, xcfc12, xch4, xn2o
+    real(rk8) :: pratio, xcfc11, xcfc12, xch4, xn2o, xco2
     integer(ik4) :: n, k
 
 #ifdef RCEMIP
+    xco2 = 0.0_rk8
     xn2o = 0.3478_rk8
     xch4 = 0.2353_rk8
     xcfc11 = 0.7273_rk8
@@ -85,11 +88,13 @@ module mod_rad_tracer
 #ifndef RCEMIP
         alat = abs(dlat(n))
         if ( alat <= 45.0_rk8 ) then
+          xco2 = 0.0_rk8
           xn2o = 0.3478_rk8 + 0.00116_rk8*alat
           xch4 = 0.2353_rk8
           xcfc11 = 0.7273_rk8 + 0.00606_rk8*alat
           xcfc12 = 0.4000_rk8 + 0.00222_rk8*alat
         else
+          xco2 = 0.0_rk8
           xn2o = 0.4000_rk8 + 0.013333_rk8*(alat-45.0_rk8)
           xch4 = 0.2353_rk8 + 0.0225489_rk8*(alat-45.0_rk8)
           xcfc11 = 1.00_rk8 + 0.013333_rk8*(alat-45.0_rk8)
@@ -98,12 +103,14 @@ module mod_rad_tracer
 #endif
         !  set stratospheric scale height factor for gases
         if ( pmid(n,k) >= ptrop(n) ) then
+          co2(n,k) = co20(n)
           ch4(n,k) = ch40(n)
           n2o(n,k) = n2o0(n)
           cfc11(n,k) = cfc110(n)
           cfc12(n,k) = cfc120(n)
         else
           pratio = pmid(n,k)/ptrop(n)
+          co2(n,k) = co20(n)*(pratio**xco2)
           ch4(n,k) = ch40(n)*(pratio**xch4)
           n2o(n,k) = n2o0(n)*(pratio**xn2o)
           cfc11(n,k) = cfc110(n)*(pratio**xcfc11)

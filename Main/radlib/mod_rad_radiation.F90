@@ -5017,7 +5017,7 @@ module mod_rad_radiation
 #ifndef RCEMIP
     real(rk8) :: alat
 #endif
-    real(rk8) :: pratio, xcfc11, xcfc12, xch4, xn2o, betafac
+    real(rk8) :: pratio, xco2, xcfc11, xcfc12, xch4, xn2o, betafac
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radctl'
@@ -5121,6 +5121,7 @@ module mod_rad_radiation
       ! Specify trace gas mixing ratios
       !
 #ifdef RCEMIP
+      xco2 = 0.0_rk8
       xn2o = 0.3478_rk8
       xch4 = 0.2353_rk8
       xcfc11 = 0.7273_rk8
@@ -5130,11 +5131,13 @@ module mod_rad_radiation
 #ifndef RCEMIP
         alat = abs(rt%dlat(n))
         if ( alat <= 45.0_rk8 ) then
+          xco2 = 0.0_rk8
           xn2o = 0.3478_rk8 + 0.00116_rk8*alat
           xch4 = 0.2353_rk8
           xcfc11 = 0.7273_rk8 + 0.00606_rk8*alat
           xcfc12 = 0.4000_rk8 + 0.00222_rk8*alat
         else
+          xco2 = 0.0_rk8
           xn2o = 0.4000_rk8 + 0.013333_rk8*(alat-45.0_rk8)
           xch4 = 0.2353_rk8 + 0.0225489_rk8*(alat-45.0_rk8)
           xcfc11 = 1.00_rk8 + 0.013333_rk8*(alat-45.0_rk8)
@@ -5145,6 +5148,7 @@ module mod_rad_radiation
           !  set stratospheric scale height factor for gases
           if ( rt%pmid(k,n) < rt%xptrop(n) ) then
             pratio = rt%pmid(k,n)/rt%xptrop(n)
+            co2(k,n) = co2(k,n)*(pratio**xco2)
             ch4(k,n) = ch4(k,n)*(pratio**xch4)
             n2o(k,n) = n2o(k,n)*(pratio**xn2o)
             cfc11(k,n) = cfc11(k,n)*(pratio**xcfc11)
