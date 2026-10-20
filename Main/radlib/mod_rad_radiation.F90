@@ -1200,40 +1200,47 @@ module mod_rad_radiation
   !   imonth   - Month 1-12
   !
   ! Output
-  !   co2vmr   - Carbon dioxide volume mixing ratio
-  !   co2mmr   - Carbon dioxide mass mixing ratio
-  !   ch4mmr   - Methane mass mixing ratio
-  !   n2ommr   - nitrous oxide mass mixing ratio
-  !   cfc11mmr - CFC11 mass mixing ratio
-  !   cfc12mmr - CFC11 mass mixing ratio
+  !
+  !   ALL PROFILES FOR NOW HAVE SAME VALUE EVERY LEVEL (Step for CMIP7)
+  !
+  !   co2      - Carbon dioxide mass mixing ratio profile
+  !   ch4      - Methane mass mixing ratio profile
+  !   n2o      - nitrous oxide mass mixing ratio profile
+  !   cfc11    - CFC11 mass mixing ratio profile
+  !   cfc12    - CFC11 mass mixing ratio profile
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radini(n1,n2,iyear,imonth,lat, &
-                    co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr)
+  subroutine radini(n1,n2,iyear,imonth,lat,co2,ch4,n2o,cfc11,cfc12)
     implicit none
     integer(ik4), intent(in) :: n1, n2, iyear, imonth
     real(rk8), dimension(n1:n2), intent(in) :: lat
-    real(rk8), dimension(n1:n2), intent(out) :: co2vmr, co2mmr
-    real(rk8), dimension(n1:n2), intent(out) :: ch4mmr, n2ommr
-    real(rk8), dimension(n1:n2), intent(out) :: cfc11mmr, cfc12mmr
-    integer(ik4) :: n
+    real(rk8), dimension(kz,n1:n2), intent(out) :: co2, ch4, n2o
+    real(rk8), dimension(kz,n1:n2), intent(out) :: cfc11, cfc12
+    real(rk8) :: val(5)
+    integer(ik4) :: n, k
     !
     ! Set general radiation consts; convert to cgs units where
     ! appropriate.
     !
     ! Cannot be done in parallel because it requires I/O from file
     !
-    !$acc update host(co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr,lat)
+    !$acc update host(co2,ch4,n2o,cfc11,cfc12,lat)
     do n = n1, n2
-      co2vmr(n) = ghgval(igh_co2,iyear,imonth,lat(n))
-      co2mmr(n) = co2vmr(n)*(amco2/amd)
-      ch4mmr(n) = ghgval(igh_ch4,iyear,imonth,lat(n))*(amch4/amd)
-      n2ommr(n) = ghgval(igh_n2o,iyear,imonth,lat(n))*(amn2o/amd)
-      cfc11mmr(n) = ghgval(igh_cfc11,iyear,imonth,lat(n))*(amcfc11/amd)
-      cfc12mmr(n) = ghgval(igh_cfc12,iyear,imonth,lat(n))*(amcfc12/amd)
+      val(1) = ghgval(igh_co2,iyear,imonth,lat(n))*(amco2/amd)
+      val(2) = ghgval(igh_ch4,iyear,imonth,lat(n))*(amch4/amd)
+      val(3) = ghgval(igh_n2o,iyear,imonth,lat(n))*(amn2o/amd)
+      val(4) = ghgval(igh_cfc11,iyear,imonth,lat(n))*(amcfc11/amd)
+      val(5) = ghgval(igh_cfc12,iyear,imonth,lat(n))*(amcfc12/amd)
+      do k = 1, kz
+        co2(k,n) = val(1)
+        ch4(k,n) = val(2)
+        n2o(k,n) = val(3)
+        cfc11(k,n) = val(4)
+        cfc12(k,n) = val(5)
+      end do
     end do
-    !$acc update device(co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr)
+    !$acc update device(co2,ch4,n2o,cfc11,cfc12)
     !
     ! Set execution flag for aerosol and their interaction with radiation
     !
@@ -2124,6 +2131,7 @@ module mod_rad_radiation
   !   w       - H2o prs wghted path
   !   h2otr   - H2o trnsmssn fnct for o3 overlap
   !   plco2   - Co2 prs wghted path length
+  !   co2pth  - Co2 path (volume mixing ratio times pressure)
   !   plh2o   - H2o prs wfhted path length
   !   co2t    - Tmp and prs wghted path length
   !   tint    - Interface temperatures
@@ -2159,7 +2167,7 @@ module mod_rad_radiation
   ! Total emissivity
   !
   subroutine radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
-                    co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
+                    co2pth,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
                     plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
                     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
                     uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
@@ -2169,7 +2177,7 @@ module mod_rad_radiation
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: pnm, piln
     real(rk8), dimension(kz,n1:n2), intent(in) :: pbr, pmln
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: co2em, co2eml
-    real(rk8), dimension(n1:n2), intent(in) :: co2vmr
+    real(rk8), dimension(kzp1,n1:n2), intent(in) :: co2pth
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: tplnka
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: s2c, s2t, wh2op
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: h2otr, co2t
@@ -2205,7 +2213,7 @@ module mod_rad_radiation
     !            transmissvty in the 500-650 cm-1 region (tr2)
     ! uc1      - H2o continuum pathlength in 500-800 cm-1
     ! to3h2o   - H2o trnsmsn for overlap with o3
-    ! pi       - For co2 absorptivity computation
+    ! pi       - Co2 path between the levels (vmr times pressure)
     ! sqti     - Used to store sqrt of mean temperature
     ! et       - Co2 hot band factor
     ! et2      - Co2 hot band factor squared
@@ -2529,8 +2537,8 @@ module mod_rad_radiation
             t1co2 = 1.0_rk8/(1.0_rk8+(245.18_rk8*omet*sqwp*rsqti))
             oneme = 1.0_rk8 - et2
             alphat = oneme**3*rsqti
-            pi = abs(dpnm)
-            wco2 = 2.5221_rk8*co2vmr(n)*pi*regravgts
+            pi = abs(co2pth(k1,n)-co2pth(k2,n))
+            wco2 = 2.5221_rk8*pi*regravgts
             u7 = 4.9411e4_rk8*alphat*et2*wco2
             u8 = 3.9744e4_rk8*alphat*et4*wco2
             u9 = 1.0447e5_rk8*alphat*et4*et2*wco2
@@ -2804,8 +2812,8 @@ module mod_rad_radiation
           t1co2 = 1.0_rk8/(1.0_rk8+(245.18_rk8*omet*sqwp*rsqti))
           oneme = 1.0_rk8 - et2
           alphat = oneme**3*rsqti
-          pi = abs(dpnm)*winpl(kn)
-          wco2 = 2.5221_rk8*co2vmr(n)*pi*regravgts
+          pi = abs(co2pth(k2+1,n)-co2pth(k2,n))*winpl(kn)
+          wco2 = 2.5221_rk8*pi*regravgts
           u7 = 4.9411e4_rk8*alphat*et2*wco2
           u8 = 3.9744e4_rk8*alphat*et4*wco2
           u9 = 1.0447e5_rk8*alphat*et4*et2*wco2
@@ -2908,6 +2916,7 @@ module mod_rad_radiation
   !   plh2o   - H2o prs wghted path length
   !   pnm     - Model interface pressure (dynes/cm*2)
   !   plco2   - Prs wghted path of co2
+  !   co2pth  - Path of co2 (volume mixing ratio times pressure)
   !   tint    - Model interface temperatures
   !   tint4   - Tint to the 4th power
   !   tlayr   - K-1 model layer temperature
@@ -2939,7 +2948,7 @@ module mod_rad_radiation
   !   emplnk  - emissivity Planck factor
   !   emstrc  - total trace gas emissivity
   !
-  subroutine radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2vmr,plos,  &
+  subroutine radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2pth,plos,  &
                     plol,plh2o,plco2,ucfc11,ucfc12,un2o0,un2o1,bn2o0,bn2o1,&
                     uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223,   &
                     uptype,wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,h2otr,   &
@@ -2949,7 +2958,8 @@ module mod_rad_radiation
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: pnm
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: tint, tint4
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: tlayr, tlayr4
-    real(rk8), dimension(n1:n2), intent(in) :: tplnke, co2vmr
+    real(rk8), dimension(n1:n2), intent(in) :: tplnke
+    real(rk8), dimension(kzp1,n1:n2), intent(in) :: co2pth
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: plol, plos
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: plco2, plh2o
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: ucfc11, ucfc12
@@ -3266,7 +3276,7 @@ module mod_rad_radiation
         t1co2 = 1.0_rk8/(1.0_rk8+245.18_rk8*omet*sqwp*rsqti)
         oneme = 1.0_rk8 - et2
         alphat = oneme**3*rsqti
-        wco2 = 2.5221_rk8*co2vmr(n)*pnm(k,n)*regravgts
+        wco2 = 2.5221_rk8*co2pth(k,n)*regravgts
         u7 = 4.9411e4_rk8*alphat*et2*wco2
         u8 = 3.9744e4_rk8*alphat*et4*wco2
         u9 = 1.0447e5_rk8*alphat*et4*et2*wco2
@@ -3343,21 +3353,21 @@ module mod_rad_radiation
   !
   ! RegCM - The Sun/Earth geometry is moved elsewhere
   !
-  subroutine radinp(n1,n2,pmid,pint,h2ommr,co2vmr,cld,o3vmr, &
-                    pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
+  subroutine radinp(n1,n2,pmid,pint,h2ommr,co2,cld,o3vmr, &
+                    pbr,pnm,plco2,co2pth,plh2o,tclrsf,o3mmr)
     implicit none
     integer(ik4), intent(in) :: n1, n2
-    real(rk8), dimension(n1:n2), intent(in) :: co2vmr
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: pint, cld
-    real(rk8), dimension(kz,n1:n2), intent(in) :: pmid, h2ommr, o3vmr
+    real(rk8), dimension(kz,n1:n2), intent(in) :: pmid, h2ommr, o3vmr, co2
     real(rk8), dimension(kz,n1:n2), intent(out) :: pbr, o3mmr
-    real(rk8), dimension(kzp1,n1:n2), intent(out) :: plco2, plh2o
+    real(rk8), dimension(kzp1,n1:n2), intent(out) :: plco2, co2pth, plh2o
     real(rk8), dimension(kzp1,n1:n2), intent(out) :: pnm, tclrsf
     !
     ! vmmr - Ozone volume mixing ratio
+    ! rmco2 - CO2 mass to volume mixing ratio
     !
     real(rk8), parameter :: vmmr = amo3/amd
-    real(rk8), parameter :: cpwpl = 0.5_rk8*(amco2/amd)/(egravgts*sslp)
+    real(rk8), parameter :: rmco2 = amd/amco2
     integer(ik4) :: n, k
     !
     !------------------------------Arguments--------------------------------
@@ -3367,6 +3377,7 @@ module mod_rad_radiation
     ! pmid    - Pressure at model mid-levels (pascals)
     ! pint    - Pressure at model interfaces (pascals)
     ! h2ommr  - H2o mass mixing ratio
+    ! co2     - Co2 mass mixing ratio
     ! cld     - Fractional cloud cover
     ! o3vmr   - ozone volume mixing ratio
     !
@@ -3375,6 +3386,7 @@ module mod_rad_radiation
     ! pbr     - Pressure at interfaces (dynes/cm*2)
     ! pnm     - Pressure at mid-levels (dynes/cm*2)
     ! plco2   - Vert. pth lngth of co2 (prs-weighted)
+    ! co2pth  - Vert. pth of co2 (volume mixing ratio times pressure)
     ! plh2o   - Vert. pth lngth h2o vap.(prs-weighted)
     ! o3mmr   - Ozone mass mixing ratio
     ! tclrsf  - Product of clr-sky fractions from top of atmosphere to level.
@@ -3391,12 +3403,16 @@ module mod_rad_radiation
       ! Compute path quantities used in the longwave radiation:
       !
       plh2o(1,n) = rgsslp*h2ommr(1,n)*pnm(1,n)*pnm(1,n)
-      plco2(1,n) = co2vmr(n)*cpwpl*pnm(1,n)*pnm(1,n)
+      plco2(1,n) = rgsslp*co2(1,n)*pnm(1,n)*pnm(1,n)
+      co2pth(1,n) = rmco2*co2(1,n)*pnm(1,n)
       tclrsf(1,n) = 1.0_rk8
       do k = 1, kz
         plh2o(k+1,n) = plh2o(k,n) + rgsslp*(pnm(k+1,n)**2 - &
                        pnm(k,n)**2) * h2ommr(k,n)
-        plco2(k+1,n) = co2vmr(n)*cpwpl*pnm(k+1,n)**2
+        plco2(k+1,n) = plco2(k,n) + rgsslp*(pnm(k+1,n)**2 - &
+                       pnm(k,n)**2) * co2(k,n)
+        co2pth(k+1,n) = co2pth(k,n) + rmco2*(pnm(k+1,n) - &
+                        pnm(k,n)) * co2(k,n)
         tclrsf(k+1,n) = tclrsf(k,n)*(1.0_rk8-cld(k+1,n))
       end do
       !
@@ -3426,6 +3442,7 @@ module mod_rad_radiation
   ! cfc12  - CFC12 mass mixing ratio
   ! n2o    - N2O mass mixing ratio
   ! ch4    - CH4 mass mixing ratio
+  ! co2    - CO2 mass mixing ratio
   !
   ! Output arguments
   !
@@ -3447,15 +3464,14 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2mmr, &
+  subroutine trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2, &
                     ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,    &
                     uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,    &
                     uptype)
     implicit none
     integer(ik4), intent(in) :: n1, n2
-    real(rk8), dimension(n1:n2), intent(in) :: co2mmr
     real(rk8), dimension(kz,n1:n2), intent(in) :: tnm, h2ommr
-    real(rk8), dimension(kz,n1:n2), intent(in) :: n2o, ch4
+    real(rk8), dimension(kz,n1:n2), intent(in) :: n2o, ch4, co2
     real(rk8), dimension(kz,n1:n2), intent(in) :: cfc11, cfc12
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: pnm
     real(rk8), dimension(kzp1,n1:n2), intent(out) :: bch4, uch4
@@ -3488,7 +3504,7 @@ module mod_rad_radiation
       un2o0(1,n) = diff*1.02346e5_rk8*n2o(1,n)*pnm(1,n)*regravgts/sqrt(tnm(1,n))
       un2o1(1,n) = diff*2.01909_rk8*un2o0(1,n)*exp(-847.36_rk8/tnm(1,n))
       uch4(1,n) = diff*8.60957e4_rk8*ch4(1,n)*pnm(1,n)*regravgts/sqrt(tnm(1,n))
-      co2fac = diff*co2mmr(n)*pnm(1,n)*regravgts
+      co2fac = diff*co2(1,n)*pnm(1,n)*regravgts
       alpha1 = (1.0_rk8-exp(-1540.0_rk8/tnm(1,n)))**3/sqrt(tnm(1,n))
       alpha2 = (1.0_rk8-exp(-1360.0_rk8/tnm(1,n)))**3/sqrt(tnm(1,n))
       uco211(1,n) = 3.42217e3_rk8*co2fac*alpha1*exp(-1849.7_rk8/tnm(1,n))
@@ -3518,17 +3534,17 @@ module mod_rad_radiation
                      rsqrt*exp(-847.36_rk8/tnm(k,n))*dpnm
         uch4(k+1,n) = uch4(k,n) + diff*8.60957e4_rk8*ch4(k,n)*rsqrt*dpnm
         uco211(k+1,n) = uco211(k,n) + 1.15_rk8*3.42217e3_rk8*alpha1 * &
-                      co2mmr(n)*exp(-1849.7_rk8/tnm(k,n))*dpnm
+                      co2(k,n)*exp(-1849.7_rk8/tnm(k,n))*dpnm
         uco212(k+1,n) = uco212(k,n) + 1.15_rk8*6.02454e3_rk8*alpha1 * &
-                      co2mmr(n)*exp(-2782.1_rk8/tnm(k,n))*dpnm
+                      co2(k,n)*exp(-2782.1_rk8/tnm(k,n))*dpnm
         uco213(k+1,n) = uco213(k,n) + 1.15_rk8*5.53143e3_rk8*alpha1 * &
-                      co2mmr(n)*exp(-3723.2_rk8/tnm(k,n))*dpnm
+                      co2(k,n)*exp(-3723.2_rk8/tnm(k,n))*dpnm
         uco221(k+1,n) = uco221(k,n) + 1.15_rk8*3.88984e3_rk8*alpha2 * &
-                      co2mmr(n)*exp(-1997.6_rk8/tnm(k,n))*dpnm
+                      co2(k,n)*exp(-1997.6_rk8/tnm(k,n))*dpnm
         uco222(k+1,n) = uco222(k,n) + 1.15_rk8*3.67108e3_rk8*alpha2 * &
-                      co2mmr(n)*exp(-3843.8_rk8/tnm(k,n))*dpnm
+                      co2(k,n)*exp(-3843.8_rk8/tnm(k,n))*dpnm
         uco223(k+1,n) = uco223(k,n) + 1.15_rk8*6.50642e3_rk8*alpha2 * &
-                      co2mmr(n)*exp(-2989.7_rk8/tnm(k,n))*dpnm
+                      co2(k,n)*exp(-2989.7_rk8/tnm(k,n))*dpnm
         bn2o0(k+1,n) = bn2o0(k,n) + diff*19.399_rk8*pbar*rt * &
                      1.02346e5_rk8*n2o(k,n)*dpnm
         bn2o1(k+1,n) = bn2o1(k,n) + diff*19.399_rk8*pbar*rt * &
@@ -3575,6 +3591,7 @@ module mod_rad_radiation
   !
   ! pnm     - Interface pressure (dynes/cm2)
   ! h2ommr  - Specific humidity (h2o mass mix ratio)
+  ! co2     - Co2 mass mixing ratio
   ! o3mmr   - Ozone mass mixing ratio
   ! cld     - Fractional cloud cover
   ! clwp    - Layer liquid water path
@@ -3601,7 +3618,7 @@ module mod_rad_radiation
   ! fsnrtc   - Clear sky near-IR flux absorbed at toa
   ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
   !
-  subroutine radcsw(n1,n2,eccf,pnm,h2ommr,co2mmr,o3mmr,aermmb,cld,clwp, &
+  subroutine radcsw(n1,n2,eccf,pnm,h2ommr,co2,o3mmr,aermmb,cld,clwp, &
                     rel,rei,fice,czen,czengt0,adirsw,adifsw,adirlw,     &
                     adiflw,asw,alw,solin,solout,qrs,fsns,fsnt,fsds,     &
                     fsnsc,fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,    &
@@ -3612,7 +3629,7 @@ module mod_rad_radiation
     real(rk8), intent(in) :: eccf
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: pnm
     real(rk8), dimension(kz,n1:n2), intent(in) :: o3mmr, h2ommr, aermmb
-    real(rk8), dimension(n1:n2), intent(in) :: co2mmr
+    real(rk8), dimension(kz,n1:n2), intent(in) :: co2
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: cld
     real(rk8), dimension(kz,n1:n2), intent(in) :: clwp, fice, rel, rei
     real(rk8), dimension(n1:n2), intent(in) :: czen
@@ -3842,10 +3859,10 @@ module mod_rad_radiation
         end do
         !
         ! Compute optical paths:
-        ! CO2, use old scheme(as constant)
+        ! CO2, old scheme path scaling with the square root of the
+        ! mass mixing ratio (top layer value above the model top)
         !
-        ! co2mmr = co2vmr*(mmwco2/mmwair)
-        sqrco2 = sqrt(co2mmr(n))
+        sqrco2 = sqrt(co2(1,n))
         xptop = pflx(1,n)
         ptho2 = o2mmr*xptop*regravgts
         ptho3 = o3mmr(1,n)*xptop*regravgts
@@ -3863,6 +3880,7 @@ module mod_rad_radiation
           path = pdel*regravgts
           ptho2 = o2mmr*path
           ptho3 = o3mmr(k,n)*path
+          sqrco2 = sqrt(co2(k,n))
           pthco2 = sqrco2*path
           h2ostr = sqrt(1.0_rk8/h2ommr(k,n))
           pthh2o = (pflx(k+1,n)**2-pflx(k,n)**2) * &
@@ -4347,7 +4365,9 @@ module mod_rad_radiation
   ! pmln    - Ln(pmid)
   ! piln    - Ln(pint)
   ! plco2   - Path length co2
+  ! co2pth  - Path of co2 (volume mixing ratio times pressure)
   ! plh2o   - Path length h2o
+  ! co2     - carbon dioxide mass mixing ratio
   ! n2o     - nitrous oxide mass mixing ratio
   ! ch4     - methane mass mixing ratio
   ! cfc11   - cfc11 mass mixing ratio
@@ -4372,22 +4392,22 @@ module mod_rad_radiation
   !  cs is clearsky
   !  Aerosol longwave added
   !
-  subroutine radclw(n1,n2,labsem,ts,emiss,tnm,h2ommr,co2vmr,co2mmr,  &
+  subroutine radclw(n1,n2,labsem,ts,emiss,tnm,h2ommr,co2,  &
                     o3vmr,pbr,pnm,pmln,piln,n2o,ch4,cfc11,cfc12,cld, &
-                    plco2,plh2o,tclrsf,flns,flnt,lwout,lwin,flnsc,   &
+                    plco2,co2pth,plh2o,tclrsf,flns,flnt,lwout,lwin,flnsc,   &
                     flntc,flwds,fslwdcs,aerlwfo,aerlwfos,absgasnxt,  &
                     absgastot,emsgastot,qrl)
     implicit none
     integer(ik4), intent(in) :: n1, n2
     logical, intent(in) :: labsem
     real(rk8), dimension(n1:n2), intent(in) :: ts, emiss
-    real(rk8), dimension(n1:n2), intent(in) :: co2vmr, co2mmr
     real(rk8), dimension(kz,n1:n2), intent(in) :: h2ommr, tnm
     real(rk8), dimension(kz,n1:n2), intent(in) :: pbr, pmln, o3vmr
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: piln, pnm
     real(rk8), dimension(kz,n1:n2), intent(in) :: cfc11, cfc12
-    real(rk8), dimension(kz,n1:n2), intent(in) :: ch4, n2o
+    real(rk8), dimension(kz,n1:n2), intent(in) :: ch4, n2o, co2
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: cld, plco2, plh2o
+    real(rk8), dimension(kzp1,n1:n2), intent(in) :: co2pth
     real(rk8), dimension(kzp1,n1:n2), intent(inout) :: tclrsf
     real(rk8), dimension(n1:n2), intent(out) :: flns, flnsc, flnt
     real(rk8), dimension(n1:n2), intent(out) :: flntc, flwds, fslwdcs
@@ -4520,7 +4540,7 @@ module mod_rad_radiation
       !
       ! Compute trace gas path lengths
       !
-      call trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2mmr, &
+      call trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2, &
                   ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,    &
                   uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,    &
                   uptype)
@@ -4531,7 +4551,7 @@ module mod_rad_radiation
       !
       ! Compute total emissivity:
       !
-      call radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2vmr,plos,&
+      call radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2pth,plos,&
                   plol,plh2o,plco2,ucfc11,ucfc12,un2o0,un2o1,bn2o0,    &
                   bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,  &
                   uco223,uptype,wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,&
@@ -4540,7 +4560,7 @@ module mod_rad_radiation
       ! Compute total absorptivity:
       !
       call radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
-                  co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
+                  co2pth,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
                   plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
                   bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
                   uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
@@ -4972,14 +4992,12 @@ module mod_rad_radiation
     integer(ik4) :: k, batch_first, batch_last
     integer(ik4), parameter :: radclw_batch_columns = 16384
     ! Mass mixing ratios
-    ! cfc1immr  - cfc11 mass mixing ratio
-    ! cfc12mmr  - cfc12 mass mixing ratio
-    ! ch4mmr    - methane mass mixing ratio
-    ! n2ommr    - nitrous oxide mass mixing ratio
-    real(rk8), dimension(rt%n1:rt%n2) :: cfc11mmr, cfc12mmr
-    real(rk8), dimension(rt%n1:rt%n2) :: ch4mmr, n2ommr
-    real(rk8), dimension(rt%n1:rt%n2) :: co2mmr, co2vmr
-    real(rk8), dimension(kz,rt%n1:rt%n2) :: cfc11, cfc12, ch4, n2o
+    ! cfc11 - cfc11 mass mixing ratio profile
+    ! cfc12 - cfc12 mass mixing ratio profile
+    ! ch4   - methane mass mixing ratio profile
+    ! n2o   - nitrous oxide mass mixing ratio profile
+    ! co2   - carbon dioxide mass mixing ratio profile
+    real(rk8), dimension(kz,rt%n1:rt%n2) :: cfc11, cfc12, ch4, n2o, co2
     ! Background aerosol mass mixing ratio
     real(rk8), dimension(kz,rt%n1:rt%n2) :: aermmb
     ! o3mmr    - Ozone mass mixing ratio
@@ -4989,9 +5007,10 @@ module mod_rad_radiation
     real(rk8), dimension(kz,rt%n1:rt%n2) :: pbr
     real(rk8), dimension(kzp1,rt%n1:rt%n2) :: pnm
     ! plco2    - Prs weighted CO2 path
+    ! co2pth   - CO2 path (volume mixing ratio times pressure)
     ! plh2o    - Prs weighted H2O path
     ! tclrsf   - Total clear sky fraction, level to space
-    real(rk8), dimension(kzp1,rt%n1:rt%n2) :: plco2, plh2o, tclrsf
+    real(rk8), dimension(kzp1,rt%n1:rt%n2) :: plco2, co2pth, plh2o, tclrsf
     ! fslwdcs  - Downward clear sky long wave flux at surface
     real(rk8), dimension(rt%n1:rt%n2) :: fslwdcs
 
@@ -5010,12 +5029,12 @@ module mod_rad_radiation
     ! radiation parameters
     !
     call radini(rt%n1,rt%n2,iyear,imonth,rt%dlat, &
-                co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr)
+                co2,ch4,n2o,cfc11,cfc12)
     !
     ! Compute on interface levels and put in vertical profiles
     !
-    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,co2vmr,rt%cld, &
-                rt%o3vmr,pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
+    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,co2,rt%cld, &
+                rt%o3vmr,pbr,pnm,plco2,co2pth,plh2o,tclrsf,o3mmr)
     !
     ! Compute Total Cloud fraction - Maximum-Random Overlap (MRO) scheme.
     !
@@ -5038,7 +5057,7 @@ module mod_rad_radiation
 
       call aeroppt(rt%rh,rt%pint,rt%n1,rt%n2)
 
-      call radcsw(rt%n1,rt%n2,rt%eccf,pnm,rt%q,co2mmr,o3mmr,aermmb,   &
+      call radcsw(rt%n1,rt%n2,rt%eccf,pnm,rt%q,co2,o3mmr,aermmb,      &
                   rt%cld,rt%clwp,rt%rel,rt%rei,rt%fice,rt%czen,       &
                   rt%czengt0,rt%adirsw,rt%adifsw,rt%adirlw,rt%adiflw, &
                   rt%asw,rt%alw,rt%solin,rt%solout,rt%qrs,rt%fsns,    &
@@ -5124,17 +5143,12 @@ module mod_rad_radiation
 #endif
         do k = 1, kz
           !  set stratospheric scale height factor for gases
-          if ( rt%pmid(k,n) >= rt%xptrop(n) ) then
-            ch4(k,n) = ch4mmr(n)
-            n2o(k,n) = n2ommr(n)
-            cfc11(k,n) = cfc11mmr(n)
-            cfc12(k,n) = cfc12mmr(n)
-          else
+          if ( rt%pmid(k,n) < rt%xptrop(n) ) then
             pratio = rt%pmid(k,n)/rt%xptrop(n)
-            ch4(k,n) = ch4mmr(n)*(pratio**xch4)
-            n2o(k,n) = n2ommr(n)*(pratio**xn2o)
-            cfc11(k,n) = cfc11mmr(n)*(pratio**xcfc11)
-            cfc12(k,n) = cfc12mmr(n)*(pratio**xcfc12)
+            ch4(k,n) = ch4(k,n)*(pratio**xch4)
+            n2o(k,n) = n2o(k,n)*(pratio**xn2o)
+            cfc11(k,n) = cfc11(k,n)*(pratio**xcfc11)
+            cfc12(k,n) = cfc12(k,n)*(pratio**xcfc12)
           end if
         end do
       end do
@@ -5147,8 +5161,7 @@ module mod_rad_radiation
                     rt%emiss(batch_first:batch_last), &
                     rt%t(:,batch_first:batch_last), &
                     rt%q(:,batch_first:batch_last), &
-                    co2vmr(batch_first:batch_last), &
-                    co2mmr(batch_first:batch_last), &
+                    co2(:,batch_first:batch_last), &
                     rt%o3vmr(:,batch_first:batch_last), &
                     pbr(:,batch_first:batch_last), &
                     pnm(:,batch_first:batch_last), &
@@ -5160,6 +5173,7 @@ module mod_rad_radiation
                     cfc12(:,batch_first:batch_last), &
                     rt%effcld(:,batch_first:batch_last), &
                     plco2(:,batch_first:batch_last), &
+                    co2pth(:,batch_first:batch_last), &
                     plh2o(:,batch_first:batch_last), &
                     tclrsf(:,batch_first:batch_last), &
                     rt%flns(batch_first:batch_last), &
