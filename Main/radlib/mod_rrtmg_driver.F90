@@ -930,7 +930,7 @@ module mod_rrtmg_driver
     end do
 #endif
 
-    call trcmix(1,npr,dlat,xptrop,play,co20,n2o0,ch40,cfc110,cfc120, &
+    call trcmix(1,npr,kth,dlat,xptrop,play,co20,n2o0,ch40,cfc110,cfc120, &
                 co2mmr,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
     do k = 1, kth

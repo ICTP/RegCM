@@ -51,7 +51,7 @@ module mod_rad_tracer
   !
   ! This is now inline in CCM, and is used here by RRTM
   !
-  pure subroutine trcmix(n1,n2,dlat,ptrop,pmid, &
+  pure subroutine trcmix(n1,n2,nk,dlat,ptrop,pmid, &
                          co20,n2o0,ch40,cfc110,cfc120, &
                          co2,n2o,ch4,cfc11,cfc12)
     implicit none
@@ -65,11 +65,11 @@ module mod_rad_tracer
     ! ptrop  - pressure level of tropopause
     ! pratio - pressure divided by ptrop
     !
-    integer(ik4), intent(in) :: n1, n2
+    integer(ik4), intent(in) :: n1, n2, nk
     real(rk8), dimension(n1:n2), intent(in) :: dlat, ptrop
-    real(rk8), dimension(n1:n2,kz), intent(in) :: pmid
+    real(rk8), dimension(n1:n2,nk), intent(in) :: pmid
     real(rk8), dimension(n1:n2), intent(in) :: co20, n2o0, ch40, cfc110, cfc120
-    real(rk8), dimension(n1:n2,kz), intent(out) :: co2, cfc11, cfc12, ch4, n2o
+    real(rk8), dimension(n1:n2,nk), intent(out) :: co2, cfc11, cfc12, ch4, n2o
 #ifndef RCEMIP
     real(rk8) :: alat
 #endif
@@ -83,7 +83,7 @@ module mod_rad_tracer
     xcfc11 = 0.7273_rk8
     xcfc12 = 0.4000_rk8
 #endif
-    do k = 1, kz
+    do k = 1, nk
       do concurrent ( n = n1:n2 )
 #ifndef RCEMIP
         alat = abs(dlat(n))
