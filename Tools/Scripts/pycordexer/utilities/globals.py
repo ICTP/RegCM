@@ -44,12 +44,16 @@ REPLACE_VARS = {
     'iy': 'y',
     'xlat': 'lat',
     'xlon': 'lon',
+    'xlat_bnds': 'lat_bnds',
+    'xlon_bnds': 'lon_bnds',
 }
 REPLACE_VARS_ROT = {
     'jx': 'rlon',
     'iy': 'rlat',
     'xlat': 'lat',
     'xlon': 'lon',
+    'xlat_bnds': 'lat_bnds',
+    'xlon_bnds': 'lon_bnds',
 }
 
 # These attributes will not be copied from the RegCM files into the CORDEX ones

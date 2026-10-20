@@ -295,6 +295,26 @@ class RegcmOutputFile(object):
             LOGGER.debug('Copying values for time bounds in memory')
             self._save_in_memory(timebnds, 'timebounds')
 
+        self._has_coordbounds = True
+        try:
+            LOGGER.debug('Checking for coordinate bounds%s', in_file)
+            xlat_bnds = ncf.variables['xlat_bnds']
+            xlon_bnds = ncf.variables['xlon_bnds']
+            LOGGER.debug('Coordinate bounds found!')
+        except KeyError:
+            LOGGER.debug(
+                'No coordinate bounds found (no xlat_bnds,xlon_bnds found%s)',
+                in_file
+            )
+            self._has_coordbounds = False
+            xlat_bnds = None
+            xlon_bnds = None
+
+        if self._has_coordbounds:
+            LOGGER.debug('Copying values for coordinate bounds in memory')
+            self._save_in_memory(xlat_bnds, 'xlat_bnds')
+            self._save_in_memory(xlon_bnds, 'xlon_bnds')
+
         LOGGER.debug('Reading the domain attribute%s', of_file)
         self._domain = getattr(ncf, 'experiment')
         self._product = 'output'
@@ -504,6 +524,10 @@ class RegcmOutputFile(object):
         return self._has_timebounds
 
     @property
+    def has_coordbounds(self):
+        return self._has_coordbounds
+
+    @property
     def times(self):
         raw_data = np.frombuffer(self._times_data, dtype=self._times_dtype)
         return raw_data.reshape(self._times_shape)
@@ -524,6 +548,18 @@ class RegcmOutputFile(object):
     def xlat(self):
         raw_data = np.frombuffer(self._xlat_data, dtype=self._xlat_dtype)
         return raw_data.reshape(self._xlat_shape)
+
+    @property
+    def xlat_bnds(self):
+        raw_data = np.frombuffer(self._xlat_bnds_data,
+                                 dtype=self._xlat_bnds_dtype)
+        return raw_data.reshape(self._xlat_bnds_shape)
+
+    @property
+    def xlon_bnds(self):
+        raw_data = np.frombuffer(self._xlon_bnds_data,
+                                 dtype=self._xlon_bnds_dtype)
+        return raw_data.reshape(self._xlon_bnds_shape)
 
     @property
     def xlon(self):
@@ -553,6 +589,25 @@ class RegcmOutputFile(object):
                 dtype=self._timebounds_dtype,
             )
             return raw_data.reshape(self._timebounds_shape)
+
+    @property
+    def coordbounds(self):
+        if not self.has_coordbounds:
+            raise AttributeError(
+                'Trying to access to the coordbounds of a RegCM output file '
+                'that does not have the lat_bnds,lon_bnds'
+            )
+        else:
+            raw_data1 = np.frombuffer(
+                self._xlat_bnds_data,
+                dtype=self._xlat_bnds_dtype,
+            )
+            raw_data2 = np.frombuffer(
+                self._xlon_bnds_data,
+                dtype=self._xlon_bnds_dtype,
+            )
+            return (raw_data1.reshape(self._xlat_bnds_shape),
+                    raw_data2.reshape(self._xlon_bnds_shape))
 
     @property
     def domain(self):
@@ -774,6 +829,10 @@ class CordexDataset(Dataset):
                     file_name
                 )
 
+        if regcm_file.has_coordbounds:
+            regcm_file.xlat_attributes['bounds'] = 'lat_bnds'
+            regcm_file.xlon_attributes['bounds'] = 'lon_bnds'
+
         xlat = self.create_var_from_data(
             regcm_file.replace_vars['xlat'],
             regcm_file.xlat,
@@ -788,6 +847,26 @@ class CordexDataset(Dataset):
             attributes=regcm_file.xlon_attributes,
             replace_dims=regcm_file.replace_dims
         )
+
+        if regcm_file.has_coordbounds:
+            xlat_bnds = self.create_var_from_data(
+                regcm_file.replace_vars['xlat_bnds'],
+                regcm_file.xlat_bnds,
+                regcm_file.xlat_bnds_dimensions,
+                attributes=regcm_file.xlat_bnds_attributes,
+                replace_dims=regcm_file.replace_dims
+            )
+            xlon_bnds = self.create_var_from_data(
+                regcm_file.replace_vars['xlon_bnds'],
+                regcm_file.xlon_bnds,
+                regcm_file.xlon_bnds_dimensions,
+                attributes=regcm_file.xlon_bnds_attributes,
+                replace_dims=regcm_file.replace_dims
+            )
+            LOGGER.debug(
+               'Adding Coordinate Bounds lat_bnds, lon_bnds'
+            )
+
         x = self.create_var_from_data(
             regcm_file.replace_vars['jx'],
             regcm_file.jx,
