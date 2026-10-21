@@ -96,6 +96,7 @@ module mod_micro_wsm5
           pacrc, rslopermax, rslopesmax, rsloperbmax,           &
           rslopesbmax, rsloper2max,  rslopes2max, rsloper3max,  &
           rslopes3max !, pidnc
+  !$acc declare create(pidn0r, pidn0s)
 
   public :: allocate_mod_wsm5, init_wsm5, wsm5
 
@@ -180,6 +181,7 @@ module mod_micro_wsm5
     rslopes2max = rslopesmax * rslopesmax
     rsloper3max = rsloper2max * rslopermax
     rslopes3max = rslopes2max * rslopesmax
+    !$acc update device(pidn0r, pidn0s)
 
     contains
     !

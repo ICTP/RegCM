@@ -137,6 +137,7 @@ module mod_micro_wsm7
              rsloper2max, rslopes2max, rslopeg2max, rslopeh2max,  &
              rsloper3max, rslopes3max, rslopeg3max, rslopeh3max
   ! real(rkx) , save :: pidnc
+  !$acc declare create(pidn0r, pidn0s, pidn0g, pidn0h)
 
   public :: allocate_mod_wsm7, init_wsm7, wsm7
 
@@ -266,6 +267,7 @@ module mod_micro_wsm7
     rslopes3max = rslopes2max * rslopesmax
     rslopeg3max = rslopeg2max * rslopegmax
     rslopeh3max = rslopeh2max * rslopehmax
+    !$acc update device(pidn0r, pidn0s, pidn0g, pidn0h)
 
     contains
     !

@@ -3973,7 +3973,12 @@ module mod_clm_urban
       end if
     end do
 
+#ifdef STDPAR
+    do concurrent ( f = 1:num_urbanp ) &
+        local(e_ref2m,de2mdT,qsat_ref2m,dqsat2mdT)
+#else
     do concurrent ( f = 1:num_urbanp )
+#endif
       p = filter_urbanp(f)
       c = pcolumn(p)
       g = pgridcell(p)
