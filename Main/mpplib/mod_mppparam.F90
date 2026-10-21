@@ -590,6 +590,7 @@ module mod_mppparam
   public :: cl_setup, cl_dispose
   public :: c2l_gs, c2l_ss, l2c_ss
   public :: glb_c2l_gs, glb_c2l_ss, glb_l2c_ss
+  public :: glb_l2c_ss2, glb_l2c_ss4
 
   logical, save, public :: on_device = .false.
 
@@ -1104,8 +1105,10 @@ module mod_mppparam
       ! Allocate to something should fit all
       maximum_buffer_size = jxsg*iysg
       maximum_buffer_size = max(maximum_buffer_size,jxpsg*iypsg*kzp1)
-      call getmem(r8vector1,1,maximum_buffer_size,'set_nproc:r8vector1')
-      call getmem(r8vector2,1,maximum_buffer_size,'set_nproc:r8vector2')
+      call getmem(r8vector1,1,max(maximum_buffer_size,4*jxsg*iysg), &
+                  'set_nproc:r8vector1')
+      call getmem(r8vector2,1,max(maximum_buffer_size,4*jxsg*iysg), &
+                  'set_nproc:r8vector2')
       call getmem(r4vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
       call getmem(r4vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
       call getmem(i4vector1,1,maximum_buffer_size,'set_nproc:i4vector1')
@@ -2210,6 +2213,151 @@ module mod_mppparam
 #include "mpp_tk_logical.inc"
 #include "mpp_tk_linear.inc"
 #include "mpp_tk_clear.inc"
+
+  subroutine glb_l2c_ss2(cl,vector1,matrix1,vector2,matrix2)
+    !@acc use nvtx
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    real(rk8), contiguous, intent(in) :: vector1(:)
+    real(rkx), intent(inout) :: matrix1(nnsg,jci1:jci2,ici1:ici2)
+    real(rk8), contiguous, intent(in) :: vector2(:)
+    real(rkx), intent(inout) :: matrix2(nnsg,jci1:jci2,ici1:ici2)
+    integer(ik4) :: p, n, j, i, iv, npt
+    !@acc call nvtxStartRange("l2g_real8_ss2")
+    if ( nproc == 1 ) then
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        iv = cl%global_sgmask_id(n,j,i)
+        if ( iv > 0 ) then
+          matrix1(n,j,i) = vector1(iv)
+          matrix2(n,j,i) = vector2(iv)
+        end if
+      end do
+    else
+      npt = cl%linear_npoint_sg(myid+1)
+      do concurrent ( p = 1:npt )
+        r8vector1(2*(p-1)+1) = vector1(p)
+        r8vector1(2*(p-1)+2) = vector2(p)
+      end do
+      call linear_to_global_real8_subgrid_batch(cl,2)
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        p = (i-ici1)*(jci2-jci1+1)*nnsg + (j-jci1)*nnsg + n
+        if ( cl%sgmask(n,j,i) ) then
+          matrix1(n,j,i) = r8vector2(2*(p-1)+1)
+          matrix2(n,j,i) = r8vector2(2*(p-1)+2)
+        end if
+      end do
+    end if
+    !@acc call nvtxEndRange
+  end subroutine glb_l2c_ss2
+
+  subroutine glb_l2c_ss4(cl,vector1,matrix1,vector2,matrix2, &
+                            vector3,matrix3,vector4,matrix4)
+    !@acc use nvtx
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    real(rk8), contiguous, intent(in) :: vector1(:)
+    real(rkx), intent(inout) :: matrix1(nnsg,jci1:jci2,ici1:ici2)
+    real(rk8), contiguous, intent(in) :: vector2(:)
+    real(rkx), intent(inout) :: matrix2(nnsg,jci1:jci2,ici1:ici2)
+    real(rk8), contiguous, intent(in) :: vector3(:)
+    real(rkx), intent(inout) :: matrix3(nnsg,jci1:jci2,ici1:ici2)
+    real(rk8), contiguous, intent(in) :: vector4(:)
+    real(rkx), intent(inout) :: matrix4(nnsg,jci1:jci2,ici1:ici2)
+    integer(ik4) :: p, n, j, i, iv, npt
+    !@acc call nvtxStartRange("l2g_real8_ss4")
+    if ( nproc == 1 ) then
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        iv = cl%global_sgmask_id(n,j,i)
+        if ( iv > 0 ) then
+          matrix1(n,j,i) = vector1(iv)
+          matrix2(n,j,i) = vector2(iv)
+          matrix3(n,j,i) = vector3(iv)
+          matrix4(n,j,i) = vector4(iv)
+        end if
+      end do
+    else
+      npt = cl%linear_npoint_sg(myid+1)
+      do concurrent ( p = 1:npt )
+        r8vector1(4*(p-1)+1) = vector1(p)
+        r8vector1(4*(p-1)+2) = vector2(p)
+        r8vector1(4*(p-1)+3) = vector3(p)
+        r8vector1(4*(p-1)+4) = vector4(p)
+      end do
+      call linear_to_global_real8_subgrid_batch(cl,4)
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        p = (i-ici1)*(jci2-jci1+1)*nnsg + (j-jci1)*nnsg + n
+        if ( cl%sgmask(n,j,i) ) then
+          matrix1(n,j,i) = r8vector2(4*(p-1)+1)
+          matrix2(n,j,i) = r8vector2(4*(p-1)+2)
+          matrix3(n,j,i) = r8vector2(4*(p-1)+3)
+          matrix4(n,j,i) = r8vector2(4*(p-1)+4)
+        end if
+      end do
+    end if
+    !@acc call nvtxEndRange
+  end subroutine glb_l2c_ss4
+
+  subroutine linear_to_global_real8_subgrid_batch(cl,nfield)
+    !@acc use nvtx
+    implicit none
+    type(masked_comm), intent(in) :: cl
+    integer(ik4), intent(in) :: nfield
+    integer(ik4) :: linear_count(nproc), linear_displ(nproc)
+    integer(ik4) :: tile_count(nproc), tile_displ(nproc)
+    integer(ik4) :: tsize, npt, icpu, w1, w2, w3, w4
+    integer(ik4) :: f, n, j, i, iv, ib, iboffset
+
+    tsize = glosplitw(jci1,jci2,ici1,ici2,.true.)
+    npt = cl%linear_npoint_sg(myid+1)
+    linear_count = nfield*cl%linear_npoint_sg
+    linear_displ = nfield*cl%linear_displ_sg
+    tile_count = 0
+    tile_displ = 0
+    if ( myid == ccio ) then
+      tile_count = nfield*wincount(1:nproc)
+      tile_displ = nfield*windispl(1:nproc)
+    end if
+    !@acc call nvtxStartRange("mpi_gatherv")
+    call mpi_gatherv(r8vector1,nfield*npt,mpi_real8, &
+                     r8vector2,linear_count,linear_displ, &
+                     mpi_real8,iocpu,cl%linear_communicator,mpierr)
+    !@acc call nvtxEndRange
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+#endif
+    !@acc call nvtxStartRange("subgrid_pack")
+    if ( myid == iocpu ) then
+      iboffset = 0
+      do icpu = 0, nproc-1
+        w1 = windows(icpu*4+1)
+        w2 = windows(icpu*4+2)
+        w3 = windows(icpu*4+3)
+        w4 = windows(icpu*4+4)
+        do concurrent ( f = 1:nfield, n = 1:nnsg, j = w3:w4, i = w1:w2 )
+          ib = iboffset + (i-w1)*nnsg*(w4-w3+1) + (j-w3)*nnsg + n
+          iv = cl%global_sgmask_id(n,j,i)
+          if ( iv > 0 ) then
+            r8vector1(nfield*(ib-1)+f) = r8vector2(nfield*(iv-1)+f)
+          else
+            r8vector1(nfield*(ib-1)+f) = 0.0_rk8
+          end if
+        end do
+        iboffset = iboffset + nnsg*(w4-w3+1)*(w2-w1+1)
+      end do
+    end if
+    !@acc call nvtxEndRange
+    !@acc call nvtxStartRange("mpi_scatterv")
+    call mpi_scatterv(r8vector1,tile_count,tile_displ,mpi_real8, &
+                      r8vector2,nfield*tsize,mpi_real8,ccio,mycomm,mpierr)
+    !@acc call nvtxEndRange
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+#endif
+  end subroutine linear_to_global_real8_subgrid_batch
 
   subroutine global_to_linear_real4_real8_subgrid_subgrid(cl,matrix,vector)
     implicit none
