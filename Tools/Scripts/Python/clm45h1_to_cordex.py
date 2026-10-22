@@ -74,64 +74,64 @@ CLM_NOTE   = (
 # Anything not listed here falls back to what is in the source file.
 VAR_META = {
     # latent heat
-    "eflx_lh_tot_r": dict(standard_name="surface_upward_latent_heat_flux",
+    "eflxlhtotr": dict(standard_name="surface_upward_latent_heat_flux",
                           cell_methods="area: time: mean"),
-    "eflx_lh_tot_u": dict(standard_name="surface_upward_latent_heat_flux",
+    "eflxlhtotu": dict(standard_name="surface_upward_latent_heat_flux",
                           cell_methods="area: time: mean"),
     # ground heat flux
-    "fgr_r": dict(standard_name="downward_heat_flux_at_ground_level_in_soil",
+    "fgrr": dict(standard_name="downward_heat_flux_at_ground_level_in_soil",
                   cell_methods="area: time: mean"),
-    "fgr_u": dict(standard_name="downward_heat_flux_at_ground_level_in_soil",
+    "fgru": dict(standard_name="downward_heat_flux_at_ground_level_in_soil",
                   cell_methods="area: time: mean"),
     # net LW radiation
-    "fira_r": dict(standard_name="surface_net_downward_longwave_flux",
+    "firar": dict(standard_name="surface_net_downward_longwave_flux",
                    cell_methods="area: time: mean"),
-    "fira_u": dict(standard_name="surface_net_downward_longwave_flux",
+    "firau": dict(standard_name="surface_net_downward_longwave_flux",
                    cell_methods="area: time: mean"),
     # absorbed SW radiation
-    "fsa_r": dict(standard_name="surface_net_downward_shortwave_flux",
+    "fsar": dict(standard_name="surface_net_downward_shortwave_flux",
                   cell_methods="area: time: mean"),
-    "fsa_u": dict(standard_name="surface_net_downward_shortwave_flux",
+    "fsau": dict(standard_name="surface_net_downward_shortwave_flux",
                   cell_methods="area: time: mean"),
     # sensible heat
-    "fsh_r": dict(standard_name="surface_upward_sensible_heat_flux",
+    "fshr": dict(standard_name="surface_upward_sensible_heat_flux",
                   cell_methods="area: time: mean"),
-    "fsh_u": dict(standard_name="surface_upward_sensible_heat_flux",
+    "fshu": dict(standard_name="surface_upward_sensible_heat_flux",
                   cell_methods="area: time: mean"),
     # snow melt heat flux — no single CF name; keep source long_name
-    "fsm_r": dict(cell_methods="area: time: mean"),
-    "fsm_u": dict(cell_methods="area: time: mean"),
+    "fsmr": dict(cell_methods="area: time: mean"),
+    "fsmu": dict(cell_methods="area: time: mean"),
     # runoff
-    "qrunoff_r": dict(standard_name="surface_runoff_flux",
+    "qrunoffr": dict(standard_name="surface_runoff_flux",
                       cell_methods="area: time: mean"),
-    "qrunoff_u": dict(standard_name="surface_runoff_flux",
+    "qrunoffu": dict(standard_name="surface_runoff_flux",
                       cell_methods="area: time: mean"),
     # relative humidity
-    "rh2m_r": dict(standard_name="relative_humidity",
+    "rh2mr": dict(standard_name="relative_humidity",
                    cell_methods="area: time: mean"),
-    "rh2m_u": dict(standard_name="relative_humidity",
+    "rh2mu": dict(standard_name="relative_humidity",
                    cell_methods="area: time: mean"),
     # soil alpha — no CF name
-    "soilalpha_u": dict(cell_methods="area: time: mean"),
+    "soilalphau": dict(cell_methods="area: time: mean"),
     # ground temperature
-    "tg_r": dict(standard_name="soil_temperature",
+    "tgr": dict(standard_name="soil_temperature",
                  cell_methods="area: time: mean"),
-    "tg_u": dict(standard_name="soil_temperature",
+    "tgu": dict(standard_name="soil_temperature",
                  cell_methods="area: time: mean"),
     # daily min T2m
-    "trefmnav_r": dict(standard_name="air_temperature",
+    "trefmnavr": dict(standard_name="air_temperature",
                        cell_methods="area: time: minimum within days time: mean over days"),
-    "trefmnav_u": dict(standard_name="air_temperature",
+    "trefmnavu": dict(standard_name="air_temperature",
                        cell_methods="area: time: minimum within days time: mean over days"),
     # daily max T2m
-    "trefmxav_r": dict(standard_name="air_temperature",
+    "trefmxavr": dict(standard_name="air_temperature",
                        cell_methods="area: time: maximum within days time: mean over days"),
-    "trefmxav_u": dict(standard_name="air_temperature",
+    "trefmxavu": dict(standard_name="air_temperature",
                        cell_methods="area: time: maximum within days time: mean over days"),
     # mean T2m
-    "tsa_r": dict(standard_name="air_temperature",
+    "tsar": dict(standard_name="air_temperature",
                   cell_methods="area: time: mean"),
-    "tsa_u": dict(standard_name="air_temperature",
+    "tsau": dict(standard_name="air_temperature",
                   cell_methods="area: time: mean"),
 }
 
@@ -284,7 +284,8 @@ def main():
         src_time_var  = src.variables['time']
         src_time_vals = src_time_var[:]
         src_time_unit = src_time_var.units            # hours since 1950-01-01
-        dst_time_vals = hours_to_days(src_time_vals, src_time_unit)
+        # Registered time is the end of the average interval. Need to shift.
+        dst_time_vals = hours_to_days(src_time_vals, src_time_unit) - 0.5
 
         # Time bounds: shift by ±0.5 day around each daily value
         dst_time_bnds = np.column_stack(
@@ -318,7 +319,7 @@ def main():
         now_str = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
         for src_vname, src_var in sorted(target_vars.items()):
-            var_lower = src_vname.lower()
+            var_lower = src_vname.lower().replace('_','')
             outpath   = build_filename(
                 args.destination, var_lower, date_start, date_end, args.outdir)
 
