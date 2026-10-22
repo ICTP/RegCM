@@ -1217,7 +1217,7 @@ module mod_rad_radiation
     real(rk8), dimension(n1:n2), intent(in) :: lat
     real(rk8), dimension(kz,n1:n2), intent(out) :: co2, ch4, n2o
     real(rk8), dimension(kz,n1:n2), intent(out) :: cfc11, cfc12
-    real(rk8) :: val(5)
+    real(rk8) :: val(5,n1:n2)
     integer(ik4) :: n, k
     !
     ! Set general radiation consts; convert to cgs units where
@@ -1225,22 +1225,22 @@ module mod_rad_radiation
     !
     ! Cannot be done in parallel because it requires I/O from file
     !
-    !$acc update host(co2,ch4,n2o,cfc11,cfc12,lat)
+    !$acc update host(lat,val)
     do n = n1, n2
-      val(1) = ghgval(igh_co2,iyear,imonth,lat(n))*(amco2/amd)
-      val(2) = ghgval(igh_ch4,iyear,imonth,lat(n))*(amch4/amd)
-      val(3) = ghgval(igh_n2o,iyear,imonth,lat(n))*(amn2o/amd)
-      val(4) = ghgval(igh_cfc11,iyear,imonth,lat(n))*(amcfc11/amd)
-      val(5) = ghgval(igh_cfc12,iyear,imonth,lat(n))*(amcfc12/amd)
-      do k = 1, kz
-        co2(k,n) = val(1)
-        ch4(k,n) = val(2)
-        n2o(k,n) = val(3)
-        cfc11(k,n) = val(4)
-        cfc12(k,n) = val(5)
-      end do
+      val(1,n) = ghgval(igh_co2,iyear,imonth,lat(n))*(amco2/amd)
+      val(2,n) = ghgval(igh_ch4,iyear,imonth,lat(n))*(amch4/amd)
+      val(3,n) = ghgval(igh_n2o,iyear,imonth,lat(n))*(amn2o/amd)
+      val(4,n) = ghgval(igh_cfc11,iyear,imonth,lat(n))*(amcfc11/amd)
+      val(5,n) = ghgval(igh_cfc12,iyear,imonth,lat(n))*(amcfc12/amd)
     end do
-    !$acc update device(co2,ch4,n2o,cfc11,cfc12)
+    !$acc update device(val)
+    do concurrent (k=1:kz, n=n1:n2)
+      co2(k,n) = val(1,n)
+      ch4(k,n) = val(2,n)
+      n2o(k,n) = val(3,n)
+      cfc11(k,n) = val(4,n)
+      cfc12(k,n) = val(5,n)
+    end do
     !
     ! Set execution flag for aerosol and their interaction with radiation
     !

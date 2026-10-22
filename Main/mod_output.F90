@@ -178,6 +178,7 @@ module mod_output
       lstartup = .true.
       if ( doing_restart ) then
         doing_restart = .false.
+        !@acc call nvtxEndRange
 #ifdef DEBUG
         call time_end(subroutine_name,idindx)
 #endif

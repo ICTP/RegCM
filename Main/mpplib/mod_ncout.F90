@@ -4423,6 +4423,7 @@ module mod_ncout
       end do
 
       ! If not parallel output, only the master proc writes output files
+      !@acc call nvtxEndRange
       return
 
     end if
@@ -4431,6 +4432,7 @@ module mod_ncout
     if ( present(ifile) ) jfile = ifile
     if ( jfile < 1 .or. jfile > outstream(istream)%nfiles ) then
       write (stderr,*) 'No such file in stream ',istream,' : ', ifile
+      !@acc call nvtxEndRange
       return
     end if
 
