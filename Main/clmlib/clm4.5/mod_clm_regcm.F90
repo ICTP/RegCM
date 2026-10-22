@@ -779,133 +779,288 @@ module mod_clm_regcm
 
   end subroutine atmosphere_to_land
 
+  subroutine land_profile_to_atmosphere(npt,input,output,work)
+    implicit none
+    integer(ik4), intent(in) :: npt
+    real(rk8), intent(in) :: input(npt,1:nlevsoi)
+    real(rkx), intent(inout) :: output(nnsg,jci1:jci2,ici1:ici2,1:nlevsoi)
+    real(rkx), target, intent(inout) :: work(nnsg,jci1:jci2,ici1:ici2)
+    real(rkx), pointer, contiguous :: work_ptr(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_notused(:)
+    logical, pointer, contiguous :: sgmask(:,:,:)
+    integer(ik4) :: n, j, i, k, p, nlev, ibeg
+
+    l2a_notused => clm_l2a%notused
+    sgmask => lndcomm%sgmask
+    ibeg = lbound(l2a_notused,1)
+    nlev = nlevsoi
+    do concurrent ( k = 1:nlev, n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( .not. sgmask(n,j,i) ) output(n,j,i,k) = work(n,j,i)
+    end do
+    do k = 1, nlev-3, 4
+      call glb_l2c_ss4(lndcomm, &
+           input(:,k),output(:,:,:,k), &
+           input(:,k+1),output(:,:,:,k+1), &
+           input(:,k+2),output(:,:,:,k+2), &
+           input(:,k+3),output(:,:,:,k+3))
+    end do
+    k = 4*(nlev/4)+1
+    if ( k+1 <= nlev ) then
+      call glb_l2c_ss2(lndcomm, &
+           input(:,k),output(:,:,:,k), &
+           input(:,k+1),output(:,:,:,k+1))
+      k = k+2
+    end if
+    if ( k <= nlev ) then
+      do concurrent (p=1:npt)
+        l2a_notused(ibeg+p-1) = input(p,k)
+      end do
+      work_ptr => work
+      call glb_l2c_ss(lndcomm,l2a_notused,work_ptr)
+      do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+        output(n,j,i,k) = work(n,j,i)
+      end do
+    end if
+    do concurrent (p=1:npt)
+      l2a_notused(ibeg+p-1) = input(p,nlev)
+    end do
+    do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+      work(n,j,i) = output(n,j,i,nlev)
+    end do
+  end subroutine land_profile_to_atmosphere
+
   subroutine land_to_atmosphere(lm,lms)
     implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
-    integer(ik4) :: i, j, n, k, begg, endg
+    integer(ik4) :: i, j, n, k, p, begg, endg
+    real(rk8) :: tauy_lnd(size(clm_l2a%tauy))
+    integer(ik4), pointer, contiguous :: ldmsk1(:,:,:)
+    real(rkx), pointer, contiguous :: emisv(:,:,:)
+    real(rk8), pointer, contiguous :: a2l_notused(:)
+    real(rk8), pointer, contiguous :: l2a_u_ref10m(:)
+    real(rk8), pointer, contiguous :: a2l_forc_wind(:)
+    real(rk8), pointer, contiguous :: l2a_notused(:)
+    real(rk8), pointer, contiguous :: a2l_forc_u(:)
+    real(rk8), pointer, contiguous :: l2a_t_rad(:)
+    real(rkx), pointer, contiguous :: tgbb(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_t_ref2m(:)
+    real(rkx), pointer, contiguous :: t2m(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_q_ref2m(:)
+    real(rkx), pointer, contiguous :: q2m(:,:,:)
+    real(rkx), pointer, contiguous :: u10m(:,:,:)
+    real(rk8), pointer, contiguous :: a2l_forc_v(:)
+    real(rkx), pointer, contiguous :: v10m(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_eflx_sh_tot(:)
+    real(rkx), pointer, contiguous :: sent(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_qflx_evap_tot(:)
+    real(rkx), pointer, contiguous :: evpr(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_ram1(:)
+    real(rkx), pointer, contiguous :: ram1(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_ustar(:)
+    real(rk8), pointer, contiguous :: a2l_forc_rho(:)
+    real(rk8), pointer, contiguous :: l2a_br1(:)
+    real(rkx), pointer, contiguous :: br(:,:,:)
+    real(rkx), pointer, contiguous :: ustar(:,:,:)
+    real(rkx), pointer, contiguous :: drag(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_h2osno(:)
+    real(rkx), pointer, contiguous :: sncv(:,:,:)
+    real(rkx), pointer, contiguous :: rah1(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_taux(:)
+    real(rk8), pointer, contiguous :: l2a_tauy(:)
+    real(rk8), pointer, contiguous :: l2a_zom(:)
+    real(rk8), pointer, contiguous :: l2a_vdustfrac(:)
+    real(rkx), pointer, contiguous :: wt(:,:,:)
+    real(rkx), pointer, contiguous :: taux(:,:,:)
+    real(rkx), pointer, contiguous :: tauy(:,:,:)
+    real(rkx), pointer, contiguous :: zo(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_tsoi(:,:)
+    real(rkx), pointer, contiguous :: tsoi(:,:,:,:)
+    real(rkx), pointer, contiguous :: tsw(:,:,:)
+    real(rkx), pointer, contiguous :: tgrd(:,:,:)
+    real(rkx), pointer, contiguous :: tgbrd(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_h2osoi(:,:)
+    real(rkx), pointer, contiguous :: sw(:,:,:,:)
+    real(rk8), pointer, contiguous :: l2a_h2osoi_vol(:,:)
+    real(rkx), pointer, contiguous :: sw_vol(:,:,:,:)
+    real(rk8), pointer, contiguous :: l2a_t_veg(:)
+    real(rkx), pointer, contiguous :: tlef(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_eflx_gnet(:)
+    real(rkx), pointer, contiguous :: hfso(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_h2o10cm(:)
+    real(rk8), pointer, contiguous :: l2a_qflx_surf(:)
+    real(rkx), pointer, contiguous :: srnof(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_qflx_tot(:)
+    real(rkx), pointer, contiguous :: trnof(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_qflx_snow_melt(:)
+    real(rkx), pointer, contiguous :: snwm(:,:,:)
+    real(rk8), pointer, contiguous :: a2l_rainf(:)
+    real(rkx), pointer, contiguous :: prcp(:,:,:)
+    real(rk8), pointer, contiguous :: a2l_forc_psrf(:)
+    real(rkx), pointer, contiguous :: sfcp(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_tlai(:)
+    real(rkx), pointer, contiguous :: xlai(:,:,:)
+    real(rk8), pointer, contiguous :: l2a_flxvoc(:,:)
+    real(rkx), pointer, contiguous :: vocemiss(:,:,:,:)
+    real(rk8), pointer, contiguous :: l2a_flxdst(:,:)
+    real(rkx), pointer, contiguous :: dustemiss(:,:,:,:)
+#ifdef LCH4
+    real(rk8), pointer, contiguous :: l2a_flux_ch4(:)
+#endif
+    real(rk8), pointer, contiguous :: l2a_ddvel(:,:)
+    real(rkx), pointer, contiguous :: ddepv(:,:,:,:)
 
     call get_proc_bounds(begg,endg)
 
+    a2l_notused => clm_a2l%notused
+    l2a_u_ref10m => clm_l2a%u_ref10m
+    a2l_forc_wind => clm_a2l%forc_wind
+    l2a_notused => clm_l2a%notused
+    a2l_forc_u => clm_a2l%forc_u
+    l2a_t_rad => clm_l2a%t_rad
+    tgbb => lms%tgbb
+    l2a_t_ref2m => clm_l2a%t_ref2m
+    t2m => lms%t2m
+    l2a_q_ref2m => clm_l2a%q_ref2m
+    q2m => lms%q2m
+    u10m => lms%u10m
+    a2l_forc_v => clm_a2l%forc_v
+    v10m => lms%v10m
+    l2a_eflx_sh_tot => clm_l2a%eflx_sh_tot
+    sent => lms%sent
+    l2a_qflx_evap_tot => clm_l2a%qflx_evap_tot
+    evpr => lms%evpr
+    l2a_ram1 => clm_l2a%ram1
+    ram1 => lms%ram1
+    l2a_ustar => clm_l2a%ustar
+    a2l_forc_rho => clm_a2l%forc_rho
+    l2a_br1 => clm_l2a%br1
+    br => lms%br
+    ustar => lms%ustar
+    drag => lms%drag
+    l2a_h2osno => clm_l2a%h2osno
+    sncv => lms%sncv
+    ldmsk1 => lm%ldmsk1
+    emisv => lms%emisv
+    rah1 => lms%rah1
+    l2a_taux => clm_l2a%taux
+    l2a_tauy => clm_l2a%tauy
+    l2a_zom => clm_l2a%zom
+    l2a_vdustfrac => clm_l2a%vdustfrac
+    wt => lms%wt
+    taux => lms%taux
+    tauy => lms%tauy
+    zo => lms%zo
+    l2a_tsoi => clm_l2a%tsoi
+    tsoi => lms%tsoi
+    tsw => lms%tsw
+    tgrd => lms%tgrd
+    tgbrd => lms%tgbrd
+    l2a_h2osoi => clm_l2a%h2osoi
+    sw => lms%sw
+    l2a_h2osoi_vol => clm_l2a%h2osoi_vol
+    sw_vol => lms%sw_vol
+    l2a_t_veg => clm_l2a%t_veg
+    tlef => lms%tlef
+    l2a_eflx_gnet => clm_l2a%eflx_gnet
+    hfso => lms%hfso
+    l2a_h2o10cm => clm_l2a%h2o10cm
+    l2a_qflx_surf => clm_l2a%qflx_surf
+    srnof => lms%srnof
+    l2a_qflx_tot => clm_l2a%qflx_tot
+    trnof => lms%trnof
+    l2a_qflx_snow_melt => clm_l2a%qflx_snow_melt
+    snwm => lms%snwm
+    a2l_rainf => clm_a2l%rainf
+    prcp => lms%prcp
+    a2l_forc_psrf => clm_a2l%forc_psrf
+    sfcp => lms%sfcp
+
     ! Get back data from clm_l2a
-    call glb_l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
-
-    call glb_l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
-    call glb_l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
-
     ! CLM gives just wind speed, assume directions are same as input.
-    !$acc kernels
-    clm_a2l%notused = clm_l2a%u_ref10m/clm_a2l%forc_wind
-    clm_l2a%notused = clm_a2l%forc_u*clm_a2l%notused
-    !$acc end kernels
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%u10m)
-    !$acc kernels
-    clm_l2a%notused = clm_a2l%forc_v*clm_a2l%notused
-    !$acc end kernels
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%v10m)
-
-    call glb_l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
-    call glb_l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
-    call glb_l2c_ss(lndcomm,clm_l2a%ram1,lms%ram1)
-    call glb_l2c_ss(lndcomm,clm_l2a%br1,lms%br)
-    call glb_l2c_ss(lndcomm,clm_l2a%ustar,lms%ustar)
-    !$acc kernels
-    clm_l2a%notused = clm_l2a%ustar*clm_l2a%ustar * &
-              clm_a2l%forc_rho/clm_a2l%forc_wind
-    !$acc end kernels
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
+    do concurrent (p=begg:endg)
+      a2l_notused(p) = l2a_u_ref10m(p)/a2l_forc_wind(p)
+      l2a_notused(p) = a2l_forc_u(p)*a2l_notused(p)
+    end do
+    call glb_l2c_ss4(lndcomm, &
+         l2a_t_rad,tgbb, &
+         l2a_t_ref2m,t2m, &
+         l2a_q_ref2m,q2m, &
+         l2a_notused,u10m)
+    do concurrent (p=begg:endg)
+      l2a_notused(p) = a2l_forc_v(p)*a2l_notused(p)
+    end do
+    call glb_l2c_ss4(lndcomm, &
+         l2a_notused,v10m, &
+         l2a_eflx_sh_tot,sent, &
+         l2a_qflx_evap_tot,evpr, &
+         l2a_ram1,ram1)
+    do concurrent (p=begg:endg)
+      l2a_notused(p) = l2a_ustar(p)*l2a_ustar(p) * &
+                a2l_forc_rho(p)/a2l_forc_wind(p)
+    end do
+    call glb_l2c_ss4(lndcomm, &
+         l2a_br1,br, &
+         l2a_ustar,ustar, &
+         l2a_notused,drag, &
+         l2a_h2osno,sncv)
     do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
       ! CLM45 outputs Um/ustar**2 [s/m];
       ! convert to dimensionless vonkar·Um/ustar to match BATS and Ocean
-      if (lm%ldmsk1(n,j,i) == 1) then
-        lms%ram1(n,j,i) = vonkar * lms%ustar(n,j,i) * lms%ram1(n,j,i)
-        lms%rah1(n,j,i) = lms%ram1(n,j,i)
+      if (ldmsk1(n,j,i) == 1) then
+        ram1(n,j,i) = vonkar * ustar(n,j,i) * ram1(n,j,i)
+        rah1(n,j,i) = ram1(n,j,i)
       end if
     end do
 
-    call glb_l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
     ! For CLM45, we collect total fraction of ground emitting dust.
-    call glb_l2c_ss(lndcomm,clm_l2a%vdustfrac,lms%wt)
-    !$acc kernels
-    clm_l2a%notused = -clm_l2a%taux
-    !$acc end kernels
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%taux)
-    !$acc kernels
-    clm_l2a%notused = -clm_l2a%tauy
-    !$acc end kernels
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tauy)
-    !$acc kernels
-    clm_l2a%zom = max(clm_l2a%zom,1.0e-4_rk8)
-    !$acc end kernels
-    call glb_l2c_ss(lndcomm,clm_l2a%zom,lms%zo)
-    call glb_l2c_ss(lndcomm,clm_l2a%t_veg,lms%tlef)
+    do concurrent (p=begg:endg)
+      l2a_notused(p) = -l2a_taux(p)
+    end do
+    do concurrent (p=begg:endg)
+      tauy_lnd(p-begg+1) = -l2a_tauy(p)
+    end do
+    do concurrent (p=begg:endg)
+      l2a_zom(p) = max(l2a_zom(p),1.0e-4_rk8)
+    end do
+    call glb_l2c_ss4(lndcomm, &
+         l2a_vdustfrac,wt, &
+         l2a_notused,taux, &
+         tauy_lnd,tauy, &
+         l2a_zom,zo)
 
     ! soil temperature profile
     ! note tsw is used as a temporary table
-    !$acc kernels
-    clm_l2a%notused = 0.0_rk8
-    !$acc end kernels
-    do k = 1, nlevsoi
-      !$acc kernels
-      clm_l2a%notused(:) = clm_l2a%tsoi(:,k)
-      !$acc end kernels
-      call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
-      !$acc kernels
-      lms%tsoi(:,:,:,k) = lms%tsw(:,:,:)
-      !$acc end kernels
-    end do
+    call land_profile_to_atmosphere(endg-begg+1,l2a_tsoi,tsoi,tsw)
 
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-      if ( lm%ldmsk1(n,j,i) == 1 ) then
-        lms%tgrd(n,j,i) = lms%tsoi(n,j,i,1)
-        lms%tgbrd(n,j,i) = lms%tsoi(n,j,i,1)
+      if ( ldmsk1(n,j,i) == 1 ) then
+        tgrd(n,j,i) = tsoi(n,j,i,1)
+        tgbrd(n,j,i) = tsoi(n,j,i,1)
       end if
     end do
-    call glb_l2c_ss(lndcomm,clm_l2a%eflx_gnet,lms%hfso)
-
-    !$acc kernels
-    clm_l2a%notused = 0.0_rk8
-    !$acc end kernels
-
-    do k = 1, nlevsoi
-      !$acc kernels
-      clm_l2a%notused(:) = clm_l2a%h2osoi(:,k)
-      !$acc end kernels
-      call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
-      !$acc kernels
-      lms%sw(:,:,:,k) = lms%tsw(:,:,:)
-      !$acc end kernels
-    end do
+    call land_profile_to_atmosphere(endg-begg+1,l2a_h2osoi,sw,tsw)
 
     ! volumetric soil water profile (m3/m3) is saved for chem
-    !$acc kernels
-    clm_l2a%notused = 0.0_rk8
-    !$acc end kernels
-    do k = 1, nlevsoi
-      !$acc kernels
-      clm_l2a%notused(:) = clm_l2a%h2osoi_vol(:,k)
-      !$acc end kernels
-      call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
-      !$acc kernels
-      lms%sw_vol(:,:,:,k) = lms%tsw(:,:,:)
-      !$acc end kernels
-    end do
+    call land_profile_to_atmosphere(endg-begg+1,l2a_h2osoi_vol,sw_vol,tsw)
     ! tsw is finally passed as the soil water in Kg/m2 in the first
     ! 10 cm of soil
     ! a bit obsolete since volumetric water profile is passed ,
     ! but still could be potentuially usefull
-    call glb_l2c_ss(lndcomm,clm_l2a%h2o10cm,lms%tsw)
-
-    call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
-    call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
-    call glb_l2c_ss(lndcomm,clm_l2a%qflx_snow_melt,lms%snwm)
-    !$acc kernels
-    lms%snwm = lms%snwm * dtsrf
-    !$acc end kernels
-
+    call glb_l2c_ss4(lndcomm, &
+         l2a_t_veg,tlef, &
+         l2a_eflx_gnet,hfso, &
+         l2a_h2o10cm,tsw, &
+         l2a_qflx_surf,srnof)
+    call glb_l2c_ss4(lndcomm, &
+         l2a_qflx_tot,trnof, &
+         l2a_qflx_snow_melt,snwm, &
     ! From the input
-    call glb_l2c_ss(lndcomm,clm_a2l%rainf,lms%prcp)
-    call glb_l2c_ss(lndcomm,clm_a2l%forc_psrf,lms%sfcp)
+         a2l_rainf,prcp, &
+         a2l_forc_psrf,sfcp)
+    do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+      snwm(n,j,i) = snwm(n,j,i) * dtsrf
+    end do
 
     ! If CLM45, the surface emissivity is not used.
     ! The CLM outputs directly to RegCM the radiant Temperature.
@@ -914,7 +1069,7 @@ module mod_clm_regcm
     !clm_l2a%notused = 1.0_rkx
     !call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-      if ( lm%ldmsk1(n,j,i) == 1 ) lms%emisv(n,j,i) = 1.0_rkx
+      if ( ldmsk1(n,j,i) == 1 ) emisv(n,j,i) = 1.0_rkx
     end do
 
     !--------------------------------------------------
@@ -926,16 +1081,26 @@ module mod_clm_regcm
     ! use temporary table emis2d for calling glb_l2c_ss
 
     if ( ichem == 1 ) then
+      l2a_tlai => clm_l2a%tlai
+      xlai => lms%xlai
 
-      call glb_l2c_ss(lndcomm,clm_l2a%tlai,lms%xlai)
+      call glb_l2c_ss(lndcomm,l2a_tlai,xlai)
 
       if ( enable_megan_emission ) then
-        emis2d = 0.0_rk8
+        l2a_flxvoc => clm_l2a%flxvoc
+        vocemiss => lms%vocemiss
+        do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+          emis2d(n,j,i) = 0.0_rk8
+        end do
         do k = 1, shr_megan_mechcomps_n
           if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0 ) then
-            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
-            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-            lms%vocemiss(:,:,:,iisop) = real(emis2d,rkx)
+            do concurrent (p=begg:endg)
+              l2a_notused(p) = l2a_flxvoc(p,k)
+            end do
+            call glb_l2c_ss(lndcomm, l2a_notused, emis2d)
+            do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+              vocemiss(n,j,i,iisop) = real(emis2d(n,j,i),rkx)
+            end do
           end if
           ! add compatibility for other biogenic species !! /
           !
@@ -948,30 +1113,54 @@ module mod_clm_regcm
       ! if use the regcm 12 bin, the total mass is redistributed
       ! (chemlib/mod_che_dust)
       if ( ichdustemd == 3 ) then
+        l2a_flxdst => clm_l2a%flxdst
+        dustemiss => lms%dustemiss
         do k = 1, 4
-          emis2d = 0.0_rk8
-          clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
-          call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-          lms%dustemiss(:,:,:,k) = real(emis2d,rkx)
+          do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+            emis2d(n,j,i) = 0.0_rk8
+          end do
+          do concurrent (p=begg:endg)
+            l2a_notused(p) = l2a_flxdst(p,k)
+          end do
+          call glb_l2c_ss(lndcomm, l2a_notused, emis2d)
+          do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+            dustemiss(n,j,i,k) = real(emis2d(n,j,i),rkx)
+          end do
         end do
       end if
 #ifdef LCH4
       ! factor 1.33 is to convert from kgC to kgCH4
       if ( ich4 > 0 ) then
-        emis2d = 0.0_rk8
-        clm_l2a%notused(:) = clm_l2a%flux_ch4(:) * 1.33_rk8
-        call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-        lms%vocemiss(:,:,:,ich4) = real(emis2d,rkx)
+        l2a_flux_ch4 => clm_l2a%flux_ch4
+        vocemiss => lms%vocemiss
+        do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+          emis2d(n,j,i) = 0.0_rk8
+        end do
+        do concurrent (p=begg:endg)
+          l2a_notused(p) = l2a_flux_ch4(p) * 1.33_rk8
+        end do
+        call glb_l2c_ss(lndcomm, l2a_notused, emis2d)
+        do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+          vocemiss(n,j,i,ich4) = real(emis2d(n,j,i),rkx)
+        end do
       end if
 #endif
      !FAB : test  drydep velocities for gas, based on w98 / improve by passing the real indices
       if (n_drydep > 0) then
+        l2a_ddvel => clm_l2a%ddvel
+        ddepv => lms%ddepv
         do k = 1, n_drydep
-          emis2d = 0.0_rk8
+          do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+            emis2d(n,j,i) = 0.0_rk8
+          end do
           if (4 > 0 ) then
-            clm_l2a%notused(:) = clm_l2a%ddvel(:,k)
-            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-            lms%ddepv(:,:,:,4) = real(emis2d,rkx)
+            do concurrent (p=begg:endg)
+              l2a_notused(p) = l2a_ddvel(p,k)
+            end do
+            call glb_l2c_ss(lndcomm, l2a_notused, emis2d)
+            do concurrent (n=1:nnsg, j=jci1:jci2, i=ici1:ici2)
+              ddepv(n,j,i,4) = real(emis2d(n,j,i),rkx)
+            end do
           end if
         end do
       end if
