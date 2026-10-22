@@ -109,7 +109,7 @@ def main():
         # contaminate valid urban fractions.
         if hasattr(urb_2d, '_FillValue'):
             fill_val = urb_2d._FillValue
-        else
+        else:
             fill_val = -9999.0
         data = np.where(raw.data == fill_val, 0.0, raw.data)
 
