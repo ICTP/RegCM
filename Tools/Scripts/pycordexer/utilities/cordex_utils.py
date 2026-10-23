@@ -5,7 +5,7 @@ from logging import getLogger
 from multiprocessing import Array
 from os import path
 from numpy.ma import is_masked
-from netCDF4 import Dataset, num2date
+from netCDF4 import Dataset, num2date, date2num
 from copy import copy
 from traceback import format_exc
 from datetime import timedelta
@@ -111,59 +111,32 @@ def read_rcm_map(netcdf_file_pointer):
     return rcm_map, orcmap
 
 
-def get_first_and_last_date_str(dates, frequency, ispoint=True):
-    # Precision here must be month.
-    if frequency == 'month':
-        dd1 = '{:04d}{:02d}'.format(
-            dates[0].year,
-            dates[0].month
-        )
-        dd2 = '{:04d}{:02d}'.format(
-            dates[-2].year,
-            dates[-2].month
-        )
-    # Monthly means computed by pycordexer: dates are the ones of the means
-    elif frequency == 'mon':
-        dd1 = '{:04d}{:02d}'.format(dates[0].year, dates[0].month)
-        dd2 = '{:04d}{:02d}'.format(dates[-1].year, dates[-1].month)
-    # Precision for daily data must not have hour."yyyyMMdd"
+CORDEX_TIME_UNITS = 'days since 1950-01-01 00:00:00'
+
+
+def to_cordex_time(values, units, calendar):
+    """Convert time values from units to CORDEX_TIME_UNITS"""
+    values = np.asarray(values, dtype=np.float64)
+    dates = num2date(values.ravel(), units=units, calendar=calendar)
+    return np.reshape(
+        date2num(dates, units=CORDEX_TIME_UNITS, calendar=calendar),
+        values.shape
+    )
+
+
+def get_first_and_last_date_str(dates, frequency):
+    """
+    The time range of the file name, from the first and the last time of the
+    variable: "yyyyMM" for monthly, "yyyyMMdd" for daily and "yyyyMMddhhmm"
+    for sub-daily data.
+    """
+    if frequency in ('mon', 'month'):
+        fmt = '{0.year:04d}{0.month:02d}'
     elif frequency == 'day':
-        # We may already have STS data here, and a shift must be used
-        if ispoint:
-            ddx = dates[0]
-        else:
-            # Notice the trailing '12'.
-            ddx = dates[0]-timedelta(hours=12)
-        dd1 = '{:04d}{:02d}{:02d}'.format(
-            ddx.year,
-            ddx.month,
-            ddx.day
-        )
-        try:
-            dd2 = '{:04d}{:02d}{:02d}'.format(
-                dates[-2].year,
-                dates[-2].month,
-                dates[-2].day
-            )
-        except:
-            dd2 = dd1
-    # sub daily frequency. According to CMIP6 (CORDEX should comply),
-    # precision of time label in this case must include minute:
-    # "yyyyMMddhhmm" (Table 2 CMIP6_global_attributes_filenames_CVs_v6.2.7.pdf)
+        fmt = '{0.year:04d}{0.month:02d}{0.day:02d}'
     else:
-        dd1 = '{:04d}{:02d}{:02d}{:02d}00'.format(
-            dates[0].year,
-            dates[0].month,
-            dates[0].day,
-            dates[0].hour
-        )
-        dd2 = '{:04d}{:02d}{:02d}{:02d}00'.format(
-            dates[-1].year,
-            dates[-1].month,
-            dates[-1].day,
-            dates[-1].hour
-        )
-    return dd1, dd2
+        fmt = '{0.year:04d}{0.month:02d}{0.day:02d}{0.hour:02d}{0.minute:02d}'
+    return fmt.format(dates[0]), fmt.format(dates[-1])
 
 
 class RegcmOutputFile(object):
@@ -213,7 +186,7 @@ class RegcmOutputFile(object):
             self.attributes[attribute] = attribute_value
 
         LOGGER.debug('Copying values for times%s in memory', of_file)
-        self._save_in_memory(times, 'times', np.float32)
+        self._save_in_memory(times, 'times', np.float64)
 
         LOGGER.debug('Cleaning attribute of variable times')
         if 'calendar' in self.times_attributes:
@@ -1233,6 +1206,13 @@ class CordexDataset(Dataset):
         self.setncattr('table_id', cordex_var.frequency)
         self.setncattr('variable_id', cordex_var.name)
 
+        if 'cell_measures' in attributes:
+            # Variables referenced by cell_measures and not saved in this file
+            measures = re.findall(r'\w+:\s*(\w+)', attributes['cell_measures'])
+            external = [m for m in measures if m not in self.variables]
+            if external:
+                self.setncattr('external_variables', ' '.join(external))
+
         if 'coordinates' in attributes:
             # The "coordinates" attribute refers to variables that could have
             # a different name now. Therefore, it must be updated
@@ -1257,23 +1237,22 @@ class CordexDataset(Dataset):
             if cordex_var.needs_time_bounds:
                 time_attributes['bounds'] = 'time_bnds'
 
-            times = cordex_var.times
-            time_step = cordex_var.time_step_size
-            time_bounds = cordex_var.time_bounds
-            if cordex_var.time_step_size >= 24 or time_bounds is not None:
-                LOGGER.debug('Switching time units to day instead of hours')
-                times = times / 24
-                time_step /= 24
-                if time_bounds is not None:
-                    time_bounds = time_bounds / 24
-                if 'units' in time_attributes:
-                    new_val = time_attributes['units'].replace('hours', 'days')
-                    LOGGER.debug(
-                        'Replaced attr "units" in "time" from "%s" to "%s"',
-                        time_attributes['units'],
-                        new_val
-                    )
-                    time_attributes['units'] = new_val
+            # Time and its bounds are saved in days since 1950-01-01
+            units = time_attributes['units']
+            calendar = time_attributes.get('calendar', 'standard')
+            if cordex_var.needs_time_bounds:
+                if cordex_var.time_bounds is not None:
+                    bounds = cordex_var.time_bounds
+                else:
+                    half_step = cordex_var.time_step_size / 2
+                    bounds = np.stack((cordex_var.times - half_step,
+                                       cordex_var.times + half_step), axis=-1)
+                bounds = to_cordex_time(bounds, units, calendar)
+            times = to_cordex_time(cordex_var.times, units, calendar)
+            LOGGER.debug(
+                'Time units changed from "%s" to "%s"', units, CORDEX_TIME_UNITS
+            )
+            time_attributes['units'] = CORDEX_TIME_UNITS
 
             self.create_var_from_data(
                 'time',
@@ -1291,12 +1270,6 @@ class CordexDataset(Dataset):
         if cordex_var.needs_time_bounds:
             LOGGER.debug('Creating time bounds variable')
             dims = (('time', times.size), ('bnds', 2))
-            if time_bounds is not None:
-                bounds = np.array(time_bounds, dtype=times.dtype)
-            else:
-                bounds = np.empty([d[1] for d in dims], dtype=times.dtype)
-                bounds[:, 0] = times - (time_step / 2)
-                bounds[:, 1] = times + (time_step / 2)
             bounds_attributes = { }
 
             self.create_var_from_data(
@@ -1509,10 +1482,14 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
             pass
         LOGGER.debug('Path created!')
 
-    LOGGER.debug('Preparing strings for the first and last date of the var')
-    dd1, dd2 = get_first_and_last_date_str(var_dates, var_freq,
-                       ('STS' != regcm_file.ftype))
-    LOGGER.debug('First date: %s    Last date: %s', dd1, dd2)
+    if var_dates is None:
+        # Time independent variables have no time range in the file name
+        time_range = []
+    else:
+        LOGGER.debug('Preparing strings for the first and last date')
+        dd1, dd2 = get_first_and_last_date_str(var_dates, var_freq)
+        LOGGER.debug('First date: %s    Last date: %s', dd1, dd2)
+        time_range = [dd1 + '-' + dd2]
 
     LOGGER.debug('Creating netCDF file basename')
     cordex_basename = '_'.join([
@@ -1525,8 +1502,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
         ICTP_Model,
         ICTP_Model_Version,
         var_freq,
-        dd1 + '-' + dd2 + '.nc',
-    ])
+    ] + time_range) + '.nc'
     LOGGER.debug('The new file will be called "%s"', cordex_basename)
 
     return os.path.join(cordex_last_dir, cordex_basename)

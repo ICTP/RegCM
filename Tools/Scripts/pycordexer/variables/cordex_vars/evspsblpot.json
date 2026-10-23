@@ -29,7 +29,7 @@
         }
       ],
       [
-        "IfNeededThinAndSave",
+        "IfNeededAverageAndSave",
         {
           "new_time_step": 24,
           "var_name": "evspsblpot",

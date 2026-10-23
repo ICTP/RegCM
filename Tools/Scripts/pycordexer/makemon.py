@@ -94,7 +94,7 @@ compressed in disk.
                 'y' in ncf.variables[var].dimensions):
                 nco.createVariable(var,nctype,ncf.variables[var].dimensions,
                                significant_digits=4,shuffle=True,
-                               fletcher32=True,zlib=True,complevel=9,
+                               fletcher32=True,zlib=True,complevel=1,
                                fill_value=1.0e+20)
             else:
                 if var == 'time_bnds':

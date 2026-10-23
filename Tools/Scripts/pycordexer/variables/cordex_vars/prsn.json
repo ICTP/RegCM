@@ -4,7 +4,8 @@
       [
         "ReadVariableFromFile",
         {
-          "var_name": "prsn"
+          "var_name": "prsn",
+          "need_time_bounds": true
         }
       ],
       [

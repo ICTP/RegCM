@@ -22,7 +22,7 @@ DATATYPE_MAIN = 'f'
 COMPRESSION = 'zlib'
 SHUFFLE = True
 FLETCHER32 = True
-COMPRESSION_LEVEL = 4
+COMPRESSION_LEVEL = 1
 SIGNIFICANT_DIGITS = 4
 
 # Some dimensions in the RegCM files must have a different name in the CORDEX

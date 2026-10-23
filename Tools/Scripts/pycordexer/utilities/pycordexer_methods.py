@@ -225,9 +225,16 @@ class SaveVariableToDisk(Filter):
         if self.var_name is not None:
             var_name = self.var_name
 
+        if prev_result.depends_on_time and prev_result.times.size == 0:
+            LOGGER.warning(
+                'No time steps left for variable %s at frequency %s: no file '
+                'written', var_name, prev_result.frequency
+            )
+            return prev_result
+
         cordex_path = prepare_cordex_file_dir(
             var_name,
-            regcm_file.dates,
+            prev_result.dates if prev_result.depends_on_time else None,
             prev_result.frequency,
             simulation,
             regcm_file,
@@ -345,6 +352,9 @@ def compute_monthly_mean(daily_var):
             'Unexpected time units "%s" for the daily variable %s: no '
             'monthly means', units, daily_var.name
         )
+        return None
+
+    if daily_var.times.size == 0:
         return None
 
     dates = daily_var.dates
