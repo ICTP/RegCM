@@ -168,6 +168,12 @@ Beside the options in the previous table, there is a flag called --disable-corrf
 If submitted, it disables the time correction performed by the method "CorrectTime".
 Actually, there is hardly a good reason to submit such a flag.
 
+Unless the --no-monthly flag is submitted, every daily variable that is also
+in the CORDEX-CMIP6 monthly table is saved as monthly means too. The mean of
+each month is computed from the daily values, and the cell_methods attribute
+is taken from the monthly table. A warning is printed if the RegCM file does
+not cover the whole month.
+
 .. _all-variable:
 
 The "ALL" variable

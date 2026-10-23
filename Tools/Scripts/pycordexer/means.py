@@ -5,7 +5,7 @@ import sys
 import time
 import numpy as np
 from netCDF4 import Dataset , num2date
-from netcdftime import datetime , utime
+from cftime import date2num
 
 """
 This small program is computing time means of netcdf file variables
@@ -36,8 +36,6 @@ compressed in disk.
         dates = num2date(xt, units=times.units, calendar=times.calendar)
     else:
         dates = num2date(times[:], units=times.units, calendar=times.calendar)
-    d1 = datetime(dates[0].year,dates[0].month,dates[0].day)
-    d2 = datetime(dates[-1].year,dates[-1].month,dates[-1].day)
     if window == 'day':
       f1 = (repr(dates[0].year).zfill(4)+repr(dates[0].month).zfill(2)+
             repr(dates[0].day).zfill(2))
@@ -95,7 +93,6 @@ compressed in disk.
         raise RuntimeError(
                 'Unsupported time window. Only day and mon implemented')
 
-    cdftime = utime(tunit,calendar=times.calendar)        
 
     for attr in ncf.ncattrs():
         if attr == 'frequency':
@@ -174,7 +171,7 @@ compressed in disk.
                               getattr(ncf.variables[var],attr))
 
     if window == 'day':
-        rc = cdftime.date2num(dates)
+        rc = date2num(dates, tunit, calendar=times.calendar)
         ic = rc.astype(int)
         dic = np.unique(ic)
         nco.variables['time'][:] = dic+0.5

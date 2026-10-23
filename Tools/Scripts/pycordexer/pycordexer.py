@@ -184,6 +184,11 @@ def parse_input():
         help='Disable the time correction on the variables'
     )
     parser.add_argument(
+        '--no-monthly',
+        action='store_true',
+        help='Do not compute the monthly means of the daily variables'
+    )
+    parser.add_argument(
         '--regcm-model-name',
         type=str,
         default='RegCM',
@@ -243,7 +248,7 @@ def save_vars(datafile, requested_vars, worker_pool,
               regcm_model_name='RegCM', regcm_version=None,
               regcm_version_id=None, regcm_nest_tag=None,
               cordex_root_dir=OUTPUTDIR, sigterm_handler=None,
-              sigint_handler=None):
+              sigint_handler=None, monthly=True):
 
     global REGCM_FILE
 
@@ -269,7 +274,8 @@ def save_vars(datafile, requested_vars, worker_pool,
         global_institute,
         experiment,
         ensemble,
-        notes
+        notes,
+        monthly
     )
 
     LOGGER.debug('Reading file %s', datafile)
@@ -486,7 +492,8 @@ def main():
         regcm_version,
         regcm_version_id,
         regcm_nest_tag,
-        output_dir
+        output_dir,
+        monthly=not args.no_monthly
     )
 
     worker_pool.close()

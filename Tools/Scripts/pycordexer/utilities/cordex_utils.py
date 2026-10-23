@@ -30,7 +30,7 @@ class RegcmSimulation(object):
 
     def __init__(self, mail='esp@ictp.it', domain='NONE', global_model='NONE',
                  global_institute='NONE', experiment='none', ensemble='NN',
-                 notes='none'):
+                 notes='none', monthly=True):
         self.mail = mail
         self.domain = domain
         self.product = 'output'
@@ -39,6 +39,8 @@ class RegcmSimulation(object):
         self.experiment = experiment
         self.ensemble = ensemble
         self.notes = notes
+        # Compute also the monthly means when saving daily variables
+        self.monthly = monthly
 
 
 def dtype_2_ctype(dtype):
@@ -120,6 +122,10 @@ def get_first_and_last_date_str(dates, frequency, ispoint=True):
             dates[-2].year,
             dates[-2].month
         )
+    # Monthly means computed by pycordexer: dates are the ones of the means
+    elif frequency == 'mon':
+        dd1 = '{:04d}{:02d}'.format(dates[0].year, dates[0].month)
+        dd2 = '{:04d}{:02d}'.format(dates[-1].year, dates[-1].month)
     # Precision for daily data must not have hour."yyyyMMdd"
     elif frequency == 'day':
         # We may already have STS data here, and a shift must be used
@@ -1247,16 +1253,19 @@ class CordexDataset(Dataset):
 
         if cordex_var.depends_on_time:
             LOGGER.debug('Saving variable "time"')
-            time_attributes = cordex_var.times_attributes
+            time_attributes = copy(cordex_var.times_attributes)
             if cordex_var.needs_time_bounds:
                 time_attributes['bounds'] = 'time_bnds'
 
             times = cordex_var.times
             time_step = cordex_var.time_step_size
-            if cordex_var.time_step_size >= 24:
+            time_bounds = cordex_var.time_bounds
+            if cordex_var.time_step_size >= 24 or time_bounds is not None:
                 LOGGER.debug('Switching time units to day instead of hours')
                 times = times / 24
                 time_step /= 24
+                if time_bounds is not None:
+                    time_bounds = time_bounds / 24
                 if 'units' in time_attributes:
                     new_val = time_attributes['units'].replace('hours', 'days')
                     LOGGER.debug(
@@ -1282,9 +1291,12 @@ class CordexDataset(Dataset):
         if cordex_var.needs_time_bounds:
             LOGGER.debug('Creating time bounds variable')
             dims = (('time', times.size), ('bnds', 2))
-            bounds = np.empty([d[1] for d in dims], dtype=times.dtype)
-            bounds[:, 0] = times - (time_step / 2)
-            bounds[:, 1] = times + (time_step / 2)
+            if time_bounds is not None:
+                bounds = np.array(time_bounds, dtype=times.dtype)
+            else:
+                bounds = np.empty([d[1] for d in dims], dtype=times.dtype)
+                bounds[:, 0] = times - (time_step / 2)
+                bounds[:, 1] = times + (time_step / 2)
             bounds_attributes = { }
 
             self.create_var_from_data(

@@ -67,7 +67,8 @@ The syntax to invoke the program is:
 
         \begin{tcolorbox}
          pycordexer.py [-h] [-m MAIL] [-d DOMAIN] [-g GLOBAL_MODEL] [-e EXPERIMENT] \\
-         [-b ENSEMBLE] [-n NOTES] [-o OUTPUT_DIR] [-c] datafile var1,var2,var3,...
+         [-b ENSEMBLE] [-n NOTES] [-o OUTPUT_DIR] [-c] [--no-monthly] \\
+         datafile var1,var2,var3,...
         \end{tcolorbox}
 
 The parameter *var1,var2,var3,...* is a list of CORDEX variables.
@@ -75,6 +76,12 @@ The *datafile* is a RegCM file which has the variables specified by *var1,var2,v
 inside.
 If var1,var2,var3,... is "ALL" (without quotes), the script will try to save all the
 values that are saved inside the RegCM file.
+
+Unless the --no-monthly flag is submitted, every daily variable that is also
+in the CORDEX-CMIP6 monthly table is saved as monthly means too. The mean of
+each month is computed from the daily values, and the cell_methods attribute
+is taken from the monthly table. A warning is printed if the RegCM file does
+not cover the whole month.
 
 Some variables can be extracted from different kind of files: for example, "tas" variable
 can be extracted both from SRF and STS files. To allow users to convert all files

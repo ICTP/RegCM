@@ -106,7 +106,7 @@ class Variable(object):
     """
     def __init__(self, name, data, dimensions, attributes, times=None,
                  times_attributes=None, auxiliary_vars=None,
-                 needs_time_bounds=False):
+                 needs_time_bounds=False, time_bounds=None, frequency=None):
         self.name = name
         self._data = data
         self._dimensions = dimensions
@@ -121,8 +121,14 @@ class Variable(object):
         else:
             self._auxiliary_variables = auxiliary_vars
 
+        # Explicit time bounds and frequency, if the time step is not uniform
+        self._time_bounds = time_bounds
+        self._frequency = frequency
+
         # In some situation override the flag needs_time_bounds
-        if self.time_step_size == 24 or self.time_step_size > 670:
+        if self._time_bounds is not None:
+            self._needs_time_bounds = True
+        elif self.time_step_size == 24 or self.time_step_size > 670:
             self._needs_time_bounds = True
         elif not self.depends_on_time:
             self._needs_time_bounds = False
@@ -165,6 +171,10 @@ class Variable(object):
         return self._times_attributes
 
     @property
+    def time_bounds(self):
+        return self._time_bounds
+
+    @property
     def time_step_size(self):
         if not self.depends_on_time:
             return -1
@@ -176,6 +186,9 @@ class Variable(object):
     def frequency(self):
         if not self.depends_on_time:
             return 'fx'
+
+        if self._frequency is not None:
+            return self._frequency
 
         if self.time_step_size == 24:
             return 'day'

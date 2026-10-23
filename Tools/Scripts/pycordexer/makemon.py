@@ -6,7 +6,6 @@ import glob
 from netCDF4 import Dataset , num2date
 import numpy as np
 import time
-from netcdftime import datetime , utime
 
 """
 This small program is computing time means of netcdf file variables
@@ -26,7 +25,7 @@ compressed in disk.
         print('making directory : ',outpath)
         os.mkdir(outpath)
 
-    if year:
+    if year is None:
         datafiles = glob.glob(inpath+'/**/*nc')
     else:
         datafiles = glob.glob(inpath+'/**/*'+str(year)+'*.nc')
@@ -48,8 +47,6 @@ compressed in disk.
         else:
             dates = num2date(times[:],
                              units=times.units, calendar=times.calendar)
-        d1 = datetime(dates[0].year,dates[0].month,dates[0].day)
-        d2 = datetime(dates[-1].year,dates[-1].month,dates[-1].day)
         f1 = (repr(dates[0].year).zfill(4)+repr(dates[0].month).zfill(2)+
               repr(dates[0].day).zfill(2))
         f2 = (repr(dates[-1].year).zfill(4)+repr(dates[-1].month).zfill(2)+
@@ -70,7 +67,6 @@ compressed in disk.
         except:
             raise RuntimeError('Cannot open output file')
         tunit = 'days since 1950-01-01 00:00:00'
-        cdftime = utime(tunit,calendar=times.calendar)        
         for attr in ncf.ncattrs():
             if attr == 'frequency':
                 nco.setncattr(attr,'mon')

@@ -1,13 +1,16 @@
 import re
+import warnings
 import numpy as np
 from numpy.ma import is_masked
 import logging
 from importlib import import_module
 from inspect import isclass, getmembers
 from copy import copy
-from netCDF4 import Dataset
+from netCDF4 import Dataset, date2num
+from cftime import datetime as cfdatetime
 
-from utilities.globals import DATATYPE_MAIN, DATATYPE_AUXILIARIES
+from utilities.globals import DATATYPE_MAIN, DATATYPE_AUXILIARIES, \
+    CORDEX_MON_VARS
 from utilities.rotate import grid_to_earth_uvrotate
 from utilities.repeater import Repeater
 from utilities.variables import Variable, MemoryData, FilterData,\
@@ -294,7 +297,122 @@ class SaveVariableToDisk(Filter):
             cdf.save_cordex_variable(cordex_var, regcm_file)
         LOGGER.info('Finished writing on file %s', cordex_path)
 
+        if simulation.monthly and cordex_var.frequency == 'day':
+            monthly_var = compute_monthly_mean(cordex_var)
+            if monthly_var is not None:
+                monthly_path = prepare_cordex_file_dir(
+                    var_name,
+                    monthly_var.dates,
+                    monthly_var.frequency,
+                    simulation,
+                    regcm_file,
+                    cordex_dir
+                )
+                LOGGER.info('Writing on file %s', monthly_path)
+                with CordexDataset(monthly_path, regcm_file,
+                                   simulation) as cdf:
+                    cdf.save_cordex_variable(monthly_var, regcm_file)
+                LOGGER.info('Finished writing on file %s', monthly_path)
+
         return prev_result
+
+
+def compute_monthly_mean(daily_var):
+    """Compute the monthly means of a daily variable.
+
+    The mean of each month is the mean of the valid daily values of that month.
+    Its time is the median of the daily times and its bounds go from the start
+    of the first day to the end of the last day of the month (as in the
+    makemon.py script). The cell_methods are the ones of the CORDEX-CMIP6
+    monthly table.
+
+    Returns:
+
+        ``Variable``: the monthly means, or ``None`` if the variable is not in
+        the CORDEX-CMIP6 monthly table.
+    """
+    if daily_var.name not in CORDEX_MON_VARS:
+        LOGGER.debug(
+            'Variable %s is not in the monthly table: no monthly means',
+            daily_var.name
+        )
+        return None
+
+    units = daily_var.times_attributes['units']
+    calendar = daily_var.times_attributes['calendar']
+    if not units.startswith('hours since'):
+        LOGGER.warning(
+            'Unexpected time units "%s" for the daily variable %s: no '
+            'monthly means', units, daily_var.name
+        )
+        return None
+
+    dates = daily_var.dates
+    months = np.array([d.year * 100 + d.month for d in dates])
+    month_keys = np.unique(months)
+
+    dim_names = [d[0] for d in daily_var.dimensions]
+    time_index = dim_names.index('time')
+
+    with daily_var.data:
+        daily_data = daily_var.data()
+    daily_data = np.ma.filled(
+        np.ma.masked_invalid(np.ma.asarray(daily_data, dtype=np.float64)),
+        np.nan
+    )
+    daily_data = np.moveaxis(daily_data, time_index, 0)
+
+    n_months = month_keys.size
+    times = np.empty(n_months, dtype=np.float64)
+    bounds = np.empty((n_months, 2), dtype=np.float64)
+    data = np.empty((n_months,) + daily_data.shape[1:], dtype=DATATYPE_MAIN)
+    for i, key in enumerate(month_keys):
+        in_month = months == key
+        month_times = daily_var.times[in_month].astype(np.float64)
+        times[i] = np.median(month_times)
+        bounds[i, 0] = np.min(month_times) - 12.0
+        bounds[i, 1] = np.max(month_times) + 12.0
+        with warnings.catch_warnings():
+            # All NaN points (e.g. land variables over the sea) stay NaN
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            data[i] = np.nanmean(daily_data[in_month], axis=0)
+
+        year, month = divmod(int(key), 100)
+        next_year, next_month = (year + 1, 1) if month == 12 \
+            else (year, month + 1)
+        month_hours = (
+            date2num(cfdatetime(next_year, next_month, 1, calendar=calendar),
+                     units, calendar) -
+            date2num(cfdatetime(year, month, 1, calendar=calendar),
+                     units, calendar)
+        )
+        if bounds[i, 1] - bounds[i, 0] < month_hours - 1.0:
+            LOGGER.warning(
+                'Monthly mean of %s for %04d-%02d computed on %d days only',
+                daily_var.name, year, month, np.count_nonzero(in_month)
+            )
+
+    data = np.moveaxis(data, 0, time_index)
+    data = np.ma.masked_invalid(data)
+
+    dimensions = copy(daily_var.dimensions)
+    dimensions[time_index] = ('time', n_months)
+
+    attributes = copy(daily_var.attributes)
+    attributes['cell_methods'] = \
+        CORDEX_MON_VARS[daily_var.name]['cell_methods']
+
+    return Variable(
+        name=daily_var.name,
+        data=MemoryData(data),
+        dimensions=dimensions,
+        attributes=attributes,
+        times=times,
+        times_attributes=copy(daily_var.times_attributes),
+        auxiliary_vars=daily_var.auxiliary_variables,
+        time_bounds=bounds,
+        frequency='mon',
+    )
 
 
 class SaveMultipleVariablesToDisk(Filter):

@@ -117,6 +117,11 @@ for jf in jsonfiles:
         for k in elements.keys( ):
             CORDEX_CMIP6_DEFINITIONS[k] = elements[k]
 
+# The variables of the monthly table, used to select and describe the monthly
+# means computed from the daily variables
+with open(os.path.join(MAIN_DIR, 'variables', 'CORDEX-CMIP6_mon.json')) as f:
+    CORDEX_MON_VARS = json.load(f)['variable_entry']
+
 # Default fill values for NETCDF. These are the same values that you can find
 # from the netCDF4._default_fillvals dictionary
 NETCDF_DEFAULT_FILL_VALUES = {
