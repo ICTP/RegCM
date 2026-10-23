@@ -170,7 +170,10 @@ module mod_micro_wdm7
              rslopesbmax, rslopegbmax, rslopehbmax, rsloper2max,   &
              rslopes2max, rslopeg2max, rslopeh2max, rsloper3max,   &
              rslopes3max, rslopeg3max, rslopeh3max
-  !$acc declare create(pidnc, pidnr, pidn0s, pidn0g, pidn0h)
+  !$acc declare create(pidnc, pidnr, pidn0s, pidn0g, pidn0h, rslopermax, rsloperbmax, rsloper2max, &
+  !$acc   rsloper3max, pvtr, pvtrn, rslopesmax, rslopesbmax, rslopes2max, rslopes3max, pvts, rslopegmax, &
+  !$acc   rslopegbmax, rslopeg2max, rslopeg3max, pvtg, rslopehmax, rslopehbmax, rslopeh2max, rslopeh3max, &
+  !$acc   pvth)
 
   public :: allocate_mod_wdm7, init_wdm7, wdm7
 
@@ -309,7 +312,10 @@ module mod_micro_wdm7
     rslopes3max = rslopes2max * rslopesmax
     rslopeg3max = rslopeg2max * rslopegmax
     rslopeh3max = rslopeh2max * rslopehmax
-    !$acc update device(pidnc, pidnr, pidn0s, pidn0g, pidn0h)
+    !$acc update device(pidnc, pidnr, pidn0s, pidn0g, pidn0h, rslopermax, rsloperbmax, rsloper2max, &
+    !$acc   rsloper3max, pvtr, pvtrn, rslopesmax, rslopesbmax, rslopes2max, rslopes3max, pvts, rslopegmax, &
+    !$acc   rslopegbmax, rslopeg2max, rslopeg3max, pvtg, rslopehmax, rslopehbmax, rslopeh2max, rslopeh3max, &
+    !$acc   pvth)
   end subroutine init_wdm7
 
   subroutine wdm7(mo2mc,mc2mo)
@@ -701,7 +707,7 @@ module mod_micro_wdm7
           rslopec2(i,k) = rslopec2max
           rslopec3(i,k) = rslopec3max
         else
-          rslopec(i,k) = 1.0_rkx/lamdac(qci(i,k,1),den(i,k),ncr(i,k,2),pidnc)
+          rslopec(i,k) = 1.0_rkx/lamdac(qci(i,k,1),den(i,k),ncr(i,k,2))
           rslopec2(i,k) = rslopec(i,k)*rslopec(i,k)
           rslopec3(i,k) = rslopec2(i,k)*rslopec(i,k)
         end if
@@ -1048,7 +1054,7 @@ module mod_micro_wdm7
           rslopec2(i,k) = rslopec2max
           rslopec3(i,k) = rslopec3max
         else
-          rslopec(i,k) = 1.0_rkx/lamdac(qci(i,k,1),den(i,k),ncr(i,k,2),pidnc)
+          rslopec(i,k) = 1.0_rkx/lamdac(qci(i,k,1),den(i,k),ncr(i,k,2))
           rslopec2(i,k) = rslopec(i,k)*rslopec(i,k)
           rslopec3(i,k) = rslopec2(i,k)*rslopec(i,k)
         end if
@@ -2161,7 +2167,7 @@ module mod_micro_wdm7
         if ( qci(i,k,1) <= qcimin ) qci(i,k,1) = 0.0_rkx
         if ( qci(i,k,2) <= qcimin ) qci(i,k,2) = 0.0_rkx
         if ( qrs(i,k,1) >= qrsmin .and. ncr(i,k,3) > nrmin ) then
-          lamdax = lamdar(qrs(i,k,1),den(i,k),ncr(i,k,3),pidnr)
+          lamdax = lamdar(qrs(i,k,1),den(i,k),ncr(i,k,3))
           if ( lamdax <= lamdarmin ) then
             lamdax = lamdarmin
             ncr(i,k,3) = den(i,k)*qrs(i,k,1)*(lamdax**3)/pidnr
@@ -2171,7 +2177,7 @@ module mod_micro_wdm7
           end if
         end if
         if ( qci(i,k,1) >= qcimin .and. ncr(i,k,2) > ncmin ) then
-          lamdax = lamdac(qci(i,k,1),den(i,k),ncr(i,k,2),pidnc)
+          lamdax = lamdac(qci(i,k,1),den(i,k),ncr(i,k,2))
           if ( lamdax <= lamdacmin ) then
             lamdax = lamdacmin
             ncr(i,k,2) = den(i,k)*qci(i,k,1)*(lamdax**3)/pidnc
@@ -2206,7 +2212,7 @@ module mod_micro_wdm7
         rslope2(i,k,1) = rsloper2max
         rslope3(i,k,1) = rsloper3max
       else
-        olr = 1.0_rkx/lamdar(qrs(i,k,1),den(i,k),ncr(i,k),pidnr)
+        olr = 1.0_rkx/lamdar(qrs(i,k,1),den(i,k),ncr(i,k))
         rslope(i,k,1) = min(olr,1.e-3_rkx)
         rslopeb(i,k,1) = rslope(i,k,1)**bvtr
         rslope2(i,k,1) = rslope(i,k,1)*rslope(i,k,1)
@@ -2220,7 +2226,7 @@ module mod_micro_wdm7
       else
         supcol = tzero-t(i,k)
         n0sfac = max(min(exp(alpha*supcol),nfacmax),1.0_rkx)
-        rslope(i,k,2) = 1.0_rkx/lamdas(qrs(i,k,2),den(i,k),n0sfac,pidn0s)
+        rslope(i,k,2) = 1.0_rkx/lamdas(qrs(i,k,2),den(i,k),n0sfac)
         rslopeb(i,k,2) = rslope(i,k,2)**bvts
         rslope2(i,k,2) = rslope(i,k,2)*rslope(i,k,2)
         rslope3(i,k,2) = rslope2(i,k,2)*rslope(i,k,2)
@@ -2231,7 +2237,7 @@ module mod_micro_wdm7
         rslope2(i,k,3) = rslopeg2max
         rslope3(i,k,3) = rslopeg3max
       else
-        rslope(i,k,3) = 1.0_rkx/lamdag(qrs(i,k,3),den(i,k),pidn0g)
+        rslope(i,k,3) = 1.0_rkx/lamdag(qrs(i,k,3),den(i,k))
         rslopeb(i,k,3) = rslope(i,k,3)**bvtg
         rslope2(i,k,3) = rslope(i,k,3)*rslope(i,k,3)
         rslope3(i,k,3) = rslope2(i,k,3)*rslope(i,k,3)
@@ -2242,7 +2248,7 @@ module mod_micro_wdm7
         rslope2(i,k,4) = rslopeh2max
         rslope3(i,k,4) = rslopeh3max
       else
-        rslope(i,k,4) = 1.0_rkx/lamdah(qrs(i,k,4),den(i,k),pidn0h)
+        rslope(i,k,4) = 1.0_rkx/lamdah(qrs(i,k,4),den(i,k))
         rslopeb(i,k,4) = rslope(i,k,4)**bvth
         rslope2(i,k,4) = rslope(i,k,4)*rslope(i,k,4)
         rslope3(i,k,4) = rslope2(i,k,4)*rslope(i,k,4)
@@ -2260,37 +2266,28 @@ module mod_micro_wdm7
     end do
   end subroutine slope_wdm7
 
-  pure subroutine slope_rain(qrs,ncr,den,denfac,vt,vtn,nz,ims,ime,i, &
-                             pidnr,rslopermax,rsloperbmax,rsloper2max, &
-                             rsloper3max,pvtr,pvtrn)
+  pure subroutine slope_rain(qrs,ncr,den,denfac,vt,vtn)
     !$acc routine seq
     implicit none
-    integer(ik4), value, intent(in) :: nz, ims, ime, i
-    real(rkx), value, intent(in) :: pidnr, pvtr, pvtrn
-    real(rkx), value, intent(in) :: rslopermax, rsloperbmax
-    real(rkx), value, intent(in) :: rsloper2max, rsloper3max
-    real(rkx), dimension(ims:ime,nz), intent(in) :: qrs, den, denfac, ncr
-    real(rkx), dimension(ims:ime,nz), intent(inout) :: vt, vtn
+    real(rkx), intent(in) :: qrs, den, denfac, ncr
+    real(rkx), intent(out) :: vt, vtn
     real(rkx) :: rslope, rslopeb
-    integer(ik4) :: k
 
-    do k = 1, nz
-      if ( qrs(i,k) <= qrsmin .or. ncr(i,k) <= nrmin ) then
-        rslope = rslopermax
-        rslopeb = rsloperbmax
-        ! rslope2 = rsloper2max
-        ! rslope3 = rsloper3max
-      else
-        rslope = min(1.0_rkx/lamdar(qrs(i,k),den(i,k),ncr(i,k),pidnr),1.e-3_rkx)
-        rslopeb = rslope**bvtr
-        ! rslope2 = rslope*rslope
-        ! rslope3 = rslope2*rslope
-      end if
-      vt(i,k) = pvtr*rslopeb*denfac(i,k)
-      vtn(i,k) = pvtrn*rslopeb*denfac(i,k)
-      if ( qrs(i,k) <= 0.0_rkx ) vt(i,k) = 0.0_rkx
-      if ( ncr(i,k) <= 0.0_rkx ) vtn(i,k) = 0.0_rkx
-    end do
+    if ( qrs <= qrsmin .or. ncr <= nrmin ) then
+      rslope = rslopermax
+      rslopeb = rsloperbmax
+      ! rslope2 = rsloper2max
+      ! rslope3 = rsloper3max
+    else
+      rslope = min(1.0_rkx/lamdar(qrs,den,ncr),1.e-3_rkx)
+      rslopeb = rslope**bvtr
+      ! rslope2 = rslope*rslope
+      ! rslope3 = rslope2*rslope
+    end if
+    vt = pvtr*rslopeb*denfac
+    vtn = pvtrn*rslopeb*denfac
+    if ( qrs <= 0.0_rkx ) vt = 0.0_rkx
+    if ( ncr <= 0.0_rkx ) vtn = 0.0_rkx
   end subroutine slope_rain
 
   subroutine slope_rain2d(ims,ime,qrs,ncr,den,denfac,rslope,rslopeb, &
@@ -2311,7 +2308,7 @@ module mod_micro_wdm7
         rslope3(i,k) = rsloper3max
       else
         rslope(i,k) = min(1.0_rkx / &
-          lamdar(qrs(i,k),den(i,k),ncr(i,k),pidnr),1.e-3_rkx)
+          lamdar(qrs(i,k),den(i,k),ncr(i,k)),1.e-3_rkx)
         rslopeb(i,k) = rslope(i,k)**bvtr
         rslope2(i,k) = rslope(i,k)*rslope(i,k)
         rslope3(i,k) = rslope2(i,k)*rslope(i,k)
@@ -2323,106 +2320,79 @@ module mod_micro_wdm7
     end do
   end subroutine slope_rain2d
 
-  pure subroutine slope_snow(qrs,den,denfac,t,vt,nz,ims,ime,i, &
-                             pidn0s,rslopesmax,rslopesbmax,rslopes2max, &
-                             rslopes3max,pvts)
+  pure subroutine slope_snow(qrs,den,denfac,t,vt)
     !$acc routine seq
     implicit none
-    integer(ik4), value, intent(in) :: nz, ims, ime, i
-    real(rkx), value, intent(in) :: pidn0s, pvts
-    real(rkx), value, intent(in) :: rslopesmax, rslopesbmax
-    real(rkx), value, intent(in) :: rslopes2max, rslopes3max
-    real(rkx), dimension(ims:ime,nz), intent(in) :: t, qrs, den, denfac
-    real(rkx), dimension(ims:ime,nz), intent(inout) :: vt
+    real(rkx), intent(in) :: t, qrs, den, denfac
+    real(rkx), intent(out) :: vt
     real(rkx) :: supcol, n0sfac
     real(rkx) :: rslope, rslopeb
-    integer(ik4) :: k
 
-    do k = 1, nz
-      !---------------------------------------------------------------
-      ! n0s: Intercept parameter for snow [m-4] [HDC 6]
-      !---------------------------------------------------------------
-     if ( qrs(i,k) <= qrsmin ) then
-       rslope = rslopesmax
-       rslopeb = rslopesbmax
-       ! rslope2 = rslopes2max
-       ! rslope3 = rslopes3max
-     else
-       supcol = tzero-t(i,k)
-       n0sfac = max(min(exp(alpha*supcol),nfacmax),1.0_rkx)
-       rslope = 1.0_rkx/lamdas(qrs(i,k),den(i,k),n0sfac,pidn0s)
-       rslopeb = rslope**bvts
-       ! rslope2 = rslope*rslope
-       ! rslope3 = rslope2*rslope
-     end if
-     vt(i,k) = pvts*rslopeb*denfac(i,k)
-     if ( qrs(i,k) <= 0.0_rkx ) vt(i,k) = 0.0_rkx
-   end do
+    !---------------------------------------------------------------
+    ! n0s: Intercept parameter for snow [m-4] [HDC 6]
+    !---------------------------------------------------------------
+    if ( qrs <= qrsmin ) then
+      rslope = rslopesmax
+      rslopeb = rslopesbmax
+      ! rslope2 = rslopes2max
+      ! rslope3 = rslopes3max
+    else
+      supcol = tzero-t
+      n0sfac = max(min(exp(alpha*supcol),nfacmax),1.0_rkx)
+      rslope = 1.0_rkx/lamdas(qrs,den,n0sfac)
+      rslopeb = rslope**bvts
+      ! rslope2 = rslope*rslope
+      ! rslope3 = rslope2*rslope
+    end if
+    vt = pvts*rslopeb*denfac
+    if ( qrs <= 0.0_rkx ) vt = 0.0_rkx
   end subroutine slope_snow
 
-  pure subroutine slope_graup(qrs,den,denfac,vt,nz,ims,ime,i, &
-                              pidn0g,rslopegmax,rslopegbmax,rslopeg2max, &
-                             rslopeg3max,pvtg)
+  pure subroutine slope_graup(qrs,den,denfac,vt)
     !$acc routine seq
     implicit none
-    integer(ik4), value, intent(in) :: nz, ims, ime, i
-    real(rkx), value, intent(in) :: pidn0g, pvtg
-    real(rkx), value, intent(in) :: rslopegmax, rslopegbmax
-    real(rkx), value, intent(in) :: rslopeg2max,rslopeg3max
-    real(rkx), dimension(ims:ime,nz), intent(in) :: qrs, den, denfac
-    real(rkx), dimension(ims:ime,nz), intent(inout) :: vt
+    real(rkx), intent(in) :: qrs, den, denfac
+    real(rkx), intent(out) :: vt
     real(rkx) :: rslope, rslopeb
-    integer(ik4) :: k
 
-    do k = 1, nz
-      !---------------------------------------------------------------
-      ! n0s: Intercept parameter for snow [m-4] [HDC 6]
-      !---------------------------------------------------------------
-      if ( qrs(i,k) <= qrsmin ) then
-        rslope = rslopegmax
-        rslopeb = rslopegbmax
-        ! rslope2 = rslopeg2max
-        ! rslope3 = rslopeg3max
-      else
-        rslope = 1.0_rkx/lamdag(qrs(i,k),den(i,k),pidn0g)
-        rslopeb = rslope**bvtg
-        ! rslope2 = rslope*rslope
-        ! rslope3 = rslope2*rslope
-      end if
-      vt(i,k) = pvtg*rslopeb*denfac(i,k)
-      if ( qrs(i,k) <= 0.0_rkx ) vt(i,k) = 0.0_rkx
-    end do
+    !---------------------------------------------------------------
+    ! n0s: Intercept parameter for snow [m-4] [HDC 6]
+    !---------------------------------------------------------------
+    if ( qrs <= qrsmin ) then
+      rslope = rslopegmax
+      rslopeb = rslopegbmax
+      ! rslope2 = rslopeg2max
+      ! rslope3 = rslopeg3max
+    else
+      rslope = 1.0_rkx/lamdag(qrs,den)
+      rslopeb = rslope**bvtg
+      ! rslope2 = rslope*rslope
+      ! rslope3 = rslope2*rslope
+    end if
+    vt = pvtg*rslopeb*denfac
+    if ( qrs <= 0.0_rkx ) vt = 0.0_rkx
   end subroutine slope_graup
 
-  pure subroutine slope_hail(qrs,den,denfac,vt,nz,ims,ime,i, &
-                             pidn0h,rslopehmax,rslopehbmax,rslopeh2max, &
-                             rslopeh3max,pvth)
+  pure subroutine slope_hail(qrs,den,denfac,vt)
     !$acc routine seq
     implicit none
-    integer(ik4), value, intent(in) :: nz, ims, ime, i
-    real(rkx), value, intent(in) :: pidn0h, pvth
-    real(rkx), value, intent(in) :: rslopehmax, rslopehbmax
-    real(rkx), value, intent(in) :: rslopeh2max, rslopeh3max
-    real(rkx), dimension(ims:ime,nz), intent(in) :: qrs, den, denfac
-    real(rkx), dimension(ims:ime,nz), intent(inout) :: vt
+    real(rkx), intent(in) :: qrs, den, denfac
+    real(rkx), intent(out) :: vt
     real(rkx) :: rslope, rslopeb
-    integer(ik4) :: k
 
-    do k = 1, nz
-      if ( qrs(i,k) <= qrsmin ) then
-        rslope = rslopehmax
-        rslopeb = rslopehbmax
-        ! rslope2 = rslopeh2max
-        ! rslope3 = rslopeh3max
-      else
-        rslope = 1.0_rkx/lamdah(qrs(i,k),den(i,k),pidn0h)
-        rslopeb = rslope**bvth
-        ! rslope2 = rslope*rslope
-        ! rslope3 = rslope2*rslope
-      end if
-      vt(i,k) = pvth*rslopeb*denfac(i,k)
-      if ( qrs(i,k) <= 0.0_rkx ) vt(i,k) = 0.0_rkx
-    end do
+    if ( qrs <= qrsmin ) then
+      rslope = rslopehmax
+      rslopeb = rslopehbmax
+      ! rslope2 = rslopeh2max
+      ! rslope3 = rslopeh3max
+    else
+      rslope = 1.0_rkx/lamdah(qrs,den)
+      rslopeb = rslope**bvth
+      ! rslope2 = rslope*rslope
+      ! rslope3 = rslope2*rslope
+    end if
+    vt = pvth*rslopeb*denfac
+    if ( qrs <= 0.0_rkx ) vt = 0.0_rkx
   end subroutine slope_hail
   !
   ! For non-iteration semi-lagrangain forward advection for cloud
@@ -2461,8 +2431,8 @@ module mod_micro_wdm7
     real(rkx) :: th, th2, qqh, dqh
     real(rkx) :: zsum, qsum, xdim, xdip
     real(rkx) :: allold, decfl
-    real(rkx), dimension(ims:ime,kz) :: ww, wa, wa2, was
-    real(rkx), dimension(ims:ime,kz) :: qn, qr
+    real(rkx), dimension(ims:ime,kz) :: ww, was
+    real(rkx) :: qr, wa, wa2
     real(rkx), dimension(ims:ime,kz+1) :: wi, zi, za, dza, qa, qmi, qpi
     real(rkx), parameter :: fa1 = 9.0_rkx/16.0_rkx
     real(rkx), parameter :: fa2 = 1.0_rkx/16.0_rkx
@@ -2548,7 +2518,6 @@ module mod_micro_wdm7
         !$acc loop seq
         do k = 1, kz
           qa(i,k) = rql(i,k)*dzl(i,k)/dza(i,k)
-          qr(i,k) = qa(i,k)/denl(i,k)
         end do
         qa(i,kzp1) = 0.0_rkx
         if ( n > maxiter ) exit
@@ -2556,26 +2525,18 @@ module mod_micro_wdm7
         ! compute arrival terminal velocity, and estimate mean
         ! terminal velocity then back to use mean terminal velocity
         !
-        if ( id == 1 ) then
-          call slope_rain(qr,rnl,denl,denfacl,wa,wa2,kz,ims,ime,i, &
-                          pidnr,rslopermax,rsloperbmax,rsloper2max, &
-                          rsloper3max,pvtr,pvtrn)
-        else if ( id == 2 ) then
-          call slope_hail(qr,denl,denfacl,wa,kz,ims,ime,i, &
-                          pidn0h,rslopehmax,rslopehbmax,rslopeh2max, &
-                          rslopeh3max,pvth)
-        end if
-        if ( n >= 2 ) then
-          !$acc loop seq
-          do k = 1, kz
-            wa(i,k) = d_half*(wa(i,k)+was(i,k))
-          end do
-        end if
-        ! mean wind is average of departure and new arrival winds
         !$acc loop seq
         do k = 1, kz
-          ww(i,k) = d_half * ( wwl(i,k)+wa(i,k) )
-          was(i,k) = wa(i,k)
+          qr = qa(i,k)/denl(i,k)
+          if ( id == 1 ) then
+            call slope_rain(qr,rnl(i,k),denl(i,k),denfacl(i,k),wa,wa2)
+          else if ( id == 2 ) then
+            call slope_hail(qr,denl(i,k),denfacl(i,k),wa)
+          end if
+          if ( n >= 2 ) wa = d_half*(wa+was(i,k))
+          ! mean wind is average of departure and new arrival winds
+          ww(i,k) = d_half * ( wwl(i,k)+wa )
+          was(i,k) = wa
         end do
         n = n + 1
       end do
@@ -2606,7 +2567,7 @@ module mod_micro_wdm7
       !
       !$acc loop seq
       do k = 1, kz
-        qn(i,k) = 0.0_rkx
+        rql(i,k) = 0.0_rkx
       end do
       kb = 1
       kt = 1
@@ -2649,7 +2610,7 @@ module mod_micro_wdm7
             qqd = d_half*(qpi(i,kb)-qmi(i,kb))
             qqh = qqd*th2+qmi(i,kb)*th
             qql = qqd*tl2+qmi(i,kb)*tl
-            qn(i,k) = (qqh-qql)/(th-tl)
+            rql(i,k) = (qqh-qql)/(th-tl)
           else if ( kt > kb ) then
             tl = (zi(i,k)-za(i,kb))/dza(i,kb)
             tl2 = tl*tl
@@ -2671,7 +2632,7 @@ module mod_micro_wdm7
             dqh = qqd*th2+qmi(i,kt)*th
             zsum = zsum + th*dza(i,kt)
             qsum = qsum + dqh*dza(i,kt)
-            qn(i,k) = qsum/zsum
+            rql(i,k) = qsum/zsum
           end if
           cycle intp
         end if
@@ -2692,13 +2653,6 @@ module mod_micro_wdm7
           exit sum_precip3
         end if
       end do sum_precip3
-      !
-      ! replace the new values
-      !
-      !$acc loop seq
-      do k = 1, kz
-        rql(i,k) = qn(i,k)
-      end do
     end do i_loop
   end subroutine nislfv_rain_plmr
 
@@ -2721,9 +2675,9 @@ module mod_micro_wdm7
     real(rkx) :: zsum, qsum, xdim, xdip
     real(rkx) :: allold, decfl
     real(rkx) :: precip_col
-    real(rkx), dimension(ims:ime,kz) :: ww, wa, wa2, was
+    real(rkx), dimension(ims:ime,kz) :: ww, was
     real(rkx), dimension(ims:ime,kz+1) :: wi, zi, za
-    real(rkx), dimension(ims:ime,kz) :: qn, qr, qr2
+    real(rkx) :: qr, qr2, wa, wa2, qn
     real(rkx), dimension(ims:ime,kz+1) :: dza, qa, qa2, qmi, qpi
     real(rkx), parameter :: fa1 = 9.0_rkx/16.0_rkx
     real(rkx), parameter :: fa2 = 1.0_rkx/16.0_rkx
@@ -2804,8 +2758,6 @@ module mod_micro_wdm7
         do k = 1, kz
           qa(i,k) = max(rql(i,k)*dzl(i,k)/dza(i,k),d_zero)
           qa2(i,k) = max(rql2(i,k)*dzl(i,k)/dza(i,k),d_zero)
-          qr(i,k) = qa(i,k)/denl(i,k)
-          qr2(i,k) = qa2(i,k)/denl(i,k)
         end do
         qa(i,kzp1) = 0.0_rkx
         qa2(i,kzp1) = 0.0_rkx
@@ -2814,33 +2766,28 @@ module mod_micro_wdm7
         ! terminal velocity then back to use mean terminal velocity
         !
         if ( n > maxiter ) exit
-        call slope_snow(qr,denl,denfacl,tkl,wa,kz,ims,ime,i, &
-                        pidn0s,rslopesmax,rslopesbmax,rslopes2max, &
-                        rslopes3max,pvts)
-        call slope_graup(qr2,denl,denfacl,wa2,kz,ims,ime,i, &
-                         pidn0g,rslopegmax,rslopegbmax,rslopeg2max, &
-                         rslopeg3max,pvtg)
         !$acc loop seq
         do k = 1, kz
-          if ( qr(i,k) > qrsmin .or. qr2(i,k) > qrsmin ) then
-            wa(i,k) = (wa(i,k)*qr(i,k) + wa2(i,k)*qr2(i,k))/(qr(i,k)+qr2(i,k))
+          qr = qa(i,k)/denl(i,k)
+          qr2 = qa2(i,k)/denl(i,k)
+          call slope_snow(qr,denl(i,k),denfacl(i,k),tkl(i,k),wa)
+          call slope_graup(qr2,denl(i,k),denfacl(i,k),wa2)
+          if ( qr > qrsmin .or. qr2 > qrsmin ) then
+            wa = (wa*qr + wa2*qr2)/(qr+qr2)
           else
-            wa(i,k) = 0.0_rkx
+            wa = 0.0_rkx
           end if
-        end do
-        if ( n >= 2 ) then
-          !$acc loop seq
-          do k = 1, kz
-            wa(i,k) = d_half*(wa(i,k)+was(i,k))
-          end do
-        end if
-        !$acc loop seq
-        do k = 1, kz
+          if ( n >= 2 ) wa = d_half*(wa+was(i,k))
           ! mean wind is average of departure and new arrival winds
-          ww(i,k) = d_half * ( wwl(i,k)+wa(i,k) )
-          was(i,k) = wa(i,k)
+          ww(i,k) = d_half * ( wwl(i,k)+wa )
+          was(i,k) = wa
         end do
         n = n + 1
+      end do
+      !$acc loop seq
+      do k = 1, kz
+        rql(i,k) = d_zero
+        rql2(i,k) = d_zero
       end do
       !$acc loop seq
       ist_loop : &
@@ -2877,15 +2824,12 @@ module mod_micro_wdm7
         qpi(i,kzp1) = qa(i,kzp1)
         ! interpolation to regular point
         !
-        !$acc loop seq
-        do k = 1, kz
-          qn(i,k) = 0.0_rkx
-        end do
         kb = 1
         kt = 1
         !$acc loop seq
         intp : &
         do k = 1, kz
+          qn = d_zero
           kb = max(kb-1,1)
           kt = max(kt-1,1)
           ! find kb and kt
@@ -2922,7 +2866,7 @@ module mod_micro_wdm7
               qqd = d_half*(qpi(i,kb)-qmi(i,kb))
               qqh = qqd*th2+qmi(i,kb)*th
               qql = qqd*tl2+qmi(i,kb)*tl
-              qn(i,k) = (qqh-qql)/(th-tl)
+              qn = (qqh-qql)/(th-tl)
             else if ( kt > kb ) then
               tl = (zi(i,k)-za(i,kb))/dza(i,kb)
               tl2 = tl*tl
@@ -2944,7 +2888,12 @@ module mod_micro_wdm7
               dqh = qqd*th2+qmi(i,kt)*th
               zsum = zsum + th*dza(i,kt)
               qsum = qsum + dqh*dza(i,kt)
-              qn(i,k) = qsum/zsum
+              qn = qsum/zsum
+            end if
+            if ( ist == 1 ) then
+              rql(i,k) = qn
+            else
+              rql2(i,k) = qn
             end if
             cycle intp
           end if
@@ -2965,16 +2914,8 @@ module mod_micro_wdm7
           end if
         end do sum_precip1
         if ( ist == 1 ) then
-          !$acc loop seq
-          do k = 1, kz
-            rql(i,k) = qn(i,k)
-          end do
           precip1(i) = precip_col
         else
-          !$acc loop seq
-          do k = 1, kz
-            rql2(i,k) = qn(i,k)
-          end do
           precip2(i) = precip_col
         end if
       end do ist_loop
@@ -3059,44 +3000,39 @@ module mod_micro_wdm7
   ! size distributions: (x=mixing ratio, y=air density):
   ! valid for mixing ratio > 1.e-9 kg/kg.
   !
-  pure real(rkx) function lamdac(x,y,z,pidnc_in)
+  pure real(rkx) function lamdac(x,y,z)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
-    real(rkx), value, intent(in) :: pidnc_in
-    lamdac = exp(log(((pidnc_in*z)/(x*y)))*(1.0_rkx/3.0_rkx))
+    lamdac = exp(log(((pidnc*z)/(x*y)))*(1.0_rkx/3.0_rkx))
   end function lamdac
 
-  pure real(rkx) function lamdar(x,y,z,pidnr_in)
+  pure real(rkx) function lamdar(x,y,z)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
-    real(rkx), value, intent(in) :: pidnr_in
-    lamdar = exp(log(((pidnr_in*z)/(x*y)))*(1.0_rkx/3.0_rkx))
+    lamdar = exp(log(((pidnr*z)/(x*y)))*(1.0_rkx/3.0_rkx))
   end function lamdar
 
-  pure real(rkx) function lamdas(x,y,z,pidn0s_in)
+  pure real(rkx) function lamdas(x,y,z)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y, z
-    real(rkx), value, intent(in) :: pidn0s_in
-    lamdas = sqrt(sqrt(pidn0s_in*z/(x*y)))
+    lamdas = sqrt(sqrt(pidn0s*z/(x*y)))
   end function lamdas
 
-  pure real(rkx) function lamdag(x,y,pidn0g_in)
+  pure real(rkx) function lamdag(x,y)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
-    real(rkx), value, intent(in) :: pidn0g_in
-    lamdag = sqrt(sqrt(pidn0g_in/(x*y)))
+    lamdag = sqrt(sqrt(pidn0g/(x*y)))
   end function lamdag
 
-  pure real(rkx) function lamdah(x,y,pidn0h_in)
+  pure real(rkx) function lamdah(x,y)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: x, y
-    real(rkx), value, intent(in) :: pidn0h_in
-    lamdah = sqrt(sqrt(pidn0h_in/(x*y)))
+    lamdah = sqrt(sqrt(pidn0h/(x*y)))
   end function lamdah
   !
   !  Compute radiation effective radii of cloud water, ice, and snow for

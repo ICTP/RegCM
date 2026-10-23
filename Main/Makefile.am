@@ -148,7 +148,7 @@ mod_atm_interface.o : mod_atm_interface.F90 mod_constants.o mod_dynparam.o mod_m
 mod_bdycod.o : mod_bdycod.F90 mod_atm_interface.o mod_che_interface.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_pbl_interface.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_mpmessage.o mod_service.o mod_slabocean.o mod_zita.o mod_stdatm.o mod_date.o mod_constants.o mod_stdio.o
 if COMPILER_PGI
 # Temporary workaround for the fort2 crash observed with NVFORTRAN 26.9
-       $(MPIFC) $(CPPFLAGS) $(GITVER) $(NOOPTFC) -c $<
+	$(MPIFC) $(CPPFLAGS) $(GITVER) $(NOOPTFC) -c $<
 endif
 mod_che_interface.o : mod_che_interface.F90 mod_atm_interface.o mod_rad_interface.o mod_che_bdyco.o mod_che_bionit.o mod_che_carbonaer.o mod_che_common.o mod_che_cumtran.o mod_che_drydep.o mod_che_dust.o mod_che_emission.o mod_che_linox.o mod_che_indices.o mod_che_mppio.o mod_che_ncio.o mod_che_param.o mod_che_species.o mod_che_start.o mod_che_tend.o mod_realkinds.o mod_runparams.o mod_regcm_types.o
 mod_cu_interface.o : mod_cu_interface.F90 mod_atm_interface.o mod_che_interface.o mod_cu_bm.o mod_cu_common.o mod_cu_em.o mod_cu_grell.o mod_cu_kf.o mod_cu_kuo.o mod_cu_tiedtke.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_regcm_types.o mod_constants.o mod_cu_bm.o mod_cu_common.o mod_cu_em.o mod_cu_grell.o mod_cu_kuo.o mod_cu_tiedtke.o mod_cu_kf.o mod_cu_shallow.o mod_realkinds.o mod_mppparam.o mod_constants.o mod_stdio.o clwfromt.inc
@@ -161,6 +161,10 @@ else
 mod_lm_interface.o : mod_lm_interface.F90 mod_atm_interface.o mod_bats_common.o mod_che_interface.o mod_slabocean.o mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ocn_common.o mod_outvars.o mod_regcm_types.o mod_runparams.o mod_service.o mod_slice.o mod_stdio.o mod_date.o mod_heatindex.o pfesat.inc pfwsat.inc wlh.inc evpt.inc pfesdt.inc
 endif
 mod_moloch.o : mod_moloch.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_constants.o mod_cu_interface.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_massck.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_service.o mod_slabocean.o mod_slice.o mod_stdatm.o mod_stdio.o mod_sun.o cpmf.inc wlh.inc pfwsat.inc
+if COMPILER_PGI
+# Temporary workaround for the fort2 crash observed with NVFORTRAN 25.7
+	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -Mnoinline -c $<
+endif
 mod_ncio.o : mod_ncio.F90 mod_intkinds.o mod_realkinds.o mod_date.o mod_constants.o mod_stdio.o mod_domain.o mod_dynparam.o mod_ensemble.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_nchelper.o mod_ncstream.o mod_async_netcdf.o mod_runparams.o pfesat.inc
 mod_output.o : mod_output.F90 mod_atm_interface.o mod_bdycod.o mod_capecin.o mod_che_interface.o mod_che_output.o mod_cu_interface.o mod_dynparam.o mod_header.o mod_intkinds.o mod_lm_interface.o mod_mpmessage.o mod_mppparam.o mod_ncout.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_savefile.o mod_service.o mod_slabocean.o mod_moloch.o mod_split.o mod_projections.o mod_memutil.o mod_constants.o mod_stdio.o mod_date.o mod_outvars.o mod_timer.o pfwsat.inc
 if COMPILER_PGI
