@@ -23,35 +23,20 @@ with the *PyCordexer* scripts.
 Requirements
 ------------
 
-To run the python script, you need a working Python2 interpreter (2.7 is
-suggested) and netCDF4 Python library:
+To run the python script, you need a working Python3 interpreter and the
+numpy and netCDF4 Python libraries:
 
    https://unidata.github.io/netcdf4-python
 
-The package requirement list for the library can be found at in the above
-site.
+The numba library is needed only to compute CAPE and CIN from the
+model vertical profiles (the *capecin* variable).
 
 Installation
 ------------
 
-Part of the interpolation and derived variable calculation has been taken
-from RegCM Model source code, and you need to compile the fortran source
-codes in the *PyCordexer* directory using the f2py program of the Python
-numpy package, which is a requirement of the netcdf4-python module.
-Just type make in the *PyCordexer* directory to compile the fortran
-code to be used by python
-
-.. raw:: latex
-    
-        \begin{tcolorbox}
-         cd pycordexer\\
-         make        
-        \end{tcolorbox}
-
-Adapt the Makefile in the directory if the numpy python has been compiled
-with a different compiler.
-
-The scripts can be run from the *PyCordexer* directory afterwards.
+No compilation is needed: the interpolation and derived variable
+calculations, taken from the RegCM Model source code, are written in
+Python. The scripts can be run from the *PyCordexer* directory.
 
 .. raw:: latex
 
@@ -73,13 +58,13 @@ The pycordexer.py script
 --------------------
 
 The **pycordexer.py** script reads a RegCM model output file and extracts
-the variable creating a CORDEX file out of the details specified from the 
+the variable creating a CORDEX file out of the details specified from the
 command line arguments.
 
 The syntax to invoke the program is:
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
          pycordexer.py [-h] [-m MAIL] [-d DOMAIN] [-g GLOBAL_MODEL] [-e EXPERIMENT] \\
          [-b ENSEMBLE] [-n NOTES] [-o OUTPUT_DIR] [-c] datafile var1,var2,var3,...
@@ -98,7 +83,7 @@ configured to avoid repetitions. Therefore, using ALL on a STS file will not sav
 "tas" variable that is instead saved from the SRF files.
 
 If you want to extract the tas variable from a STS file, you must not use the ALL flag and,
-instead, submit a complete list of variables. 
+instead, submit a complete list of variables.
 
 List of Implemented Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,7 +170,7 @@ a generic post-processing tool for RegCM
 
         \vfill
         \begin{center}
-        
+
 +--------------+-------------+-----------------------------------------------+
 | Argument     | Default     | Meaning                                       |
 +--------------+-------------+-----------------------------------------------+
@@ -207,7 +192,7 @@ a generic post-processing tool for RegCM
 .. raw:: latex
 
         \end{center}
-        
+
 Usage
 ~~~~~
 
@@ -216,7 +201,7 @@ output file, and want to extract in CORDEX format the variable tas from SRF
 file for the AFR-44 domain run on ECMWF ERA15 dataset:
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
           pycordexer.py /data/output/path/Africa\_SRF.2002030100.nc tas -m me@here\\
            -d AFR-44 -g ECMWF-ERAINT -e evaluation -b r1i1p1 -n 'Some text'
@@ -225,19 +210,19 @@ file for the AFR-44 domain run on ECMWF ERA15 dataset:
 This will create in the current directory the file:
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
          tas\_AFR-44\_ECMWF-ERAINT\_evaluation\_r1i1p1\_ICTP-RegCM4-3\_v4\_3hr\_200203010300-200204010000.nc
         \end{tcolorbox}
 
 with all the mandatory attributes and naming conventions required by CORDEX
 experiment convention document.
- 
+
 If just the name of the file and the variable name are specified, the output
 file name will be:
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
          tas\_NONE\_NONE\_none\_NN\_ICTP-RegCM4-3\_v4\_3hr\_200203010300-200204010000.nc
         \end{tcolorbox}
@@ -254,7 +239,7 @@ conforming netCDF file.
 The syntax to invoke the program is:
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
           means.py datafile [mon/day]
         \end{tcolorbox}
@@ -268,16 +253,16 @@ Usage
 Example usage is the following. Suppose you have in a directory the file
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
          tas\_NONE\_NONE\_none\_NN\_ICTP-RegCM4-3\_v4\_3hr\_200203010300-200204010000.nc
         \end{tcolorbox}
-        
+
 
 and want to compute daily averages in a CORDEX conforming netCDF file.
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
           means.py tas\_NONE\_NONE\_none\_NN\_ICTP-RegCM4-3\_v4\_3hr\_200203010300-200204010000.nc day
         \end{tcolorbox}
@@ -286,7 +271,7 @@ and want to compute daily averages in a CORDEX conforming netCDF file.
 This will create in the current directory the file:
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
          tas\_NONE\_NONE\_none\_NN\_ICTP-RegCM4-3\_v4\_day\_2002030112-2002033112.nc
         \end{tcolorbox}
@@ -294,11 +279,11 @@ This will create in the current directory the file:
 
 which contains daily mean values with all the mandatory attributes and naming
 conventions required by CORDEX experiment convention document.
- 
+
 If you want to compute monthly average, you can issue:
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
           means.py tas\_NONE\_NONE\_none\_NN\_ICTP-RegCM4-3\_v4\_day\_2002030112-2002033112.nc mon
         \end{tcolorbox}
@@ -307,11 +292,11 @@ If you want to compute monthly average, you can issue:
 and obtain:
 
 .. raw:: latex
-    
+
         \begin{tcolorbox}
          tas\_NONE\_NONE\_none\_NN\_ICTP-RegCM4-3\_v4\_mon\_20020301-20020331.nc
         \end{tcolorbox}
-        
+
 
 Contacts
 --------

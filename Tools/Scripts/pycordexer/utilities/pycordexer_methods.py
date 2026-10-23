@@ -16,10 +16,7 @@ from utilities.cordex_utils import CordexDataset, prepare_cordex_file_dir, \
     read_variable_from_regcmfile, get_regcm_variable_names, get_var_with_name, \
     unit_factor_correction
 
-# f2py modules
-from utilities.vertint import mod_vertint
-from utilities.hgt import mod_hgt
-from utilities.capecin import mod_capecin
+from utilities import physics
 
 
 __copyright__ = 'Copyright (C) 2018 ICTP'
@@ -46,6 +43,13 @@ class fake_var(np.ndarray):
         if obj is None: return
         self.dimensions = getattr(obj, 'dimensions', [None,])
         self.name = getattr(obj, 'name', 'noname')
+
+class VariableSkipped(Exception):
+    """Raised by a Method when the variable must not be produced for the
+    current RegCM file. The variable is skipped with a warning and it is not
+    considered as failed."""
+    pass
+
 
 class Method(object):
     """A Method is a callable object that performs actions on a variable.
@@ -567,18 +571,18 @@ class InterpolateHeight(Filter):
 
         if method == 'linear':
             if core == 'hydrostatic':
-                self.__interpolator = mod_vertint.intlin_hy
+                self.__interpolator = physics.intlin_hy
             elif core == 'moloch':
-                self.__interpolator = mod_vertint.intlin_nonhy
+                self.__interpolator = physics.intlin_nonhy
             else:
-                self.__interpolator = mod_vertint.intlin_nonhy
+                self.__interpolator = physics.intlin_nonhy
         else:
             if core == 'hydrostatic':
-                self.__interpolator = mod_vertint.intlog_hy
+                self.__interpolator = physics.intlog_hy
             elif core == 'moloch':
-                self.__interpolator = mod_vertint.intlog_nonhy
+                self.__interpolator = physics.intlog_nonhy
             else:
-                self.__interpolator = mod_vertint.intlog_nonhy
+                self.__interpolator = physics.intlog_nonhy
 
     def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
                  corrflag, cordex_dir):
@@ -2061,13 +2065,13 @@ class ComputeGeopotentialHeight(ActionStarter):
 
         if mcore == 'hydrostatic':
             needed_var_names = ['ta', 'ps', 'topo', 'sigma', 'ptop']
-            funcname = mod_hgt.height_hydro
+            funcname = physics.height_hydro
         elif mcore == 'moloch':
             needed_var_names = ['ta', 'pai', 'ps', 'topo', 'a', 'b']
-            funcname = mod_hgt.height_moloch
+            funcname = physics.height_moloch
         else:
             needed_var_names = ['ta', 'p0', 'ps', 'topo', 'sigma', 'ptop', 'pp']
-            funcname = mod_hgt.height_nonhydro
+            funcname = physics.height_nonhydro
 
         with Dataset(regcm_file_path, 'r') as f:
             needed_vars = []
@@ -2137,7 +2141,7 @@ class ComputeGeopotentialHeight(ActionStarter):
                 hgt_args = [read_timestep(data_v, t) for data_v in needed_vars]
                 hgt_args.append(self.height)
 
-                LOGGER.debug('Calling Fortran function mod_hgt.height')
+                LOGGER.debug('Calling function %s', funcname.__name__)
                 data[t, :] = funcname(*hgt_args)
 
             LOGGER.debug('Reading reference var')
@@ -2303,15 +2307,22 @@ class ComputeCapeCin(ActionStarter):
             )
             return np.array(var_pointer[slicer], dtype=DATATYPE_MAIN)
 
+        if mcore == 'moloch':
+            raise VariableSkipped(
+                'CAPE and CIN are not computed for the MOLOCH dynamical core. '
+                'Use the cape and cin variables computed by the model and '
+                'saved in the SRF file.'
+            )
+
         if mcore == 'hydrostatic':
             needed_var_names = ['ps', 'ta', 'rh', 'sigma', 'ptop']
-            funcname = mod_capecin.getcape_hy
+            funcname = physics.getcape_hy
         elif mcore == 'moloch':
             needed_var_names = ['ps', 'ta', 'rh', 'pai']
-            funcname = mod_capecin.getcape_moloch
+            funcname = physics.getcape_moloch
         else:
             needed_var_names = ['ps', 'ta', 'p0', 'rh', 'sigma', 'ptop', 'pp']
-            funcname = mod_capecin.getcape_nhy
+            funcname = physics.getcape_nhy
 
         with Dataset(regcm_file_path, 'r') as f:
             needed_vars = []
@@ -2365,7 +2376,7 @@ class ComputeCapeCin(ActionStarter):
                 )
                 getc_args = [read_timestep(data_v, t) for data_v in needed_vars]
 
-                LOGGER.debug('Calling Fortran function mod_capecin.getcape')
+                LOGGER.debug('Calling function %s', funcname.__name__)
                 cape[t, :],cin[t, :] = funcname(*getc_args)
 
         LOGGER.debug('Reading reference var')

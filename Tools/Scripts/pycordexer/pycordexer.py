@@ -10,7 +10,8 @@ import signal
 
 from utilities.cordex_utils import RegcmOutputFile, RegcmSimulation
 from utilities.globals import OUTPUTDIR, CORDEX_VARS, ASSOCIATIONS
-from utilities.pycordexer_methods import Action, get_methods
+from utilities.pycordexer_methods import Action, VariableSkipped, \
+    get_methods
 from utilities.log_utilities import collect_logs, WaitQueueHandler
 from utilities.pool import Pool
 
@@ -414,6 +415,9 @@ def execute_var_chain(variable, regcm_file_path, simulation, corrflag,
                 action_num
             )
             break
+        except VariableSkipped as e:
+            LOGGER.warning('Variable %s skipped: %s', variable, e)
+            return
         except Exception:
             LOGGER.debug(
                 'Building of Action {} failed with the following '

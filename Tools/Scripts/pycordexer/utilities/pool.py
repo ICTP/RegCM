@@ -1,4 +1,5 @@
-from multiprocessing import Process
+import sys
+from multiprocessing import Process, get_context
 from time import sleep
 from threading import Thread, Lock as TLock
 from logging import getLogger
@@ -11,6 +12,12 @@ __credits__ = ["Stefano Piani"]
 
 
 LOGGER = getLogger(__name__)
+
+# Starting from Python 3.14 the default start method on POSIX systems is
+# forkserver. The processes spawned by the Pool must instead inherit the
+# global variables of the main process, so we need to fork them.
+if sys.version_info >= (3, 14):
+    Process = get_context('fork').Process
 
 
 class Pool(object):
