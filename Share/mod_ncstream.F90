@@ -1181,9 +1181,17 @@ module mod_ncstream
         buffer%doublebuff(1) = 10.0_rk8
         call outstream_writevar(ncout,stvar%lev10m_var,nocopy)
       end if
+      if ( stream%l_has50mlev ) then
+        buffer%doublebuff(1) = 50.0_rk8
+        call outstream_writevar(ncout,stvar%lev50m_var,nocopy)
+      end if
       if ( stream%l_has100mlev ) then
         buffer%doublebuff(1) = 100.0_rk8
         call outstream_writevar(ncout,stvar%lev100m_var,nocopy)
+      end if
+      if ( stream%l_has150mlev ) then
+        buffer%doublebuff(1) = 150.0_rk8
+        call outstream_writevar(ncout,stvar%lev150m_var,nocopy)
       end if
       if ( stream%l_hassoillev ) then
 #ifdef CLM45
