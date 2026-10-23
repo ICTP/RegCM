@@ -2167,10 +2167,11 @@ module mod_ncout
           v3d_sub_xlon_bnds%lrecords = .false.
           v3d_sub_xlon_bnds%j1 = -1
           v3d_sub_xlon_bnds%j2 = -1
-          v3d_sub_xlon_bnds%i1 = -1
-          v3d_sub_xlon_bnds%i2 = -1
-          v3d_sub_xlon_bnds%k1 = -1
-          v3d_sub_xlon_bnds%k2 = -1
+          ! Write only the subgrid points of the output domain
+          v3d_sub_xlon_bnds%i1 = (jout1-1)*nsg+1
+          v3d_sub_xlon_bnds%i2 = jout2*nsg
+          v3d_sub_xlon_bnds%k1 = (iout1-1)*nsg+1
+          v3d_sub_xlon_bnds%k2 = iout2*nsg
           v3d_sub_xlat_bnds%lgridded = .false.
           v3d_sub_xlat_bnds%vname = 'xlat_bnds'
           v3d_sub_xlat_bnds%vunit = 'degrees_north'
@@ -2180,10 +2181,11 @@ module mod_ncout
           v3d_sub_xlat_bnds%lrecords = .false.
           v3d_sub_xlat_bnds%j1 = -1
           v3d_sub_xlat_bnds%j2 = -1
-          v3d_sub_xlat_bnds%i1 = -1
-          v3d_sub_xlat_bnds%i2 = -1
-          v3d_sub_xlat_bnds%k1 = -1
-          v3d_sub_xlat_bnds%k2 = -1
+          ! Write only the subgrid points of the output domain
+          v3d_sub_xlat_bnds%i1 = (jout1-1)*nsg+1
+          v3d_sub_xlat_bnds%i2 = jout2*nsg
+          v3d_sub_xlat_bnds%k1 = (iout1-1)*nsg+1
+          v3d_sub_xlat_bnds%k2 = iout2*nsg
           l_sub_bnds_setup = .true.
         end if
         ! The following may be enabled/disabled
@@ -4156,10 +4158,11 @@ module mod_ncout
         v3d_xlon_bnds%lrecords = .false.
         v3d_xlon_bnds%j1 = -1
         v3d_xlon_bnds%j2 = -1
-        v3d_xlon_bnds%i1 = -1
-        v3d_xlon_bnds%i2 = -1
-        v3d_xlon_bnds%k1 = -1
-        v3d_xlon_bnds%k2 = -1
+        ! Write only the points of the output domain
+        v3d_xlon_bnds%i1 = jout1
+        v3d_xlon_bnds%i2 = jout2
+        v3d_xlon_bnds%k1 = iout1
+        v3d_xlon_bnds%k2 = iout2
         v3d_xlat_bnds%lgridded = .false.
         v3d_xlat_bnds%vname = 'xlat_bnds'
         v3d_xlat_bnds%vunit = 'degrees_north'
@@ -4169,10 +4172,11 @@ module mod_ncout
         v3d_xlat_bnds%lrecords = .false.
         v3d_xlat_bnds%j1 = -1
         v3d_xlat_bnds%j2 = -1
-        v3d_xlat_bnds%i1 = -1
-        v3d_xlat_bnds%i2 = -1
-        v3d_xlat_bnds%k1 = -1
-        v3d_xlat_bnds%k2 = -1
+        ! Write only the points of the output domain
+        v3d_xlat_bnds%i1 = jout1
+        v3d_xlat_bnds%i2 = jout2
+        v3d_xlat_bnds%k1 = iout1
+        v3d_xlat_bnds%k2 = iout2
         l_bnds_setup = .true.
       end if
     end if
