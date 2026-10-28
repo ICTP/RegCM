@@ -415,12 +415,12 @@ module mod_rrtmg_driver
     end if
 
     ! Day of the year, rescaled to a 365 days year as expected in get_alpha
-    juldat = nint(real(dayofyear(rcmtimer%idate),rk8) * 365.0_rk8 / &
-                  real(yeardays(iyear,rcmtimer%idate%calendar),rk8))
     alpha(:,:) = 0.0_rk8
     if ( icld == 4 .or. icld == 5 ) then
       idcor = 1
       decorr_con = 5000.0_rk8
+      juldat = nint(real(dayofyear(rcmtimer%idate),rk8) * 365.0_rk8 / &
+                    real(yeardays(iyear,rcmtimer%idate%calendar),rk8))
       call get_alpha(npr,kth,icld,idcor,decorr_con,deltaz, &
                      dlat,juldat,cldf,alpha)
     end if
