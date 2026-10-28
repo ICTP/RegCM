@@ -42,7 +42,7 @@ module mod_ipcc_scenario
 
   public :: set_scenario, ghgval
 
-  integer(ik4), parameter :: nsc = 18
+  integer(ik4), parameter :: nsc = 25
   integer(ik4), parameter :: n_greenhouse_gases = 5
 
   real(rkx), dimension(n_greenhouse_gases), parameter :: cgunit = &
@@ -52,6 +52,7 @@ module mod_ipcc_scenario
   type(ghg_mf) :: local_ghgc
 
   logical :: lcmip6 = .false.
+  logical :: lcmip7 = .false.
 
   integer(ik4) :: i, j
 
@@ -61,13 +62,14 @@ module mod_ipcc_scenario
   integer(ik4), public :: igh_cfc11 = 4
   integer(ik4), public :: igh_cfc12 = 5
 
-  ! SRES and RCP Scenarios
+  ! SRES, RCP, CMIP6 SSP and CMIP7 Scenarios
 
   character(len=8), dimension(nsc), parameter :: scenarios = &
      [ 'CONST   ','A1B     ','A2      ','B1      ','B2      ', &
        'RF      ','RCP2.6  ','RCP4.5  ','RCP6.0  ','RCP8.5  ', &
        'SSP119  ','SSP126  ','SSP245  ','SSP370  ','SSP434  ', &
-       'SSP460  ','SSP534  ','SSP585  ' ]
+       'SSP460  ','SSP534  ','SSP585  ','SCEN7-H ','SCEN7-HL', &
+       'SCEN7-M ','SCEN7-ML','SCEN7-L ','SCEN7-LN','SCEN7-VL' ]
 
   data ((cgas(i,j),i=1,6),j=1850,1899) / &
     1850.0_rkx, 284.70_rkx, 791.60_rkx, 275.70_rkx, 0.00_rkx, 0.00_rkx, &
@@ -2052,11 +2054,15 @@ module mod_ipcc_scenario
         end do
 #endif
       case default
-        call load_scenario(csc,year,month,local_ghgc)
+        if ( csc(1:6) == 'SCEN7-' .or. csc(1:6) == 'scen7-' ) then
+          call load_cmip7_scenario(csc,year,month,local_ghgc)
+        else
+          call load_cmip6_scenario(csc,year,month,local_ghgc)
+        end if
     end select
   end subroutine set_scenario
 
-  subroutine load_scenario(sname,year,month,ghgmf)
+  subroutine load_cmip6_scenario(sname,year,month,ghgmf)
     implicit none
     character(len=*), intent(in) :: sname
     integer(ik4), intent(in) :: year, month
@@ -2129,7 +2135,7 @@ module mod_ipcc_scenario
           imod = 0
           write (stderr,*) 'Unsupported emission scenario: ', sname
           write (stderr,*) 'Use one in SRES/RCP/SSCP supported values:'
-          write (stderr,*) scenarios
+          write (stderr,'(8(1x,a))') scenarios
           call fatal(__FILE__,__LINE__, &
                      'UNSUPPORTED EMISSION SCENARIO')
       end select
@@ -2190,21 +2196,143 @@ module mod_ipcc_scenario
             ' Load GHG for ',year,month,' ',trim(sname)
     end if
     lcmip6 = .true.
-  end subroutine load_scenario
+  end subroutine load_cmip6_scenario
+
+  !
+  ! CMIP7 GHG concentrations: monthly values on 12 latitude bands from the
+  ! historical data (1750-2022) and from the ScenarioMIP scenario (2023-2100)
+  ! and its extensions (2101-2500). Before 1750 and after 2500 the first and
+  ! the last year of data are used.
+  !
+  subroutine load_cmip7_scenario(sname,year,month,ghgmf)
+    implicit none
+    character(len=*), intent(in) :: sname
+    integer(ik4), intent(in) :: year, month
+    type(ghg_mf), intent(inout) :: ghgmf
+    integer(ik4), parameter :: imax = 5
+    integer(ik4), parameter :: data_start = 1750
+    integer(ik4), parameter :: hist_end = 2022
+    integer(ik4), parameter :: scen_end = 2500
+    character(len=*), dimension(imax), parameter :: gas = &
+     ['co2  ', 'ch4  ', 'n2o  ', 'cfc11', 'cfc12' ]
+
+    character(len=1024) :: filename
+    character(len=64) :: dataset
+    character(len=2) :: sc
+    integer(ik4) :: iyear, ystart, irec, i, ierr
+    integer(ik4) :: ncid, varid, dimid
+    integer(ik4), dimension(2) :: istart, icount
+    integer(ik4), save :: nlat
+
+    select case (sname)
+      case ('SCEN7-H', 'scen7-h')
+        sc = 'h'
+      case ('SCEN7-HL', 'scen7-hl')
+        sc = 'hl'
+      case ('SCEN7-M', 'scen7-m')
+        sc = 'm'
+      case ('SCEN7-ML', 'scen7-ml')
+        sc = 'ml'
+      case ('SCEN7-L', 'scen7-l')
+        sc = 'l'
+      case ('SCEN7-LN', 'scen7-ln')
+        sc = 'ln'
+      case ('SCEN7-VL', 'scen7-vl')
+        sc = 'vl'
+      case default
+        write (stderr,*) 'Unsupported emission scenario: ', sname
+        write (stderr,*) 'Use one in SRES/RCP/SSCP supported values:'
+        write (stderr,'(8(1x,a))') scenarios
+        call fatal(__FILE__,__LINE__, &
+                   'UNSUPPORTED EMISSION SCENARIO')
+    end select
+    iyear = max(min(year,scen_end),data_start)
+    if ( iyear <= hist_end ) then
+      ystart = data_start
+      dataset = 'CMIP_CR-CMIP-1-0-0_gnz_175001-202212'
+    else if ( iyear <= 2100 ) then
+      ystart = hist_end
+      dataset = 'ScenarioMIP_CR-'//trim(sc)//'-1-1-0_gnz_202201-210012'
+    else
+      ! Extensions files of 100 years from 2101 to 2500
+      ystart = ((iyear-2101)/100)*100 + 2101
+      write(dataset,'(a,a,a,i4,a,i4,a)') 'ScenarioMIP_CR-', trim(sc), &
+        '-ext-1-1-0_gnz_', ystart, '01-', ystart+99, '12'
+    end if
+    irec = (iyear-ystart)*12 + month
+    ghgmf%sname = sname
+    ghgmf%year = year
+    ghgmf%month = month
+    do i = 1, imax
+      filename = trim(inpglob) // pthsep // 'CMIP7' // pthsep // 'GHG' // &
+        pthsep // trim(gas(i)) // '_input4MIPs_GHGConcentrations_' // &
+        trim(dataset) // '.nc'
+      ierr = nf90_open(filename, nf90_nowrite, ncid)
+      if ( ierr /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(ierr), trim(filename)
+        call fatal(__FILE__,__LINE__,'CANNOT OPEN FILE')
+      end if
+      if ( .not. associated(ghgmf%gmf) ) then
+        ierr = nf90_inq_dimid(ncid,'lat',dimid)
+        if ( ierr /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(ierr), trim(filename)
+          call fatal(__FILE__,__LINE__,'DIMENSION LAT SEARCH ERROR')
+        end if
+        ierr = nf90_inquire_dimension(ncid,dimid,len=nlat)
+        if ( ierr /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(ierr), trim(filename)
+          call fatal(__FILE__,__LINE__,'DIMENSION LAT READ ERROR')
+        end if
+        call getmem(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
+      end if
+      ierr = nf90_inq_varid(ncid,trim(gas(i)),varid)
+      if ( ierr /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(ierr), trim(filename)
+        call fatal(__FILE__,__LINE__,'FIND VARIABLE '//trim(gas(i))//' ERROR')
+      end if
+      istart(1) = 1
+      istart(2) = irec
+      icount(1) = nlat
+      icount(2) = 1
+      ierr = nf90_get_var(ncid,varid,ghgmf%gmf(:,i),istart,icount)
+      if ( ierr /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(ierr), trim(filename)
+        call fatal(__FILE__,__LINE__,'READ VARIABLE '//trim(gas(i))//' ERROR')
+      end if
+      ierr = nf90_close(ncid)
+      if ( ierr /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(ierr), trim(filename)
+        call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
+      end if
+    end do
+    if ( myid == italk ) then
+      write(stdout,'(a,i0.4,i0.2,a,a)') &
+            ' Load CMIP7 GHG for ',year,month,' ',trim(sname)
+    end if
+    lcmip7 = .true.
+  end subroutine load_cmip7_scenario
 
   real(rkx) function ghgval(igas,year,month,lat)
     implicit none
     integer(ik4), intent(in) :: igas, year, month
     real(rk8), intent(in) :: lat
-    integer(ik4) :: ilat, isely
+    integer(ik4) :: ilat, isely, nlat
     if ( lconst2050 ) then
       isely = 2050
     else
       isely = year
     end if
-    if ( lcmip6 ) then
+    if ( lcmip7 ) then
       if ( local_ghgc%year /= isely .or. local_ghgc%month /= month ) then
-        call load_scenario(local_ghgc%sname,isely,month,local_ghgc)
+        call load_cmip7_scenario(local_ghgc%sname,isely,month,local_ghgc)
+      end if
+      ! Latitude bands of equal width from the South Pole
+      nlat = size(local_ghgc%gmf,1)
+      ilat = min(max(int((lat+90.0_rkx)*nlat/180.0_rkx)+1,1),nlat)
+      ghgval = local_ghgc%gmf(ilat,igas) * cgunit(igas)
+    else if ( lcmip6 ) then
+      if ( local_ghgc%year /= isely .or. local_ghgc%month /= month ) then
+        call load_cmip6_scenario(local_ghgc%sname,isely,month,local_ghgc)
       end if
       ilat = int((lat+89.75_rkx)/0.5_rkx) + 1
       ghgval = local_ghgc%gmf(ilat,igas) * cgunit(igas)
