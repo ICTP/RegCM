@@ -623,13 +623,11 @@
        ! CDF  is used to select which sub-columns are treated as cloudy relative to cloud fraction
        if (irng==0) then
           do isubcol = 1,nsubcol
-             do i = 1, ncol
-                do ilev = 1,nlayers
-                   call kissvec(seed1, seed2, seed3, seed4, rand_num)
-                   CDF(isubcol,:,ilev) = rand_num
-                   call kissvec(seed1, seed2, seed3, seed4, rand_num)
-                   CDF2(isubcol,:,ilev) = rand_num
-                end do
+             do ilev = 1,nlayers
+                call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                CDF(isubcol,:,ilev) = rand_num
+                call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                CDF2(isubcol,:,ilev) = rand_num
              end do
           end do
        elseif (irng==1) then
@@ -663,13 +661,11 @@
        ! CDF  is used to select which sub-columns are treated as cloudy relative to cloud fraction
        if (irng==0) then
           do isubcol = 1,nsubcol
-             do i = 1, ncol
-                do ilev = 1,nlayers
-                   call kissvec(seed1, seed2, seed3, seed4, rand_num)
-                   CDF(isubcol,:,ilev) = rand_num
-                   call kissvec(seed1, seed2, seed3, seed4, rand_num)
-                   CDF2(isubcol,:,ilev) = rand_num
-                end do
+             do ilev = 1,nlayers
+                call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                CDF(isubcol,:,ilev) = rand_num
+                call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                CDF2(isubcol,:,ilev) = rand_num
              end do
           end do
        elseif (irng==1) then
