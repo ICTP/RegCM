@@ -17,11 +17,14 @@ Algorithm
 
 2. Open the CORDEX-CMIP6 target template file (read-only).
    - Copy every dimension, every coordinate/ancillary variable, and
-     every global attribute exactly as-is.
-   - Replace the `orog` variable with `sfturf` (same shape, new
-     metadata appropriate for urban fraction).
+     every global attribute.
+   - Replace the `orog` variable with `sfturf` (same shape, metadata as in
+     the CORDEX-CMIP6 fx table).
+   - Set the global attributes that belong to the new file: variable_id,
+     tracking_id, creation_date, history, and external_variables.
 
-3. Write the output file.
+3. Write the output file as NETCDF4_CLASSIC (required by CORDEX-CMIP6),
+   compressed with deflate level 1 and shuffle.
 
 Usage
 -----
@@ -29,13 +32,32 @@ Usage
 
 All three paths are positional arguments; the output file must not exist
 beforehand (the script will refuse to overwrite it for safety).
+
+Changes (October 2026, Chen Lu), so the output passes the compliance checker
+(wcrp_cordex_cmip6:1.0) with no Required flags:
+  - NETCDF4_CLASSIC instead of NETCDF4                               [FILE002]
+  - variable_id = "sfturf" instead of the copied "orog"     [ATTR005, PATH001]
+  - a new tracking_id (the copied one belonged to the orog file) and a new
+    creation_date
+  - sfturf attributes as in the CORDEX-CMIP6 fx table: standard_name
+    "area_fraction", long_name, cell_methods "area: mean", and cell_measures
+    "area: areacella" (with the global attribute external_variables =
+    "areacella"). The table's scalar coordinate type = "urban" is left out,
+    because the checker requires all coordinate variables to be float64
+    (a character coordinate gives a VAR011 Required flag).
+  - missing_value stored as float, like the data; deflate level 1 + shuffle
 """
 
 import sys
 import os
+import uuid
 import datetime
 import numpy as np
 import netCDF4 as nc
+
+
+# Compression recommended by the CORDEX-CMIP6 archive specifications
+COMPRESSION = dict(zlib=True, complevel=1, shuffle=True)
 
 
 # ---------------------------------------------------------------------------
@@ -45,11 +67,11 @@ import netCDF4 as nc
 def copy_variable(src_var, dst_ds, extra_attrs=None):
     """
     Copy a variable from an open source Dataset/Group into dst_ds,
-    preserving datatype, dimensions, fill value, chunk hints, and all
-    attributes.  `extra_attrs` (dict) overrides specific attribute values.
+    preserving datatype, dimensions, fill value, and all attributes.
+    `extra_attrs` (dict) overrides specific attribute values.
     """
     # Collect kwargs for createVariable
-    kwargs = {}
+    kwargs = dict(COMPRESSION) if src_var.ndim > 0 else {}
     if hasattr(src_var, '_FillValue'):
         kwargs['fill_value'] = src_var._FillValue
 
@@ -62,15 +84,24 @@ def copy_variable(src_var, dst_ds, extra_attrs=None):
 
     # Copy attributes (skip _FillValue – already set via fill_value kwarg)
     skip = {'_FillValue'}
-    attrs = {k: src_var.getncattr(k) 
+    attrs = {k: src_var.getncattr(k)
                for k in src_var.ncattrs() if k not in skip}
     if extra_attrs:
         attrs.update(extra_attrs)
     dst_var.setncatts(attrs)
 
     # Copy data
-    dst_var[:] = src_var[:]
+    src_var.set_auto_maskandscale(False)
+    dst_var.set_auto_maskandscale(False)
+    dst_var[...] = src_var[...]
     return dst_var
+
+
+def new_tracking_id(old):
+    """Same prefix as the template (e.g. 'hdl:21.14103/'), new UUID."""
+    old = str(old or '')
+    prefix = old.rsplit('/', 1)[0] + '/' if '/' in old else 'hdl:21.14103/'
+    return prefix + str(uuid.uuid4())
 
 
 # ---------------------------------------------------------------------------
@@ -111,7 +142,7 @@ def main():
             fill_val = urb_2d._FillValue
         else:
             fill_val = -9999.0
-        data = np.where(raw.data == fill_val, 0.0, raw.data)
+        data = np.where(np.ma.getdata(raw) == fill_val, 0.0, np.ma.getdata(raw))
 
         # Sum over numurbl axis (axis=0)
         urb_sum = np.sum(data, axis=0)          # (iy, jx)
@@ -124,7 +155,7 @@ def main():
     # Open target template and build output
     print(f"Opening target file : {target_path}")
     with nc.Dataset(target_path, 'r') as tgt, \
-         nc.Dataset(out_path, 'w', format='NETCDF4') as dst:
+         nc.Dataset(out_path, 'w', format='NETCDF4_CLASSIC') as dst:
 
         # ---- verify shape agreement ----
         rlat = tgt.dimensions['rlat'].size
@@ -142,8 +173,8 @@ def main():
             dst.createDimension(dim_name, size)
             print(f"  dimension: {dim_name} = {len(dim)}")
 
-        # ---- coordinate and ancillary variables (all except 'orog') ----
-        skip_vars = {'orog'}
+        # ---- coordinate and ancillary variables (all except the main one) ----
+        skip_vars = {'orog', str(getattr(tgt, 'variable_id', 'orog'))}
         for var_name, var in tgt.variables.items():
             if var_name in skip_vars:
                 continue
@@ -151,40 +182,49 @@ def main():
             print(f"  copied variable  : {var_name}")
 
         # ---- sfturf variable (replaces orog) ----
-        FILL_VALUE = 1.e+20
+        FILL_VALUE = np.float32(1.e+20)
         sfturf_var = dst.createVariable(
             'sfturf',
             'f4',
             ('rlat', 'rlon'),
             fill_value=FILL_VALUE,
+            **COMPRESSION,
         )
-        sfturf_var.long_name    = "Surface Urban Area Fraction"
-        sfturf_var.standard_name = "surface_urban_area_fraction"
-        sfturf_var.units        = "%"
-        sfturf_var.coordinates  = "lat lon"
-        sfturf_var.grid_mapping = "crs"
+        sfturf_var.standard_name = "area_fraction"
+        sfturf_var.long_name     = "Percentage of the Grid Cell Occupied by Urban Area"
+        sfturf_var.units         = "%"
+        sfturf_var.coordinates   = "lat lon"
+        sfturf_var.grid_mapping  = "crs"
         sfturf_var.missing_value = FILL_VALUE
-        sfturf_var.cell_methods  = "area: sum"
+        sfturf_var.cell_methods  = "area: mean"
+        sfturf_var.cell_measures = "area: areacella"
         sfturf_var.comment       = (
             "Sum of CLM4.5 urb_2d urban class fractions "
             "(TBD=Tall Building District, HD=High Density, MD=Medium Density)"
         )
-        sfturf_var[:] = sfturf_data.astype('f4')
+        sfturf_var[...] = sfturf_data.astype('f4')
         print("  created variable : sfturf")
 
-        # ---- global attributes (copy all from target, update history) ----
+        # ---- global attributes (copy all from target, then set the new ones) ----
         global_attrs = {k: tgt.getncattr(k) for k in tgt.ncattrs()}
 
+        now = datetime.datetime.now(datetime.timezone.utc)
+        global_attrs['variable_id']        = 'sfturf'
+        global_attrs['tracking_id']        = new_tracking_id(global_attrs.get('tracking_id'))
+        global_attrs['creation_date']      = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        global_attrs['external_variables'] = 'areacella'
+
         # Update history with today's action
-        now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         old_history = global_attrs.get('history', '')
         global_attrs['history'] = (
-            f"{now} : sfturf created from CLM4.5 urb_2d by "+sys.argv[0]+"\n"
-            + old_history
+            now.strftime("%Y-%m-%d %H:%M:%S")
+            + " : sfturf created from CLM4.5 urb_2d by "
+            + os.path.basename(sys.argv[0]) + "\n" + old_history
         )
 
         dst.setncatts(global_attrs)
-        print("  global attributes : copied and history updated")
+        print("  global attributes : copied; variable_id, tracking_id, "
+              "creation_date, external_variables, and history set")
 
     print(f"\nDone. Output written to: {out_path}")
 
