@@ -549,6 +549,10 @@ module mod_mppparam
   integer(ik4), dimension(1), target :: ifake
   integer(ik4), pointer, contiguous, dimension(:) :: wincount
   integer(ik4), pointer, contiguous, dimension(:) :: windispl
+  integer(ik4), allocatable :: collect_source(:,:)
+  integer(ik4), allocatable :: collect_layout(:), collect_displ(:)
+  integer(ik4) :: collect_bounds(4) = 0
+  integer(ik4), parameter :: collect_batch_limit = 4
   integer(ik4) :: mpierr
   real(rk8), pointer, contiguous, dimension(:,:,:) :: r8subgrid
   real(rk4), pointer, contiguous, dimension(:,:,:) :: r4subgrid
@@ -730,7 +734,7 @@ module mod_mppparam
     integer(ik4), dimension(2) :: isearch
     integer(ik4) :: imaxcpus, imax1, imax2, imiss
     integer(ik4) :: row_color, col_color
-    integer(ik4) :: maximum_buffer_size
+    integer(ik4) :: maximum_buffer_size, batch_buffer_size
     data dim_period /.false.,.false./
 
     ma%bandflag    = (i_band == 1 .or. i_crm  == 1)
@@ -1105,14 +1109,14 @@ module mod_mppparam
       ! Allocate to something should fit all
       maximum_buffer_size = jxsg*iysg
       maximum_buffer_size = max(maximum_buffer_size,jxpsg*iypsg*kzp1)
-      call getmem(r8vector1,1,max(maximum_buffer_size,4*jxsg*iysg), &
-                  'set_nproc:r8vector1')
-      call getmem(r8vector2,1,max(maximum_buffer_size,4*jxsg*iysg), &
-                  'set_nproc:r8vector2')
-      call getmem(r4vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
-      call getmem(r4vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
-      call getmem(i4vector1,1,maximum_buffer_size,'set_nproc:i4vector1')
-      call getmem(i4vector2,1,maximum_buffer_size,'set_nproc:i4vector2')
+      batch_buffer_size = max(maximum_buffer_size, &
+                              collect_batch_limit*jxsg*iysg)
+      call getmem(r8vector1,1,batch_buffer_size,'set_nproc:r8vector1')
+      call getmem(r8vector2,1,batch_buffer_size,'set_nproc:r8vector2')
+      call getmem(r4vector1,1,batch_buffer_size,'set_nproc:r4vector1')
+      call getmem(r4vector2,1,batch_buffer_size,'set_nproc:r4vector2')
+      call getmem(i4vector1,1,batch_buffer_size,'set_nproc:i4vector1')
+      call getmem(i4vector2,1,batch_buffer_size,'set_nproc:i4vector2')
       call getmem(lvector1,1,maximum_buffer_size,'set_nproc:lvector1')
       call getmem(lvector2,1,maximum_buffer_size,'set_nproc:lvector2')
     end if
@@ -1271,6 +1275,9 @@ module mod_mppparam
     window(2) = window(1)+isize-1
     window(3) = j1
     window(4) = window(3)+jsize-1
+    if ( ccid == ccio ) then
+      !$acc update device(windows)
+    end if
     call mpi_gather(window,4,mpi_integer4, &
                     windows,4,mpi_integer4,ccio,mycomm,mpierr)
 #ifdef DEBUG
@@ -1279,6 +1286,7 @@ module mod_mppparam
     end if
 #endif
     if ( ccid == ccio ) then
+      !$acc update host(windows,wincount,windispl)
       do icpu = 0, nproc-1
         window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
@@ -1289,6 +1297,47 @@ module mod_mppparam
       end do
     end if
   end function glosplitw
+
+  integer(ik4) function collect_plane_count(remaining) result(nplane)
+    implicit none
+    integer(ik4), intent(in) :: remaining
+    nplane = min(collect_batch_limit,remaining)
+    if ( nplane == 3 ) nplane = 2
+  end function collect_plane_count
+
+  subroutine prepare_collect_unpack(j1,j2,i1,i2)
+    implicit none
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    integer(ik4) :: icpu, i, j, w1, w2, w3, w4
+
+    if ( allocated(collect_source) ) then
+      if ( size(collect_layout) == 4*nproc ) then
+        if ( all(collect_bounds == [j1,j2,i1,i2]) .and. &
+             all(collect_layout == windows(1:4*nproc)) .and. &
+             all(collect_displ == windispl(1:nproc)) ) return
+      end if
+      deallocate(collect_source,collect_layout,collect_displ)
+    end if
+    allocate(collect_source(j1:j2,i1:i2))
+    allocate(collect_layout(4*nproc),collect_displ(nproc))
+    collect_bounds = [j1,j2,i1,i2]
+    collect_layout = windows(1:4*nproc)
+    collect_displ = windispl(1:nproc)
+    collect_source = 0
+    do icpu = 0, nproc-1
+      w1 = windows(4*icpu+1)
+      w2 = windows(4*icpu+2)
+      w3 = windows(4*icpu+3)
+      w4 = windows(4*icpu+4)
+      do i = w1, w2
+        do j = w3, w4
+          collect_source(j,i) = windispl(icpu+1) + &
+                               (i-w1)*(w4-w3+1) + j-w3+1
+        end do
+      end do
+    end do
+    !$acc update device(collect_source)
+  end subroutine prepare_collect_unpack
 
 #include "mpp_tk_real8.inc"
 #include "mpp_tk_distribute.inc"
@@ -2057,17 +2106,9 @@ module mod_mppparam
     implicit none
     logical, pointer, contiguous, dimension(:,:,:), intent(in) :: var3
     logical, pointer, contiguous, dimension(:,:), intent(inout) :: var2
-    integer(ik4) :: i, j, ii, jj, n1, n2
-    do i = iout1, iout2
-      do j = jout1, jout2
-        do n2 = 1, nsg
-          ii = (i-1) * nsg + n2
-          do n1 = 1, nsg
-            jj = (j-1) * nsg + n1
-            var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
-          end do
-        end do
-      end do
+    integer(ik4) :: i, j, n1, n2
+    do concurrent (n1 = 1:nsg, n2 = 1:nsg, j = jout1:jout2, i = iout1:iout2)
+      var2((j-1)*nsg+n1,(i-1)*nsg+n2) = var3((n2-1)*nsg+n1,j,i)
     end do
   end subroutine reorder_logical_global_subgrid_2d
 
@@ -2105,6 +2146,9 @@ module mod_mppparam
     integer(ik4), intent(in) :: ncart_tot_g, ncart_tot_sg
     integer(ik4) :: linp, nrem, np, ntotg
     integer(ik4), dimension(1) :: tmp
+    !$acc update host(cl%linear_npoint_g,cl%linear_displ_g,cl%cartesian_displ_g)
+    !$acc update host(cl%linear_npoint_sg,cl%linear_displ_sg,cl%cartesian_displ_sg)
+    !$acc update device(cl%cartesian_npoint_g)
     tmp(1) = ncart_tot_g
     call mpi_allgather(tmp,1,mpi_integer4,                   &
                        cl%cartesian_npoint_g,1,mpi_integer4, &
@@ -2114,6 +2158,7 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_allgather error.')
     end if
 #endif
+    !$acc update host(cl%cartesian_npoint_g)
     cl%cartesian_displ_g(:) = 0
     do np = 2, nproc
       cl%cartesian_displ_g(np) = cl%cartesian_displ_g(np-1) + &
@@ -2144,6 +2189,7 @@ module mod_mppparam
                               cl%linear_npoint_g(np-1)
     end do
     if ( nsg > 1 ) then
+      !$acc update device(cl%cartesian_npoint_sg)
       tmp(1) = ncart_tot_sg
       call mpi_allgather(tmp,1,mpi_integer4,                    &
                          cl%cartesian_npoint_sg,1,mpi_integer4, &
@@ -2153,6 +2199,7 @@ module mod_mppparam
         call fatal(__FILE__,__LINE__,'mpi_allgather error.')
       end if
 #endif
+      !$acc update host(cl%cartesian_npoint_sg)
       cl%cartesian_displ_sg(:) = 0
       do np = 2, nproc
         cl%cartesian_displ_sg(np) = cl%cartesian_displ_sg(np-1) + &
@@ -2181,6 +2228,7 @@ module mod_mppparam
                                  cl%linear_npoint_sg(np-1)
       end do
     else
+      !$acc update host(cl%cartesian_npoint_sg)
       cl%cartesian_npoint_sg = cl%cartesian_npoint_g
       cl%cartesian_displ_sg = cl%cartesian_displ_g
       cl%linear_npoint_sg = cl%linear_npoint_g

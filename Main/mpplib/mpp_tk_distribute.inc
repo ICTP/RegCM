@@ -204,7 +204,7 @@
     TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: ml
     TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, tsize
-    integer(ik4) :: ib, i, j, icpu, ibstart, w1, w2, w3, w4
+    integer(ik4) :: ib, i, j, jg1, jg2, ig1, ig2
     if ( nproc == 1 ) then
       do concurrent ( j = j1:j2, i = i1:i2 )
         mg(j,i) = ml(j,i)
@@ -227,18 +227,14 @@
     end if
 #endif
     if ( ccid == ccio ) then
-      ibstart = 0
-      do icpu = 0, nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        w1 = window(1)
-        w2 = window(2)
-        w3 = window(3)
-        w4 = window(4)
-        do concurrent ( j = w3:w4, i = w1:w2 )
-          ib = ibstart + (i-w1)*(w4-w3+1)+j-w3+1
-          mg(j,i) = TK_VEC1(ib)
-        end do
-        ibstart = ibstart + (w4-w3+1)*(w2-w1+1)
+      jg1 = lbound(mg,1)
+      jg2 = ubound(mg,1)
+      ig1 = lbound(mg,2)
+      ig2 = ubound(mg,2)
+      call prepare_collect_unpack(jg1,jg2,ig1,ig2)
+      do concurrent ( i = ig1:ig2, j = jg1:jg2 )
+        ib = collect_source(j,i)
+        if ( ib > 0 ) mg(j,i) = TK_VEC1(ib)
       end do
     end if
     !$acc end data
@@ -255,19 +251,103 @@
   end subroutine TK_2D_COLLECT
 
 #ifndef TK_LOGICAL
+  subroutine TK_COLLECT_PLANES(ml1,mg1,ml2,mg2,ml3,mg3,ml4,mg4, &
+                               j1,j2,i1,i2,tsize,nplane)
+    implicit none
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(in) :: ml1, ml2, ml3, ml4
+    TK_TYPE, pointer, contiguous, dimension(:,:), intent(inout) :: mg1, mg2, mg3, mg4
+    integer(ik4), intent(in) :: j1, j2, i1, i2, tsize, nplane
+    integer(ik4) :: counts(nproc), displs(nproc)
+    integer(ik4) :: i, j, ib, jg1, jg2, ig1, ig2, needed
+
+    if ( nproc == 1 ) then
+      do concurrent ( i = i1:i2, j = j1:j2 )
+        mg1(j,i) = ml1(j,i)
+        if ( nplane >= 2 ) mg2(j,i) = ml2(j,i)
+        if ( nplane >= 3 ) mg3(j,i) = ml3(j,i)
+        if ( nplane == 4 ) mg4(j,i) = ml4(j,i)
+      end do
+      return
+    end if
+
+    needed = max(1,nplane*tsize)
+    if ( needed > size(TK_VEC2) ) then
+      call getmem(TK_VEC2,1,needed,'collect_planes:send:'//TK_NAME)
+    end if
+    counts = 0
+    displs = 0
+    if ( ccid == ccio ) then
+      counts = nplane*wincount(1:nproc)
+      displs = nplane*windispl(1:nproc)
+      needed = max(1,sum(counts))
+      if ( needed > size(TK_VEC1) ) then
+        call getmem(TK_VEC1,1,needed,'collect_planes:recv:'//TK_NAME)
+      end if
+    end if
+
+    do concurrent ( i = i1:i2, j = j1:j2 )
+      ib = nplane*((i-i1)*(j2-j1+1)+j-j1)
+      TK_VEC2(ib+1) = ml1(j,i)
+      if ( nplane >= 2 ) TK_VEC2(ib+2) = ml2(j,i)
+      if ( nplane >= 3 ) TK_VEC2(ib+3) = ml3(j,i)
+      if ( nplane == 4 ) TK_VEC2(ib+4) = ml4(j,i)
+    end do
+    call mpi_gatherv(TK_VEC2,nplane*tsize,TK_MPI, &
+                     TK_VEC1,counts,displs,TK_MPI,ccio,mycomm,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'batched mpi_gatherv error.')
+    end if
+#endif
+    if ( ccid == ccio ) then
+      jg1 = lbound(mg1,1)
+      jg2 = ubound(mg1,1)
+      ig1 = lbound(mg1,2)
+      ig2 = ubound(mg1,2)
+      call prepare_collect_unpack(jg1,jg2,ig1,ig2)
+      do concurrent ( i = ig1:ig2, j = jg1:jg2 )
+        ib = collect_source(j,i)
+        if ( ib > 0 ) then
+          ib = nplane*(ib-1)
+          mg1(j,i) = TK_VEC1(ib+1)
+          if ( nplane >= 2 ) mg2(j,i) = TK_VEC1(ib+2)
+          if ( nplane >= 3 ) mg3(j,i) = TK_VEC1(ib+3)
+          if ( nplane == 4 ) mg4(j,i) = TK_VEC1(ib+4)
+        end if
+      end do
+    end if
+  end subroutine TK_COLLECT_PLANES
+
   subroutine TK_3D_COLLECT(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(in) :: ml
     TK_TYPE, pointer, contiguous, dimension(:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2
-    TK_TYPE, pointer, contiguous, dimension(:,:) :: ml2 => null( )
-    TK_TYPE, pointer, contiguous, dimension(:,:) :: mg2 => null( )
-    integer(ik4) :: tsize, k
+    TK_TYPE, pointer, contiguous, dimension(:,:) :: ml1, ml2, ml3, ml4
+    TK_TYPE, pointer, contiguous, dimension(:,:) :: mg1, mg2, mg3, mg4
+    integer(ik4) :: tsize, k, nplane
     tsize = glosplitw(j1,j2,i1,i2)
-    do k = k1, k2
-      if ( ccid == ccio )  call assignpnt(mg,mg2,k)
-      call assignpnt(ml,ml2,k)
-      call TK_2D_DO_COLLECT(ml2,mg2,j1,j2,i1,i2,tsize)
+    k = k1
+    do while ( k <= k2 )
+      nplane = collect_plane_count(k2-k+1)
+      nullify(ml2,ml3,ml4,mg1,mg2,mg3,mg4)
+      call assignpnt(ml,ml1,k)
+      if ( nplane >= 2 ) call assignpnt(ml,ml2,k+1)
+      if ( nplane == 4 ) then
+        call assignpnt(ml,ml3,k+2)
+        call assignpnt(ml,ml4,k+3)
+      end if
+      if ( ccid == ccio ) then
+        call assignpnt(mg,mg1,k)
+        if ( nplane >= 2 ) call assignpnt(mg,mg2,k+1)
+        if ( nplane == 4 ) then
+          call assignpnt(mg,mg3,k+2)
+          call assignpnt(mg,mg4,k+3)
+        end if
+      end if
+      call TK_COLLECT_PLANES(ml1,mg1,ml2,mg2,ml3,mg3,ml4,mg4, &
+                             j1,j2,i1,i2,tsize,nplane)
+      k = k+nplane
     end do
   end subroutine TK_3D_COLLECT
 
@@ -276,15 +356,32 @@
     TK_TYPE, pointer, contiguous, dimension(:,:,:,:), intent(in) :: ml
     TK_TYPE, pointer, contiguous, dimension(:,:,:,:), intent(inout) :: mg
     integer(ik4), intent(in) :: j1, j2, i1, i2, k1, k2, n1, n2
-    TK_TYPE, pointer, contiguous, dimension(:,:) :: ml2 => null( )
-    TK_TYPE, pointer, contiguous, dimension(:,:) :: mg2 => null( )
-    integer(ik4) :: tsize, k, n
+    TK_TYPE, pointer, contiguous, dimension(:,:) :: ml1, ml2, ml3, ml4
+    TK_TYPE, pointer, contiguous, dimension(:,:) :: mg1, mg2, mg3, mg4
+    integer(ik4) :: tsize, k, n, nplane
     tsize = glosplitw(j1,j2,i1,i2)
     do n = n1, n2
-      do k = k1, k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
-        call assignpnt(ml,ml2,k,n)
-        call TK_2D_DO_COLLECT(ml2,mg2,j1,j2,i1,i2,tsize)
+      k = k1
+      do while ( k <= k2 )
+        nplane = collect_plane_count(k2-k+1)
+        nullify(ml2,ml3,ml4,mg1,mg2,mg3,mg4)
+        call assignpnt(ml,ml1,k,n)
+        if ( nplane >= 2 ) call assignpnt(ml,ml2,k+1,n)
+        if ( nplane == 4 ) then
+          call assignpnt(ml,ml3,k+2,n)
+          call assignpnt(ml,ml4,k+3,n)
+        end if
+        if ( ccid == ccio ) then
+          call assignpnt(mg,mg1,k,n)
+          if ( nplane >= 2 ) call assignpnt(mg,mg2,k+1,n)
+          if ( nplane == 4 ) then
+            call assignpnt(mg,mg3,k+2,n)
+            call assignpnt(mg,mg4,k+3,n)
+          end if
+        end if
+        call TK_COLLECT_PLANES(ml1,mg1,ml2,mg2,ml3,mg3,ml4,mg4, &
+                               j1,j2,i1,i2,tsize,nplane)
+        k = k+nplane
       end do
     end do
   end subroutine TK_4D_COLLECT

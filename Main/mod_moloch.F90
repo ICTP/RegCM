@@ -377,10 +377,21 @@ module mod_moloch
     !
     ! Update variables : p, rho, qs, ps
     !
+#ifdef STDPAR_FIXED
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+#else
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do i = ice1, ice2
+    do j = jce1, jce2
+#endif
       p(j,i,k) = (pai(j,i,k)**cpovr) * p00
       rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
+#ifndef STDPAR_FIXED
+    end do
+    end do
+#endif
     end do
 
     call extrapolate_surface_pressure( )

@@ -42,6 +42,7 @@
 #define TK_2D_SUB_DISTRIBUTE                   integer_2d_sub_distribute
 #define TK_3D_SUB_DISTRIBUTE                   integer_3d_sub_distribute
 #define TK_2D_DO_COLLECT                       integer4_2d_do_collect
+#define TK_COLLECT_PLANES                      integer4_collect_planes
 #define TK_2D_COLLECT                          integer_2d_collect
 #define TK_3D_COLLECT                          integer_3d_collect
 #define TK_4D_COLLECT                          integer_4d_collect

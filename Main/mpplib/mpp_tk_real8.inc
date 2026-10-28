@@ -53,6 +53,7 @@
 #define TK_2D_SUB_DISTRIBUTE                      real8_2d_sub_distribute
 #define TK_3D_SUB_DISTRIBUTE                      real8_3d_sub_distribute
 #define TK_2D_DO_COLLECT                          real8_2d_do_collect
+#define TK_COLLECT_PLANES                         real8_collect_planes
 #define TK_2D_COLLECT                             real8_2d_collect
 #define TK_2D_3D_COLLECT                          real8_2d_3d_collect
 #define TK_3D_COLLECT                             real8_3d_collect
