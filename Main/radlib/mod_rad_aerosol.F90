@@ -56,6 +56,8 @@ module mod_rad_aerosol
   end interface readvar3d
   !
   character(len=256) :: macv2sp_hist, macv2sp_scen
+  ! Last year of the historical simple plumes data
+  integer(ik4) :: macv2sp_hist_end
   real(rk8), pointer, contiguous, dimension(:) :: lambdaw => null( )
   real(rk8), pointer, contiguous, dimension(:) :: latr4 => null( )
   real(rk8), pointer, contiguous, dimension(:) :: lonr4 => null( )
@@ -1253,6 +1255,7 @@ module mod_rad_aerosol
     subroutine allocate_mod_rad_aerosol
       implicit none
       integer(ik4) :: n, k, kk, kk1
+      character(len=2) :: sp7
 
       if ( irrtm == 1 ) then
         nband = nbndsw
@@ -1346,36 +1349,70 @@ module mod_rad_aerosol
         call getmem(asyprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:asyprof')
         call getmem(ssaprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:ssaprof')
       else if ( iclimaaer == 3 ) then
-        macv2sp_hist = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
-              'AEROSOL'//pthsep//'MACv2.0-SP_v1.nc'
-        select case (scenario)
-          case ('ssp119', 'SSP119')
-            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
-              'AEROSOL'//pthsep//'MACv2.0-SP_IMAGE-SSP1-19-SPA1.nc'
-          case ('ssp126', 'SSP126')
-            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
-              'AEROSOL'//pthsep//'MACv2.0-SP_IMAGE-SSP1-26-SPA1.nc'
-          case ('ssp245', 'SSP245')
-            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
-              'AEROSOL'//pthsep//'MACv2.0-SP_MESSAGE-GLOBIOM-SSP2-45-SPA2.nc'
-          case ('ssp370', 'SSP370')
-            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
-              'AEROSOL'//pthsep//'MACv2.0-SP_AIM-SSP3-Ref-SPA0.nc'
-          case ('ssp434', 'SSP434')
-            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
-              'AEROSOL'//pthsep//'MACv2.0-SP_GCAM4-SSP4-34-SPA4.nc'
-          case ('ssp460', 'SSP460')
-            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
-              'AEROSOL'//pthsep//'MACv2.0-SP_GCAM4-SSP4-60-SPA4.nc'
-          case ('ssp534', 'SSP534')
-            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
-              'AEROSOL'//pthsep//'MACv2.0-SP_REMIND-MAGPIE-SSP5-34-OS.nc'
-          case ('ssp585', 'SSP585')
-            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
-              'AEROSOL'//pthsep//'MACv2.0-SP_REMIND-MAGPIE-SSP5-Ref.nc'
-          case default
-            macv2sp_scen = macv2sp_hist
-        end select
+        if ( scenario(1:3) == 'SSP' .or. scenario(1:3) == 'ssp' ) then
+          ! CMIP6 MACv2-SP data
+          macv2sp_hist_end = 2014
+          macv2sp_hist = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+                'AEROSOL'//pthsep//'MACv2.0-SP_v1.nc'
+          select case (scenario)
+            case ('ssp119', 'SSP119')
+              macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+                'AEROSOL'//pthsep//'MACv2.0-SP_IMAGE-SSP1-19-SPA1.nc'
+            case ('ssp126', 'SSP126')
+              macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+                'AEROSOL'//pthsep//'MACv2.0-SP_IMAGE-SSP1-26-SPA1.nc'
+            case ('ssp245', 'SSP245')
+              macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+                'AEROSOL'//pthsep//'MACv2.0-SP_MESSAGE-GLOBIOM-SSP2-45-SPA2.nc'
+            case ('ssp370', 'SSP370')
+              macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+                'AEROSOL'//pthsep//'MACv2.0-SP_AIM-SSP3-Ref-SPA0.nc'
+            case ('ssp434', 'SSP434')
+              macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+                'AEROSOL'//pthsep//'MACv2.0-SP_GCAM4-SSP4-34-SPA4.nc'
+            case ('ssp460', 'SSP460')
+              macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+                'AEROSOL'//pthsep//'MACv2.0-SP_GCAM4-SSP4-60-SPA4.nc'
+            case ('ssp534', 'SSP534')
+              macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+                'AEROSOL'//pthsep//'MACv2.0-SP_REMIND-MAGPIE-SSP5-34-OS.nc'
+            case ('ssp585', 'SSP585')
+              macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+                'AEROSOL'//pthsep//'MACv2.0-SP_REMIND-MAGPIE-SSP5-Ref.nc'
+            case default
+              macv2sp_scen = macv2sp_hist
+          end select
+        else
+          ! CMIP7 SPv2.1 data
+          macv2sp_hist_end = 2023
+          macv2sp_hist = trim(inpglob)//pthsep//'CMIP7'//pthsep// &
+                'AEROSOL'//pthsep//'SPv2.1_1850-2023_CMIP7.nc'
+          select case (scenario)
+            case ('scen7-h', 'SCEN7-H')
+              sp7 = 'h'
+            case ('scen7-hl', 'SCEN7-HL')
+              sp7 = 'hl'
+            case ('scen7-m', 'SCEN7-M')
+              sp7 = 'm'
+            case ('scen7-ml', 'SCEN7-ML')
+              sp7 = 'ml'
+            case ('scen7-l', 'SCEN7-L')
+              sp7 = 'l'
+            case ('scen7-ln', 'SCEN7-LN')
+              sp7 = 'ln'
+            case ('scen7-vl', 'SCEN7-VL')
+              sp7 = 'vl'
+            case default
+              sp7 = ' '
+          end select
+          ! Without a CMIP7 scenario only the historical period is available
+          macv2sp_scen = ' '
+          if ( len_trim(sp7) > 0 ) then
+            macv2sp_scen = trim(inpglob)//pthsep//'CMIP7'//pthsep// &
+                'AEROSOL'//pthsep//'Simple_plumes_SPv2.1_CMIP7_'// &
+                trim(sp7)//'_scenario.nc'
+          end if
+        end if
         call getmem(dnovrnr4,1,npoints,'rad:dnovrnr4')
         call getmem(extprofr4,1,npoints,1,kth,1,nband,'rad:extprofr4')
         call getmem(asyprofr4,1,npoints,1,kth,1,nband,'rad:asyprofr4')
@@ -2858,10 +2895,17 @@ module mod_rad_aerosol
           end do
         end do
         year_fr = real(iy) + real(yeardayfrac(x))/real(yeardays(iy,x%calendar))
+        if ( len_trim(macv2sp_scen) == 0 .and. iy > macv2sp_hist_end ) then
+          write(stderr,*) 'CMIP7 simple plumes historical data end in ', &
+            macv2sp_hist_end
+          write(stderr,*) 'Select a CMIP7 scenario: SCEN7-H, SCEN7-HL, ', &
+            'SCEN7-M, SCEN7-ML, SCEN7-L, SCEN7-LN or SCEN7-VL'
+          call fatal(__FILE__,__LINE__,'NO CMIP7 AEROSOL SCENARIO')
+        end if
         do n = 1, nband
           if ( lambdaw(n) < 700.0_rk8 ) then
             call sp_aop_profile(macv2sp_hist,macv2sp_scen, &
-                                kth,npoints,lambdaw(n), &
+                                macv2sp_hist_end,kth,npoints,lambdaw(n), &
                                 altr4,lonr4,latr4,year_fr,z,dz, &
                                 dnovrnr4,extprofr4(:,:,n), &
                                 ssaprofr4(:,:,n),asyprofr4(:,:,n))

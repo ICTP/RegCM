@@ -38,6 +38,9 @@ MODULE MO_SIMPLE_PLUMES
   LOGICAL, SAVE ::                             &
        sp_initialized = .FALSE.                  !< parameter determining whether input needs to be read
 
+  INTEGER, SAVE ::                             &
+       last_year = 1849 + nyears                 !< last year with forcing data
+
   REAL(kind=wp) ::                             &
        plume_lat      (nplumes)               ,& !< latitude of plume center (AOD maximum)
        plume_lon      (nplumes)               ,& !< longitude of plume center (AOD maximum)
@@ -68,14 +71,22 @@ CONTAINS
   ! SP_SETUP:  This subroutine should be called at initialization to read the netcdf data that describes the simple plume
   ! climatology.  The information needs to be either read by each processor or distributed to processors.
   !
-  SUBROUTINE sp_setup(history,scenario)
+  !
+  ! The yearly weights are taken from the history file up to hist_end_year
+  ! and from the scenario file (if any) for the following years. The
+  ! scenario file can cover any period: its years are read from the file.
+  !
+  SUBROUTINE sp_setup(history,scenario,hist_end_year)
     IMPLICIT NONE
     CHARACTER(LEN=*), INTENT(IN) :: history, scenario
+    INTEGER, INTENT(IN) :: hist_end_year
     !
     ! ----------
     !
-    INTEGER :: iret, ncid, DimID, VarID, xdmy
+    INTEGER :: iret, ncid, DimID, VarID, xdmy, nhist, nscen, i, iy
     REAL(kind=wp) :: temp(nyears,nplumes)
+    INTEGER, ALLOCATABLE :: scen_years(:)
+    REAL(kind=wp), ALLOCATABLE :: scen_weight(:,:)
     !
     ! ----------
     !
@@ -153,25 +164,45 @@ CONTAINS
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lat'
     iret = nf90_inq_varid(ncid, "year_weight"  , VarId)
     iret = nf90_get_var(ncid, VarID, temp, start=[1,1],count=[nyears,nplumes])
-    year_weight(1:165,1:nplumes) = temp(1:165,1:nplumes)
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
+    nhist = hist_end_year - 1849
+    IF (nhist < 1 .OR. nhist > nyears) STOP 'Invalid end of the history data'
+    year_weight(:,:) = 0.0_wp
+    year_weight(1:nhist,1:nplumes) = temp(1:nhist,1:nplumes)
+    last_year = hist_end_year
     iret = nf90_inq_varid(ncid, "ann_cycle"    , VarId)
     iret = nf90_get_var(ncid, VarID, ann_cycle(:,:,:) , start=[1,1,1],count=[nfeatures,ntimes,nplumes])
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading ann_cycle'
 
     iret = nf90_close(ncid)
 
-    iret = nf90_open(scenario, NF90_NOWRITE, ncid)
-    IF (iret /= NF90_NOERR) THEN
-      write (0,*) 'Cannot find file '//trim(scenario)
-      STOP 'NetCDF File not opened'
+    IF (LEN_TRIM(scenario) > 0) THEN
+      iret = nf90_open(scenario, NF90_NOWRITE, ncid)
+      IF (iret /= NF90_NOERR) THEN
+        write (0,*) 'Cannot find file '//trim(scenario)
+        STOP 'NetCDF File not opened'
+      END IF
+      iret = nf90_inq_dimid(ncid, "years", DimId)
+      iret = nf90_inquire_dimension(ncid, DimID, len = nscen)
+      IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading scenario years'
+      ALLOCATE(scen_years(nscen), scen_weight(nscen,nplumes))
+      iret = nf90_inq_varid(ncid, "years", VarId)
+      iret = nf90_get_var(ncid, VarID, scen_years)
+      IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading scenario years'
+      iret = nf90_inq_varid(ncid, "year_weight", VarId)
+      iret = nf90_get_var(ncid, VarID, scen_weight, &
+                          start=[1,1], count=[nscen,nplumes])
+      IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
+      iret = nf90_close(ncid)
+      DO i = 1, nscen
+        iy = scen_years(i) - 1849
+        IF (scen_years(i) > hist_end_year .AND. iy <= nyears) THEN
+          year_weight(iy,1:nplumes) = scen_weight(i,1:nplumes)
+          last_year = MAX(last_year, scen_years(i))
+        END IF
+      END DO
+      DEALLOCATE(scen_years, scen_weight)
     END IF
-    iret = nf90_inq_varid(ncid, "year_weight"  , VarId)
-    iret = nf90_get_var(ncid, VarID, temp, start=[1,1],count=[nyears,nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
-    year_weight(166:nyears,1:nplumes) = temp(166:nyears,1:nplumes)
-
-    iret = nf90_close(ncid)
 
     !
     sp_initialized = .TRUE.
@@ -203,6 +234,11 @@ CONTAINS
     iweek = FLOOR((year_fr - FLOOR(year_fr)) * ntimes) + 1
 
     IF ((iweek > ntimes) .OR. (iweek < 1) .OR. (iyear > nyears) .OR. (iyear < 1)) STOP 'Time out of bounds in set_time_weight'
+    IF (iyear > last_year - 1849) &
+      STOP 'No simple plumes data after the last scenario year'
+    ! Years without data are stored as fill values in the input files
+    IF (ANY(year_weight(iyear,:) > 1.0e30_wp)) &
+      STOP 'Missing simple plumes data for this year'
     DO iplume=1,nplumes
       time_weight(1,iplume) = year_weight(iyear,iplume) * ann_cycle(1,iweek,iplume)
       time_weight(2,iplume) = year_weight(iyear,iplume) * ann_cycle(2,iweek,iplume)
@@ -219,16 +255,17 @@ CONTAINS
   ! optical properties on a host models vertical grid.
   !
   SUBROUTINE sp_aop_profile                                                                           ( &
-       historic       ,scenario       ,nlevels        ,ncol          , &
-       lambda         ,oro            ,lon            ,lat           , &
-       year_fr        ,z              ,dz             ,dNovrN        , &
-       aod_prof       ,ssa_prof       ,asy_prof       )
+       historic       ,scenario       ,hist_end_year  ,nlevels       , &
+       ncol           ,lambda         ,oro            ,lon           , &
+       lat            ,year_fr        ,z              ,dz            , &
+       dNovrN         ,aod_prof       ,ssa_prof       ,asy_prof      )
     IMPLICIT NONE
     !
     ! ----------
     !
     CHARACTER(LEN=*), INTENT(IN) :: historic, scenario
     INTEGER, INTENT(IN)        :: &
+         hist_end_year,           & !< last year taken from the historic file
          nlevels,                 & !< number of levels
          ncol                       !< number of columns
 
@@ -288,7 +325,7 @@ CONTAINS
     !
     ! initialize input data (by calling setup at first instance)
     !
-    IF (.NOT.sp_initialized) CALL sp_setup(historic,scenario)
+    IF (.NOT.sp_initialized) CALL sp_setup(historic,scenario,hist_end_year)
     !
     ! get time weights
     !
