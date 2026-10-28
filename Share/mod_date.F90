@@ -165,7 +165,6 @@ module mod_date
 
   interface julianday
     module procedure ymd_julianday
-    module procedure idate_julianday
   end interface julianday
 
   public :: timeval2ym
@@ -1028,74 +1027,27 @@ module mod_date
     end select
   end function add_interval
 
-  real(rkx) function idate_julianday(x)
-    implicit none
-    type (rcm_time_and_date), intent(in) :: x
-    integer(ik4) :: iy, im, id
-    call split_rcm_date(x,iy,im,id)
-    idate_julianday = real(ymd_julianday(iy, im, id),rkx)
-  end function idate_julianday
-
-  real(rk8) function ymd_julianday(iy, im, id)
+  !
+  ! Julian day (at 00:00 UTC) of a date in the proleptic gregorian calendar,
+  ! the calendar used by the model for the gregorian case. It is computed
+  ! from the number of days since 0000-03-01 and is valid for any year.
+  !
+  pure real(rk8) function ymd_julianday(iy, im, id)
     implicit none
     integer(ik4), intent(in) :: iy, im, id
-    integer(ik4) :: ia, ib, iiy, iim
-    iiy = iy
-    iim = im
-    if (iim <= 2) then
-      iiy = iiy - 1
-      iim = iim + 12
+    ! Julian day of 0000-03-01 00:00 UTC
+    real(rk8), parameter :: jd_origin = 1721119.5_rk8
+    integer(ik4) :: yy, mm, era, yoe
+    yy = iy
+    mm = im - 3
+    if ( im <= 2 ) then
+      yy = iy - 1
+      mm = im + 9
     end if
-    if (lcaltype(iy,im,id)) then
-      ia = iiy/100
-      ib = 2 - ia + ia / 4
-    else
-      ib = 0
-    end if
-    ymd_julianday = int(365.25_rk8*real(iiy+4716,rk8)) + &
-                int(30.6001_rk8*real(iim+1,rk8))   + &
-                real(id + ib,rk8) - 1524.5_rk8
-    contains
-      logical function lcaltype(iy, im, id)
-      implicit none
-      integer(ik4), intent(in) :: iy, im, id
-      integer(ik4) :: icaltype
-      ! Standard Julian/Gregorian switch
-      ! Return true  if before 1582-10-04
-      !        false if after  1582-10-15
-      icaltype = 0
-      if (iy < 1582) then
-        icaltype = 1
-      else if (iy == 1582) then
-        if (im < 10) then
-          icaltype = 1
-        else if (im == 10) then
-          if (id <= 4) then
-            icaltype = 1
-          end if
-        end if
-      end if
-      if (iy > 1582) then
-        icaltype = 2
-      else if (iy == 1582) then
-        if (im > 10) then
-          icaltype = 2
-        else if (im == 10) then
-          if (id >= 15) then
-            icaltype = 2
-          end if
-        end if
-      end if
-      lcaltype = .false.
-      if (icaltype == 2) then
-        lcaltype = .true.
-      else
-        write (stderr, *) 'year  = ', iy
-        write (stderr, *) 'month = ', im
-        write (stderr, *) 'day   = ', id
-        call die('mod_date','Day non existent, inside Julian/Gregorian jump')
-      end if
-    end function lcaltype
+    era = (yy - modulo(yy,400))/400
+    yoe = yy - era*400
+    ymd_julianday = jd_origin + real(era,rk8)*146097.0_rk8 + &
+         real(yoe*365 + yoe/4 - yoe/100 + (153*mm+2)/5 + id - 1,rk8)
   end function ymd_julianday
 
   subroutine check_cal(x,y)
@@ -1282,7 +1234,7 @@ module mod_date
     end if
     call days_from_reference_to_date(x,d)
     jd = julianday(d%year, d%month, d%day)
-    iday = int(mod(jd+1.5_rk8, 7.0_rk8))+1
+    iday = int(modulo(jd+1.5_rk8, 7.0_rk8))+1
   end function idayofweek
 
   function setmidnight(x) result(mx)
