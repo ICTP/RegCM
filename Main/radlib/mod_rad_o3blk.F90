@@ -112,7 +112,8 @@ module mod_rad_o3blk
     if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' .or. &
          scenario(1:5) == 'CONST' ) then
       ozname = ozname_rcp
-      mulfac = 1.0e-6_rk8
+      ! Data in ppmv, the model wants a mass mixing ratio
+      mulfac = 1.0e-6_rk8 * real(amo3/amd,rk8)
       moffset = 1
       if ( year < 1850 ) then
         call fatal(__FILE__,__LINE__,'O3 : year < RCP min date (1850)')
@@ -121,23 +122,28 @@ module mod_rad_o3blk
       else if ( year < 2010 ) then
         ystart = 1850
         yend = 2010
-        o3filename = 'Ozone_CMIP5_ACC_SPARC_RF.nc'
+        o3filename = trim(inpglob)//pthsep//'O3CLIMA'//pthsep// &
+          'Ozone_CMIP5_ACC_SPARC_RF.nc'
       else
         ystart = 2010
         yend = 2100
         if ( scenario(4:6) == '2.6' ) then
-          o3filename = 'Ozone_CMIP5_ACC_SPARC_RCP2.6.nc'
+          o3filename = trim(inpglob)//pthsep//'O3CLIMA'//pthsep// &
+            'Ozone_CMIP5_ACC_SPARC_RCP2.6.nc'
         else if ( scenario(4:6) == '4.5' ) then
-          o3filename = 'Ozone_CMIP5_ACC_SPARC_RCP4.5.nc'
+          o3filename = trim(inpglob)//pthsep//'O3CLIMA'//pthsep// &
+            'Ozone_CMIP5_ACC_SPARC_RCP4.5.nc'
         else if ( scenario(4:6) == '8.5' ) then
-          o3filename = 'Ozone_CMIP5_ACC_SPARC_RCP8.5.nc'
+          o3filename = trim(inpglob)//pthsep//'O3CLIMA'//pthsep// &
+            'Ozone_CMIP5_ACC_SPARC_RCP8.5.nc'
         else
           call fatal(__FILE__,__LINE__,'UNKNOWN RCP SCENARIO for O3')
         end if
       end if
     else if ( scenario(1:3) == 'SSP' .or. scenario(1:3) == 'ssp' ) then
       ozname = ozname_ssp
-      mulfac = 1.0_rk8
+      ! Data are volume mixing ratio, the model wants a mass mixing ratio
+      mulfac = real(amo3/amd,rk8)
       moffset = 0
       if ( year < 1850 ) then
         call fatal(__FILE__,__LINE__,'O3 : year < SPP min date (1850)')
@@ -209,6 +215,70 @@ module mod_rad_o3blk
         end if
       else
         call fatal(__FILE__,__LINE__,'O3 : year < SPP max date (2101)')
+      end if
+    else if ( scenario(1:6) == 'SCEN7-' .or. scenario(1:6) == 'scen7-' ) then
+      ! CMIP7 ozone: historical 1850-2022 and ScenarioMIP 2023-2100
+      ozname = ozname_ssp
+      ! Data are volume mixing ratio, the model wants a mass mixing ratio
+      mulfac = real(amo3/amd,rk8)
+      moffset = 0
+      if ( year < 1850 ) then
+        call fatal(__FILE__,__LINE__,'O3 : year < CMIP7 min date (1850)')
+      else if ( year < 2023 ) then
+        o3filename = trim(inpglob)//pthsep//'CMIP7'//pthsep//'O3'// &
+          pthsep//'vmro3_input4MIPs_ozone_CMIP_FZJ-CMIP-ozone-2-0_gn_'
+        if ( year < 1900 ) then
+          ystart = 1850
+          yend = 1900
+          o3filename = trim(o3filename) // '185001-189912.nc'
+        else if ( year < 1950 ) then
+          ystart = 1900
+          yend = 1950
+          o3filename = trim(o3filename) // '190001-194912.nc'
+        else if ( year < 2000 ) then
+          ystart = 1950
+          yend = 2000
+          o3filename = trim(o3filename) // '195001-199912.nc'
+        else
+          ystart = 2000
+          yend = 2023
+          o3filename = trim(o3filename) // '200001-202212.nc'
+        end if
+      else if ( year < 2101 ) then
+        o3filename = trim(inpglob)//pthsep//'CMIP7'//pthsep//'O3'// &
+          pthsep//'vmro3_input4MIPs_ozone_ScenarioMIP_FZJ-CMIP-ozone-'
+        select case (scenario)
+          case ('SCEN7-H', 'scen7-h')
+            o3filename = trim(o3filename) // 'h'
+          case ('SCEN7-HL', 'scen7-hl')
+            o3filename = trim(o3filename) // 'hl'
+          case ('SCEN7-M', 'scen7-m')
+            o3filename = trim(o3filename) // 'm'
+          case ('SCEN7-ML', 'scen7-ml')
+            o3filename = trim(o3filename) // 'ml'
+          case ('SCEN7-L', 'scen7-l')
+            o3filename = trim(o3filename) // 'l'
+          case ('SCEN7-LN', 'scen7-ln')
+            o3filename = trim(o3filename) // 'ln'
+          case ('SCEN7-VL', 'scen7-vl')
+            o3filename = trim(o3filename) // 'vl'
+          case default
+            call fatal(__FILE__,__LINE__,'UNKNOWN CMIP7 SCENARIO for O3')
+        end select
+        ! The first scenario file starts in 2022, which is taken from the
+        ! historical data: skip its first 12 records.
+        if ( year < 2060 ) then
+          ystart = 2023
+          yend = 2060
+          moffset = 12
+          o3filename = trim(o3filename) // '-1-0_gn_202201-205912.nc'
+        else
+          ystart = 2060
+          yend = 2101
+          o3filename = trim(o3filename) // '-1-0_gn_206001-210012.nc'
+        end if
+      else
+        call fatal(__FILE__,__LINE__,'O3 : year > CMIP7 max date (2100)')
       end if
     else
       call fatal(__FILE__,__LINE__,'UNKNOWN SCENARIO for O3')
