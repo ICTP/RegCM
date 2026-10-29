@@ -2071,7 +2071,7 @@ module mod_ncout
         if ( enable_sts3d_vars(sts_t2min) ) then
           call setup_var(v3dvar_sts,sts_t2min,vsize,'tasmin','K', &
             'Daily Minimum Near-Surface Air Temperature','air_temperature', &
-            .true., 'time: maximum')
+            .true., 'time: minimum')
           sts_t2min_out => v3dvar_sts(sts_t2min)%rval
         end if
         if ( enable_sts3d_vars(sts_t2avg) ) then

@@ -10,7 +10,7 @@ from netCDF4 import Dataset, date2num
 from cftime import datetime as cfdatetime
 
 from utilities.globals import DATATYPE_MAIN, DATATYPE_AUXILIARIES, \
-    CORDEX_MON_VARS
+    CORDEX_MON_VARS, CORDEX_TABLE_VARS
 from utilities.rotate import grid_to_earth_uvrotate
 from utilities.repeater import Repeater
 from utilities.variables import Variable, MemoryData, FilterData,\
@@ -186,6 +186,19 @@ class ReadVariableFromFile(ActionStarter):
         )
 
 
+def merge_cell_methods(recipe, current):
+    """
+    The cell_methods of a variable with the area part of the recipe and the
+    time part of the current value, which describes how the data have been
+    computed (by RegCM or by the averages of pycordexer).
+    """
+    if 'time:' not in current:
+        return recipe
+    itime = recipe.find('time:')
+    area = recipe if itime < 0 else recipe[:itime]
+    return ' '.join((area.strip(), current[current.find('time:'):])).strip()
+
+
 class SaveVariableToDisk(Filter):
     """Save a variable to disk.
 
@@ -273,16 +286,16 @@ class SaveVariableToDisk(Filter):
                 var_name
             )
             if attr_name == 'cell_methods':
-                if attr_name in attributes:
-                    if attr_value in attributes[attr_name]:
-                        continue
-                    else:
-                        attributes[attr_name] = ' '.join(
-                           (attr_value, attributes[attr_name]))
-                else:
-                    attributes[attr_name] = attr_value
+                attributes[attr_name] = merge_cell_methods(
+                    attr_value, attributes.get(attr_name, ''))
             else:
                 attributes[attr_name] = attr_value
+
+        # The CORDEX-CMIP6 table of the frequency, when it defines the
+        # variable, gives its cell_methods
+        table = CORDEX_TABLE_VARS.get(prev_result.frequency, {})
+        if 'cell_methods' in table.get(var_name, {}):
+            attributes['cell_methods'] = table[var_name]['cell_methods']
 
         if self.fill_value is not None:
             attributes['_FillValue'] = self.fill_value

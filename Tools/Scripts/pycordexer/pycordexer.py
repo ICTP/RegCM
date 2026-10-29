@@ -9,7 +9,8 @@ from sys import exit as sys_exit
 import signal
 
 from utilities.cordex_utils import RegcmOutputFile, RegcmSimulation
-from utilities.globals import OUTPUTDIR, CORDEX_VARS, ASSOCIATIONS
+from utilities.globals import OUTPUTDIR, CORDEX_VARS, ASSOCIATIONS, \
+    CORDEX_CMIP6_DEFINITIONS
 from utilities.pycordexer_methods import Action, VariableSkipped, \
     get_methods
 from utilities.log_utilities import collect_logs, WaitQueueHandler
@@ -238,6 +239,11 @@ def parse_input():
     )
 
     args = parser.parse_args()
+    if args.institute_id not in CORDEX_CMIP6_DEFINITIONS['institution_id']:
+        parser.error(
+            'institute_id "{}" is not in the CORDEX-CMIP6 institution_id '
+            'list'.format(args.institute_id)
+        )
     return args
 
 

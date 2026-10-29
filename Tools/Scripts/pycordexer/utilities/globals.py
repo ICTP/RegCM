@@ -117,10 +117,18 @@ for jf in jsonfiles:
         for k in elements.keys( ):
             CORDEX_CMIP6_DEFINITIONS[k] = elements[k]
 
+# The variables of the CORDEX-CMIP6 tables of each frequency. They give the
+# cell_methods of the variables written at that frequency
+CORDEX_TABLE_VARS = {}
+for frequency in ('1hr', '6hr', 'day', 'mon', 'fx'):
+    table_file = 'CORDEX-CMIP6_{}.json'.format(frequency)
+    with open(os.path.join(MAIN_DIR, 'variables', table_file)) as f:
+        CORDEX_TABLE_VARS[frequency] = json.load(f)['variable_entry']
+del frequency, table_file
+
 # The variables of the monthly table, used to select and describe the monthly
 # means computed from the daily variables
-with open(os.path.join(MAIN_DIR, 'variables', 'CORDEX-CMIP6_mon.json')) as f:
-    CORDEX_MON_VARS = json.load(f)['variable_entry']
+CORDEX_MON_VARS = CORDEX_TABLE_VARS['mon']
 
 # Default fill values for NETCDF. These are the same values that you can find
 # from the netCDF4._default_fillvals dictionary
