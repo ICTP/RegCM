@@ -117,13 +117,14 @@ module mod_rad_o3blk
       moffset = 1
       if ( year < 1850 ) then
         call fatal(__FILE__,__LINE__,'O3 : year < RCP min date (1850)')
-      else if ( year > 2100 ) then
-        call fatal(__FILE__,__LINE__,'O3 : year > RCP max date (2100)')
-      else if ( year < 2010 ) then
+      else if ( year < 2010 .or. scenario(1:5) == 'CONST' ) then
+        ! CONST uses the historical data, repeating 2009 after it
         ystart = 1850
         yend = 2010
         o3filename = trim(inpglob)//pthsep//'O3CLIMA'//pthsep// &
           'Ozone_CMIP5_ACC_SPARC_RF.nc'
+      else if ( year > 2100 ) then
+        call fatal(__FILE__,__LINE__,'O3 : year > RCP max date (2100)')
       else
         ystart = 2010
         yend = 2100
@@ -408,6 +409,11 @@ module mod_rad_o3blk
       call iprevmon(iy1,im1)
       iref1 = monmiddle(prevmon(idatex))
       iref2 = imonmidd
+    end if
+    ! The CONST scenario repeats the last year of the historical data
+    if ( scenario(1:5) == 'CONST' ) then
+      iy1 = min(iy1,2009)
+      iy2 = min(iy2,2009)
     end if
     dointerp = .false.
     if ( ism /= im1 .or. isy /= iy1 ) then

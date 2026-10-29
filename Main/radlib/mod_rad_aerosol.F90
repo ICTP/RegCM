@@ -1252,6 +1252,12 @@ module mod_rad_aerosol
 
   contains
 
+    subroutine macv2sp_fatal(message)
+      implicit none
+      character(len=*), intent(in) :: message
+      call fatal(__FILE__,__LINE__,'Simple plumes : '//trim(message))
+    end subroutine macv2sp_fatal
+
     subroutine allocate_mod_rad_aerosol
       implicit none
       integer(ik4) :: n, k, kk, kk1
@@ -1349,6 +1355,8 @@ module mod_rad_aerosol
         call getmem(asyprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:asyprof')
         call getmem(ssaprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:ssaprof')
       else if ( iclimaaer == 3 ) then
+        ! Errors in the simple plumes code stop the model with fatal
+        sp_error => macv2sp_fatal
         if ( scenario(1:3) == 'SSP' .or. scenario(1:3) == 'ssp' ) then
           ! CMIP6 MACv2-SP data
           macv2sp_hist_end = 2014
