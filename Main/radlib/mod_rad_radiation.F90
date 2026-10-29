@@ -1224,6 +1224,7 @@ module mod_rad_radiation
     ! appropriate.
     !
     ! Cannot be done in parallel because it requires I/O from file
+    ! The I/O from file is now removed from ghgval!
     !
     !$acc update host(lat,val)
     do n = n1, n2
