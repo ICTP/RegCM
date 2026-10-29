@@ -2316,7 +2316,7 @@ module mod_ipcc_scenario
     implicit none
     integer(ik4), intent(in) :: igas, year, month
     real(rk8), intent(in) :: lat
-    integer(ik4) :: ilat, isely, nlat
+    integer(ik4) :: isely
     if ( lconst2050 ) then
       isely = 2050
     else
@@ -2326,16 +2326,12 @@ module mod_ipcc_scenario
       if ( local_ghgc%year /= isely .or. local_ghgc%month /= month ) then
         call load_cmip7_scenario(local_ghgc%sname,isely,month,local_ghgc)
       end if
-      ! Latitude bands of equal width from the South Pole
-      nlat = size(local_ghgc%gmf,1)
-      ilat = min(max(int((lat+90.0_rkx)*nlat/180.0_rkx)+1,1),nlat)
-      ghgval = local_ghgc%gmf(ilat,igas) * cgunit(igas)
+      ghgval = zonal_value(local_ghgc%gmf,igas,lat) * cgunit(igas)
     else if ( lcmip6 ) then
       if ( local_ghgc%year /= isely .or. local_ghgc%month /= month ) then
         call load_cmip6_scenario(local_ghgc%sname,isely,month,local_ghgc)
       end if
-      ilat = int((lat+89.75_rkx)/0.5_rkx) + 1
-      ghgval = local_ghgc%gmf(ilat,igas) * cgunit(igas)
+      ghgval = zonal_value(local_ghgc%gmf,igas,lat) * cgunit(igas)
     else
       if ( isely < 1850 ) then
         ghgval = cgas(igas+1,1850) * cgunit(igas)
@@ -2351,6 +2347,32 @@ module mod_ipcc_scenario
       end if
     end if
   end function ghgval
+
+  !
+  ! Value at latitude lat of a gas given on latitude bands of equal width
+  ! starting from the South Pole: linear interpolation between the band
+  ! centers, constant poleward of the first and of the last center.
+  !
+  real(rkx) function zonal_value(gmf,igas,lat)
+    implicit none
+    real(rkx), dimension(:,:), intent(in) :: gmf
+    integer(ik4), intent(in) :: igas
+    real(rk8), intent(in) :: lat
+    integer(ik4) :: nlat, ilat
+    real(rk8) :: xlat, wlat
+    nlat = size(gmf,1)
+    xlat = (lat+90.0_rk8)*real(nlat,rk8)/180.0_rk8 + 0.5_rk8
+    ilat = int(xlat)
+    if ( ilat < 1 ) then
+      zonal_value = gmf(1,igas)
+    else if ( ilat >= nlat ) then
+      zonal_value = gmf(nlat,igas)
+    else
+      wlat = xlat - real(ilat,rk8)
+      zonal_value = real((1.0_rk8-wlat)*gmf(ilat,igas) + &
+                         wlat*gmf(ilat+1,igas),rkx)
+    end if
+  end function zonal_value
 
 end module mod_ipcc_scenario
 
