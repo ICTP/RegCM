@@ -1393,30 +1393,31 @@ module mod_params
     !
     if ( myid == iocpu ) then
       if ( scenario(1:3) == 'RCP' ) then
+        ! Aliases of the same RCP are replaced by the standard name
         if ( dattyp(4:5) == '26' ) then
-          if ( scenario /= 'RCP3PD' .or. &
-               scenario /= 'RCP2.6' .or. &
+          if ( scenario /= 'RCP3PD' .and. &
+               scenario /= 'RCP2.6' .and. &
                scenario /= 'RCP26' ) then
             write(stderr,*) 'Forcing scenario from dattyp to RCP2.6'
-            scenario = 'RCP2.6'
           end if
+          scenario = 'RCP2.6'
         else if ( dattyp(4:5) == '45' ) then
-          if ( scenario /= 'RCP4.5' .or. scenario /= 'RCP45' ) then
+          if ( scenario /= 'RCP4.5' .and. scenario /= 'RCP45' ) then
             write(stderr,*) 'Forcing scenario from dattyp to RCP4.5'
-            scenario = 'RCP4.5'
           end if
+          scenario = 'RCP4.5'
         else if ( dattyp(4:5) == '60' ) then
-          if ( scenario /= 'RCP6' .or.  &
-               scenario /= 'RCP60' .or. &
+          if ( scenario /= 'RCP6' .and.  &
+               scenario /= 'RCP60' .and. &
                scenario /= 'RCP6.0' ) then
             write(stderr,*) 'Forcing scenario from dattyp to RCP6.0'
-            scenario = 'RCP6.0'
           end if
+          scenario = 'RCP6.0'
         else if ( dattyp(4:5) == '85' ) then
-          if ( scenario /= 'RCP8.5' .or. scenario /= 'RCP85' ) then
+          if ( scenario /= 'RCP8.5' .and. scenario /= 'RCP85' ) then
             write(stderr,*) 'Forcing scenario from dattyp to RCP8.5'
-            scenario = 'RCP8.5'
           end if
+          scenario = 'RCP8.5'
         end if
       else if ( dattyp == 'CMIP6' ) then
         if ( cmip6_experiment == 'ssp119' ) then

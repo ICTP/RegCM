@@ -2139,7 +2139,8 @@ module mod_ipcc_scenario
           call fatal(__FILE__,__LINE__, &
                      'UNSUPPORTED EMISSION SCENARIO')
       end select
-      irec = min((year-2015)*12 + month,5832)
+      ! After the last year of data (2500) its months are repeated
+      irec = (min(year,2500)-2015)*12 + month
     end if
     ghgmf%sname = sname
     ghgmf%year = year

@@ -63,9 +63,30 @@ MODULE MO_SIMPLE_PLUMES
        year_weight    (nyears,nplumes)        ,& !< Yearly weight for plume
        ann_cycle      (nfeatures,ntimes,nplumes) !< annual cycle for plume feature
 
-  PUBLIC sp_aop_profile
+  ABSTRACT INTERFACE
+    SUBROUTINE sp_error_handler(message)
+      CHARACTER(LEN=*), INTENT(IN) :: message
+    END SUBROUTINE sp_error_handler
+  END INTERFACE
+
+  !< Error handler of the host model. If it is not set (or if it returns),
+  !  the error message is printed and the program stops.
+  PROCEDURE(sp_error_handler), POINTER :: sp_error => NULL()
+
+  PUBLIC sp_aop_profile, sp_error
 
 CONTAINS
+  !
+  ! ------------------------------------------------------------------------------------------------------------------------
+  ! SP_FAIL:  Report an error through the host model error handler, if any, or stop.
+  !
+  SUBROUTINE sp_fail(message)
+    IMPLICIT NONE
+    CHARACTER(LEN=*), INTENT(IN) :: message
+    IF (ASSOCIATED(sp_error)) CALL sp_error(message)
+    write (0,*) 'Simple plumes error: '//trim(message)
+    ERROR STOP 'Simple plumes error'
+  END SUBROUTINE sp_fail
   !
   ! ------------------------------------------------------------------------------------------------------------------------
   ! SP_SETUP:  This subroutine should be called at initialization to read the netcdf data that describes the simple plume
@@ -93,86 +114,86 @@ CONTAINS
     iret = nf90_open(history, NF90_NOWRITE, ncid)
     IF (iret /= NF90_NOERR) THEN
       write (0,*) 'Cannot find file '//trim(history)
-      STOP 'NetCDF File not opened'
+      CALL sp_fail('NetCDF File not opened')
     END IF
     !
     ! read dimensions and make sure file conforms to expected size
     !
     iret = nf90_inq_dimid(ncid, "plume_number" , DimId)
     iret = nf90_inquire_dimension(ncid, DimId, len = xdmy)
-    IF (xdmy /= nplumes) STOP 'NetCDF improperly dimensioned -- plume_number'
+    IF (xdmy /= nplumes) CALL sp_fail('NetCDF improperly dimensioned -- plume_number')
 
     iret = nf90_inq_dimid(ncid, "plume_feature", DimId)
     iret = nf90_inquire_dimension(ncid, DimId, len = xdmy)
-    IF (xdmy /= nfeatures) STOP 'NetCDF improperly dimensioned -- plume_feature'
+    IF (xdmy /= nfeatures) CALL sp_fail('NetCDF improperly dimensioned -- plume_feature')
 
     iret = nf90_inq_dimid(ncid, "year_fr"  , DimId)
     iret = nf90_inquire_dimension(ncid, DimID, len = xdmy)
-    IF (xdmy /= ntimes) STOP 'NetCDF improperly dimensioned -- year_fr'
+    IF (xdmy /= ntimes) CALL sp_fail('NetCDF improperly dimensioned -- year_fr')
 
     iret = nf90_inq_dimid(ncid, "years"  , DimId)
     iret = nf90_inquire_dimension(ncid, DimID, len = xdmy)
-    IF (xdmy /= nyears) STOP 'NetCDF improperly dimensioned -- years'
+    IF (xdmy /= nyears) CALL sp_fail('NetCDF improperly dimensioned -- years')
     !
     ! read variables that define the simple plume climatology
     !
     iret = nf90_inq_varid(ncid, "plume_lat", VarId)
     iret = nf90_get_var(ncid, VarID, plume_lat(:), start=[1],count=[nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lat'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading plume_lat')
     iret = nf90_inq_varid(ncid, "plume_lon", VarId)
     iret = nf90_get_var(ncid, VarID, plume_lon(:), start=[1],count=[nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lon'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading plume_lon')
     iret = nf90_inq_varid(ncid, "beta_a"  , VarId)
     iret = nf90_get_var(ncid, VarID, beta_a(:)  , start=[1],count=[nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading beta_a'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading beta_a')
     iret = nf90_inq_varid(ncid, "beta_b"  , VarId)
     iret = nf90_get_var(ncid, VarID, beta_b(:)  , start=[1],count=[nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading beta_b'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading beta_b')
     iret = nf90_inq_varid(ncid, "aod_spmx", VarId)
     iret = nf90_get_var(ncid, VarID, aod_spmx(:) , start=[1],count=[nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading aod_spmx'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading aod_spmx')
     iret = nf90_inq_varid(ncid, "aod_fmbg", VarId)
     iret = nf90_get_var(ncid, VarID, aod_fmbg(:) , start=[1],count=[nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading aod_fmbg'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading aod_fmbg')
     iret = nf90_inq_varid(ncid, "ssa550"  , VarId)
     iret = nf90_get_var(ncid, VarID, ssa550(:) , start=[1],count=[nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading ssa550'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading ssa550')
     iret = nf90_inq_varid(ncid, "asy550"  , VarId)
     iret = nf90_get_var(ncid, VarID, asy550(:) , start=[1],count=[nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading asy550'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading asy550')
     iret = nf90_inq_varid(ncid, "angstrom", VarId)
     iret = nf90_get_var(ncid, VarID, angstrom(:), start=[1],count=[nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading angstrom'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading angstrom')
 
     iret = nf90_inq_varid(ncid, "sig_lat_W"    , VarId)
     iret = nf90_get_var(ncid, VarID, sig_lat_W(:,:)   , start=[1,1],count=[nfeatures,nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lat_W'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading sig_lat_W')
     iret = nf90_inq_varid(ncid, "sig_lat_E"    , VarId)
     iret = nf90_get_var(ncid, VarID, sig_lat_E(:,:)   , start=[1,1],count=[nfeatures,nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lat_E'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading sig_lat_E')
     iret = nf90_inq_varid(ncid, "sig_lon_E"    , VarId)
     iret = nf90_get_var(ncid, VarID, sig_lon_E(:,:)   , start=[1,1],count=[nfeatures,nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lon_E'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading sig_lon_E')
     iret = nf90_inq_varid(ncid, "sig_lon_W"    , VarId)
     iret = nf90_get_var(ncid, VarID, sig_lon_W(:,:)   , start=[1,1],count=[nfeatures,nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading sig_lon_W'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading sig_lon_W')
     iret = nf90_inq_varid(ncid, "theta"        , VarId)
     iret = nf90_get_var(ncid, VarID, theta(:,:)       , start=[1,1],count=[nfeatures,nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading theta'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading theta')
     iret = nf90_inq_varid(ncid, "ftr_weight"   , VarId)
     iret = nf90_get_var(ncid, VarID, ftr_weight(:,:)  , start=[1,1],count=[nfeatures,nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lat'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading plume_lat')
     iret = nf90_inq_varid(ncid, "year_weight"  , VarId)
     iret = nf90_get_var(ncid, VarID, temp, start=[1,1],count=[nyears,nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading year_weight')
     nhist = hist_end_year - 1849
-    IF (nhist < 1 .OR. nhist > nyears) STOP 'Invalid end of the history data'
+    IF (nhist < 1 .OR. nhist > nyears) CALL sp_fail('Invalid end of the history data')
     year_weight(:,:) = 0.0_wp
     year_weight(1:nhist,1:nplumes) = temp(1:nhist,1:nplumes)
     last_year = hist_end_year
     iret = nf90_inq_varid(ncid, "ann_cycle"    , VarId)
     iret = nf90_get_var(ncid, VarID, ann_cycle(:,:,:) , start=[1,1,1],count=[nfeatures,ntimes,nplumes])
-    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading ann_cycle'
+    IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading ann_cycle')
 
     iret = nf90_close(ncid)
 
@@ -180,19 +201,19 @@ CONTAINS
       iret = nf90_open(scenario, NF90_NOWRITE, ncid)
       IF (iret /= NF90_NOERR) THEN
         write (0,*) 'Cannot find file '//trim(scenario)
-        STOP 'NetCDF File not opened'
+        CALL sp_fail('NetCDF File not opened')
       END IF
       iret = nf90_inq_dimid(ncid, "years", DimId)
       iret = nf90_inquire_dimension(ncid, DimID, len = nscen)
-      IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading scenario years'
+      IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading scenario years')
       ALLOCATE(scen_years(nscen), scen_weight(nscen,nplumes))
       iret = nf90_inq_varid(ncid, "years", VarId)
       iret = nf90_get_var(ncid, VarID, scen_years)
-      IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading scenario years'
+      IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading scenario years')
       iret = nf90_inq_varid(ncid, "year_weight", VarId)
       iret = nf90_get_var(ncid, VarID, scen_weight, &
                           start=[1,1], count=[nscen,nplumes])
-      IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
+      IF (iret /= NF90_NOERR) CALL sp_fail('NetCDF Error reading year_weight')
       iret = nf90_close(ncid)
       DO i = 1, nscen
         iy = scen_years(i) - 1849
@@ -233,12 +254,13 @@ CONTAINS
     iyear = FLOOR(year_fr) - 1849
     iweek = FLOOR((year_fr - FLOOR(year_fr)) * ntimes) + 1
 
-    IF ((iweek > ntimes) .OR. (iweek < 1) .OR. (iyear > nyears) .OR. (iyear < 1)) STOP 'Time out of bounds in set_time_weight'
+    IF ((iweek > ntimes) .OR. (iweek < 1) .OR. (iyear > nyears) .OR. (iyear < 1)) &
+      CALL sp_fail('Time out of bounds in set_time_weight')
     IF (iyear > last_year - 1849) &
-      STOP 'No simple plumes data after the last scenario year'
+      CALL sp_fail('No simple plumes data after the last scenario year')
     ! Years without data are stored as fill values in the input files
     IF (ANY(year_weight(iyear,:) > 1.0e30_wp)) &
-      STOP 'Missing simple plumes data for this year'
+      CALL sp_fail('Missing simple plumes data for this year')
     DO iplume=1,nplumes
       time_weight(1,iplume) = year_weight(iyear,iplume) * ann_cycle(1,iweek,iplume)
       time_weight(2,iplume) = year_weight(iyear,iplume) * ann_cycle(2,iweek,iplume)
