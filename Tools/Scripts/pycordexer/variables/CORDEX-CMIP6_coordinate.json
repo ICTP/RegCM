@@ -230,7 +230,7 @@
             "bounds_values": "",
             "generic_level_name": ""
         },
-        "olevel": {
+        "depth_coord": {
             "standard_name": "depth",
             "units": "m",
             "axis": "Z",

@@ -37,213 +37,333 @@
             "CORDEX-CMIP6": "CMIP6-driven Coordinated Regional Climate Downscaling Experiment"
         },
         "domain_id": {
-            "SAM-50": {
-                "domain": "South America",
-                "domain_id": "SAM-50"
-            },
-            "CAM-50": {
-                "domain": "Central America",
-                "domain_id": "CAM-50"
-            },
-            "NAM-50": {
-                "domain": "North America",
-                "domain_id": "NAM-50"
-            },
-            "EUR-50": {
-                "domain": "Europe",
-                "domain_id": "EUR-50"
-            },
-            "AFR-50": {
-                "domain": "Africa",
-                "domain_id": "AFR-50"
-            },
-            "WAS-50": {
-                "domain": "South Asia",
-                "domain_id": "WAS-50"
-            },
-            "EAS-50": {
-                "domain": "East Asia",
-                "domain_id": "EAS-50"
-            },
-            "CAS-50": {
-                "domain": "Central Asia",
-                "domain_id": "CAS-50"
-            },
-            "AUS-50": {
-                "domain": "Australasia",
-                "domain_id": "AUS-50"
-            },
-            "MED-50": {
-                "domain": "Mediterranean",
-                "domain_id": "MED-50"
-            },
-            "MNA-50": {
-                "domain": "Middle East and North Africa",
-                "domain_id": "MNA-50"
-            },
-            "MNA-25": {
-                "domain": "Middle East and North Africa",
-                "domain_id": "MNA-25"
-            },
-            "SAM-12": {
-                "domain": "South America",
-                "domain_id": "SAM-12"
-            },
-            "CAM-12": {
-                "domain": "Central America",
-                "domain_id": "CAM-12"
-            },
-            "NAM-12": {
-                "domain": "North America",
-                "domain_id": "NAM-12"
-            },
-            "EUR-12": {
-                "domain": "Europe",
-                "domain_id": "EUR-12"
-            },
             "AFR-12": {
                 "domain": "Africa",
                 "domain_id": "AFR-12"
             },
-            "WAS-12": {
-                "domain": "South Asia",
-                "domain_id": "WAS-12"
-            },
-            "EAS-12": {
-                "domain": "East Asia",
-                "domain_id": "EAS-12"
-            },
-            "CAS-12": {
-                "domain": "Central Asia",
-                "domain_id": "CAS-12"
-            },
-            "AUS-12": {
-                "domain": "Australasia",
-                "domain_id": "AUS-12"
-            },
-            "ANT-12": {
-                "domain": "Antarctica",
-                "domain_id": "ANT-12"
-            },
-            "ARC-12": {
-                "domain": "Arctic",
-                "domain_id": "ARC-12"
-            },
-            "MED-12": {
-                "domain": "Mediterranean",
-                "domain_id": "MED-12"
-            },
-            "MNA-12": {
-                "domain": "Middle East and North Africa",
-                "domain_id": "MNA-12"
-            },
-            "SAM-25": {
-                "domain": "South America",
-                "domain_id": "SAM-25"
-            },
-            "CAM-25": {
-                "domain": "Central America",
-                "domain_id": "CAM-25"
-            },
-            "NAM-25": {
-                "domain": "North America",
-                "domain_id": "NAM-25"
-            },
-            "EUR-25": {
-                "domain": "Europe",
-                "domain_id": "EUR-25"
+            "AFR-18": {
+                "domain": "Africa",
+                "domain_id": "AFR-18"
             },
             "AFR-25": {
                 "domain": "Africa",
                 "domain_id": "AFR-25"
             },
-            "WAS-25": {
-                "domain": "South Asia",
-                "domain_id": "WAS-25"
-            },
-            "EAS-25": {
-                "domain": "East Asia",
-                "domain_id": "EAS-25"
-            },
-            "CAS-25": {
-                "domain": "Central Asia",
-                "domain_id": "CAS-25"
-            },
-            "AUS-25": {
-                "domain": "Australasia",
-                "domain_id": "AUS-25"
-            },
-            "SEA-25": {
-                "domain": "South East Asia",
-                "domain_id": "SEA-25"
-            },
-            "SEA-12": {
-                "domain": "South East Asia",
-                "domain_id": "SEA-12"
-            },
-            "SAM-50i": {
-                "domain": "South America",
-                "domain_id": "SAM-50i"
-            },
-            "CAM-50i": {
-                "domain": "Central America",
-                "domain_id": "CAM-50i"
-            },
-            "NAM-50i": {
-                "domain": "North America",
-                "domain_id": "NAM-50i"
-            },
-            "EUR-50i": {
-                "domain": "Europe",
-                "domain_id": "EUR-50i"
+            "AFR-50": {
+                "domain": "Africa",
+                "domain_id": "AFR-50"
             },
             "AFR-50i": {
                 "domain": "Africa",
                 "domain_id": "AFR-50i"
             },
-            "WAS-50i": {
-                "domain": "South Asia",
-                "domain_id": "WAS-50i"
+            "ALPX-3": {
+                "domain": "Alps Extended",
+                "domain_id": "ALPX-3"
             },
-            "EAS-50i": {
-                "domain": "East Asia",
-                "domain_id": "EAS-50i"
+            "ANT-12": {
+                "domain": "Antarctica",
+                "domain_id": "ANT-12"
             },
-            "CAS-50i": {
-                "domain": "Central Asia",
-                "domain_id": "CAS-50i"
-            },
-            "AUS-50i": {
-                "domain": "Australasia",
-                "domain_id": "AUS-50i"
+            "ANT-12i": {
+                "domain": "Antarctica",
+                "domain_id": "ANT-12i"
             },
             "ANT-50i": {
                 "domain": "Antarctica",
                 "domain_id": "ANT-50i"
             },
+            "ARC-12": {
+                "domain": "Arctic",
+                "domain_id": "ARC-12"
+            },
+            "ARC-12i": {
+                "domain": "Arctic",
+                "domain_id": "ARC-12i"
+            },
             "ARC-50i": {
                 "domain": "Arctic",
                 "domain_id": "ARC-50i"
             },
-            "MED-50i": {
-                "domain": "Mediterranean",
-                "domain_id": "MED-50i"
+            "AUS-12": {
+                "domain": "Australasia",
+                "domain_id": "AUS-12"
             },
-            "MNA-50i": {
-                "domain": "Middle East and North Africa",
-                "domain_id": "MNA-50i"
+            "AUS-12i": {
+                "domain": "Australasia",
+                "domain_id": "AUS-12i"
             },
-            "MNA-25i": {
-                "domain": "Middle East and North Africa",
-                "domain_id": "MNA-25i"
+            "AUS-20i": {
+                "domain": "Australasia",
+                "domain_id": "AUS-20i"
+            },
+            "AUS-25": {
+                "domain": "Australasia",
+                "domain_id": "AUS-25"
+            },
+            "AUS-25i": {
+                "domain": "Australasia",
+                "domain_id": "AUS-25i"
+            },
+            "AUS-50": {
+                "domain": "Australasia",
+                "domain_id": "AUS-50"
+            },
+            "AUS-50i": {
+                "domain": "Australasia",
+                "domain_id": "AUS-50i"
+            },
+            "CAM-12": {
+                "domain": "Central America",
+                "domain_id": "CAM-12"
+            },
+            "CAM-12i": {
+                "domain": "Central America",
+                "domain_id": "CAM-12i"
+            },
+            "CAM-18": {
+                "domain": "Central America",
+                "domain_id": "CAM-18"
+            },
+            "CAM-25": {
+                "domain": "Central America",
+                "domain_id": "CAM-25"
+            },
+            "CAM-25i": {
+                "domain": "Central America",
+                "domain_id": "CAM-25i"
+            },
+            "CAM-50": {
+                "domain": "Central America",
+                "domain_id": "CAM-50"
+            },
+            "CAM-50i": {
+                "domain": "Central America",
+                "domain_id": "CAM-50i"
+            },
+            "CAS-12": {
+                "domain": "Central Asia",
+                "domain_id": "CAS-12"
+            },
+            "CAS-12i": {
+                "domain": "Central Asia",
+                "domain_id": "CAS-12i"
+            },
+            "CAS-25": {
+                "domain": "Central Asia",
+                "domain_id": "CAS-25"
+            },
+            "CAS-25i": {
+                "domain": "Central Asia",
+                "domain_id": "CAS-25i"
+            },
+            "CAS-50": {
+                "domain": "Central Asia",
+                "domain_id": "CAS-50"
+            },
+            "CAS-50i": {
+                "domain": "Central Asia",
+                "domain_id": "CAS-50i"
+            },
+            "CEUX-3": {
+                "domain": "Central Europe Extended",
+                "domain_id": "CEUX-3"
+            },
+            "EAS-12": {
+                "domain": "East Asia",
+                "domain_id": "EAS-12"
+            },
+            "EAS-12i": {
+                "domain": "East Asia",
+                "domain_id": "EAS-12i"
+            },
+            "EAS-25": {
+                "domain": "East Asia",
+                "domain_id": "EAS-25"
+            },
+            "EAS-25i": {
+                "domain": "East Asia",
+                "domain_id": "EAS-25i"
+            },
+            "EAS-50": {
+                "domain": "East Asia",
+                "domain_id": "EAS-50"
+            },
+            "EAS-50i": {
+                "domain": "East Asia",
+                "domain_id": "EAS-50i"
+            },
+            "EUR-12": {
+                "domain": "Europe",
+                "domain_id": "EUR-12"
             },
             "EUR-12i": {
                 "domain": "Europe",
                 "domain_id": "EUR-12i"
             },
+            "EUR-25": {
+                "domain": "Europe",
+                "domain_id": "EUR-25"
+            },
+            "EUR-25i": {
+                "domain": "Europe",
+                "domain_id": "EUR-25i"
+            },
+            "EUR-50": {
+                "domain": "Europe",
+                "domain_id": "EUR-50"
+            },
+            "EUR-50i": {
+                "domain": "Europe",
+                "domain_id": "EUR-50i"
+            },
+            "MED-12": {
+                "domain": "Mediterranean",
+                "domain_id": "MED-12"
+            },
+            "MED-12i": {
+                "domain": "Mediterranean",
+                "domain_id": "MED-12i"
+            },
+            "MED-25": {
+                "domain": "Mediterranean",
+                "domain_id": "MED-25"
+            },
+            "MED-25i": {
+                "domain": "Mediterranean",
+                "domain_id": "MED-25i"
+            },
+            "MED-50": {
+                "domain": "Mediterranean",
+                "domain_id": "MED-50"
+            },
+            "MED-50i": {
+                "domain": "Mediterranean",
+                "domain_id": "MED-50i"
+            },
+            "MNA-12": {
+                "domain": "Middle East and North Africa",
+                "domain_id": "MNA-12"
+            },
+            "MNA-12i": {
+                "domain": "Middle East and North Africa",
+                "domain_id": "MNA-12i"
+            },
+            "MNA-25": {
+                "domain": "Middle East and North Africa",
+                "domain_id": "MNA-25"
+            },
+            "MNA-25i": {
+                "domain": "Middle East and North Africa",
+                "domain_id": "MNA-25i"
+            },
+            "MNA-50": {
+                "domain": "Middle East and North Africa",
+                "domain_id": "MNA-50"
+            },
+            "MNA-50i": {
+                "domain": "Middle East and North Africa",
+                "domain_id": "MNA-50i"
+            },
+            "NAM-12": {
+                "domain": "North America",
+                "domain_id": "NAM-12"
+            },
+            "NAM-12i": {
+                "domain": "North America",
+                "domain_id": "NAM-12i"
+            },
+            "NAM-25": {
+                "domain": "North America",
+                "domain_id": "NAM-25"
+            },
+            "NAM-25i": {
+                "domain": "North America",
+                "domain_id": "NAM-25i"
+            },
+            "NAM-50": {
+                "domain": "North America",
+                "domain_id": "NAM-50"
+            },
+            "NAM-50i": {
+                "domain": "North America",
+                "domain_id": "NAM-50i"
+            },
+            "NSEA-3": {
+                "domain": "North Sea",
+                "domain_id": "NSEA-3"
+            },
+            "PARIS-3": {
+                "domain": "Paris",
+                "domain_id": "PARIS-3"
+            },
+            "SAM-12": {
+                "domain": "South America",
+                "domain_id": "SAM-12"
+            },
+            "SAM-12i": {
+                "domain": "South America",
+                "domain_id": "SAM-12i"
+            },
+            "SAM-25": {
+                "domain": "South America",
+                "domain_id": "SAM-25"
+            },
+            "SAM-25i": {
+                "domain": "South America",
+                "domain_id": "SAM-25i"
+            },
+            "SAM-50": {
+                "domain": "South America",
+                "domain_id": "SAM-50"
+            },
+            "SAM-50i": {
+                "domain": "South America",
+                "domain_id": "SAM-50i"
+            },
+            "SEA-12": {
+                "domain": "South East Asia",
+                "domain_id": "SEA-12"
+            },
+            "SEA-12i": {
+                "domain": "South East Asia",
+                "domain_id": "SEA-12i"
+            },
+            "SEA-25": {
+                "domain": "South East Asia",
+                "domain_id": "SEA-25"
+            },
             "SEA-25i": {
                 "domain": "South East Asia",
                 "domain_id": "SEA-25i"
+            },
+            "WAS-12": {
+                "domain": "South Asia",
+                "domain_id": "WAS-12"
+            },
+            "WAS-12i": {
+                "domain": "South Asia",
+                "domain_id": "WAS-12i"
+            },
+            "WAS-18": {
+                "domain": "South Asia",
+                "domain_id": "WAS-18"
+            },
+            "WAS-25": {
+                "domain": "South Asia",
+                "domain_id": "WAS-25"
+            },
+            "WAS-25i": {
+                "domain": "South Asia",
+                "domain_id": "WAS-25i"
+            },
+            "WAS-50": {
+                "domain": "South Asia",
+                "domain_id": "WAS-50"
+            },
+            "WAS-50i": {
+                "domain": "South Asia",
+                "domain_id": "WAS-50i"
             }
         },
         "institution_id": {
@@ -253,6 +373,7 @@
             "BOM": "Bureau of Meteorology, Melbourne, Australia",
             "CCCma": "Canadian Centre for Climate Modelling and Analysis, Environment and Climate Change Canada, Victoria (British Columbia), Canada",
             "CESAM-UA": "Center for Environmental and Marine Studies (CESAM), Aveiro University (UA), Aveiro, Portugal",
+            "CESGA": "Galicia Supercomputing Center (CESGA), Climate System Research Unit, Santiago de Compostela (Galicia), Spain",
             "CLMcom-AWI": "Climate Limited-area Modelling Community (CLMcom) partner: Alfred Wegener Institute, Helmholtz Centre for Polar and Marine Research, Potsdam, Germany",
             "CLMcom-BTU": "Climate Limited-area Modelling Community (CLMcom) partner: Brandenburgische Technische Universitaet Cottbus-Senftenberg, Cottbus, Germany",
             "CLMcom-CMCC": "Climate Limited-area Modelling Community (CLMcom) partner: Euro-Mediterranean Center on Climate Change (CMCC Foundation), Caserta, Italy",
@@ -267,6 +388,7 @@
             "CLMcom-KUL": "Climate Limited-area Modelling Community (CLMcom) partner: KU Leuven, Leuven, Belgium",
             "CLMcom-LIST": "Climate Limited-area Modelling Community (CLMcom) partner: Luxembourg Institute of Science and Technology, Esch-sur-Alzette, Luxembourg",
             "CLMcom-WEGC": "Climate Limited-area Modelling Community (CLMcom) partner: Wegener Center for Climate and Global Change, University of Graz, Graz, Austria",
+            "CMCC-ESYDA": "Earth System Modelling and Data Assimilation (ESYDA) division, Euro-Mediterranean Center on Climate Change (CMCC Foundation), Bologna, Italy,",
             "CNR-ISAC": "Italian National Research Council, Institute of Atmospheric Sciences and Climate, Lecce, Italy",
             "CNRM": "Centre National de Recherches Meteorologiques, Toulouse, France",
             "CNRM-MF": "CNRM [Centre National de Recherches Meteorologiques, Toulouse, France]; MF [Meteo France, Toulouse, France]",
@@ -297,6 +419,8 @@
             "SENAMHI-PER": "National Meteorology and Hydrology Service of Peru, Lima, Peru",
             "TASK-IMWM": "TASK [Centre of Informatics TASK, Gdansk University of Technology, Gdansk, Poland]; IMWM [Institute of Meteorology and Water Management, Warsaw, Poland]",
             "UBA-CIMA-IFAECI": "UBA [Universidad de Buenos Aires, C. A. Buenos Aires (CABA), Argentina]; CIMA [Centro de Investigaciones del Mar y la Atmosfera, C. A. Buenos Aires (CABA), Argentina]; IFAECI [Instituto Franco-Argentino sobre Estudios de Clima y sus Impactos, C. A. Buenos Aires (CABA), Argentina]",
+            "ULL": "Universidad de La Laguna, La Laguna (Canary Islands), Spain",
+            "UNIST": "Ulsan National Institute of Science and Technology, Ulsan, South Korea",
             "UNSW-CCRC": "Climate Change Research Centre, University of New South Wales, Sydney, Australia",
             "UQ-DEC": "UQ [University of Queensland, Brisbane, Australia]; DEC [Department of Energy and Climate, Brisbane, Australia]",
             "UU-IMAU": "Utrecht University, Institute for Marine and Atmospheric Research Utrecht (IMAU), Utrecht, The Netherlands"
@@ -1417,6 +1541,25 @@
                     "Conformal Cubic Atmospheric Model, ocean-coupled configuration, version 2112"
                 ]
             },
+            "CCAMoc-v2203-SN": {
+                "activity_participation": [
+                    "DD"
+                ],
+                "cohort": [
+                    "Registered"
+                ],
+                "institution_id": [
+                    "CSIRO"
+                ],
+                "label": "CCAMoc v2203 SN",
+                "license": "https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use",
+                "source_id": "CCAMoc-v2203-SN",
+                "source_type": "AOGCM",
+                "source": [
+                    "Conformal Cubic Atmospheric Model, ocean-coupled configuration, version 2203 with spectral nudging (2022)",
+                    "Conformal Cubic Atmospheric Model, ocean-coupled configuration, version 2203 with spectral nudging"
+                ]
+            },
             "CCLM5-0-9-NEMOMED12-3-6": {
                 "activity_participation": [
                     "DD"
@@ -1496,6 +1639,25 @@
                 "source": [
                     "COSMO model in climate mode (COSMO-CLM), Version 6.0 clm 1 with Urban Parametrization and ECOCLIMAP-Second Generation land cover (2021)",
                     "COSMO model in climate mode (COSMO-CLM), Version 6.0 clm 1 with Urban Parametrization and ECOCLIMAP-Second Generation land cover"
+                ]
+            },
+            "CMCC-MedESM1": {
+                "activity_participation": [
+                    "DD"
+                ],
+                "cohort": [
+                    "Registered"
+                ],
+                "institution_id": [
+                    "CMCC-ESYDA"
+                ],
+                "label": "CMCC-MedESM version 1",
+                "license": "https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use",
+                "source_id": "CMCC-MedESM1",
+                "source_type": "AORCM",
+                "source": [
+                    "Version 1 of the regional Earth system model (MedESM1) of the Euro-Mediterranean Center on Climate Change (CMCC Foundation) (2027)",
+                    "Version 1 of the regional Earth system model (MedESM1) of the Euro-Mediterranean Center on Climate Change (CMCC Foundation)"
                 ]
             },
             "CNRM-ALADIN64C1": {
@@ -1917,6 +2079,7 @@
                 ],
                 "institution_id": [
                     "CLMcom-DWD",
+                    "CLMcom-GERICS",
                     "CLMcom-Hereon",
                     "CLMcom-KIT",
                     "CLMcom-BTU"
@@ -1928,6 +2091,25 @@
                 "source": [
                     "ICON model in Climate Limited-area Mode (ICON-CLM), Version 202410-2-1, convection-permitting setup with two-step nesting (x2yn2), intermediate ICON-CLM-202407-1-1 simulation at 12 km spatial grid spacing using convection parameterization (2025)",
                     "ICON model in Climate Limited-area Mode (ICON-CLM), Version 202410-2-1, convection-permitting setup with two-step nesting (x2yn2), intermediate ICON-CLM-202407-1-1 simulation at 12 km spatial grid spacing using convection parameterization"
+                ]
+            },
+            "ICON-CLM-202604-1-1": {
+                "activity_participation": [
+                    "DD"
+                ],
+                "cohort": [
+                    "Registered"
+                ],
+                "institution_id": [
+                    "CLMcom-CMCC"
+                ],
+                "label": "ICON-CLM-202604-1-1",
+                "license": "https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use",
+                "source_id": "ICON-CLM-202604-1-1",
+                "source_type": "ARCM",
+                "source": [
+                    "ICON model in Climate Limited-area Mode (ICON-CLM), Version 202604-1-1 (2026)",
+                    "ICON model in Climate Limited-area Mode (ICON-CLM), Version 202604-1-1"
                 ]
             },
             "MedX-CM": {
@@ -2139,6 +2321,25 @@
                     "The Regional Earth System Model RegCM-ES version 1.1 based on RegCM v5.0, MITgcm v6.9d and CHyM"
                 ]
             },
+            "RegCM4-6-SN": {
+                "activity_participation": [
+                    "DD"
+                ],
+                "cohort": [
+                    "Registered"
+                ],
+                "institution_id": [
+                    "UNIST"
+                ],
+                "label": "RegCM4-6-SN",
+                "license": "https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use",
+                "source_id": "RegCM4-6-SN",
+                "source_type": "ARCM",
+                "source": [
+                    "RegCM 4.6.1 with CLM4.5 and spectral nudging, UNIST configuration (2021)",
+                    "RegCM 4.6.1 with CLM4.5 and spectral nudging, UNIST configuration"
+                ]
+            },
             "RegCM5-0": {
                 "activity_participation": [
                     "DD"
@@ -2157,6 +2358,22 @@
                     "The ICTP RegCM version 5 using non hydrostatic MOLOCH dynamical core (2023)",
                     "The ICTP RegCM version 5 using non hydrostatic MOLOCH dynamical core"
                 ]
+            },
+            "RegCM-ES1-1": {
+                "activity_participation": [
+                    "DD"
+                ],
+                "cohort": [
+                    "Registered"
+                ],
+                "institution_id": [
+                    "ICTP"
+                ],
+                "label": "RegCM5-0+MITgcm69d+CHyM",
+                "license": "https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use",
+                "source_id": "RegCM-ES1-1",
+                "source_type": "AORCM",
+                "source": "The Regional Earth System Model RegCM-ES: Evaluation of the Mediterranean Climate and Marine Biogeochemistry (2020)"
             },
             "TSMP1-140-E": {
                 "activity_participation": [
@@ -2199,6 +2416,25 @@
                     "Weather Research and Forecasting model version 4.5.1, CORDEX WRF Community configuration Q"
                 ]
             },
+            "WRF451V": {
+                "activity_participation": [
+                    "DD"
+                ],
+                "cohort": [
+                    "Registered"
+                ],
+                "institution_id": [
+                    "SENAMHI-PER"
+                ],
+                "label": "WRF v4.5.1-V",
+                "license": "https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use",
+                "source_id": "WRF451V",
+                "source_type": "ARCM",
+                "source": [
+                    "Weather Research and Forecasting model version 4.5.1, CORDEX WRF Community configuration V (2023)",
+                    "Weather Research and Forecasting model version 4.5.1, CORDEX WRF Community configuration V"
+                ]
+            },
             "WRF461S-SN": {
                 "activity_participation": [
                     "DD"
@@ -2235,6 +2471,32 @@
                 "source": [
                     "Weather Research and Forecasting model version 4.6.1, CORDEX WRF Community configuration T (2024)",
                     "Weather Research and Forecasting model version 4.6.1, CORDEX WRF Community configuration T"
+                ]
+            },
+            "WRF461U": {
+                "activity_participation": [
+                    "DD"
+                ],
+                "cohort": [
+                    "Registered"
+                ],
+                "institution_id": [
+                    "CESGA",
+                    "CYI",
+                    "IDL-FCUL",
+                    "IFCA",
+                    "IUM-FDU",
+                    "SENAMHI-PER",
+                    "ULL",
+                    "UNIST"
+                ],
+                "label": "WRF v4.6.1-U",
+                "license": "https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use",
+                "source_id": "WRF461U",
+                "source_type": "ARCM",
+                "source": [
+                    "Weather Research and Forecasting model version 4.6.1, CORDEX WRF Community configuration U (2024)",
+                    "Weather Research and Forecasting model version 4.6.1, CORDEX WRF Community configuration U"
                 ]
             }
         },
