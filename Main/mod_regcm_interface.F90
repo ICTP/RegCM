@@ -27,6 +27,7 @@ module mod_regcm_interface
   use mod_atm_interface
   use mod_pbl_interface
   use mod_rad_interface
+  use mod_ipcc_scenario, only : update_scenario
   use mod_runparams
   use mod_mppparam
   use mod_mpmessage
@@ -100,13 +101,11 @@ module mod_regcm_interface
 #ifdef OPENACC
     call setup_openacc(myid)
 #endif
-#ifndef MPI_SERIAL
 #ifdef DEBUG
     call mpi_comm_set_errhandler(mycomm, mpi_errors_return, ierr)
     if ( ierr /= 0 ) then
       call fatal(__FILE__,__LINE__,'mpi_comm_set_errhandler Failure!')
     end if
-#endif
 #endif
 
     call whoami(myid)
@@ -273,6 +272,10 @@ module mod_regcm_interface
 #ifdef ASYNC_NETCDF
       if ( irceideal /= 1 ) call bdyin_prefetch
 #endif
+      !
+      ! Greenhouse gases concentrations of the month
+      !
+      call update_scenario(rcmtimer%year,rcmtimer%month)
       !
       ! Compute tendencies
       !

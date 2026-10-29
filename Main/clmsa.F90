@@ -32,20 +32,15 @@ program clmsa
   use mod_dynparam
   use mod_atm_stub
   use mod_clm_regcm
+  use mod_ipcc_scenario, only : update_scenario
   use mod_ncio
-#ifndef MPI_SERIAL
   use mpi_f08
-#endif
   implicit none
 
   real(rk8) :: extime
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
   integer(ik4) :: ierr, iprov
-#ifdef MPI_SERIAL
-  include 'mpif.h'
-  integer(ik4), parameter :: mpi_thread_single = 0
-#endif
   data extime /0.0_rk8/
 
   call mpi_init_thread(mpi_thread_single,iprov,ierr)
@@ -92,13 +87,11 @@ program clmsa
     if ( ierr /= 0 ) then
       call fatal(__FILE__,__LINE__,'mpi_comm_size Failure!')
     end if
-#ifndef MPI_SERIAL
 #ifdef DEBUG
     call mpi_comm_set_errhandler(mycomm, mpi_errors_return, ierr)
     if ( ierr /= 0 ) then
       call fatal(__FILE__,__LINE__,'mpi_comm_set_errhandler Failure!')
     end if
-#endif
 #endif
 
     call whoami(myid)
@@ -178,6 +171,7 @@ program clmsa
 
     do while ( extime >= timestr .and. extime < timeend )
 
+      call update_scenario(rcmtimer%year,rcmtimer%month)
       call atmval
       call runsaclm45(lm)
       call rcmtimer%advance( )

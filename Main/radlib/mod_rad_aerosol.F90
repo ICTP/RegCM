@@ -1257,6 +1257,37 @@ module mod_rad_aerosol
       character(len=*), intent(in) :: message
       call fatal(__FILE__,__LINE__,'Simple plumes : '//trim(message))
     end subroutine macv2sp_fatal
+    !
+    ! Read the simple plumes data on the I/O processor and broadcast them
+    !
+    subroutine macv2sp_setup
+      implicit none
+      real(rk8), dimension(nfeatures*ntimes*nplumes) :: acycle
+      if ( myid == iocpu ) then
+        call sp_setup(macv2sp_hist,macv2sp_scen,macv2sp_hist_end)
+        acycle = reshape(ann_cycle,shape(acycle))
+      end if
+      call bcast(plume_lat)
+      call bcast(plume_lon)
+      call bcast(beta_a)
+      call bcast(beta_b)
+      call bcast(aod_spmx)
+      call bcast(aod_fmbg)
+      call bcast(asy550)
+      call bcast(ssa550)
+      call bcast(angstrom)
+      call bcast(sig_lon_e)
+      call bcast(sig_lon_w)
+      call bcast(sig_lat_e)
+      call bcast(sig_lat_w)
+      call bcast(theta)
+      call bcast(ftr_weight)
+      call bcast(year_weight)
+      call bcast(last_year)
+      call bcast(acycle)
+      ann_cycle = reshape(acycle,shape(ann_cycle))
+      sp_initialized = .true.
+    end subroutine macv2sp_setup
 
     subroutine allocate_mod_rad_aerosol
       implicit none
@@ -1421,6 +1452,7 @@ module mod_rad_aerosol
                 trim(sp7)//'_scenario.nc'
           end if
         end if
+        call macv2sp_setup( )
         call getmem(dnovrnr4,1,npoints,'rad:dnovrnr4')
         call getmem(extprofr4,1,npoints,1,kth,1,nband,'rad:extprofr4')
         call getmem(asyprofr4,1,npoints,1,kth,1,nband,'rad:asyprofr4')

@@ -29,9 +29,7 @@ program regcm
   use mod_dynparam
   use mod_regcm_interface
   use mod_runparams
-#ifndef MPI_SERIAL
   use mpi_f08
-#endif
 #ifdef OASIS
   use mod_oasis_interface
 #endif
@@ -43,10 +41,6 @@ program regcm
   integer(ik4) :: ierr, iprov
 #ifdef OASIS
   integer :: localCommunicator
-#endif
-#ifdef MPI_SERIAL
-  include 'mpif.h'
-  integer(ik4), parameter :: mpi_thread_single = 0
 #endif
 !
 !**********************************************************************

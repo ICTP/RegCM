@@ -25,7 +25,7 @@ module mod_ipcc_scenario
   use mod_mpmessage
   use mod_memutil
   use mod_runparams
-  use mod_mppparam, only : italk
+  use mod_mppparam, only : italk, iocpu, bcast
   use mod_stdio
   use netcdf
 
@@ -40,7 +40,7 @@ module mod_ipcc_scenario
     real(rkx), dimension(:,:), pointer, contiguous :: gmf => null()
   end type ghg_mf
 
-  public :: set_scenario, ghgval
+  public :: set_scenario, update_scenario, ghgval
 
   integer(ik4), parameter :: nsc = 25
   integer(ik4), parameter :: n_greenhouse_gases = 5
@@ -2055,9 +2055,9 @@ module mod_ipcc_scenario
 #endif
       case default
         if ( csc(1:6) == 'SCEN7-' .or. csc(1:6) == 'scen7-' ) then
-          call load_cmip7_scenario(csc,year,month,local_ghgc)
+          call load_cmip7_scenario(csc,ghg_year(year),month,local_ghgc)
         else
-          call load_cmip6_scenario(csc,year,month,local_ghgc)
+          call load_cmip6_scenario(csc,ghg_year(year),month,local_ghgc)
         end if
     end select
   end subroutine set_scenario
@@ -2145,53 +2145,60 @@ module mod_ipcc_scenario
     ghgmf%sname = sname
     ghgmf%year = year
     ghgmf%month = month
-    do i = 1, imax
-      filename = trim(varname(i)) // trim(inptype(ityp)) // &
-        trim(modelname(imod)) // trim(resolution(ires)) // &
-        trim(timeperiod(itim)) // '.nc'
-      ierr = nf90_open(filename, nf90_nowrite, ncid)
-      if ( ierr /= nf90_noerr ) then
-        filename = trim(inpglob) // pthsep // trim('CMIP6') // pthsep // &
-          trim('GHG') // pthsep // filename
+    if ( myid == iocpu ) then
+      do i = 1, imax
+        filename = trim(varname(i)) // trim(inptype(ityp)) // &
+          trim(modelname(imod)) // trim(resolution(ires)) // &
+          trim(timeperiod(itim)) // '.nc'
         ierr = nf90_open(filename, nf90_nowrite, ncid)
         if ( ierr /= nf90_noerr ) then
-          write (stderr, *) nf90_strerror(ierr), trim(filename)
-          call fatal(__FILE__,__LINE__,'CANNOT OPEN FILE')
+          filename = trim(inpglob) // pthsep // trim('CMIP6') // pthsep // &
+            trim('GHG') // pthsep // filename
+          ierr = nf90_open(filename, nf90_nowrite, ncid)
+          if ( ierr /= nf90_noerr ) then
+            write (stderr, *) nf90_strerror(ierr), trim(filename)
+            call fatal(__FILE__,__LINE__,'CANNOT OPEN FILE')
+          end if
         end if
-      end if
-      if ( .not. associated(ghgmf%gmf) ) then
-        ierr = nf90_inq_dimid(ncid,'lat',dimid)
+        if ( .not. associated(ghgmf%gmf) ) then
+          ierr = nf90_inq_dimid(ncid,'lat',dimid)
+          if ( ierr /= nf90_noerr ) then
+            write (stderr, *) nf90_strerror(ierr), trim(filename)
+            call fatal(__FILE__,__LINE__,'DIMENSION LAT SEARCH ERROR')
+          end if
+          ierr = nf90_inquire_dimension(ncid,dimid,len=nlat)
+          if ( ierr /= nf90_noerr ) then
+            write (stderr, *) nf90_strerror(ierr), trim(filename)
+            call fatal(__FILE__,__LINE__,'DIMENSION LAT READ ERROR')
+          end if
+          call getmem(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
+        end if
+        ierr = nf90_inq_varid(ncid,var_name(i),varid)
         if ( ierr /= nf90_noerr ) then
           write (stderr, *) nf90_strerror(ierr), trim(filename)
-          call fatal(__FILE__,__LINE__,'DIMENSION LAT SEARCH ERROR')
+          call fatal(__FILE__,__LINE__,'FIND VARIABLE '//var_name(i)//' ERROR')
         end if
-        ierr = nf90_inquire_dimension(ncid,dimid,len=nlat)
+        istart(1) = 1
+        istart(2) = irec
+        icount(1) = nlat
+        icount(2) = 1
+        ierr = nf90_get_var(ncid,varid,ghgmf%gmf(:,i),istart,icount)
         if ( ierr /= nf90_noerr ) then
           write (stderr, *) nf90_strerror(ierr), trim(filename)
-          call fatal(__FILE__,__LINE__,'DIMENSION LAT READ ERROR')
+          call fatal(__FILE__,__LINE__,'READ VARIABLE '//var_name(i)//' ERROR')
         end if
-        call getmem(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
-      end if
-      ierr = nf90_inq_varid(ncid,var_name(i),varid)
-      if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr), trim(filename)
-        call fatal(__FILE__,__LINE__,'FIND VARIABLE '//var_name(i)//' ERROR')
-      end if
-      istart(1) = 1
-      istart(2) = irec
-      icount(1) = nlat
-      icount(2) = 1
-      ierr = nf90_get_var(ncid,varid,ghgmf%gmf(:,i),istart,icount)
-      if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr), trim(filename)
-        call fatal(__FILE__,__LINE__,'READ VARIABLE '//var_name(i)//' ERROR')
-      end if
-      ierr = nf90_close(ncid)
-      if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr), trim(filename)
-        call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
-      end if
-    end do
+        ierr = nf90_close(ncid)
+        if ( ierr /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(ierr), trim(filename)
+          call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
+        end if
+      end do
+    end if
+    call bcast(nlat)
+    if ( .not. associated(ghgmf%gmf) ) then
+      call getmem(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
+    end if
+    call bcast(ghgmf%gmf)
     if ( myid == italk ) then
       write(stdout,'(a,i0.4,i0.2,a,a)') &
             ' Load GHG for ',year,month,' ',trim(sname)
@@ -2264,48 +2271,55 @@ module mod_ipcc_scenario
     ghgmf%sname = sname
     ghgmf%year = year
     ghgmf%month = month
-    do i = 1, imax
-      filename = trim(inpglob) // pthsep // 'CMIP7' // pthsep // 'GHG' // &
-        pthsep // trim(gas(i)) // '_input4MIPs_GHGConcentrations_' // &
-        trim(dataset) // '.nc'
-      ierr = nf90_open(filename, nf90_nowrite, ncid)
-      if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr), trim(filename)
-        call fatal(__FILE__,__LINE__,'CANNOT OPEN FILE')
-      end if
-      if ( .not. associated(ghgmf%gmf) ) then
-        ierr = nf90_inq_dimid(ncid,'lat',dimid)
+    if ( myid == iocpu ) then
+      do i = 1, imax
+        filename = trim(inpglob) // pthsep // 'CMIP7' // pthsep // 'GHG' // &
+          pthsep // trim(gas(i)) // '_input4MIPs_GHGConcentrations_' // &
+          trim(dataset) // '.nc'
+        ierr = nf90_open(filename, nf90_nowrite, ncid)
         if ( ierr /= nf90_noerr ) then
           write (stderr, *) nf90_strerror(ierr), trim(filename)
-          call fatal(__FILE__,__LINE__,'DIMENSION LAT SEARCH ERROR')
+          call fatal(__FILE__,__LINE__,'CANNOT OPEN FILE')
         end if
-        ierr = nf90_inquire_dimension(ncid,dimid,len=nlat)
+        if ( .not. associated(ghgmf%gmf) ) then
+          ierr = nf90_inq_dimid(ncid,'lat',dimid)
+          if ( ierr /= nf90_noerr ) then
+            write (stderr, *) nf90_strerror(ierr), trim(filename)
+            call fatal(__FILE__,__LINE__,'DIMENSION LAT SEARCH ERROR')
+          end if
+          ierr = nf90_inquire_dimension(ncid,dimid,len=nlat)
+          if ( ierr /= nf90_noerr ) then
+            write (stderr, *) nf90_strerror(ierr), trim(filename)
+            call fatal(__FILE__,__LINE__,'DIMENSION LAT READ ERROR')
+          end if
+          call getmem(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
+        end if
+        ierr = nf90_inq_varid(ncid,trim(gas(i)),varid)
         if ( ierr /= nf90_noerr ) then
           write (stderr, *) nf90_strerror(ierr), trim(filename)
-          call fatal(__FILE__,__LINE__,'DIMENSION LAT READ ERROR')
+          call fatal(__FILE__,__LINE__,'FIND VARIABLE '//trim(gas(i))//' ERROR')
         end if
-        call getmem(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
-      end if
-      ierr = nf90_inq_varid(ncid,trim(gas(i)),varid)
-      if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr), trim(filename)
-        call fatal(__FILE__,__LINE__,'FIND VARIABLE '//trim(gas(i))//' ERROR')
-      end if
-      istart(1) = 1
-      istart(2) = irec
-      icount(1) = nlat
-      icount(2) = 1
-      ierr = nf90_get_var(ncid,varid,ghgmf%gmf(:,i),istart,icount)
-      if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr), trim(filename)
-        call fatal(__FILE__,__LINE__,'READ VARIABLE '//trim(gas(i))//' ERROR')
-      end if
-      ierr = nf90_close(ncid)
-      if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr), trim(filename)
-        call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
-      end if
-    end do
+        istart(1) = 1
+        istart(2) = irec
+        icount(1) = nlat
+        icount(2) = 1
+        ierr = nf90_get_var(ncid,varid,ghgmf%gmf(:,i),istart,icount)
+        if ( ierr /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(ierr), trim(filename)
+          call fatal(__FILE__,__LINE__,'READ VARIABLE '//trim(gas(i))//' ERROR')
+        end if
+        ierr = nf90_close(ncid)
+        if ( ierr /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(ierr), trim(filename)
+          call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
+        end if
+      end do
+    end if
+    call bcast(nlat)
+    if ( .not. associated(ghgmf%gmf) ) then
+      call getmem(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
+    end if
+    call bcast(ghgmf%gmf)
     if ( myid == italk ) then
       write(stdout,'(a,i0.4,i0.2,a,a)') &
             ' Load CMIP7 GHG for ',year,month,' ',trim(sname)
@@ -2313,24 +2327,45 @@ module mod_ipcc_scenario
     lcmip7 = .true.
   end subroutine load_cmip7_scenario
 
+  !
+  ! Load the CMIP6 or CMIP7 GHG data of the month, if not already loaded.
+  ! All the processors must call it: the data are read by the I/O
+  ! processor and broadcast.
+  !
+  subroutine update_scenario(year,month)
+    implicit none
+    integer(ik4), intent(in) :: year, month
+    integer(ik4) :: isely
+    if ( .not. (lcmip6 .or. lcmip7) ) return
+    isely = ghg_year(year)
+    if ( local_ghgc%year == isely .and. local_ghgc%month == month ) return
+    if ( lcmip7 ) then
+      call load_cmip7_scenario(local_ghgc%sname,isely,month,local_ghgc)
+    else
+      call load_cmip6_scenario(local_ghgc%sname,isely,month,local_ghgc)
+    end if
+  end subroutine update_scenario
+
+  integer(ik4) function ghg_year(year)
+    implicit none
+    integer(ik4), intent(in) :: year
+    if ( lconst2050 ) then
+      ghg_year = 2050
+    else
+      ghg_year = year
+    end if
+  end function ghg_year
+
   real(rkx) function ghgval(igas,year,month,lat)
     implicit none
     integer(ik4), intent(in) :: igas, year, month
     real(rk8), intent(in) :: lat
     integer(ik4) :: isely
-    if ( lconst2050 ) then
-      isely = 2050
-    else
-      isely = year
-    end if
-    if ( lcmip7 ) then
+    isely = ghg_year(year)
+    if ( lcmip6 .or. lcmip7 ) then
+      ! The data are loaded by update_scenario
       if ( local_ghgc%year /= isely .or. local_ghgc%month /= month ) then
-        call load_cmip7_scenario(local_ghgc%sname,isely,month,local_ghgc)
-      end if
-      ghgval = zonal_value(local_ghgc%gmf,igas,lat) * cgunit(igas)
-    else if ( lcmip6 ) then
-      if ( local_ghgc%year /= isely .or. local_ghgc%month /= month ) then
-        call load_cmip6_scenario(local_ghgc%sname,isely,month,local_ghgc)
+        call fatal(__FILE__,__LINE__,'GHG DATA NOT LOADED FOR THIS MONTH')
       end if
       ghgval = zonal_value(local_ghgc%gmf,igas,lat) * cgunit(igas)
     else

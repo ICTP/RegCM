@@ -602,43 +602,47 @@ module mod_sun
     character(len=256) :: heppafile
     integer(ik4) :: iret, ncid, idimid, ntime, ivar
 
-    if ( myid == italk ) then
+    if ( myid == iocpu ) then
       write(stdout,*) 'Read solar forcing total irradiance data...'
+      heppafile = trim(inpglob)//pthsep//'CMIP6'//pthsep//'SOLAR'// &
+        pthsep//'solarforcing-ref-mon_input4MIPs_solar_CMIP_'// &
+        'SOLARIS-HEPPA-3-2_gn_185001-229912.nc'
+      iret = nf90_open(heppafile,nf90_nowrite,ncid)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT OPEN SOLARFORCING FILE')
+      end if
+      iret = nf90_inq_dimid(ncid,'time',idimid)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT FIND TIME DIMENSION')
+      end if
+      iret = nf90_inquire_dimension(ncid,idimid,len=ntime)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT READ TIME DIMENSION LENGHT')
+      end if
     end if
-    heppafile = trim(inpglob)//pthsep//'CMIP6'//pthsep//'SOLAR'//pthsep// &
-      'solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA'// &
-      '-3-2_gn_185001-229912.nc'
-    iret = nf90_open(heppafile,nf90_nowrite,ncid)
-    if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
-      call fatal(__FILE__,__LINE__,'CANNOT OPEN SOLARFORCING FILE')
-    end if
-    iret = nf90_inq_dimid(ncid,'time',idimid)
-    if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
-      call fatal(__FILE__,__LINE__,'CANNOT FIND TIME DIMENSION')
-    end if
-    iret = nf90_inquire_dimension(ncid,idimid,len=ntime)
-    if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
-      call fatal(__FILE__,__LINE__,'CANNOT READ TIME DIMENSION LENGHT')
-    end if
-    iret = nf90_inq_varid(ncid,'tsi',ivar)
-    if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
-      call fatal(__FILE__,__LINE__,'VARIABLE TSI NOT FOUND')
-    end if
+    call bcast(ntime)
     call getmem(heppatsi,1,ntime,'sun: heppatsi')
-    iret = nf90_get_var(ncid,ivar,heppatsi)
-    if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
-      call fatal(__FILE__,__LINE__,'CANNOT READ VARIABLE TSI')
+    if ( myid == iocpu ) then
+      iret = nf90_inq_varid(ncid,'tsi',ivar)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'VARIABLE TSI NOT FOUND')
+      end if
+      iret = nf90_get_var(ncid,ivar,heppatsi)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT READ VARIABLE TSI')
+      end if
+      iret = nf90_close(ncid)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT CLOSE SOLARFORCING FILE')
+      end if
     end if
-    iret = nf90_close(ncid)
-    if ( iret /= nf90_noerr ) then
-      write (stderr, *) trim(heppafile), ': ', nf90_strerror(iret)
-      call fatal(__FILE__,__LINE__,'CANNOT CLOSE SOLARFORCING FILE')
-    end if
+    call bcast(heppatsi)
   end subroutine read_cmip6_solarforcing
 
   !
