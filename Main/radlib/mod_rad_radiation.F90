@@ -1254,99 +1254,6 @@ module mod_rad_radiation
     end if
   end subroutine radini
   !
-  !-----------------------------------------------------------------------
-  !
-  ! SUBROUTINE AERMIX
-  !
-  ! Set global mean tropospheric aerosol
-  !
-  ! Specify aerosol mixing ratio and compute relative humidity for later
-  ! adjustment of aerosol optical properties. Aerosol mass mixing ratio
-  ! is specified so that the column visible aerosol optical depth is a
-  ! specified global number (tauvis). This means that the actual mixing
-  ! ratio depends on pressure thickness of the lowest three atmospheric
-  ! layers near the surface.
-  !
-  ! Optical properties and relative humidity parameterization are from:
-  !
-  ! J.T. Kiehl and B.P. Briegleb  "The Relative Roles of Sulfate Aerosols
-  ! and Greenhouse Gases in Climate Forcing"  Science  260  pp311-314
-  ! 16 April 1993
-  !
-  ! Visible (vis) here means 0.5-0.7 micro-meters
-  ! Forward scattering fraction is taken as asymmetry parameter squared
-  !
-  ! Input
-  !   pnm    - Radiation level interface pressures (dynes/cm2)
-  ! Output
-  !   aermmb - Aerosol background mass mixing ratio
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! RegCM : Removed the dependency on relative humidity
-  !
-  subroutine aermix(n1,n2,pnm,aermmb)
-    implicit none
-    integer(ik4), intent(in) :: n1, n2
-    real(rk8), intent(in), dimension(kzp1,n1:n2) :: pnm
-    real(rk8), intent(out), dimension(kz,n1:n2) :: aermmb
-    !
-    !-----------------------------------------------------------------------
-    !
-    ! mxaerl - max nmbr aerosol levels counting up from surface
-    ! tauvis - visible optical depth
-    ! kaervs - visible extinction coefficiant of aerosol (m2/g)
-    ! omgvis - visible omega0
-    ! gvis   - visible forward scattering asymmetry parameter
-    !
-    !-----------------------------------------------------------------------
-    !
-    integer(ik4), parameter :: mxaerl = 4
-    ! multiplication factor for kaer
-    real(rk8), parameter :: kaervs = 5.3012_rk8
-    real(rk8), parameter :: omgvis = 0.999999_rk8
-    real(rk8), parameter :: gvis = 0.694889_rk8
-    ! added for efficiency
-    real(rk8), parameter :: rhfac = 1.6718_rk8
-    !
-    ! real(rk8), parameter :: a0 = -9.2906106183_rk8
-    ! real(rk8), parameter :: a1 =  0.52570211505_rk8
-    ! real(rk8), parameter :: a2 = -0.0089285760691_rk8
-    ! real(rk8), parameter :: a4 =  5.0877212432e-05_rk8
-    !
-    integer(ik4) :: n, k
-    !fil  tauvis = 0.01_rk8
-    real(rk8), parameter :: tauvis = 0.14_rk8
-    !
-    !-----------------------------------------------------------------------
-    !
-    ! Define background aerosol
-    ! Set relative humidity and factor; then aerosol amount:
-    !
-    ! if ( rh(i,k) > 0.9 ) then
-    !   rhfac = 2.8
-    ! else if (rh(i,k) < 0.6 ) then
-    !   rhfac = 1.0
-    ! else
-    !   rhpc  = 100.0 * rh(i,k)
-    !   rhfac = (a0 + a1*rhpc + a2*rhpc**2 + a3*rhpc**3)
-    ! end if
-    !
-    ! Find constant aerosol mass mixing ratio for specified levels
-    ! in the column, converting units where appropriate
-    ! for the moment no more used
-    !
-    do concurrent ( k = 1:kz, n = n1:n2 )
-      if ( k >= kz + 1 - mxaerl ) then
-        aermmb(k,n) = egravgts * tauvis / &
-                (1.0e4_rk8*kaervs*rhfac*(1.0_rk8-omgvis*gvis*gvis) * &
-                (pnm(kzp1,n)-pnm(kzp1-mxaerl,n)))
-      else
-        aermmb(k,n) = 0.0_rk8
-      end if
-    end do
-  end subroutine aermix
-  !
   !----------------------------------------------------------------------
   !   Calculate Planck factors for absorptivity and emissivity of
   !   CH4, N2O, CFC11 and CFC12
@@ -3618,7 +3525,7 @@ module mod_rad_radiation
   ! fsnrtc   - Clear sky near-IR flux absorbed at toa
   ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
   !
-  subroutine radcsw(n1,n2,eccf,pnm,h2ommr,co2,o3mmr,aermmb,cld,clwp, &
+  subroutine radcsw(n1,n2,eccf,pnm,h2ommr,co2,o3mmr,cld,clwp, &
                     rel,rei,fice,czen,czengt0,adirsw,adifsw,adirlw,     &
                     adiflw,asw,alw,solin,solout,qrs,fsns,fsnt,fsds,     &
                     fsnsc,fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,    &
@@ -3628,7 +3535,7 @@ module mod_rad_radiation
     integer(ik4), intent(in) :: n1, n2
     real(rk8), intent(in) :: eccf
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: pnm
-    real(rk8), dimension(kz,n1:n2), intent(in) :: o3mmr, h2ommr, aermmb
+    real(rk8), dimension(kz,n1:n2), intent(in) :: o3mmr, h2ommr
     real(rk8), dimension(kz,n1:n2), intent(in) :: co2
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: cld
     real(rk8), dimension(kz,n1:n2), intent(in) :: clwp, fice, rel, rei
@@ -4922,8 +4829,6 @@ module mod_rad_radiation
   !     radinp      Converts units of model fields and computes ozone
   !                 mixing ratio for solar scheme
   !
-  !     aermix      Aerosol mixing ratios at pressure (if no external)
-  !
   !     radcsw      Performs solar computation (if cosine zenith > 0)
   !       radded    Computes delta-Eddington solution
   !       radclr    Computes diagnostic clear sky fluxes
@@ -4999,7 +4904,6 @@ module mod_rad_radiation
     ! co2   - carbon dioxide mass mixing ratio profile
     real(rk8), dimension(kz,rt%n1:rt%n2) :: cfc11, cfc12, ch4, n2o, co2
     ! Background aerosol mass mixing ratio
-    real(rk8), dimension(kz,rt%n1:rt%n2) :: aermmb
     ! o3mmr    - Ozone mass mixing ratio
     real(rk8), dimension(kz,rt%n1:rt%n2) :: o3mmr
     ! pbr      - Model mid-level pressures (dynes/cm2)
@@ -5050,14 +4954,9 @@ module mod_rad_radiation
     ! Solar radiation computation
     !
     if ( dosw ) then
-      !
-      ! Specify aerosol mass mixing ratio
-      !
-      call aermix(rt%n1,rt%n2,rt%pint,aermmb)
-
       call aeroppt(rt%rh,rt%pint,rt%n1,rt%n2)
 
-      call radcsw(rt%n1,rt%n2,rt%eccf,pnm,rt%q,co2,o3mmr,aermmb,      &
+      call radcsw(rt%n1,rt%n2,rt%eccf,pnm,rt%q,co2,o3mmr,             &
                   rt%cld,rt%clwp,rt%rel,rt%rei,rt%fice,rt%czen,       &
                   rt%czengt0,rt%adirsw,rt%adifsw,rt%adirlw,rt%adiflw, &
                   rt%asw,rt%alw,rt%solin,rt%solout,rt%qrs,rt%fsns,    &
