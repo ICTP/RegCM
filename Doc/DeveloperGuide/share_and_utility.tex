@@ -28,6 +28,8 @@ check failed.
   \code{test\_kdinterp} & \code{mod\_kdinterp} (Section~\ref{sec:kdinterp}) \\
   \code{test\_nchelper} & \code{mod\_nchelper} (Section~\ref{sec:nchelper}) \\
   \code{test\_ncstream} & \code{mod\_ncstream} (Section~\ref{sec:ncstream}) \\
+  \code{test\_async\_netcdf} & \code{mod\_async\_netcdf}
+    (Section~\ref{sec:async_netcdf}) \\
 \end{longtable}
 
 
@@ -6392,7 +6394,7 @@ get the \code{coordinates} (cross, dot or staggered points by name) and
   \code{outstream\_netcdf\_lock}, \code{\_unlock},
   \code{outstream\_async\_defer\_wake\_begin}, \code{\_end} &
     Exclusive access to the netCDF library and batching of the writes of
-    an output step (Section on \code{mod\_async\_netcdf}). \\
+    an output step (Section~\ref{sec:async_netcdf}). \\
 \end{longtable}
 
 \subsection{Design Notes}
@@ -6434,3 +6436,136 @@ written; the stream is now enabled first.
 \code{mixed} 2-D and 3-D data is not set before it is used; and the
 device copy writes the whole data array, ignoring the
 \code{j1:j2}, \code{i1:i2} window.
+
+%==============================================================================
+\section{Asynchronous NetCDF I/O --- \texttt{mod\_async\_netcdf.F90} and
+         \texttt{regcm\_async\_netcdf\_thread.c}}
+\label{sec:async_netcdf}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_async\_netcdf} lets the model hand its netCDF writes, and the
+prefetch of the next boundary conditions, to a background thread, so that
+the time step loop does not wait for the file system. All the writes of
+\code{mod\_ncstream} go through it. The thread, a mutex and condition
+variables come from the small C file \code{regcm\_async\_netcdf\_thread.c}
+(POSIX threads).
+
+The background thread exists only if both
+\begin{itemize}
+  \item RegCM was configured with \code{--enable-async-netcdf}
+        (\code{-DASYNC\_NETCDF}), and
+  \item the environment variable \code{RCM\_ASYNC\_OUTPUT\_GB} gives a
+        positive memory cap, in GB, for the data waiting to be written.
+\end{itemize}
+Otherwise the module is \emph{disabled}: every call performs the netCDF
+operation at once and returns its status, and the locks do nothing. This is
+the default. With \code{PNETCDF} the module is not used.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_async_netcdf
+    |-- iso_c_binding, netcdf
+    |-- mod_intkinds, mod_realkinds
+    |-- cudafor (OPENACC only)
+    `-- regcm_async_netcdf_thread.c (ASYNC_NETCDF only)
+\end{lstlisting}
+
+\subsection{How It Works}
+
+\begin{itemize}
+  \item \textbf{Queue.} A write copies the data into a new buffer, adds an
+        item (file, variable, start, count, data) to a first-in first-out
+        queue and returns. The worker thread takes the items in order and
+        performs them with the netCDF library; sync and close requests are
+        queued in the same way, so they act after the writes before them.
+        Read requests have their own queue, served first.
+  \item \textbf{Memory cap.} The bytes of the queued data are counted; a
+        write that would exceed the cap waits until the worker has freed
+        enough. A single item larger than the cap is accepted when the
+        queue is empty, so that nothing waits for ever.
+  \item \textbf{One user of the library at a time.} The netCDF library is
+        not thread safe. The worker takes the netCDF lock for each item,
+        and the main thread must take it with \code{async\_netcdf\_lock} /
+        \code{async\_netcdf\_unlock} around its own netCDF calls (create,
+        define, open, close); \code{mod\_ncstream} does so. The main thread
+        has priority: a waiting main thread is served before the next item.
+        The lock is not recursive.
+  \item \textbf{Errors.} The status of a queued write is not known when the
+        call returns. The first failure is kept and returned by the next
+        call (\code{wait\_all}, \code{sync}, \code{close}, \code{shutdown},
+        or any write), and every later operation fails with it: the output
+        of a run stops at the first error instead of continuing silently.
+  \item \textbf{Batching.} Between \code{async\_netcdf\_defer\_wake\_begin}
+        and \code{\_end} the worker is not woken for each item; the items of
+        an output step are then written together.
+  \item \textbf{OpenACC.} The cap is allocated at start as one page-locked
+        host pool, and the item buffers are slices of it. The device
+        variants copy the data from the device into the slice (converting
+        \code{rkx} to single precision on the device for the \code{rkx\_as\_r4}
+        variants), so the time step can continue while the host writes.
+\end{itemize}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{5.6cm} L{8.4cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{async\_netcdf\_put\_var(ncid, varid, values [, start, count])} &
+    Writes a 1-D array or a scalar of type single, double or integer. \\
+  \code{async\_netcdf\_put\_var\_device},
+  \code{\_rkx\_as\_r4\_device}, \code{\_rkx\_as\_r4\_device\_3d} &
+    The same from device data (OpenACC); the 3-D variant writes a block of
+    an \code{rkx} array as single precision, and can be forced to be
+    synchronous. \\
+  \code{async\_netcdf\_sync(ncid)}, \code{async\_netcdf\_close(ncid)} &
+    Flush or close a file after the writes queued before. \\
+  \code{async\_netcdf\_wait\_all()} &
+    Waits until the queues are empty; returns the first error. \\
+  \code{async\_netcdf\_shutdown()} &
+    Waits for all the work, stops the thread and frees the pool. \\
+  \code{async\_netcdf\_lock}, \code{async\_netcdf\_unlock} &
+    The netCDF lock of the main thread. \\
+  \code{async\_netcdf\_defer\_wake\_begin}, \code{\_end} &
+    Batch the items queued in between (they can be nested). \\
+  \code{async\_netcdf\_initialize([limit])}, \code{async\_netcdf\_is\_enabled},
+  \code{async\_netcdf\_configured\_cap\_bytes} &
+    Start the module (lowering the cap to \code{limit} at the first
+    initialisation only), whether the worker is running, the cap from the
+    environment. Any call starts the module. \\
+  \code{async\_netcdf\_get\_var\_rkx(ncid, varid, values, start, count,
+  counter)} &
+    Queues the read of a record into \code{values}, counted on
+    \code{counter}; fails when the module is disabled. \\
+  \code{async\_netcdf\_counter\_reset}, \code{\_poll}, \code{\_wait},
+  \code{\_fail} &
+    Pending reads and status of a counter. \\
+  \code{async\_netcdf\_try\_acquire\_buffer}, \code{\_release\_buffer} &
+    A buffer of \code{rkx} values counted in the cap (from the pool with
+    OpenACC), for the reads; fails when the module is disabled or the cap
+    is reached. \\
+\end{longtable}
+
+\noindent The reads, counters and buffers are used by \code{mod\_ncio} to
+read the next ICBC record while the model integrates.
+
+\subsection{Design Notes}
+
+\textbf{Testing.} \code{Testing/share/test\_async\_netcdf.F90} writes 200
+records of three types and a scalar, with a sync in the middle and
+batching, closes the file, and checks it; with the worker it also checks a
+queued read, the buffers, and that an error is reported. \code{make check}
+runs it with a cap of 50~kB, so that in a build with
+\code{--enable-async-netcdf} the writes wait for space. The same test was
+run with the worker under \code{valgrind --tool=drd} without reports in
+RegCM code.
+
+\textbf{Changes.} In October 2026 three functions that only forwarded to
+the direct netCDF writes were removed, and the lines longer than 80
+characters were wrapped; no change of behaviour.
