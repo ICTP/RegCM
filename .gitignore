@@ -149,6 +149,17 @@ Testing/mpplib/*.mod
 Testing/mpplib/*.opt.yaml
 Testing/mpplib/*.optrpt
 Testing/mpplib/*.o
+Testing/share/Makefile
+Testing/share/Makefile.in
+Testing/share/.libs
+Testing/share/test_*
+!Testing/share/test_*.F90
+Testing/share/*.log
+Testing/share/*.trs
+Testing/share/*.mod
+Testing/share/*.opt.yaml
+Testing/share/*.optrpt
+Testing/share/*.o
 
 PreProc/CH_EMISSIONS/Makefile
 PreProc/CH_EMISSIONS/Makefile.in

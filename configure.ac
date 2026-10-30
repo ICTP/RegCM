@@ -955,6 +955,7 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  Main/pbllib/Makefile Main/cloudlib/Makefile \
                  Main/oasislib/Makefile \
                  Testing/Makefile Testing/mpplib/Makefile \
+                 Testing/share/Makefile \
                  Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \
                  Tools/Programs/timeseries/Makefile])

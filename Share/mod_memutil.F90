@@ -29,7 +29,6 @@ module mod_memutil
   public :: memory_init, memory_destroy
   public :: getmem, relmem
   public :: assignpnt, remappnt4
-  !public :: memshare
 
   interface remappnt4
     module procedure remappnt4_r8
@@ -86,24 +85,6 @@ module mod_memutil
     module procedure assignp5d_r
     module procedure assignp5d_d
   end interface assignpnt
-
-  !interface memshare
-  !  module procedure spaceshare_1d_r8r4
-  !  module procedure spaceshare_1d_r8i4
-  !  module procedure spaceshare_1d_r8l4
-  !  module procedure spaceshare_1d_r4i4
-  !  module procedure spaceshare_1d_r4l4
-  !  module procedure spaceshare_2d_r8r4
-  !  module procedure spaceshare_2d_r8i4
-  !  module procedure spaceshare_2d_r8l4
-  !  module procedure spaceshare_2d_r4i4
-  !  module procedure spaceshare_2d_r4l4
-  !  module procedure spaceshare_3d_r8r4
-  !  module procedure spaceshare_3d_r8i4
-  !  module procedure spaceshare_3d_r8l4
-  !  module procedure spaceshare_3d_r4i4
-  !  module procedure spaceshare_3d_r4l4
-  !end interface memshare
 
   interface getmem
     module procedure getmem1d_l
@@ -331,7 +312,7 @@ module mod_memutil
   subroutine memory_init
     implicit none
     allocate(r1di, stat=ista)
-    call checkalloc(ista,__FILE__,__LINE__,'r1d1')
+    call checkalloc(ista,__FILE__,__LINE__,'r1di')
     allocate(r1ds, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r1ds')
     allocate(r1dl, stat=ista)
@@ -349,7 +330,7 @@ module mod_memutil
     l1dd => r1dd
     l1dt => r1dt
     allocate(r2di, stat=ista)
-    call checkalloc(ista,__FILE__,__LINE__,'r2d1')
+    call checkalloc(ista,__FILE__,__LINE__,'r2di')
     allocate(r2ds, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r2ds')
     allocate(r2dl, stat=ista)
@@ -364,7 +345,7 @@ module mod_memutil
     l2dr => r2dr
     l2dd => r2dd
     allocate(r3di, stat=ista)
-    call checkalloc(ista,__FILE__,__LINE__,'r3d1')
+    call checkalloc(ista,__FILE__,__LINE__,'r3di')
     allocate(r3ds, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r3ds')
     allocate(r3dl, stat=ista)
@@ -379,7 +360,7 @@ module mod_memutil
     l3dr => r3dr
     l3dd => r3dd
     allocate(r4di, stat=ista)
-    call checkalloc(ista,__FILE__,__LINE__,'r4d1')
+    call checkalloc(ista,__FILE__,__LINE__,'r4di')
     allocate(r4ds, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r4ds')
     allocate(r4dl, stat=ista)
@@ -394,7 +375,7 @@ module mod_memutil
     l4dr => r4dr
     l4dd => r4dd
     allocate(r5di, stat=ista)
-    call checkalloc(ista,__FILE__,__LINE__,'r5d1')
+    call checkalloc(ista,__FILE__,__LINE__,'r5di')
     allocate(r5ds, stat=ista)
     call checkalloc(ista,__FILE__,__LINE__,'r5ds')
     allocate(r5dl, stat=ista)
@@ -435,16 +416,13 @@ module mod_memutil
     c1dl => r1dl
     do while ( associated(c1dl) )
       n1dl => c1dl%next
-      if ( associated(a,c1dl%a%space) ) then
+      if ( .not. associated(n1dl) ) exit
+      if ( associated(a,c1dl%a%space) .or. &
+           (size(a) == 0 .and. size(c1dl%a%space) == 0) ) then
         deallocate(c1dl%a%space)
         a => null()
         if ( associated(p1dl) ) then
-          if ( associated(n1dl) ) then
-            p1dl%next => n1dl
-          else
-            l1dl => p1dl
-            p1dl%next => null()
-          end if
+          p1dl%next => n1dl
         else
           r1dl => n1dl
         end if
@@ -483,16 +461,13 @@ module mod_memutil
     c1dt => r1dt
     do while ( associated(c1dt) )
       n1dt => c1dt%next
-      if ( associated(a,c1dt%a%space) ) then
+      if ( .not. associated(n1dt) ) exit
+      if ( associated(a,c1dt%a%space) .or. &
+           (size(a) == 0 .and. size(c1dt%a%space) == 0) ) then
         deallocate(c1dt%a%space)
         a => null()
         if ( associated(p1dt) ) then
-          if ( associated(n1dt) ) then
-            p1dt%next => n1dt
-          else
-            l1dt => p1dt
-            p1dt%next => null()
-          end if
+          p1dt%next => n1dt
         else
           r1dt => n1dt
         end if
@@ -529,16 +504,13 @@ module mod_memutil
     c1ds => r1ds
     do while ( associated(c1ds) )
       n1ds => c1ds%next
-      if ( associated(a,c1ds%a%space) ) then
+      if ( .not. associated(n1ds) ) exit
+      if ( associated(a,c1ds%a%space) .or. &
+           (size(a) == 0 .and. size(c1ds%a%space) == 0) ) then
         deallocate(c1ds%a%space)
         a => null()
         if ( associated(p1ds) ) then
-          if ( associated(n1ds) ) then
-            p1ds%next => n1ds
-          else
-            l1ds => p1ds
-            p1ds%next => null()
-          end if
+          p1ds%next => n1ds
         else
           r1ds => n1ds
         end if
@@ -575,16 +547,13 @@ module mod_memutil
     c1di => r1di
     do while ( associated(c1di) )
       n1di => c1di%next
-      if ( associated(a,c1di%a%space) ) then
+      if ( .not. associated(n1di) ) exit
+      if ( associated(a,c1di%a%space) .or. &
+           (size(a) == 0 .and. size(c1di%a%space) == 0) ) then
         deallocate(c1di%a%space)
         a => null()
         if ( associated(p1di) ) then
-          if ( associated(n1di) ) then
-            p1di%next => n1di
-          else
-            l1di => p1di
-            p1di%next => null()
-          end if
+          p1di%next => n1di
         else
           r1di => n1di
         end if
@@ -621,16 +590,13 @@ module mod_memutil
     c1dr => r1dr
     do while ( associated(c1dr) )
       n1dr => c1dr%next
-      if ( associated(a,c1dr%a%space) ) then
+      if ( .not. associated(n1dr) ) exit
+      if ( associated(a,c1dr%a%space) .or. &
+           (size(a) == 0 .and. size(c1dr%a%space) == 0) ) then
         deallocate(c1dr%a%space)
         a => null()
         if ( associated(p1dr) ) then
-          if ( associated(n1dr) ) then
-            p1dr%next => n1dr
-          else
-            l1dr => p1dr
-            p1dr%next => null()
-          end if
+          p1dr%next => n1dr
         else
           r1dr => n1dr
         end if
@@ -667,16 +633,13 @@ module mod_memutil
     c1dd => r1dd
     do while ( associated(c1dd) )
       n1dd => c1dd%next
-      if ( associated(a,c1dd%a%space) ) then
+      if ( .not. associated(n1dd) ) exit
+      if ( associated(a,c1dd%a%space) .or. &
+           (size(a) == 0 .and. size(c1dd%a%space) == 0) ) then
         deallocate(c1dd%a%space)
         a => null()
         if ( associated(p1dd) ) then
-          if ( associated(n1dd) ) then
-            p1dd%next => n1dd
-          else
-            l1dd => p1dd
-            p1dd%next => null()
-          end if
+          p1dd%next => n1dd
         else
           r1dd => n1dd
         end if
@@ -804,16 +767,13 @@ module mod_memutil
     c2dl => r2dl
     do while ( associated(c2dl) )
       n2dl => c2dl%next
-      if ( associated(a,c2dl%a%space) ) then
+      if ( .not. associated(n2dl) ) exit
+      if ( associated(a,c2dl%a%space) .or. &
+           (size(a) == 0 .and. size(c2dl%a%space) == 0) ) then
         deallocate(c2dl%a%space)
         a => null()
         if ( associated(p2dl) ) then
-          if ( associated(n2dl) ) then
-            p2dl%next => n2dl
-          else
-            l2dl => p2dl
-            p2dl%next => null()
-          end if
+          p2dl%next => n2dl
         else
           r2dl => n2dl
         end if
@@ -852,16 +812,13 @@ module mod_memutil
     c2ds => r2ds
     do while ( associated(c2ds) )
       n2ds => c2ds%next
-      if ( associated(a,c2ds%a%space) ) then
+      if ( .not. associated(n2ds) ) exit
+      if ( associated(a,c2ds%a%space) .or. &
+           (size(a) == 0 .and. size(c2ds%a%space) == 0) ) then
         deallocate(c2ds%a%space)
         a => null()
         if ( associated(p2ds) ) then
-          if ( associated(n2ds) ) then
-            p2ds%next => n2ds
-          else
-            l2ds => p2ds
-            p2ds%next => null()
-          end if
+          p2ds%next => n2ds
         else
           r2ds => n2ds
         end if
@@ -899,16 +856,13 @@ module mod_memutil
     c2di => r2di
     do while ( associated(c2di) )
       n2di => c2di%next
-      if ( associated(a,c2di%a%space) ) then
+      if ( .not. associated(n2di) ) exit
+      if ( associated(a,c2di%a%space) .or. &
+           (size(a) == 0 .and. size(c2di%a%space) == 0) ) then
         deallocate(c2di%a%space)
         a => null()
         if ( associated(p2di) ) then
-          if ( associated(n2di) ) then
-            p2di%next => n2di
-          else
-            l2di => p2di
-            p2di%next => null()
-          end if
+          p2di%next => n2di
         else
           r2di => n2di
         end if
@@ -946,16 +900,13 @@ module mod_memutil
     c2dr => r2dr
     do while ( associated(c2dr) )
       n2dr => c2dr%next
-      if ( associated(a,c2dr%a%space) ) then
+      if ( .not. associated(n2dr) ) exit
+      if ( associated(a,c2dr%a%space) .or. &
+           (size(a) == 0 .and. size(c2dr%a%space) == 0) ) then
         deallocate(c2dr%a%space)
         a => null()
         if ( associated(p2dr) ) then
-          if ( associated(n2dr) ) then
-            p2dr%next => n2dr
-          else
-            l2dr => p2dr
-            p2dr%next => null()
-          end if
+          p2dr%next => n2dr
         else
           r2dr => n2dr
         end if
@@ -993,16 +944,13 @@ module mod_memutil
     c2dd => r2dd
     do while ( associated(c2dd) )
       n2dd => c2dd%next
-      if ( associated(a,c2dd%a%space) ) then
+      if ( .not. associated(n2dd) ) exit
+      if ( associated(a,c2dd%a%space) .or. &
+           (size(a) == 0 .and. size(c2dd%a%space) == 0) ) then
         deallocate(c2dd%a%space)
         a => null()
         if ( associated(p2dd) ) then
-          if ( associated(n2dd) ) then
-            p2dd%next => n2dd
-          else
-            l2dd => p2dd
-            p2dd%next => null()
-          end if
+          p2dd%next => n2dd
         else
           r2dd => n2dd
         end if
@@ -1116,16 +1064,13 @@ module mod_memutil
     c3dl => r3dl
     do while ( associated(c3dl) )
       n3dl => c3dl%next
-      if ( associated(a,c3dl%a%space) ) then
+      if ( .not. associated(n3dl) ) exit
+      if ( associated(a,c3dl%a%space) .or. &
+           (size(a) == 0 .and. size(c3dl%a%space) == 0) ) then
         deallocate(c3dl%a%space)
         a => null()
         if ( associated(p3dl) ) then
-          if ( associated(n3dl) ) then
-            p3dl%next => n3dl
-          else
-            l3dl => p3dl
-            p3dl%next => null()
-          end if
+          p3dl%next => n3dl
         else
           r3dl => n3dl
         end if
@@ -1164,16 +1109,13 @@ module mod_memutil
     c3ds => r3ds
     do while ( associated(c3ds) )
       n3ds => c3ds%next
-      if ( associated(a,c3ds%a%space) ) then
+      if ( .not. associated(n3ds) ) exit
+      if ( associated(a,c3ds%a%space) .or. &
+           (size(a) == 0 .and. size(c3ds%a%space) == 0) ) then
         deallocate(c3ds%a%space)
         a => null()
         if ( associated(p3ds) ) then
-          if ( associated(n3ds) ) then
-            p3ds%next => n3ds
-          else
-            l3ds => p3ds
-            p3ds%next => null()
-          end if
+          p3ds%next => n3ds
         else
           r3ds => n3ds
         end if
@@ -1212,16 +1154,13 @@ module mod_memutil
     c3di => r3di
     do while ( associated(c3di) )
       n3di => c3di%next
-      if ( associated(a,c3di%a%space) ) then
+      if ( .not. associated(n3di) ) exit
+      if ( associated(a,c3di%a%space) .or. &
+           (size(a) == 0 .and. size(c3di%a%space) == 0) ) then
         deallocate(c3di%a%space)
         a => null()
         if ( associated(p3di) ) then
-          if ( associated(n3di) ) then
-            p3di%next => n3di
-          else
-            l3di => p3di
-            p3di%next => null()
-          end if
+          p3di%next => n3di
         else
           r3di => n3di
         end if
@@ -1260,16 +1199,13 @@ module mod_memutil
     c3dr => r3dr
     do while ( associated(c3dr) )
       n3dr => c3dr%next
-      if ( associated(a,c3dr%a%space) ) then
+      if ( .not. associated(n3dr) ) exit
+      if ( associated(a,c3dr%a%space) .or. &
+           (size(a) == 0 .and. size(c3dr%a%space) == 0) ) then
         deallocate(c3dr%a%space)
         a => null()
         if ( associated(p3dr) ) then
-          if ( associated(n3dr) ) then
-            p3dr%next => n3dr
-          else
-            l3dr => p3dr
-            p3dr%next => null()
-          end if
+          p3dr%next => n3dr
         else
           r3dr => n3dr
         end if
@@ -1308,16 +1244,13 @@ module mod_memutil
     c3dd => r3dd
     do while ( associated(c3dd) )
       n3dd => c3dd%next
-      if ( associated(a,c3dd%a%space) ) then
+      if ( .not. associated(n3dd) ) exit
+      if ( associated(a,c3dd%a%space) .or. &
+           (size(a) == 0 .and. size(c3dd%a%space) == 0) ) then
         deallocate(c3dd%a%space)
         a => null()
         if ( associated(p3dd) ) then
-          if ( associated(n3dd) ) then
-            p3dd%next => n3dd
-          else
-            l3dd => p3dd
-            p3dd%next => null()
-          end if
+          p3dd%next => n3dd
         else
           r3dd => n3dd
         end if
@@ -1432,16 +1365,13 @@ module mod_memutil
     c4dl => r4dl
     do while ( associated(c4dl) )
       n4dl => c4dl%next
-      if ( associated(a,c4dl%a%space) ) then
+      if ( .not. associated(n4dl) ) exit
+      if ( associated(a,c4dl%a%space) .or. &
+           (size(a) == 0 .and. size(c4dl%a%space) == 0) ) then
         deallocate(c4dl%a%space)
         a => null()
         if ( associated(p4dl) ) then
-          if ( associated(n4dl) ) then
-            p4dl%next => n4dl
-          else
-            l4dl => p4dl
-            p4dl%next => null()
-          end if
+          p4dl%next => n4dl
         else
           r4dl => n4dl
         end if
@@ -1481,16 +1411,13 @@ module mod_memutil
     c4ds => r4ds
     do while ( associated(c4ds) )
       n4ds => c4ds%next
-      if ( associated(a,c4ds%a%space) ) then
+      if ( .not. associated(n4ds) ) exit
+      if ( associated(a,c4ds%a%space) .or. &
+           (size(a) == 0 .and. size(c4ds%a%space) == 0) ) then
         deallocate(c4ds%a%space)
         a => null()
         if ( associated(p4ds) ) then
-          if ( associated(n4ds) ) then
-            p4ds%next => n4ds
-          else
-            l4ds => p4ds
-            p4ds%next => null()
-          end if
+          p4ds%next => n4ds
         else
           r4ds => n4ds
         end if
@@ -1530,16 +1457,13 @@ module mod_memutil
     c4di => r4di
     do while ( associated(c4di) )
       n4di => c4di%next
-      if ( associated(a,c4di%a%space) ) then
+      if ( .not. associated(n4di) ) exit
+      if ( associated(a,c4di%a%space) .or. &
+           (size(a) == 0 .and. size(c4di%a%space) == 0) ) then
         deallocate(c4di%a%space)
         a => null()
         if ( associated(p4di) ) then
-          if ( associated(n4di) ) then
-            p4di%next => n4di
-          else
-            l4di => p4di
-            p4di%next => null()
-          end if
+          p4di%next => n4di
         else
           r4di => n4di
         end if
@@ -1579,16 +1503,13 @@ module mod_memutil
     c4dr => r4dr
     do while ( associated(c4dr) )
       n4dr => c4dr%next
-      if ( associated(a,c4dr%a%space) ) then
+      if ( .not. associated(n4dr) ) exit
+      if ( associated(a,c4dr%a%space) .or. &
+           (size(a) == 0 .and. size(c4dr%a%space) == 0) ) then
         deallocate(c4dr%a%space)
         a => null()
         if ( associated(p4dr) ) then
-          if ( associated(n4dr) ) then
-            p4dr%next => n4dr
-          else
-            l4dr => p4dr
-            p4dr%next => null()
-          end if
+          p4dr%next => n4dr
         else
           r4dr => n4dr
         end if
@@ -1628,16 +1549,13 @@ module mod_memutil
     c4dd => r4dd
     do while ( associated(c4dd) )
       n4dd => c4dd%next
-      if ( associated(a,c4dd%a%space) ) then
+      if ( .not. associated(n4dd) ) exit
+      if ( associated(a,c4dd%a%space) .or. &
+           (size(a) == 0 .and. size(c4dd%a%space) == 0) ) then
         deallocate(c4dd%a%space)
         a => null()
         if ( associated(p4dd) ) then
-          if ( associated(n4dd) ) then
-            p4dd%next => n4dd
-          else
-            l4dd => p4dd
-            p4dd%next => null()
-          end if
+          p4dd%next => n4dd
         else
           r4dd => n4dd
         end if
@@ -1753,16 +1671,13 @@ module mod_memutil
     c5dl => r5dl
     do while ( associated(c5dl) )
       n5dl => c5dl%next
-      if ( associated(a,c5dl%a%space) ) then
+      if ( .not. associated(n5dl) ) exit
+      if ( associated(a,c5dl%a%space) .or. &
+           (size(a) == 0 .and. size(c5dl%a%space) == 0) ) then
         deallocate(c5dl%a%space)
         a => null()
         if ( associated(p5dl) ) then
-          if ( associated(n5dl) ) then
-            p5dl%next => n5dl
-          else
-            l5dl => p5dl
-            p5dl%next => null()
-          end if
+          p5dl%next => n5dl
         else
           r5dl => n5dl
         end if
@@ -1803,16 +1718,13 @@ module mod_memutil
     c5ds => r5ds
     do while ( associated(c5ds) )
       n5ds => c5ds%next
-      if ( associated(a,c5ds%a%space) ) then
+      if ( .not. associated(n5ds) ) exit
+      if ( associated(a,c5ds%a%space) .or. &
+           (size(a) == 0 .and. size(c5ds%a%space) == 0) ) then
         deallocate(c5ds%a%space)
         a => null()
         if ( associated(p5ds) ) then
-          if ( associated(n5ds) ) then
-            p5ds%next => n5ds
-          else
-            l5ds => p5ds
-            p5ds%next => null()
-          end if
+          p5ds%next => n5ds
         else
           r5ds => n5ds
         end if
@@ -1853,16 +1765,13 @@ module mod_memutil
     c5di => r5di
     do while ( associated(c5di) )
       n5di => c5di%next
-      if ( associated(a,c5di%a%space) ) then
+      if ( .not. associated(n5di) ) exit
+      if ( associated(a,c5di%a%space) .or. &
+           (size(a) == 0 .and. size(c5di%a%space) == 0) ) then
         deallocate(c5di%a%space)
         a => null()
         if ( associated(p5di) ) then
-          if ( associated(n5di) ) then
-            p5di%next => n5di
-          else
-            l5di => p5di
-            p5di%next => null()
-          end if
+          p5di%next => n5di
         else
           r5di => n5di
         end if
@@ -1903,16 +1812,13 @@ module mod_memutil
     c5dr => r5dr
     do while ( associated(c5dr) )
       n5dr => c5dr%next
-      if ( associated(a,c5dr%a%space) ) then
+      if ( .not. associated(n5dr) ) exit
+      if ( associated(a,c5dr%a%space) .or. &
+           (size(a) == 0 .and. size(c5dr%a%space) == 0) ) then
         deallocate(c5dr%a%space)
         a => null()
         if ( associated(p5dr) ) then
-          if ( associated(n5dr) ) then
-            p5dr%next => n5dr
-          else
-            l5dr => p5dr
-            p5dr%next => null()
-          end if
+          p5dr%next => n5dr
         else
           r5dr => n5dr
         end if
@@ -1953,16 +1859,13 @@ module mod_memutil
     c5dd => r5dd
     do while ( associated(c5dd) )
       n5dd => c5dd%next
-      if ( associated(a,c5dd%a%space) ) then
+      if ( .not. associated(n5dd) ) exit
+      if ( associated(a,c5dd%a%space) .or. &
+           (size(a) == 0 .and. size(c5dd%a%space) == 0) ) then
         deallocate(c5dd%a%space)
         a => null()
         if ( associated(p5dd) ) then
-          if ( associated(n5dd) ) then
-            p5dd%next => n5dd
-          else
-            l5dd => p5dd
-            p5dd%next => null()
-          end if
+          p5dd%next => n5dd
         else
           r5dd => n5dd
         end if
@@ -2160,8 +2063,10 @@ module mod_memutil
 
   subroutine assignp1d_t(a,b)
     implicit none
-    type(rcm_time_and_date), pointer, contiguous, dimension(:), intent(in) :: a
-    type(rcm_time_and_date), pointer, contiguous, dimension(:), intent(inout) :: b
+    type(rcm_time_and_date), pointer, contiguous, &
+         dimension(:), intent(in) :: a
+    type(rcm_time_and_date), pointer, contiguous, &
+         dimension(:), intent(inout) :: b
     if ( .not. associated(a) ) then
       nullify(b)
       return
@@ -2655,155 +2560,6 @@ module mod_memutil
     end if
     b(lbound(a,1):, lbound(a,2):, 1:, lbound(a,4):) => a
   end subroutine remappnt4_r4
-
-!  subroutine spaceshare_1d_r8r4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk8), pointer, contiguous, dimension(:), intent(in) :: a
-!    real(rk4), pointer, contiguous, dimension(:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_1d_r8r4
-
-!  subroutine spaceshare_1d_r4i4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk4), pointer, contiguous, dimension(:), intent(in) :: a
-!    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_1d_r4i4
-
-!  subroutine spaceshare_1d_r8i4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk8), pointer, contiguous, dimension(:), intent(in) :: a
-!    integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_1d_r8i4
-
-!  subroutine spaceshare_1d_r4l4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk4), pointer, contiguous, dimension(:), intent(in) :: a
-!    logical, pointer, contiguous, dimension(:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_1d_r4l4
-
-!  subroutine spaceshare_1d_r8l4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk8), pointer, contiguous, dimension(:), intent(in) :: a
-!    logical, pointer, contiguous, dimension(:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_1d_r8l4
-
-!  subroutine spaceshare_2d_r8r4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
-!    real(rk4), pointer, contiguous, dimension(:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_2d_r8r4
-
-!  subroutine spaceshare_2d_r4i4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: a
-!    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_2d_r4i4
-
-!  subroutine spaceshare_2d_r8i4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
-!    integer(ik4), pointer, contiguous, dimension(:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_2d_r8i4
-
-!  subroutine spaceshare_2d_r4l4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk4), pointer, contiguous, dimension(:,:), intent(in) :: a
-!    logical, pointer, contiguous, dimension(:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-
-!  subroutine spaceshare_2d_r8l4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: a
-!    logical, pointer, contiguous, dimension(:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_2d_r8l4
-
-!  subroutine spaceshare_3d_r8r4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: a
-!    real(rk4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_3d_r8r4
-
-!  subroutine spaceshare_3d_r4i4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: a
-!    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_3d_r4i4
-
-!  subroutine spaceshare_3d_r8i4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: a
-!    integer(ik4), pointer, contiguous, dimension(:,:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_3d_r8i4
-
-!  subroutine spaceshare_3d_r4l4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk4), pointer, contiguous, dimension(:,:,:), intent(in) :: a
-!    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_3d_r4l4
-
-!  subroutine spaceshare_3d_r8l4(a,b)
-!    use iso_c_binding, only : c_ptr, c_loc, c_f_pointer
-!    implicit none
-!    real(rk8), pointer, contiguous, dimension(:,:,:), intent(in) :: a
-!    logical, pointer, contiguous, dimension(:,:,:), intent(inout) :: b
-!    type(c_ptr) :: pntr
-!    pntr = c_loc(a)
-!    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_3d_r8l4
 
 end module mod_memutil
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

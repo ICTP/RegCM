@@ -131,18 +131,17 @@ module mod_kdtree2
   public :: tree_node, kdtree2_create, kdtree2_destroy
   !---------------------------------------------------------------
   !-------------------SEARCH ROUTINES-----------------------------
-  public :: kdtree2_n_nearest, kdtree2_n_nearest_around_point
-  ! Return fixed number of nearest neighbors around arbitrary vector,
-  ! or extant point in dataset, with decorrelation window.
+  public :: kdtree2_n_nearest
+  ! Return fixed number of nearest neighbors around arbitrary vector
   !
-  public :: kdtree2_r_nearest, kdtree2_r_nearest_around_point
-  ! Return points within a fixed ball of arb vector/extant point
+  public :: kdtree2_r_nearest
+  ! Return points within a fixed ball around arbitrary vector
   !
   public :: kdtree2_sort_results
   ! Sort, in order of increasing distance, rseults from above.
   !
-  public :: kdtree2_r_count, kdtree2_r_count_around_point
-  ! Count points within a fixed ball of arb vector/extant point
+  public :: kdtree2_r_count
+  ! Count points within a fixed ball around arbitrary vector
   !
   public :: kdtree2_n_nearest_brute_force, kdtree2_r_nearest_brute_force
   ! brute force of kdtree2_[n|r]_nearest
@@ -224,9 +223,6 @@ module mod_kdtree2
     integer :: nn
     integer :: nfound
     real(kdkind) :: ballsize
-    integer :: centeridx = 999
-    integer :: correltime = 9999
-    ! exclude points within 'correltime' of 'centeridx', iff centeridx >= 0
     integer :: nalloc     ! how much allocated for results(:)?
     logical :: rearrange  ! are the data rearranged or original?
     ! did the # of points found overflow the storage provided?
@@ -299,7 +295,7 @@ module mod_kdtree2
     mr%n = size(input_data,2)
     lbal = .false.
     if ( present(balanced) ) then
-      lbal = .true.
+      lbal = balanced
     end if
 
     if ( mr%dimen > mr%n ) then
@@ -449,6 +445,12 @@ module mod_kdtree2
 
         res%cut_val = average
         m = select_on_coordinate_value(tp%the_data,tp%ind,c,average,l,u)
+        ! If all the points are on one side of the cut (coincident points,
+        ! zero spread) split at the median, so that the recursion ends
+        if ( m < l .or. m >= u ) then
+          m = (l+u)/2
+          call select_on_coordinate(tp%the_data,tp%ind,c,m,l,u)
+        end if
       end if
 
       ! moves indexes around
@@ -686,8 +688,6 @@ module mod_kdtree2
     sr%qv => qv
     sr%nn = nn
     sr%nfound = 0
-    sr%centeridx = -1
-    sr%correltime = 0
     sr%overflow = .false.
 
     sr%results => results
@@ -714,51 +714,6 @@ module mod_kdtree2
     nn = sr%nfound
   end subroutine kdtree2_n_nearest
 
-  subroutine kdtree2_n_nearest_around_point(tp,idxin,correltime,nn,results)
-    implicit none
-    ! Find the 'nn' vectors in the tree nearest to point 'idxin',
-    ! with correlation window 'correltime', returing results in
-    ! results(:), which must be pre-allocated upon entry.
-    type (kdtree2), pointer, intent(in) :: tp
-    integer, intent (in) :: idxin, correltime
-    integer, intent (inout) :: nn
-    type(kdtree2_result), dimension(:), target, intent(inout) :: results
-
-    allocate (sr%qv(tp%dimen))
-    sr%qv = tp%the_data(:,idxin) ! copy the vector
-    sr%ballsize = huge(1.0)      ! the largest real(kdkind) number
-    sr%centeridx = idxin
-    sr%correltime = correltime
-
-    sr%nn = nn
-    sr%nfound = 0
-
-    sr%dimen = tp%dimen
-    sr%nalloc = nn
-
-    sr%results => results
-
-    sr%ind => tp%ind
-    sr%rearrange = tp%rearrange
-
-    if (sr%rearrange) then
-      sr%rdata => tp%rearranged_data
-    else
-      sr%rdata => tp%the_data
-    end if
-
-    call validate_query_storage(nn)
-    sr%pq = pq_create(results)
-
-    call search(tp%root)
-
-    if (tp%sort) then
-      call kdtree2_sort_results(nn, results)
-    endif
-    deallocate (sr%qv)
-    nn = sr%nfound
-  end subroutine kdtree2_n_nearest_around_point
-
   subroutine kdtree2_r_nearest(tp,qv,r2,nfound,nalloc,results)
     implicit none
     ! find the nearest neighbors to point 'idxin', within SQUARED
@@ -783,8 +738,6 @@ module mod_kdtree2
     sr%ballsize = r2
     sr%nn = 0      ! flag for fixed ball search
     sr%nfound = 0
-    sr%centeridx = -1
-    sr%correltime = 0
 
     sr%results => results
 
@@ -801,15 +754,10 @@ module mod_kdtree2
     endif
     sr%dimen = tp%dimen
 
-    !
-    !sr%dsl = huge(sr%dsl)    ! set to huge positive values
-    !sr%il = -1               ! set to invalid indexes
-    !
-
     call search(tp%root)
     nfound = sr%nfound
     if ( tp%sort ) then
-      call kdtree2_sort_results(nfound, results)
+      call kdtree2_sort_results(min(nfound,nalloc), results)
     endif
 
     if ( sr%overflow ) then
@@ -823,72 +771,6 @@ module mod_kdtree2
     end if
   end subroutine kdtree2_r_nearest
 
-  subroutine kdtree2_r_nearest_around_point(tp,idxin, &
-                          correltime,r2,nfound,nalloc,results)
-    implicit none
-    !
-    ! Like kdtree2_r_nearest, but around a point 'idxin' already existing
-    ! in the data set.
-    !
-    ! Results are NOT sorted unless tree was created with sort option.
-    !
-    type(kdtree2), pointer, intent(in) :: tp
-    integer, intent(in) :: idxin, correltime, nalloc
-    real(kdkind), intent(in) :: r2
-    integer, intent(out) :: nfound
-    type(kdtree2_result), dimension(:), intent(inout), target :: results
-    !
-    allocate (sr%qv(tp%dimen))
-    sr%qv = tp%the_data(:,idxin) ! copy the vector
-    sr%ballsize = r2
-    sr%nn = 0    ! flag for fixed r search
-    sr%nfound = 0
-    sr%centeridx = idxin
-    sr%correltime = correltime
-
-    sr%results => results
-
-    sr%nalloc = nalloc
-    sr%overflow = .false.
-
-    call validate_query_storage(nalloc)
-
-    !    sr%dsl = HUGE(sr%dsl)    ! set to huge positive values
-    !    sr%il = -1               ! set to invalid indexes
-
-    sr%ind => tp%ind
-    sr%rearrange = tp%rearrange
-
-    if (tp%rearrange) then
-      sr%rdata => tp%rearranged_data
-    else
-      sr%rdata => tp%the_data
-    endif
-    sr%rearrange = tp%rearrange
-    sr%dimen = tp%dimen
-    !
-    !sr%dsl = huge(sr%dsl)    ! set to huge positive values
-    !sr%il = -1               ! set to invalid indexes
-    !
-    call search(tp%root)
-    nfound = sr%nfound
-    if ( tp%sort ) then
-      call kdtree2_sort_results(nfound,results)
-    endif
-
-    if ( sr%overflow ) then
-      write (stderr,*) 'KD_TREE_TRANS'
-      write (stderr,*) &
-         'warning! return from kdtree2_r_nearest found more neighbors'
-      write (stderr,*) &
-        'than storage was provided for.  Answer is NOT smallest ball'
-      write (stderr,*) &
-        'with that number of neighbors!  I.e. it is wrong.'
-    end if
-
-    deallocate (sr%qv)
-  end subroutine kdtree2_r_nearest_around_point
-
   integer function kdtree2_r_count(tp,qv,r2) result(nfound)
     implicit none
     ! Count the number of neighbors within square distance 'r2'.
@@ -901,8 +783,6 @@ module mod_kdtree2
 
     sr%nn = 0       ! flag for fixed r search
     sr%nfound = 0
-    sr%centeridx = -1
-    sr%correltime = 0
 
     nullify(sr%results) ! for some reason, FTN 95 chokes on '=> null()'
 
@@ -916,61 +796,12 @@ module mod_kdtree2
       sr%rdata => tp%the_data
     endif
     sr%dimen = tp%dimen
-    !
-    !sr%dsl = huge(sr%dsl)    ! set to huge positive values
-    !sr%il = -1               ! set to invalid indexes
-    !
     sr%overflow = .false.
 
     call search(tp%root)
 
     nfound = sr%nfound
   end function kdtree2_r_count
-
-  integer function kdtree2_r_count_around_point(tp,idxin, &
-                          correltime,r2) result(nfound)
-    implicit none
-    ! Count the number of neighbors within square distance 'r2' around
-    ! point 'idxin' with decorrelation time 'correltime'.
-    !
-    type(kdtree2), pointer, intent(in) :: tp
-    integer, intent(in) :: correltime, idxin
-    real(kdkind), intent(in) :: r2
-    !
-    allocate (sr%qv(tp%dimen))
-    sr%qv = tp%the_data(:,idxin)
-    sr%ballsize = r2
-
-    sr%nn = 0       ! flag for fixed r search
-    sr%nfound = 0
-    sr%centeridx = idxin
-    sr%correltime = correltime
-    nullify(sr%results)
-
-    sr%nalloc = 0            ! we do not allocate any storage but that's OK
-                             ! for counting.
-
-    sr%ind => tp%ind
-    sr%rearrange = tp%rearrange
-
-    if (sr%rearrange) then
-      sr%rdata => tp%rearranged_data
-    else
-      sr%rdata => tp%the_data
-    end if
-    sr%dimen = tp%dimen
-
-    !
-    !sr%dsl = huge(sr%dsl)    ! set to huge positive values
-    !sr%il = -1               ! set to invalid indexes
-    !
-    sr%overflow = .false.
-
-    call search(tp%root)
-
-    nfound = sr%nfound
-  end function kdtree2_r_count_around_point
-
 
   subroutine validate_query_storage(n)
     implicit none
@@ -1096,37 +927,6 @@ module mod_kdtree2
     end if
   end function dis2_from_bnd
 
-!  logical function box_in_search_range(node, sr) result(res)
-!    implicit none
-!    !
-!    ! Return the distance from 'qv' to the CLOSEST corner of node's
-!    ! bounding box
-!    ! for all coordinates outside the box.   Coordinates inside the box
-!    ! contribute nothing to the distance.
-!    !
-!    type(tree_node), pointer :: node
-!    type(tree_search_record), pointer :: sr
-!
-!    integer :: dimen, i
-!    real(kdkind) :: dis, ballsize
-!    real(kdkind) :: l, u
-!
-!    dimen = sr%dimen
-!    ballsize = sr%ballsize
-!    dis = 0.0
-!    res = .true.
-!    do i = 1, dimen
-!      l = node%box(i)%lower
-!      u = node%box(i)%upper
-!      dis = dis + (dis2_from_bnd(sr%qv(i),l,u))
-!      if ( dis > ballsize ) then
-!        res = .false.
-!        return
-!      end if
-!    end do
-!    res = .true.
-!  end function box_in_search_range
-
   subroutine process_terminal_node(node)
     implicit none
     !
@@ -1139,7 +939,7 @@ module mod_kdtree2
     integer, pointer, dimension(:) :: ind
     real(kdkind), pointer, contiguous, dimension(:,:) :: rdata
     !
-    integer :: dimen, i, indexofi, k, centeridx, correltime
+    integer :: dimen, i, indexofi, k
     real(kdkind) :: ballsize, sd, newpri
     logical :: rearrange
     type(pq), pointer :: pqp
@@ -1157,11 +957,7 @@ module mod_kdtree2
     rearrange = sr%rearrange
     ind => sr%ind(1:)
     rdata => sr%rdata
-    centeridx = sr%centeridx
-    correltime = sr%correltime
 
-    !    doing_correl = (centeridx >= 0)  ! Do we have a decorrelation window?
-    !    include_point = .true.    ! by default include all points
     ! search through terminal bucket.
 
     mainloop: &
@@ -1180,10 +976,6 @@ module mod_kdtree2
           sd = sd + (rdata(k,indexofi) - qv(k))**2
           if ( sd > ballsize ) cycle mainloop
         end do
-      end if
-
-      if ( centeridx > 0 ) then ! doing correlation interval?
-        if ( abs(indexofi-centeridx) < correltime ) cycle mainloop
       end if
 
       !
@@ -1248,7 +1040,6 @@ module mod_kdtree2
     !
     integer :: nfound
     integer :: dimen, i, indexofi, k
-    integer :: centeridx, correltime
     real(kdkind) :: ballsize, sd
     logical :: rearrange
     !
@@ -1260,8 +1051,6 @@ module mod_kdtree2
     rearrange = sr%rearrange
     ind => sr%ind
     rdata => sr%rdata
-    centeridx = sr%centeridx
-    correltime = sr%correltime
     nfound = sr%nfound
 
     ! search through terminal bucket.
@@ -1302,10 +1091,6 @@ module mod_kdtree2
           sd = sd + (rdata(k,indexofi) - qv(k))**2
           if ( sd > ballsize ) cycle mainloop
         end do
-      end if
-
-      if ( centeridx > 0 ) then ! doing correlation interval?
-        if ( abs(indexofi-centeridx) < correltime ) cycle mainloop
       end if
 
       nfound = nfound+1
@@ -1389,7 +1174,7 @@ module mod_kdtree2
     nalloc = size(results,1)
 
     do i = 1, tp%n
-      if ( all_distances(i) < r2 ) then
+      if ( all_distances(i) <= r2 ) then
         ! insert it somewhere on the list
         if ( nfound < nalloc ) then
           nfound = nfound+1
@@ -1411,70 +1196,6 @@ module mod_kdtree2
     !
     if ( nfound > 1 ) call heapsort_struct(results,nfound)
   end subroutine kdtree2_sort_results
-
-!  subroutine heapsort(a,ind,n)
-!    implicit none
-!    !
-!    ! Sort a(1:n) in ascending order, permuting ind(1:n) similarly.
-!    !
-!    ! If ind(k) = k upon input, then it will give a sort index upon output.
-!    !
-!    integer, intent(in) :: n
-!    real(kdkind), dimension(:), intent(inout) :: a
-!    integer, dimension(:), intent(inout) :: ind
-!    !
-!    real(kdkind) :: rval   ! temporary for a value from a()
-!    integer :: ival  ! temporary for a value from ind()
-!
-!    integer :: i, j
-!    integer :: ileft, iright
-!
-!    ileft = n/2+1
-!    iright = n
-!
-!    !    do i=1,n
-!    !       ind(i)=i
-!    ! Generate initial idum array
-!    !    end do
-!
-!    if ( n == 1 ) return
-!
-!    do
-!      if ( ileft > 1 ) then
-!        ileft = ileft-1
-!        rval = a(ileft)
-!        ival = ind(ileft)
-!      else
-!        rval = a(iright)
-!        ival = ind(iright)
-!        a(iright) = a(1)
-!        ind(iright) = ind(1)
-!        iright = iright-1
-!        if ( iright == 1 ) then
-!          a(1) = rval
-!          ind(1) = ival
-!          return
-!        end if
-!      end if
-!      i = ileft
-!      j = 2*ileft
-!      do while ( j <= iright )
-!        if ( j < iright ) then
-!          if ( a(j) < a(j+1) ) j = j+1
-!        end if
-!        if ( rval < a(j) ) then
-!          a(i) = a(j)
-!          ind(i) = ind(j)
-!          i = j
-!          j = j+j
-!        else
-!          j = iright+1
-!        end if
-!      end do
-!      a(i) = rval
-!      ind(i) = ival
-!    end do
-!  end subroutine heapsort
 
   subroutine heapsort_struct(a,n)
     implicit none

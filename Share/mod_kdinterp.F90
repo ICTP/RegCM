@@ -213,7 +213,7 @@ module mod_kdinterp
     allocate(h_i%tg%ft(nj,ni))
     write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
-    i10 = ni/10
+    i10 = max(ni/10,1)
     do i = 1, ni
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
       do j = 1, nj
@@ -240,7 +240,6 @@ module mod_kdinterp
           end if
         end if
         call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-        !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
         h_i%tg%ft(j,i)%np = np
         deallocate(results)
       end do
@@ -300,7 +299,7 @@ module mod_kdinterp
     allocate(h_i%tg%ft(nj,ni))
     write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
-    i10 = ni/10
+    i10 = max(ni/10,1)
     do i = 1, ni
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
       do j = 1, nj
@@ -327,7 +326,6 @@ module mod_kdinterp
           end if
         end if
         call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-        !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
         h_i%tg%ft(j,i)%np = np
         deallocate(results)
       end do
@@ -360,7 +358,7 @@ module mod_kdinterp
     h_i%tg%tshape(2) = 1
     allocate(h_i%tg%ft(no,1))
     write(stdout,'(a)',advance='no') ' Computing weights'
-    i10 = no/10
+    i10 = max(no/10,1)
     do i = 1, no
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
       call ll2xyz(tlat(i),tlon(i),p)
@@ -432,7 +430,7 @@ module mod_kdinterp
     allocate(h_i%tg%ft(nj,ni))
     write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
-    i10 = ni/10
+    i10 = max(ni/10,1)
     do i = 1, ni
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
       do j = 1, nj
@@ -459,7 +457,6 @@ module mod_kdinterp
           end if
         end if
         call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-        !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
         h_i%tg%ft(j,i)%np = np
         deallocate(results)
       end do
@@ -522,7 +519,7 @@ module mod_kdinterp
     allocate(h_i%tg%ft(nj,ni))
     write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
-    i10 = ni/10
+    i10 = max(ni/10,1)
     do i = 1, ni
       if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
       do j = 1, nj
@@ -549,7 +546,6 @@ module mod_kdinterp
           end if
         end if
         call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-        !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
         h_i%tg%ft(j,i)%np = np
         deallocate(results)
       end do
@@ -643,12 +639,11 @@ module mod_kdinterp
         end if
       end do
       if ( gwgt > d_zero ) then
-        f(i) = real(gsum / gwgt,rkx)
+        f(i) = max(gmin,min(gmax,gsum/gwgt))
       else
         f(i) = missl
       end if
     end do
-    f = max(gmin,min(gmax,f))
   end subroutine interp_1d_r8
 
   subroutine interp_1d_r4(h_i,g,f)
@@ -657,7 +652,7 @@ module mod_kdinterp
     real(rk4), dimension(:), intent(in) :: g
     real(rk4), dimension(:), intent(out) :: f
     integer(ik4) :: i, ni, n, si, gni
-    real(rk8) :: gmax, gmin, gtmp
+    real(rk8) :: gmax, gmin
     real(rk8) :: gsum, gwgt
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
@@ -688,14 +683,10 @@ module mod_kdinterp
         end if
       end do
       if ( gwgt > d_zero ) then
-        f(i) = real(gsum / gwgt,rk4)
+        f(i) = real(max(gmin,min(gmax,gsum/gwgt)),rk4)
       else
         f(i) = missl
       end if
-    end do
-    do i = 1, ni
-      gtmp = f(i)
-      f(i) = real(max(gmin,min(gmax,gtmp)),rk4)
     end do
   end subroutine interp_1d_r4
 
@@ -1239,7 +1230,8 @@ module mod_kdinterp
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
-    integer(ik4) :: i, j, ni, nj, n, si, sj
+    integer(ik4) :: i, j, ni, nj, n, si, sj, nv
+    real(rk8) :: gsum
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -1252,17 +1244,19 @@ module mod_kdinterp
     ni = size(f,2)
     do i = 1, ni
       do j = 1, nj
-        if ( h_i%tg%ft(j,i)%np > 0 ) then
-          f(j,i) = 0.0_rkx
-          do n = 1, h_i%tg%ft(j,i)%np
-            si = h_i%tg%ft(j,i)%wgt(n)%i
-            sj = h_i%tg%ft(j,i)%wgt(n)%j
-            f(j,i) = f(j,i) + g(sj,si)
-          end do
-          f(j,i) = f(j,i)/h_i%tg%ft(j,i)%np
-        else
-          f(j,i) = missl
-        end if
+        ! Mean of the valid neighbours, missing if there are none
+        f(j,i) = missl
+        nv = 0
+        gsum = 0.0_rk8
+        do n = 1, h_i%tg%ft(j,i)%np
+          si = h_i%tg%ft(j,i)%wgt(n)%i
+          sj = h_i%tg%ft(j,i)%wgt(n)%j
+          if ( g(sj,si) > missc ) then
+            nv = nv + 1
+            gsum = gsum + g(sj,si)
+          end if
+        end do
+        if ( nv > 0 ) f(j,i) = real(gsum/real(nv,rk8),rkx)
       end do
     end do
   end subroutine interp_sum_2dr
@@ -1412,6 +1406,10 @@ module mod_kdinterp
     allocate(gvals(n1:n2))
     do i = 1, ni
       do j = 1, nj
+        if ( h_i%tg%ft(j,i)%np == 0 ) then
+          f(j,i) = missl
+          cycle
+        end if
         gvals(:) = 0
         do n = 1, h_i%tg%ft(j,i)%np
           si = h_i%tg%ft(j,i)%wgt(n)%i
@@ -1432,66 +1430,6 @@ module mod_kdinterp
     end do
     deallocate(gvals)
   end subroutine interp_class_ld
-
-  subroutine smther(f)
-    implicit none
-    real(rkx), intent(inout), dimension(:,:) :: f
-    integer(ik4) :: i1, i2, j1, j2
-    integer(ik4) :: i, is, ie, j, js, je
-    real(rkx), allocatable, dimension(:,:) :: tmp
-    i1 = lbound(f,2)
-    i2 = ubound(f,2)
-    j1 = lbound(f,1)
-    j2 = ubound(f,1)
-    allocate(tmp(j1:j2,i1:i2))
-    ie = i2-1
-    je = j2-1
-    is = i1+1
-    js = j1+1
-    tmp(:,:) = f(:,:)
-    do i = is, ie
-      do j = js, je
-        if ( all(tmp(j-1:j+1,i-1:i+1) > missc) ) then
-          f(j,i) = (tmp(j-1,i-1)+tmp(j-1,i)+tmp(j-1,i+1) + &
-                    tmp(j+1,i-1)+tmp(j+1,i)+tmp(j+1,i+1) + &
-                    tmp(j,i-1)+ tmp(j,i+1)+6.0_rkx*tmp(j,i))/14.0_rkx
-        end if
-      end do
-    end do
-    do i = is, ie
-      if ( all(tmp(je:j2,i-1:i+1) > missc) ) then
-        f(j2,i) = (tmp(je,i-1)+tmp(je,i)+tmp(je,i+1) + &
-                   tmp(j2,i-1)+ tmp(j2,i+1)+3.0_rkx*tmp(j2,i))/8.0_rkx
-      end if
-      if ( all(tmp(j1:js,i-1:i+1) > missc) ) then
-        f(j1,i) = (tmp(js,i-1)+tmp(js,i)+tmp(js,i+1) + &
-                   tmp(j1,i-1)+ tmp(j1,i+1)+3.0_rkx*tmp(j1,i))/8.0_rkx
-      end if
-    end do
-    do j = js, je
-      if ( all(tmp(j-1:j+1,ie:i2) > missc) ) then
-        f(j,i2) = (tmp(j-1,ie)+tmp(j,ie)+tmp(j+1,ie) + &
-                   tmp(j+1,i2)+tmp(j-1,i2)+3.0_rkx* tmp(j,i2))/8.0_rkx
-      end if
-      if ( all(tmp(j-1:j+1,i1:is) > missc) ) then
-        f(j,i1) = (tmp(j-1,is)+tmp(j,is)+tmp(j+1,is) + &
-                   tmp(j+1,i1)+tmp(j-1,i1)+3.0_rkx*tmp(j,i1))/8.0_rkx
-      end if
-    end do
-    if ( all(tmp(j1:js,i1:is) > missc) ) then
-      f(j1,i1) = (2.0_rkx*tmp(j1,i1)+tmp(j1,is)+tmp(js,i1)+tmp(js,js))/5.0_rkx
-    end if
-    if ( all(tmp(je:j2,i1:is) > missc) ) then
-      f(j2,i1) = (2.0_rkx*tmp(j2,i1)+tmp(j2,is)+tmp(je,i1)+tmp(je,is))/5.0_rkx
-    end if
-    if ( all(tmp(je:j2,ie:i2) > missc) ) then
-      f(j2,i2) = (2.0_rkx*tmp(j2,i2)+tmp(j2,ie)+tmp(je,i2)+tmp(je,ie))/5.0_rkx
-    end if
-    if ( all(tmp(j1:js,ie:i2) > missc) ) then
-      f(j1,i2) = (2.0_rkx*tmp(j1,i2)+tmp(j1,ie)+tmp(js,i2)+tmp(js,ie))/5.0_rkx
-    end if
-    deallocate(tmp)
-  end subroutine smther
 
   subroutine smtdsmt_r8(f)
     implicit none
@@ -1596,37 +1534,6 @@ module mod_kdinterp
       end do
     end do
   end subroutine smtdsmt_r4
-
-  subroutine compwgt_distwei(np,n2,r,w)
-    implicit none
-    integer(ik4), intent(inout) :: np
-    integer(ik4), intent(in) :: n2
-    type(kdtree2_result), pointer, contiguous, dimension(:), intent(in) :: r
-    type(pwgt), dimension(:), pointer, contiguous, intent(inout) :: w
-    integer(ik4) :: n
-    real(rk8) :: rx, rmax
-
-    rmax = r(1)%dis
-    do n = 2, np
-      if ( rmax < r(n)%dis ) rmax = r(n)%dis
-    end do
-    allocate(w(np))
-    do n = 1, np
-      if ( r(n)%dis < epsilon(rx) ) then
-        np = 1
-        deallocate(w)
-        allocate(w(1))
-        w(1)%i = (r(n)%idx-1)/n2 + 1
-        w(1)%j = r(n)%idx - n2*(w(1)%i-1)
-        w(1)%wgt = d_one
-        return
-      end if
-      rx = sqrt(r(n)%dis/rmax)
-      w(n)%i = (r(n)%idx-1)/n2 + 1
-      w(n)%j = r(n)%idx - n2*(w(n)%i-1)
-      w(n)%wgt = d_one/rx
-    end do
-  end subroutine compwgt_distwei
 
   subroutine compwgt_genlin_1d(np,p,xp,r,w)
     implicit none

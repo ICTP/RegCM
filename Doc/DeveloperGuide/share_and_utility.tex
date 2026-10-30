@@ -1,3 +1,32 @@
+The sections of this chapter describe the files of \code{Share}, in the
+order in which they are compiled. The modules checked so far have unit
+tests in \code{Testing/share}, built and run by \code{make check}: each
+program prints PASS or FAIL for every check and exits with an error if any
+check failed.
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Test} & \textbf{Module} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{test\_date} & \code{mod\_date} (Section~\ref{sec:moddate}) \\
+  \code{test\_spbarcoord} & \code{mod\_spbarcoord}
+    (Section~\ref{sec:spbarcoord}) \\
+  \code{test\_projections} & \code{mod\_projections}
+    (Section~\ref{sec:projections}) \\
+  \code{test\_hgt} & \code{mod\_hgt} (Section~\ref{sec:hgt}) \\
+  \code{test\_vertint} & \code{mod\_vertint} (Section~\ref{sec:vertint}) \\
+  \code{test\_humid} & \code{mod\_humid} (Section~\ref{sec:humid}) \\
+  \code{test\_interp} & \code{mod\_interp} (Section~\ref{sec:interp}) \\
+  \code{test\_memutil} & \code{mod\_space}, \code{mod\_memutil}
+    (Section~\ref{sec:memutil}) \\
+  \code{test\_kdtree2} & \code{mod\_kdtree2\_priority},
+    \code{mod\_kdtree2} (Section~\ref{sec:kdtree2}) \\
+  \code{test\_kdinterp} & \code{mod\_kdinterp} (Section~\ref{sec:kdinterp}) \\
+\end{longtable}
+
 
 %==============================================================================
 \section{Basic Numeric Types --- \texttt{mod\_intkinds.F90} and
@@ -2183,15 +2212,19 @@ unit keeps the comparison exact: for example 61~seconds is not equal to
     Handles all seven unit cases; seconds, minutes, hours, and days update
     \code{second\_of\_day} and \code{days\_from\_reference} by integer
     arithmetic. Month, year, and century increments first decompose the date,
-    adjust the year/month, then recompose. For months only, the position
+    adjust the year/month, then recompose. A negative number of months
+    goes back across the year boundary. For months only, the position
     within the month, $(d-1)/N_\text{month}$, is preserved and mapped onto
     the target month (see Design Notes); year and century increments keep
-    the day of the month unchanged. \\
+    the day of the month unchanged (29 February goes to 1 March in a
+    common year). \\
   \code{rcm\_time\_and\_date - rcm\_time\_interval} &
-    Subtraction; negative second-of-day values are wrapped back into the
-    previous day. Unlike the addition, the month case keeps the day of the
-    month unchanged instead of preserving the position within the month, so
-    \code{x + 1 month - 1 month} is not always \code{x}. \\
+    Subtraction. For seconds, minutes, hours and days it is the addition
+    of the opposite interval. For months it keeps the day of the month, or
+    takes the last day of the target month if that is shorter (31 March
+    $-$ 1 month is 28 or 29 February). Unlike the addition it does not
+    preserve the position within the month, so \code{x + 1 month - 1
+    month} is not always \code{x}. \\
   \code{rcm\_time\_and\_date - rcm\_time\_and\_date} &
     Returns an \code{rcm\_time\_interval} in \code{usec}, equal to the
     signed difference $(x_\text{days} - y_\text{days}) \times 86400 +
@@ -2302,36 +2335,11 @@ decomposition are related by two complementary pairs of private routines:
     find \code{(month, day)}. Calendar-aware, pure. \\
 \end{longtable}
 
-\subsubsection{Day Arithmetic Helpers (Private, Recursive)}
+\subsubsection{Month Helper}
 
-Four private recursive subroutines handle day-level addition and subtraction
-on a (day, month, year) triple, rolling over month and year boundaries. They
-are not called anywhere in the current code: day arithmetic is done directly
-on \code{days\_from\_reference}.
-
-\begin{longtable}{L{5cm} L{9cm}}
-  \toprule
-  \textbf{Routine} & \textbf{Description} \\
-  \midrule
-  \endhead
-  \bottomrule
-  \endfoot
-  \code{add\_days\_leap(d,m,y,a)} &
-    Adds \code{a} days to (day \code{d}, month \code{m}, year \code{y})
-    in Gregorian calendar, rolling months/years forward via recursion. \\
-  \code{sub\_days\_leap(d,m,y,a)} &
-    Subtracts \code{a} days, rolling backward. \\
-  \code{add\_days\_noleap(d,m,y,a)} &
-    As above for the no-leap calendar. \\
-  \code{sub\_days\_noleap(d,m,y,a)} &
-    As above for the no-leap calendar. \\
-\end{longtable}
-
-The helper subroutines \code{adjustpm} and \code{adjustmp} carry month-overflow
-($m > 12$) and month-underflow ($m < 1$) into the year field respectively,
-used after month/year arithmetic. Each applies a single correction,
-$m \leftarrow m - 12$ or $m \leftarrow m + 12$, which is enough because the
-callers add or subtract at most 11 months before the correction.
+The private \code{add\_months(d, n)} adds $n$ months, positive or
+negative, to the month and year of an \code{iadate}, with modulo
+arithmetic on the zero-based month; the day is left to the caller.
 
 %------------------------------------------------------------------------------
 \subsection{Julian Day Computation}
@@ -2812,6 +2820,20 @@ $\alpha = (d - 1)/N_\text{source}$; the source comments call it ``a trick'',
 whose purpose is to make day 14 the middle of February in the Gregorian
 calendar. Only the addition of months uses it (see the table of the
 \code{+} and \code{-} operators).
+
+\textbf{Corrections.} The following were corrected in October 2026, and
+are checked by \code{Testing/share/test\_date.F90}: the subtraction of
+seconds added them, and that of minutes and hours gave a negative second
+of the day when the result was on a previous day from a time other than
+midnight; the subtraction of months could give a day beyond the end of
+the month (31 March $-$ 1 month was 3 March); the addition of a negative
+number of months gave month 0 instead of going back to December. No code
+outside the module subtracted seconds, minutes or hours, and
+\code{prevmon} is applied to dates up to the middle of the month, so the
+model results do not change. The unused recursive day helpers
+(\code{add\_days\_leap}, \code{sub\_days\_leap}, \code{add\_days\_noleap},
+\code{sub\_days\_noleap}, the last two inconsistent with the first two) and
+\code{adjustpm}, \code{adjustmp} were removed.
 
 \textbf{CF-Conventions compatibility.} The \code{timeval2date},
 \code{timeval2ym}, and \code{parse\_timestring} routines ensure that any
@@ -5412,3 +5434,478 @@ atmosphere on ERA5-like pressure levels: the surface pressure is exact for
 surfaces between levels, and differs only where the ECMWF limits apply
 (0.4~hPa for a surface below the 1000~hPa level in a 303~K atmosphere).
 \code{intgtb} reproduces the mean layer temperature of a linear profile.
+
+%==============================================================================
+\section{Nearest-Neighbour Search --- \texttt{mod\_kdtree2\_priority.F90} and
+         \texttt{mod\_kdtree2.F90}}
+\label{sec:kdtree2}
+%==============================================================================
+
+\subsection{Overview}
+
+These two modules are the KDTREE2 library of \citet{kennel2004}, distributed
+under the Academic Free License 1.1, adapted to the RegCM kinds and error
+handling. They build a $k$-d tree on a set of points in a Euclidean space and
+find, for a query point, its $n$ nearest neighbours or all the points within
+a given distance. RegCM uses them, through \code{mod\_kdinterp}, for the
+horizontal interpolation of the pre-processing and of the climatological
+input of the model, with the points as unit vectors on the sphere
+(\code{ll2xyz} of \code{mod\_earth}): there the Euclidean distance is the
+chord, a monotonic function of the great-circle distance.
+
+\code{mod\_kdtree2\_priority} provides the bounded max-heap used to keep the
+$n$ closest points during a search; \code{mod\_kdtree2} the tree.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_kdtree2_priority
+    |-- mod_realkinds   (rk4, rk8)
+    |-- mod_message     (die)
+mod_kdtree2
+    |-- mod_realkinds, mod_message, mod_stdio (stderr)
+    |-- mod_kdtree2_priority
+\end{lstlisting}
+
+The coordinates and distances are \code{real(kdkind)}, with \code{kdkind}
+$=$ \code{rk8}.
+
+\subsection{Types}
+
+\begin{longtable}{L{3.5cm} L{10.5cm}}
+  \toprule
+  \textbf{Type} & \textbf{Content} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{kdtree2\_result} &
+    One result: \code{dis}, the \emph{squared} distance from the query
+    point, and \code{idx}, the index of the point in the input array. \\
+  \code{pq} &
+    Priority queue: \code{heap\_size} elements of a \code{kdtree2\_result}
+    array, in max-heap order of \code{dis}. \\
+  \code{kdtree2} &
+    The tree: dimension \code{dimen}, number of points \code{n}, a pointer
+    to the input data \code{the\_data(1:dimen,1:n)} (not copied: it must
+    stay allocated while the tree is used), the permutation \code{ind} of
+    the points, an optional rearranged copy of the data, the options
+    \code{sort} and \code{rearrange}, and the root node. \\
+  \code{tree\_node} &
+    A node: the cut dimension and value, the range \code{l:u} of the
+    permuted points it holds, its bounding box and the two children (none
+    for a terminal node). \\
+\end{longtable}
+
+\subsection{Public Procedures}
+
+\begin{longtable}{L{5.8cm} L{8.2cm}}
+  \toprule
+  \textbf{Procedure} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{tp => kdtree2\_create(data [, indim, balanced, sort, rearrange])} &
+    Builds the tree on \code{data(1:d,1:n)}, with $n > d$. \code{indim}
+    restricts the search to the first \code{indim} coordinates;
+    \code{balanced} splits the nodes at the median instead of the mean;
+    \code{sort} returns the results in increasing distance;
+    \code{rearrange} keeps a copy of the data ordered as the tree, for a
+    faster search. \code{mod\_kdinterp} uses \code{sort} and
+    \code{rearrange}. \\
+  \code{kdtree2\_n\_nearest(tp, qv, nn, results)} &
+    The \code{nn} points nearest to the vector \code{qv}, in
+    \code{results(1:nn)}; \code{nn} returns the number found. \\
+  \code{kdtree2\_r\_nearest(tp, qv, r2, nfound, nalloc, results)} &
+    The points within the squared distance \code{r2} (boundary included);
+    at most \code{nalloc} are stored, \code{nfound} returns how many were
+    found. If \code{nfound} $>$ \code{nalloc} a warning is printed and the
+    stored points are not the closest ones. \\
+  \code{kdtree2\_r\_count(tp, qv, r2)} &
+    The number of points within the squared distance \code{r2}, used to
+    size the results of \code{kdtree2\_r\_nearest}. \\
+  \code{kdtree2\_sort\_results(nfound, results)} &
+    Sorts \code{results(1:nfound)} by increasing distance (heap sort). \\
+  \code{kdtree2\_n\_nearest\_brute\_force},
+  \code{kdtree2\_r\_nearest\_brute\_force} &
+    The same searches by exhaustive comparison, for testing. \\
+  \code{kdtree2\_destroy(tp)} &
+    Releases the tree (not the input data). \\
+  \code{pq\_create}, \code{pq\_insert}, \code{pq\_replace\_max} &
+    Priority queue on a given result array: insertion, and replacement of
+    the largest element, each returning the new largest distance. \\
+\end{longtable}
+
+\subsection{Algorithm}
+
+\textbf{Building.} The points are split recursively. Each node takes the
+coordinate with the largest spread of its points and cuts it at the mean of
+the points (or the median with \code{balanced}); nodes with at most 14
+points (\code{bucket\_size} $+ 1$) are terminal. If all the points fall on
+one side of the cut, as for coincident points with no spread, the node is
+split at the median index, so that the recursion always ends. After building
+the children, the cut is moved between the two child boxes and the node box
+is set to their union.
+
+\textbf{Searching.} The search descends first into the child on the side of
+the query point, then visits the other child only if the distance from the
+query point to its box is not larger than the current search radius:
+\begin{itemize}
+  \item for $n$ nearest neighbours, the radius is the largest distance in
+        the priority queue once it holds $n$ points, so that it shrinks
+        while closer points are found;
+  \item for a fixed radius, all the points within it are kept.
+\end{itemize}
+In a terminal node the squared distance of each point is accumulated over
+the coordinates, stopping as soon as it exceeds the radius.
+
+\subsection{Design Notes}
+
+\textbf{Global search record.} The state of a search is kept in the module
+variable \code{sr}, so the searches are not reentrant: two searches must not
+run at the same time (for example in OpenMP threads). The callers in RegCM
+search serially.
+
+\textbf{Squared distances.} All the distances in the interface are squared,
+including the radius \code{r2}; \code{mod\_kdinterp} converts them.
+
+\textbf{Changes from the original library.} The searches around a point of
+the data set with a decorrelation window, and the priority queue operations
+not used by the tree (maximum, extraction, deletion), were removed. The
+following were corrected: the \code{balanced} option was applied whenever
+present, whatever its value; the coincident points made the tree building
+recurse without end; with more points found than stored,
+\code{kdtree2\_r\_nearest} sorted beyond the stored results; the
+brute-force radius search excluded the points at the radius, unlike the
+tree.
+
+\textbf{Numerical checks.} On 20\,000 random points on the sphere and 2\,000
+query points the tree searches agree exactly with the brute-force ones, for
+4, 8 and 32 nearest neighbours (also with a balanced tree), for the
+fixed-radius search and for the count, with the results sorted; a tree with
+199 coincident points is built and searched correctly.
+
+%==============================================================================
+\section{Horizontal Interpolation --- \texttt{mod\_kdinterp.F90}}
+\label{sec:kdinterp}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_kdinterp} interpolates fields between horizontal grids of any
+shape: regular latitude--longitude grids, curvilinear grids (the model
+domain, rotated or projected input grids) and unstructured point lists. It
+is used by the terrain program, the ICBC programs, the CLM pre-processing and
+the model (ozone, aerosol and CCN climatologies, slab ocean, CLM input). The
+interpolation is in two steps:
+\begin{enumerate}
+  \item \code{h\_interpolator\_create} finds, for every target point, the
+        source points to use and their weights, and stores them in an
+        \code{h\_interpolator};
+  \item the \code{h\_interpolate\_*} routines apply the weights to any
+        number of fields on the same grids.
+\end{enumerate}
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_kdinterp
+    |-- mod_realkinds, mod_intkinds, mod_constants (erkm, d_zero, ...)
+    |-- mod_stdio, mod_message
+    |-- mod_earth       (ll2xyz, gcdist_simple)
+    |-- mod_spbarcoord  (spherical_barycentric)
+    |-- mod_kdtree2     (kd-tree search)
+\end{lstlisting}
+
+\subsection{Types}
+
+\begin{longtable}{L{3.2cm} L{10.8cm}}
+  \toprule
+  \textbf{Type} & \textbf{Content} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{h\_interpolator} &
+    The source shape \code{sshape(2)} and the target \code{tg}. \\
+  \code{ftarget} &
+    The target shape \code{tshape(2)} and, for each target point, an
+    \code{ijwgt}. \\
+  \code{ijwgt} &
+    The number \code{np} of source points (0: no value) and their
+    \code{pwgt}. \\
+  \code{pwgt} &
+    The indices \code{i}, \code{j} of a source point and its weight
+    \code{wgt}. \\
+\end{longtable}
+
+The missing value is $-9999$ (\code{h\_missing\_value}); input values below
+$-9990$ are treated as missing.
+
+\subsection{Creating an Interpolator}
+
+\begin{lstlisting}
+call h_interpolator_create(h_i, slat, slon, tlat, tlon [, ds, roi, mxp])
+call h_interpolator_create(h_i, ni, slat, slon, no, tlat, tlon)
+\end{lstlisting}
+
+\begin{longtable}{L{3.6cm} L{3.4cm} L{7cm}}
+  \toprule
+  \textbf{Variant} & \textbf{Source $\to$ target} & \textbf{Search} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{interp\_create\_ll\_g} &
+    regular (1-D \code{slat}, \code{slon}) $\to$ curvilinear (2-D) &
+    with \code{ds} [km] \\
+  \code{interp\_create\_g\_g} &
+    curvilinear $\to$ curvilinear &
+    with \code{ds} [km] \\
+  \code{interp\_create\_ll\_ll} &
+    regular $\to$ regular &
+    from the cell sizes \\
+  \code{interp\_create\_g\_ll} &
+    curvilinear $\to$ regular &
+    from the cell sizes \\
+  \code{interp\_create\_ll\_ll\_1d} &
+    point list $\to$ point list &
+    4 nearest points \\
+\end{longtable}
+
+The source points are converted to unit vectors (\code{ll2xyz}) and put in a
+$k$-d tree (Section~\ref{sec:kdtree2}). The size of a grid cell, $d$, is
+the largest diagonal of its cells (\code{maxedis}, in km). The search for
+each target point is then one of:
+
+\begin{itemize}
+  \item \textbf{Interpolation} (the source is at least as fine as the
+        target): the 4 nearest source points. This is the default, and the
+        only mode of the point-list variant.
+  \item \textbf{Averaging} (the source is much finer than the target: its
+        cell size is less than half of \code{ds}, or less than the target
+        cell size for the variants without \code{ds}): all the source
+        points within the radius $r = $\,\code{ds}$\cdot$\code{roi}, or
+        $r = d_\text{target}\cdot$\code{roi} without \code{ds}
+        (\code{roi} defaults to 1), up to \code{mxp} (default 32; 0 for no
+        limit), the nearest ones if there are more. A target point with
+        fewer than 4 source points in the radius gets no value.
+\end{itemize}
+
+\noindent The kd-tree distances are chords on the unit sphere, so the radius
+is $d/R$ with $R$ the Earth radius in km (\code{erkm}).
+
+\textbf{Weights.} If a source point coincides with the target point
+(squared chord below machine epsilon), it gets weight 1. Otherwise the
+weights are the spherical barycentric coordinates of the target point with
+respect to the source points found (Section~\ref{sec:spbarcoord}).
+
+\subsection{Interpolating}
+
+\begin{longtable}{L{4.2cm} L{9.8cm}}
+  \toprule
+  \textbf{Interface} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{h\_interpolate\_cont(h\_i, g, f)} &
+    Continuous fields, 1-D to 5-D (the extra dimensions are interpolated
+    level by level), single or double precision. The value is the weighted
+    mean of the valid source points, with the weights normalised over them;
+    missing if none is valid. On 2-D and 3-D fields a smoothing--desmoothing
+    filter follows (\code{smtdsmt}: four passes of a 1-2-1 filter with
+    coefficients $\nu = 0.5$ and $\nu = -0.52$ along each direction,
+    skipping missing values), which damps the shortest wavelengths. The
+    result is limited to the range of the source field. \\
+  \code{h\_interpolate\_cont(h\_i, g, f, ftmp, gnj, gni, nj, ni, n3)} &
+    The 3-D variant for OpenACC (\code{interp\_3d\_new}), processing all
+    the levels together, with the work array \code{ftmp}. Same result as
+    the level-by-level version. \\
+  \code{h\_interpolate\_nn(h\_i, g, f)} &
+    The value of the valid source point with the largest weight (1-D and
+    2-D). \\
+  \code{h\_interpolate\_class(h\_i, g, f)} &
+    Categories. For real fields (2-D to 5-D), the value of the source point
+    with the largest weight. For integer fields, the most frequent class
+    among the source points; a target point with no source points gets the
+    lowest class. \\
+  \code{h\_interpolate\_class(h\_i, g, f, iw, pct)} &
+    Land use: the most frequent class, but if it is the water class
+    \code{iw} and covers less than \code{pct}\,\% of the source points, the
+    next most frequent one; missing without source points. \\
+  \code{h\_interpolate\_sum(h\_i, g, f)} &
+    The mean of the valid source points, without weights (class fractions
+    of the terrain program); missing if none is valid. \\
+  \code{h\_interpolator\_destroy(h\_i)} &
+    Releases the weights. \\
+\end{longtable}
+
+\subsection{Design Notes}
+
+\textbf{Reuse.} Finding the neighbours is the expensive part; the
+interpolator is computed once and applied to every field and time step on
+the same grids.
+
+\textbf{Smoothing and range.} The smoothing of the 2-D and 3-D continuous
+fields removes the small-scale noise that the interpolation from a few
+neighbours may create, and the final limit to the source range prevents
+overshoots of the barycentric weights and of the filter. The 1-D
+interpolation is neither smoothed nor (since October 2026) limited on
+missing points.
+
+\textbf{Corrections.} The following were corrected in October 2026: the
+progress dots of the constructors divided by zero for targets with fewer
+than 10 rows or points; the 1-D interpolation replaced missing values with
+the source minimum (or $10^{20}$); \code{h\_interpolate\_sum} averaged the
+missing values ($-9999$) of the source into the result; the land use class
+of a target without source points was the lowest class instead of missing.
+
+\textbf{Numerical checks.} From a global $1^\circ$ grid to a
+$40\times30$ curvilinear grid: a constant field is reproduced exactly; a
+field $280 + 20\cos\varphi\cos 2\lambda$~K is interpolated within
+0.003~K; the level-by-level and OpenACC 3-D variants give the same result;
+missing values stay missing in the 1-D interpolation and are excluded from
+the class fraction means.
+These checks are in \code{Testing/share/test\_kdinterp.F90}, and the
+searches of Section~\ref{sec:kdtree2} are compared with the brute force
+ones in \code{Testing/share/test\_kdtree2.F90}.
+
+%==============================================================================
+\section{Dynamic Memory --- \texttt{mod\_space.F90} and \texttt{mod\_memutil.F90}}
+\label{sec:memutil}
+%==============================================================================
+
+\subsection{Overview}
+
+All the arrays of RegCM whose size is known only at run time are pointers
+allocated by \code{getmem} and released by \code{relmem}. The two modules
+share the work:
+\begin{itemize}
+  \item \code{mod\_space} defines a container type for each kind and rank,
+        holding one allocatable pointer, and the generic \code{getspc} that
+        allocates it with the given bounds and initial value;
+  \item \code{mod\_memutil} keeps every allocated container in a list (a
+        \emph{pool}) for each kind and rank, so that an array can be
+        released by its pointer alone and all the arrays released at the end
+        of the run.
+\end{itemize}
+
+\noindent Pointers rather than allocatable arrays let several names refer to
+the same storage (\code{assignpnt}), and let the model data types hold
+references to arrays allocated elsewhere.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_space
+    |-- mod_intkinds, mod_realkinds
+    |-- mod_date (rcm_time_and_date)
+mod_memutil
+    |-- mod_intkinds, mod_realkinds, mod_constants
+    |-- mod_space
+    |-- mod_message (checkalloc)
+    |-- mod_date (rcm_time_and_date)
+\end{lstlisting}
+
+\subsection{Kinds, Ranks and Initial Values}
+
+\begin{longtable}{L{1.4cm} L{4.2cm} L{2.6cm} L{5.4cm}}
+  \toprule
+  \textbf{Suffix} & \textbf{Type} & \textbf{Ranks} &
+  \textbf{Initial value} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{l} & \code{logical} & 1--5 & \code{.false.} \\
+  \code{s} & \code{integer(ik2)} & 1--5 & $-1$ \\
+  \code{i} & \code{integer(ik4)} & 1--5 & $-1$ \\
+  \code{r} & \code{real(rk4)} & 1--5 & 0 \\
+  \code{d} & \code{real(rk8)} & 1--5 & 0 \\
+  \code{t} & \code{rcm\_time\_and\_date} & 1 & default of the type \\
+\end{longtable}
+
+\noindent The containers of \code{mod\_space} are named after the kind and
+rank (\code{larr1d}, \code{sarr2d}, \code{iarr3d}, \code{r4arr4d},
+\code{r8arr5d}, \code{rtarr1d}, \ldots); \code{bounds} holds the lower and
+upper bound of one dimension.
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{4.6cm} L{9.4cm}}
+  \toprule
+  \textbf{Interface} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{memory\_init} &
+    Creates the empty pools. Called once at the start of every program. \\
+  \code{getmem(a, l1, h1, [\ldots, l5, h5,] vn)} &
+    Allocates \code{a(l1:h1, \ldots)} with the initial value of its kind
+    and adds it to the pool. If \code{a} is already associated it is first
+    released. \code{vn} names the array in the error message if the
+    allocation fails (\code{checkalloc}, which stops the program). \\
+  \code{relmem(a)} &
+    Deallocates the array \code{a} points to, removes it from the pool and
+    nullifies \code{a}. Nothing happens if \code{a} is not associated or
+    does not point to a pool array. \\
+  \code{memory\_destroy} &
+    Deallocates all the arrays still in the pools, and the pools. \\
+  \code{assignpnt(a, b)} &
+    Points \code{b} to the whole of \code{a}, with the same bounds (ranks
+    1--5). \\
+  \code{assignpnt(a, b, k [, l])} &
+    Points \code{b} to the slice \code{a(\ldots, k)} or
+    \code{a(:, :, k, l)}, with the bounds of the remaining dimensions:
+    1-D from 2-D (real), 2-D from 3-D or 4-D, 3-D from 4-D, 4-D from
+    5-D. \\
+  \code{remappnt4(a, b)} &
+    Points \code{b} to the 4-D real array \code{a} with the third
+    dimension starting at 1. \\
+\end{longtable}
+
+\noindent The slice and the null cases of \code{assignpnt} are the same for
+all kinds: if \code{a} is not associated, \code{b} is nullified.
+
+\subsection{Pool Structure}
+
+Each pool is a singly linked list from a root \code{r} to a last element
+\code{l}. The last element is always empty: \code{getmem} allocates the new
+array in it and appends a new empty element, which becomes \code{l}. Every
+element before the last one therefore holds an array, and \code{relmem}
+walks the list from the root up to the last element, comparing the address
+of each array with its argument, and unlinks the one it finds. The cost of
+\code{relmem} (and of \code{getmem} on an associated pointer) grows with the
+number of arrays of that kind and rank; most arrays are allocated once at
+the start and never released.
+
+\subsection{Design Notes}
+
+\textbf{Zero size arrays.} The address comparison
+(\code{associated(a, target)}) is always false for an array of zero size, so
+before October 2026 such arrays were never released: \code{relmem} left
+the pointer associated and the element in the pool, and every
+\code{getmem} on it added a new element and made the following searches of
+that pool slower. A zero size pointer now releases any zero size array of
+the pool; as such arrays hold no data, which one is released does not
+matter.
+
+\textbf{Pointers to pool arrays.} \code{relmem} nullifies only its
+argument, and \code{memory\_destroy} no pointer at all; any other pointer
+to the same array (from \code{assignpnt}, or a pointer assignment) is left
+dangling. A pointer obtained from \code{assignpnt} must not be passed to
+\code{relmem}: it is not found in the pool and nothing is released.
+
+\textbf{Corrections.} The dead code of the list removal (a branch for the
+last element, which is never a pool array) and the commented-out
+\code{memshare} interface were removed in October 2026.
+
+\textbf{Testing.} \code{Testing/share/test\_memutil.F90} checks the bounds
+and initial values, the release of the first, a middle and the last
+element of a pool, the reallocation of an associated pointer, zero size
+arrays, \code{assignpnt} and \code{remappnt4}; it runs clean under
+\code{valgrind}. The tests in \code{Testing/share} are built and run by
+\code{make check}.

@@ -354,25 +354,7 @@ module mod_date
     call days_from_reference_to_date(x,d)
   end subroutine internal_to_date_time
 
-  subroutine adjustpm(a,b,i)
-    implicit none
-    integer(ik4), intent(inout) :: a, b
-    integer(ik4), intent(in) :: i
-    if ( a > i ) then
-      a = a - i
-      b = b + 1
-    end if
-  end subroutine adjustpm
 
-  subroutine adjustmp(a,b,i)
-    implicit none
-    integer(ik4), intent(inout) :: a, b
-    integer(ik4), intent(in) :: i
-    if ( a < 1 ) then
-      a = a + i
-      b = b - 1
-    end if
-  end subroutine adjustmp
 
   subroutine normidate(idate)
     implicit none
@@ -748,69 +730,20 @@ module mod_date
     end select
   end subroutine unit_factor
 
-  recursive subroutine add_days_leap(d,m,y,a)
-    integer(ik4), intent(inout) :: d, m, y
-    integer(ik4), intent(in) :: a
-    integer(ik4) :: tmp
-    tmp = a
-    if ( tmp > (mdays_leap(y,m)-d) ) then
-      tmp = tmp - (mdays_leap(y,m)-d+1)
-      m = m+1
-      call adjustpm(m,y,12)
-      d = 1
-      call add_days_leap(d,m,y,tmp)
-    else
-      d = d + tmp
-    end if
-  end subroutine add_days_leap
 
-  recursive subroutine sub_days_leap(d,m,y,a)
-    integer(ik4), intent(inout) :: d, m, y
-    integer(ik4), intent(in) :: a
-    integer(ik4) :: tmp
-    tmp = a
-    if ( tmp >= d ) then
-      tmp = tmp-d
-      m = m-1
-      call adjustmp(m,y,12)
-      d = mdays_leap(y,m)
-      call sub_days_leap(d,m,y,tmp)
-    else
-      d = d - tmp
-    end if
-  end subroutine sub_days_leap
 
-  recursive subroutine add_days_noleap(d,m,y,a)
-    integer(ik4), intent(inout) :: d, m, y
-    integer(ik4), intent(in) :: a
-    integer(ik4) :: tmp
-    tmp = a
-    if ( tmp > mlen(m)-d ) then
-      tmp = tmp - mlen(m)-d+1
-      m = m + 1
-      call adjustpm(m,y,12)
-      d = 1
-      call add_days_noleap(d,m,y,tmp)
-    else
-      d = d + tmp
-    end if
-  end subroutine add_days_noleap
 
-  recursive subroutine sub_days_noleap(d,m,y,a)
-    integer(ik4), intent(inout) :: d, m, y
-    integer(ik4), intent(in) :: a
-    integer(ik4) :: tmp
-    tmp = a
-    if ( tmp > d ) then
-      tmp = tmp-d
-      m = m-1
-      call adjustmp(m,y,12)
-      d = mlen(m)
-      call sub_days_noleap(d,m,y,tmp)
-    else
-      d = d - tmp
-    end if
-  end subroutine sub_days_noleap
+
+  ! Adds n (positive or negative) months to the month and year of d.
+  pure subroutine add_months(d,n)
+    implicit none
+    type (iadate), intent(inout) :: d
+    integer(ik8), intent(in) :: n
+    integer(ik8) :: nm
+    nm = int(d%month-1,ik8) + n
+    d%year = d%year + int((nm-modulo(nm,i8mpy))/i8mpy,ik4)
+    d%month = int(modulo(nm,i8mpy),ik4) + 1
+  end subroutine add_months
 
   function add_interval(x, y) result (z)
     implicit none
@@ -864,10 +797,7 @@ module mod_date
           case default
             dm = real(d%day-1,rk8)/30.0_rk8
         end select
-        d%month = d%month+int(mod(tmp,i8mpy),ik4)
-        call adjustpm(d%month,d%year,12)
-        tmp = tmp/i8mpy
-        d%year = d%year+int(tmp,ik4)
+        call add_months(d,tmp)
         ! Adjust date of the month: This is really a trick...
         ! It is to have 14 as February middle month for Gregorian.
         select case (z%calendar)
@@ -944,40 +874,20 @@ module mod_date
     z = x
     tmp = y%ival
     select case (y%iunit)
-      case (usec)
-        tmp = tmp - z%second_of_day
-        z%second_of_day = int(mod(tmp,i8spd),ik4)
-        if ( z%second_of_day < 0 ) then
-          z%second_of_day = int(i8spd+z%second_of_day,ik4)
-          tmp = tmp+i8spd
-        end if
-        tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference - tmp
-      case (umin)
-        tmp = tmp*i8spm - z%second_of_day
-        z%second_of_day = int(mod(tmp, i8spd),ik4)
-        if ( z%second_of_day > 0 ) then
-          z%second_of_day = int(i8spd,ik4)-z%second_of_day
-          tmp = tmp+i8spd
-        end if
-        tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference - tmp
-      case (uhrs)
-        tmp = tmp*i8sph - z%second_of_day
-        z%second_of_day = int(mod(tmp, i8spd),ik4)
-        if ( z%second_of_day > 0 ) then
-          z%second_of_day = int(i8spd,ik4)-z%second_of_day
-          tmp = tmp+i8spd
-        end if
-        tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference - tmp
-      case (uday)
-        z%days_from_reference = z%days_from_reference - tmp
+      case (usec, umin, uhrs, uday)
+        z = add_interval(x,rcm_time_interval(-tmp,y%iunit))
       case (umnt)
+        ! Same day of the month, or its last day if the month is shorter.
         call days_from_reference_to_date(x,d)
-        d%month = d%month-int(mod(tmp,i8mpy),ik4)
-        call adjustmp(d%month,d%year,12)
-        d%year = d%year-int(tmp/i8mpy,ik4)
+        call add_months(d,-tmp)
+        select case (z%calendar)
+          case (gregorian)
+            d%day = min(d%day,mdays_leap(d%year,d%month))
+          case (noleap)
+            d%day = min(d%day,mlen(d%month))
+          case default
+            d%day = min(d%day,30)
+        end select
         call date_to_days_from_reference(d,z)
       case (uyrs)
         call days_from_reference_to_date(x,d)
