@@ -95,7 +95,10 @@ module mod_nhinterp
           t0(j,i,k) = max(st0 + tlp * log(pr0(j,i,k) / p0),tiso)
           rho0(j,i,k) = pr0(j,i,k) / rgas / t0(j,i,k)
           alnp = log(pr0(j,i,k)/(ps0(j,i)+ptoppa))
-          z0(j,i,k) = max(-(d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp),d_zero)
+          ! Height above the surface: the reference temperature at the
+          ! surface is st0 + tlp*log((ps0+ptop)/p0)
+          z0(j,i,k) = max(-(d_half*rovg*tlp*alnp*alnp + rovg * &
+              (st0+tlp*log((ps0(j,i)+ptoppa)/p0))*alnp),d_zero)
         end do
       end do
     end subroutine nhbase
@@ -124,7 +127,8 @@ module mod_nhinterp
       do concurrent ( j = j1:j2, i = i1:i2, k = 1:kxs )
         pr0 = ps0(j,i) * sigmah(k) + ptoppa
         alnp = log(pr0/(ps0(j,i)+ptoppa))
-        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg * &
+            (st0+tlp*log((ps0(j,i)+ptoppa)/p0))*alnp)
       end do
       !
       !  Calculate heights of input temperature sounding for interpolation
@@ -246,7 +250,8 @@ module mod_nhinterp
       do concurrent ( j = j1:j2, i = i1:i2, k = 1:kxs )
         pr0 = ps0(j,i) * sigmah(k) + ptoppa
         alnp = log(pr0/(ps0(j,i)+ptoppa))
-        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg * &
+            (st0+tlp*log((ps0(j,i)+ptoppa)/p0))*alnp)
       end do
       !
       !  Calculate heights of input temperature sounding for interpolation
@@ -367,7 +372,8 @@ module mod_nhinterp
       do concurrent ( j = j1:j2, i = i1:i2, k = 1:kxs )
         pr0 = ps0(j,i) * sigmah(k) + ptoppa
         alnp = log(pr0/(ps0(j,i)+ptoppa))
-        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg * &
+            (st0+tlp*log((ps0(j,i)+ptoppa)/p0))*alnp)
       end do
       !
       !  Calculate heights of input temperature sounding for interpolation
@@ -458,7 +464,8 @@ module mod_nhinterp
       do concurrent ( j = j1:j2, i = i1:i2, k = 1:kxs )
         pr0 = ps0(j,i) * sigmah(k) + ptoppa
         alnp = log(pr0/(ps0(j,i)+ptoppa))
-        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg * &
+            (st0+tlp*log((ps0(j,i)+ptoppa)/p0))*alnp)
       end do
       !
       !  Calculate heights of input temperature sounding for interpolation
@@ -541,6 +548,7 @@ module mod_nhinterp
       real(rkx) :: aa, bb, cc, checkl, checkr, delp0, p0surf
       real(rkx) :: psp, tk, tkp1, tvk, tvkp1, tvpot, wtl, wtu
       real(rkx), dimension(j1:j2, i1:i2) :: check
+      integer(ik4), dimension(2) :: imax
       !
       !  Calculate p' at bottom and integrate upwards (hydrostatic balance).
       !
@@ -589,8 +597,10 @@ module mod_nhinterp
           check(j,i) = checkl + checkr
         end do
         if ( any(abs(check) > 1.e-2_rkx) ) then
+          imax = maxloc(abs(check))
           write(stderr,'(A,3I4,g14.6)') &
-              'NHPP vert gradient check error at ',i,j,k,check(j,i)
+              'NHPP vert gradient check error at ', &
+              imax(2)+i1-1,imax(1)+j1-1,k,check(imax(1),imax(2))
         end if
       end do
     end subroutine nhpp
@@ -636,7 +646,8 @@ module mod_nhinterp
         pr0(j,i,k) = ps0(j,i) * sigma(k) + ptoppa
         t0(j,i,k) = max(st0 + tlp * log(pr0(j,i,k) / p0),tiso)
         alnp = log(pr0(j,i,k)/(ps0(j,i)+ptoppa))
-        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+        z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg * &
+            (st0+tlp*log((ps0(j,i)+ptoppa)/p0))*alnp)
       end do
       !
       !  Calculate heights of input temperature sounding for interpolation

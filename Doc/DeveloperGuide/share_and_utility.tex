@@ -39,6 +39,7 @@ check failed.
   \code{test\_rdldtr} & \code{mod\_rdldtr} (Section~\ref{sec:rdldtr}) \\
   \code{test\_posix} & \code{mod\_posix} (Section~\ref{sec:posix}) \\
   \code{test\_capecin} & \code{mod\_capecin} (Section~\ref{sec:capecin}) \\
+  \code{test\_nhinterp} & \code{mod\_nhinterp} (Section~\ref{sec:nhinterp}) \\
 \end{longtable}
 
 
@@ -7209,3 +7210,102 @@ sounding of \citet{weisman1982} with 14~g\,kg$^{-1}$ of surface mixing
 ratio (CAPE 2437~J\,kg$^{-1}$, CIN 0, lifted index $-7.6$~K) and a dry
 isothermal atmosphere at 250~K (no CAPE, lifted index 44.9~K, the dry
 adiabatic 45.1~K).
+
+%==============================================================================
+\section{Non-hydrostatic Reference State and Initialisation ---
+         \texttt{mod\_nhinterp.F90}}
+\label{sec:nhinterp}
+%==============================================================================
+
+\subsection{Overview}
+
+The non-hydrostatic core (\code{idynamic} = 2) writes the pressure as a
+time-independent reference state plus a perturbation $p'$, and its $\sigma$
+levels follow the reference surface pressure $p^*_0 = p_{s0} - p_t$, not
+the actual one. \code{mod\_nhinterp} defines the reference state, as in
+MM5, and moves the boundary conditions from the hydrostatic $\sigma$ levels
+of the input to the levels of this core, with the pressure perturbation
+and the vertical velocity they imply. \code{terrain} and the model build
+the reference state (\code{nhbase}); the ICBC program and the model, for
+chemical and aerosol boundary conditions, interpolate the fields
+(\code{nhinterp}); the ICBC program computes $p'$ (\code{nhpp}) and $w$
+(\code{nhw}).
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_nhinterp
+    |-- mod_intkinds, mod_realkinds, mod_constants, mod_stdio
+    |-- mod_dynparam (maxvert)
+    `-- mod_stdatm   (base_state_temperature)
+\end{lstlisting}
+
+\subsection{Reference State}
+
+The reference temperature is a function of pressure only,
+\begin{equation}
+  T_0(p) = \max\left(T_{s0} + A\ln\frac{p}{p_0},\ T_\text{iso}\right),
+\end{equation}
+with $p_0$ = \code{base\_state\_pressure}, $A$ = \code{logp\_lrate}
+(K per unit of $\ln p$) and $T_\text{iso} = 216.65$~K. In hydrostatic
+balance the height of the pressure $p$ above $p_0$ is
+$z(p) = -\frac{R}{g}\left(\frac{A}{2}x^2 + T_{s0}\,x\right)$, $x =
+\ln(p/p_0)$; the reference surface pressure is the root of $z(p_{s0}) =
+h$ for the terrain height $h$. The level $\sigma$ has the reference
+pressure $p_0^\sigma = \sigma p^*_0 + p_t$ and the height above the surface
+\begin{equation}
+  z_0 = -\frac{R}{g}\left(\frac{A}{2}y^2 + T_0(p_{s0})\,y\right),
+  \qquad y = \ln\frac{p_0^\sigma}{p_{s0}},
+\end{equation}
+which is $z(p_0^\sigma) - z(p_{s0})$ (the isothermal limit is not taken
+into account in the heights).
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{5.6cm} L{8.4cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{base\_state\_temperature(i1, i2, j1, j2, xlat)} &
+    $T_{s0}$ of a domain: the mean of the extremes of the surface
+    temperature of the standard atmospheres (Section~\ref{sec:stdatm}) at
+    the latitudes of the domain. \\
+  \code{nhsetup(ptop, p0, A, ts0)} &
+    The parameters of the reference state ($p_t$ in cb). \\
+  \code{nhbase(\ldots, sig, ter, ps0, pr0, t0, rho0, z0)} &
+    $p^*_0$, and on the levels \code{sig}: reference pressure,
+    temperature, density and height above the surface (Pa, K,
+    kg\,m$^{-3}$, m). \\
+  \code{nhinterp(\ldots, sigmah, sigma, f, tv, ps, ps0, intmeth)} &
+    Moves \code{f} from the hydrostatic levels to the reference heights
+    $z_0$ of the same $\sigma$; the heights of the input levels come from
+    the hydrostatic integration of its virtual temperature \code{tv} from
+    the surface. \code{intmeth} 1: linear in height; 2: linear in
+    $\ln f$ (humidity), not below \code{minqq}, constant above the top
+    level. 3-D and 4-D (tracers), single or double precision. \\
+  \code{nhpp(\ldots, sigma, t, pr0, t0, tv, ps, ps0, pp)} &
+    The pressure perturbation $p'$ at the levels: at the lowest level from
+    the difference between the actual and the reference surface pressure,
+    then upwards from the hydrostatic balance of the deviation of the
+    virtual temperature from $T_0$; a warning is written where the
+    discrete balance is not satisfied within $10^{-2}$. \\
+  \code{nhw(\ldots, u, v, tv, ps, psdot, ps0, xmsfx, w, wtop, ds, iband,
+  icrm)} &
+    The vertical velocity at the interfaces: $\omega$ from the vertical
+    integral of the horizontal divergence (continuity in $\sigma$), smoothed
+    (16 passes of a smoothing--desmoothing filter), interpolated to the
+    reference heights and converted to $w = -\omega/(\rho_0 g)$; periodic
+    in $x$ (\code{iband}) and $y$ (\code{icrm}). \\
+\end{longtable}
+
+\subsection{Design Notes}
+
+\textbf{Testing.} \code{Testing/share/test\_nhinterp.F90} checks, on a
+column over 3000~m of terrain, that the reference surface is at the
+terrain height, the reference temperature and density, the reference
+heights against a numerical hydrostatic integration, that a field linear in
+height on an atmosphere equal to the reference one is interpolated within
+1~m, and that this atmosphere has no pressure perturbation.
