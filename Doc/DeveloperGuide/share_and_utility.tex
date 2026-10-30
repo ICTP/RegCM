@@ -30,6 +30,7 @@ check failed.
   \code{test\_ncstream} & \code{mod\_ncstream} (Section~\ref{sec:ncstream}) \\
   \code{test\_async\_netcdf} & \code{mod\_async\_netcdf}
     (Section~\ref{sec:async_netcdf}) \\
+  \code{test\_domain} & \code{mod\_domain} (Section~\ref{sec:domain}) \\
 \end{longtable}
 
 
@@ -6569,3 +6570,86 @@ RegCM code.
 \textbf{Changes.} In October 2026 three functions that only forwarded to
 the direct netCDF writes were removed, and the lines longer than 80
 characters were wrapped; no change of behaviour.
+
+%==============================================================================
+\section{Domain File --- \texttt{mod\_domain.F90}}
+\label{sec:domain}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_domain} reads the domain file written by \code{terrain}
+(\code{DOMAIN000.nc}, or the subgrid file) in the pre-processing programs,
+and checks that a domain, ICBC, SST or other input file matches the
+namelist before it is used by them or by the model. It uses
+\code{mod\_nchelper} (Section~\ref{sec:nchelper}).
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_domain
+    |-- netcdf, mod_nchelper
+    |-- mod_intkinds, mod_realkinds, mod_constants, mod_stdio, mod_message
+    |-- mod_dynparam (namelist grid, projection and vertical parameters)
+    `-- mod_memutil
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{check\_domain(ncid [, lmod, linternal, lsubgrid])} &
+    Stops the program if the file does not match the namelist (see
+    below). \code{lmod}: the file has the $kz$ half levels of the model
+    output and ICBC, not the $kz+1$ of the domain; \code{linternal}: the
+    horizontal dimensions are the internal points, $jx-3$ and $iy-3$ (not
+    for a periodic direction); \code{lsubgrid}: they are multiplied by
+    $n_\text{sg}$ and the grid distance divided by it. \\
+  \code{read\_domain(ncid)} &
+    Checks the file and reads all its fields into the public
+    \code{mddom\_io} (type \code{domain\_io}), allocated with
+    \code{getmem}: $\sigma$, cross point coordinates and cell bounds,
+    the $u$ and $v$ points (MOLOCH) or the dot points and the map factors
+    (other cores), topography, land-sea mask, land use, Coriolis
+    parameter, and, when present, snow and lake depth (zero otherwise). \\
+  \code{read\_domain(ncid, sigma [, xlat, \ldots, lsubgrid])} &
+    Checks the file and reads only the fields passed, into arrays of the
+    caller, single or double precision; also \code{topou}, \code{topov}
+    and the bounds of every point type. The $u$, $v$ fields are read for
+    MOLOCH only, the dot point fields and map factors for the other
+    cores. \\
+  \code{read\_reference\_surface\_temp(ncid, ts0)} &
+    The \code{base\_state\_surface\_temperature} attribute of the
+    non-hydrostatic core. \\
+\end{longtable}
+
+\subsection{What \texttt{check\_domain} Compares}
+
+The dimensions \code{jx}, \code{iy}, \code{kz}; \code{ptop} (stored in
+hPa, the namelist in cb) for the hydrostatic and non-hydrostatic cores,
+while MOLOCH sets \code{ptop} to zero; the \code{projection}, the grid
+distance (within 10~m), the centre \code{clat}, \code{clon} and its grid
+index \code{cntri}, \code{cntrj} (a file without the index attribute, from
+an older version, gives a warning); for MOLOCH \code{mo\_ztop},
+\code{mo\_h} and \code{mo\_a0}. The angles and parameters must agree within
+0.001. The \code{grid\_factor} of the file is not compared: it sets the
+cone factor \code{xcone} of \code{mod\_dynparam}.
+
+\subsection{Design Notes}
+
+\textbf{Testing.} \code{Testing/share/test\_domain.F90} writes domain files
+with \code{mod\_ncstream} as \code{terrain} does, for the hydrostatic core,
+MOLOCH and a subgrid, and reads them back with the three forms of
+\code{read\_domain}.
+
+\textbf{Changes.} In October 2026 the unused
+\code{read\_reference\_state} was removed (it passed its optional arguments
+on without checking that they were present), and the MOLOCH parameters
+are compared in the working precision as the others. The dynamical core of
+the file (global attribute \code{dynamical\_core}) is not compared with the
+namelist: a domain of another core fails later, on a missing variable.

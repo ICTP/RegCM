@@ -24,7 +24,7 @@ include $(REGCM_ROOT)/makeinc
 check_PROGRAMS = test_date test_spbarcoord test_projections test_hgt \
                  test_vertint test_humid test_interp test_spline \
                  test_memutil test_kdtree2 test_kdinterp test_nchelper \
-                 test_ncstream test_async_netcdf
+                 test_ncstream test_async_netcdf test_domain
 test_date_SOURCES = share_test_utils.F90 test_date.F90
 test_spbarcoord_SOURCES = share_test_utils.F90 test_spbarcoord.F90
 test_projections_SOURCES = share_test_utils.F90 test_projections.F90
@@ -39,6 +39,7 @@ test_kdinterp_SOURCES = share_test_utils.F90 test_kdinterp.F90
 test_nchelper_SOURCES = share_test_utils.F90 test_nchelper.F90
 test_ncstream_SOURCES = share_test_utils.F90 test_ncstream.F90
 test_async_netcdf_SOURCES = share_test_utils.F90 test_async_netcdf.F90
+test_domain_SOURCES = share_test_utils.F90 test_domain.F90
 LDADD = $(OMPFLAGS)
 
 FCLD = $(MPIFC)
@@ -54,11 +55,11 @@ AM_TESTS_ENVIRONMENT = RCM_ASYNC_OUTPUT_GB=0.00005; export RCM_ASYNC_OUTPUT_GB;
 
 distclean-local:
 	rm -f *.mod *__genmod.* *opt.yaml *optrpt test_nchelper.nc test_ncstream*.nc \
-	      test_async_netcdf.nc
+	      test_async_netcdf.nc test_domain*.nc
 
 clean-local:
 	rm -f *.mod *__genmod.* *opt.yaml *optrpt test_nchelper.nc test_ncstream*.nc \
-	      test_async_netcdf.nc
+	      test_async_netcdf.nc test_domain*.nc
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
@@ -77,3 +78,4 @@ test_kdinterp.o : test_kdinterp.F90 share_test_utils.o mod_intkinds.o mod_realki
 test_nchelper.o : test_nchelper.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_nchelper.o
 test_ncstream.o : test_ncstream.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_date.o mod_dynparam.o mod_ncstream.o
 test_async_netcdf.o : test_async_netcdf.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_async_netcdf.o
+test_domain.o : test_domain.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_ncstream.o mod_nchelper.o mod_domain.o

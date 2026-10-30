@@ -66,7 +66,7 @@ module mod_domain
   end interface read_domain
 
   public :: domain_io, mddom_io, read_domain, check_domain
-  public :: read_reference_state, read_reference_surface_temp
+  public :: read_reference_surface_temp
 
   contains
 
@@ -320,24 +320,6 @@ module mod_domain
     if ( present(vlon_bnds) ) call read_var3d_static(ncid,'vlon_bnds',vlon_bnds)
   end subroutine read_domain_array_single
 
-  subroutine read_reference_state(ncid,ps0,pr0,t0,rho0,ts0)
-    implicit none
-    integer, intent(in) :: ncid
-    real(rkx), pointer, contiguous, &
-      dimension(:,:), intent(inout), optional :: ps0
-    real(rkx), pointer, contiguous, &
-      dimension(:,:,:), intent(inout), optional :: pr0
-    real(rkx), pointer, contiguous, &
-      dimension(:,:,:), intent(inout), optional :: t0
-    real(rkx), pointer, contiguous, &
-      dimension(:,:,:), intent(inout), optional :: rho0
-    real(rkx), intent(out) :: ts0
-    call read_var2d_static(ncid,'ps0',ps0)
-    call read_var3d_static(ncid,'pr0',pr0)
-    call read_var3d_static(ncid,'t0',t0)
-    call read_var3d_static(ncid,'rho0',rho0)
-    call get_attribute(ncid,'base_state_surface_temperature',ts0)
-  end subroutine read_reference_state
 
   subroutine read_reference_surface_temp(ncid,ts0)
     implicit none
@@ -526,7 +508,7 @@ module mod_domain
       istatus = nf90_get_att(ncid,nf90_global,'zita_height_top',moloch_ztop)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read attribute zita_height_top')
-      if ( abs(real(moloch_ztop)-real(mo_ztop)) > 0.001_rkx ) then
+      if ( abs(moloch_ztop-real(mo_ztop,rkx)) > 0.001_rkx ) then
         write(stderr,*) 'DOMAIN FILE : ', moloch_ztop
         write(stderr,*) 'NAMELIST    : ', mo_ztop
         call die('Mismatch: mo_ztop in DOMAIN file /= mo_ztop in namelist')
@@ -534,7 +516,7 @@ module mod_domain
       istatus = nf90_get_att(ncid,nf90_global,'zita_atmosphere_h',moloch_hscale)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read attribute zita_atmosphere_h')
-      if ( abs(real(moloch_hscale)-real(mo_h)) > 0.001_rkx ) then
+      if ( abs(moloch_hscale-real(mo_h,rkx)) > 0.001_rkx ) then
         write(stderr,*) 'DOMAIN FILE : ', moloch_hscale
         write(stderr,*) 'NAMELIST    : ', mo_h
         call die('Mismatch: mo_h in DOMAIN file /= mo_h in namelist')
@@ -542,7 +524,7 @@ module mod_domain
       istatus = nf90_get_att(ncid,nf90_global,'zita_factor_a0',moloch_a0)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read attribute zita_factor_a0')
-      if ( abs(real(moloch_a0)-real(mo_a0)) > 0.001_rkx ) then
+      if ( abs(moloch_a0-real(mo_a0,rkx)) > 0.001_rkx ) then
         write(stderr,*) 'DOMAIN FILE : ', moloch_a0
         write(stderr,*) 'NAMELIST    : ', mo_a0
         call die('Mismatch: mo_a0 in DOMAIN file /= mo_a0 in namelist')
