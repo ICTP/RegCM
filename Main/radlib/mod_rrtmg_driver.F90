@@ -28,7 +28,6 @@ module mod_rrtmg_driver
   use mod_rad_aerosol
   use mod_date
   use mod_stdatm
-  use mod_isaatm
   use mcica_subcol_gen_sw
   use parrrsw
   use rrsw_wvn
