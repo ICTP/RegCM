@@ -281,7 +281,11 @@ module mod_ncep
       call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP END SECTIONS
     end if
-    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    if ( idynamic == 3 ) then
+      call rh2mxr_z(t4,q4,z0,ps4,jx,iy,kz)
+    else
+      call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    end if
   end subroutine get_ncep
 
   subroutine cfs6hour

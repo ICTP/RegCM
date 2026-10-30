@@ -47,7 +47,7 @@ program sigma2z
   real(rk4), allocatable, dimension(:,:,:) :: tazvar, hzvar, qazvar
   real(rk4), allocatable, dimension(:,:,:) :: pp, press, pai
   real(rk4), allocatable, save, dimension(:,:,:) :: zvar, xvar
-  real(rk4), allocatable, dimension(:,:) :: ps, topo, mslpr, ps0
+  real(rk4), allocatable, dimension(:,:) :: ps, topo, mslpr, ps0, plow
   real(rk4), allocatable, dimension(:) :: avar
   character, allocatable, dimension(:) :: txtvar
   real(rk4), allocatable, dimension(:) :: azvar
@@ -388,6 +388,8 @@ program sigma2z
     icount(2) = iy
     allocate(mslpr(jx,iy), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'mslpr')
+    allocate(plow(jx,iy), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'plow')
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslzvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable mslp')
 #ifdef NETCDF4_HDF5
@@ -741,7 +743,13 @@ program sigma2z
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing rh variable.')
     end if
     if ( make_mslp ) then
-      call mslp(tazvar,ps,topo,mslpr,jx,iy,kz)
+      ! Pressure of the lowest model level
+      if ( iodyn == 1 ) then
+        plow = sigma(kz)*(ps-real(ptop)) + real(ptop)
+      else
+        plow = press(:,:,kz)
+      end if
+      call mslp(tazvar,plow,ps,topo,mslpr,jx,iy,kz)
       call gs_filter(mslpr,ps,jx,iy)
       iv = 3
       istart(iv) = it
@@ -774,6 +782,7 @@ program sigma2z
   if ( make_mslp ) then
     deallocate(topo)
     deallocate(mslpr)
+    deallocate(plow)
   end if
 
   if ( iodyn == 2 ) then

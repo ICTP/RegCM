@@ -988,12 +988,10 @@ module mod_write
         else if ( lrt > -0.005_rkx ) then
           lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
         end if
+        ! Mean temperature of the real layer between the lowest level and
+        ! the surface (z is the height above the surface): as in the model
+        ! (mod_moloch), without the limits used below the ground.
         tv = tv1 - lrt*0.5_rkx*z(j,i,kz)
-        if ( tv < 255.0_rkx ) then
-          tv = (tv+255.0_rkx)*0.5_rkx
-        else if ( tv > 290.5_rkx ) then
-          tv = 290.5_rkx + (0.005_rkx*(tv-290.5_rkx))**2
-        end if
         ps(j,i) = p(j,i,kz) * exp(govr*z(j,i,kz)/tv)
       end do
     end do

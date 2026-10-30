@@ -50,7 +50,7 @@ program sigma2p
   real(rk4), allocatable, dimension(:,:,:) :: pp, press, zeta, pai
   real(rk4), allocatable, dimension(:,:,:) :: fm, z0, tvar, qvvar
   real(rk4), allocatable, save, dimension(:,:,:) :: pvar, xvar
-  real(rk4), allocatable, dimension(:,:) :: ps, topo, mslpr, ps0
+  real(rk4), allocatable, dimension(:,:) :: ps, topo, mslpr, ps0, plow
   real(rk4), allocatable, dimension(:) :: avar
   character, allocatable, dimension(:) :: txtvar
   real(rk4), allocatable, dimension(:) :: apvar
@@ -417,6 +417,8 @@ program sigma2p
     icount(2) = iy
     allocate(mslpr(jx,iy), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'mslpr')
+    allocate(plow(jx,iy), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'plow')
     allocate(tmpvar(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'tmpvar')
     allocate(hzvar(jx,iy,kz), stat=istatus)
@@ -883,7 +885,13 @@ program sigma2p
       icount(iv-1) = np
       istatus = nf90_put_var(ncout, ihgvar, pvar, istart(1:iv), icount(1:iv))
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing hgt variable.')
-      call mslp(tmpvar,ps,topo,mslpr,jx,iy,kz)
+      ! Pressure of the lowest model level
+      if ( iodyn == 1 ) then
+        plow = sigma(kz)*(ps-real(ptop)) + real(ptop)
+      else
+        plow = press(:,:,kz)
+      end if
+      call mslp(tmpvar,plow,ps,topo,mslpr,jx,iy,kz)
       call gs_filter(mslpr,ps,jx,iy)
       iv = 3
       istart(iv) = it
@@ -918,6 +926,7 @@ program sigma2p
     deallocate(hzvar)
     deallocate(tmpvar)
     deallocate(mslpr)
+    deallocate(plow)
   end if
 
   if ( iodyn == 2 ) then

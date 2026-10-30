@@ -1750,7 +1750,7 @@ module mod_lm_interface
     real(rkx), dimension(jci1:jci2,ici1:ici2) :: mask
     real(rkx), parameter :: alpha = lrate*rgas/egrav
     real(rkx) :: maxv, minv, mval, themin, themax
-    real(rkx) :: tstar, hstar, raval
+    real(rkx) :: tstar, t0, alph, beta
 
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       slp(j,i) = lm%sfps(j,i)
@@ -1773,23 +1773,45 @@ module mod_lm_interface
     call maxall(themax,maxv)
     mval = (d_half*(maxv-minv))
     call exchange(slp,1,jce1,jce2,ice1,ice2)
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      mask(j,i) = (slp(j,i-1)+slp(j,i+1) + &
-                   slp(j-1,i)+slp(j+1,i) - &
-                   4.0_rkx*slp(j,i))/mval
-    end do
-    ! Follow Kallen 1996
+    ! A constant surface pressure has no curvature: the mask is zero
+    if ( mval > tiny(mval) ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        mask(j,i) = (slp(j,i-1)+slp(j,i+1) + &
+                     slp(j-1,i)+slp(j+1,i) - &
+                     4.0_rkx*slp(j,i))/mval
+      end do
+    else
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        mask(j,i) = d_zero
+      end do
+    end if
+    !
+    ! ECMWF method, section 3.1.b of Trenberth, Berry and Buja (1993),
+    ! NCAR/TN-396+STR: the lowest level temperature is extrapolated to
+    ! the surface (T*); if the sea level temperature T0 would be warmer
+    ! than 290.5 K the lapse rate is reduced to reach 290.5 K (T* <= 290.5)
+    ! or set to zero with T* averaged with 290.5 K; a cold T* (< 255 K) is
+    ! averaged with 255 K. lm%ht is the surface geopotential.
+    !
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-      tstar = lm%tatm(j,i)
-      if ( tstar < 255.0_rkx ) then
-        tstar = (tstar+255.0_rkx)*0.5_rkx
-      else if ( tstar > 290.5_rkx ) then
-        tstar = 290.5_rkx + (0.005_rkx*(tstar-290.5_rkx))**2
+      if ( abs(lm%ht(j,i)) < 1.0e-4_rkx*egrav ) cycle
+      tstar = lm%tatm(j,i) * &
+              (d_one + alpha*(lm%sfps(j,i)/lm%patm(j,i) - d_one))
+      t0 = tstar + lrate*lm%ht(j,i)*regrav
+      if ( tstar <= 290.5_rkx .and. t0 > 290.5_rkx ) then
+        alph = rgas*(290.5_rkx-tstar)/lm%ht(j,i)
+      else if ( tstar > 290.5_rkx .and. t0 > 290.5_rkx ) then
+        alph = d_zero
+        tstar = d_half*(290.5_rkx+tstar)
+      else
+        alph = alpha
+        if ( tstar < 255.0_rkx ) then
+          tstar = d_half*(255.0_rkx+tstar)
+        end if
       end if
-      hstar = lm%ht(j,i)/(rgas*tstar)
-      raval = d_half*alpha*hstar
+      beta = lm%ht(j,i)/(rgas*tstar)
       slp(j,i) = slp(j,i) * &
-           exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
+           exp(beta*(d_one - d_half*alph*beta + ((alph*beta)**2)/3.0_rkx))
     end do
     ! Jacobi Filtering
     do n = 1, niter

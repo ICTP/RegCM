@@ -692,7 +692,8 @@ module mod_nest
     end if
 
     if ( oidyn == 1 ) then
-      call hydrost(z_in,t_in,ht_in,ps_in,ptop_in,sigma_in,jx_in,iy_in,kz_in)
+      call hydrost(z_in,t_in,ht_in,pstar_in,ptop_in,sigma_in, &
+                   jx_in,iy_in,kz_in)
       call h_interpolate_cont(cross_hint,z_in,z3)
       call top2btm(z3)
     end if

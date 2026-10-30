@@ -4648,3 +4648,767 @@ were \code{LAMCON} (north, south, tangent), \code{POLSTR} (north, south),
 and different from \code{clat}, south) and \code{ROTLLR} (EUR and AUS
 CORDEX poles, South America, a domain across the dateline). All agree to
 round-off, or to the accuracy of the finite differences.
+
+%==============================================================================
+\section{Heights and Pressures --- \texttt{mod\_hgt.F90}}
+\label{sec:hgt}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_hgt} collects the hydrostatic computations used to move between
+heights and pressures in the pre- and post-processing:
+
+\begin{itemize}
+  \item heights of the model levels, from temperature and pressure, for the
+        hydrostatic (\code{hydrost}, \code{htsig\_2}, \code{htsig\_o}) and
+        non-hydrostatic cores (\code{nonhydrost}), and for input data on
+        pressure or hybrid levels (\code{htsig\_1}, \code{htsig\_3});
+  \item heights of pressure levels, with extrapolation above the top and
+        below the surface (\code{height}, \code{height\_o});
+  \item pressures of height levels (\code{psig}, \code{psig1});
+  \item mean sea level pressure with the ECMWF method (\code{mslp}) and a
+        smoothing filter for it (\code{gs\_filter});
+  \item conversion between pressure and the Exner function (\code{p2pai},
+        \code{pai2p}).
+\end{itemize}
+
+The routines are used by the ICBC programs (\code{mod\_cmip6},
+\code{mod\_cmip7}, \code{mod\_gnhnc} and \code{mod\_nest}) and by the
+\code{sigma2p} and \code{sigma2z} post-processors. The model has its own
+copy of the sea level pressure computation, in \code{mod\_lm\_interface}
+(see Section~\ref{subsec:hgt_mslp}).
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_hgt
+    |-- mod_dynparam    (maxvert)
+    |-- mod_intkinds    (ik4)
+    |-- mod_realkinds   (rk4, rk8, rkx)
+    |-- mod_constants   (rovg, rgas, egrav, lrate, ep1, rovcp, cpovr, p00,
+    |                    d_zero, d_half, d_one, d_two)
+    |-- mod_message     (not used)
+\end{lstlisting}
+
+\code{maxvert} (256) sizes the local work arrays of one column, so the
+number of levels must not exceed it. The private constants \code{srovg},
+\code{slrate}, \code{segrav} and \code{srgas} are the single precision
+values of $R/g$, $\Gamma$, $g$ and $R$ for the \code{rk4} variants.
+
+\subsection{Conventions}
+
+\begin{itemize}
+  \item Heights are in m above sea level unless stated otherwise, pressures
+        in any consistent unit (the callers use Pa, hPa or kPa), and
+        temperatures in K.
+  \item The arrays are \code{(i, j, k)}. Most routines assume the vertical
+        index increasing downward, from the top; \code{height},
+        \code{htsig\_1} and \code{htsig\_3} detect the order from the
+        pressures of the first column, and \code{psig}/\code{psig1} need it
+        increasing upward, from the bottom.
+  \item The thickness of a layer is computed with the hypsometric equation,
+        \[
+          z_2 - z_1 = \frac{R}{g}\,\bar T\,\ln\frac{p_1}{p_2},
+        \]
+        with $\bar T$ the mean of the temperatures of the two levels
+        (weighted with their sigma thickness in \code{hydrost}).
+  \item A surface pressure below $-9995$ marks a missing value in
+        \code{height} and \code{htsig\_1}; the result is then $-9999$.
+  \item Generic interfaces select the precision: the \code{\_double},
+        \code{\_single} and \code{\_nonhy} variants differ only in the kind
+        of the arrays and in the way the level pressures are given.
+\end{itemize}
+
+%------------------------------------------------------------------------------
+\subsection{Heights of the Model Levels}
+\label{subsec:hgt_levels}
+
+\begin{longtable}{L{5.5cm} L{8.5cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{hydrost(h, t, topo, ps, ptop, sigmah, ni, nj, nk)} &
+    Heights of the half sigma levels of the hydrostatic core, consistent
+    with the model. \code{ps} is $p^* = p_s - p_\text{top}$: the pressure
+    of level $k$ is $\sigma_k p^* + p_\text{top}$. The mean temperature of a
+    layer is weighted with the sigma thickness of the two levels. \\
+  \code{nonhydrost(h, t0, p0, ps, topo, ...)} &
+    Heights of the levels of the non-hydrostatic core from the reference
+    temperature and pressure \code{t0}, \code{p0}. Three variants: double
+    and single precision with bounds $1{:}n$, and \code{nonhydrost\_single\_2},
+    which is double precision (despite the name) with bounds
+    \code{i1:i2}, \code{j1:j2}. \\
+  \code{htsig\_2}, \code{htsig\_o(t, h, pstar, ht, sig, ptop, ...)} &
+    Heights of sigma levels; here \code{pstar} is the surface pressure and
+    the pressure of level $k$ is $\sigma_k(p_s - p_\text{top}) +
+    p_\text{top}$. \code{htsig\_o} has double and single precision
+    variants. \\
+  \code{htsig\_1(t, h, p3d, ps, ht, im, jm, km)} &
+    Heights of levels with given 3-D pressure, in either vertical order,
+    with missing values. \\
+  \code{htsig\_3(z, t, p, q, ps, ht)} &
+    As \code{htsig\_1} with the virtual temperature
+    $T_v = T(1 + \epsilon_1 q)$, $\epsilon_1 = M_d/M_w - 1$, on pointer
+    arrays whose sizes give the dimensions. \\
+\end{longtable}
+
+All integrate upward from the surface: the first layer goes from the
+surface height to the lowest level with the temperature of the lowest
+level.
+
+%------------------------------------------------------------------------------
+\subsection{Heights of Pressure Levels}
+\label{subsec:hgt_plevels}
+
+\code{height(hp, h, t, ps, p3d, ht, im, jm, km, p, kp)} computes the height
+\code{hp} of the \code{kp} pressure levels \code{p} from height, temperature
+and pressure on the model levels; \code{height\_o} does the same for
+sigma levels (\code{sig}, \code{ptop}) or for given 3-D pressures
+(\code{\_nonhy}). For each pressure $p$, with $p_t$ and $p_b$ the pressures
+of the top and lowest levels and $p_s$ the surface pressure:
+
+\begin{longtable}{L{3.5cm} L{10.5cm}}
+  \toprule
+  \textbf{Case} & \textbf{Height} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  $p < p_t$ (above the top) &
+    Isothermal with the top temperature:
+    $z = z_t + (R/g)\,T_t\ln(p_t/p)$. \\
+  between two levels &
+    From the lower level $b$, with the mean of $T_b$ and the temperature
+    interpolated linearly in $\ln p$ at $p$:
+    $z = z_b + (R/g)\,\bar T\ln(p_b/p)$. \\
+  $p_b \le p \le p_s$ &
+    From the surface, with the lowest level temperature:
+    $z = z_s + (R/g)\,T_b\ln(p_s/p)$. \\
+  $p > p_s$ (below the surface) &
+    Constant lapse rate $\Gamma$ (\code{lrate}) from the surface, starting
+    from the mean temperature $T_0$ of the two lowest levels (R. Errico):
+    $z = z_s + (T_0/\Gamma)\bigl(1 - (p/p_s)^{R\Gamma/g}\bigr)$. \\
+\end{longtable}
+
+\code{height} has OpenACC and \code{do concurrent} (\code{STDPAR})
+versions of the column loop.
+
+%------------------------------------------------------------------------------
+\subsection{Pressures of Height Levels}
+\label{subsec:hgt_psig}
+
+\code{psig(t, h, p3d, ps, ht, im, jm, km)} computes the pressure of levels
+of given height, ordered from the bottom, by integrating the hypsometric
+equation upward from the surface:
+\[
+  p_1 = p_s \exp\!\left(-\frac{z_1 - z_s}{(R/g)\,T_1}\right), \qquad
+  p_k = p_{k-1}\exp\!\left(-\frac{z_k - z_{k-1}}{(R/g)\,\bar T_k}\right)
+\]
+with $\bar T_k$ the mean of $T_{k-1}$ and $T_k$. \code{psig1} uses the
+temperature of the upper level, $T_k$, instead of the mean. They are used
+for input data on height levels (HadGEM3 in \code{mod\_cmip6},
+\code{mod\_gnhnc}).
+
+%------------------------------------------------------------------------------
+\subsection{Mean Sea Level Pressure: \texttt{mslp}}
+\label{subsec:hgt_mslp}
+
+\begin{lstlisting}
+subroutine mslp(t, pl, ps, ht, slp, im, jm, kz)   ! single precision
+\end{lstlisting}
+
+\code{t} is the temperature on the model levels (\code{kz} is the lowest),
+\code{pl} the pressure of the lowest level, \code{ps} the surface pressure
+and \code{ht} the surface height. The method is the ECMWF one, as described
+in section~3.1.b of Trenberth, Berry and Buja (1993, NCAR/TN-396+STR), and
+also used in the NCAR CAM model:
+
+\begin{enumerate}
+  \item Surface temperature, extrapolated from the lowest level with the
+        standard lapse rate, $\alpha = \Gamma R/g$:
+        $T^* = T_{k_z}\bigl(1 + \alpha(p_s/p_l - 1)\bigr)$.
+  \item Sea level temperature $T_0 = T^* + \Gamma z_s$, and limits on the
+        extrapolated column:
+        \begin{itemize}
+          \item $T^* \le 290.5 < T_0$: the lapse rate is reduced to reach
+                $290.5$~K at sea level, $\alpha' = R(290.5 - T^*)/(g z_s)$;
+          \item $T^* > 290.5$ and $T_0 > 290.5$: $\alpha' = 0$ and
+                $T^* = (290.5 + T^*)/2$;
+          \item otherwise $\alpha' = \alpha$, and if $T^* < 255$~K,
+                $T^* = (255 + T^*)/2$.
+        \end{itemize}
+  \item With $\beta = g z_s/(R T^*)$ and $x = \alpha'\beta$,
+        \[
+          p_\text{msl} = p_s\exp\!\left[\beta\left(1 - \frac{x}{2} +
+                         \frac{x^2}{3}\right)\right],
+        \]
+        the expansion of $p_s(1 + \Gamma' z_s/T^*)^{g/(R\Gamma')}$.
+\end{enumerate}
+
+\noindent Where $|z_s| < 10^{-4}$~m the sea level pressure is the surface
+pressure. The limits avoid unrealistic values over high and hot or cold
+terrain, where the extrapolated column does not exist; in a standard
+atmosphere the result is exact to the truncation of the series (0.3~hPa for
+a surface at 5000~m).
+
+The model computes the sea level pressure for its output in
+\code{mslp} of \code{mod\_lm\_interface}, with the same method on the model
+fields (surface geopotential, lowest level temperature and pressure),
+followed by a smoothing like \code{gs\_filter} but with 20 Jacobi
+iterations, across the MPI subdomains.
+
+%------------------------------------------------------------------------------
+\subsection{Smoothing: \texttt{gs\_filter}}
+\label{subsec:hgt_gsfilter}
+
+\code{gs\_filter(v, vm, im, jm)} smooths the 2-D field \code{v} (the sea
+level pressure) with 20 Gauss--Seidel sweeps of
+\[
+  v_{i,j} = \tfrac14\bigl(v_{i-1,j} + v_{i+1,j} + v_{i,j-1} + v_{i,j+1}
+            - m_{i,j}\bigr),
+\]
+keeping the boundary values. The source term $m$ is the Laplacian of
+\code{vm} (the surface pressure) divided by half its range, so that the
+smoothed field keeps the structure of the surface pressure. If \code{vm}
+is constant the source term is zero.
+
+%------------------------------------------------------------------------------
+\subsection{Exner Function}
+\label{subsec:hgt_exner}
+
+The elemental functions \code{p2pai(p)} $= (p/p_{00})^{R/c_p}$ and
+\code{pai2p(pai)} $= p_{00}\,\pi^{c_p/R}$, with $p_{00} = 10^5$~Pa, convert
+between pressure [Pa] and the Exner function used by the MOLOCH core.
+
+%------------------------------------------------------------------------------
+\subsection{Design Notes}
+\label{subsec:hgt_design}
+
+\textbf{Extrapolation below the surface.} Two kinds of extrapolation are
+used and must not be confused. Between the lowest level and the surface
+the air exists, and the actual temperature of the lowest level is used.
+Below the surface (pressure levels with $p > p_s$, sea level pressure) the
+column is fictitious: \code{height} uses a constant lapse rate, and
+\code{mslp} the ECMWF limits on the column temperature. The same distinction
+applies to the surface pressure extrapolation in \code{mod\_vertint}
+(\code{intzps}, below the lowest level of the input data, with the ECMWF
+limits) and in \code{mod\_write}/\code{mod\_moloch} (between the lowest
+model level and the surface, without limits).
+
+\textbf{Numerical checks.} The routines were checked against an exact
+hydrostatic atmosphere with a constant lapse rate, built with the
+constants of the code. The level heights agree to the accuracy of the
+mean layer temperature (centimetres for layers of a few hundred metres),
+the heights of pressure levels between levels to round-off, and
+\code{psig} to $10^{-6}$ near the surface.
+
+%==============================================================================
+\section{Sigma Levels --- \texttt{mod\_sigma.F90}}
+\label{sec:sigma}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_sigma} builds the vertical sigma coordinate of the hydrostatic
+and non-hydrostatic cores. It is used by the terrain program, which writes
+the levels in the domain file, and by the \code{sigma2p}/\code{sigma2z}
+post-processors. The levels are stored in three public arrays:
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Array} & \textbf{Content} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{sigma\_coordinate(1:nk+1)} &
+    Full (interface) levels, from 0 at the top to 1 at the surface. \\
+  \code{half\_sigma\_coordinate(1:nk)} &
+    Half levels, the mid points of the full levels, where the model
+    variables are defined. \\
+  \code{sigma\_delta(1:nk)} &
+    Layer thicknesses $\Delta\sigma_k = \sigma_{k+1} - \sigma_k$. \\
+\end{longtable}
+
+In the hydrostatic core the pressure is $p = \sigma p^* + p_\text{top}$
+with $p^* = p_s - p_\text{top}$.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_sigma
+    |-- mod_intkinds, mod_realkinds
+    |-- mod_constants   (d_zero, d_half, d_one, d_two)
+    |-- mod_memutil     (getmem)
+    |-- mod_message     (die), mod_stdio (stdout, stderr)
+\end{lstlisting}
+
+\subsection{\texttt{init\_sigma}}
+
+\begin{lstlisting}
+subroutine init_sigma(nk, dmax, dmin, lzeta)
+\end{lstlisting}
+
+\begin{itemize}
+  \item \textbf{Predefined sets.} For $n_k$ = 2 (CLM stand-alone), 14
+        (RegCM2), 18 (RegCM3), 23 (MM5~V3) and 41 (high resolution), the
+        levels are hard-coded, unless \code{lzeta} is true.
+  \item \textbf{Computed sets.} Otherwise the layer thicknesses follow
+        \[
+          \Delta\sigma_k = \Delta\sigma_{\max}\,a^{k-1}\,b^{(k-1)(k-2)/2},
+        \]
+        so that they decrease roughly exponentially from
+        $\Delta\sigma_{\max}$ at the top to $\Delta\sigma_{\min}$ near the
+        surface. Given $b$, $a$ is fixed by
+        $\Delta\sigma_{n_k} = \Delta\sigma_{\min}$, and $b$ is found by a
+        search with adaptive step until $\sum\Delta\sigma_k = 1$ within
+        $10^{-5}$ (at most $10^6$ steps; the run stops if it does not
+        converge). The defaults are $\Delta\sigma_{\max} = 0.05$ and
+        $\Delta\sigma_{\min} = 0.01$ (0.01 and 0.005 with \code{lzeta}),
+        overridden by \code{dmax} and \code{dmin}. They must satisfy
+        $n_k\Delta\sigma_{\max} \ge 1$ and $n_k\Delta\sigma_{\min} < 1$.
+\end{itemize}
+
+In both cases the last full level is set to exactly 1, and the half levels
+and thicknesses are computed from the full levels.
+
+%==============================================================================
+\section{Humidity Conversions --- \texttt{mod\_humid.F90}}
+\label{sec:humid}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_humid} converts between specific humidity, mixing ratio and
+relative humidity, in place. It includes \code{pfwsat.inc}
+(Section~\ref{sec:includes}), the saturation mixing ratio over water
+($T \ge 0^\circ$C) or ice, $q_s = \epsilon\,e_s/(p - e_s)$ with $e_s$ from
+an eighth-order polynomial and limited to $0.15\,p$. Relative humidity is
+defined with the mixing ratio, $r = q/q_s$.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_humid
+    |-- mod_intkinds, mod_realkinds
+    |-- mod_constants   (tzero, ep2, govr, d_zero, d_half, d_one, d_1000)
+    |-- pfwsat.inc
+\end{lstlisting}
+
+\subsection{Public Procedures}
+
+\begin{longtable}{L{5.5cm} L{8.5cm}}
+  \toprule
+  \textbf{Procedure} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{sph2mxr(q, ni, nj, nk)} &
+    Specific humidity to mixing ratio, $q/(1-q)$; double and single
+    precision. \\
+  \code{mxr2sph(q, ni, nj, nk)} &
+    Mixing ratio to specific humidity, $q/(1+q)$. \\
+  \code{mxr2rh(t, q, ps, sigma, ptop, ...)} &
+    Mixing ratio to relative humidity on sigma levels, with $p_s$ the
+    surface pressure: $p = \sigma(p_s - p_\text{top}) + p_\text{top}$;
+    double and single precision. \\
+  \code{mxr2rh(t, q, p3d, ni, nj, nk)} &
+    The same with the 3-D pressure (non-hydrostatic and MOLOCH output). \\
+  \code{rh2mxr(t, q, p, nk)}, \code{rh2mxr(t, q, p, ni, nj, nk)} &
+    Relative humidity to mixing ratio on pressure levels, $p$ in Pa (one
+    column, or a field with 1-D pressure levels). \\
+  \code{rh2mxr(t, q, ps, ptop, sigma, ni, nj, nk)} &
+    The same on sigma levels, with \code{ps} $= p^*$ and \code{ptop} in
+    kPa: $p = 1000(p_\text{top} + \sigma p^*)$ Pa. \\
+  \code{rh2mxr\_z(t, q, z, ps, ni, nj, nk)} &
+    The same on height levels (MOLOCH): \code{z} is the height above the
+    surface, ordered from the top, and \code{ps} the surface pressure in
+    kPa. The pressure of the levels is integrated hydrostatically from the
+    surface with the mean layer temperature. \\
+\end{longtable}
+
+The conversions to mixing ratio and relative humidity keep the result
+non-negative.
+
+%==============================================================================
+\section{MOLOCH Vertical Coordinate --- \texttt{mod\_zita.F90}}
+\label{sec:zita}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_zita} defines the height-based, terrain-following coordinate
+$\zeta$ of the MOLOCH core, from 0 at the surface to $\zeta_\text{top}$
+(\code{mo\_ztop}), and the related functions. The height of a point is
+\[
+  z = b(\zeta) + h\,g(\zeta)
+\]
+with $h$ the orography, so that $z = h$ at $\zeta = 0$ and
+$z = \zeta_\text{top}$ at the top, where the effect of the orography has
+vanished.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_zita
+    |-- mod_realkinds, mod_intkinds
+    |-- mod_constants   (egrav, rgas, regrav)
+\end{lstlisting}
+
+\subsection{Levels}
+
+\code{model\_zitaf(zitaf, ztop)} and \code{model\_zitah(zitah, ztop)}
+compute equally spaced full levels ($\zeta_\text{top}$ to 0, $n_z+1$
+values) and half levels (their mid points), ordered from the top. The
+functions \code{sigmazita} $= 1 - \zeta/\zeta_\text{top}$ and its inverse
+\code{zitasigma} map $\zeta$ to a nominal sigma, used as the vertical axis
+of the files and for data prepared on pseudo-sigma levels
+($p = \sigma p_s$, converted to the real pressures of the $\zeta$ levels by
+\code{zita\_interp}). It is not the pressure ratio of the levels.
+
+\subsection{Functions of the Coordinate}
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Function} & \textbf{Definition} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{bzita(zita, ztop, zh)} &
+    $b(\zeta) = Z_f\,(e^{\zeta/z_h} - 1)$ with
+    $Z_f = \zeta_\text{top}/(e^{\zeta_\text{top}/z_h} - 1)$
+    (\code{zfz}): $b(0) = 0$, $b(\zeta_\text{top}) = \zeta_\text{top}$,
+    with the vertical scale $z_h$ (\code{mo\_h}). \code{md\_ak} is the same
+    function. \\
+  \code{gzita(zita, ztop, a0)} &
+    Cubic decay of the orography, with $r = \zeta/\zeta_\text{top}$:
+    $g = 1 - a_0 r - (3 - 2a_0)r^2 + (2 - a_0)r^3$, so that $g(0) = 1$
+    and $g(\zeta_\text{top}) = 0$; $a_0$ (\code{mo\_a0}) sets the slope at
+    the surface. \code{md\_bk} is the same function. \\
+  \code{bzitap}, \code{gzitap} &
+    Their derivatives with respect to $\zeta$ (private). \\
+  \code{md\_zeta\_h(zita, orog, ...)} &
+    Height above the orography, $z - h = b + h(g - 1)$. \\
+  \code{md\_fmz\_h(zita, orog, ...)} &
+    Metric factor $1/(\partial z/\partial\zeta) = 1/(b' + h g')$. \\
+  \code{md\_zeta}, \code{md\_fmz} &
+    The same with the surface geopotential instead of the orography. \\
+\end{longtable}
+
+\subsection{\texttt{zita\_interp}}
+
+\begin{lstlisting}
+call zita_interp(nx1, nx2, ny1, ny2, nz, [nn,] f, zeta, tvirt, sigmah, ps, imet)
+\end{lstlisting}
+
+Moves the fields \code{f} (3-D or 4-D, double or single precision), given
+on the pseudo-sigma levels with pressure $p_\sigma = \sigma_k p_s$, to the
+$\zeta$ levels, whose pressure is estimated as
+$p_\zeta = p_s\exp\bigl(-g z/(R T_v)\bigr)$ with the height above ground
+\code{zeta} and the virtual temperature of the level. The interpolation is
+linear in $\ln p$ (\code{imet} = 1) or in $p$; outside the range the end
+values are kept. It is used for the chemistry and aerosol boundary
+conditions.
+
+%==============================================================================
+\section{One-Dimensional Interpolation --- \texttt{mod\_interp.F90}}
+\label{sec:interp}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_interp} provides \code{interp1d}, the one-dimensional
+interpolation with a tension spline of the MOLOCH pre-processing. It is
+used by \code{mod\_vertint} (\code{intz1}, \code{intz3}, \code{intp1},
+\code{intp3}) for the vertical interpolation of the initial and boundary
+conditions, and by \code{mod\_rad\_aerosol} for the aerosol profiles.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_interp
+    |-- mod_intkinds    (ik4)
+    |-- mod_realkinds   (rk4, rk8)
+\end{lstlisting}
+
+\subsection{\texttt{interp1d}}
+
+\begin{lstlisting}
+call interp1d(xi, g, xo, f, alfa, ex1, ex2)
+call interp1d(xi, g, xo, f, alfa, ex1, ex2, zi, zg, sxi, sxo)
+\end{lstlisting}
+
+\begin{longtable}{L{2.2cm} L{1.5cm} L{10.3cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{xi(:)}, \code{g(:)} & \code{in} &
+    Coordinates and values of the input profile, increasing or
+    decreasing. \\
+  \code{xo}, \code{f} & \code{in}, \code{out} &
+    Coordinates where the profile is wanted and the result: arrays, or
+    scalars for one point. \\
+  \code{alfa} & \code{in} &
+    Tension: 1 gives linear interpolation, 0 the cubic, values in between
+    a weighted mean of the two. \\
+  \code{ex1}, \code{ex2} & \code{in} &
+    Extrapolation below the smallest and above the largest coordinate:
+    0 keeps the end value, 1 extrapolates linearly with the slope of the
+    end interval, values in between a fraction of that slope. \\
+  \code{zi}, \code{zg}, \code{sxi}, \code{sxo} & work, \code{in} &
+    Only in the \code{\_new} variants: work arrays and explicit sizes, so
+    that the routine needs no automatic arrays and can run on the GPU as an
+    OpenACC \code{routine seq} (used by \code{intp1} with pointer
+    arrays). \\
+\end{longtable}
+
+The generic interface has six variants: arrays and scalar \code{xo} in
+single and double precision, and the two \code{\_new} variants. They
+differ only in the kinds and in the way the arrays are passed.
+
+\subsubsection{Algorithm}
+
+\begin{enumerate}
+  \item \textbf{Ordering.} A decreasing profile is reversed, so that the
+        coordinates $z_k$ (\code{zi}) increase.
+  \item \textbf{Coincident points.} The private \code{merge\_coincident}
+        merges every coordinate not larger than the previous one, with its
+        value, into one point with the mean coordinate and value, and checks
+        the result again against the previous point, until the coordinates
+        are strictly increasing. One point left gives that value everywhere;
+        with two points the interpolation between them is linear (the
+        extrapolation follows the next step).
+  \item \textbf{Extrapolation.} For $x < z_1$,
+        $f = g_1 + e_1\,s_1(x - z_1)$ with $s_1$ the slope of the first
+        interval; for $x \ge z_n$ the same with $e_2$ and the last interval.
+  \item \textbf{Interval.} The interval $z_r \le x < z_{r+1}$ is found,
+        with $f_m = g_r$, $f_p = g_{r+1}$ and the neighbours
+        $f_{mm} = g_{r-1}$, $f_{pp} = g_{r+2}$. In the first and last
+        intervals the missing neighbour is a ghost point on the straight
+        line through the two end points, e.g.\ $z_0 = 2z_1 - z_2$,
+        $g_0 = 2g_1 - g_2$.
+  \item \textbf{Interpolation.} With $\Delta = z_p - z_m$,
+        $\Delta_m = z_m - z_{mm}$, $\Delta_p = z_{pp} - z_p$,
+        $d_1 = x - z_m$ and $d_2 = z_p - x$, the cubic estimate is
+        \[
+          \begin{aligned}
+            s ={}& f_m\left(\frac{d_2}{\Delta} + \frac{d_1 d_2^2}{\Delta^2\Delta_m}
+                   - \frac{d_1^2 d_2}{(\Delta+\Delta_p)\Delta^2}\right)
+                 + f_p\left(\frac{d_1}{\Delta} + \frac{d_1^2 d_2}{\Delta^2\Delta_p}
+                   - \frac{d_1 d_2^2}{(\Delta+\Delta_m)\Delta^2}\right) \\
+                 & - f_{mm}\frac{d_1 d_2^2}{(\Delta+\Delta_m)\Delta\Delta_m}
+                   - f_{pp}\frac{d_1^2 d_2}{(\Delta+\Delta_p)\Delta\Delta_p},
+          \end{aligned}
+        \]
+        the linear one is $l = (f_m d_2 + f_p d_1)/\Delta$, and the result
+        is $f = \alpha\,l + (1 - \alpha)\,s$.
+\end{enumerate}
+
+\subsubsection{Properties}
+
+\begin{itemize}
+  \item A linear profile is reproduced exactly for any $\alpha$, $e_1$,
+        $e_2$ (round-off), also with coincident points.
+  \item With $\alpha = 0$ a quadratic profile is reproduced exactly in the
+        inner intervals; in the first and last intervals the ghost points,
+        which are on a straight line, make the result less accurate.
+  \item A decreasing profile gives the same result as the same profile
+        increasing, and the scalar and array forms agree.
+\end{itemize}
+
+\subsection{Design Notes}
+
+\textbf{Coincident coordinates.} The routine accepts profiles with
+repeated or slightly unordered coordinates. Earlier versions moved coincident points apart by
+$10^{-6}$ of the range; the cubic then divides by these tiny spacings in
+the neighbouring intervals, and in a test a linear profile with one
+repeated level was off by about 0.3 of its values there. Merging the points
+keeps the interpolation exact, and does not change the result for profiles
+without coincident points.
+
+\textbf{Removed code.} The module used to contain horizontal
+interpolations (bilinear, distance-weighted, Cressman, kernel smoothing)
+that are no longer used; they were removed together with their module
+state.
+
+%==============================================================================
+\section{Vertical Interpolation --- \texttt{mod\_vertint.F90}}
+\label{sec:vertint}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_vertint} interpolates fields between vertical grids: from the
+input data (pressure levels, or model levels with given height or
+pressure) to the model levels in the ICBC programs, from model levels to
+pressure or height levels in the post-processors, and the ozone
+climatology in the model. It also computes the surface pressure on the
+model orography from the input profiles. The input are ``GCM'' (\code{ccm})
+fields, the output ``RCM'' (\code{rcm}) fields.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_vertint
+    |-- mod_intkinds, mod_realkinds, mod_stdio, mod_message
+    |-- mod_constants   (rgas, regrav, lrate, govr, govcp, egrav, ...)
+    |-- mod_stdatm
+    |-- mod_interp      (interp1d)
+    |-- mod_dynparam    (maxvert)
+\end{lstlisting}
+
+Missing values are $-9999$ (\code{missl}). The private constants are
+\code{rgas2} $= R/2$, \code{rglrog} $= R\Gamma/g$ and \code{b1} $= -g/\Gamma$.
+
+\subsection{Interpolation Between Pressure Levels}
+
+\begin{longtable}{L{4.5cm} L{9.5cm}}
+  \toprule
+  \textbf{Interface} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{intlin(fp, f, p3d, ..., p, kp)} &
+    From model levels with 3-D pressure \code{p3d} to the pressure levels
+    \code{p}, linear in $p$; constant extrapolation. Double and single
+    precision; the \code{\_o} variants take sigma levels (\code{ps},
+    \code{sig}, \code{ptop}) instead of \code{p3d}. \\
+  \code{intlog(fp, f, ...)} &
+    As \code{intlin}, linear in $\ln p$. Below the lowest level the field
+    (temperature) is extrapolated with the standard lapse rate from the
+    mean of the two lowest levels,
+    $f = \bar f_1\,(p/p_1)^{R\Gamma/g}$; above the top it is constant. \\
+  \code{intlinz(fz, f, hz, ..., z, kz)} &
+    From model levels with 3-D height \code{hz} to the height levels
+    \code{z}, linear in $z$, in either vertical order. \\
+  \code{intlinreg(fp, f, ps, p, ..., kp, p3d, km)} &
+    From regular pressure levels \code{p} to the 3-D pressures \code{p3d},
+    linear in $p$ (through the normalised coordinate
+    $(p - p_\text{top})/(p_s - p_\text{top})$), constant extrapolation;
+    double, single and mixed precision. \code{intlinprof} does the same for
+    a single profile \code{f(kp)}. \\
+\end{longtable}
+
+\noindent In \code{intlog} the logarithm is taken of
+$(p - p_\text{top})/(p_\text{bottom} - p_\text{top})$, which is equivalent
+to $\ln p$ only when the top pressure is negligible; the same holds for the
+sigma-based routines below.
+
+\subsection{Interpolation to the Model Levels (ICBC)}
+
+The input data are on pressure levels described as a sigma coordinate:
+$p = \sigma_k p_{ss} + p_{st}$, with \code{sccm} the level values (1 at the
+lowest level, ordered from the bottom), \code{pss} and \code{pst}. The model
+levels are sigma levels \code{srcm} with $p^*$ \code{psrcm} and
+$p_\text{top}$ \code{pt}.
+
+\begin{longtable}{L{4.5cm} L{9.5cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{intv1} &
+    Linear in $p$, constant extrapolation (winds, humidity); method 2
+    keeps at least $10^{-8}$ (mixing ratio). \\
+  \code{intv2} &
+    Linear in $\ln p$; below the lowest level the temperature follows the
+    standard lapse rate, $T = T_1(b_1 - a_1)/(b_1 + a_1)$ with
+    $a_1 = (R/2)\ln(\sigma/\sigma_1)$, a Pad\'e form of
+    $T_1(p/p_1)^{R\Gamma/g}$. \\
+  \code{intv3} &
+    The same for the surface level only (surface temperature). \\
+  \code{intz1} &
+    MOLOCH: from levels with given height to the model heights (height
+    above ground plus orography), with the tension spline of
+    \code{interp1d} (\code{a}: 1 linear, 0 spline; \code{e1}, \code{e2}:
+    extrapolation below and above, 0 constant, 1 linear). Three variants:
+    3-D input heights, 1-D input heights with geopotential orography, one
+    column. \\
+  \code{intz3}, \code{intp3} &
+    The same for the surface value only, in height or in pressure. \\
+  \code{intp1} &
+    The same as \code{intz1} with pressure as vertical coordinate,
+    normalised between the top and bottom input levels. \\
+\end{longtable}
+
+\subsection{Surface Pressure on the Model Orography}
+\label{subsec:vertint_ps}
+
+The input surface does not match the model orography, so the surface
+pressure is computed from the input profiles of height \code{zp} and
+temperature \code{tp}, ordered from the bottom, at the model surface height
+\code{zrcm}:
+
+\begin{longtable}{L{4.5cm} L{9.5cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{intgtb} + \code{intpsn} &
+    Hydrostatic and non-hydrostatic cores. \code{intgtb} finds the level
+    \code{pa}, \code{za} above the model surface and the mean temperature
+    of the layer between them (the temperature at the model surface is
+    interpolated linearly in height); below the lowest level it uses the
+    lowest level and its temperature. \code{intpsn} then gives
+    $p^* = p_a\exp\bigl(-g(z_\text{rcm} - z_a)/(R\bar T)\bigr) -
+    p_\text{top}$. \\
+  \code{intzps} &
+    MOLOCH: the surface pressure in one step, for input on pressure levels
+    (\code{pss}, \code{sccm}, \code{pst}) or with 3-D pressure. Between two
+    levels the layer from the model surface to the level above has the
+    mean of the two temperatures. Below the lowest level the temperature
+    follows the lapse rate of the two lowest levels, limited between
+    $-g/c_p$ and a value moderated towards the standard lapse rate in
+    stable layers, with the limits of the ECMWF method on the extrapolated
+    column (\code{below\_ground\_tlayer}). Above the top input level the
+    result is missing for input on pressure levels, and the top pressure
+    for input with 3-D pressure. \\
+\end{longtable}
+
+\noindent \code{below\_ground\_tlayer(tb, lrt, zb, dz)} returns the mean
+temperature of the layer of depth \code{dz} below a level at height
+\code{zb} with temperature \code{tb} and lapse rate \code{lrt}
+$= \partial T/\partial z$. With $T^* = $ \code{tb} and the sea level
+temperature $T_0 = T^* - \text{lrt}\,z_b$, the rules of
+Section~\ref{subsec:hgt_mslp} are applied: if $T^* \le 290.5 < T_0$ the
+lapse rate is reduced to have $T_0 = 290.5$~K; if both exceed 290.5~K the
+lapse rate is zero and $T^* = (290.5 + T^*)/2$; if $T^* < 255$~K,
+$T^* = (255 + T^*)/2$. Unlike the ECMWF method, the lapse rate is the one
+of the input profile rather than 6.5~K/km.
+
+\subsection{Search Functions}
+
+\code{find\_from\_top} and \code{find\_from\_btm} (private, double and
+single precision) return the first level $n \ge 2$ at which the coordinate
+is below (above) the requested value, or the last level.
+
+\subsection{Design Notes}
+
+\textbf{Two kinds of extrapolation.} As for \code{mod\_hgt}
+(Section~\ref{subsec:hgt_design}), the extrapolation below the lowest
+input level of \code{intzps} is the only surface pressure extrapolation
+that uses the ECMWF limits: the extrapolated column there may be under the
+input orography. The
+surface pressure of the MOLOCH initial and boundary conditions is
+recomputed from the lowest model level in \code{mod\_write}, over the real
+layer between that level and the surface, without limits.
+
+\textbf{Numerical checks.} \code{intzps} was checked against an exact
+atmosphere on ERA5-like pressure levels: the surface pressure is exact for
+surfaces between levels, and differs only where the ECMWF limits apply
+(0.4~hPa for a surface below the 1000~hPa level in a 303~K atmosphere).
+\code{intgtb} reproduces the mean layer temperature of a linear profile.

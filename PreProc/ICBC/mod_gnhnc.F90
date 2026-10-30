@@ -2266,7 +2266,6 @@ module mod_gnhnc
           hvar1(:,:,k) = ak1(k) + bk1(k)*zsvar(:,:)
         end do
         ! If we have MSLP instead of PS
-        ! call mslp2ps(hvar,tvar,pmslvar,zsvar,psvar,nlon,nlat,klev)
         call psig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
         call psig1(tvar,hvar1,pp3d1,psvar,zsvar,nlon,nlat,klev)
       else if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' ) then

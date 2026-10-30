@@ -310,6 +310,8 @@ module mod_ein
     ! Get from RHUM to mixing ratio
     if ( lqas ) then
       q4 = d_10**q4
+    else if ( idynamic == 3 ) then
+      call rh2mxr_z(t4,q4,z0,ps4,jx,iy,kz)
     else
       call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
     end if
