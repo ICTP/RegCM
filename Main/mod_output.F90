@@ -64,6 +64,7 @@ module mod_output
   real(rkx), pointer, contiguous, dimension(:,:,:) :: bdymask
   real(rkx), dimension(:,:,:), pointer, contiguous :: qv
   real(rkx), dimension(:,:), pointer, contiguous :: temp500
+  real(rkx), dimension(:,:,:), pointer, contiguous :: tli, qli, tvli
   type(regcm_projection), save :: pj
 
   contains
@@ -77,6 +78,11 @@ module mod_output
     end if
     if ( associated(srf_li_out) ) then
       call getmem(temp500,jci1,jci2,ici1,ici2,'output:temp500')
+      if ( idynamic /= 3 ) then
+        call getmem(tli,jci1,jci2,ici1,ici2,1,kz,'output:tli')
+        call getmem(qli,jci1,jci2,ici1,ici2,1,kz,'output:qli')
+        call getmem(tvli,jci1,jci2,ici1,ici2,1,kz,'output:tvli')
+      end if
     end if
     if ( idynamic == 3 .and. associated(atm_w_out) ) then
       call getmem(bdymask,jci1,jci2,ici1,ici2,1,kz,'output:bdymask')
@@ -108,7 +114,6 @@ module mod_output
     logical :: lasync_batch
     integer(ik4) :: i, j, k, n, kk, itr
     real(rkx) :: cell, srffac, radfac, lakfac, subfac, optfac, stsfac
-    real(rkx) :: tsurf, t500
     logical, save :: diag_hf_started = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
@@ -1141,18 +1146,18 @@ module mod_output
             call otlift(srf_li_out,mo_atm%t,qv,mo_atm%p,temp500, &
                         jci1,jci2,ici1,ici2,kz)
           else
-            do i = ici1, ici2
-              do j = jci1, jci2
-                kk = 1
-                do k = 1, kz
-                  if ( atm1%pr(j,i,k) > 50000.0_rkx ) exit
-                  kk = k
+            do k = 1, kz
+              do i = ici1, ici2
+                do j = jci1, jci2
+                  tli(j,i,k) = atm1%t(j,i,k)/sfs%psa(j,i)
+                  qli(j,i,k) = atm1%qx(j,i,k,iqv)/sfs%psa(j,i)
+                  tvli(j,i,k) = tli(j,i,k)*(d_one + ep1*qli(j,i,k))
                 end do
-                tsurf = atm1%t(j,i,kz)/sfs%psa(j,i)
-                t500 = atm1%t(j,i,kk)/sfs%psa(j,i)
-                srf_li_out(j,i) = (tsurf-atms%za(j,i,kk)*lrate) - t500
               end do
             end do
+            call vertint(tvli,atm1%pr,sfs%psa,temp500,50000.0_rkx)
+            call otlift(srf_li_out,tli,qli,atm1%pr,temp500, &
+                        jci1,jci2,ici1,ici2,kz)
           end if
         end if
         if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then

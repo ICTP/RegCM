@@ -38,6 +38,7 @@ check failed.
   \code{test\_intldtr} & \code{mod\_intldtr} (Section~\ref{sec:intldtr}) \\
   \code{test\_rdldtr} & \code{mod\_rdldtr} (Section~\ref{sec:rdldtr}) \\
   \code{test\_posix} & \code{mod\_posix} (Section~\ref{sec:posix}) \\
+  \code{test\_capecin} & \code{mod\_capecin} (Section~\ref{sec:capecin}) \\
 \end{longtable}
 
 
@@ -7117,3 +7118,94 @@ once, after \code{rewinddir}, to copy their names.
 name with the output of the \code{hostname} command and checks that it has
 no C terminator, lists a directory created in the current directory, and
 checks the missing directory.
+
+%==============================================================================
+\section{Convective Indices --- \texttt{mod\_capecin.F90}}
+\label{sec:capecin}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_capecin} computes the convective available potential energy
+(CAPE), the convective inhibition (CIN) and the lifted index of every
+column, for the \code{cape}, \code{cin} and \code{li} fields of the surface
+output (\code{mod\_output}, for all the dynamical cores). The CAPE and CIN
+come from the \code{getcape} code of G.~H.~Bryan, with the constants of
+\citet{bolton1980} and the ice of \citet{bryan2004}; the lifted index from
+the \code{OTLIFT} routine of the NCEP Eta model post-processor.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_capecin
+    |-- mod_intkinds, mod_realkinds, mod_constants (pfesat.inc)
+    `-- mod_spline (Janjic spline, for the lifted index tables)
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{6cm} L{8cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{getcape\_new(j1, j2, i1, i2, nk, p, t, rh, cape, cin, td, pi,
+  q, th, thv, z)} &
+    CAPE and CIN (J\,kg$^{-1}$) of each column from pressure (Pa),
+    temperature (K) and relative humidity (0--1) given from the lowest
+    level up; \code{td} \ldots\ \code{z} are work arrays of the same shape
+    (dew point, Exner function, mixing ratio, potential and virtual
+    potential temperature, height). \\
+  \code{otlift(li, t, q, p, t500, i1, i2, j1, j2, kk)} &
+    Lifted index (K): the virtual temperature at 500~hPa \code{t500} minus
+    the one of the parcel lifted from level \code{kk} (the lowest), with
+    temperature \code{t}, mixing ratio \code{q} and pressure \code{p}. \\
+\end{longtable}
+
+\subsection{CAPE and CIN}
+
+The heights of the levels come from the hydrostatic equation in the Exner
+function with the virtual potential temperature. The parcel starts from the
+level of maximum equivalent potential temperature below 500~hPa (the most
+unstable parcel); the source can be switched to the surface or to a mixed
+layer of 200~m with the parameter \code{source}. It is lifted in steps of
+at most 1~hPa along a pseudo-adiabat with ice: the liquid fraction goes
+linearly from 1 at 0°C to 0 at $-40$°C, the potential temperature of each
+step is found by iteration from the conservation of the ice--liquid water
+potential temperature, and the condensate falls out (parameter
+\code{adiabat} for the reversible or liquid-only adiabats). The buoyancy
+$b = g(\theta_{v,\text{parcel}}-\theta_v)/\theta_v$, with the condensate
+loading, is integrated in height between the levels: the positive areas add
+to CAPE, the negative areas below a positive one to CIN, with the crossing
+of zero found by linear interpolation. The ascent stops at the first
+negative buoyancy above 100~hPa.
+
+\subsection{Lifted Index}
+
+The parcel of the lowest level is lifted dry to its saturation point, found
+in a table of the saturation pressure as a function of potential
+temperature and mixing ratio; if the saturation point is below 500~hPa the
+parcel then follows the moist adiabat of its equivalent potential
+temperature, from a second table of temperature as a function of pressure
+and equivalent potential temperature, otherwise it stays dry. Both tables
+are built at the first call with the Janjic spline. The lifted index is
+$T_{v,500} - T_v$ of the parcel, saturated at 500~hPa; negative values mean
+an unstable column.
+
+\subsection{Design Notes}
+
+\textbf{Inputs from the cores.} \code{mod\_output} gives
+\code{getcape\_new} the levels reversed (the model counts from the top), the
+relative humidity limited to $[0,1]$, and gives \code{otlift} the
+temperature, mixing ratio and pressure of the model levels and the virtual
+temperature at 500~hPa interpolated linearly in $\ln p$; for the
+hydrostatic and non-hydrostatic cores the coupled fields are first divided
+by $p^*$.
+
+\textbf{Testing.} \code{Testing/share/test\_capecin.F90} uses the analytic
+sounding of \citet{weisman1982} with 14~g\,kg$^{-1}$ of surface mixing
+ratio (CAPE 2437~J\,kg$^{-1}$, CIN 0, lifted index $-7.6$~K) and a dry
+isothermal atmosphere at 250~K (no CAPE, lifted index 44.9~K, the dry
+adiabatic 45.1~K).
