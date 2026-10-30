@@ -4229,3 +4229,422 @@ larger than $\pi$), no set of positive weights can reproduce it. The angle
 $\alpha_i$ across the gap is computed without sign, i.e.\ as
 $2\pi - \text{gap}$, so the weights are still positive and sum to one: the
 result is a weighted average of the neighbours, not an extrapolation.
+
+%==============================================================================
+\section{Map Projections --- \texttt{mod\_projections.F90}}
+\label{sec:projections}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_projections} maps between the model grid indices $(i, j)$ and
+geographic coordinates (latitude, longitude) for the six grids RegCM
+supports, computes the map factor, and rotates winds between the
+geographic frame (eastward, northward) and the grid frame (along $i$, along
+$j$). The projection is selected by the namelist variable \code{iproj}:
+
+\begin{longtable}{L{2cm} L{4cm} L{8cm}}
+  \toprule
+  \textbf{Code} & \textbf{Grid} & \textbf{Notes} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{LAMCON} & Lambert conformal &
+    Secant cone with two true latitudes, or tangent cone when they are
+    equal (within $0.1^\circ$). \\
+  \code{POLSTR} & Polar stereographic &
+    True scale at \code{clat}. \\
+  \code{NORMER} & Normal Mercator &
+    True scale at \code{clat}. Used by the tropical band. \\
+  \code{ROTMER} & Rotated Mercator &
+    Mercator on a rotated sphere whose equator passes through
+    (\code{plat}, \code{plon}); true scale on the rotated equator. \\
+  \code{ROTLLR} & Rotated latitude--longitude &
+    Regular grid in the coordinates of a sphere whose north pole is at
+    (\code{plat}, \code{plon}). The only grid that accepts a spacing in
+    degrees (negative \code{ds}). \\
+  any other & Regular latitude--longitude &
+    Fallback for an unknown code, with no wind rotation and a map factor
+    of 1. \\
+\end{longtable}
+
+\noindent Note that \code{plat} and \code{plon} have different meanings for
+the two rotated grids: for \code{ROTMER} they are a point of the rotated
+equator (normally the domain centre, \code{plat = clat},
+\code{plon = clon}), for \code{ROTLLR} they are the position of the rotated
+north pole.
+
+The module is used by the terrain program to compute the coordinates,
+cell bounds and map factors of every grid (one projection object for each
+staggering: cross, $u$, $v$ and dot points), by the ICBC programs to rotate
+the input winds onto the grid, by the model output and the nesting code to
+rotate them back, and by the GrADS post-processors.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_projections
+    |-- mod_intkinds    (ik4)
+    |-- mod_realkinds   (rk8, rkx)
+    |-- mod_constants   (degrad_r8, raddeg_r8, earthrad_r8, halfpi_r8,
+    |                    mathpi_r8, dlowval_r8, deg00, deg45, deg90,
+    |                    deg180, deg360)
+    |-- mod_memutil     (getmem)
+    |-- iso_fortran_env (REAL32, REAL64; with F2008)
+\end{lstlisting}
+
+\code{mod\_memutil} allocates the arrays of the wind rotation factors.
+
+%------------------------------------------------------------------------------
+\subsection{Derived Types}
+\label{subsec:proj_types}
+
+\subsubsection{\texttt{anyprojparams} --- Projection Parameters}
+
+The input of \code{initialize}, filled by the caller from the namelist.
+
+\begin{longtable}{L{3.5cm} L{3cm} L{7.5cm}}
+  \toprule
+  \textbf{Field} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{pcode} & \code{character(6)} & Projection code (\code{iproj}). \\
+  \code{ds} & \code{real(rk8)} & Grid spacing [m]. \\
+  \code{clat}, \code{clon} & \code{real(rk8)} &
+    Geographic coordinates of the domain centre [degrees]. \\
+  \code{plat}, \code{plon} & \code{real(rk8)} &
+    \code{ROTMER}: point of the rotated equator; \code{ROTLLR}: rotated
+    north pole [degrees]. \\
+  \code{trlat1}, \code{trlat2} & \code{real(rk8)} &
+    True latitudes of \code{LAMCON} [degrees]. \\
+  \code{nlon}, \code{nlat} & \code{integer(ik4)} &
+    Number of points along $i$ and $j$. \\
+  \code{staggerx}, \code{staggery} & \code{logical} &
+    Whether the grid is staggered by half a grid spacing along $i$ or $j$
+    (the $u$, $v$ and dot grids). \\
+  \code{rotparam} & \code{logical} &
+    Compute the wind rotation factors. Without them the rotation routines
+    must not be called. \\
+\end{longtable}
+
+\subsubsection{\texttt{regcm\_projection} --- The Projection Object}
+
+\begin{lstlisting}
+type regcm_projection
+  private
+  type(regcm_projdata), pointer :: p => null()
+  procedure(transform),  pass(pj), pointer, public :: llij, ijll
+  procedure(map_factor), pass(pj), pointer, public :: mapfac
+  procedure(rotate2),    pass(pj), pointer, public :: uvrotate2, uvbkrotate2
+  procedure(rotate3),    pass(pj), pointer, public :: uvrotate3, uvbkrotate3
+  real(rk8), pointer, contiguous, dimension(:,:) :: f1, f2, f3, f4
+contains
+  procedure, public :: initialize, destruct, rotation_angle, rl00, conefac
+  procedure, public :: wind_rotate, wind2_rotate
+  procedure, public :: wind_antirotate, wind2_antirotate
+end type regcm_projection
+\end{lstlisting}
+
+\code{initialize} points the procedure pointers to the routines of the
+selected projection, so that a call such as \code{call pj\%ijll(i, j, lat,
+lon)} needs no test on the projection. The private pointer \code{p} holds
+the projection constants (\code{regcm\_projdata}, a private type with one
+set of fields per projection). The arrays \code{f1} and \code{f2} hold
+$\cos$ and $\sin$ of the wind rotation angle at every grid point, and
+\code{f3} the angle itself (\code{LAMCON}, \code{POLSTR}, \code{ROTMER});
+\code{f4} is not used.
+
+%------------------------------------------------------------------------------
+\subsection{Public Procedures}
+\label{subsec:proj_public}
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Procedure} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{initialize(pjpara)} &
+    Sets up the projection from an \code{anyprojparams} and, if
+    \code{rotparam} is true, computes the rotation factors at every grid
+    point. \\
+  \code{ijll(i, j, lat, lon)} &
+    Geographic coordinates [degrees, longitude in $[-180, 180]$] of the
+    (real) grid position $(i, j)$, with $i = 1, \ldots,$ \code{nlon}. \\
+  \code{llij(lat, lon, i, j)} &
+    Inverse: real grid position of a geographic point. \\
+  \code{mapfac(xlat, xlon, xmap)} &
+    Map factor at the points of the 2-D coordinate arrays. \\
+  \code{wind\_rotate(u, v)}, \code{wind2\_rotate(u, v)} &
+    3-D and 2-D: replace geographic wind components (eastward,
+    northward) with grid components (along $i$, along $j$). \\
+  \code{wind\_antirotate(u, v)}, \code{wind2\_antirotate(u, v)} &
+    Inverse: grid components to geographic ones. \\
+  \code{uvrotate2}, \code{uvrotate3}, \code{uvbkrotate2},
+  \code{uvbkrotate3} &
+    The same rotations through procedure pointers. \\
+  \code{rotation\_angle(lon, lat, p)} &
+    Rotation angle [radians] at the points of a regular latitude--longitude
+    grid (1-D \code{lon} and \code{lat}), for the \code{pdef} file of the
+    GrADS post-processors: $n(\lambda_0 - \lambda)$ for \code{LAMCON},
+    $\lambda_0 - \lambda$ for \code{POLSTR}, $\delta$ for \code{ROTMER}
+    (see below), and 0 otherwise. \code{ROTLLR} is not implemented; its
+    callers skip it. \\
+  \code{rl00(lat0, lon0)} &
+    Rotated (or, for the fallback grid, geographic) coordinates of the
+    first grid point, for \code{ROTLLR} and the fallback grid. \\
+  \code{conefac()} &
+    Cone factor $n$ of \code{LAMCON}; 1 for the other projections. \\
+  \code{destruct()} &
+    Releases the projection constants. \\
+  \code{rounder(x, ltop)} &
+    Module function: rounds \code{x} up (\code{ltop} true) or down to a
+    multiple of $10^{-3}$. \\
+\end{longtable}
+
+The wind arrays are \code{pointer, contiguous} and must have the shape of
+the grid of the projection (\code{nlon} $\times$ \code{nlat}), with the
+first index along $i$; their bounds are taken from the arrays.
+
+The kind parameters \code{rk4}, \code{rk8} and \code{rkx} are declared
+again inside each abstract interface, with the same definitions as in
+\code{mod\_realkinds}, because the interfaces cannot rely on host
+association.
+
+%------------------------------------------------------------------------------
+\subsection{Grid Position and Conventions}
+\label{subsec:proj_grid}
+
+\code{initialize} sets the index of the domain centre to
+\[
+  c_i = \frac{n_\text{lon}}{2} - \frac{1}{2}\,[\text{not staggered in } x],
+  \qquad
+  c_j = \frac{n_\text{lat}}{2} - \frac{1}{2}\,[\text{not staggered in } y],
+\]
+so that a staggered grid is shifted by half a grid spacing with respect to
+the cross grid. The namelist variables \code{cntri} and \code{cntrj} are not
+used by the projection.
+
+The two families of projections use the centre index differently:
+\code{LAMCON}, \code{POLSTR}, \code{NORMER} and \code{ROTMER} place
+(\code{clat}, \code{clon}) at the grid position $(c_i, c_j)$, while
+\code{ROTLLR} and the fallback grid place it at $(c_i + 1, c_j + 1)$. With
+$n_\text{lon} = 61$ cross points, the centre is at $i = 30$ in the first
+case and $i = 31$, the middle of the grid, in the second.
+
+Below, $R$ is the Earth radius (\code{earthrad\_r8}), $\Delta s$ the grid
+spacing, $\varphi$ and $\lambda$ latitude and longitude, $\varphi_c$ and
+$\lambda_c$ those of the domain centre, and $h = \pm1$ the hemisphere of
+the centre.
+
+%------------------------------------------------------------------------------
+\subsection{Lambert Conformal (\texttt{LAMCON})}
+\label{subsec:proj_lambert}
+
+The standard longitude $\lambda_0$ is \code{clon}. The cone factor is
+\[
+  n = \frac{\log\cos\varphi_1 - \log\cos\varphi_2}
+           {\log\tan(45^\circ - |\varphi_1|/2) -
+            \log\tan(45^\circ - |\varphi_2|/2)}
+\]
+for a secant cone, and $n = \sin|\varphi_1|$ for a tangent cone
+($|\varphi_1 - \varphi_2| \le 0.1^\circ$). The distance from the pole, in
+grid spacings, is
+\[
+  r(\varphi) = \frac{R}{\Delta s}\,\frac{\cos\varphi_1}{n}
+    \left(\frac{\tan\bigl((90^\circ h - \varphi)/2\bigr)}
+               {\tan\bigl((90^\circ h - \varphi_1)/2\bigr)}\right)^{n}
+\]
+and, with the pole position $(P_i, P_j)$ computed so that the centre falls
+at $(c_i, c_j)$,
+\[
+  i = h\,\bigl(P_i + h\,r\sin\bigl(n(\lambda - \lambda_0)\bigr)\bigr),
+  \qquad
+  j = h\,\bigl(P_j - r\cos\bigl(n(\lambda - \lambda_0)\bigr)\bigr).
+\]
+\code{ijll\_lc} inverts these relations. The map factor is
+\[
+  m = \frac{\sin\chi_2}{\sin\chi}
+      \left(\frac{\tan(\chi/2)}{\tan(\chi_2/2)}\right)^{n'}
+\]
+with $\chi = 90^\circ - \varphi$ the colatitude and $n'$ the cone factor
+computed from the colatitudes (\code{nfac}); for a tangent cone $\chi_1$
+and $\cos\chi_1$ replace $\chi_2$ and $n'$. It is 1 on the true
+latitudes.
+
+\textbf{Wind rotation.} The grid $j$ axis makes the angle
+$\alpha = n(\lambda_0 - \lambda)$ with the local meridian. In the northern
+hemisphere
+\[
+  u_g = u\cos\alpha + v\sin\alpha, \qquad
+  v_g = -u\sin\alpha + v\cos\alpha,
+\]
+and in the southern hemisphere the same with $-\alpha$. The back rotation
+is the inverse.
+
+%------------------------------------------------------------------------------
+\subsection{Polar Stereographic (\texttt{POLSTR})}
+\label{subsec:proj_polar}
+
+With the reference longitude $\lambda_r = \lambda_0 + 90^\circ$ and the
+scale factor $k = 1 + h\sin\varphi_c$, which makes the grid true to scale at
+\code{clat},
+\[
+  r(\varphi) = \frac{R}{\Delta s}\,\frac{k\cos\varphi}{1 + h\sin\varphi},
+  \qquad
+  i = P_i + r\cos(\lambda - \lambda_r), \qquad
+  j = P_j + h\,r\sin(\lambda - \lambda_r).
+\]
+The map factor is $m = k/(1 + h\sin\varphi)$. The wind is rotated as for
+\code{LAMCON} with $n = 1$, i.e.\ $\alpha = \lambda_0 - \lambda$, and the
+sign of $\alpha$ reversed in the southern hemisphere.
+
+%------------------------------------------------------------------------------
+\subsection{Normal Mercator (\texttt{NORMER})}
+\label{subsec:proj_mercator}
+
+The longitude step is $\Delta\lambda = \Delta s/(R\cos\varphi_c)$
+[radians], so that the grid is true to scale at \code{clat}, and
+\[
+  i = c_i + \frac{\lambda - \lambda_c}{\Delta\lambda}, \qquad
+  j = c_j + \frac{\ln\tan(45^\circ + \varphi/2) -
+                  \ln\tan(45^\circ + \varphi_c/2)}{\Delta\lambda}.
+\]
+The map factor is $m = \cos\varphi_c/\cos\varphi$. The grid axes are
+aligned with the parallels and meridians, so there is no wind rotation.
+
+%------------------------------------------------------------------------------
+\subsection{Rotated Mercator (\texttt{ROTMER})}
+\label{subsec:proj_rotmer}
+
+The sphere is rotated so that (\code{plat}, \code{plon}) lies on the
+rotated equator, with the rotated pole at latitude $90^\circ -$
+\code{plat} and longitude \code{plon}$\,+180^\circ$. The rotated
+coordinates $(\varphi', \lambda')$ of a point follow the COSMO formulas
+for the rotated pole, and the grid is a Mercator grid in them, true to
+scale on the rotated equator:
+\[
+  x = \lambda', \qquad y = \ln\tan(45^\circ + \varphi'/2), \qquad
+  i = c_i + \frac{x - x_c}{\Delta}, \qquad
+  j = c_j + \frac{y - y_c}{\Delta}
+\]
+with $\Delta = \Delta s/R$ (in degrees, as $x$ and $y$), and $(x_c, y_c)$
+the coordinates of the domain centre, computed with the same formulas. The
+map factor is $m = 1/\cos\varphi'$.
+
+\textbf{Wind rotation.} \code{uvrot\_rc} computes the angle $\delta$
+between the geographic and the rotated meridians, from the rotated pole
+$(\varphi_p, \lambda_p)$:
+\[
+  \tan\delta = \frac{\cos\varphi_p\,\sin(\lambda_p - \lambda)}
+                    {\sin\varphi_p\cos\varphi -
+                     \cos\varphi_p\sin\varphi\cos(\lambda_p - \lambda)},
+  \qquad
+  u_g = u\cos\delta - v\sin\delta, \quad
+  v_g = u\sin\delta + v\cos\delta.
+\]
+
+%------------------------------------------------------------------------------
+\subsection{Rotated Latitude--Longitude (\texttt{ROTLLR})}
+\label{subsec:proj_rotllr}
+
+The rotated north pole is at (\code{plat}, \code{plon}). \code{get\_equator}
+converts it into the rotation angle $\varphi_0$ (the colatitude of the
+pole, with the sign of its hemisphere) and the longitude $\lambda_0$ of the
+point where the rotated prime meridian crosses the rotated equator. The
+private subroutines \code{geo\_to\_rotated} and \code{rotated\_to\_geo}
+rotate the unit vector of a point around the axis through the longitudes
+$\lambda_0 \pm 90^\circ$:
+\[
+  \begin{aligned}
+    \sin\varphi' &= -\sin\varphi_0\cos\varphi\cos(\lambda-\lambda_0)
+                    + \cos\varphi_0\sin\varphi, \\
+    \lambda' &= \text{atan2}\bigl(\cos\varphi\sin(\lambda-\lambda_0),\;
+                \cos\varphi_0\cos\varphi\cos(\lambda-\lambda_0)
+                + \sin\varphi_0\sin\varphi\bigr),
+  \end{aligned}
+\]
+and the inverse with $-\varphi_0$. When $|\varphi_0| \le 10^{-7}$ (pole at
+the geographic pole) the coordinates are not rotated.
+
+The grid is regular in the rotated coordinates, with
+$\Delta\varphi' = \Delta\lambda' = \Delta s/R$ in degrees:
+\[
+  \varphi' = \varphi'_1 + (j-1)\Delta\varphi', \qquad
+  \lambda' = \lambda'_1 + (i-1)\Delta\lambda',
+\]
+where $(\varphi'_1, \lambda'_1)$ (\code{rlat0}, \code{rlon0}, returned by
+\code{rl00}) are the rotated coordinates of the first point, computed from
+those of the domain centre. The domain may cross the rotated longitude
+$180^\circ$: \code{llij\_rl} takes $\lambda'$ within $180^\circ$ of the
+rotated longitude of the centre before computing $i$. The map factor is
+$m = 1/\cos\varphi'$, the factor of the $i$ direction (the grid is not
+conformal: the $j$ direction has a factor of 1).
+
+\textbf{Wind rotation.} The angle $\delta$ between the geographic and the
+rotated meridians at each point is
+\[
+  \delta = \text{atan2}\bigl(\cos\varphi_p\sin(\lambda_p - \lambda),\;
+           \cos\varphi\sin\varphi_p -
+           \sin\varphi\cos\varphi_p\cos(\lambda_p - \lambda)\bigr)
+\]
+with $(\varphi_p, \lambda_p)$ the rotated pole, and the wind is rotated as
+for \code{ROTMER}. If the rotated pole is at the geographic north pole
+(\code{plat} within $0.001^\circ$ of $90^\circ$) the rotation is skipped
+(\code{skiprot}).
+
+%------------------------------------------------------------------------------
+\subsection{Fallback Latitude--Longitude Grid}
+\label{subsec:proj_ll}
+
+For an unknown code, \code{setup\_ll} defines a regular grid in geographic
+coordinates with $\Delta\varphi = \Delta\lambda = \Delta s/R$ in degrees,
+centred as \code{ROTLLR}. The map factor is set to 1 and the winds are not
+rotated. Across a pole \code{ijll\_ll} reflects the latitude
+($180^\circ - \varphi$) and moves to the opposite meridian; the same
+reflection is applied in the rotated coordinates by \code{ijll\_rl} and
+\code{llij\_rl}.
+
+%------------------------------------------------------------------------------
+\subsection{Design Notes}
+\label{subsec:proj_design}
+
+\textbf{Procedure pointers.} The projection is chosen once, in
+\code{initialize}; afterwards the calls go directly to the routines of the
+projection through the procedure pointers. The type-bound
+\code{wind\_rotate} family selects the routine with a \code{select case}
+on the code instead, and does nothing for the projections without
+rotation.
+
+\textbf{Precomputed rotation factors.} The rotation angle depends only on
+the grid point, so $\cos$ and $\sin$ are computed once in
+\code{initialize} and the rotation of a 3-D field costs four
+multiplications per point. This is why each staggering needs its own
+projection object, and why the wind arrays must have the grid shape.
+
+\textbf{Double precision.} All the computations are done in \code{rk8},
+whatever \code{rkx}, and only the results are converted. The rotated
+latitude--longitude conversions use \code{atan2} instead of \code{acos},
+which loses precision near $\cos = \pm1$ and needs the sign of the
+longitude from a separate test.
+
+\textbf{Map factor of non-conformal grids.} RegCM uses one map factor per
+point. For \code{ROTLLR} it is the factor of the $i$ direction,
+$1/\cos\varphi'$; the $j$ direction has a factor of 1. The fallback grid
+uses 1 for both.
+
+\textbf{Numerical checks.} The projections were checked on grids of
+$61\times51$ points (and $61\times201$ for the Mercator grids) for:
+centre position; round trip \code{ijll} $\to$ \code{llij}; map factor
+against $\Delta s$ divided by the great-circle distance of neighbouring
+points; and wind rotation against the direction of the grid axes computed
+by finite differences, plus rotation followed by back rotation. The cases
+were \code{LAMCON} (north, south, tangent), \code{POLSTR} (north, south),
+\code{NORMER} (equator, $30^\circ$N), \code{ROTMER} (\code{plat} equal to
+and different from \code{clat}, south) and \code{ROTLLR} (EUR and AUS
+CORDEX poles, South America, a domain across the dateline). All agree to
+round-off, or to the accuracy of the finite differences.

@@ -313,7 +313,7 @@ module mod_projections
           end do
         end do
       case default
-        p(:,:) = 1.0_rkx
+        p(:,:) = 0.0_rkx
     end select
   end subroutine rotation_angle
 
@@ -411,8 +411,8 @@ module mod_projections
     pj%p%rlon0 = clon - ci*pj%p%dlon
     if ( pj%p%rlat0 >  deg90 )  pj%p%rlat0 =  deg180 - pj%p%rlat0
     if ( pj%p%rlat0 < -deg90 )  pj%p%rlat0 = -deg180 - pj%p%rlat0
-    if ( pj%p%rlon0 >  deg180 ) pj%p%rlon0 =  deg360 - pj%p%rlon0
-    if ( pj%p%rlon0 < -deg180 ) pj%p%rlon0 =  deg360 + pj%p%rlon0
+    if ( pj%p%rlon0 >  deg180 ) pj%p%rlon0 = pj%p%rlon0 - deg360
+    if ( pj%p%rlon0 < -deg180 ) pj%p%rlon0 = pj%p%rlon0 + deg360
   end subroutine setup_ll
 
   pure subroutine ijll_ll(pj,i,j,lat,lon)
@@ -422,8 +422,15 @@ module mod_projections
     real(rkx), intent(out) :: lat, lon
     lat = real(pj%p%rlat0 + (j-1.0_rk8) * pj%p%dlat,rkx)
     lon = real(pj%p%rlon0 + (i-1.0_rk8) * pj%p%dlon,rkx)
-    if ( lat >  90.0_rkx ) lat = 90.0_rkx - lat
-    if ( lat < -90.0_rkx ) lat = lat + 90.0_rkx
+    ! Across a pole: reflect the latitude, go to the opposite meridian
+    if ( lat >  90.0_rkx ) then
+      lat =  180.0_rkx - lat
+      lon = lon + 180.0_rkx
+    end if
+    if ( lat < -90.0_rkx ) then
+      lat = -180.0_rkx - lat
+      lon = lon + 180.0_rkx
+    end if
     if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
     if ( lon < -180.0_rkx ) lon = lon + 360.0_rkx
   end subroutine ijll_ll
@@ -453,35 +460,14 @@ module mod_projections
     pphi = degrad_r8*plat
     plam = degrad_r8*plon
     call get_equator(pphi,plam,pj%p%phi0,pj%p%lam0)
-    cphi = clat
-    clam = clon
-    if ( cphi >  deg90 )  cphi = deg90 - cphi
-    if ( cphi < -deg90 )  cphi = cphi + deg90
-    if ( clam >  deg180 ) clam = clam - deg360
-    if ( clam < -deg180 ) clam = clam + deg360
-    cphi = degrad_r8 * cphi
-    clam = degrad_r8 * clam
-    pj%p%rlat0 = asin(-cos(cphi)*sin(pj%p%phi0)*cos(clam-pj%p%lam0) + &
-                    sin(cphi)*cos(pj%p%phi0))
-    if ( abs(abs(pj%p%rlat0)-halfpi_r8) > 1.0e-7_rk8 .and. &
-         abs(pj%p%phi0) > 1.0e-7_rk8 ) then
-      pj%p%rlon0 = (sin(cphi)-cos(pj%p%phi0)*sin(pj%p%rlat0)) / &
-                 (sin(pj%p%phi0)*cos(pj%p%rlat0))
-      if ( pj%p%rlon0 < -1.0_rk8 .and. &
-           pj%p%rlon0 > -1.00001_rk8 ) pj%p%rlon0 = -1.0_rk8
-      if ( pj%p%rlon0 >  1.0_rk8 .and. &
-           pj%p%rlon0 <  1.00001_rk8 ) pj%p%rlon0 =  1.0_rk8
-      pj%p%rlon0 = acos(pj%p%rlon0)
-      if ( clam < pj%p%lam0 ) then
-        pj%p%rlon0 = -pj%p%rlon0
-      end if
-    else
-      pj%p%rlon0 = clam
-    end if
+    cphi = degrad_r8 * clat
+    clam = degrad_r8 * clon
+    call geo_to_rotated(pj%p%phi0,pj%p%lam0,cphi,clam, &
+                        pj%p%rlat0,pj%p%rlon0)
+    ! Rotated longitude of the domain centre
+    pj%p%xoff = raddeg_r8*pj%p%rlon0
     pj%p%rlat0 = raddeg_r8*pj%p%rlat0 - cj*pj%p%dlat
     pj%p%rlon0 = raddeg_r8*pj%p%rlon0 - ci*pj%p%dlon
-    if ( pj%p%rlat0 >  deg90 )  pj%p%rlat0 = deg90 - pj%p%rlat0
-    if ( pj%p%rlat0 < -deg90 )  pj%p%rlat0 = pj%p%rlat0 + deg90
     if ( pj%p%rlon0 >  deg180 ) pj%p%rlon0 = pj%p%rlon0 - deg360
     if ( pj%p%rlon0 < -deg180 ) pj%p%rlon0 = pj%p%rlon0 + deg360
     if ( luvrot ) then
@@ -511,42 +497,26 @@ module mod_projections
     class(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: i, j
     real(rkx), intent(out) :: lat, lon
-    real(rk8) :: phi, lam
+    real(rk8) :: phi, lam, glat, glon
     phi = pj%p%rlat0 + (j-1.0_rk8) * pj%p%dlat
     lam = pj%p%rlon0 + (i-1.0_rk8) * pj%p%dlon
-    if ( phi >  deg90 )  phi = deg90 - phi
-    if ( phi < -deg90 )  phi = phi + deg90
-    if ( lam >  deg180 ) lam = lam - deg360
-    if ( lam < -deg180 ) lam = lam + deg360
+    ! Across the rotated pole: reflect the latitude, opposite meridian
+    if ( phi >  deg90 ) then
+      phi =  deg180 - phi
+      lam = lam + deg180
+    end if
+    if ( phi < -deg90 ) then
+      phi = -deg180 - phi
+      lam = lam + deg180
+    end if
     phi = degrad_r8 * phi
     lam = degrad_r8 * lam
-    if ( abs(pj%p%phi0) > 1.0e-7_rk8 ) then
-      lat = real(asin(cos(phi)*sin(pj%p%phi0)*cos(lam) + &
-                 sin(phi)*cos(pj%p%phi0)),rkx)
-      if ( abs(abs(lat)-halfpi_r8) > 1.0e-7_rk8 ) then
-        lon = real((-sin(phi)*sin(pj%p%phi0) +  &
-                   cos(pj%p%phi0)*cos(lam)*cos(phi))/cos(lat),rkx)
-        if ( lon < -1.0_rk8 .and. lon > -1.00001_rk8 ) lon = -1.0_rk8
-        if ( lon >  1.0_rk8 .and. lon <  1.00001_rk8 ) lon =  1.0_rk8
-        if ( lam < 0.0_rk8 ) then
-          lon = real(pj%p%lam0 - acos(lon),rkx)
-        else
-          lon = real(pj%p%lam0 + acos(lon),rkx)
-        end if
-      else
-        lon = real(lam,rkx)
-      end if
-    else
-      lat = real(asin(cos(phi)*sin(pj%p%phi0)*cos(lam) + &
-                 sin(phi)*cos(pj%p%phi0)),rkx)
-      lon = real(lam,rkx)
-    end if
-    lat = real(raddeg_r8*lat)
-    lon = real(raddeg_r8*lon)
-    if ( lat >  90.0_rkx ) lat = 90.0_rkx - lat
-    if ( lat < -90.0_rkx ) lat = lat + 90.0_rkx
-    if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
-    if ( lon < -180.0_rkx ) lon = lon + 360.0_rkx
+    call rotated_to_geo(pj%p%phi0,pj%p%lam0,phi,lam,glat,glon)
+    glon = raddeg_r8*glon
+    if ( glon >  deg180 ) glon = glon - deg360
+    if ( glon < -deg180 ) glon = glon + deg360
+    lat = real(raddeg_r8*glat,rkx)
+    lon = real(glon,rkx)
   end subroutine ijll_rl
 
   pure subroutine llij_rl(pj,lat,lon,i,j)
@@ -557,31 +527,73 @@ module mod_projections
     real(rk8) :: rlat, rlon, phi, lam
     phi = lat
     lam = lon
-    if ( lam >  deg180 ) lam = lam - deg360
-    if ( lam < -deg180 ) lam = lam + deg360
-    if ( phi >  deg90 )  phi = deg90 - phi
-    if ( phi < -deg90 )  phi = phi + deg90
+    if ( phi >  deg90 ) then
+      phi =  deg180 - phi
+      lam = lam + deg180
+    end if
+    if ( phi < -deg90 ) then
+      phi = -deg180 - phi
+      lam = lam + deg180
+    end if
     phi = degrad_r8 * phi
     lam = degrad_r8 * lam
-    rlat = asin(-cos(phi)*sin(pj%p%phi0)*cos(lam-pj%p%lam0) + &
-           sin(phi)*cos(pj%p%phi0))
-    if ( abs(abs(rlat)-halfpi_r8) > 1.0e-7_rk8 .and. &
-         abs(pj%p%phi0) > 1.0e-7_rk8 ) then
-      rlon = (sin(phi)-cos(pj%p%phi0)*sin(rlat))/(sin(pj%p%phi0)*cos(rlat))
-      if ( rlon < -1.0_rk8 .and. rlon > -1.00001_rk8 ) rlon = -1.0_rk8
-      if ( rlon >  1.0_rk8 .and. rlon <  1.00001_rk8 ) rlon =  1.0_rk8
-      rlon = acos(rlon)
-      if ( lam < pj%p%lam0 ) then
-        rlon = -rlon
-      end if
-    else
-      rlon = lam
-    end if
+    call geo_to_rotated(pj%p%phi0,pj%p%lam0,phi,lam,rlat,rlon)
     rlon = raddeg_r8*rlon
     rlat = raddeg_r8*rlat
+    ! The domain may cross the rotated longitude 180: take the rotated
+    ! longitude within 180 degrees of the domain centre
+    rlon = pj%p%xoff + modulo(rlon - pj%p%xoff + deg180, deg360) - deg180
     i = real(( rlon - pj%p%rlon0 ) / pj%p%dlon + 1.0_rk8,rkx)
     j = real(( rlat - pj%p%rlat0 ) / pj%p%dlat + 1.0_rk8,rkx)
   end subroutine llij_rl
+
+  !
+  ! Rotation between geographic and rotated coordinates (radians). The
+  ! rotated frame is the geographic one rotated by phi0 around the axis
+  ! through the longitudes lam0 +/- 90. With phi0 = 0 (pole at the
+  ! geographic pole) the coordinates are the same.
+  !
+  pure subroutine geo_to_rotated(phi0,lam0,phi,lam,rlat,rlon)
+    implicit none
+    real(rk8), intent(in) :: phi0, lam0, phi, lam
+    real(rk8), intent(out) :: rlat, rlon
+    real(rk8) :: x, y, z
+    if ( abs(phi0) <= 1.0e-7_rk8 ) then
+      rlat = phi
+      rlon = lam
+      return
+    end if
+    x = cos(phi0)*cos(phi)*cos(lam-lam0) + sin(phi0)*sin(phi)
+    y = cos(phi)*sin(lam-lam0)
+    z = -sin(phi0)*cos(phi)*cos(lam-lam0) + cos(phi0)*sin(phi)
+    rlat = asin(max(-1.0_rk8,min(1.0_rk8,z)))
+    if ( abs(x) < dlowval_r8 .and. abs(y) < dlowval_r8 ) then
+      rlon = 0.0_rk8
+    else
+      rlon = atan2(y,x)
+    end if
+  end subroutine geo_to_rotated
+
+  pure subroutine rotated_to_geo(phi0,lam0,rlat,rlon,phi,lam)
+    implicit none
+    real(rk8), intent(in) :: phi0, lam0, rlat, rlon
+    real(rk8), intent(out) :: phi, lam
+    real(rk8) :: x, y, z
+    if ( abs(phi0) <= 1.0e-7_rk8 ) then
+      phi = rlat
+      lam = rlon
+      return
+    end if
+    x = cos(phi0)*cos(rlat)*cos(rlon) - sin(phi0)*sin(rlat)
+    y = cos(rlat)*sin(rlon)
+    z = sin(phi0)*cos(rlat)*cos(rlon) + cos(phi0)*sin(rlat)
+    phi = asin(max(-1.0_rk8,min(1.0_rk8,z)))
+    if ( abs(x) < dlowval_r8 .and. abs(y) < dlowval_r8 ) then
+      lam = lam0
+    else
+      lam = lam0 + atan2(y,x)
+    end if
+  end subroutine rotated_to_geo
 
   subroutine setup_lcc(pj,clon,clat,ci,cj,ds,slon,trlat1,trlat2,luvrot)
     implicit none
@@ -798,6 +810,7 @@ module mod_projections
     real(rk8) :: clain
 
     pj%p%stdlon = clon
+    pj%p%stdlat = clat
     clain = cos(clat*degrad_r8)
     pj%p%dlon = ds / (earthrad_r8 * clain)
     pj%p%rsw = 0.0_rk8
@@ -846,8 +859,6 @@ module mod_projections
     integer(ik4) :: i, j
     pj%p%dlon = ds*raddeg_r8/earthrad_r8
     pj%p%dlat = ds*raddeg_r8/earthrad_r8
-    pj%p%xoff = clon - plon
-    pj%p%yoff = clat - plat
     pj%p%polei = ci
     pj%p%polej = cj
     pphi = deg90 - plat
@@ -857,6 +868,14 @@ module mod_projections
     zphipol = degrad_r8*pphi
     pj%p%zsinpol = sin(zphipol)
     pj%p%zcospol = cos(zphipol)
+    ! Rotated Mercator coordinates of the domain centre
+    pj%p%xoff = 0.0_rk8
+    pj%p%yoff = 0.0_rk8
+    lat = real(clat,rkx)
+    lon = real(clon,rkx)
+    call llij_rc(pj,lat,lon,ri,rj)
+    pj%p%xoff = (ri-ci)*pj%p%dlon
+    pj%p%yoff = (rj-cj)*pj%p%dlat
     if ( luvrot ) then
       if ( plat > 0.0_rk8 ) then
         pphi = (deg90 - plat) * degrad_r8
@@ -1023,7 +1042,7 @@ module mod_projections
     implicit none
     type(regcm_projection), intent(in) :: pj
     real(rkx), intent(in) :: lat
-    xmap = real(1.0_rk8/cos(lat*degrad_r8),rkx)
+    xmap = real(cos(pj%p%stdlat*degrad_r8)/cos(lat*degrad_r8),rkx)
   end function fac_mc
 
   pure elemental real(rkx) function fac_rc(pj,xlat,xlon) result(xmap)
@@ -1033,8 +1052,9 @@ module mod_projections
     real(rkx) :: ri, rj
     real(rk8) :: yr
     call llij_rc(pj,xlat,xlon,ri,rj)
-    yr = pj%p%yoff + (rj-pj%p%polej)*pj%p%dlon
-    xmap = real(1.0_rk8/cos(yr*degrad_r8),rkx)
+    yr = pj%p%yoff + (rj-pj%p%polej)*pj%p%dlat
+    yr = 2.0_rk8*atan(exp(degrad_r8*yr)) - halfpi_r8
+    xmap = real(1.0_rk8/cos(yr),rkx)
   end function fac_rc
 
   pure elemental real(rk8) function uvrot_lc(pj,lon) result(alpha)
@@ -1056,7 +1076,7 @@ module mod_projections
     deltalon = pj%p%stdlon - lon
     if ( deltalon > +deg180 ) deltalon = deltalon - deg360
     if ( deltalon < -deg180 ) deltalon = deltalon + deg360
-    alpha = real(deltalon*degrad_r8*pj%p%hemi,rkx)
+    alpha = deltalon*degrad_r8
   end function uvrot_ps
 
   pure subroutine uvrot_rc(pj,lat,lon,cosdel,sindel)
