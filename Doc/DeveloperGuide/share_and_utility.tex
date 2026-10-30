@@ -2828,20 +2828,6 @@ whose purpose is to make day 14 the middle of February in the Gregorian
 calendar. Only the addition of months uses it (see the table of the
 \code{+} and \code{-} operators).
 
-\textbf{Corrections.} The following were corrected in October 2026, and
-are checked by \code{Testing/share/test\_date.F90}: the subtraction of
-seconds added them, and that of minutes and hours gave a negative second
-of the day when the result was on a previous day from a time other than
-midnight; the subtraction of months could give a day beyond the end of
-the month (31 March $-$ 1 month was 3 March); the addition of a negative
-number of months gave month 0 instead of going back to December. No code
-outside the module subtracted seconds, minutes or hours, and
-\code{prevmon} is applied to dates up to the middle of the month, so the
-model results do not change. The unused recursive day helpers
-(\code{add\_days\_leap}, \code{sub\_days\_leap}, \code{add\_days\_noleap},
-\code{sub\_days\_noleap}, the last two inconsistent with the first two) and
-\code{adjustpm}, \code{adjustmp} were removed.
-
 \textbf{CF-Conventions compatibility.} The \code{timeval2date},
 \code{timeval2ym}, and \code{parse\_timestring} routines ensure that any
 time axis read from a CF-compliant NetCDF file can be decoded directly into
@@ -5358,28 +5344,6 @@ $a = (M_{k+1}-M_k)/(6\Delta x_k)$, $b = M_k/2$ and
 $c = (y_{k+1}-y_k)/\Delta x_k - \Delta x_k(M_{k+1}+2M_k)/6$, keeping the
 coefficients while successive points fall in the same interval.
 
-\subsection{Design Notes}
-
-\textbf{Corrections.} The following were corrected in October 2026, and
-are checked by \code{Testing/share/test\_spline.F90} (a spline with the
-exact end conditions reproduces a cubic polynomial):
-\begin{itemize}
-  \item \code{spline1d} multiplied the right-hand side of the system by
-        $1/6$ instead of 6, so the second derivatives were 36 times too
-        small and the spline nearly piecewise linear. With three points, as
-        in \code{exponential\_nudging}, the nudging profile changes by up to
-        2\,\%. For more than three points the elimination loop also read one
-        element beyond the end of the input arrays;
-  \item the Janjic \code{spline} used $0.1666667$ for $1/6$, an error of
-        about $4\cdot10^{-6}$ on a cubic; it now uses the exact value;
-  \item in the Janjic \code{spline}, a point above the last input point
-        followed by one in the first interval reused coefficients that had
-        never been computed;
-  \item \code{splie2} and \code{splin2} (two-dimensional splines) were
-        removed: they were not used, and \code{splin2} wrote to an array it
-        never allocated.
-\end{itemize}
-
 %==============================================================================
 \section{Vertical Interpolation --- \texttt{mod\_vertint.F90}}
 \label{sec:vertint}
@@ -5872,13 +5836,6 @@ overshoots of the barycentric weights and of the filter. The 1-D
 interpolation is neither smoothed nor (since October 2026) limited on
 missing points.
 
-\textbf{Corrections.} The following were corrected in October 2026: the
-progress dots of the constructors divided by zero for targets with fewer
-than 10 rows or points; the 1-D interpolation replaced missing values with
-the source minimum (or $10^{20}$); \code{h\_interpolate\_sum} averaged the
-missing values ($-9999$) of the source into the result; the land use class
-of a target without source points was the lowest class instead of missing.
-
 \textbf{Numerical checks.} From a global $1^\circ$ grid to a
 $40\times30$ curvilinear grid: a constant field is reproduced exactly; a
 field $280 + 20\cos\varphi\cos 2\lambda$~K is interpolated within
@@ -6015,10 +5972,6 @@ argument, and \code{memory\_destroy} no pointer at all; any other pointer
 to the same array (from \code{assignpnt}, or a pointer assignment) is left
 dangling. A pointer obtained from \code{assignpnt} must not be passed to
 \code{relmem}: it is not found in the pool and nothing is released.
-
-\textbf{Corrections.} The dead code of the list removal (a branch for the
-last element, which is never a pool array) and the commented-out
-\code{memshare} interface were removed in October 2026.
 
 \textbf{Testing.} \code{Testing/share/test\_memutil.F90} checks the bounds
 and initial values, the release of the first, a middle and the last
@@ -6169,30 +6122,6 @@ function \code{nc\_get\_att\_string}, copies it, and frees the C string;
 \code{get\_attribute} uses it for text attributes. The C variable ids are
 those of Fortran minus one, so the global id 0 becomes \code{NC\_GLOBAL}
 ($-1$).
-
-\textbf{Corrections.} The following were corrected in October 2026, and
-are checked by \code{Testing/share/test\_nchelper.F90} (a file written and
-read back):
-\begin{itemize}
-  \item \code{get\_attribute} on a global string attribute passed an
-        undefined variable id to the C library and stopped with
-        \emph{variable not found}; it now uses
-        \code{nf90\_myget\_att\_text}, which also frees the string it
-        reads;
-  \item \code{ncd\_inqdim} with \code{lexist} returned before setting
-        \code{dlen};
-  \item \code{define\_horizontal\_coord} used the model grid size and
-        distance for any dimension, so the subgrid coordinates of
-        \code{mksurfdata} spanned $n_\text{sg}$ times the domain;
-  \item the \code{formula\_terms} of the $\sigma$ coordinate were written
-        as \code{kz: sigma} instead of the CF form \code{sigma: kz};
-  \item two error messages named the wrong attribute or variable, and
-        the definitions of \code{a} and \code{b} were not checked.
-\end{itemize}
-In \code{Main/mod\_ncio.F90} the parallel reading of the domain file took
-the soil temperature initialisation flag from the
-\code{initialized\_soil\_moisture} attribute; it now reads
-\code{initialized\_soil\_temperature}.
 
 %==============================================================================
 \section{Output Streams --- \texttt{mod\_ncstream\_types.F90} and
@@ -6409,29 +6338,6 @@ writes the buffer. With OpenACC the buffer is page-locked host memory, and
 the copy is done on the device. With \code{BITSHAVE} the single precision
 values are truncated to 15 bits of mantissa before writing, which improves
 the compression.
-
-\textbf{Corrections.} The following were corrected in October 2026, and
-are checked by \code{Testing/share/test\_ncstream.F90} (a file written and
-read back with the netCDF library):
-\begin{itemize}
-  \item the \code{\_FillValue} of integer variables was written as a single
-        precision attribute, which the library rejects;
-  \item the time bounds were triggered by a test of the characters of the
-        first nine of \code{cell\_methods} (\code{verify}), not of the
-        words; they now follow the presence of \code{time: mean},
-        \code{max}, \code{min} or \code{sum};
-  \item the name of a variable in an error message was taken from an
-        absent optional argument for global attributes;
-  \item the input streams (\code{instream\_*}, \code{nc\_input\_stream}),
-        about 1700 lines, were removed: they were not used, and their
-        record search was wrong for files with more than two records;
-  \item an example program under \code{TESTNCSTREAM}, which no longer
-        compiled, and the unused \code{bitshave\_nb} were removed.
-\end{itemize}
-In \code{PreProc/ICBC/mod\_write.F90} the CLM forcing file of
-\code{clmbc} was enabled after the writes of its static fields
-(coordinates, mask, topography, cell bounds), which were therefore not
-written; the stream is now enabled first.
 
 \textbf{Notes on the OpenACC path} (not changed): with both
 \code{OPENACC} and \code{BITSHAVE} defined, the device pointer of the
@@ -6729,26 +6635,6 @@ mod_stdatm
 \end{itemize}
 
 \subsection{Design Notes}
-
-\textbf{Corrections.} The following were corrected in October 2026, and
-are checked by \code{Testing/share/test\_stdatm.F90}:
-\begin{itemize}
-  \item in the mid-latitude and subarctic summer atmospheres the air
-        density of the five levels from 30 to 50~km was a copy of the
-        pressure, about 30\,\% below $p/(R_dT)$: the water vapour and ozone
-        mixing ratios that RRTMG computes above the model top were about
-        45\,\% too high in summer. The values are now $p/(R_dT)$, as in the
-        original tables;
-  \item the subarctic summer water vapour at 8~km was 0.013 instead of
-        0.13~g\,m$^{-3}$;
-  \item the season weight did not depend on the hemisphere: the southern
-        hemisphere had its winter profiles in January;
-  \item without season, the summer profiles above 45° were interpolated
-        with the level weight of the winter profiles;
-  \item the unused \code{stdlrate} (a lapse rate from the profiles, with
-        the tropical and mid-latitude weights exchanged) and
-        \code{find\_zlev} were removed.
-\end{itemize}
 
 \textbf{Testing.} The test checks the tropical and polar values, the
 continuity at 45°, opposite seasons in the two hemispheres, the density
