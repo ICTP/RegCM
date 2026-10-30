@@ -1529,7 +1529,7 @@ module mod_ncio
     call openfile_withname(clmbcname,clmbcin)
     clmbcrec = 1
     clmbcnrec = 0
-    call check_domain(clmbcin,.true.)
+    call check_domain(clmbcin,.true.,lsurface=.true.)
     istatus = nf90_inq_dimid(clmbcin, 'time', idimid)
     call check_ok(__FILE__,__LINE__,'Dimension time miss', 'SFBC FILE')
     istatus = nf90_inquire_dimension(clmbcin, idimid, len=clmbcnrec)
@@ -1583,7 +1583,7 @@ module mod_ncio
     somname = trim(dirglob)//pthsep//trim(domname)//'_SOM.'//ctime//'.nc'
     call outstream_netcdf_lock()
     call openfile_withname(somname,somin)
-    call check_domain(somin,.true.,.true.)
+    call check_domain(somin,.true.,.true.,lsurface=.true.)
     istatus = nf90_inq_varid(somin, 'qflx', som_ivar(1))
     call check_ok(__FILE__,__LINE__,'variable qflx miss', 'SOM FILE')
     call outstream_netcdf_unlock()

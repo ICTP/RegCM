@@ -6603,13 +6603,15 @@ mod_domain
   \endhead
   \bottomrule
   \endfoot
-  \code{check\_domain(ncid [, lmod, linternal, lsubgrid])} &
+  \code{check\_domain(ncid [, lmod, linternal, lsubgrid, lsurface])} &
     Stops the program if the file does not match the namelist (see
     below). \code{lmod}: the file has the $kz$ half levels of the model
     output and ICBC, not the $kz+1$ of the domain; \code{linternal}: the
     horizontal dimensions are the internal points, $jx-3$ and $iy-3$ (not
     for a periodic direction); \code{lsubgrid}: they are multiplied by
-    $n_\text{sg}$ and the grid distance divided by it. \\
+    $n_\text{sg}$ and the grid distance divided by it; \code{lsurface}:
+    a file of surface fields (CLM forcing, slab ocean), which only needs
+    the vertical coordinate of the namelist core. \\
   \code{read\_domain(ncid)} &
     Checks the file and reads all its fields into the public
     \code{mddom\_io} (type \code{domain\_io}), allocated with
@@ -6630,6 +6632,9 @@ mod_domain
 
 \subsection{What \texttt{check\_domain} Compares}
 
+The dynamical core (global attribute \code{dynamical\_core}) with
+\code{idynamic}: equal, or, with \code{lsurface}, both $\sigma$ cores (1
+and 2) or both MOLOCH (3); a file without the attribute gives a warning.
 The dimensions \code{jx}, \code{iy}, \code{kz}; \code{ptop} (stored in
 hPa, the namelist in cb) for the hydrostatic and non-hydrostatic cores,
 while MOLOCH sets \code{ptop} to zero; the \code{projection}, the grid
@@ -6650,6 +6655,7 @@ MOLOCH and a subgrid, and reads them back with the three forms of
 \textbf{Changes.} In October 2026 the unused
 \code{read\_reference\_state} was removed (it passed its optional arguments
 on without checking that they were present), and the MOLOCH parameters
-are compared in the working precision as the others. The dynamical core of
-the file (global attribute \code{dynamical\_core}) is not compared with the
-namelist: a domain of another core fails later, on a missing variable.
+are compared in the working precision as the others. The check of the
+dynamical core was added: before, a domain or ICBC file of another core
+failed later on a missing variable, or, between the two $\sigma$ cores,
+was accepted.

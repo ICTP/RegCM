@@ -360,15 +360,18 @@ module mod_domain
     call getmem(mddom_io%hlake,1,jx,1,iy,'domain:hlake')
   end subroutine allocate_domain
 
-  subroutine check_domain(ncid,lmod,linternal,lsubgrid)
+  subroutine check_domain(ncid,lmod,linternal,lsubgrid,lsurface)
     implicit none
     integer(ik4), intent(in) :: ncid
     logical, intent(in), optional :: lmod, linternal, lsubgrid
+    ! Surface fields only: the file must be for the same vertical
+    ! coordinate (sigma or MOLOCH), not for the same dynamical core
+    logical, intent(in), optional :: lsurface
     integer(ik4) :: istatus
     integer(ik4) :: idimid, ivarid
-    integer(ik4) :: iyy, jxx, kzz, kcheck, jcheck, icheck
+    integer(ik4) :: iyy, jxx, kzz, kcheck, jcheck, icheck, idyn
     character(len=6) :: proj
-    logical :: lh, lb, ls
+    logical :: lh, lb, ls, lsfc
     real(rkx) :: dsx, iclat, iclon, ptsp
     real(rkx) :: moloch_ztop, moloch_hscale, moloch_a0
     real(rkx), dimension(2) :: icntr
@@ -379,6 +382,22 @@ module mod_domain
     if ( present(lmod) ) lh = lmod
     if ( present(linternal) ) lb = linternal
     if ( present(lsubgrid) ) ls = lsubgrid
+    lsfc = .false.
+    if ( present(lsurface) ) lsfc = lsurface
+    istatus = nf90_get_att(ncid, nf90_global, 'dynamical_core', idyn)
+    if ( istatus /= nf90_noerr ) then
+      write(stderr,*) 'WARNING: NO DYNAMICAL CORE IN FILE, NOT CHECKED'
+    else if ( lsfc ) then
+      if ( (idyn == 3) .neqv. (idynamic == 3) ) then
+        write(stderr,*) 'FILE     : ', idyn
+        write(stderr,*) 'NAMELIST : ', idynamic
+        call die('Mismatch: vertical coordinate of file /= namelist')
+      end if
+    else if ( idyn /= idynamic ) then
+      write(stderr,*) 'FILE     : ', idyn
+      write(stderr,*) 'NAMELIST : ', idynamic
+      call die('Mismatch: dynamical core in file /= idynamic in namelist')
+    end if
     istatus = nf90_inq_dimid(ncid, 'jx', idimid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error search dimension JX')

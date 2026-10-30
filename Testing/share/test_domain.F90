@@ -15,8 +15,9 @@
 
 ! Unit test of Share/mod_domain.F90: domain files are written with
 ! mod_ncstream as terrain writes them (hydrostatic core, MOLOCH, subgrid)
-! in the current directory, checked with check_domain and read back with
-! the three forms of read_domain.
+! in the current directory, checked with check_domain (also as a file of
+! surface fields for another sigma core) and read back with the three
+! forms of read_domain.
 
 program test_domain
   use netcdf
@@ -121,6 +122,11 @@ program test_domain
   call check(all(rlat == r4(xlat)) .and. all(rht == r4(topo)) .and. &
              all(rdlat == r4(xlat)) .and. all(rbnds == r4(bnds)), &
     'read_domain with optional arrays')
+  ! A file of surface fields only needs the same vertical coordinate.
+  idynamic = 2
+  call check_domain(ncid,lsurface=.true.)
+  call check(.true.,'surface file of the hydrostatic core, idynamic = 2')
+  idynamic = 1
   call closefile(ncid)
 
   ! MOLOCH: staggered u and v points, no ptop.
