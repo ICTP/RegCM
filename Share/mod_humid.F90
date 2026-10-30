@@ -24,7 +24,6 @@ module mod_humid
   private
 
   interface mxr2rh
-    module procedure mxr2rh
     module procedure mxr2rh_o_double
     module procedure mxr2rh_o_single
     module procedure mxr2rh_o_double_nonhydro
@@ -42,12 +41,11 @@ module mod_humid
     module procedure rh2mxr_p1
   end interface rh2mxr
 
-  public :: mxr2rh, rh2mxr
+  public :: mxr2rh, rh2mxr, rh2mxr_z
   public :: sph2mxr, mxr2sph
 
   contains
 
-#include <sig2p.inc>
 #include <pfwsat.inc>
 
   subroutine sph2mxr_double(q,ni,nj,nk)
@@ -80,25 +78,6 @@ module mod_humid
     end do
   end subroutine mxr2sph
 
-  subroutine mxr2rh(t,q,ps,ptop,sigma,ni,nj,nk)
-    implicit none
-    integer(ik4), intent(in) :: ni, nj, nk
-    real(rkx), intent(in) :: ps, ptop
-    real(rkx), intent(in), dimension(ni,nj,nk) :: t
-    real(rkx), intent(inout), dimension(ni,nj,nk) :: q
-    real(rkx), intent(in), dimension(nk) :: sigma
-    real(rkx) :: p, qs
-    integer(ik4) :: i, j, k
-    !
-    ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
-    !
-    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk )
-      p = sig2p(ps,sigma(k),ptop)
-      qs = pfwsat(t(i,j,k),p)
-      q(i,j,k) = max(q(i,j,k)/qs,d_zero)
-    end do
-
-  end subroutine mxr2rh
 
   subroutine mxr2rh_o_double(t,q,ps,sigma,ptop,im,jm,km)
     implicit none
@@ -239,6 +218,8 @@ module mod_humid
     integer(ik4) :: i, j, k
     !
     ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
+    ! ON SIGMA LEVELS: PS IS PSTAR = SURFACE PRESSURE - PTOP, PS AND PTOP
+    ! IN KPA (CBAR).
     !
     do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk )
       p = (ptop + sigma(k)*ps(i,j))*d_1000
@@ -247,6 +228,37 @@ module mod_humid
     end do
 
   end subroutine rh2mxr_p3d
+
+  subroutine rh2mxr_z(t,q,z,ps,ni,nj,nk)
+    implicit none
+    integer(ik4), intent(in) :: ni, nj, nk
+    real(rkx), intent(in), dimension(ni,nj) :: ps
+    real(rkx), intent(in), dimension(ni,nj,nk) :: t, z
+    real(rkx), intent(inout), dimension(ni,nj,nk) :: q
+    real(rkx) :: qs
+    real(rkx), dimension(nk) :: p
+    integer(ik4) :: i, j, k
+    !
+    ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
+    ! ON HEIGHT LEVELS (MOLOCH): Z IS THE HEIGHT ABOVE THE SURFACE, ORDERED
+    ! FROM THE TOP, PS THE SURFACE PRESSURE IN KPA (CBAR). THE PRESSURE OF
+    ! THE LEVELS IS INTEGRATED HYDROSTATICALLY FROM THE SURFACE WITH THE
+    ! MEAN LAYER TEMPERATURE.
+    !
+    do j = 1, nj
+      do i = 1, ni
+        p(nk) = ps(i,j)*d_1000*exp(-govr*z(i,j,nk)/t(i,j,nk))
+        do k = nk-1, 1, -1
+          p(k) = p(k+1)*exp(-govr*(z(i,j,k)-z(i,j,k+1)) / &
+                       (d_half*(t(i,j,k)+t(i,j,k+1))))
+        end do
+        do k = 1, nk
+          qs = pfwsat(t(i,j,k),p(k))
+          q(i,j,k) = max(q(i,j,k)*qs,d_zero)
+        end do
+      end do
+    end do
+  end subroutine rh2mxr_z
 
 end module mod_humid
 

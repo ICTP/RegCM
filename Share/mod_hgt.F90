@@ -54,11 +54,10 @@ module mod_hgt
     module procedure htsig_3
   end interface htsig
 
-  public :: hydrost, nonhydrost, mslp2ps
+  public :: hydrost, nonhydrost
   public :: height, height_o
   public :: htsig, htsig_o
   public :: psig, psig1, mslp, gs_filter
-  public :: crc_zeta_from_p, crc_p_from_zeta
   public :: p2pai, pai2p
 
   contains
@@ -80,6 +79,10 @@ module mod_hgt
     ! ROUTINE TO COMPUTE HEIGHT USING THE HYDROSTATIC RELATION.
     ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
     ! HEIGHT IS COMPUTED IN THE RCM MODEL.
+    !   PS IS PSTAR = SURFACE PRESSURE - PTOP: THE PRESSURE ON THE
+    !   SIGMA LEVEL K IS SIGMAH(K)*PS + PTOP.
+    !   THE TEMPERATURE OF A LAYER IS THE MEAN OF THE TWO LEVELS,
+    !   WEIGHTED WITH THEIR SIGMA THICKNESS.
     !
     sigmaf(1) = d_zero
     sigmaf(nk+1) = d_one
@@ -89,10 +92,6 @@ module mod_hgt
     do k = 1, nk
       dsigma(k) = sigmaf(k+1) - sigmaf(k)
     end do
-    !
-    ! SET BOUNDARY VALUES TO ZERO AT ALL LEVELS SINCE THE HEIGHT IS
-    ! DEFINED AT CROSS POINTS AND AT HALF LEVELS.
-    !
     do concurrent ( j = 1:nj, i = 1:ni )
       pf = ptop/ps(i,j)
       h(i,j,nk) = topo(i,j) + rovg*t(i,j,nk)*log((d_one+pf)/(sigmah(nk)+pf))
@@ -164,6 +163,8 @@ module mod_hgt
     ! ROUTINE TO COMPUTE HEIGHT FOR THE NON-HYDROSTATIC CORE
     ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
     ! HEIGHT IS COMPUTED IN THE RCM MODEL.
+    ! SAME AS NONHYDROST_DOUBLE (DOUBLE PRECISION, DESPITE THE NAME),
+    ! FOR ARRAYS WITH BOUNDS I1:I2, J1:J2.
     !
     do concurrent ( i = i1:i2, j = j1:j2 )
       h(i,j,nk) = topo(i,j) + rovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
@@ -190,20 +191,19 @@ module mod_hgt
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
-    !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.
-    !        PS = SURFACE PRESSURE
-    !        PTOP = MODEL TOP PRESSURE.
-    !        SIG = SIGMA LEVELS.
+    !        H, T AND P3D ARE HEIGHT, TEMPERATURE AND PRESSURE ON THE
+    !        MODEL LEVELS, ORDERED FROM THE TOP OR FROM THE BOTTOM.
+    !        PS = SURFACE PRESSURE (-9999 FOR MISSING), HT = SURFACE
+    !        HEIGHT.
     !        P = PRESSURE LEVELS DESIRED.
     !     ON OUTPUT:
-    !        ALL FIELDS EXCEPT H ARE UNCHANGED.
-    !        H HAS HEIGHT FIELDS AT KP PRESSURE LEVELS.
+    !        HP HAS THE HEIGHT AT THE KP PRESSURE LEVELS.
     !
-    !  FOR UPWARD EXTRAPOLATION, T IS CONSIDERED TO HAVE 0 VERITCAL DERIV.
-    !  FOR DOWNWARD EXTRAPOLATION, T HAS LAPSE RATE OF TLAPSE (K/KM)
-    !     AND EXTRAPOLATION IS DONE FROM THE LOWEST SIGMA LEVEL ABOVE
-    !     THE BOUNDARY LAYER (TOP ARBITRARILY TAKEN AT SIGMA = BLTOP).
-    !     EQUATION USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
+    !  ABOVE THE TOP LEVEL, T IS CONSIDERED TO HAVE 0 VERTICAL DERIV.
+    !  BETWEEN THE LOWEST LEVEL AND THE SURFACE, T IS THE LOWEST LEVEL T.
+    !  BELOW THE SURFACE, T HAS THE LAPSE RATE LRATE FROM THE SURFACE,
+    !     STARTING FROM THE MEAN T OF THE TWO LOWEST LEVELS. EQUATION
+    !     USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
@@ -284,19 +284,20 @@ module mod_hgt
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
-    !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.
-    !        PSTAR = SURFACE PRESSURE - MODEL TOP PRESSURE.
-    !        SIG = SIGMA LEVELS.
+    !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY,
+    !        ORDERED FROM THE TOP.
+    !        PS = SURFACE PRESSURE, HT = SURFACE HEIGHT.
+    !        SIG = SIGMA LEVELS, PTOP = MODEL TOP PRESSURE: THE PRESSURE
+    !        OF LEVEL K IS SIG(K)*(PS-PTOP)+PTOP.
     !        P = PRESSURE LEVELS DESIRED.
     !     ON OUTPUT:
-    !        ALL FIELDS EXCEPT H ARE UNCHANGED.
-    !        H HAS HEIGHT FIELDS AT KP PRESSURE LEVELS.
+    !        HP HAS THE HEIGHT AT THE KP PRESSURE LEVELS.
     !
-    !  FOR UPWARD EXTRAPOLATION, T IS CONSIDERED TO HAVE 0 VERITCAL DERIV.
-    !  FOR DOWNWARD EXTRAPOLATION, T HAS LAPSE RATE OF TLAPSE (K/KM)
-    !     AND EXTRAPOLATION IS DONE FROM THE LOWEST SIGMA LEVEL ABOVE
-    !     THE BOUNDARY LAYER (TOP ARBITRARILY TAKEN AT SIGMA = BLTOP).
-    !     EQUATION USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
+    !  ABOVE THE TOP LEVEL, T IS CONSIDERED TO HAVE 0 VERTICAL DERIV.
+    !  BETWEEN THE LOWEST LEVEL AND THE SURFACE, T IS THE LOWEST LEVEL T.
+    !  BELOW THE SURFACE, T HAS THE LAPSE RATE LRATE FROM THE SURFACE,
+    !     STARTING FROM THE MEAN T OF THE TWO LOWEST LEVELS. EQUATION
+    !     USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
@@ -355,19 +356,18 @@ module mod_hgt
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
-    !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.
-    !        PSTAR = SURFACE PRESSURE - MODEL TOP PRESSURE.
-    !        SIG = SIGMA LEVELS.
+    !        H, T AND P3 ARE HEIGHT, TEMPERATURE AND PRESSURE ON THE
+    !        MODEL LEVELS, ORDERED FROM THE TOP.
+    !        PS = SURFACE PRESSURE, HT = SURFACE HEIGHT.
     !        P = PRESSURE LEVELS DESIRED.
     !     ON OUTPUT:
-    !        ALL FIELDS EXCEPT H ARE UNCHANGED.
-    !        H HAS HEIGHT FIELDS AT KP PRESSURE LEVELS.
+    !        HP HAS THE HEIGHT AT THE KP PRESSURE LEVELS.
     !
-    !  FOR UPWARD EXTRAPOLATION, T IS CONSIDERED TO HAVE 0 VERITCAL DERIV.
-    !  FOR DOWNWARD EXTRAPOLATION, T HAS LAPSE RATE OF TLAPSE (K/KM)
-    !     AND EXTRAPOLATION IS DONE FROM THE LOWEST SIGMA LEVEL ABOVE
-    !     THE BOUNDARY LAYER (TOP ARBITRARILY TAKEN AT SIGMA = BLTOP).
-    !     EQUATION USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
+    !  ABOVE THE TOP LEVEL, T IS CONSIDERED TO HAVE 0 VERTICAL DERIV.
+    !  BETWEEN THE LOWEST LEVEL AND THE SURFACE, T IS THE LOWEST LEVEL T.
+    !  BELOW THE SURFACE, T HAS THE LAPSE RATE LRATE FROM THE SURFACE,
+    !     STARTING FROM THE MEAN T OF THE TWO LOWEST LEVELS. EQUATION
+    !     USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
@@ -417,19 +417,20 @@ module mod_hgt
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
-    !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.
-    !        PSTAR = SURFACE PRESSURE - MODEL TOP PRESSURE.
-    !        SIG = SIGMA LEVELS.
+    !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY,
+    !        ORDERED FROM THE TOP.
+    !        PS = SURFACE PRESSURE, HT = SURFACE HEIGHT.
+    !        SIG = SIGMA LEVELS, PTOP = MODEL TOP PRESSURE: THE PRESSURE
+    !        OF LEVEL K IS SIG(K)*(PS-PTOP)+PTOP.
     !        P = PRESSURE LEVELS DESIRED.
     !     ON OUTPUT:
-    !        ALL FIELDS EXCEPT H ARE UNCHANGED.
-    !        H HAS HEIGHT FIELDS AT KP PRESSURE LEVELS.
+    !        HP HAS THE HEIGHT AT THE KP PRESSURE LEVELS.
     !
-    !  FOR UPWARD EXTRAPOLATION, T IS CONSIDERED TO HAVE 0 VERITCAL DERIV.
-    !  FOR DOWNWARD EXTRAPOLATION, T HAS LAPSE RATE OF TLAPSE (K/KM)
-    !     AND EXTRAPOLATION IS DONE FROM THE LOWEST SIGMA LEVEL ABOVE
-    !     THE BOUNDARY LAYER (TOP ARBITRARILY TAKEN AT SIGMA = BLTOP).
-    !     EQUATION USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
+    !  ABOVE THE TOP LEVEL, T IS CONSIDERED TO HAVE 0 VERTICAL DERIV.
+    !  BETWEEN THE LOWEST LEVEL AND THE SURFACE, T IS THE LOWEST LEVEL T.
+    !  BELOW THE SURFACE, T HAS THE LAPSE RATE LRATE FROM THE SURFACE,
+    !     STARTING FROM THE MEAN T OF THE TWO LOWEST LEVELS. EQUATION
+    !     USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
@@ -489,19 +490,18 @@ module mod_hgt
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
-    !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.
-    !        PSTAR = SURFACE PRESSURE - MODEL TOP PRESSURE.
-    !        SIG = SIGMA LEVELS.
+    !        H, T AND P3 ARE HEIGHT, TEMPERATURE AND PRESSURE ON THE
+    !        MODEL LEVELS, ORDERED FROM THE TOP.
+    !        PS = SURFACE PRESSURE, HT = SURFACE HEIGHT.
     !        P = PRESSURE LEVELS DESIRED.
     !     ON OUTPUT:
-    !        ALL FIELDS EXCEPT H ARE UNCHANGED.
-    !        H HAS HEIGHT FIELDS AT KP PRESSURE LEVELS.
+    !        HP HAS THE HEIGHT AT THE KP PRESSURE LEVELS.
     !
-    !  FOR UPWARD EXTRAPOLATION, T IS CONSIDERED TO HAVE 0 VERITCAL DERIV.
-    !  FOR DOWNWARD EXTRAPOLATION, T HAS LAPSE RATE OF TLAPSE (K/KM)
-    !     AND EXTRAPOLATION IS DONE FROM THE LOWEST SIGMA LEVEL ABOVE
-    !     THE BOUNDARY LAYER (TOP ARBITRARILY TAKEN AT SIGMA = BLTOP).
-    !     EQUATION USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
+    !  ABOVE THE TOP LEVEL, T IS CONSIDERED TO HAVE 0 VERTICAL DERIV.
+    !  BETWEEN THE LOWEST LEVEL AND THE SURFACE, T IS THE LOWEST LEVEL T.
+    !  BELOW THE SURFACE, T HAS THE LAPSE RATE LRATE FROM THE SURFACE,
+    !     STARTING FROM THE MEAN T OF THE TWO LOWEST LEVELS. EQUATION
+    !     USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
@@ -594,6 +594,10 @@ module mod_hgt
     real(rk8), intent(out), dimension(i1:i2,j1:j2,km) :: h
     real(rk8) :: tbar
     integer(ik4) :: i, j, k
+    !
+    ! HEIGHT OF THE SIGMA LEVELS. PSTAR IS THE SURFACE PRESSURE: THE
+    ! PRESSURE OF LEVEL K IS SIG(K)*(PSTAR-PTOP)+PTOP.
+    !
     do concurrent ( i = i1:i2, j = j1:j2 )
       h(i,j,km) = ht(i,j) + &
           rovg*t(i,j,km)*log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
@@ -660,6 +664,10 @@ module mod_hgt
     real(rk8), intent(out), dimension(im,jm,km) :: h
     real(rk8) :: tbar
     integer(ik4) :: i, j, k
+    !
+    ! HEIGHT OF THE SIGMA LEVELS. PSTAR IS THE SURFACE PRESSURE: THE
+    ! PRESSURE OF LEVEL K IS SIG(K)*(PSTAR-PTOP)+PTOP.
+    !
     do concurrent( i = 1:im, j = 1:jm )
       h(i,j,km) = ht(i,j) + &
           rovg*t(i,j,km)*log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
@@ -684,6 +692,10 @@ module mod_hgt
     real(rk4), intent(out), dimension(im,jm,km) :: h
     real(rk4) :: tbar, rpt
     integer(ik4) :: i, j, k
+    !
+    ! HEIGHT OF THE SIGMA LEVELS. PSTAR IS THE SURFACE PRESSURE: THE
+    ! PRESSURE OF LEVEL K IS SIG(K)*(PSTAR-PTOP)+PTOP.
+    !
     rpt = real(ptop)
     do concurrent( i = 1:im, j = 1:jm )
       h(i,j,km) = ht(i,j) + &
@@ -711,53 +723,53 @@ module mod_hgt
     p = (pai**cpovr) * p00
   end function pai2p
 
-  subroutine mslp2ps(h,t,slp,ht,ps,im,jm,km)
-    implicit none
-    integer(ik4), intent(in) :: im, jm, km
-    real(rkx), dimension(im,jm,km), intent(in) :: h, t
-    real(rkx), dimension(im,jm), intent(in) :: ht, slp
-    real(rkx), dimension(im,jm), intent(out) :: ps
-    integer(ik4) :: kbc, i, j , k
-    real(rkx) :: tsfc
-    real(rkx), parameter :: blhgt = 1000.0_rkx
 
-    do j = 1, jm
-      do i = 1, im
-        kbc = km
-        do k = 1, km
-          if ( h(i,j,k) > blhgt ) then
-            kbc = k
-            exit
-          end if
-        end do
-        tsfc = t(i,j,kbc)-lrate*(h(i,j,kbc)-ht(i,j))
-        ps(i,j) = slp(i,j) / exp(-egrav/(rgas*lrate)* &
-                             log(d_one-ht(i,j)*lrate/tsfc))
-      end do
-    end do
-  end subroutine mslp2ps
-
-  subroutine mslp(t,ps,ht,slp,im,jm,kz)
+  !
+  ! Mean sea level pressure with the ECMWF method, as described in section
+  ! 3.1.b of Trenberth, Berry and Buja (1993), NCAR/TN-396+STR:
+  !   - the temperature of the lowest level is extrapolated to the surface
+  !     with the standard lapse rate (T*);
+  !   - if the extrapolated sea level temperature T0 is warmer than
+  !     290.5 K, the lapse rate is reduced to reach 290.5 K at sea level
+  !     (T* <= 290.5 K), or set to zero with T* averaged with 290.5 K;
+  !   - a cold T* (< 255 K) is averaged with 255 K;
+  !   - the pressure is extrapolated to sea level with the series
+  !     ps*exp(b*(1 - x/2 + x**2/3)), b = g*z/(R*T*), x = alpha*b.
+  ! T is the temperature on the model levels (kz is the lowest), PL the
+  ! pressure of the lowest level, PS the surface pressure, HT the surface
+  ! height.
+  !
+  subroutine mslp(t,pl,ps,ht,slp,im,jm,kz)
     implicit none
     integer(ik4), intent(in) :: im, jm, kz
     real(rk4), dimension(im,jm,kz), intent(in) :: t
-    real(rk4), dimension(im,jm), intent(in) :: ht, ps
+    real(rk4), dimension(im,jm), intent(in) :: pl, ht, ps
     real(rk4), dimension(im,jm), intent(out) :: slp
     integer(ik4) :: i, j
-    real(rk4) :: tstar, hstar, alpha, sraval
+    real(rk4) :: tstar, t0, alpha, alph, beta
 
-    ! Follow Kallen 1996
     alpha = real(lrate*rgas/egrav,rk4)
     do concurrent ( i = 1:im, j = 1:jm )
-      tstar = t(i,j,kz)
-      if ( tstar < 255.0 ) then
-        tstar = (tstar+255.0)*0.5
-      else if ( tstar > 290.5 ) then
-        tstar = 290.5 + (0.005*(tstar-290.5))**2
+      if ( abs(ht(i,j)) < 1.0e-4 ) then
+        slp(i,j) = ps(i,j)
+      else
+        tstar = t(i,j,kz)*(1.0 + alpha*(ps(i,j)/pl(i,j) - 1.0))
+        t0 = tstar + slrate*ht(i,j)
+        if ( tstar <= 290.5 .and. t0 > 290.5 ) then
+          alph = srgas*(290.5-tstar)/(segrav*ht(i,j))
+        else if ( tstar > 290.5 .and. t0 > 290.5 ) then
+          alph = 0.0
+          tstar = 0.5*(290.5+tstar)
+        else
+          alph = alpha
+          if ( tstar < 255.0 ) then
+            tstar = 0.5*(255.0+tstar)
+          end if
+        end if
+        beta = ht(i,j)*segrav/(srgas*tstar)
+        slp(i,j) = ps(i,j) * &
+            exp(beta*(1.0 - 0.5*alph*beta + ((alph*beta)**2)/3.0))
       end if
-      hstar = ht(i,j)*segrav/(srgas*tstar)
-      sraval = 0.5*alpha*hstar
-      slp(i,j) = ps(i,j) * exp(hstar*(1.0 - sraval + (sraval*sraval)/3.0))
     end do
   end subroutine mslp
 
@@ -770,8 +782,12 @@ module mod_hgt
     real(rkx) :: tbar
     integer(ik4) :: i, j, k
 
+    !
+    ! PRESSURE ON HEIGHT LEVELS ORDERED FROM THE BOTTOM, INTEGRATING THE
+    ! HYDROSTATIC RELATION UPWARD FROM THE SURFACE WITH THE MEAN LAYER T.
+    !
     do concurrent ( i = 1:im, j = 1:jm )
-      p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,km))
+      p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,1))
     end do
     do k = 2, km
       do concurrent ( i = 1:im, j = 1:jm )
@@ -790,8 +806,11 @@ module mod_hgt
     real(rkx) :: tbar
     integer(ik4) :: i, j, k
 
+    !
+    ! AS PSIG, WITH THE TEMPERATURE OF THE UPPER LEVEL OF EACH LAYER.
+    !
     do concurrent ( i = 1:im, j = 1:jm )
-      p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,km))
+      p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,1))
     end do
     do k = 2, km
       do concurrent ( i = 1:im, j = 1:jm )
@@ -801,7 +820,10 @@ module mod_hgt
     end do
   end subroutine psig1
 
-  ! Gauss Siedel Filtering
+  !
+  ! Gauss-Seidel smoothing of v (20 sweeps), keeping the boundary values.
+  ! The source term is the Laplacian of vm, scaled with half its range.
+  !
   subroutine gs_filter(v,vm,im,jm)
     implicit none
     integer(ik4), intent(in) :: im, jm
@@ -817,10 +839,13 @@ module mod_hgt
     v1(:,jm) = v(:,jm)
     mask(:,:) = 0.0
     mval = 0.5*(maxval(vm)-minval(vm))
-    do concurrent ( i = 2:im-1, j = 2:jm-1 )
-      mask(i,j) = (vm(i-1,j)+vm(i+1,j)+vm(i,j-1) + &
-                   vm(i,j+1)-4.0*vm(i,j))/mval
-    end do
+    ! A constant vm has no curvature: the mask stays zero
+    if ( mval > tiny(mval) ) then
+      do concurrent ( i = 2:im-1, j = 2:jm-1 )
+        mask(i,j) = (vm(i-1,j)+vm(i+1,j)+vm(i,j-1) + &
+                     vm(i,j+1)-4.0*vm(i,j))/mval
+      end do
+    end if
     do n = 1, niter
       do j = 2, jm-1
         do i = 2, im-1
@@ -831,26 +856,7 @@ module mod_hgt
     end do
   end subroutine gs_filter
 
-  pure real(rkx) function crc_zeta_from_p(p) result(z)
-    implicit none
-    real(rkx), intent(in) :: p
-    real(rk8), parameter :: a1 = 44330.8_rk8
-    real(rk8), parameter :: a2 = 4946.54_rk8
-    real(rk8), parameter :: ex = 0.1902632_rk8
-    real(rk8) :: p8, z8
-    p8 = real(p, rk8)
-    z8 = a1 - a2 * p8**ex
-    z = real(z8,rkx)
-  end function crc_zeta_from_p
 
-  pure real(rkx) function crc_p_from_zeta(z) result(p)
-    implicit none
-    real(rkx), intent(in) :: z
-    real(rk8) :: p8, z8
-    z8 = z
-    p8 = 100.0_rk8*((44331.514_rk8-z8)/11880.516_rk8)**(1.0_rk8/0.1902632_rk8)
-    p = real(p8,rkx)
-  end function crc_p_from_zeta
 
 end module mod_hgt
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
