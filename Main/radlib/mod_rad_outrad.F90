@@ -29,7 +29,12 @@ module mod_rad_outrad
 
   private
 
-  public :: allocate_mod_rad_outrad, radout
+  ! Fluxes (1-9) and high, mid, low cloud fractions (10-12) of the last
+  ! radiation call, in use until the next one
+  integer(ik4), parameter :: ncurflx = 12
+  real(rk8), allocatable, dimension(:,:) :: curflx
+
+  public :: allocate_mod_rad_outrad, radout, accumulate_rad_fluxes
 
   integer(ik4) :: nj
 
@@ -138,7 +143,9 @@ module mod_rad_outrad
     end do
 
     if ( ifrad ) then
-      rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
+      if ( .not. allocated(curflx) ) then
+        allocate(curflx(size(frsa),ncurflx))
+      end if
     end if
     if ( ifopt ) then
       rnrad_for_optfrq = rnrad_for_optfrq + 1.0_rkx
@@ -150,6 +157,7 @@ module mod_rad_outrad
       kh1 = 2
       kl2 = kz
       do concurrent ( j=jci1:jci2, i=ici1:ici2)
+        n = (j-jci1)+(i-ici1)*nj+1
         hif = 1.001_rk8
         mif = 1.001_rk8
         lof = 1.001_rk8
@@ -182,13 +190,28 @@ module mod_rad_outrad
             (1.001_rk8 - max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k))) / &
                  (1.001_rk8 - m2r%cldfrc(j,i,k-1))
         end do
-        rad_higcl_out(j,i) = real(rad_higcl_out(j,i) + &
-          max(0.0_rk8,min(1.0_rk8,(1.001_rk8-hif))), rkx)
-        rad_midcl_out(j,i) = real(rad_midcl_out(j,i) + &
-          max(0.0_rk8,min(1.0_rk8,(1.001_rk8-mif))), rkx)
-        rad_lowcl_out(j,i) = real(rad_lowcl_out(j,i) + &
-          max(0.0_rk8,min(1.0_rk8,(1.001_rk8-lof))), rkx)
+        curflx(n,10) = max(0.0_rk8,min(1.0_rk8,(1.001_rk8-hif)))
+        curflx(n,11) = max(0.0_rk8,min(1.0_rk8,(1.001_rk8-mif)))
+        curflx(n,12) = max(0.0_rk8,min(1.0_rk8,(1.001_rk8-lof)))
       end do
+    end if
+
+    !
+    ! The fluxes and cloud fractions are kept until the next radiation
+    ! call: the RAD output means are accumulated at every surface step
+    ! (accumulate_rad_fluxes), as the time means of the fields used by the
+    ! model.
+    !
+    if ( ifrad ) then
+      curflx(:,1) = frsa(:)
+      curflx(:,2) = frla(:)
+      curflx(:,3) = clrst(:)
+      curflx(:,4) = clrss(:)
+      curflx(:,5) = clrlt(:)
+      curflx(:,6) = clrls(:)
+      curflx(:,7) = solin(:)
+      curflx(:,8) = solout(:)
+      curflx(:,9) = lwout(:)
     end if
 
     if ( rcmtimer%start( ) ) return
@@ -246,18 +269,9 @@ module mod_rad_outrad
           call copy4d1(outtaucl,rad_taucl_out,4)
           call copy4d1(outtauci,rad_tauci_out,4)
         end if
-        call copy2d(frsa,rad_frsa_out)
-        call copy2d(frla,rad_frla_out)
-        call copy2d(clrst,rad_clrst_out)
-        call copy2d(clrss,rad_clrss_out)
-        call copy2d(clrlt,rad_clrlt_out)
-        call copy2d(clrls,rad_clrls_out)
-        call copy2d(solin,rad_solin_out)
-        call copy2d(solout,rad_solout_out)
         call copy2d(totwv,rad_totwv_out)
         call copy2d(totcl,rad_totcl_out)
         call copy2d(totci,rad_totci_out)
-        call copy2d(lwout,rad_lwout_out)
       end if
     end if
 
@@ -469,6 +483,43 @@ module mod_rad_outrad
       end if
     end if
   end subroutine copy4d_div2
+
+  !
+  ! Add the radiative fluxes and cloud fractions in use to the RAD output
+  ! means: called at every
+  ! surface step, so that the means are time means over the output interval
+  ! whatever the radiation time step.
+  !
+  subroutine accumulate_rad_fluxes
+    implicit none
+    if ( .not. ifrad .or. .not. allocated(curflx) ) return
+    call add_cur(1,rad_frsa_out)
+    call add_cur(2,rad_frla_out)
+    call add_cur(3,rad_clrst_out)
+    call add_cur(4,rad_clrss_out)
+    call add_cur(5,rad_clrlt_out)
+    call add_cur(6,rad_clrls_out)
+    call add_cur(7,rad_solin_out)
+    call add_cur(8,rad_solout_out)
+    call add_cur(9,rad_lwout_out)
+    call add_cur(10,rad_higcl_out)
+    call add_cur(11,rad_midcl_out)
+    call add_cur(12,rad_lowcl_out)
+    rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
+  end subroutine accumulate_rad_fluxes
+
+  subroutine add_cur(k,b)
+    implicit none
+    integer(ik4), intent(in) :: k
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
+    integer(ik4) :: i, j, n
+    if ( associated(b) ) then
+      do concurrent ( j=jci1:jci2, i=ici1:ici2 )
+        n = (j-jci1)+(i-ici1)*nj+1
+        b(j,i) = real(b(j,i) + curflx(n,k),rkx)
+      end do
+    end if
+  end subroutine add_cur
 
   subroutine copy2d_add(a,b)
     implicit none

@@ -31,6 +31,7 @@ module mod_lm_interface
   use mod_stdio
   use mod_slabocean
   use mod_heatindex
+  use mod_rad_outrad, only : accumulate_rad_fluxes
 
 #ifdef CLM45
   use mod_clm_regcm
@@ -864,6 +865,8 @@ module mod_lm_interface
     ! Fill accumulators
 
     if ( rcmtimer%integrating( ) ) then
+      ! Time means of the radiative fluxes for the RAD output
+      call accumulate_rad_fluxes
       if ( ifsrf ) then
         rnsrf_for_srffrq = rnsrf_for_srffrq + 1.0_rkx
         if ( associated(srf_totcf_out) ) then

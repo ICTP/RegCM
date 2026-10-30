@@ -1202,10 +1202,11 @@ module mod_params
       end do
       dtcum = max(int(dtcum / (0.5_rkx*dtsrf)),1) * (0.5_rkx*dtsrf)
 
+      ! The radiation time step is a multiple of the surface time step, so
+      ! that the land models can update the albedo at the radiation calls.
+      ! It needs not divide the output intervals: the RAD output means are
+      ! accumulated at every surface step.
       dtrad = ceiling(dtrad / dt) * dt
-      do while ( mod(minfrq,dtrad) > d_zero )
-        dtrad = dtrad - dt
-      end do
       dtrad = max(int(dtrad / (3.0_rkx*dtsrf)),1) * (3.0_rkx*dtsrf)
       dtabem = max(int(dtabem / (36_rkx*dtrad)),1) * (36.0_rkx*dtrad)
 

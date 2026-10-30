@@ -2343,49 +2343,53 @@ module mod_ncout
         if ( enable_rad2d_vars(rad_frsa) ) then
           call setup_var(v2dvar_rad,rad_frsa,vsize,'rsns','W m-2', &
             'Surface Net Downward Shortwave Flux', &
-            'surface_net_downward_shortwave_flux', .true.)
+            'surface_net_downward_shortwave_flux', .true.,'time: mean')
           rad_frsa_out => v2dvar_rad(rad_frsa)%rval
         end if
         if ( enable_rad2d_vars(rad_frla) ) then
           call setup_var(v2dvar_rad,rad_frla,vsize,'rsnl','W m-2', &
             'Surface Net Upward Longwave Flux', &
-            'surface_net_upward_longwave_flux', .true.)
+            'surface_net_upward_longwave_flux', .true.,'time: mean')
           rad_frla_out => v2dvar_rad(rad_frla)%rval
         end if
         if ( enable_rad2d_vars(rad_clrst) ) then
           call setup_var(v2dvar_rad,rad_clrst,vsize,'rtnscl','W m-2', &
             'Clearsky TOA Net Downward Shortwave Flux', &
-            'toa_net_downward_shortwave_flux_assuming_clear_sky',.true.)
+            'toa_net_downward_shortwave_flux_assuming_clear_sky',.true., &
+            'time: mean')
           rad_clrst_out => v2dvar_rad(rad_clrst)%rval
         end if
         if ( enable_rad2d_vars(rad_clrss) ) then
           call setup_var(v2dvar_rad,rad_clrss,vsize,'rsnscl','W m-2', &
             'Clearsky Surface Net Downward Shortwave Flux', &
-            'surface_net_downward_shortwave_flux_assuming_clear_sky',.true.)
+            'surface_net_downward_shortwave_flux_assuming_clear_sky',.true., &
+            'time: mean')
           rad_clrss_out => v2dvar_rad(rad_clrss)%rval
         end if
         if ( enable_rad2d_vars(rad_clrlt) ) then
           call setup_var(v2dvar_rad,rad_clrlt,vsize,'rtnlcl','W m-2', &
             'Clearsky TOA Net Upward Longwave Flux', &
-            'toa_net_upward_longwave_flux_assuming_clear_sky',.true.)
+            'toa_net_upward_longwave_flux_assuming_clear_sky',.true., &
+            'time: mean')
           rad_clrlt_out => v2dvar_rad(rad_clrlt)%rval
         end if
         if ( enable_rad2d_vars(rad_clrls) ) then
           call setup_var(v2dvar_rad,rad_clrls,vsize,'rlntpcs','W m-2', &
             'Clearsky Net Surface Upward Longwave Flux', &
-            'net_upward_longwave_flux_in_air_assuming_clear_sky',.true.)
+            'net_upward_longwave_flux_in_air_assuming_clear_sky',.true., &
+            'time: mean')
           rad_clrls_out => v2dvar_rad(rad_clrls)%rval
         end if
         if ( enable_rad2d_vars(rad_solin) ) then
           call setup_var(v2dvar_rad,rad_solin,vsize,'rsdt','W m-2', &
             'TOA Incident Shortwave Radiation', &
-            'toa_incoming_shortwave_flux',.true.)
+            'toa_incoming_shortwave_flux',.true.,'time: mean')
           rad_solin_out => v2dvar_rad(rad_solin)%rval
         end if
         if ( enable_rad2d_vars(rad_solout) ) then
           call setup_var(v2dvar_rad,rad_solout,vsize,'rsut','W m-2', &
             'TOA Outgoing Shortwave Radiation', &
-            'toa_outgoing_shortwave_flux',.true.)
+            'toa_outgoing_shortwave_flux',.true.,'time: mean')
           rad_solout_out => v2dvar_rad(rad_solout)%rval
         end if
         if ( enable_rad2d_vars(rad_totwv) ) then
@@ -2408,7 +2412,7 @@ module mod_ncout
         if ( enable_rad2d_vars(rad_lwout) ) then
           call setup_var(v2dvar_rad,rad_lwout,vsize,'rlut','W m-2', &
             'TOA Outgoing Longwave Radiation', &
-            'toa_outgoing_longwave_flux',.true.)
+            'toa_outgoing_longwave_flux',.true.,'time: mean')
           rad_lwout_out => v2dvar_rad(rad_lwout)%rval
         end if
         if ( enable_rad2d_vars(rad_higcl) ) then

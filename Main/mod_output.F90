@@ -1607,7 +1607,7 @@ module mod_output
 
     if ( rad_stream > 0 ) then
       if ( ldorad ) then
-        radfac = d_one / rnrad_for_radfrq
+        radfac = d_one / max(rnrad_for_radfrq,d_one)
         if ( idynamic == 1 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             ps_out(j,i) = d_1000*(sfs%psa(j,i)+ptop)
@@ -1650,9 +1650,28 @@ module mod_output
                   radfac,d_one),d_zero) * d_100
           !$acc end kernels
         end if
+        ! Mean radiative fluxes over the output interval
+        call mean_rad_out(rad_frsa_out,radfac)
+        call mean_rad_out(rad_frla_out,radfac)
+        call mean_rad_out(rad_clrst_out,radfac)
+        call mean_rad_out(rad_clrss_out,radfac)
+        call mean_rad_out(rad_clrlt_out,radfac)
+        call mean_rad_out(rad_clrls_out,radfac)
+        call mean_rad_out(rad_solin_out,radfac)
+        call mean_rad_out(rad_solout_out,radfac)
+        call mean_rad_out(rad_lwout_out,radfac)
         call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ', rcmtimer%str( )
+        call zero_rad_out(rad_frsa_out)
+        call zero_rad_out(rad_frla_out)
+        call zero_rad_out(rad_clrst_out)
+        call zero_rad_out(rad_clrss_out)
+        call zero_rad_out(rad_clrlt_out)
+        call zero_rad_out(rad_clrls_out)
+        call zero_rad_out(rad_solin_out)
+        call zero_rad_out(rad_solout_out)
+        call zero_rad_out(rad_lwout_out)
         !$acc kernels
         if ( associated(rad_higcl_out) ) rad_higcl_out(:,:) = d_zero
         if ( associated(rad_midcl_out) ) rad_midcl_out(:,:) = d_zero
@@ -2442,6 +2461,30 @@ module mod_output
       end if
     end if
   end subroutine vinterz
+
+  !
+  ! Mean of a RAD output field accumulated over the output interval
+  !
+  subroutine mean_rad_out(f,fac)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: f
+    real(rkx), intent(in) :: fac
+    if ( associated(f) ) then
+      !$acc kernels
+      f(:,:) = f(:,:) * fac
+      !$acc end kernels
+    end if
+  end subroutine mean_rad_out
+
+  subroutine zero_rad_out(f)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: f
+    if ( associated(f) ) then
+      !$acc kernels
+      f(:,:) = d_zero
+      !$acc end kernels
+    end if
+  end subroutine zero_rad_out
 
 end module mod_output
 
