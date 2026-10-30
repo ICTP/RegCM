@@ -369,7 +369,7 @@ module mod_date
     integer(ik4), intent(inout) :: a, b
     integer(ik4), intent(in) :: i
     if ( a < 1 ) then
-      a = i - a
+      a = a + i
       b = b - 1
     end if
   end subroutine adjustmp
@@ -679,96 +679,74 @@ module mod_date
     implicit none
     type (rcm_time_interval), intent(in) :: x
     type (rcm_time_interval), intent(in) :: y
-    select case (x%iunit)
-      case (usec)
-        select case (y%iunit)
-          case (usec)
-            isequalit = ( x%ival == y%ival )
-          case (umin)
-            isequalit = ( x%ival == y%ival*i8spm )
-          case (uhrs)
-            isequalit = ( x%ival == y%ival*i8sph )
-          case (uday)
-            isequalit = ( x%ival == y%ival*i8spd )
-          case default
-            isequalit = .false.
-        end select
-      case (umin)
-        select case (y%iunit)
-          case (usec)
-            isequalit = ( x%ival == y%ival/i8spm )
-          case (umin)
-            isequalit = ( x%ival == y%ival )
-          case (uhrs)
-            isequalit = ( x%ival == y%ival*i8mph )
-          case (uday)
-            isequalit = ( x%ival == y%ival*i8mpd )
-          case default
-            isequalit = .false.
-        end select
-      case (uhrs)
-        select case (y%iunit)
-          case (usec)
-            isequalit = ( x%ival == y%ival/i8sph )
-          case (umin)
-            isequalit = ( x%ival == y%ival/i8mph )
-          case (uhrs)
-            isequalit = ( x%ival == y%ival )
-          case (uday)
-            isequalit = ( x%ival == y%ival*i8hpd )
-          case default
-            isequalit = .false.
-        end select
-      case (uday)
-        select case (y%iunit)
-          case (usec)
-            isequalit = ( x%ival == y%ival/i8spd )
-          case (umin)
-            isequalit = ( x%ival == y%ival/i8mpd )
-          case (uhrs)
-            isequalit = ( x%ival == y%ival*i8hpd )
-          case (uday)
-            isequalit = ( x%ival == y%ival )
-          case default
-            isequalit = .false.
-        end select
-      case (umnt)
-        select case (y%iunit)
-          case (umnt)
-            isequalit = ( x%ival == y%ival )
-          case (uyrs)
-            isequalit = ( x%ival == y%ival*i8mpy )
-          case (ucnt)
-            isequalit = ( x%ival == y%ival*i8mpc )
-          case default
-            isequalit = .false.
-        end select
-      case (uyrs)
-        select case (y%iunit)
-          case (umnt)
-            isequalit = ( x%ival == y%ival*i8mpy )
-          case (uyrs)
-            isequalit = ( x%ival == y%ival )
-          case (ucnt)
-            isequalit = ( x%ival == y%ival*i8ypc )
-          case default
-            isequalit = .false.
-        end select
-      case (ucnt)
-        select case (y%iunit)
-          case (umnt)
-            isequalit = ( x%ival == y%ival*i8mpc )
-          case (uyrs)
-            isequalit = ( x%ival == y%ival*i8ypc )
-          case (ucnt)
-            isequalit = ( x%ival == y%ival )
-          case default
-            isequalit = .false.
-        end select
-      case default
-        isequalit = ( x%iunit == y%iunit ) .and. ( x%ival == y%ival )
-    end select
+    integer(ik8) :: ix, iy
+    logical :: lok
+    call common_unit(x,y,ix,iy,lok)
+    isequalit = lok .and. ( ix == iy )
   end function isequalit
+
+  !
+  ! The values of two intervals in a common unit: seconds for the units up
+  ! to days, months for months, years and centuries. The conversion between
+  ! the two groups depends on the calendar: lok is false in that case.
+  !
+  pure subroutine common_unit(x,y,ix,iy,lok)
+    implicit none
+    type (rcm_time_interval), intent(in) :: x
+    type (rcm_time_interval), intent(in) :: y
+    integer(ik8), intent(out) :: ix, iy
+    logical, intent(out) :: lok
+    integer(ik8) :: fx, fy
+    integer(ik4) :: gx, gy
+    if ( x%iunit == y%iunit ) then
+      ix = x%ival
+      iy = y%ival
+      lok = .true.
+      return
+    end if
+    call unit_factor(x%iunit,fx,gx)
+    call unit_factor(y%iunit,fy,gy)
+    ix = x%ival*fx
+    iy = y%ival*fy
+    lok = ( gx == gy .and. gx /= 0 )
+  end subroutine common_unit
+
+  !
+  ! Factor to convert a unit to seconds (group 1) or to months (group 2).
+  ! Group 0 is an unknown unit.
+  !
+  pure subroutine unit_factor(u,f,g)
+    implicit none
+    integer(ik4), intent(in) :: u
+    integer(ik8), intent(out) :: f
+    integer(ik4), intent(out) :: g
+    select case (u)
+      case (usec)
+        f = 1_ik8
+        g = 1
+      case (umin)
+        f = i8spm
+        g = 1
+      case (uhrs)
+        f = i8sph
+        g = 1
+      case (uday)
+        f = i8spd
+        g = 1
+      case (umnt)
+        f = 1_ik8
+        g = 2
+      case (uyrs)
+        f = i8mpy
+        g = 2
+      case (ucnt)
+        f = i8mpc
+        g = 2
+      case default
+        f = 1_ik8
+        g = 0
+    end select
+  end subroutine unit_factor
 
   recursive subroutine add_days_leap(d,m,y,a)
     integer(ik4), intent(inout) :: d, m, y
@@ -1480,190 +1458,20 @@ module mod_date
     implicit none
     type (rcm_time_interval), intent(in) :: x
     type (rcm_time_interval), intent(in) :: y
-    select case (x%iunit)
-      case (usec)
-        select case (y%iunit)
-          case (usec)
-            interval_greater = ( x%ival > y%ival )
-          case (umin)
-            interval_greater = ( x%ival > y%ival*i8spm )
-          case (uhrs)
-            interval_greater = ( x%ival > y%ival*i8sph )
-          case (uday)
-            interval_greater = ( x%ival > y%ival*i8spd )
-          case default
-            interval_greater = .false.
-        end select
-      case (umin)
-        select case (y%iunit)
-          case (usec)
-            interval_greater = (y%ival > i8sph) .and. ( x%ival > y%ival/i8sph )
-          case (umin)
-            interval_greater = ( x%ival > y%ival )
-          case (uhrs)
-            interval_greater = ( x%ival > y%ival*i8mph )
-          case (uday)
-            interval_greater = ( x%ival > y%ival*i8mpd )
-          case default
-            interval_greater = .false.
-        end select
-      case (uhrs)
-        select case (y%iunit)
-          case (usec)
-            interval_greater = (y%ival > i8sph) .and. ( x%ival > y%ival/i8sph )
-          case (umin)
-            interval_greater = (y%ival > i8mph) .and. ( x%ival > y%ival/i8mph )
-          case (uhrs)
-            interval_greater = ( x%ival > y%ival )
-          case (uday)
-            interval_greater = ( x%ival > y%ival*i8hpd )
-          case default
-            interval_greater = .false.
-        end select
-      case (uday)
-        select case (y%iunit)
-          case (usec)
-            interval_greater = (y%ival > i8spd) .and. ( x%ival > y%ival/i8spd )
-          case (umin)
-            interval_greater = (y%ival > i8mpd) .and. ( x%ival > y%ival/i8mpd )
-          case (uhrs)
-            interval_greater = (y%ival > i8hpd) .and. ( x%ival > y%ival/i8hpd )
-          case (uday)
-            interval_greater = ( x%ival > y%ival )
-          case default
-            interval_greater = .false.
-        end select
-      case (umnt)
-        select case (y%iunit)
-          case (umnt)
-            interval_greater = ( x%ival > y%ival )
-          case (uyrs)
-            interval_greater = ( x%ival > y%ival*i8mpy )
-          case (ucnt)
-            interval_greater = ( x%ival > y%ival*i8mpc )
-          case default
-            interval_greater = .false.
-        end select
-      case (uyrs)
-        select case (y%iunit)
-          case (umnt)
-            interval_greater = ( x%ival > y%ival*i8mpy )
-          case (uyrs)
-            interval_greater = ( x%ival > y%ival )
-          case (ucnt)
-            interval_greater = ( x%ival > y%ival*i8ypc )
-          case default
-            interval_greater = .false.
-        end select
-      case (ucnt)
-        select case (y%iunit)
-          case (umnt)
-            interval_greater = ( x%ival > y%ival*i8mpc )
-          case (uyrs)
-            interval_greater = ( x%ival > y%ival*i8ypc )
-          case (ucnt)
-            interval_greater = ( x%ival == y%ival )
-          case default
-            interval_greater = .false.
-        end select
-      case default
-        interval_greater = ( x%iunit > y%iunit ) .and. ( x%ival > y%ival )
-    end select
+    integer(ik8) :: ix, iy
+    logical :: lok
+    call common_unit(x,y,ix,iy,lok)
+    interval_greater = lok .and. ( ix > iy )
   end function interval_greater
 
   logical function interval_less(x, y)
     implicit none
     type (rcm_time_interval), intent(in) :: x
     type (rcm_time_interval), intent(in) :: y
-    select case (x%iunit)
-      case (usec)
-        select case (y%iunit)
-          case (usec)
-            interval_less = ( x%ival < y%ival )
-          case (umin)
-            interval_less = ( x%ival < y%ival*i8spm )
-          case (uhrs)
-            interval_less = ( x%ival < y%ival*i8sph )
-          case (uday)
-            interval_less = ( x%ival < y%ival*i8spd )
-          case default
-            interval_less = .false.
-        end select
-      case (umin)
-        select case (y%iunit)
-          case (usec)
-            interval_less = (y%ival > i8spm) .and. ( x%ival < y%ival/i8spm )
-          case (umin)
-            interval_less = ( x%ival < y%ival )
-          case (uhrs)
-            interval_less = ( x%ival < y%ival*i8mph )
-          case (uday)
-            interval_less = ( x%ival < y%ival*i8mpd )
-          case default
-            interval_less = .false.
-        end select
-      case (uhrs)
-        select case (y%iunit)
-          case (usec)
-            interval_less = (y%ival > i8sph) .and. ( x%ival < y%ival/i8sph )
-          case (umin)
-            interval_less = (y%ival > i8mph) .and. ( x%ival < y%ival/i8mph )
-          case (uhrs)
-            interval_less = ( x%ival < y%ival )
-          case (uday)
-            interval_less = ( x%ival < y%ival*i8hpd )
-          case default
-            interval_less = .false.
-        end select
-      case (uday)
-        select case (y%iunit)
-          case (usec)
-            interval_less = (y%ival > i8spd) .and. ( x%ival < y%ival/i8spd )
-          case (umin)
-            interval_less = (y%ival > i8mpd) .and. ( x%ival < y%ival/i8mpd )
-          case (uhrs)
-            interval_less = (y%ival > i8hpd) .and. ( x%ival < y%ival/i8hpd )
-          case (uday)
-            interval_less = ( x%ival < y%ival )
-          case default
-            interval_less = .false.
-        end select
-      case (umnt)
-        select case (y%iunit)
-          case (umnt)
-            interval_less = ( x%ival < y%ival )
-          case (uyrs)
-            interval_less = ( x%ival < y%ival*i8mpy )
-          case (ucnt)
-            interval_less = ( x%ival < y%ival*i8mpc )
-          case default
-            interval_less = .false.
-        end select
-      case (uyrs)
-        select case (y%iunit)
-          case (umnt)
-            interval_less = ( x%ival < y%ival*i8mpy )
-          case (uyrs)
-            interval_less = ( x%ival < y%ival )
-          case (ucnt)
-            interval_less = ( x%ival < y%ival*i8ypc )
-          case default
-            interval_less = .false.
-        end select
-      case (ucnt)
-        select case (y%iunit)
-          case (umnt)
-            interval_less = ( x%ival < y%ival*i8mpc )
-          case (uyrs)
-            interval_less = ( x%ival < y%ival*i8ypc )
-          case (ucnt)
-            interval_less = ( x%ival == y%ival )
-          case default
-            interval_less = .false.
-        end select
-      case default
-        interval_less = ( x%iunit < y%iunit ) .and. ( x%ival < y%ival )
-    end select
+    integer(ik8) :: ix, iy
+    logical :: lok
+    call common_unit(x,y,ix,iy,lok)
+    interval_less = lok .and. ( ix < iy )
   end function interval_less
 
   logical function date_greater(x,y) result(gt)
@@ -2214,7 +2022,7 @@ module mod_date
           write(0,*) 'Offending timeunit string :',trim(string)
           return
         end if
-      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == '-' ) then
+      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == ':' ) then
         read(cdum,'(i2,a1,a)',iostat=istat) h, cdiv, cdum1
         if ( istat /= 0 ) then
           write(0,*) 'Unrecognized hour read from time string.'
@@ -2253,7 +2061,7 @@ module mod_date
           write(0,*) 'Offending timeunit string :',trim(string)
           return
         end if
-      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == '-' ) then
+      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == ':' ) then
         read(cdum,'(i2,a1,a)',iostat=istat) minu, cdiv, cdum1
         if ( istat /= 0 ) then
           write(0,*) 'Unrecognized minute read from time string.'
