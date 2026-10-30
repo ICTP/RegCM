@@ -23,7 +23,8 @@ include $(REGCM_ROOT)/makeinc
 
 check_PROGRAMS = test_date test_spbarcoord test_projections test_hgt \
                  test_vertint test_humid test_interp test_spline \
-                 test_memutil test_kdtree2 test_kdinterp
+                 test_memutil test_kdtree2 test_kdinterp test_nchelper \
+                 test_ncstream
 test_date_SOURCES = share_test_utils.F90 test_date.F90
 test_spbarcoord_SOURCES = share_test_utils.F90 test_spbarcoord.F90
 test_projections_SOURCES = share_test_utils.F90 test_projections.F90
@@ -35,6 +36,8 @@ test_spline_SOURCES = share_test_utils.F90 test_spline.F90
 test_memutil_SOURCES = share_test_utils.F90 test_memutil.F90
 test_kdtree2_SOURCES = share_test_utils.F90 test_kdtree2.F90
 test_kdinterp_SOURCES = share_test_utils.F90 test_kdinterp.F90
+test_nchelper_SOURCES = share_test_utils.F90 test_nchelper.F90
+test_ncstream_SOURCES = share_test_utils.F90 test_ncstream.F90
 LDADD = $(OMPFLAGS)
 
 FCLD = $(MPIFC)
@@ -45,10 +48,10 @@ TESTS = $(check_PROGRAMS)
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod *__genmod.* *opt.yaml *optrpt
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt test_nchelper.nc test_ncstream*.nc
 
 clean-local:
-	rm -f *.mod *__genmod.* *opt.yaml *optrpt
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt test_nchelper.nc test_ncstream*.nc
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
@@ -64,3 +67,5 @@ test_spline.o : test_spline.F90 share_test_utils.o mod_intkinds.o mod_realkinds.
 test_memutil.o : test_memutil.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_memutil.o mod_date.o
 test_kdtree2.o : test_kdtree2.F90 share_test_utils.o mod_kdtree2.o
 test_kdinterp.o : test_kdinterp.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_kdinterp.o
+test_nchelper.o : test_nchelper.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_nchelper.o
+test_ncstream.o : test_ncstream.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_date.o mod_dynparam.o mod_ncstream.o

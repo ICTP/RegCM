@@ -55,17 +55,6 @@ module mod_ncstream_types
   integer(ik4), parameter :: spectral_b_dim  = 16
   integer(ik4), parameter :: nv_dim          = 17
 
-  type ncinstream_params
-    ! The name of the input file
-    character(len=maxstring) :: fname
-    ! To enable Parallel I/O. Must use hdf5 library
-    type(mpi_comm) :: mpicom = mpi_comm_null
-    type(mpi_info) :: mpinfo = mpi_info_null
-    ! If parallel I/O, the processor patch indexes on the global grid
-    integer(ik4) :: global_jstart, global_jend
-    integer(ik4) :: global_istart, global_iend
-  end type ncinstream_params
-
   type ncoutstream_params
     ! The name of the output file
     character(len=maxstring) :: fname = 'regcm_generic.nc'
@@ -142,49 +131,9 @@ module mod_ncstream_types
 #endif
   end type internal_obuffer
 
-  type internal_ibuffer
-    integer(ik4), dimension(:), allocatable :: intbuff
-    real(rk4), dimension(:), allocatable :: realbuff
-    real(rk8), dimension(:), allocatable :: doublebuff
-  end type internal_ibuffer
-
   type obuff_p
     type(internal_obuffer), pointer :: xb => null()
   end type obuff_p
-
-  type ibuff_p
-    type(internal_ibuffer), pointer :: xb => null()
-  end type ibuff_p
-
-  type ncinstream
-    character(len=maxpath) :: filename
-    logical :: l_parallel = .false.
-    integer(ik4) :: id = -1
-    integer(ik4) :: timeid = -1
-#ifdef PNETCDF
-    integer(kind=mpi_offset_kind) :: nrec = -1
-#else
-    integer(ik4) :: nrec = -1
-#endif
-    integer(ik4), dimension(2) :: jparbound
-    integer(ik4), dimension(2) :: iparbound
-    integer(ik4) :: global_nj, global_ni, parsize
-    real(rk8), dimension(2) :: xtime = [dmissval,dmissval]
-    type(rcm_time_and_date) :: refdate
-    character(len=maxunit) :: tunit, tcal
-    real(rk8) :: deltat = 1.0_rk8
-#ifdef PNETCDF
-    integer(kind=mpi_offset_kind), dimension(5) :: istart, icount, istride
-#else
-    integer(ik4), dimension(5) :: istart, icount, istride
-#endif
-    integer(ik4) :: ndims
-#ifdef PNETCDF
-    integer(kind=mpi_offset_kind), allocatable, dimension(:) :: len_dims
-#else
-    integer(ik4), allocatable, dimension(:) :: len_dims
-#endif
-  end type ncinstream
 
   type ncoutstream
     character(len=maxpath) :: filename
@@ -439,10 +388,6 @@ module mod_ncstream_types
     type(ncoutstream), pointer :: xs => null()
   end type ncoutstream_p
 
-  type ncinstream_p
-    type(ncinstream), pointer :: xs => null()
-  end type ncinstream_p
-
   type basic_variables
     type(ncvariable0d_double) :: time_var
     type(ncvariable1d_double) :: tbound_var
@@ -472,11 +417,6 @@ module mod_ncstream_types
     type(obuff_p) :: obp
     type(basic_variables_p) :: svp
   end type nc_output_stream
-
-  type nc_input_stream
-    type(ncinstream_p) :: ncp
-    type(ibuff_p) :: ibp
-  end type nc_input_stream
 
   type nc_variable_p
     class(ncvariable_standard), pointer :: vp => null()

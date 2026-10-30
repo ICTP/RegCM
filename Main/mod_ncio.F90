@@ -382,7 +382,7 @@ module mod_ncio
           replacemoist = .false.
         end if
         call bcast(replacemoist)
-        call get_attribute(idmin,'initialized_soil_moisture',cstemp)
+        call get_attribute(idmin,'initialized_soil_temperature',cstemp)
         if ( cstemp == 'Yes' ) then
           replacetemp = .true.
         else

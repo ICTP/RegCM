@@ -160,7 +160,7 @@ module mod_nchelper
                     'Error adding global references')
     incstat = nf90_put_att(ncid, nf90_global, 'model_revision',GIT_VER)
     call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error adding global institution')
+                    'Error adding global model_revision')
     incstat = nf90_put_att(ncid, nf90_global, 'experiment',domname)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding global experiment')
@@ -218,16 +218,23 @@ module mod_nchelper
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: yiy
     integer(ik4) :: i, j
     integer(ik4)  :: incstat
+    real(rkx) :: xds
 
-    call getmem(yiy,1,ny,'mod_write:yiy')
-    call getmem(xjx,1,nx,'mod_write:xjx')
-    yiy(1) = -real((real(iy-1,rkx)/d_two) * ds,rk4)
-    xjx(1) = -real((real(jx-1,rkx)/d_two) * ds,rk4)
+    ! Grid distance of the model grid, or of the subgrid
+    if ( nx == jx .and. ny == iy ) then
+      xds = ds
+    else
+      xds = ds/real(nsg,rkx)
+    end if
+    call getmem(yiy,1,ny,'nchelper:yiy')
+    call getmem(xjx,1,nx,'nchelper:xjx')
+    yiy(1) = -real((real(ny-1,rkx)/d_two) * xds,rk4)
+    xjx(1) = -real((real(nx-1,rkx)/d_two) * xds,rk4)
     do i = 2, ny
-      yiy(i) = real(real(yiy(i-1),rkx)+ds,rk4)
+      yiy(i) = real(real(yiy(i-1),rkx)+xds,rk4)
     end do
     do j = 2, nx
-      xjx(j) = real(real(xjx(j-1),rkx)+ds,rk4)
+      xjx(j) = real(real(xjx(j-1),rkx)+xds,rk4)
     end do
     incstat = nf90_def_var(ncid, 'jx', nf90_float, idims(1), ihvar(1))
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -303,7 +310,7 @@ module mod_nchelper
                              'Error adding sigma formula')
     else
       incstat = nf90_put_att(ncid, izvar(1), 'formula_terms', &
-                             'kz: sigma ps: ps ptop: ptop')
+                             'sigma: kz ps: ps ptop: ptop')
       call checkncerr(incstat,__FILE__,__LINE__, &
                              'Error adding sigma formula_terms')
     end if
@@ -324,11 +331,15 @@ module mod_nchelper
                       'Error adding ptop units')
     else
       incstat = nf90_def_var(ncid, 'a', nf90_double, idims(3), izvar(2))
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding variable a')
       incstat = nf90_put_att(ncid, izvar(2), 'long_name', &
                              'vertical coordinate formula term a(k)')
       call checkncerr(incstat,__FILE__,__LINE__, &
                       'Error adding a long_name')
       incstat = nf90_def_var(ncid, 'b', nf90_double, idims(3), izvar(3))
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding variable b')
       incstat = nf90_put_att(ncid, izvar(3), 'long_name', &
                              'vertical coordinate formula term b(k)')
       call checkncerr(incstat,__FILE__,__LINE__, &
@@ -1202,23 +1213,12 @@ module mod_nchelper
     integer(ik4) :: istatus
     integer(ik4) :: idimid
     istatus = nf90_inq_dimid(ncid, dname, idimid)
+    if ( present(lexist) ) lexist = ( istatus == nf90_noerr )
     if ( istatus /= nf90_noerr ) then
-      if ( present(lexist) ) then
-        lexist = .false.
-        return
-      end if
+      if ( present(dlen) ) dlen = -1
+      if ( present(lexist) ) return
       if ( present(lerror) ) then
-        if ( lerror ) then
-          if ( present(dlen) ) then
-            dlen = -1
-          end if
-          return
-        end if
-      end if
-    else
-      if ( present(lexist) ) then
-        lexist = .true.
-        return
+        if ( lerror ) return
       end if
     end if
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1247,7 +1247,7 @@ module mod_nchelper
   end subroutine add_attribute
 
   integer function nf90_myget_att_text(ncid,ivar,aname,aval) result(istat)
-    use, intrinsic :: iso_c_binding, only: c_ptr, c_f_pointer, c_int
+    use, intrinsic :: iso_c_binding, only: c_ptr, c_f_pointer, c_int, c_size_t
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname
@@ -1269,6 +1269,14 @@ module mod_nchelper
          type(c_ptr), intent(in), value :: cs
       end function strlen
     end interface
+    interface
+      integer(c_int) function nc_free_string(n, pp) bind(c)
+        use, intrinsic :: iso_c_binding, only : c_int, c_size_t, c_ptr
+        implicit none
+        integer(c_size_t), value :: n
+        type(c_ptr), intent(inout) :: pp
+      end function nc_free_string
+    end interface
     integer :: xtype, nlen, attid, i
     integer(c_int) :: c_ncid, c_varid, c_status
     type(c_ptr) :: c_str
@@ -1284,10 +1292,11 @@ module mod_nchelper
         istat = c_status
         if ( istat == nf90_noerr ) then
           call c_f_pointer(c_str,f_str,[strlen(c_str)])
-          aval = adjustl("")
+          aval = ''
           do i = 1, min(size(f_str),len(aval))
             aval(i:i) = f_str(i)
           end do
+          c_status = nc_free_string(1_c_size_t,c_str)
         end if
       else
         istat = nf90_get_att(ncid,ivar,aname,aval)
@@ -1296,57 +1305,16 @@ module mod_nchelper
   end function nf90_myget_att_text
 
   subroutine get_attribute_char(ncid,aname,aval,ivar)
-    use, intrinsic :: iso_c_binding, only: c_ptr, c_f_pointer, c_int
     implicit none
     integer(ik4), intent(in) :: ncid
     character(len=*), intent(in) :: aname
     character(len=*), intent(out) :: aval
     integer(ik4), intent(in), optional :: ivar
-    integer :: istat, varid
-    interface
-      integer(c_int) function nc_get_att_string(ncid, varid, name, pp) bind(c)
-        use, intrinsic :: iso_c_binding, only : c_int, c_char, c_ptr
-        implicit none
-        integer(c_int), value :: ncid, varid
-        character(kind=c_char), intent(in) :: name
-        type(c_ptr), intent(out) :: pp
-      end function nc_get_att_string
-    end interface
-    interface
-      integer(c_size_t) function strlen(cs) bind(c, name='strlen')
-         use, intrinsic :: iso_c_binding, only : c_size_t, c_ptr
-         implicit none
-         type(c_ptr), intent(in), value :: cs
-      end function strlen
-    end interface
-    integer :: xtype, nlen, attid, i
-    integer(c_int) :: c_ncid, c_varid, c_status
-    type(c_ptr) :: c_str
-    character(len_trim(aname)+1) :: c_aname
-    character, pointer :: f_str(:)
+    integer :: istat
     if ( present(ivar) ) then
-      varid = ivar
+      istat = nf90_myget_att_text(ncid,ivar,aname,aval)
     else
-      varid = nf90_global
-    end if
-    istat = nf90_inquire_attribute(ncid, varid, aname, xtype, nlen, attid)
-    if ( istat == nf90_noerr ) then
-      if ( xtype == nf90_string .and. nlen == 1 ) then
-        c_ncid = ncid
-        if ( varid /= nf90_global ) c_varid = varid - 1
-        c_aname = aname//char(0)
-        c_status = nc_get_att_string(c_ncid, c_varid, c_aname, c_str)
-        istat = c_status
-        if ( istat == nf90_noerr ) then
-          call c_f_pointer(c_str,f_str,[strlen(c_str)])
-          aval = adjustl("")
-          do i = 1, min(size(f_str),len(aval))
-            aval(i:i) = f_str(i)
-          end do
-        end if
-      else
-        istat = nf90_get_att(ncid,varid,aname,aval)
-      end if
+      istat = nf90_myget_att_text(ncid,nf90_global,aname,aval)
     end if
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error reading attribute '//aname)
@@ -1475,7 +1443,7 @@ module mod_nchelper
     incstat = nf90_def_var_filter(ncid,ivars(ipnt), &
                    ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error setting filter on xlat')
+                    'Error setting filter on '//varname)
 #endif
 #endif
 #endif

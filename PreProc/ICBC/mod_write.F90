@@ -591,13 +591,13 @@ module mod_write
       ncattribute_string('bounds','xlon_bnds'))
     call outstream_addvaratt(ncout,v2dvar_icbc(2), &
       ncattribute_string('bounds','xlat_bnds'))
+    call outstream_enable(ncout)
     do ivar = 1, 4
       call outstream_writevar(ncout,v2dvar_icbc(ivar))
     end do
     do ivar = 1, nvar_bnds
       call outstream_writevar(ncout,v3dvar_bnds(ivar))
     end do
-    call outstream_enable(ncout)
   end subroutine newhfile
 
   subroutine newpgwfile(idate1)

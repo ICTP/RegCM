@@ -26,6 +26,8 @@ check failed.
   \code{test\_kdtree2} & \code{mod\_kdtree2\_priority},
     \code{mod\_kdtree2} (Section~\ref{sec:kdtree2}) \\
   \code{test\_kdinterp} & \code{mod\_kdinterp} (Section~\ref{sec:kdinterp}) \\
+  \code{test\_nchelper} & \code{mod\_nchelper} (Section~\ref{sec:nchelper}) \\
+  \code{test\_ncstream} & \code{mod\_ncstream} (Section~\ref{sec:ncstream}) \\
 \end{longtable}
 
 
@@ -6020,3 +6022,415 @@ element of a pool, the reallocation of an associated pointer, zero size
 arrays, \code{assignpnt} and \code{remappnt4}; it runs clean under
 \code{valgrind}. The tests in \code{Testing/share} are built and run by
 \code{make check}.
+
+%==============================================================================
+\section{NetCDF Helpers --- \texttt{mod\_nchelper.F90}}
+\label{sec:nchelper}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_nchelper} wraps the netCDF-Fortran calls used by the
+pre-processing programs, the post-processing tools and the model to open
+and create files, define and check dimensions and variables, read and write
+whole variables, and read and write attributes. Every wrapper checks the
+status of the library call and stops the program with the source file, line
+and a message (\code{checkncerr}) on error, unless an optional argument asks
+to tolerate a missing name. The model output streams use the separate
+\code{mod\_ncstream} (Section~\ref{sec:ncstream}).
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_nchelper
+    |-- netcdf
+    |-- mod_intkinds, mod_realkinds, mod_constants, mod_stdio
+    |-- mod_memutil   (getmem for the coordinate arrays)
+    |-- mod_dynparam  (jx, iy, kz, ds, nsg, iomode, debug_level,
+    |                  projection parameters)
+    |-- mod_message   (die)
+\end{lstlisting}
+
+\subsection{Conventions}
+
+\begin{itemize}
+  \item \textbf{Variable index lists.} The \code{define\_*}, \code{add\_*} and
+        \code{write\_var*} routines take an index \code{ipnt} into an array
+        of dimension or variable ids and advance it after each definition
+        or write, so that a sequence of calls fills the array in order and
+        the writes follow the same order.
+  \item \textbf{Optional missing names.} The numeric readers,
+        \code{check\_var} and
+        \code{ncd\_inqdim} accept \code{lerror}: if it is \code{.true.} on
+        input and the name is missing, it is set to \code{.false.} and the
+        routine returns; otherwise a missing name stops the program.
+        \code{ncd\_inqdim} also accepts \code{lexist}, set to whether the
+        dimension exists; a missing dimension returns \code{dlen} $= -1$.
+  \item \textbf{File format.} \code{createfile\_withname} uses
+        \code{iomode} of \code{mod\_dynparam} (netCDF-4, CDF5 or classic
+        format, chosen at configure time) and disables the fill values.
+        \code{regcm\_vartype} is the type of the variables of
+        \code{add\_variable}: double precision, or single when the code is
+        built with \code{SINGLE\_PRECISION\_REAL}, as the working real kind
+        \code{rkx}. With netCDF-4 and
+        compression enabled, the variables get the configured filter.
+  \item \textbf{Grid coordinates.} \code{jx} and \code{iy} hold the
+        projection coordinates in km, centred on the domain:
+        $x_i = (i - (n+1)/2)\,\Delta s$, with the subgrid distance
+        $\Delta s/n_\text{sg}$ when the dimensions are not those of the
+        model grid. \code{kz} holds $\sigma$ (hydrostatic and
+        non-hydrostatic cores, with \code{ptop} in hPa) or $\zeta$ with the
+        terms \code{a} and \code{b} of the height formula (MOLOCH).
+\end{itemize}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{5.4cm} L{8.6cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \multicolumn{2}{l}{\textit{Files}} \\
+  \code{createfile\_withname(fname, ncid)} &
+    Creates a file in define mode. \\
+  \code{openfile\_withname(fname, ncid)} &
+    Opens a file read only. \\
+  \code{closefile(ncid)} & Closes a file. \\
+  \code{checkncerr(ival, file, line, msg)} &
+    Stops with the netCDF error message if \code{ival} is an error. \\
+  \multicolumn{2}{l}{\textit{Definitions}} \\
+  \code{add\_common\_global\_params(ncid, prgname, lsub)} &
+    Global attributes of every RegCM file: title, institution, source,
+    conventions, history (creation time), references, git revision,
+    experiment (domain name), projection and its parameters, grid
+    distance (of the subgrid if \code{lsub}). \\
+  \code{define\_basic\_dimensions(ncid, nx, ny, nz, ipnt, idims)} &
+    Dimensions \code{jx}, \code{iy} and \code{kz}. \\
+  \code{add\_dimension(ncid, name, n, ipnt, idims)} &
+    Another dimension; $n = -1$ for the unlimited one. \\
+  \code{define\_horizontal\_coord}, \code{write\_horizontal\_coord} &
+    The \code{jx} and \code{iy} coordinate variables (see Conventions). \\
+  \code{define\_vertical\_coord}, \code{write\_vertical\_coord},
+  \code{write\_vertical\_coord\_zita} &
+    The \code{kz} coordinate, with the CF attributes of the vertical
+    coordinate of the dynamical core (\code{idynamic}), and \code{ptop} or
+    \code{a}, \code{b}. \\
+  \code{define\_cross\_geolocation\_coord(ncid, idims, ipnt, ivar)} &
+    The \code{xlat} and \code{xlon} variables. \\
+  \code{add\_variable(ncid, name, long\_name, units, idims, ipnt, ivars)} &
+    A variable of type \code{regcm\_vartype} with its long name and
+    units. \\
+  \code{add\_attribute(ncid, name, value [, ivar])} &
+    A text attribute, global without \code{ivar}. \\
+  \multicolumn{2}{l}{\textit{Writing and reading data}} \\
+  \code{write\_var1d\_static}, \code{write\_var2d\_static},
+  \code{write\_var3d\_static} &
+    Write a whole variable: 1-D of any type, 2-D and 3-D single precision.
+    With \code{debug\_level} $> 2$ the file is synchronised after each
+    write. \\
+  \code{read\_var1d\_static}, \code{read\_var2d\_static},
+  \code{read\_var3d\_static} &
+    Read a variable into an array, by name: single, double or integer,
+    passing the array (pointer or assumed shape) or its sizes;
+    \code{istart} and \code{icount} read a part of a 2-D or 3-D
+    variable. \\
+  \multicolumn{2}{l}{\textit{Inquiry}} \\
+  \code{check\_dims(ncid)} &
+    Stops if \code{jx}, \code{iy} or \code{kz} of the file differ from the
+    namelist. \\
+  \code{check\_dimlen(ncid, name, n)} &
+    Whether the dimension exists with length \code{n}. \\
+  \code{ncd\_inqdim(ncid, name [, dlen, lerror, lexist])} &
+    Length or existence of a dimension. \\
+  \code{check\_var(ncid, name [, lerror])} &
+    Whether a variable exists. \\
+  \code{get\_attribute(ncid, name, value [, ivar])} &
+    Reads a text, integer, single or double attribute, global without
+    \code{ivar}. \\
+  \code{nf90\_myget\_att\_text(ncid, ivar, name, value)} &
+    Reads a text attribute and returns the netCDF status. \\
+  \code{cdumlogical(cdum, l)} & \code{'Yes'} or \code{'No'}. \\
+\end{longtable}
+
+\subsection{Design Notes}
+
+\textbf{String attributes.} netCDF-4 has two kinds of text attributes: the
+classic character arrays and variable length strings (\code{NC\_STRING}),
+which Python tools such as \code{netCDF4} and \code{xarray} write by
+default. The Fortran interface reads only the first kind, so
+\code{nf90\_myget\_att\_text} reads a single string attribute through the C
+function \code{nc\_get\_att\_string}, copies it, and frees the C string;
+\code{get\_attribute} uses it for text attributes. The C variable ids are
+those of Fortran minus one, so the global id 0 becomes \code{NC\_GLOBAL}
+($-1$).
+
+\textbf{Corrections.} The following were corrected in October 2026, and
+are checked by \code{Testing/share/test\_nchelper.F90} (a file written and
+read back):
+\begin{itemize}
+  \item \code{get\_attribute} on a global string attribute passed an
+        undefined variable id to the C library and stopped with
+        \emph{variable not found}; it now uses
+        \code{nf90\_myget\_att\_text}, which also frees the string it
+        reads;
+  \item \code{ncd\_inqdim} with \code{lexist} returned before setting
+        \code{dlen};
+  \item \code{define\_horizontal\_coord} used the model grid size and
+        distance for any dimension, so the subgrid coordinates of
+        \code{mksurfdata} spanned $n_\text{sg}$ times the domain;
+  \item the \code{formula\_terms} of the $\sigma$ coordinate were written
+        as \code{kz: sigma} instead of the CF form \code{sigma: kz};
+  \item two error messages named the wrong attribute or variable, and
+        the definitions of \code{a} and \code{b} were not checked.
+\end{itemize}
+In \code{Main/mod\_ncio.F90} the parallel reading of the domain file took
+the soil temperature initialisation flag from the
+\code{initialized\_soil\_moisture} attribute; it now reads
+\code{initialized\_soil\_temperature}.
+
+%==============================================================================
+\section{Output Streams --- \texttt{mod\_ncstream\_types.F90} and
+         \texttt{mod\_ncstream.F90}}
+\label{sec:ncstream}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_ncstream} writes the netCDF files of RegCM: the domain file of
+\code{terrain}, the ICBC and SST files of the pre-processing, and all the
+model output (\code{mod\_ncout}). A file is an \emph{output stream}: the
+caller describes each variable once with a derived type that points to its
+data, and the module defines the dimensions, the coordinate variables, the
+grid mapping and the CF attributes from the variable descriptions and the
+model parameters of \code{mod\_dynparam}. \code{mod\_ncstream\_types} holds
+the types. The writes go through \code{mod\_async\_netcdf}, which can
+perform them in a background thread; with \code{PNETCDF} the module uses
+the PnetCDF library instead.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_ncstream_types
+    |-- mod_intkinds, mod_realkinds, mod_constants, mod_date
+    |-- mpi_f08 (communicator and info types)
+mod_ncstream
+    |-- mod_ncstream_types
+    |-- mod_dynparam (grid, projection and vertical parameters)
+    |-- mod_date, mod_zita (MOLOCH vertical coordinate)
+    |-- mod_stdio, mod_message
+    |-- netcdf and mod_async_netcdf, or pnetcdf
+\end{lstlisting}
+
+\subsection{Using an Output Stream}
+
+\begin{lstlisting}
+type(nc_output_stream) :: ncout
+type(ncoutstream_params) :: opar
+type(ncvariable2d_mixed) :: vtopo
+type(ncvariable3d_mixed) :: vta
+
+opar%fname = 'out.nc'          ! file name
+opar%pname = 'myprog'          ! program name in the history attribute
+opar%zero_date = idate1        ! start of the first time bound
+opar%l_bound = .true.          ! grid with the boundary points
+call outstream_setup(ncout,opar)          ! create the file
+
+vtopo%vname = 'topo'                       ! describe the variables
+vtopo%vunit = 'm'
+vtopo%long_name = 'Surface height'
+vtopo%standard_name = 'surface_altitude'
+vtopo%lrecords = .false.                   ! static
+vtopo%rval => topo                         ! data (pointer)
+vta%vname = 'ta'
+...
+vta%lrecords = .true.                      ! one record per time
+vta%rval => ta
+call outstream_addvar(ncout,vtopo)         ! define them
+call outstream_addvar(ncout,vta)
+call outstream_addatt(ncout,ncattribute_string('name','value'))
+call outstream_enable(ncout,sigma)         ! end of definitions
+
+call outstream_writevar(ncout,vtopo)       ! static data
+do                                         ! each output time
+  call outstream_addrec(ncout,idate)       !   new record
+  call outstream_writevar(ncout,vta)       !   its data
+end do
+call outstream_dispose(ncout)              ! close the file
+\end{lstlisting}
+
+\noindent Definitions (\code{addvar}, \code{addatt}, \code{addvaratt}) are
+ignored after \code{outstream\_enable}, and writes before it. Variables are
+written from the arrays their pointers point to at the time of the call.
+
+\subsection{Stream Parameters}
+
+\begin{longtable}{L{3.2cm} L{10.8cm}}
+  \toprule
+  \textbf{Field} & \textbf{Meaning} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{fname}, \code{pname} & File name; program name for \code{history}. \\
+  \code{zero\_date} & Start of the first time bound. \\
+  \code{l\_bound} & The horizontal dimensions include the boundary points
+    ($jx \times iy$); otherwise they are the internal cross points
+    ($(jx-3) \times (iy-3)$), as in the model output. \\
+  \code{l\_band}, \code{l\_crm} & Periodic in $x$ or in both directions:
+    full $jx$ or $iy$. \\
+  \code{l\_subgrid} & Subgrid file: horizontal sizes times $n_\text{sg}$,
+    grid distance divided by $n_\text{sg}$. \\
+  \code{l\_full\_sigma} & $kz+1$ levels (interfaces) instead of $kz$. \\
+  \code{l\_plev} & Pressure levels (\code{npgwlev}) instead of $\sigma$. \\
+  \code{l\_specint} & Spectral interval coordinates. \\
+  \code{l\_keep} & Open an existing file and find its definitions instead
+    of creating them (appending records). \\
+  \code{l\_sync} & \code{outstream\_sync} flushes the file. \\
+  \code{mpicom}, \code{mpinfo}, \code{mpi\_iotype} & Parallel I/O: the
+    communicator of the writing processes and the netCDF parallel mode. \\
+  \code{global\_jstart} \ldots\ \code{global\_iend} & With parallel I/O,
+    the part of the grid written by this process. \\
+\end{longtable}
+
+\subsection{Variables}
+
+The variable types combine a rank and a kind:
+\code{ncvariable}$n$\code{d\_}\textit{kind}, $n = 0, \ldots, 4$, with kind
+\code{real} (single precision data and file), \code{double} (double
+precision), \code{integer}, and \code{mixed}: data of the working kind
+\code{rkx} written as single precision. All variables have \code{vname},
+\code{vunit}, \code{long\_name}, \code{standard\_name}, \code{notes},
+\code{cell\_method} (default \code{time: point}), \code{lrecords} (time
+dependent), \code{lfillvalue} with \code{rmissval} or \code{imissval}, and,
+from rank 1, the string \code{axis} that gives the dimensions in order, one
+character each:
+
+\begin{longtable}{L{1.2cm} L{4.6cm} L{1.2cm} L{6.6cm}}
+  \toprule
+  \textbf{Code} & \textbf{Dimension} & \textbf{Code} & \textbf{Dimension} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{x}, \code{y} & \code{jx}, \code{iy} &
+  \code{s} & \code{soil\_layer} \\
+  \code{z} & \code{kz} &
+  \code{d} & \code{depth} (lake levels) \\
+  \code{t} & \code{time} (added for \code{lrecords}) &
+  \code{M} & \code{month} \\
+  \code{b} & \code{bnds} (time bounds) &
+  \code{S}, \code{B} & spectral intervals, their bounds \\
+  \code{T} & \code{ntex} (soil textures) &
+  \code{n} & \code{nv} (cell corners) \\
+  \code{2}, \code{w}, \code{q}, \code{W}, \code{Q} &
+    heights 2, 10, 50, 100, 150~m & & \\
+\end{longtable}
+
+\noindent The default axes are \code{xy}, \code{xyz} and \code{xyzd} for
+ranks 2 to 4. Variables with \code{x} and \code{y} are \emph{gridded}: they
+get the \code{coordinates} (cross, dot or staggered points by name) and
+\code{grid\_mapping} attributes. Further fields select what is written:
+\code{j1:j2}, \code{i1:i2} (\code{k1:k2}) a window of the data array,
+\code{is\_slice} with \code{rval\_slice} and the argument \code{is} of
+\code{outstream\_writevar} a slice of an array with one more dimension, and
+\code{rval\_level} one level of a 3-D variable.
+
+\subsection{What the Module Adds}
+
+\begin{itemize}
+  \item \textbf{Global attributes}: title, institution, source,
+        conventions (CF-1.10), history, references, model revision,
+        experiment, projection and its parameters, grid size (of the
+        subgrid), index of the projection origin, dynamical core and, for
+        MOLOCH, the parameters of the $\zeta$ coordinate.
+  \item \textbf{Coordinates}: \code{jx}, \code{iy} in m centred on the
+        domain, or \code{rlon}, \code{rlat} in degrees for \code{ROTLLR};
+        \code{kz} ($\sigma$, with \code{ptop} in hPa) or $\zeta$ with the
+        terms \code{a} and \code{b}, or \code{plev}; the height, soil and
+        spectral coordinates for the dimensions used.
+  \item \textbf{Grid mapping}: a scalar \code{crs} with the CF
+        \code{grid\_mapping\_name} and parameters of the projection, its
+        PROJ string (\code{proj4\_params}) and WKT (\code{crs\_wkt}) on a
+        sphere of radius \code{earthrad}.
+  \item \textbf{Time}: \code{time} in hours since 1950-01-01 00:00:00~UTC
+        with the model calendar; \code{outstream\_addrec} adds a record at a
+        date. If a variable has a \code{cell\_method} with a statistic over
+        time (\code{time: mean}, \code{max}, \code{min}, \code{sum}), the file
+        gets \code{time\_bnds}: each record spans from the previous record
+        (from \code{zero\_date} for the first) to its own time.
+  \item \textbf{Compression}: with netCDF-4 and filters, variables with
+        more than three dimensions (time included) in a serial file get the
+        configured filter.
+\end{itemize}
+
+\subsection{Other Interfaces}
+
+\begin{longtable}{L{5.2cm} L{8.8cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{outstream\_addvaratt(ncout, var, att)} &
+    An attribute of a variable; attributes are
+    \code{ncattribute\_string}, \code{\_logical} (written \code{Yes} or
+    \code{No}), \code{\_integer}, \code{\_real4}, \code{\_real8} and their
+    arrays (up to 8 values). \\
+  \code{outstream\_writevar(ncout, var [, lcopy, is])} &
+    Writes a variable, in the current record if time dependent. With
+    \code{lcopy = .false.} the internal buffer is written as it is (used for
+    the coordinates). \\
+  \code{outstream\_writevar\_rank0(ncout, var, myrank)} &
+    A static 3-D \code{mixed} variable that only process 0 holds (the
+    cell corner coordinates), in independent mode in parallel files. \\
+  \code{outstream\_sync(ncout)} & Flushes the file if \code{l\_sync}. \\
+  \code{outstream\_async\_flush}, \code{outstream\_async\_finalize} &
+    Wait for the pending writes; stop the writer thread. \\
+  \code{outstream\_netcdf\_lock}, \code{\_unlock},
+  \code{outstream\_async\_defer\_wake\_begin}, \code{\_end} &
+    Exclusive access to the netCDF library and batching of the writes of
+    an output step (Section on \code{mod\_async\_netcdf}). \\
+\end{longtable}
+
+\subsection{Design Notes}
+
+\textbf{One buffer per stream.} \code{outstream\_enable} allocates one
+integer, one single and one double buffer per stream, as large as the
+largest variable of the stream; every write copies the data (window or
+slice) into it, converting \code{mixed} data to single precision, and
+writes the buffer. With OpenACC the buffer is page-locked host memory, and
+the copy is done on the device. With \code{BITSHAVE} the single precision
+values are truncated to 15 bits of mantissa before writing, which improves
+the compression.
+
+\textbf{Corrections.} The following were corrected in October 2026, and
+are checked by \code{Testing/share/test\_ncstream.F90} (a file written and
+read back with the netCDF library):
+\begin{itemize}
+  \item the \code{\_FillValue} of integer variables was written as a single
+        precision attribute, which the library rejects;
+  \item the time bounds were triggered by a test of the characters of the
+        first nine of \code{cell\_methods} (\code{verify}), not of the
+        words; they now follow the presence of \code{time: mean},
+        \code{max}, \code{min} or \code{sum};
+  \item the name of a variable in an error message was taken from an
+        absent optional argument for global attributes;
+  \item the input streams (\code{instream\_*}, \code{nc\_input\_stream}),
+        about 1700 lines, were removed: they were not used, and their
+        record search was wrong for files with more than two records;
+  \item an example program under \code{TESTNCSTREAM}, which no longer
+        compiled, and the unused \code{bitshave\_nb} were removed.
+\end{itemize}
+In \code{PreProc/ICBC/mod\_write.F90} the CLM forcing file of
+\code{clmbc} was enabled after the writes of its static fields
+(coordinates, mask, topography, cell bounds), which were therefore not
+written; the stream is now enabled first.
+
+\textbf{Notes on the OpenACC path} (not changed): with both
+\code{OPENACC} and \code{BITSHAVE} defined, the device pointer of the
+\code{mixed} 2-D and 3-D data is not set before it is used; and the
+device copy writes the whole data array, ignoring the
+\code{j1:j2}, \code{i1:i2} window.
