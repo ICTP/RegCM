@@ -1787,13 +1787,13 @@ all selectable at runtime without recompilation.
         \code{==}, \code{/=}, \code{<}, \code{>}, \code{<=}, \code{>=})
         for natural-looking date and interval arithmetic in physics code.
   \item Conversion to/from multiple external formats: packed 10-digit integer
-        (\code{YYYYMMDDYH}), ISO~8601 string, human-readable UTC string, hours,
+        (\code{YYYYMMDDHH}), ISO~8601 string, human-readable UTC string, hours,
         and seconds.
   \item Month, week, and day navigation helpers (\code{nextmon}, \code{prevmon},
         \code{monfirst}, \code{monlast}, \code{monmiddle}, \code{nextwk},
         \code{yrfirst}, etc.).
-  \item Julian Day Number computation for Gregorian dates (with correct
-        Julian/Gregorian switchover on 1582-10-15).
+  \item Julian Day computation in the proleptic Gregorian calendar, valid
+        for any year, used for the day of the week.
   \item Parsing of CF-Conventions time-unit strings
         (\texttt{hours since YYYY-MM-DD HH:MM:SS}).
   \item CMIP scenario boundary detection (\code{date\_in\_scenario}).
@@ -1850,14 +1850,51 @@ All are \code{integer(ik8)} to prevent overflow in interval calculations.
   \bottomrule
   \endfoot
   \code{gregorian} & 1 & Proleptic Gregorian calendar (leap years via the
-    400/4/100 rule). Accepted string aliases: \texttt{gregorian},
-    \texttt{standard}, \texttt{proleptic\_gregorian}. \\
-  \code{noleap}    & 2 & 365-day calendar with no leap years. Accepted string
-    aliases: \texttt{noleap}, \texttt{365\_day}, \texttt{days\_365}, etc. \\
+    400/4/100 rule), with no Julian/Gregorian switch in 1582. \\
+  \code{noleap}    & 2 & 365-day calendar with no leap years. \\
   \code{y360}      & 3 & Idealised 360-day calendar (12 months of exactly 30
-    days each). Accepted string aliases: \texttt{360\_day}, \texttt{days\_360},
-    etc. \\
+    days each). \\
 \end{longtable}
+
+The calendar names are recognised by three routines, which do not accept
+exactly the same strings:
+
+\begin{longtable}{L{3.2cm} L{3.6cm} L{3.6cm} L{3.6cm}}
+  \toprule
+  \textbf{Calendar} & \code{calendar\_int} & \code{set\_calstring} &
+    \code{timeval2date} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{gregorian} &
+    \texttt{gregorian}, \texttt{standard}, \texttt{proleptic\_gregorian} &
+    \texttt{gregorian}, \texttt{standard} &
+    any string not listed below \\
+  \code{noleap} &
+    \texttt{noleap}, \texttt{365\_days}, \texttt{365\_day},
+    \texttt{days\_365}, \texttt{day\_365} &
+    \texttt{noleap}, \texttt{days\_365}, \texttt{day\_365},
+    \texttt{365\_days}, \texttt{365\_day} &
+    strings starting with \texttt{noleap}, \texttt{days\_365} or
+    \texttt{365\_day} \\
+  \code{y360} &
+    \texttt{days\_360}, \texttt{day\_360}, \texttt{360\_days},
+    \texttt{360\_day} &
+    \texttt{days\_360}, \texttt{day\_360}, \texttt{360\_days},
+    \texttt{360\_day} &
+    strings starting with \texttt{360\_day} \\
+  Unknown string &
+    \code{gregorian}, silently &
+    \code{gregorian}, with a warning on \code{stderr} &
+    \code{gregorian}, silently \\
+\end{longtable}
+
+\noindent In particular \texttt{proleptic\_gregorian}, the name written by the
+model in its own output files, is accepted by \code{set\_calstring} only
+through the fallback (with the warning), and \texttt{days\_360},
+\texttt{day\_360} and \texttt{day\_365} are read as Gregorian by
+\code{timeval2date}.
 
 \subsubsection{Public Time Unit Selectors}
 
@@ -1957,9 +1994,12 @@ is stored as a value of this type.
 \textbf{Internal representation rationale.} Splitting the timestamp into
 integer days and integer seconds rather than using a single real-valued
 counter (as in, e.g., Julian Day fractions) avoids accumulated rounding errors
-over long simulations with short time steps. Two 64-bit integers can represent
-any date from roughly $-2.5\times10^{16}$ to $+2.5\times10^{16}$ years from
-1900 at one-second resolution, well beyond any conceivable climate simulation.
+over long simulations with short time steps. The 64-bit day counter alone
+could span about $\pm2.5\times10^{16}$ years. The practical range is much
+smaller: the decomposed year is an \code{integer(ik4)}, the packed-integer
+assignments accept only years with $|y| < 10000$, and the conversion between
+the day counter and the calendar date iterates year by year from 1900, so its
+cost grows linearly with the distance from the reference year.
 
 \subsubsection{\texttt{rcm\_time\_interval} --- A Duration}
 
@@ -2066,7 +2106,7 @@ by dispatching to the appropriate \code{initfrom*} procedure.
   \code{character} (via \code{c10wcal})  &
     Reads a packed date string + calendar into \code{rcm\_time\_and\_date}. \\
   \code{integer(ik4)} &
-    Interprets as packed \code{YYYYMMDDYH}; assumes Gregorian calendar. \\
+    Interprets as packed \code{YYYYMMDDHH}; assumes Gregorian calendar. \\
   \code{i4wcal} &
     As above but with explicit calendar. \\
   \code{integer(ik8)} &
@@ -2090,7 +2130,12 @@ $\text{date} = \text{YYYY} \times 10^6 + \text{MM} \times 10^4
              + \text{DD} \times 10^2 + \text{HH}$,
 which is the legacy RegCM date format used throughout the namelist and
 restart files. The \code{split\_i10} / \code{split\_i10\_8} routines decode
-this by successive integer division and modulo operations.
+this by successive integer division and modulo operations. All the
+packed-date assignments check the decoded fields and call \code{die} if the
+year is not in $(-10000, 10000)$, the month not in $[1,12]$, the day not in
+$[1,31]$, or the hour not in $[0,23]$ (the day is not checked against the
+length of the month). The character form is read with format \code{(i11)}
+and then treated as an \code{i8wcal}.
 
 \subsubsection{Equality (\texttt{==})}
 
@@ -2113,6 +2158,17 @@ this by successive integer division and modulo operations.
     (e.g.\ months vs.\ seconds). \\
 \end{longtable}
 
+The interval comparisons (\code{==}, \code{>}, \code{<}) share the private
+subroutine \code{common\_unit(x, y, ix, iy, lok)}. It returns the values of
+the two intervals in a common unit: unchanged if the units are the same,
+otherwise in seconds if both units are between \code{usec} and \code{uday},
+or in months if both are between \code{umnt} and \code{ucnt}. The
+conversion factors come from \code{unit\_factor}. The flag \code{lok} is
+\code{.false.} when one unit is in each group, or when a unit is unknown,
+and then every comparison returns \code{.false.}. Converting to the finer
+unit keeps the comparison exact: for example 61~seconds is not equal to
+1~minute.
+
 \subsubsection{Addition and Subtraction (\texttt{+}, \texttt{-})}
 
 \begin{longtable}{L{5.5cm} L{8.5cm}}
@@ -2127,11 +2183,15 @@ this by successive integer division and modulo operations.
     Handles all seven unit cases; seconds, minutes, hours, and days update
     \code{second\_of\_day} and \code{days\_from\_reference} by integer
     arithmetic. Month, year, and century increments first decompose the date,
-    adjust the year/month, then recompose; a proportional day-of-month
-    fraction is preserved to avoid landing on day~1 after every monthly step. \\
+    adjust the year/month, then recompose. For months only, the position
+    within the month, $(d-1)/N_\text{month}$, is preserved and mapped onto
+    the target month (see Design Notes); year and century increments keep
+    the day of the month unchanged. \\
   \code{rcm\_time\_and\_date - rcm\_time\_interval} &
-    Symmetric subtraction; negative second-of-day values are wrapped back
-    into the previous day correctly. \\
+    Subtraction; negative second-of-day values are wrapped back into the
+    previous day. Unlike the addition, the month case keeps the day of the
+    month unchanged instead of preserving the position within the month, so
+    \code{x + 1 month - 1 month} is not always \code{x}. \\
   \code{rcm\_time\_and\_date - rcm\_time\_and\_date} &
     Returns an \code{rcm\_time\_interval} in \code{usec}, equal to the
     signed difference $(x_\text{days} - y_\text{days}) \times 86400 +
@@ -2143,13 +2203,17 @@ this by successive integer division and modulo operations.
 
 \subsubsection{Ordering (\texttt{>}, \texttt{<}, \texttt{>=}, \texttt{<=}, \texttt{/=})}
 
-All six relational operators are overloaded for \code{rcm\_time\_and\_date}
-(type-type and type-integer variants) and for \code{rcm\_time\_interval}
-(type-type only). Date comparisons first check calendar consistency via
-\code{check\_cal} and then compare the pair
-(\code{days\_from\_reference}, \code{second\_of\_day})
+The five relational operators are overloaded for \code{rcm\_time\_and\_date},
+both between two dates and between a date and a packed integer date
+(\code{integer(ik4)}; \code{<} also accepts \code{integer(ik8)}). The integer
+is converted to a date in the calendar of the left operand. Only \code{>} and
+\code{<} are also defined between two \code{rcm\_time\_interval} values.
+
+Date comparisons first check calendar consistency via \code{check\_cal} and
+then compare the pair (\code{days\_from\_reference}, \code{second\_of\_day})
 lexicographically. Interval comparisons are unit-aware, using the same
-conversion logic as equality.
+conversion logic as equality, and return \code{.false.} for incompatible
+units.
 
 %------------------------------------------------------------------------------
 \subsection{Calendar Arithmetic Routines}
@@ -2165,19 +2229,22 @@ conversion logic as equality.
   \bottomrule
   \endfoot
   \code{lleap} & \code{(iyear) $\to$ logical} &
-    Returns \code{.true.} if \code{iyear} is a Gregorian leap year
+    Private. Returns \code{.true.} if \code{iyear} is a Gregorian leap year
     ($\text{mod}(y,400)=0$, or $\text{mod}(y,4)=0$ and
     $\text{mod}(y,100)\ne0$). Pure function. \\
   \code{mdays\_leap} & \code{(iyear, imon) $\to$ integer(ik4)} &
-    Returns the number of days in month \code{imon} of year \code{iyear}
-    for the Gregorian calendar, accounting for leap February. Pure. \\
+    Private. Returns the number of days in month \code{imon} of year
+    \code{iyear} for the Gregorian calendar, accounting for leap February.
+    Pure. \\
   \code{ndaypm} & \code{(y, m, cal) $\to$ integer(ik4)} &
-    Days in month \code{m} for any calendar: calls \code{mdays\_leap}
-    for Gregorian, returns \code{mlen(m)} for \code{noleap},
-    and 30 for \code{y360}. Pure. \\
+    Public. Days in month \code{m} for any calendar: calls
+    \code{mdays\_leap} for Gregorian, returns \code{mlen(m)} for
+    \code{noleap}, 30 for \code{y360}, and 0 for an unknown calendar.
+    Pure. \\
   \code{yeardays} & \code{(y, c) $\to$ integer(ik4)} &
-    Total days in year \code{y} under calendar \code{c}:
-    365 or 366 (Gregorian), 365 (\code{noleap}), 360 (\code{y360}). Pure. \\
+    Public. Total days in year \code{y} under calendar \code{c}:
+    365 or 366 (Gregorian, also the default), 365 (\code{noleap}),
+    360 (\code{y360}). Pure. \\
 \end{longtable}
 
 \subsubsection{Internal Representation Conversion}
@@ -2238,7 +2305,9 @@ decomposition are related by two complementary pairs of private routines:
 \subsubsection{Day Arithmetic Helpers (Private, Recursive)}
 
 Four private recursive subroutines handle day-level addition and subtraction
-while correctly rolling over month and year boundaries:
+on a (day, month, year) triple, rolling over month and year boundaries. They
+are not called anywhere in the current code: day arithmetic is done directly
+on \code{days\_from\_reference}.
 
 \begin{longtable}{L{5cm} L{9cm}}
   \toprule
@@ -2260,7 +2329,9 @@ while correctly rolling over month and year boundaries:
 
 The helper subroutines \code{adjustpm} and \code{adjustmp} carry month-overflow
 ($m > 12$) and month-underflow ($m < 1$) into the year field respectively,
-used after month/year arithmetic.
+used after month/year arithmetic. Each applies a single correction,
+$m \leftarrow m - 12$ or $m \leftarrow m + 12$, which is enough because the
+callers add or subtract at most 11 months before the correction.
 
 %------------------------------------------------------------------------------
 \subsection{Julian Day Computation}
@@ -2273,22 +2344,47 @@ used after month/year arithmetic.
   \endhead
   \bottomrule
   \endfoot
-  \code{ymd\_julianday(iy, im, id) $\to$ real(rk8)} &
-    Computes the Julian Day Number for a proleptic Gregorian date. Applies
-    the standard algorithm with the Gregorian correction term
-    $B = 2 - \lfloor y/100 \rfloor + \lfloor y/400 \rfloor$ for dates
-    on or after 1582-10-15, and $B = 0$ (Julian calendar) for dates on or
-    before 1582-10-04. Dates falling in the gap 1582-10-05 to 1582-10-14
-    are treated as non-existent and cause a fatal error via
-    \code{die}. \\
-  \code{idate\_julianday(x) $\to$ real(rkx)} &
-    Wrapper: extracts year, month, day from an
-    \code{rcm\_time\_and\_date} and calls \code{ymd\_julianday}. \\
+  \code{julianday(iy, im, id) $\to$ real(rk8)} &
+    Generic interface with the single procedure \code{ymd\_julianday}.
+    Returns the Julian Day of the date (year, month, day) at 00:00~UTC in
+    the proleptic Gregorian calendar, so the value always ends in $.5$.
+    Pure. \\
   \code{idayofweek(x) $\to$ integer(ik4)} &
     Returns the day of week (1 = Sunday, \ldots, 7 = Saturday) from the
-    Julian Day Number: $\text{dow} = \text{mod}(JD + 1.5, 7) + 1$.
-    Requires Gregorian calendar; aborts otherwise. \\
+    Julian Day: $\text{dow} = \text{modulo}(JD + 1.5, 7) + 1$. The
+    \code{modulo} intrinsic keeps the result in $[1,7]$ also for negative
+    Julian Days. Requires the Gregorian calendar; aborts otherwise. \\
 \end{longtable}
+
+\code{ymd\_julianday} follows the model calendar: the Gregorian rules are
+applied to every year, including those before 1582, and every
+(year, month, day) triple maps to a Julian Day. The computation counts
+days from 0000-03-01, so that the leap day is the last day of each
+counting year:
+\begin{enumerate}
+  \item Shift the year to start in March: $y' = y - 1$ and $m' = m + 9$ for
+        January and February, $y' = y$ and $m' = m - 3$ otherwise, so that
+        $m' = 0$ is March and $m' = 11$ is February.
+  \item Split $y'$ into 400-year eras, which all have exactly
+        146\,097~days: $e = (y' - \text{modulo}(y', 400))/400$ and
+        $y_e = y' - 400e \in [0, 399]$. Using \code{modulo} makes this valid
+        also for negative years.
+  \item Add the days of the whole eras, of the whole years of the era, and
+        of the whole months of the year:
+        \[
+          JD = 1721119.5 + 146097\,e + 365\,y_e
+               + \left\lfloor \frac{y_e}{4} \right\rfloor
+               - \left\lfloor \frac{y_e}{100} \right\rfloor
+               + \left\lfloor \frac{153\,m' + 2}{5} \right\rfloor
+               + d - 1
+        \]
+        where 1721119.5 is the Julian Day of 0000-03-01 00:00~UTC and
+        $\lfloor (153m'+2)/5 \rfloor$ is the number of days from 1 March
+        to the first day of month $m'$.
+\end{enumerate}
+All the terms are integer, so the result is exact in \code{real(rk8)}. For
+example, 2000-01-01 gives $JD = 2451544.5$ and \code{idayofweek} = 7
+(Saturday).
 
 %------------------------------------------------------------------------------
 \subsection{Public Conversion and Formatting Functions}
@@ -2305,14 +2401,15 @@ used after month/year arithmetic.
   \endfoot
   \code{tochar(x)} &
     \code{character(len=32)} &
-    \texttt{YYYY-MM-DD HH:MM:SS UTC} (or \texttt{-YYYY-\ldots}
-    for negative years). \\
+    \texttt{YYYY-MM-DD HH:MM:SS UTC}, preceded by a blank (or by
+    \texttt{-} for negative years). \\
   \code{toiso8601(x)} &
     \code{character(len=21)} &
-    \texttt{YYYY-MM-DDTHH:MM:SSZ} (ISO~8601 basic). \\
+    \texttt{YYYY-MM-DDTHH:MM:SSZ} (ISO~8601 extended format), preceded by
+    a blank or by \texttt{-} as above. \\
   \code{tochar10(x)} &
     \code{character(len=11)} &
-    Zero-padded packed integer \texttt{YYYYMMDDYH}. \\
+    Zero-padded packed integer \texttt{YYYYMMDDHH}, left-adjusted. \\
 \end{longtable}
 
 \subsubsection{Date/Time to Numeric}
@@ -2334,15 +2431,21 @@ used after month/year arithmetic.
     \code{die} for calendar-dependent units. \\
   \code{toseconds(x)} &
     \code{integer(ik8)} &
-    Converts an \code{rcm\_time\_interval} to seconds. Same restriction. \\
+    Converts an \code{rcm\_time\_interval} to seconds. Same restriction.
+    Used by the interval addition when the units differ. \\
   \code{yeardayfrac(x)} &
     \code{real(rkx)} &
     Day-of-year as a fractional real (including hour, minute, second
     contributions), 0-based. \\
   \code{yearpoint(x)} &
     \code{real(rk8)} &
-    Fractional day-of-year with a leap-year correction factor, used in
-    solar orbit calculations. \\
+    Calendar day used by the orbital routine \code{orb\_decl} (in
+    \code{mod\_sun} and in the CLM~4.5 interface). For the Gregorian
+    calendar it is the day of the year $n$ (1-based, the time of day is
+    ignored) minus $(n + k)/1461$, where $k$ is 1095, 730, 365 or 0 when the
+    year is a leap year or precedes one by one, two or three years: the
+    correction spreads the leap day over the four-year cycle. For
+    \code{noleap} and \code{y360} it is the day of the year. \\
 \end{longtable}
 
 \subsubsection{Component Extractors}
@@ -2436,9 +2539,13 @@ components:
   \code{ildoweek(x)} & \code{rcm\_time\_and\_date} &
     Last day (Saturday) of the week containing \code{x}, at midnight. \\
   \code{iwkdiff(x,y)}& \code{integer(ik4)} &
-    Signed number of weeks between two dates. \\
+    Number of whole weeks in \code{x - y} plus one, i.e.\ the 1-based index
+    of the week of \code{x} counted from \code{y}. \\
   \code{lsameweek(x,y)} & \code{logical} &
-    True if \code{x} and \code{y} fall in the same Sunday-to-Saturday week. \\
+    Meant to test whether \code{x} and \code{y} fall in the same
+    Sunday-to-Saturday week. It returns true if \code{y} lies strictly
+    between 00:00 of the Saturday before the week of \code{x} and 00:00 of
+    the Saturday of that week. Not used in the current code. \\
 \end{longtable}
 
 \subsubsection{Logical Predicates}
@@ -2460,7 +2567,8 @@ components:
     True if \code{x} is in the first half of its month
     (i.e.\ \code{x < monmiddle(x)}). \\
   \code{lsamemonth(x,y)} & \code{logical} &
-    True if \code{x} and \code{y} share the same month (calendar check). \\
+    True if \code{x} and \code{y} have the same month number, whatever
+    their year (calendar check). \\
 \end{longtable}
 
 \subsubsection{Difference Functions}
@@ -2476,7 +2584,9 @@ components:
     Signed difference in hours: $(x - y)$ computed exactly from the integer
     internal fields. \\
   \code{imondiff(x,y)}  & \code{integer(ik4)} &
-    Absolute difference in months. \\
+    Difference in months, computed as
+    $12\,|y_x - y_y| + (m_x - m_y)$: it is the number of months from
+    \code{y} to \code{x} when \code{x} is not earlier than \code{y}. \\
   \code{iyeardiff(x,y)} & \code{integer(ik4)} &
     Absolute difference in years. \\
 \end{longtable}
@@ -2539,11 +2649,15 @@ dd = timeval2date(xval, cunit, ccal)
     \texttt{gregorian}/\texttt{standard}). \\
 \end{longtable}
 
-The routine caches \code{cunit} and \code{ccal} in \code{save} variables so
-that the expensive string parse (via \code{parse\_timestring}) is only
-performed on the first call or when the unit string changes. Fractional days
-are handled specially: a value of 15.5 days is interpreted as 15 days plus
-12 hours, consistent with common NetCDF practice.
+The routine caches \code{cunit}, \code{ccal} and the reference date in
+\code{save} variables (separately for the two precisions), so that the
+string parse (via \code{parse\_timestring}) is only performed on the first
+call or when the unit or calendar string changes. The value is truncated
+towards zero to a whole number of units, and the fraction is discarded
+except for days: a value of 15.5 days is interpreted as 15 days plus
+12 hours, consistent with common NetCDF practice (the hours are truncated as
+well). The calendar strings recognised are listed in
+Section~\ref{subsec:date_constants}.
 
 \subsubsection{\texttt{timeval2ym} --- Numeric Time Value to Year/Month}
 
@@ -2557,12 +2671,20 @@ Lighter-weight variant that parses only the year and month from a
 \subsubsection{\texttt{parse\_timestring} --- CF Time-Unit String Parser}
 
 Private function that parses a CF-Conventions time-unit string of the form
-\texttt{UNIT since YYYY-MM-DD HH:MM:SS}, tolerating various date-separator
-styles (\texttt{-}, space, \texttt{T}). Returns:
+\texttt{UNIT since YYYY-MM-DD HH:MM:SS}. The unit is recognised by the first
+word (\texttt{seconds}, \texttt{minutes}, \texttt{hours}, \texttt{days},
+\texttt{months} or \texttt{years}), and the date is read from the fixed
+position after \texttt{UNIT since }. Months, days, hours and minutes may
+have one or two digits; the date and the time may be separated by a blank or
+by \texttt{T}. The string may stop after any field: the missing fields keep
+their defaults (1900-01-01 00:00:00). Returns:
 \begin{itemize}
-  \item The unit selector (\code{aunit}): one of \code{usec}--\code{uyrs}.
+  \item The unit selector (\code{aunit}): one of \code{usec}--\code{uyrs},
+        or $-1$ for an unrecognised unit.
   \item The reference date components: year, month, day, hour, minute, second.
-  \item An integer result code: 0 on success, $-1$ on error.
+  \item An integer result code: 0 on success, $-1$ if a date field cannot be
+        read. An unrecognised unit is reported on \code{stderr} but returns
+        0, with \code{aunit} $= -1$.
 \end{itemize}
 
 %------------------------------------------------------------------------------
@@ -2625,12 +2747,14 @@ for the new calendar:
   \bottomrule
   \endfoot
   \code{set\_calint(x, c)} &
-    Sets the calendar to the integer constant \code{c}. If the calendar
-    changes, decomposes the current date and recomposes it under the new
-    system. Pure. \\
+    Sets the calendar to the integer constant \code{c} (an unknown value
+    selects \code{gregorian}). If the calendar changes, decomposes the
+    current date and recomposes the same (year, month, day) under the new
+    system, so the day counter changes. Pure. \\
   \code{set\_calstring(x, c)} &
-    Parses the string \code{c} (accepting all CF aliases) and delegates
-    to \code{set\_calint}. \\
+    Maps the string \code{c} to a calendar (see the table in
+    Section~\ref{subsec:date_constants}) and delegates to
+    \code{set\_calint}. \\
   \code{set\_caltype(x, y)} &
     Copies the calendar from \code{y} into \code{x}, calling
     \code{set\_calint} only if they differ. \\
@@ -2683,8 +2807,11 @@ months is inherently ambiguous (what is 31 January + 1 month?). The module
 resolves this by computing a fractional position $\alpha$ within the source
 month and mapping it proportionally onto the target month, so that the
 ``middle of January'' becomes the ``middle of February'' rather than day 28
-or day 1. This is noted in source comments as ``a trick'' and is consistent
-with how other climate model frameworks handle monthly stepping.
+or day 1. The new day is $\text{nint}(N_\text{target}\,\alpha) + 1$ with
+$\alpha = (d - 1)/N_\text{source}$; the source comments call it ``a trick'',
+whose purpose is to make day 14 the middle of February in the Gregorian
+calendar. Only the addition of months uses it (see the table of the
+\code{+} and \code{-} operators).
 
 \textbf{CF-Conventions compatibility.} The \code{timeval2date},
 \code{timeval2ym}, and \code{parse\_timestring} routines ensure that any
@@ -3918,3 +4045,187 @@ longitude-convention logic in every module that reads global input data.
 expanded by 2 points on the ``near'' side and 3 on the ``far'' side to
 ensure that interpolation stencils at the domain boundary always have
 global data available, even for high-order schemes.
+
+%==============================================================================
+\section{Spherical Barycentric Coordinates --- \texttt{mod\_spbarcoord.F90}}
+\label{sec:spbarcoord}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_spbarcoord} computes the interpolation weights of a point on the
+sphere with respect to a set of surrounding points, using the spherical
+barycentric (mean value) coordinates of \citet{langer2006}. Given the query
+point $\mathbf{p}$ and $n$ vertices $\mathbf{v}_1, \ldots, \mathbf{v}_n$ on
+the unit sphere, it returns weights $\lambda_i \ge 0$ with
+$\sum_i \lambda_i = 1$ such that $\sum_i \lambda_i \mathbf{v}_i$ points in the
+direction of $\mathbf{p}$. A field known at the vertices is then
+interpolated at $\mathbf{p}$ as $f(\mathbf{p}) = \sum_i \lambda_i f_i$.
+
+The only user is \code{mod\_kdinterp}, which computes the weights of every
+target grid point from the source points found by a kd-tree search
+(\code{compwgt\_genlin}): the 4 nearest points when the target grid is
+finer than the source grid, or the points within a search radius (up to
+32) when it is coarser. The module is \code{private} by default and its
+only public symbol is the subroutine \code{spherical\_barycentric}.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_spbarcoord
+    |-- mod_realkinds   (rk8)
+    |-- mod_intkinds    (ik4)
+    |-- mod_constants   (d_zero)
+\end{lstlisting}
+
+The points are Cartesian coordinates on the unit sphere, as produced by
+\code{ll2xyz} of \code{mod\_earth} (Section~\ref{subsec:earth_ll2xyz}).
+
+\subsection{Module Data}
+
+\begin{longtable}{L{3.5cm} L{3.5cm} L{7cm}}
+  \toprule
+  \textbf{Name} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{vpoint} & derived type &
+    A vertex for sorting: its index \code{idx} (\code{integer(ik4)}) in
+    the input array and its coordinates \code{v(3)} (\code{real(rk8)}). \\
+  \code{notzero} & \code{real(rk8)}, parameter &
+    \code{epsilon(1.0\_rk8)}, the floor used to avoid divisions by zero. \\
+\end{longtable}
+
+The module has no variables: all the work arrays are local to
+\code{spherical\_barycentric}, so it can be called concurrently, e.g.\ from
+OpenMP threads.
+
+%------------------------------------------------------------------------------
+\subsection{\texttt{spherical\_barycentric} --- Interpolation Weights}
+\label{subsec:spbar_weights}
+
+\begin{lstlisting}
+subroutine spherical_barycentric(np, p, v, lambda)
+\end{lstlisting}
+
+\begin{longtable}{L{2.5cm} L{1.5cm} L{3.5cm} L{6.5cm}}
+  \toprule
+  \textbf{Argument} & \textbf{Intent} & \textbf{Type} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{np} & \code{in} & \code{integer(ik4)} &
+    Number of vertices. The routine returns immediately, without setting
+    \code{lambda}, if \code{np}~=~0. \\
+  \code{p(3)} & \code{in} & \code{real(rk8)} &
+    Query point, unit vector. \\
+  \code{v(3,np)} & \code{in} & \code{real(rk8)} &
+    Vertices, unit vectors, in any order. \\
+  \code{lambda(np)} & \code{out} & \code{real(rk8)} &
+    Weights, in the order of the input vertices, summing to 1. \\
+\end{longtable}
+
+\subsubsection{Algorithm}
+
+\begin{enumerate}
+  \item \textbf{Ordering.} The mean value coordinates are defined for a
+        polygon, so the vertices must be taken in cyclic order around the
+        query point. The routine copies them into an array of
+        \code{vpoint}, keeping their original index, and sorts it by the
+        angle $\varphi_i$ of each vertex around $\mathbf{p}$ in the plane
+        tangent to the sphere at $\mathbf{p}$:
+        \[
+          \varphi_i = \text{atan2}(\mathbf{v}_i\cdot\mathbf{e}_2,\;
+                                   \mathbf{v}_i\cdot\mathbf{e}_1)
+        \]
+        where $(\mathbf{e}_1, \mathbf{e}_2)$ is an orthonormal basis of
+        the tangent plane: $\mathbf{e}_1$ is the normalised cross product
+        of $\mathbf{p}$ with the coordinate axis least aligned with it, and
+        $\mathbf{e}_2 = \mathbf{p}\times\mathbf{e}_1$. The resulting polygon
+        is star-shaped as seen from $\mathbf{p}$, whatever the input order
+        and the spatial arrangement of the vertices.
+  \item \textbf{Angles.} For each vertex $i$ of the ordered polygon it
+        computes
+        \begin{itemize}
+          \item $\theta_i$, the angle between $\mathbf{p}$ and
+                $\mathbf{v}_i$, i.e.\ the great-circle distance from the
+                query point to the vertex;
+          \item $\alpha_i$, the angle at $\mathbf{p}$ between the
+                great-circle arcs to $\mathbf{v}_i$ and to
+                $\mathbf{v}_{i+1}$ (cyclically, $\mathbf{v}_{n+1} =
+                \mathbf{v}_1$), computed as the angle between the normals
+                $\mathbf{p}\times\mathbf{v}_i$ and
+                $\mathbf{p}\times\mathbf{v}_{i+1}$ of the two arcs.
+        \end{itemize}
+        Both use \code{acos} of the normalised dot product, clamped to
+        $[-1, 1]$.
+  \item \textbf{Weights.} The unnormalised weight of vertex $i$ is
+        \[
+          w_i = \frac{\tan(\alpha_{i-1}/2) + \tan(\alpha_i/2)}
+                     {\sin\theta_i}
+        \]
+        (with $\alpha_0 = \alpha_n$), the spherical form of the mean value
+        coordinates. $\sin\theta_i$ is replaced by \code{notzero} when it is
+        smaller, and the weights are divided by their sum (also floored at
+        \code{notzero}). Each weight is stored at the original index of its
+        vertex.
+  \item \textbf{Normalisation check.} The weights are divided once more
+        by their sum, if it is larger than \code{notzero}, to make the sum
+        exactly one after rounding.
+\end{enumerate}
+
+A query point that coincides with a vertex would give $\theta_i = 0$. The
+caller handles this case before calling the routine:
+\code{compwgt\_genlin} in \code{mod\_kdinterp} gives weight 1 to a source
+point at zero distance.
+
+\subsubsection{Internal Procedures}
+
+\begin{longtable}{L{4.5cm} L{9.5cm}}
+  \toprule
+  \textbf{Procedure} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{set\_cyclic\_order} &
+    Fills the \code{vpoint} array, computes the angles $\varphi_i$ and
+    sorts the vertices by angle with an insertion sort (the number of
+    vertices is small, at most 32 in \code{mod\_kdinterp}). \\
+  \code{compute\_angles} &
+    Computes $\theta_i$ and $\alpha_i$ for the ordered vertices. \\
+  \code{angle\_between(x, y)} &
+    Angle between two vectors, $\arccos$ of the clamped normalised dot
+    product (the norm product is floored at \code{notzero}). Pure. \\
+  \code{vecprod(x, y, z)} &
+    Cross product $\mathbf{z} = \mathbf{x}\times\mathbf{y}$. \\
+  \code{dotprod}, \code{norma}, \code{norma2} &
+    Dot product, Euclidean norm and squared norm of 3-vectors. Pure. \\
+\end{longtable}
+
+%------------------------------------------------------------------------------
+\subsection{Design Notes}
+\label{subsec:spbar_design}
+
+\textbf{Mean value coordinates on the sphere.} Planar barycentric
+coordinates are defined only for triangles; mean value coordinates extend
+them to polygons with any number of vertices, and the spherical version
+works directly with points on the sphere, without a map projection. The
+weights are positive inside a convex polygon, vary smoothly with the query
+point, and reproduce the query point, so a field that is linear in the
+Cartesian coordinates is interpolated exactly, up to the normalisation.
+
+\textbf{Ordering around the query point.} Sorting by the angle in the
+tangent plane at $\mathbf{p}$ always gives a cyclic order. In a test with
+query points inside the polygon of their neighbours, the weights
+reproduce the query point in every case, also with vertices scattered over
+a disk as in the radius search of \code{mod\_kdinterp}.
+
+\textbf{Query point outside the polygon.} If the query point is outside
+the polygon of its neighbours (one angular gap between consecutive vertices
+larger than $\pi$), no set of positive weights can reproduce it. The angle
+$\alpha_i$ across the gap is computed without sign, i.e.\ as
+$2\pi - \text{gap}$, so the weights are still positive and sum to one: the
+result is a weighted average of the neighbours, not an extrapolation.
