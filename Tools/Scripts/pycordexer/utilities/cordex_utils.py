@@ -740,6 +740,11 @@ class CordexDataset(Dataset):
             regcm_file.replace_vars = REPLACE_VARS_ROT
         mgrid = mgrid + gsize +' km grid spacing'
 
+        # The CV may give the source as a string or as a list of strings
+        source = CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['source']
+        if not isinstance(source, str):
+            source = source[0]
+
         newattr = CORDEX_CMIP6_DEFINITIONS['source_id'][ICTP_Model]
         newattr.update({
             'Conventions': CORDEX_CMIP6_DEFINITIONS['CV']['Conventions'],
@@ -765,7 +770,7 @@ class CordexDataset(Dataset):
             'grid': mgrid,
             'institution': CORDEX_CMIP6_DEFINITIONS['institution_id'][regcm_file.institute_id],
             'institution_id': regcm_file.institute_id,
-            'source': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['source'][0],
+            'source': source,
             'license': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['license'],
             'project_id': list(CORDEX_CMIP6_DEFINITIONS['project_id'])[0],
             'source_id': ICTP_Model,
