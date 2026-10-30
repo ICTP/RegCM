@@ -33,6 +33,7 @@ check failed.
   \code{test\_domain} & \code{mod\_domain} (Section~\ref{sec:domain}) \\
   \code{test\_stdatm} & \code{mod\_stdatm} (Section~\ref{sec:stdatm}) \\
   \code{test\_wavelet} & \code{mod\_wavelet} (Section~\ref{sec:wavelet}) \\
+  \code{test\_ensemble} & \code{mod\_ensemble} (Section~\ref{sec:ensemble}) \\
 \end{longtable}
 
 
@@ -6674,3 +6675,63 @@ $2\times2$ scale of the grid, and the mean of each block is kept.
 \textbf{Testing.} \code{Testing/share/test\_wavelet.F90} checks the exact
 reconstruction with $t = 0$ (also for odd sizes), a field constant on
 $2\times2$ blocks, and the removal and halving of a checkerboard.
+
+%==============================================================================
+\section{Ensemble Perturbations --- \texttt{mod\_ensemble.F90}}
+\label{sec:ensemble}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_ensemble} adds random noise to model fields, for the ensemble
+method of \citet{obrien2011}: the members of an ensemble start from initial
+and boundary conditions, or a topography, perturbed by a small random
+fraction. It also splits a total into random parts. The model uses
+\code{randify} on the topography (\code{lperturb\_topo}) and on the ICBC
+winds, temperature and humidity of an ensemble run (\code{ensemble\_run}),
+and for the noise of the RCEMIP configuration; CLM uses
+\code{random\_pick}.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_ensemble
+    `-- mod_intkinds, mod_realkinds, mod_constants, mod_memutil
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{5.2cm} L{8.8cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{randify(f, frac, ni, nj [, nk])} &
+    Adds to each value $f$ of a 2-D or 3-D \code{rkx} field a random number
+    uniform in $[-\mathit{frac}\,|f|, \mathit{frac}\,|f|)$: the noise is
+    a fraction of the local value, and zeros stay zero. \\
+  \code{random\_pick(total, values, n)} &
+    Splits \code{total} into \code{n} random positive \code{values} that
+    sum to it: $v_i = \mathit{total}\, y_i / \sum y_i$ with $y_i = -\ln
+    u_i$, $u_i$ uniform, which is uniform on the simplex of the parts. A
+    total below \code{dlowval} gives zeros. Single or double precision; the
+    2-D form does it for each point of a 2-D total, into a 3-D array. \\
+\end{longtable}
+
+\subsection{Design Notes}
+
+\textbf{Random numbers.} The routines use the Fortran \code{random\_number}.
+\code{init\_random\_number\_generator} in \code{mod\_dynparam}
+(Section~\ref{sec:dynparam}) seeds it from the fixed number
+\code{regcm\_magick} and the rank of the process, so that the processes
+draw different numbers and a run is reproducible. Two runs with the same
+namelist and the same number of processes therefore have the same
+perturbations: the members of an ensemble differ through their
+perturbation fractions, not through the seed.
+
+\textbf{Testing.} \code{Testing/share/test\_ensemble.F90} checks the bounds
+and the zero mean of the noise, that zeros are not changed, that the parts
+of \code{random\_pick} are positive, sum to the total and have equal mean,
+and the zero total.

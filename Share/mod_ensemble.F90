@@ -55,7 +55,6 @@ module mod_ensemble
     integer(ik4), intent(in) :: nv
     real(rk4), allocatable, dimension(:) :: yi
     real(rk4) :: rsum
-    integer(ik4) :: i
 
     if ( .not. associated(values) ) return
     values = 0.0_rk4
@@ -64,7 +63,8 @@ module mod_ensemble
     end if
     allocate(yi(nv))
     call random_number(yi)
-    yi(:) = -log(yi(:))
+    ! random_number may return 0
+    yi(:) = -log(max(yi(:),tiny(yi)))
     rsum = sum(yi)
     values = yi/rsum * thesum
     deallocate(yi)
@@ -77,7 +77,6 @@ module mod_ensemble
     integer(ik4), intent(in) :: nv
     real(rk8), allocatable, dimension(:) :: yi
     real(rk8) :: rsum
-    integer(ik4) :: i
 
     if ( .not. associated(values) ) return
     values = 0.0_rk8
@@ -86,7 +85,8 @@ module mod_ensemble
     end if
     allocate(yi(nv))
     call random_number(yi)
-    yi(:) = -log(yi(:))
+    ! random_number may return 0
+    yi(:) = -log(max(yi(:),tiny(yi)))
     rsum = sum(yi)
     values = yi/rsum * thesum
     deallocate(yi)
@@ -148,13 +148,10 @@ module mod_ensemble
   subroutine randify3D(dVariable3D,dFrac,imax,jmax,kmax)
     implicit none
     integer(ik4), intent(in) :: imax, jmax, kmax
-    real(rkx), dimension(imax,kmax,jmax), intent(inout) :: dVariable3D
+    real(rkx), dimension(imax,jmax,kmax), intent(inout) :: dVariable3D
     real(rkx), intent(in) :: dFrac
 
-    real(rkx), dimension(imax,kmax,jmax) :: dChange3D, dRand3D
-    integer(ik4) :: i
-    integer(ik4) :: nseed
-    real(rk4) :: cputime
+    real(rkx), dimension(imax,jmax,kmax) :: dChange3D, dRand3D
 
     ! Figure out how much to tweak the variable by (at most)
 
@@ -167,7 +164,7 @@ module mod_ensemble
 
     ! Add this random number to the variable
 
-    dVariable3D = dVariable3D + real(dRand3D)
+    dVariable3D = dVariable3D + dRand3D
 
   end subroutine randify3D
 
@@ -186,9 +183,6 @@ module mod_ensemble
     real(rkx), intent(in) :: dFrac
 
     real(rkx), dimension(imax,jmax) :: dRand2D, dChange2D
-    integer(ik4) :: i
-    integer(ik4) :: nseed
-    real(rk4) :: cputime
 
     ! Figure out how much to tweak the variable by (at most)
 
@@ -201,7 +195,7 @@ module mod_ensemble
 
     ! Add this random number to the variable
 
-    dVariable2D = dVariable2D + real(dRand2D)
+    dVariable2D = dVariable2D + dRand2D
 
   end subroutine randify2D
 
