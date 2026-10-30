@@ -35,6 +35,7 @@ check failed.
   \code{test\_wavelet} & \code{mod\_wavelet} (Section~\ref{sec:wavelet}) \\
   \code{test\_ensemble} & \code{mod\_ensemble} (Section~\ref{sec:ensemble}) \\
   \code{test\_sunorbit} & \code{mod\_sunorbit} (Section~\ref{sec:sunorbit}) \\
+  \code{test\_intldtr} & \code{mod\_intldtr} (Section~\ref{sec:intldtr}) \\
 \end{longtable}
 
 
@@ -6830,3 +6831,110 @@ $\pm\varepsilon$ with its maximum at the June solstice and zero at the
 equinox, the distance factor at perihelion (early January) and aphelion
 and its annual mean $1/\sqrt{1-e^2}$, and the zenith angle at noon and
 midnight.
+
+%==============================================================================
+\section{Interpolation of Surface Data --- \texttt{mod\_intldtr.F90}}
+\label{sec:intldtr}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_intldtr} interpolates the global surface datasets read by
+\code{terrain} (topography, land use, soil texture and its fractions, soil
+moisture, lake depth) from their regular latitude--longitude grid to the
+model grid. Each target point is mapped to fractional indices $(x, y)$ of
+the source grid, and the interpolation works on the source cells around
+it, by a method chosen with \code{itype}.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_intldtr
+    |-- mod_intkinds, mod_realkinds, mod_constants, mod_stdio, mod_message
+    `-- mod_earth (gcdist_simple)
+\end{lstlisting}
+
+\subsection{Source Grid}
+
+The public variables describe the source grid: \code{nlonin},
+\code{nlatin} points from \code{grdlnmn} to \code{grdlnma} and from
+\code{grdltmn} to \code{grdltma} (degrees), with \code{lonwrap} for a grid
+covering all longitudes and \code{lcrosstime} for one across the date line.
+\code{mxmnll(jx, iy, xlon, xlat, iband)} sets \code{xminlat},
+\code{xmaxlat}, \code{xminlon}, \code{xmaxlon} (the whole degrees around
+the model domain), \code{lonwrap} (band domains, domains touching a pole,
+or spanning 360°) and \code{lcrosstime}; the reader of the dataset
+(Section on \code{mod\_rdldtr}) then sets the source grid. With
+\code{lonwrap} the indices wrap around in $x$; otherwise all the indices
+are limited to the grid.
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{6cm} L{8cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{interp(ds, jx, iy, xlat, xlon, omt, imt, itype [, ival, ibnty,
+  h2opct, rdem])} &
+    Interpolates the source field \code{imt} to \code{omt} on the model
+    points \code{xlat}, \code{xlon}; \code{ds} is the model grid distance
+    (km). \\
+  \code{puddlefilter(jx, iy, omt)} &
+    Replaces the ocean clusters smaller than 6 points of a land use field
+    (see below). \\
+  \code{mxmnll(jx, iy, xlon, xlat, iband)} &
+    The extent of the source data to read (see above). \\
+\end{longtable}
+
+\subsection{Methods}
+
+\begin{longtable}{L{1.2cm} L{12.8cm}}
+  \toprule
+  \textbf{itype} & \textbf{Method} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  1 & Bilinear between the four cells around $(x,y)$ (soil moisture). \\
+  2 & Bicubic \citep[Section 3.6]{press1992}: the cubic surface through the
+      four cells with the derivatives estimated by centred differences;
+      exact for fields up to second order in each direction. \\
+  3 & Nearest cell. \\
+  4 & Most frequent class in a box of $n\times n$ cells (land use, soil
+      texture); ties go to the class with the nearest cell. If the water
+      classes cover more than 0 and less than \code{h2opct} percent of the
+      box, they are not counted, so the point becomes land. The water
+      classes are 14 (inland water) and 15 (ocean) for the land use
+      (\code{ibnty} = 1) and 14 for the soil texture (\code{ibnty} = 2);
+      with \code{h2opct} = 0 the most frequent class is kept, and higher
+      values extend the land into the water at coasts and lake shores. \\
+  5 & Percentage of the cells of class \code{ival} in the box (texture
+      fractions). \\
+  6 & Mean of the cells of the box weighted by the inverse distance
+      (topography). \\
+\end{longtable}
+
+\noindent For methods 4 to 6 the box width is $n = \mathrm{nint}(d/\delta)$,
+limited to 2--100 and rounded down to an even number, with
+$d = \sqrt2\,\Delta s$ (times \code{rdem} if given) the diagonal of a
+model cell and $\delta$ the diagonal of the source cell at the point: the
+box covers about one model cell. The first and last rows of the model grid
+(and columns without \code{lonwrap}) use the nearest cell.
+
+\textbf{Puddles.} \code{puddlefilter} finds the clusters of ocean points
+(class 15) connected through their sides; each point of a cluster of fewer
+than 6 points takes the most frequent class among its 8 neighbours that are
+not ocean. This removes isolated water points that the class interpolation
+leaves along irregular coasts.
+
+\subsection{Design Notes}
+
+\textbf{Testing.} \code{Testing/share/test\_intldtr.F90} checks the bilinear
+and bicubic interpolation on polynomials they reproduce exactly, the
+distance weighting of a constant, the class threshold for land use and soil
+texture, the class percentage, a class box and a bilinear interpolation
+across the longitude wrap of a global grid, the puddle filter, and the
+extrema of a domain across the date line.

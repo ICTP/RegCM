@@ -20,7 +20,6 @@ module mod_mkwetland
   use mod_constants
   use mod_grid
   use mod_rdldtr
-  use mod_intldtr
   use mod_message
   use mod_memutil
   use netcdf

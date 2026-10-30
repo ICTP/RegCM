@@ -65,6 +65,8 @@ module mod_intldtr
           2*0.0_rk8, -1.0_rk8, 1.0_rk8, 6*0.0_rk8, -1.0_rk8, 1.0_rk8, &
           2*0.0_rk8, 2.0_rk8, -2.0_rk8, 2*0.0_rk8, -1.0_rk8, 1.0_rk8/
 
+  ! Water classes: 14 (inland water) and 15 (ocean) of the land use
+  ! (ibnty = 1), 14 (water) of the soil texture (ibnty = 2)
   data lndwt /26*.false.,.true.,.true.,.true.,15*.false./
 
   contains
@@ -102,7 +104,7 @@ module mod_intldtr
     else
       ifloor = floor(x)
       if (ifloor < 1) then
-        ifloor = m - ifloor
+        ifloor = ifloor + m
       end if
       if (ifloor > m) then
         ifloor = ifloor - m
@@ -135,7 +137,7 @@ module mod_intldtr
     real(rk8), dimension(nbox*nbox) :: binval, bindist
     real(rk8) :: dist, rx, ry, wtp
     integer(ik4) :: ii0, jj0, ii, jj
-    integer(ik4) :: totpoints, i, j, lastc, hbox
+    integer(ik4) :: totpoints, i, j, k, lastc, hbox
 
     hbox = nbox / 2
     totpoints = nbox*nbox
@@ -154,18 +156,19 @@ module mod_intldtr
     bincnt = 0
     bmindist = d_two*real(nbox,rk8)
     do i = 1, totpoints
-      bincnt(int(binval(i))) = bincnt(int(binval(i))) + 1
-      if (bindist(i) < bmindist(int(binval(i)))) &
-        bmindist(int(binval(i))) = bindist(i)
+      k = int(binval(i))
+      if ( k < 1 .or. k > maxbins ) cycle
+      bincnt(k) = bincnt(k) + 1
+      if (bindist(i) < bmindist(k)) bmindist(k) = bindist(i)
     end do
-    ! Set point to land if less than fixed percent of water
+    ! Set point to land if less than h2opct percent of water
     wtp = (real(sum(bincnt,mask=lndwt(ibnty,:)),rk8)/real(totpoints,rk8))*d_100
-    if (wtp > d_zero .and. wtp < 100.0_rk8-h2opct) then
+    if (wtp > d_zero .and. wtp < h2opct) then
       if (ibnty == 1) then
         bincnt(14) = 0
         bincnt(15) = 0
       else
-        bincnt(15) = 0
+        bincnt(14) = 0
       end if
     end if
     mostaround = -d_one
@@ -410,7 +413,7 @@ module mod_intldtr
     do i = 1, 4
       do j = 1, 4
         l = l + 1
-        c(j,i) = cl(l)
+        c(i,j) = cl(l)
       end do
     end do
   end subroutine bcucof

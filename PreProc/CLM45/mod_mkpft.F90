@@ -20,7 +20,6 @@ module mod_mkpft
   use mod_dynparam
   use mod_grid
   use mod_rdldtr
-  use mod_intldtr
   use mod_message
   use mod_memutil
 
