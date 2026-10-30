@@ -381,7 +381,8 @@ module mod_heatindex
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra(c,ta) + (pc-pa)/(zs(rs)+za) - (tc-c)/rs
       if ( abs(b-a) < err ) exit
-      if ( fb*fc > 0.0_rkx ) then
+      if ( (fb > 0.0_rkx .and. fc > 0.0_rkx) .or. &
+           (fb < 0.0_rkx .and. fc < 0.0_rkx) ) then
         b = c
         fb = fc
       else
@@ -421,7 +422,8 @@ module mod_heatindex
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)/(zs(rs)+za_bar) - (tc-c)/rs
       if ( abs(b-a) < err ) exit
-      if ( fb*fc > 0.0_rkx ) then
+      if ( (fb > 0.0_rkx .and. fc > 0.0_rkx) .or. &
+           (fb < 0.0_rkx .and. fc < 0.0_rkx) ) then
         b = c
         fb = fc
       else
@@ -467,7 +469,8 @@ module mod_heatindex
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)*(c-ta)/((c-ta)*(zs(rs)+za_bar) + &
         r*ra_bar(c,ta)*(ts_bar-c)) - (tc-ts_bar)/rs
       if ( abs(b-a) < err ) exit
-      if ( fb*fc > 0.0_rkx ) then
+      if ( (fb > 0.0_rkx .and. fc > 0.0_rkx) .or. &
+           (fb < 0.0_rkx .and. fc < 0.0_rkx) ) then
         b = c
         fb = fc
       else
@@ -510,7 +513,8 @@ module mod_heatindex
       fc = (c-ta)/ra_un(c,ta) + &
         (pc-pa)/(zs((tc-c)/(q-qv(ta,pa)))+za_un)-(q-qv(ta,pa))
       if ( abs(b-a) < err ) exit
-      if ( fb*fc > 0.0_rkx ) then
+      if ( (fb > 0.0_rkx .and. fc > 0.0_rkx) .or. &
+           (fb < 0.0_rkx .and. fc < 0.0_rkx) ) then
         b = c
         fb = fc
       else
@@ -550,7 +554,8 @@ module mod_heatindex
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_un(c,ta) + (phi_salt*pvstar(c)-pa)/za_un -(q-qv(ta,pa))
       if ( abs(b-a) < err ) exit
-      if ( fb*fc > 0.0_rkx ) then
+      if ( (fb > 0.0_rkx .and. fc > 0.0_rkx) .or. &
+           (fb < 0.0_rkx .and. fc < 0.0_rkx) ) then
         b = c
         fb = fc
       else
@@ -593,7 +598,8 @@ module mod_heatindex
       tmp = find_eqvar(c,1.0_rkx)
       fc = tmp(1) - eqvar
       if ( abs(b-a) < errt .or. abs(fc) < tiny(fc) ) exit
-      if ( fb*fc > 0.0_rkx ) then
+      if ( (fb > 0.0_rkx .and. fc > 0.0_rkx) .or. &
+           (fb < 0.0_rkx .and. fc < 0.0_rkx) ) then
         b = c
         fb = fc
       else
@@ -637,7 +643,8 @@ module mod_heatindex
       tmp = find_eqvar(c,min(1.0_rkx,pa0/pvstar(c)))
       fc = tmp(2) - eqvar
       if ( abs(b-a) < errt .or. abs(fc) < tiny(fc) ) exit
-      if ( fb*fc > 0.0_rkx ) then
+      if ( (fb > 0.0_rkx .and. fc > 0.0_rkx) .or. &
+           (fb < 0.0_rkx .and. fc < 0.0_rkx) ) then
         b = c
         fb = fc
       else
@@ -680,7 +687,8 @@ module mod_heatindex
       tmp = find_eqvar(c,pa0/pvstar(c))
       fc = tmp(3) - eqvar
       if ( abs(b-a) < errt .or. abs(fc) < tiny(fc) ) exit
-      if ( fb*fc > 0.0_rkx ) then
+      if ( (fb > 0.0_rkx .and. fc > 0.0_rkx) .or. &
+           (fb < 0.0_rkx .and. fc < 0.0_rkx) ) then
         b = c
         fb = fc
       else
@@ -723,7 +731,8 @@ module mod_heatindex
       tmp = find_eqvar(c,pa0/pvstar(c))
       fc = tmp(4) - eqvar
       if ( abs(b-a) < errt .or. abs(fc) < tiny(fc) ) exit
-      if ( fb*fc > 0.0_rkx ) then
+      if ( (fb > 0.0_rkx .and. fc > 0.0_rkx) .or. &
+           (fb < 0.0_rkx .and. fc < 0.0_rkx) ) then
         b = c
         fb = fc
       else

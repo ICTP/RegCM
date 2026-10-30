@@ -15,14 +15,15 @@
 
 ! Unit test of Share/mod_heatindex.F90: the heat index against the NWS
 ! heat index chart, the cold limit where it equals the air temperature,
-! monotonicity in temperature and humidity, and continuity across the
-! regime boundaries.
+! monotonicity in temperature and humidity, continuity across the regime
+! boundaries, and no floating point overflow in the root solvers.
 
 program test_heatindex
   use mod_intkinds
   use mod_realkinds
   use mod_heatindex
   use share_test_utils
+  use, intrinsic :: ieee_exceptions
   implicit none
   integer(ik4), parameter :: nchart = 5
   ! NWS chart: air temperature (F), relative humidity, heat index (F)
@@ -33,8 +34,10 @@ program test_heatindex
   real(rkx), dimension(nchart), parameter :: hchart = &
     [ 80.0_rkx, 95.0_rkx, 109.0_rkx, 119.0_rkx, 112.0_rkx ]
   real(rkx) :: t, rh, h, hp, dmax, emax
-  logical :: mono
+  logical :: mono, overflow
   integer(ik4) :: i, j
+
+  call ieee_set_flag(ieee_overflow,.false.)
 
   call check(heatindex(0.0_rkx,0.5_rkx) == 0.0_rkx, &
     'zero for zero temperature')
@@ -81,8 +84,8 @@ program test_heatindex
   do i = 0, 20
     t = 230.0_rkx + 5.0_rkx*real(i,rkx)
     hp = heatindex(t,0.0_rkx)
-    do j = 1, 200
-      rh = 0.005_rkx*real(j,rkx)
+    do j = 1, 1000
+      rh = 0.001_rkx*real(j,rkx)
       h = heatindex(t,rh)
       mono = mono .and. h > hp - 1.0e-6_rkx
       dmax = max(dmax,h-hp)
@@ -95,6 +98,9 @@ program test_heatindex
   call check(heatindex(305.0_rkx,1.0_rkx) > &
              heatindex(305.0_rkx,0.0_rkx) + 20.0_rkx, &
     'humid air feels hotter than dry air at 305 K')
+
+  call ieee_get_flag(ieee_overflow,overflow)
+  call check(.not. overflow,'no floating point overflow')
 
   call test_end('test_heatindex')
 end program test_heatindex
