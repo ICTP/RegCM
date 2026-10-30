@@ -36,6 +36,7 @@ check failed.
   \code{test\_ensemble} & \code{mod\_ensemble} (Section~\ref{sec:ensemble}) \\
   \code{test\_sunorbit} & \code{mod\_sunorbit} (Section~\ref{sec:sunorbit}) \\
   \code{test\_intldtr} & \code{mod\_intldtr} (Section~\ref{sec:intldtr}) \\
+  \code{test\_rdldtr} & \code{mod\_rdldtr} (Section~\ref{sec:rdldtr}) \\
 \end{longtable}
 
 
@@ -6864,7 +6865,7 @@ covering all longitudes and \code{lcrosstime} for one across the date line.
 \code{xmaxlat}, \code{xminlon}, \code{xmaxlon} (the whole degrees around
 the model domain), \code{lonwrap} (band domains, domains touching a pole,
 or spanning 360°) and \code{lcrosstime}; the reader of the dataset
-(Section on \code{mod\_rdldtr}) then sets the source grid. With
+(Section~\ref{sec:rdldtr}) then sets the source grid. With
 \code{lonwrap} the indices wrap around in $x$; otherwise all the indices
 are limited to the grid.
 
@@ -6938,3 +6939,119 @@ distance weighting of a constant, the class threshold for land use and soil
 texture, the class percentage, a class box and a bilinear interpolation
 across the longitude wrap of a global grid, the puddle filter, and the
 extrema of a domain across the date line.
+
+%==============================================================================
+\section{Reading Surface Datasets --- \texttt{mod\_rdldtr.F90}}
+\label{sec:rdldtr}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_rdldtr} reads the part of a global dataset on a regular
+latitude--longitude grid that covers the model domain. It serves two kinds
+of users:
+\begin{itemize}
+  \item \code{terrain}, with \code{read\_ncglob}: the window of the 30 arc
+        second topography, land use, soil texture and bathymetry (and the
+        coarser soil moisture), optionally resampled on blocks of cells,
+        for the interpolation of \code{mod\_intldtr}
+        (Section~\ref{sec:intldtr});
+  \item the CLM surface data programs, with \code{gfopen}, \code{gfread}
+        and \code{gfclose}: the window read and interpolated on the model
+        grid with \code{mod\_kdinterp} (Section~\ref{sec:kdinterp}).
+\end{itemize}
+The window is found by \code{get\_window} of \code{mod\_earth}; it may be
+made of two tiles when the domain crosses the edge of the dataset in
+longitude, and the tiles are joined in one array. The coordinates are
+read from a dimension and a variable named \code{lat}, \code{latitude},
+\code{LAT}, \code{LATITUDE} or \code{lsmlat} (and the same for the
+longitude).
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_rdldtr
+    |-- netcdf, mod_nchelper
+    |-- mod_intkinds, mod_realkinds, mod_constants, mod_stdio, mod_message
+    |-- mod_memutil
+    |-- mod_earth    (get_window, global_domain)
+    `-- mod_kdinterp (h_interpolator)
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{6cm} L{8cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{read\_ncglob(cfile, cvar, iores, imeth, iband, xlat, xlon,
+  lnma, lnmn, ltma, ltmn, nlat, nlon, values)} &
+    Reads the window of variable \code{cvar} (2-D, 3-D, or one level of a
+    3-D variable) and resamples it to \code{iores} arc minutes with method
+    \code{imeth}; returns the bounds and size of the resulting grid and its
+    values (allocated with \code{getmem}). \\
+  \code{gfopen(gfile, cfile, xlat, xlon, ds, roi, iband [, mx])} &
+    Opens a dataset, finds the window and creates the interpolator to the
+    model grid (radius of influence \code{roi} times \code{ds}); reads the
+    land mask (\code{LANDMASK}, \code{landmask}, \code{MASK} or
+    \code{mask}) if present. \\
+  \code{gfread(gfile, vname, var, \ldots)} &
+    Reads a variable of the window and interpolates it: continuous fields
+    (2-D, 3-D, 4-D, 5-D, or one level), integer and land use classes,
+    class fractions (\code{h\_interpolate\_sum}), and fields given by a
+    lookup table indexed by a map of units. \\
+  \code{gfclose(gfile)} & Closes the dataset and frees the interpolator. \\
+  \code{bestaround(grid, flag)} &
+    Replaces each value equal to \code{flag} by the first value different
+    from it found in squares of growing size around the point (up to 9
+    cells); missing if none (2-D, 3-D, 4-D, the search on the first level).
+    \\
+\end{longtable}
+
+\subsection{Resampling}
+
+With $\Delta_i$ the spacing of the dataset (rounded to the arc second) and
+$\Delta_o$ = \code{iores} minutes, the window is resampled when
+$f = \Delta_o/\Delta_i > 1$: each output value is computed from a block of
+$(f+1)\times(f+1)$ cells starting every $f$ cells, centred half an output
+cell after the first cell, so that the output grid has spacing $f\Delta_i$
+and starts at the centre of the first block.
+
+\begin{longtable}{L{1.2cm} L{12.8cm}}
+  \toprule
+  \textbf{imeth} & \textbf{Value of a block} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  1 & Mean (soil moisture). \\
+  2 & Median: the middle of the sorted values. \\
+  3 & Most frequent class, classes 1 to 32 (land use, texture). \\
+  4 & Mean without the $f^2/4$ lowest and the $f^2/4$ highest values
+      (topography, bathymetry). \\
+  other & The value of the central cell. \\
+\end{longtable}
+
+\noindent \code{terrain} resamples only with \code{lresamp} (default no),
+to the resolution $\Delta s/6$ in minutes rounded to a divisor of one
+degree. When the window contains the first or last row of the dataset (a
+pole), that row is replaced by the next one.
+
+\textbf{Masked and negative values.} In \code{gfread}, the points where the
+land mask is zero are missing for the continuous fields (and take the
+default class for the integer classes); negative values are replaced by the
+default value given by the caller. For the fields from a lookup table the
+points whose unit index is not in the table are first set missing, so that
+they also take the default value unless the mask excludes them.
+
+\subsection{Design Notes}
+
+\textbf{Testing.} \code{Testing/share/test\_rdldtr.F90} writes a 30 arc
+second dataset in the current directory and checks that every resampling
+method keeps a constant, that the mean, median and trimmed mean of a ramp
+are its value at the centre of the block, the bounds of the resampled grid,
+the window read without resampling, and \code{gfread} of a ramp with and
+without a land mask.

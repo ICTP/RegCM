@@ -88,7 +88,7 @@ module mod_rdldtr
 !          1  = mean
 !          2  = median
 !          3  = most present
-!          4  = mean of 50% central median filtered
+!          4  = mean without the (ifrac*ifrac)/4 lowest and highest values
 !  In output :
 !  grdlnma,grdlnmn : Minimum and maximum in longitude of the read grid
 !  grdltma,grdltmn : Minimum and maximum in latitude of the read grid
@@ -129,7 +129,7 @@ module mod_rdldtr
     nlat = gdomain%nj
     nlon = sum(gdomain%ni)
 
-    inpsec = int(abs(glat(2)-glat(1))*3600.0_rk8)
+    inpsec = nint(abs(glat(2)-glat(1))*3600.0_rk8)
     iopsec = max(int(real(iores,rk8)*60.0_rk8),inpsec)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
@@ -193,7 +193,8 @@ module mod_rdldtr
       write (stdout,*) 'Correcting South pole.'
 #endif
       readbuf(:,1) = readbuf(:,2)
-    else if ( istart(2)+icount(2)-1 == gdomain%global_nj ) then
+    end if
+    if ( istart(2)+icount(2)-1 == gdomain%global_nj ) then
 #ifdef DEBUG
       write (stdout,*) 'Correcting North pole.'
 #endif
@@ -261,7 +262,7 @@ module mod_rdldtr
     nlat = gdomain%nj
     nlon = sum(gdomain%ni)
 
-    inpsec = int(abs(glat(2)-glat(1))*3600.0_rk8)
+    inpsec = nint(abs(glat(2)-glat(1))*3600.0_rk8)
     iopsec = max(int(real(iores,rk8)*60.0_rk8),inpsec)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
@@ -327,7 +328,8 @@ module mod_rdldtr
       write (stdout,*) 'Correcting South pole.'
 #endif
       readbuf(:,1,:) = readbuf(:,2,:)
-    else if ( istart(2)+icount(2)-1 == gdomain%global_nj ) then
+    end if
+    if ( istart(2)+icount(2)-1 == gdomain%global_nj ) then
 #ifdef DEBUG
       write (stdout,*) 'Correcting North pole.'
 #endif
@@ -395,7 +397,7 @@ module mod_rdldtr
     nlat = gdomain%nj
     nlon = sum(gdomain%ni)
 
-    inpsec = int(abs(glat(2)-glat(1))*3600.0_rk8)
+    inpsec = nint(abs(glat(2)-glat(1))*3600.0_rk8)
     iopsec = max(int(real(iores,rk8)*60.0_rk8),inpsec)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
@@ -461,7 +463,8 @@ module mod_rdldtr
       write (stdout,*) 'Correcting South pole.'
 #endif
       readbuf(:,1) = readbuf(:,2)
-    else if ( istart(2)+icount(2)-1 == gdomain%global_nj ) then
+    end if
+    if ( istart(2)+icount(2)-1 == gdomain%global_nj ) then
 #ifdef DEBUG
       write (stdout,*) 'Correcting North pole.'
 #endif
@@ -604,8 +607,7 @@ module mod_rdldtr
             jb = (j-1)*ifrac+1
             call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             call qsort(copybuf)
-            !values(j,i) = 0.5*(copybuf(nfrac/2)+copybuf(nfrac/2+1))
-            values(j,i) = copybuf(max(nfrac/2,1))
+            values(j,i) = copybuf((nfrac+1)/2)
           end do
         end do
       case (3)
@@ -627,7 +629,7 @@ module mod_rdldtr
             call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             call qsort(copybuf)
             np = (ifrac*ifrac)/4
-            values(j,i) = sum(copybuf(1+np:size(copybuf)-np+1)) / &
+            values(j,i) = sum(copybuf(1+np:size(copybuf)-np)) / &
                            real(size(copybuf)-2*np,rkx)
           end do
         end do
