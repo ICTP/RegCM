@@ -147,6 +147,7 @@ module mod_vertint
         sig(i,j,k) = (p(k)-p(1))/(ps(i,j)-p(1))
       end do
       do concurrent ( i = im1:im2, j = jm1:jm2 )
+        if ( ps(i,j) < 1.0_rk8 ) cycle
         !$acc loop seq
         do n = 1, km
           sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
@@ -207,6 +208,7 @@ module mod_vertint
         sig(i,j,k) = (p(k)-p(1))/(ps(i,j)-p(1))
       end do
       do concurrent ( i = im1:im2, j = jm1:jm2 )
+        if ( ps(i,j) < 1.0_rk4 ) cycle
         !$acc loop seq
         do n = 1, km
           sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
@@ -267,6 +269,7 @@ module mod_vertint
         sig(i,j,k) = (p(k)-p(1))/(ps(i,j)-p(1))
       end do
       do concurrent ( i = im1:im2, j = jm1:jm2 )
+        if ( ps(i,j) < 1.0_rk8 ) cycle
         !$acc loop seq
         do n = 1, km
           sigp = (p3d(i,j,n)-p(1))/(ps(i,j)-p(1))
@@ -869,20 +872,19 @@ module mod_vertint
     real(rk8), dimension(im,jm,km), intent(in) :: f, p3d
     real(rk8), dimension(kp), intent(in) :: p
     real(rk8), dimension(im,jm,kp), intent(out) :: fp
-    real(rk8) :: sigp, w1, w2, tp, bp
+    real(rk8) :: sigp, w1, w2
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk8), dimension(km) :: sig
 
+    ! The vertical coordinate sig is the pressure: interpolation in ln p
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
       do j = 1, jm
         do i = 1, im
-          tp = p3d(i,j,km)-1.0e-10_rk8
-          bp = p3d(i,j,1)-tp
           do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
+            sig(k) = p3d(i,j,k)
           end do
           do n = 1, kp
-            sigp = (p(n)-tp)/bp
+            sigp = p(n)
             if ( sigp <= sig(km) ) then
               fp(i,j,n) = f(i,j,km)
             else if ( sigp > sig(1) ) then
@@ -905,13 +907,11 @@ module mod_vertint
     else
       do j = 1, jm
         do i = 1, im
-          tp = p3d(i,j,1)-1.0e-10_rk8
-          bp = p3d(i,j,km)-tp
           do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
+            sig(k) = p3d(i,j,k)
           end do
           do n = 1, kp
-            sigp = (p(n)-tp)/bp
+            sigp = p(n)
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
             else if ( sigp == sig(km) ) then
@@ -942,20 +942,19 @@ module mod_vertint
     real(rk4), dimension(im,jm,km), intent(in) :: f, p3d
     real(rk4), dimension(kp), intent(in) :: p
     real(rk4), dimension(im,jm,kp), intent(out) :: fp
-    real(rk4) :: sigp, w1, w2, tp, bp
+    real(rk4) :: sigp, w1, w2
     integer(ik4) :: i, j, k, kx, knx, n
     real(rk4), dimension(km) :: sig
 
+    ! The vertical coordinate sig is the pressure: interpolation in ln p
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
       do j = 1, jm
         do i = 1, im
-          tp = p3d(i,j,km)-1.0e-10_rk4
-          bp = p3d(i,j,1)-tp
           do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
+            sig(k) = p3d(i,j,k)
           end do
           do n = 1, kp
-            sigp = (p(n)-tp)/bp
+            sigp = p(n)
             if ( sigp <= sig(km) ) then
               fp(i,j,n) = f(i,j,km)
             else if ( sigp > sig(1) ) then
@@ -978,13 +977,11 @@ module mod_vertint
     else
       do j = 1, jm
         do i = 1, im
-          tp = p3d(i,j,1)-1.0e-10_rk4
-          bp = p3d(i,j,km)-tp
           do k = 1, km
-            sig(k) = (p3d(i,j,k)-tp)/bp
+            sig(k) = p3d(i,j,k)
           end do
           do n = 1, kp
-            sigp = (p(n)-tp)/bp
+            sigp = p(n)
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
             else if ( sigp == sig(km) ) then
@@ -1032,27 +1029,32 @@ module mod_vertint
     real(rk8), dimension(kp), intent(in) :: p
     real(rk8), dimension(im,jm), intent(in) :: ps
     real(rk8), dimension(km), intent(in) :: sig
+    real(rk8), dimension(km) :: ps3
     real(rk8), dimension(im,jm,kp), intent(out) :: fp
     real(rk8) :: sigp, w1, w2
     integer(ik4) :: i, j, k, kx, knx, n
+    ! Interpolation in ln p, with the pressures ps3 of the column
     if ( sig(1) > sig(2) ) then
       do j = 1, jm
         do i = 1, im
+          do k = 1, km
+            ps3(k) = sig(k)*(ps(i,j)-ptop) + ptop
+          end do
           do n = 1, kp
-            sigp = (p(n)-ptop)/(ps(i,j)-ptop)
-            if ( sigp <= sig(km) ) then
+            sigp = p(n)
+            if ( sigp <= ps3(km) ) then
               fp(i,j,n) = f(i,j,km)
-            else if ( sigp > sig(1) ) then
+            else if ( sigp > ps3(1) ) then
               fp(i,j,n) = d_half*(f(i,j,1)+f(i,j,2)) * &
-                             exp(rglrog*log(sigp/sig(1)))
+                             exp(rglrog*log(sigp/ps3(1)))
             else
               kx = 2
               do k = 2, km
-                if ( sig(k) < sigp ) exit
+                if ( ps3(k) < sigp ) exit
                 kx = kx+1
               end do
               knx = kx - 1
-              w2 = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+              w2 = log(sigp/ps3(kx))/log(ps3(knx)/ps3(kx))
               w1 = d_one - w2
               fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
@@ -1062,23 +1064,26 @@ module mod_vertint
     else
       do j = 1, jm
         do i = 1, im
+          do k = 1, km
+            ps3(k) = sig(k)*(ps(i,j)-ptop) + ptop
+          end do
           do n = 1, kp
-            sigp = (p(n)-ptop)/(ps(i,j)-ptop)
-            if ( sigp <= sig(1) ) then
+            sigp = p(n)
+            if ( sigp <= ps3(1) ) then
               fp(i,j,n) = f(i,j,1)
-            else if ( sigp == sig(km) ) then
+            else if ( sigp == ps3(km) ) then
               fp(i,j,n) = f(i,j,km)
-            else if ( sigp > sig(km) ) then
+            else if ( sigp > ps3(km) ) then
               fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
-                        exp(rglrog*log(sigp/sig(km)))
+                        exp(rglrog*log(sigp/ps3(km)))
             else
               kx = 2
               do k = 2, km
-                if ( sig(k) > sigp ) exit
+                if ( ps3(k) > sigp ) exit
                 kx = kx+1
               end do
               knx = kx - 1
-              w2 = log(sig(kx)/sigp)/log(sig(kx)/sig(knx))
+              w2 = log(ps3(kx)/sigp)/log(ps3(kx)/ps3(knx))
               w1 = d_one - w2
               fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
@@ -1096,29 +1101,34 @@ module mod_vertint
     real(rk4), dimension(kp), intent(in) :: p
     real(rk4), dimension(im,jm), intent(in) :: ps
     real(rk4), dimension(km), intent(in) :: sig
+    real(rk4), dimension(km) :: ps3
     real(rk4), dimension(im,jm,kp), intent(out) :: fp
     real(rk4) :: sigp, w1, w2, pt
     integer(ik4) :: i, j, k, kx, knx, n
 
     pt = real(ptop)
+    ! Interpolation in ln p, with the pressures ps3 of the column
     if ( sig(1) > sig(2) ) then
       do j = 1, jm
         do i = 1, im
+          do k = 1, km
+            ps3(k) = sig(k)*(ps(i,j)-pt) + pt
+          end do
           do n = 1, kp
-            sigp = (p(n)-pt)/(ps(i,j)-pt)
-            if ( sigp <= sig(km) ) then
+            sigp = p(n)
+            if ( sigp <= ps3(km) ) then
               fp(i,j,n) = f(i,j,km)
-            else if ( sigp > sig(1) ) then
+            else if ( sigp > ps3(1) ) then
               fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
-                        exp(real(rglrog,rk4)*log(sigp/sig(1)))
+                        exp(real(rglrog,rk4)*log(sigp/ps3(1)))
             else
               kx = 2
               do k = 2, km
-                if ( sig(k) < sigp ) exit
+                if ( ps3(k) < sigp ) exit
                 kx = kx+1
               end do
               knx = kx - 1
-              w2 = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+              w2 = log(sigp/ps3(kx))/log(ps3(knx)/ps3(kx))
               w1 = 1.0 - w2
               fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
@@ -1128,23 +1138,26 @@ module mod_vertint
     else
       do j = 1, jm
         do i = 1, im
+          do k = 1, km
+            ps3(k) = sig(k)*(ps(i,j)-pt) + pt
+          end do
           do n = 1, kp
-            sigp = (p(n)-pt)/(ps(i,j)-pt)
-            if ( sigp <= sig(1) ) then
+            sigp = p(n)
+            if ( sigp <= ps3(1) ) then
               fp(i,j,n) = f(i,j,1)
-            else if ( sigp == sig(km) ) then
+            else if ( sigp == ps3(km) ) then
               fp(i,j,n) = f(i,j,km)
-            else if ( sigp > sig(km) ) then
+            else if ( sigp > ps3(km) ) then
               fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
-                        exp(real(rglrog,rk4)*log(sigp/sig(km)))
+                        exp(real(rglrog,rk4)*log(sigp/ps3(km)))
             else
               kx = 2
               do k = 2, km
-                if ( sig(k) > sigp ) exit
+                if ( ps3(k) > sigp ) exit
                 kx = kx+1
               end do
               knx = kx - 1
-              w2 = log(sig(kx)/sigp)/log(sig(kx)/sig(knx))
+              w2 = log(ps3(kx)/sigp)/log(ps3(kx)/ps3(knx))
               w1 = 1.0 - w2
               fp(i,j,n) = w1*f(i,j,kx) + w2*f(i,j,knx)
             end if
@@ -1508,7 +1521,7 @@ module mod_vertint
         do n = 1, krcm
           sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
           if ( sc > sccm(1) ) then
-            a1 = rgas2*log(sc/sccm(1))
+            a1 = rgas2*log(lnp(sc)/lnp(sccm(1)))
             frcm(i,j,n) = fccm(i,j,1)*(b1-a1)/(b1+a1)
           else if ( sc < sccm(kccm) ) then
             frcm(i,j,n) = fccm(i,j,kccm)
@@ -1519,13 +1532,24 @@ module mod_vertint
               k1 = k1+1
             end do
             km1 = k1 - 1
-            rc1 = log(sc/sccm(km1))/log(sccm(k1)/sccm(km1))
+            rc1 = log(lnp(sc)/lnp(sccm(km1))) / &
+                  log(lnp(sccm(k1))/lnp(sccm(km1)))
             rc2 = d_one - rc1
             frcm(i,j,n) = rc1*fccm(i,j,k1)+rc2*fccm(i,j,km1)
           end if
         end do
       end do
     end do
+
+    contains
+
+      ! Pressure of the input sigma value x: the logarithms are of pressures
+      pure real(rkx) function lnp(x)
+        implicit none
+        real(rkx), intent(in) :: x
+        lnp = x*pss + pst
+      end function lnp
+
   end subroutine intv2
 
   subroutine intz3(fsrcm,fccm,zccm,zrcm,a,e1,e2,ni,nj,nk)
@@ -1614,7 +1638,7 @@ module mod_vertint
           fsccm(i,j) = fccm(i,j,kccm)
         else if ( sc > sccm(1) ) then
           ! If the surface is below the GCM's lowest level, extrapolate
-          a1 = rgas2*log(sc/sccm(1))
+          a1 = rgas2*log(lnp(sc)/lnp(sccm(1)))
           fsccm(i,j) = fccm(i,j,1)*(b1-a1)/(b1+a1)
         else
           k1 = 1
@@ -1624,33 +1648,43 @@ module mod_vertint
           end do
           ! Interpolate the temperature between the two adjacent GCM levels
           km1 = k1 - 1
-          rc = log(sc/sccm(km1))/log(sccm(k1)/sccm(km1))
+          rc = log(lnp(sc)/lnp(sccm(km1))) / &
+               log(lnp(sccm(k1))/lnp(sccm(km1)))
           rc1 = d_one - rc
           fsccm(i,j) = rc*fccm(i,j,k1)+rc1*fccm(i,j,km1)
         end if
       end do
     end do
+
+    contains
+
+      ! Pressure of the input sigma value x: the logarithms are of pressures
+      pure real(rkx) function lnp(x)
+        implicit none
+        real(rkx), intent(in) :: x
+        lnp = x*pss + pst
+      end function lnp
+
   end subroutine intv3
 
   !
   ! Mean temperature of the layer of depth dz (m) below a level at height
-  ! zb (m), with temperature tb (K) and lapse rate lrt = dT/dz (K/m), for
-  ! the extrapolation of the pressure below the lowest level. The rules of
-  ! the ECMWF method (Trenberth, Berry and Buja, 1993, NCAR/TN-396+STR,
-  ! section 3.1.b) limit the temperature of the extrapolated column, with
-  ! tb as T* and T0 = T* - lrt*zb the sea level temperature:
+  ! zb (m) with temperature tb (K), for the extrapolation of the pressure
+  ! below the lowest level, following the ECMWF method (Trenberth, Berry
+  ! and Buja, 1993, NCAR/TN-396+STR, section 3.1.b). The temperature
+  ! increases downward with the standard lapse rate (lrate), with tb as T*
+  ! and T0 = T* + lrate*zb the sea level temperature, and the column is
+  ! limited:
   !   - T* <= 290.5 K < T0: the lapse rate is reduced to have T0 = 290.5 K;
   !   - T* > 290.5 K and T0 > 290.5 K: no lapse rate, T* = (290.5 + T*)/2;
   !   - T* < 255 K: T* = (255 + T*)/2.
-  ! The lapse rate is the one of the two lowest levels (where the ECMWF
-  ! method uses 6.5 K/km).
   !
-  pure real(rk8) function below_ground_tlayer(tb,lrt,zb,dz) result(tl)
+  pure real(rk8) function below_ground_tlayer(tb,zb,dz) result(tl)
     implicit none
-    real(rk8), intent(in) :: tb, lrt, zb, dz
+    real(rk8), intent(in) :: tb, zb, dz
     real(rk8) :: tstar, t0, gam
     tstar = tb
-    gam = -lrt
+    gam = lrate
     t0 = tstar + gam*zb
     if ( tstar <= 290.5_rk8 .and. t0 > 290.5_rk8 ) then
       gam = (290.5_rk8 - tstar)/zb
@@ -1672,7 +1706,7 @@ module mod_vertint
     real(rkx), contiguous, pointer, dimension(:), intent(in) :: sccm
     real(rkx), contiguous, pointer, dimension(:,:,:), intent(in) :: tp, zp
     integer(ik4) :: i, j, k, kb, kt
-    real(rk8) :: wu, wl, tlayer, tva, tvb, pa, pb, za, zb, dz, lrt
+    real(rk8) :: wu, wl, tlayer, tva, tvb, pa, pb, za, zb, dz
 
     if ( zp(1,1,1) < zp(1,1,nk) ) then
       if ( any(zrcm > zp(:,:,nk)) ) then
@@ -1684,18 +1718,10 @@ module mod_vertint
         do i = 1, ni
           if ( zp(i,j,1) > zrcm(i,j) ) then
             pb = pss*sccm(1) + pst
-            za = zp(i,j,2)
             zb = zp(i,j,1)
-            tva = tp(i,j,2)
             tvb = tp(i,j,1)
             dz = zb - zrcm(i,j)
-            lrt = (tva-tvb)/(za-zb)
-            if ( lrt < -govcp ) then
-              lrt = -govcp
-            else if ( lrt > -0.005_rkx ) then
-              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-            end if
-            tlayer = below_ground_tlayer(tvb,lrt,zb,dz)
+            tlayer = below_ground_tlayer(tvb,zb,dz)
             psrcm(i,j) = real(pb * exp(govr*dz/tlayer),rkx)
           else if ( zp(i,j,nk) < zrcm(i,j) ) then
             psrcm(i,j) = missl
@@ -1731,18 +1757,10 @@ module mod_vertint
         do i = 1, ni
           if ( zp(i,j,nk) > zrcm(i,j) ) then
             pb = pss*sccm(nk) + pst
-            za = zp(i,j,nk-1)
             zb = zp(i,j,nk)
-            tva = tp(i,j,nk-1)
             tvb = tp(i,j,nk)
             dz = zb - zrcm(i,j)
-            lrt = (tva-tvb)/(za-zb)
-            if ( lrt < -govcp ) then
-              lrt = -govcp
-            else if ( lrt > -0.005_rkx ) then
-              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-            end if
-            tlayer = below_ground_tlayer(tvb,lrt,zb,dz)
+            tlayer = below_ground_tlayer(tvb,zb,dz)
             psrcm(i,j) = real(pb * exp(govr*dz/tlayer),rkx)
           else if ( zp(i,j,1) < zrcm(i,j) ) then
             psrcm(i,j) = missl
@@ -1779,7 +1797,7 @@ module mod_vertint
     real(rkx), dimension(ni,nj), intent(out) :: psrcm
     real(rkx), dimension(ni,nj,nk), intent(in) :: tp, zp, pp
     integer(ik4) :: i, j, k, kb, kt
-    real(rk8) :: wu, wl, tlayer, pa, za, dz, lrt
+    real(rk8) :: wu, wl, tlayer, pa, za, dz
 
     if ( zp(1,1,1) < zp(1,1,nk) ) then
       do j = 1, nj
@@ -1788,13 +1806,7 @@ module mod_vertint
             pa = pp(i,j,1)
             za = zp(i,j,1)
             dz = zrcm(i,j)-za
-            lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
-            if ( lrt < -govcp ) then
-              lrt = -govcp
-            else if ( lrt > -0.005_rkx ) then
-              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-            end if
-            tlayer = below_ground_tlayer(real(tp(i,j,1),rk8),lrt,za,-dz)
+            tlayer = below_ground_tlayer(real(tp(i,j,1),rk8),za,-dz)
           else if ( zrcm(i,j) > zp(i,j,nk) ) then
             pa = pp(i,j,nk)
             tlayer = tp(i,j,nk)
@@ -1825,13 +1837,7 @@ module mod_vertint
             pa = pp(i,j,nk)
             za = zp(i,j,nk)
             dz = zrcm(i,j)-za
-            lrt = (tp(i,j,nk-1)-tp(i,j,nk))/(zp(i,j,nk-1)-zp(i,j,nk))
-            if ( lrt < -govcp ) then
-              lrt = -govcp
-            else if ( lrt > -0.005_rkx ) then
-              lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-            end if
-            tlayer = below_ground_tlayer(real(tp(i,j,nk),rk8),lrt,za,-dz)
+            tlayer = below_ground_tlayer(real(tp(i,j,nk),rk8),za,-dz)
           else if ( zrcm(i,j) > zp(i,j,1) ) then
             pa = pp(i,j,1)
             tlayer = tp(i,j,1)

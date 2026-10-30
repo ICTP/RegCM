@@ -327,20 +327,29 @@ module mod_projections
     implicit none
     class(regcm_projection), intent(out) :: pj
     type(anyprojparams), intent(in) :: pjpara
-    real(rk8) :: ci, cj
+    real(rk8) :: ci, cj, ci1, cj1
     if ( .not. associated(pj%p) ) then
       allocate(pj%p)
     end if
+    !
+    ! Offset of the domain centre from the first grid point: the centre is
+    ! in the middle of the grid, at index ci+1, cj+1 (half a grid point
+    ! further for a staggered grid). The projections working with the grid
+    ! index (LAMCON, POLSTR, NORMER, ROTMER) take it as ci1, cj1; the
+    ! regular latitude-longitude grids take the offset ci, cj.
+    !
     ci = real(pjpara%nlon,rk8) * 0.5_rk8
     cj = real(pjpara%nlat,rk8) * 0.5_rk8
     if ( .not. pjpara%staggerx ) ci = ci - 0.5_rk8
     if ( .not. pjpara%staggery ) cj = cj - 0.5_rk8
+    ci1 = ci + 1.0_rk8
+    cj1 = cj + 1.0_rk8
     pj%p%code = pjpara%pcode
     pj%p%nlon = pjpara%nlon
     pj%p%nlat = pjpara%nlat
     select case (pjpara%pcode)
       case ('LAMCON')
-        call setup_lcc(pj,pjpara%clon,pjpara%clat,ci,cj,pjpara%ds, &
+        call setup_lcc(pj,pjpara%clon,pjpara%clat,ci1,cj1,pjpara%ds, &
                        pjpara%clon,pjpara%trlat1,pjpara%trlat2,pjpara%rotparam)
         pj%llij => llij_lc
         pj%ijll => ijll_lc
@@ -350,7 +359,7 @@ module mod_projections
         pj%uvbkrotate3 => backrotate3_lc
         pj%mapfac => mapfac_lc
       case ('POLSTR')
-          call setup_plr(pj,pjpara%clon,pjpara%clat,ci,cj, &
+        call setup_plr(pj,pjpara%clon,pjpara%clat,ci1,cj1, &
                        pjpara%ds,pjpara%clon,pjpara%rotparam)
         pj%llij => llij_ps
         pj%ijll => ijll_ps
@@ -360,7 +369,7 @@ module mod_projections
         pj%uvbkrotate3 => backrotate3_ps
         pj%mapfac => mapfac_ps
       case ('NORMER')
-        call setup_mrc(pj,pjpara%clon,pjpara%clat,ci,cj, &
+        call setup_mrc(pj,pjpara%clon,pjpara%clat,ci1,cj1, &
                        pjpara%ds)
         pj%llij => llij_mc
         pj%ijll => ijll_mc
@@ -370,7 +379,7 @@ module mod_projections
         pj%uvbkrotate3 => rotate3_mc
         pj%mapfac => mapfac_mc
       case ('ROTMER')
-        call setup_rmc(pj,pjpara%clon,pjpara%clat,ci,cj, &
+        call setup_rmc(pj,pjpara%clon,pjpara%clat,ci1,cj1, &
                        pjpara%ds,pjpara%plon,pjpara%plat,pjpara%rotparam)
         pj%llij => llij_rc
         pj%ijll => ijll_rc

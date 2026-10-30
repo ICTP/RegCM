@@ -4419,22 +4419,23 @@ association.
 \subsection{Grid Position and Conventions}
 \label{subsec:proj_grid}
 
-\code{initialize} sets the index of the domain centre to
+\code{initialize} computes the offset of the domain centre from the first
+grid point,
 \[
   c_i = \frac{n_\text{lon}}{2} - \frac{1}{2}\,[\text{not staggered in } x],
   \qquad
   c_j = \frac{n_\text{lat}}{2} - \frac{1}{2}\,[\text{not staggered in } y],
 \]
-so that a staggered grid is shifted by half a grid spacing with respect to
-the cross grid. The namelist variables \code{cntri} and \code{cntrj} are not
-used by the projection.
-
-The two families of projections use the centre index differently:
-\code{LAMCON}, \code{POLSTR}, \code{NORMER} and \code{ROTMER} place
-(\code{clat}, \code{clon}) at the grid position $(c_i, c_j)$, while
-\code{ROTLLR} and the fallback grid place it at $(c_i + 1, c_j + 1)$. With
-$n_\text{lon} = 61$ cross points, the centre is at $i = 30$ in the first
-case and $i = 31$, the middle of the grid, in the second.
+and all the projections place (\code{clat}, \code{clon}) at the grid
+position $(c_i + 1, c_j + 1)$, the middle of the grid: with
+$n_\text{lon} = 61$ cross points, at $i = 31$. A staggered grid is shifted by
+half a grid spacing with respect to the cross grid. The projections working
+with the grid index (\code{LAMCON}, \code{POLSTR}, \code{NORMER},
+\code{ROTMER}) receive the index $c_i + 1$, the latitude--longitude grids
+the offset $c_i$. Before October 2026 the first group placed the centre one
+grid point earlier, at $(c_i, c_j)$; domains created with those versions are
+shifted by one grid point with respect to new ones. The namelist variables
+\code{cntri} and \code{cntrj} are not used by the projection.
 
 Below, $R$ is the Earth radius (\code{earthrad\_r8}), $\Delta s$ the grid
 spacing, $\varphi$ and $\lambda$ latitude and longitude, $\varphi_c$ and
@@ -5295,14 +5296,17 @@ Missing values are $-9999$ (\code{missl}). The private constants are
     From regular pressure levels \code{p} to the 3-D pressures \code{p3d},
     linear in $p$ (through the normalised coordinate
     $(p - p_\text{top})/(p_s - p_\text{top})$), constant extrapolation;
-    double, single and mixed precision. \code{intlinprof} does the same for
+    double, single and mixed precision. Columns with $p_s < 1$ (missing)
+    are left missing. \code{intlinprof} does the same for
     a single profile \code{f(kp)}. \\
 \end{longtable}
 
-\noindent In \code{intlog} the logarithm is taken of
+\noindent All the logarithmic interpolations and extrapolations
+(\code{intlog}, \code{intv2}, \code{intv3}) use the logarithm of the
+pressure itself. Earlier versions took it of the normalised coordinate
 $(p - p_\text{top})/(p_\text{bottom} - p_\text{top})$, which is equivalent
-to $\ln p$ only when the top pressure is negligible; the same holds for the
-sigma-based routines below.
+only for a negligible top pressure: with a top at 100~hPa the error reached
+5~K at 150~hPa, and \code{intlog\_o} gave NaN near the top.
 
 \subsection{Interpolation to the Model Levels (ICBC)}
 
@@ -5371,24 +5375,20 @@ temperature \code{tp}, ordered from the bottom, at the model surface height
     (\code{pss}, \code{sccm}, \code{pst}) or with 3-D pressure. Between two
     levels the layer from the model surface to the level above has the
     mean of the two temperatures. Below the lowest level the temperature
-    follows the lapse rate of the two lowest levels, limited between
-    $-g/c_p$ and a value moderated towards the standard lapse rate in
-    stable layers, with the limits of the ECMWF method on the extrapolated
-    column (\code{below\_ground\_tlayer}). Above the top input level the
+    follows the ECMWF method: the standard lapse rate with the limits on
+    the extrapolated column (\code{below\_ground\_tlayer}). Above the top input level the
     result is missing for input on pressure levels, and the top pressure
     for input with 3-D pressure. \\
 \end{longtable}
 
-\noindent \code{below\_ground\_tlayer(tb, lrt, zb, dz)} returns the mean
+\noindent \code{below\_ground\_tlayer(tb, zb, dz)} returns the mean
 temperature of the layer of depth \code{dz} below a level at height
-\code{zb} with temperature \code{tb} and lapse rate \code{lrt}
-$= \partial T/\partial z$. With $T^* = $ \code{tb} and the sea level
-temperature $T_0 = T^* - \text{lrt}\,z_b$, the rules of
-Section~\ref{subsec:hgt_mslp} are applied: if $T^* \le 290.5 < T_0$ the
-lapse rate is reduced to have $T_0 = 290.5$~K; if both exceed 290.5~K the
-lapse rate is zero and $T^* = (290.5 + T^*)/2$; if $T^* < 255$~K,
-$T^* = (255 + T^*)/2$. Unlike the ECMWF method, the lapse rate is the one
-of the input profile rather than 6.5~K/km.
+\code{zb} with temperature \code{tb}. With $T^* = $ \code{tb}, the standard
+lapse rate $\Gamma$ (\code{lrate}) and the sea level temperature
+$T_0 = T^* + \Gamma z_b$, the rules of Section~\ref{subsec:hgt_mslp} are
+applied: if $T^* \le 290.5 < T_0$ the lapse rate is reduced to have
+$T_0 = 290.5$~K; if both exceed 290.5~K the lapse rate is zero and
+$T^* = (290.5 + T^*)/2$; if $T^* < 255$~K, $T^* = (255 + T^*)/2$.
 
 \subsection{Search Functions}
 
