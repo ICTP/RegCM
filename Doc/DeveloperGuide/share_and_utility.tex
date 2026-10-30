@@ -20,6 +20,7 @@ check failed.
   \code{test\_vertint} & \code{mod\_vertint} (Section~\ref{sec:vertint}) \\
   \code{test\_humid} & \code{mod\_humid} (Section~\ref{sec:humid}) \\
   \code{test\_interp} & \code{mod\_interp} (Section~\ref{sec:interp}) \\
+  \code{test\_spline} & \code{mod\_spline} (Section~\ref{sec:spline}) \\
   \code{test\_memutil} & \code{mod\_space}, \code{mod\_memutil}
     (Section~\ref{sec:memutil}) \\
   \code{test\_kdtree2} & \code{mod\_kdtree2\_priority},
@@ -5262,6 +5263,116 @@ without coincident points.
 interpolations (bilinear, distance-weighted, Cressman, kernel smoothing)
 that are no longer used; they were removed together with their module
 state.
+
+%==============================================================================
+\section{Cubic Splines --- \texttt{mod\_spline.F90}}
+\label{sec:spline}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_spline} provides two implementations of one-dimensional cubic
+spline interpolation:
+\begin{itemize}
+  \item the routines of \citet{press1992}: \code{spline} computes the
+        second derivatives of the spline at the input points once, then
+        \code{splint} interpolates and \code{splini} integrates at any
+        number of points. They are used by the MSIS atmosphere of the
+        radiation (\code{mod\_atm\_msis});
+  \item the routine of Z.~Janjic (Yugoslav Federal Hydrometeorological
+        Institute, Belgrade), from the Eta model, which solves for the
+        second derivatives and interpolates in one call. It exists in two
+        versions: \code{spline} with ten arguments, used by
+        \code{mod\_capecin} for the CAPE and CIN diagnostics, and its Fortran
+        90 recoding \code{spline1d}, used for the vertical profile of the
+        boundary nudging (\code{exponential\_nudging} in
+        \code{mod\_runparams}).
+\end{itemize}
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_spline
+    |-- mod_intkinds, mod_realkinds
+    |-- mod_constants (d_zero, d_half, d_one, d_two, d_three, d_six, ...)
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{5.2cm} L{8.8cm}}
+  \toprule
+  \textbf{Interface} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{spline(x, y, yp1, ypn, y2)} &
+    Second derivatives \code{y2} of the spline through the points
+    $(x_i, y_i)$, $x$ increasing. \code{yp1} and \code{ypn} are the first
+    derivatives at the two ends; a value above $0.99\cdot10^{30}$ selects a
+    natural spline (zero second derivative) at that end. \\
+  \code{splint(xa, ya, y2a, x, y)} &
+    Value \code{y} of the spline at \code{x}, with the interval found by
+    bisection. Outside the points the cubic of the first or last interval is
+    extrapolated. Coincident points around \code{x} return $10^{-30}$. \\
+  \code{splini(xa, ya, y2a, x, yi)} &
+    Integral \code{yi} of the spline from \code{xa(1)} to \code{x}, the sum of
+    the exact integrals of the cubics of the intervals; beyond the last
+    point the last cubic is integrated, before the first point the result
+    is 0. \\
+  \code{spline(jtb, nold, xold, yold, y2, nnew, xnew, ynew, p, q)} &
+    Janjic spline: values \code{ynew} at the \code{nnew} points \code{xnew}
+    of the spline through the \code{nold} $\geq 3$ points
+    $(x^\text{old}, y^\text{old})$. On input \code{y2(1)} and
+    \code{y2(nold)} are the second derivatives at the ends (0 for a natural
+    spline); on output \code{y2} holds all of them. \code{p} and \code{q}
+    are work arrays; all the arrays have dimension \code{jtb}. Points above
+    the last one get \code{yold(nold)}; points below the first one get the
+    extrapolated cubic of the first interval. \\
+  \code{spline1d(nold, xold, yold, y2, nnew, xnew, ynew)} &
+    The same algorithm with arrays of their own size. Points outside the
+    input range get the value of the nearest end point. \\
+\end{longtable}
+
+\subsection{Algorithms}
+
+Both implementations solve the tridiagonal system for the second
+derivatives $M_k$ of a cubic spline,
+\begin{equation}
+  \Delta x_{k-1} M_{k-1} + 2(\Delta x_{k-1}+\Delta x_k) M_k +
+  \Delta x_k M_{k+1} = 6\left(\frac{y_{k+1}-y_k}{\Delta x_k} -
+  \frac{y_k-y_{k-1}}{\Delta x_{k-1}}\right),
+\end{equation}
+by forward elimination and back substitution. The Numerical Recipes
+version adds the end conditions on the first derivative to the system; the
+Janjic version takes the end second derivatives as given. In the interval
+$[x_k, x_{k+1}]$ the Janjic routines evaluate the cubic as
+$a t^3 + b t^2 + c t + y_k$ with $t = x - x_k$,
+$a = (M_{k+1}-M_k)/(6\Delta x_k)$, $b = M_k/2$ and
+$c = (y_{k+1}-y_k)/\Delta x_k - \Delta x_k(M_{k+1}+2M_k)/6$, keeping the
+coefficients while successive points fall in the same interval.
+
+\subsection{Design Notes}
+
+\textbf{Corrections.} The following were corrected in October 2026, and
+are checked by \code{Testing/share/test\_spline.F90} (a spline with the
+exact end conditions reproduces a cubic polynomial):
+\begin{itemize}
+  \item \code{spline1d} multiplied the right-hand side of the system by
+        $1/6$ instead of 6, so the second derivatives were 36 times too
+        small and the spline nearly piecewise linear. With three points, as
+        in \code{exponential\_nudging}, the nudging profile changes by up to
+        2\,\%. For more than three points the elimination loop also read one
+        element beyond the end of the input arrays;
+  \item the Janjic \code{spline} used $0.1666667$ for $1/6$, an error of
+        about $4\cdot10^{-6}$ on a cubic; it now uses the exact value;
+  \item in the Janjic \code{spline}, a point above the last input point
+        followed by one in the first interval reused coefficients that had
+        never been computed;
+  \item \code{splie2} and \code{splin2} (two-dimensional splines) were
+        removed: they were not used, and \code{splin2} wrote to an array it
+        never allocated.
+\end{itemize}
 
 %==============================================================================
 \section{Vertical Interpolation --- \texttt{mod\_vertint.F90}}

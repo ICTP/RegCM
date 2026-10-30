@@ -32,7 +32,6 @@ module mod_spline
   private
 
   public :: splini, spline, splint
-  public :: splie2, splin2
   public :: spline1d
 
   interface spline
@@ -185,6 +184,8 @@ module mod_spline
       go to 450
       end do
       ynew(k1) = yold(nold)
+      ! No interval coefficients computed for this point
+      k = 0
       go to 600
  450  if ( k1 == 1 )   go to 500
       if ( k == kold ) go to 550
@@ -193,9 +194,9 @@ module mod_spline
       y2kp1 = y2(k+1)
       dx = xold(k+1)-xold(k)
       rdx = 1.0_rkx/dx
-      ak = 0.1666667_rkx*rdx*(y2kp1-y2k)
+      ak = (d_one/d_six)*rdx*(y2kp1-y2k)
       bk = 0.5_rkx*y2k
-      ck = rdx*(yold(k+1)-yold(k))-0.1666667_rkx*dx*(y2kp1+y2k+y2k)
+      ck = rdx*(yold(k+1)-yold(k))-(d_one/d_six)*dx*(y2kp1+y2k+y2k)
  550  x = xk-xold(k)
       xsq = x*x
       ynew(k1) = ak*xsq*x+bk*xsq+ck*x+yold(k)
@@ -295,76 +296,7 @@ module mod_spline
                                    (b*b*b-b)*y2a(khi))*h*h/d_six
     end subroutine splint
 
-    subroutine splie2(x1a,x2a,ya,m,n,y2a)
-      implicit none
-      !     SPLIE2 use: given an array of X1A data of length M, and an array
-      !     of X2A data of length N, this routine computes the 2nd
-      !     derivatives, Y2A, at each X1A,X2A data point.  Thus Y2A has
-      !     dimensions Y2A(M,N).  Natural spline fitting is assumed.
-      !     this routine called once, prior to using routine SPLIN2, as a set
-      !     up for using routine SPLIN2, which performs the actual
-      !     interpolation.
-      !     Uses routines: SPLINE
-      !     IMPORTANT NOTE: the X1A and X2A data values must both be in
-      !     ascending order or the interpolation will fail
-      real(rkx), dimension(:), intent(in) :: x1a, x2a
-      real(rkx), dimension(:,:), intent(in) :: ya
-      real(rkx), dimension(:,:), intent(out) :: y2a
-      integer(ik4), intent(out) :: m, n
-      real(rkx), allocatable, dimension(:) :: ytmp, y2tmp
-      integer(ik4) :: j, k
 
-      m = size(x1a,1)
-      n = size(x2a,1)
-
-      allocate(ytmp(n), y2tmp(n))
-      do j = 1, m
-        do k = 1, n
-          ytmp(k) = ya(j,k)
-        end do
-        call spline(x2a,ytmp,1.e30_rkx,1.e30_rkx,y2tmp)
-        do k = 1, n
-          y2a(j,k) = y2tmp(k)
-        end do
-      end do
-      deallocate(ytmp,y2tmp)
-    end subroutine splie2
-
-    subroutine splin2(x1a,x2a,ya,y2a,x1,x2,y)
-      implicit none
-      ! SPLIN2 use: given an array of X1A data of length M, an array of
-      ! X2A data of length N, and an array of 2nd derivatives, Y2A at each
-      ! X1A,X2A data point, dimensioned Y2A(M,N), this routine performs 2D
-      ! interpolation, returning the interpolated value Y at user input
-      ! values X1 and X2.  Natural spline fitting is assumed.
-      ! Uses routines: SPLINT, SPLINE
-      ! IMPORTANT NOTE: the X1A and X2A data values must both be in
-      ! ascending order or the interpolation will fail
-      real(rkx), dimension(:), intent(in) :: x1a
-      real(rkx), dimension(:), intent(in) :: x2a
-      real(rkx), dimension(:,:), intent(in) :: ya
-      real(rkx), dimension(:,:), intent(in) :: y2a
-      real(rkx), intent(in) :: x1
-      real(rkx), intent(in) :: x2
-      real(rkx), intent(out) :: y
-      integer(ik4) :: j, k, m, n
-
-      real(rkx), allocatable, dimension(:) :: ytmp, y2tmp, yytmp
-
-      m = size(x1a,1)
-      n = size(x2a,1)
-      allocate(ytmp(n), y2tmp(n))
-
-      do j = 1, m
-        do k = 1, n
-          ytmp(k) = ya(j,k)
-          y2tmp(k) = y2a(j,k)
-        end do
-        call splint(x2a,ytmp,y2tmp,x2,yytmp(j))
-      end do
-      call spline(x1a,yytmp,1.e30_rkx,1.e30_rkx,y2tmp)
-      call splint(x1a,yytmp,y2tmp,x1,y)
-    end subroutine splin2
     !
     !  This is a one-dimensional cubic spline fitting routine
     !
@@ -404,17 +336,17 @@ module mod_spline
       dydxl = (yold(2)-yold(1))/dxl
       dydxr = (yold(3)-yold(2))/dxr
       rtdxc = d_half/(dxl+dxr)
-      p(1) = rtdxc*(bfac*(dydxr-dydxl)-dxl*y2(1))
+      p(1) = rtdxc*(afac*(dydxr-dydxl)-dxl*y2(1))
       q(1) = -rtdxc*dxr
       if ( nold > 3 ) then
-        do k = 3, nold
+        do k = 3, nold-1
           dxl = dxr
           dydxl = dydxr
           dxr = xold(k+1) - xold(k)
           dydxr = (yold(k+1)-yold(k))/dxr
           dxc = dxl + dxr
           den = d_one/(dxl*q(k-2)+dxc+dxc)
-          p(k-1) = den*(bfac*(dydxr-dydxl)-dxl*p(k-2))
+          p(k-1) = den*(afac*(dydxr-dydxl)-dxl*p(k-2))
           q(k-1) = -den*dxr
         end do
       end if

@@ -22,8 +22,8 @@ vpath %.o $(REGCM_ROOT)/Share:.
 include $(REGCM_ROOT)/makeinc
 
 check_PROGRAMS = test_date test_spbarcoord test_projections test_hgt \
-                 test_vertint test_humid test_interp test_memutil \
-                 test_kdtree2 test_kdinterp
+                 test_vertint test_humid test_interp test_spline \
+                 test_memutil test_kdtree2 test_kdinterp
 test_date_SOURCES = share_test_utils.F90 test_date.F90
 test_spbarcoord_SOURCES = share_test_utils.F90 test_spbarcoord.F90
 test_projections_SOURCES = share_test_utils.F90 test_projections.F90
@@ -31,6 +31,7 @@ test_hgt_SOURCES = share_test_utils.F90 test_hgt.F90
 test_vertint_SOURCES = share_test_utils.F90 test_vertint.F90
 test_humid_SOURCES = share_test_utils.F90 test_humid.F90
 test_interp_SOURCES = share_test_utils.F90 test_interp.F90
+test_spline_SOURCES = share_test_utils.F90 test_spline.F90
 test_memutil_SOURCES = share_test_utils.F90 test_memutil.F90
 test_kdtree2_SOURCES = share_test_utils.F90 test_kdtree2.F90
 test_kdinterp_SOURCES = share_test_utils.F90 test_kdinterp.F90
@@ -59,6 +60,7 @@ test_hgt.o : test_hgt.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_
 test_vertint.o : test_vertint.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_constants.o mod_vertint.o mod_memutil.o
 test_humid.o : test_humid.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_constants.o mod_humid.o
 test_interp.o : test_interp.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_interp.o
+test_spline.o : test_spline.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_spline.o
 test_memutil.o : test_memutil.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_memutil.o mod_date.o
 test_kdtree2.o : test_kdtree2.F90 share_test_utils.o mod_kdtree2.o
 test_kdinterp.o : test_kdinterp.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_kdinterp.o
