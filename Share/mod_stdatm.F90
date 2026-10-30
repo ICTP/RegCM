@@ -129,11 +129,11 @@ module mod_stdatm
    23.0_rk8,  37.60_rk8,222.00_rk8,0.5867e+2_rk8,0.540e-3_rk8,0.340e-3_rk8, &
    24.0_rk8,  32.20_rk8,223.00_rk8,0.5014e+2_rk8,0.600e-3_rk8,0.320e-3_rk8, &
    25.0_rk8,  27.70_rk8,224.00_rk8,0.4288e+2_rk8,0.670e-3_rk8,0.300e-3_rk8, &
-   30.0_rk8,  13.20_rk8,234.00_rk8,0.1322e+2_rk8,0.360e-3_rk8,0.200e-3_rk8, &
-   35.0_rk8,   6.52_rk8,245.00_rk8,0.6519e+1_rk8,0.110e-3_rk8,0.920e-4_rk8, &
-   40.0_rk8,   3.33_rk8,258.00_rk8,0.3330e+1_rk8,0.430e-4_rk8,0.410e-4_rk8, &
-   45.0_rk8,   1.76_rk8,270.60_rk8,0.1757e+1_rk8,0.190e-4_rk8,0.130e-4_rk8, &
-   50.0_rk8,   0.95_rk8,276.00_rk8,0.9512e+0_rk8,0.630e-5_rk8,0.430e-5_rk8, &
+   30.0_rk8,  13.20_rk8,234.00_rk8,0.1965e+2_rk8,0.360e-3_rk8,0.200e-3_rk8, &
+   35.0_rk8,   6.52_rk8,245.00_rk8,0.9271e+1_rk8,0.110e-3_rk8,0.920e-4_rk8, &
+   40.0_rk8,   3.33_rk8,258.00_rk8,0.4496e+1_rk8,0.430e-4_rk8,0.410e-4_rk8, &
+   45.0_rk8,   1.76_rk8,270.60_rk8,0.2266e+1_rk8,0.190e-4_rk8,0.130e-4_rk8, &
+   50.0_rk8,   0.95_rk8,276.00_rk8,0.1199e+1_rk8,0.630e-5_rk8,0.430e-5_rk8, &
     0.0_rk8,1018.00_rk8,272.20_rk8,0.1301e+4_rk8,0.350e+1_rk8,0.600e-4_rk8, &
     1.0_rk8, 897.30_rk8,268.70_rk8,0.1162e+4_rk8,0.250e+1_rk8,0.540e-4_rk8, &
     2.0_rk8, 789.70_rk8,265.20_rk8,0.1037e+4_rk8,0.180e+1_rk8,0.490e-4_rk8, &
@@ -173,7 +173,7 @@ module mod_stdatm
     5.0_rk8, 541.00_rk8,260.00_rk8,0.7244e+3_rk8,0.100e+1_rk8,0.640e-4_rk8, &
     6.0_rk8, 473.00_rk8,253.00_rk8,0.6519e+3_rk8,0.540e+0_rk8,0.710e-4_rk8, &
     7.0_rk8, 413.00_rk8,246.00_rk8,0.5849e+3_rk8,0.290e+0_rk8,0.750e-4_rk8, &
-    8.0_rk8, 359.00_rk8,239.00_rk8,0.5231e+3_rk8,0.130e-1_rk8,0.790e-4_rk8, &
+    8.0_rk8, 359.00_rk8,239.00_rk8,0.5231e+3_rk8,0.130e+0_rk8,0.790e-4_rk8, &
     9.0_rk8, 310.70_rk8,232.00_rk8,0.4663e+3_rk8,0.420e-1_rk8,0.110e-3_rk8, &
    10.0_rk8, 267.70_rk8,225.00_rk8,0.4142e+3_rk8,0.150e-1_rk8,0.130e-3_rk8, &
    11.0_rk8, 230.00_rk8,225.00_rk8,0.3559e+3_rk8,0.940e-2_rk8,0.180e-3_rk8, &
@@ -191,11 +191,11 @@ module mod_stdatm
    23.0_rk8,  37.50_rk8,225.00_rk8,0.5805e+2_rk8,0.540e-3_rk8,0.300e-3_rk8, &
    24.0_rk8,  32.27_rk8,226.00_rk8,0.4963e+2_rk8,0.600e-3_rk8,0.280e-3_rk8, &
    25.0_rk8,  27.80_rk8,228.00_rk8,0.4247e+2_rk8,0.670e-3_rk8,0.260e-3_rk8, &
-   30.0_rk8,  13.40_rk8,235.00_rk8,0.1338e+2_rk8,0.360e-3_rk8,0.140e-3_rk8, &
-   35.0_rk8,   6.61_rk8,247.00_rk8,0.6614e+1_rk8,0.110e-3_rk8,0.920e-4_rk8, &
-   40.0_rk8,   3.40_rk8,262.00_rk8,0.3404e+1_rk8,0.430e-4_rk8,0.410e-4_rk8, &
-   45.0_rk8,   1.81_rk8,274.00_rk8,0.1817e+1_rk8,0.190e-4_rk8,0.130e-4_rk8, &
-   50.0_rk8,   0.99_rk8,277.00_rk8,0.9868e+0_rk8,0.630e-5_rk8,0.430e-5_rk8, &
+   30.0_rk8,  13.40_rk8,235.00_rk8,0.1986e+2_rk8,0.360e-3_rk8,0.140e-3_rk8, &
+   35.0_rk8,   6.61_rk8,247.00_rk8,0.9323e+1_rk8,0.110e-3_rk8,0.920e-4_rk8, &
+   40.0_rk8,   3.40_rk8,262.00_rk8,0.4521e+1_rk8,0.430e-4_rk8,0.410e-4_rk8, &
+   45.0_rk8,   1.81_rk8,274.00_rk8,0.2301e+1_rk8,0.190e-4_rk8,0.130e-4_rk8, &
+   50.0_rk8,   0.99_rk8,277.00_rk8,0.1245e+1_rk8,0.630e-5_rk8,0.430e-5_rk8, &
     0.0_rk8,1013.00_rk8,257.10_rk8,0.1372e+4_rk8,0.120e+1_rk8,0.410e-4_rk8, &
     1.0_rk8, 887.80_rk8,259.10_rk8,0.1193e+4_rk8,0.120e+1_rk8,0.410e-4_rk8, &
     2.0_rk8, 777.50_rk8,255.90_rk8,0.1058e+4_rk8,0.940e+0_rk8,0.410e-4_rk8, &
@@ -246,12 +246,7 @@ module mod_stdatm
     module procedure stdatm_val_noseason_r8
   end interface stdatm_val
 
-  interface stdlrate
-    module procedure stdlrate_r4
-    module procedure stdlrate_r8
-  end interface stdlrate
-
-  public :: stdplevf, stdplevh, stdhlevh, stdhlevf, stdatm_val, stdlrate
+  public :: stdplevf, stdplevh, stdhlevh, stdhlevf, stdatm_val
 
 !-------------------------------------------------------------------------------
 !
@@ -298,8 +293,8 @@ module mod_stdatm
          wtp2 = plev_wgt(kp2,plev,ipolarsummer)
          vs1 = stdatm(ival,kp1,ipolarwinter)*wtp1 + &
                stdatm(ival,kp1+1,ipolarwinter)*(1.0_rk8-wtp1)
-         vs2 = stdatm(ival,kp2,ipolarsummer)*wtp1 + &
-               stdatm(ival,kp2+1,ipolarsummer)*(1.0_rk8-wtp1)
+         vs2 = stdatm(ival,kp2,ipolarsummer)*wtp2 + &
+               stdatm(ival,kp2+1,ipolarsummer)*(1.0_rk8-wtp2)
          stdatm_val_noseason_r8 = vs1*wts1+vs2*wts2
          kp1 = find_klev(plev,imidlatwinter)
          kp2 = find_klev(plev,imidlatsummer)
@@ -307,8 +302,8 @@ module mod_stdatm
          wtp2 = plev_wgt(kp2,plev,imidlatsummer)
          vs1 = stdatm(ival,kp1,imidlatwinter)*wtp1 + &
                stdatm(ival,kp1+1,imidlatwinter)*(1.0_rk8-wtp1)
-         vs2 = stdatm(ival,kp2,imidlatsummer)*wtp1 + &
-               stdatm(ival,kp2+1,imidlatsummer)*(1.0_rk8-wtp1)
+         vs2 = stdatm(ival,kp2,imidlatsummer)*wtp2 + &
+               stdatm(ival,kp2+1,imidlatsummer)*(1.0_rk8-wtp2)
          stdatm_val_noseason_r8 = wtl2*stdatm_val_noseason_r8 + &
                                   wtl1*(vs1*wts1+vs2*wts2)
        else
@@ -361,7 +356,7 @@ module mod_stdatm
        if ( abs(lat) >= 45.0_rk8 ) then
          wtl1 = ((90.0_rk8-abs(lat))/45.0_rk8)**3
          wtl2 = 1.0_rk8-wtl1
-         wts1 = winter_wgt(jday,dayspy)
+         wts1 = winter_wgt(jday,dayspy,lat)
          wts2 = 1.0_rk8-wts1
          kp1 = find_klev(plev,ipolarwinter)
          kp2 = find_klev(plev,ipolarsummer)
@@ -385,7 +380,7 @@ module mod_stdatm
        else
          wtl1 = (abs(lat)/45.0_rk8)**2
          wtl2 = 1.0_rk8-wtl1
-         wts1 = winter_wgt(jday,dayspy)
+         wts1 = winter_wgt(jday,dayspy,lat)
          wts2 = 1.0_rk8-wts1
          kp1 = find_klev(plev,itropical)
          wtp1 = plev_wgt(kp1,plev,itropical)
@@ -404,15 +399,21 @@ module mod_stdatm
        end if
      end function stdatm_val_seasonal_r8
 
-     pure real(rk8) function winter_wgt(jday,dayspy)
+     !
+     ! Weight of the winter profile: 1 at the start of December and 0 at
+     ! the start of June in the northern hemisphere, the opposite in the
+     ! southern hemisphere.
+     !
+     pure real(rk8) function winter_wgt(jday,dayspy,lat)
 !$acc routine seq
        implicit none
-       real(rk8), intent(in) :: jday, dayspy
+       real(rk8), intent(in) :: jday, dayspy, lat
        real(rk8) :: dis, half_dayspy, sixteenth_dayspy
        half_dayspy = dayspy * 0.5_rk8
        sixteenth_dayspy = dayspy * 0.0625_rk8
        dis = ((half_dayspy-jday-sixteenth_dayspy+1.0_rk8)/dayspy)*mathpi
        winter_wgt = real(sin(dis)**2,rk8)
+       if ( lat < 0.0_rk8 ) winter_wgt = 1.0_rk8 - winter_wgt
      end function winter_wgt
 
      pure integer(ik4) function find_klev(plev,izone)
@@ -428,18 +429,6 @@ module mod_stdatm
        end do
      end function find_klev
 
-     pure integer(ik4) function find_zlev(z,izone)
-!$acc routine seq
-       implicit none
-       integer(ik4), intent(in) :: izone
-       real(rk8), intent(in) :: z
-       integer(ik4) :: k
-       find_zlev = 1
-       do k = 2, n_atmlevls
-         find_zlev = k-1
-         if ( z < 1000.0_rk8 * stdatm(istdatm_hgtkm,k,izone) ) exit
-       end do
-     end function find_zlev
 
      pure real(rk8) function plev_wgt(k,plev,izone)
 !$acc routine seq
@@ -456,96 +445,7 @@ module mod_stdatm
        end if
      end function plev_wgt
 
-     pure real(rk8) function stdlrate_r4(jday,dayspy,lat)
-!$acc routine seq
-       implicit none
-       real(rk4), intent(in) :: jday
-       real(rk4), intent(in) :: dayspy
-       real(rk4), intent(in) :: lat
-       stdlrate_r4 = real(stdlrate_r8( &
-         real(jday,rk8),real(dayspy,rk8),real(lat,rk8)),rk4)
-     end function stdlrate_r4
 
-     pure real(rk8) function stdlrate_r8(jday,dayspy,lat)
-!$acc routine seq
-       implicit none
-       real(rk8), intent(in) :: jday
-       real(rk8), intent(in) :: dayspy
-       real(rk8), intent(in) :: lat
-       real(rk8) :: wts1, wts2, wtp1, wtp2, vs1, vs2, vz1, vz2
-       real(rk8) :: wtl1, wtl2, vs3, vs4
-       integer(ik4) :: kp1, kp2
-       real(rk8) :: polar, midlat, tropical
-       if ( abs(lat) >= 45.0_rk8 ) then
-         wtl1 = ((90.0_rk8-abs(lat))/45.0_rk8)**3
-         wtl2 = 1.0_rk8-wtl1
-         wts1 = winter_wgt(jday,dayspy)
-         wts2 = 1.0_rk8-wts1
-         kp1 = find_klev(300.0_rk8,ipolarwinter)
-         kp2 = find_klev(300.0_rk8,ipolarsummer)
-         wtp1 = plev_wgt(kp1,300.0_rk8,ipolarwinter)
-         wtp2 = plev_wgt(kp2,300.0_rk8,ipolarsummer)
-         vs1 = stdatm(istdatm_tempk,kp1,ipolarwinter)*wtp1 + &
-               stdatm(istdatm_tempk,kp1+1,ipolarwinter)*(1.0_rk8-wtp1)
-         vs2 = stdatm(istdatm_tempk,kp2,ipolarsummer)*wtp2 + &
-               stdatm(istdatm_tempk,kp2+1,ipolarsummer)*(1.0_rk8-wtp2)
-         vs3 = stdatm(istdatm_tempk,1,ipolarwinter)
-         vs4 = stdatm(istdatm_tempk,1,ipolarsummer)
-         vz1 = stdatm(istdatm_hgtkm,kp1,ipolarwinter)*wtp1 + &
-               stdatm(istdatm_hgtkm,kp1+1,ipolarwinter)*(1.0_rk8-wtp1)
-         vz2 = stdatm(istdatm_hgtkm,kp2,ipolarsummer)*wtp2 + &
-               stdatm(istdatm_hgtkm,kp2+1,ipolarsummer)*(1.0_rk8-wtp2)
-         polar = ((vs1*wts1+vs2*wts2) - (vs3*wts1+vs4*wts2)) / &
-                 (d_1000*(vz1*wts1+vz2*wts2))
-         kp1 = find_klev(300.0_rk8,imidlatwinter)
-         kp2 = find_klev(300.0_rk8,imidlatsummer)
-         wtp1 = plev_wgt(kp1,300.0_rk8,imidlatwinter)
-         wtp2 = plev_wgt(kp2,300.0_rk8,imidlatsummer)
-         vs1 = stdatm(istdatm_tempk,kp1,imidlatwinter)*wtp1 + &
-               stdatm(istdatm_tempk,kp1+1,imidlatwinter)*(1.0_rk8-wtp1)
-         vs2 = stdatm(istdatm_tempk,kp2,imidlatsummer)*wtp2 + &
-               stdatm(istdatm_tempk,kp2+1,imidlatsummer)*(1.0_rk8-wtp2)
-         vs3 = stdatm(istdatm_tempk,1,imidlatwinter)
-         vs4 = stdatm(istdatm_tempk,1,imidlatsummer)
-         vz1 = stdatm(istdatm_hgtkm,kp1,imidlatwinter)*wtp1 + &
-               stdatm(istdatm_hgtkm,kp1+1,imidlatwinter)*(1.0_rk8-wtp1)
-         vz2 = stdatm(istdatm_hgtkm,kp2,imidlatsummer)*wtp2 + &
-               stdatm(istdatm_hgtkm,kp2+1,imidlatsummer)*(1.0_rk8-wtp2)
-         midlat = ((vs1*wts1+vs2*wts2) - (vs3*wts1+vs4*wts2)) / &
-                  (d_1000*(vz1*wts1+vz2*wts2))
-         stdlrate_r8 = wtl2 * polar + wtl1 * midlat
-       else
-         wtl1 = (abs(lat)/45.0_rk8)**2
-         wtl2 = 1.0_rk8-wtl1
-         kp1 = find_klev(300.0_rk8,itropical)
-         wtp1 = plev_wgt(kp1,300.0_rk8,itropical)
-         vs1 = stdatm(istdatm_tempk,kp1,itropical)*wtp1 + &
-               stdatm(istdatm_tempk,kp1+1,itropical)*(1.0_rk8-wtp1)
-         vs2 = stdatm(istdatm_tempk,1,itropical)
-         vz1 = stdatm(istdatm_hgtkm,kp1,itropical)*wtp1 + &
-               stdatm(istdatm_hgtkm,kp1+1,itropical)*(1.0_rk8-wtp1)
-         tropical = (vs1 - vs2)/(d_1000*vz1)
-         wts1 = winter_wgt(jday,dayspy)
-         wts2 = 1.0_rk8-wts1
-         kp1 = find_klev(300.0_rk8,imidlatwinter)
-         kp2 = find_klev(300.0_rk8,imidlatsummer)
-         wtp1 = plev_wgt(kp1,300.0_rk8,imidlatwinter)
-         wtp2 = plev_wgt(kp1,300.0_rk8,imidlatsummer)
-         vs1 = stdatm(istdatm_tempk,kp1,imidlatwinter)*wtp1 + &
-               stdatm(istdatm_tempk,kp1+1,imidlatwinter)*(1.0_rk8-wtp1)
-         vs2 = stdatm(istdatm_tempk,kp2,imidlatsummer)*wtp2 + &
-               stdatm(istdatm_tempk,kp2+1,imidlatsummer)*(1.0_rk8-wtp2)
-         vs3 = stdatm(istdatm_tempk,1,imidlatwinter)
-         vs4 = stdatm(istdatm_tempk,1,imidlatsummer)
-         vz1 = stdatm(istdatm_hgtkm,kp1,imidlatwinter)*wtp1 + &
-               stdatm(istdatm_hgtkm,kp1+1,imidlatwinter)*(1.0_rk8-wtp1)
-         vz2 = stdatm(istdatm_hgtkm,kp2,imidlatsummer)*wtp2 + &
-               stdatm(istdatm_hgtkm,kp2+1,imidlatsummer)*(1.0_rk8-wtp2)
-         midlat = ((vs1*wts1+vs2*wts2) - (vs3*wts1+vs4*wts2)) / &
-                  (d_1000*(vz1*wts1+vz2*wts2))
-         stdlrate_r8 = wtl2 * midlat + wtl1 * tropical
-       end if
-    end function stdlrate_r8
 
 end module mod_stdatm
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

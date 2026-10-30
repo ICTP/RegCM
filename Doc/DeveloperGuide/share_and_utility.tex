@@ -31,6 +31,7 @@ check failed.
   \code{test\_async\_netcdf} & \code{mod\_async\_netcdf}
     (Section~\ref{sec:async_netcdf}) \\
   \code{test\_domain} & \code{mod\_domain} (Section~\ref{sec:domain}) \\
+  \code{test\_stdatm} & \code{mod\_stdatm} (Section~\ref{sec:stdatm}) \\
 \end{longtable}
 
 
@@ -6659,3 +6660,98 @@ are compared in the working precision as the others. The check of the
 dynamical core was added: before, a domain or ICBC file of another core
 failed later on a missing variable, or, between the two $\sigma$ cores,
 was accepted.
+
+%==============================================================================
+\section{Standard Atmospheres --- \texttt{mod\_stdatm.F90}}
+\label{sec:stdatm}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_stdatm} holds the five standard atmospheres of
+\citet{mcclatchey1972}: tropical, mid-latitude summer and winter, subarctic
+summer and winter. Each gives at 31 heights from 0 to 50~km (1~km steps to
+25~km, then 5~km) the pressure (hPa), temperature (K), air density, water
+vapour and ozone densities (g\,m$^{-3}$). The function \code{stdatm\_val}
+blends them into a profile for any latitude, day of the year and pressure.
+RRTMG uses it for the temperature, water vapour and ozone of the layers
+above the model top, and \code{terrain} for the temperature of a reference
+column at the centre of the domain.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_stdatm
+    `-- mod_intkinds, mod_realkinds, mod_constants (mathpi)
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{5.6cm} L{8.4cm}}
+  \toprule
+  \textbf{Name} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{stdatm\_val(jday, dayspy, lat, p, ival)} &
+    Value of the quantity \code{ival} at pressure \code{p} (hPa),
+    latitude \code{lat} and day \code{jday} of a year of \code{dayspy} days
+    (single or double precision). \\
+  \code{stdatm\_val(lat, p, ival)} &
+    The same with equal weights of winter and summer. \\
+  \code{istdatm\_hgtkm}, \code{\_prsmb}, \code{\_tempk}, \code{\_airdn},
+  \code{\_qdens}, \code{\_ozone} &
+    The quantities: height (km), pressure (hPa), temperature (K), air,
+    water vapour and ozone density (g\,m$^{-3}$). \\
+  \code{stdplevf}, \code{stdplevh}, \code{stdhlevf}, \code{stdhlevh} &
+    Reference pressure and height levels (full and half). \\
+\end{longtable}
+
+\subsection{Blending}
+
+\begin{itemize}
+  \item \textbf{Pressure.} In each profile the value is interpolated
+        linearly in $\ln p$ between the two levels around \code{p}; below
+        the first level and above the last the value of that level is
+        used.
+  \item \textbf{Season.} The winter weight is
+        $w = \sin^2\left(\pi\left(\tfrac{7}{16}-\tfrac{d-1}{D}\right)\right)$
+        for day $d$ of a year of $D$ days: 1 near the beginning of December,
+        0 near the beginning of June. In the southern hemisphere the
+        winter weight is $1-w$. Each zone is $w$ times its winter profile
+        plus $1-w$ times its summer profile.
+  \item \textbf{Latitude.} Below 45° the tropical profile and the
+        mid-latitude one are mixed with weight $(|\varphi|/45)^2$ for the
+        latter; above 45° the mid-latitude and the subarctic ones with
+        weight $((90-|\varphi|)/45)^3$ for the former. The profile is
+        continuous at 45°.
+\end{itemize}
+
+\subsection{Design Notes}
+
+\textbf{Corrections.} The following were corrected in October 2026, and
+are checked by \code{Testing/share/test\_stdatm.F90}:
+\begin{itemize}
+  \item in the mid-latitude and subarctic summer atmospheres the air
+        density of the five levels from 30 to 50~km was a copy of the
+        pressure, about 30\,\% below $p/(R_dT)$: the water vapour and ozone
+        mixing ratios that RRTMG computes above the model top were about
+        45\,\% too high in summer. The values are now $p/(R_dT)$, as in the
+        original tables;
+  \item the subarctic summer water vapour at 8~km was 0.013 instead of
+        0.13~g\,m$^{-3}$;
+  \item the season weight did not depend on the hemisphere: the southern
+        hemisphere had its winter profiles in January;
+  \item without season, the summer profiles above 45° were interpolated
+        with the level weight of the winter profiles;
+  \item the unused \code{stdlrate} (a lapse rate from the profiles, with
+        the tropical and mid-latitude weights exchanged) and
+        \code{find\_zlev} were removed.
+\end{itemize}
+
+\textbf{Testing.} The test checks the tropical and polar values, the
+continuity at 45°, opposite seasons in the two hemispheres, the density
+against $p/(R_dT)$ (within 10\,\%: the interpolation linear in $\ln p$
+between levels 5~km apart overestimates it by up to 9\,\%), and the
+decrease of water vapour with height up to 300~hPa.
