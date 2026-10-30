@@ -34,6 +34,7 @@ check failed.
   \code{test\_stdatm} & \code{mod\_stdatm} (Section~\ref{sec:stdatm}) \\
   \code{test\_wavelet} & \code{mod\_wavelet} (Section~\ref{sec:wavelet}) \\
   \code{test\_ensemble} & \code{mod\_ensemble} (Section~\ref{sec:ensemble}) \\
+  \code{test\_sunorbit} & \code{mod\_sunorbit} (Section~\ref{sec:sunorbit}) \\
 \end{longtable}
 
 
@@ -6735,3 +6736,97 @@ perturbation fractions, not through the seed.
 and the zero mean of the noise, that zeros are not changed, that the parts
 of \code{random\_pick} are positive, sum to the total and have equal mean,
 and the zero total.
+
+%==============================================================================
+\section{Earth Orbit --- \texttt{mod\_sunorbit.F90}}
+\label{sec:sunorbit}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_sunorbit} computes the orbit of the Earth around the Sun for any
+year within a million years of the present, with the series of
+\citet{berger1978}, and from it the solar declination, the Earth--Sun
+distance factor and the cosine of the solar zenith angle. It is the orbit
+code of the CESM shared library (\code{shr\_orb\_mod}). \code{mod\_sun}
+uses it for the radiation of the atmosphere, and CLM for its surface
+albedo and its own radiation.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_sunorbit
+    |-- mod_intkinds, mod_realkinds, mod_constants
+    |-- mod_stdio, mod_message
+    `-- mod_dynparam (dayspy, vernal_equinox)
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{5.8cm} L{8.2cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{orb\_params(year, eccen, obliq, mvelp, obliqr, lambm0, mvelpp)} &
+    Eccentricity \code{eccen}, obliquity \code{obliq} (degrees) and
+    longitude of the perihelion relative to the moving vernal equinox
+    \code{mvelp} (degrees) of the year; \code{obliqr} in radians,
+    \code{mvelpp} $=$ \code{mvelp} $+ 180°$ in radians, and the mean
+    longitude \code{lambm0} at the vernal equinox. With
+    \code{year} $= 2\,000\,000\,000$ the three parameters are taken from the
+    arguments, which are checked. \\
+  \code{orb\_decl(calday, eccen, mvelpp, lambm0, obliqr, delta, eccf)} &
+    Solar declination \code{delta} (radians) and distance factor
+    \code{eccf} $= (a/r)^2$ on the calendar day \code{calday}, counted from
+    1.0 at 0~UTC of 1 January. \\
+  \code{orb\_cosz(calday, lat, lon, delta)} &
+    Cosine of the solar zenith angle at a latitude and longitude (degrees);
+    single or double precision. \\
+\end{longtable}
+
+\subsection{Method}
+
+\textbf{Orbital parameters.} With $t$ the years after 1950, the obliquity
+is $\varepsilon = 23.320556° + \sum_i A_i\cos(f_it + \delta_i)$ (47
+terms); $e\cos\varpi$ and $e\sin\varpi$, with $\varpi$ the longitude of the
+perihelion relative to the fixed equinox, are sums of 19 terms; the
+longitude relative to the moving equinox adds the general precession,
+$\varpi + 50.439273''\,t + 3.392506° + \sum$ (78 terms). The amplitudes,
+rates and phases are those of Berger's program.
+
+\textbf{Day of the year.} The mean longitude grows uniformly from
+\code{lambm0} at the vernal equinox:
+$\lambda_m = \lambda_{m0} + 2\pi(d - d_\text{VE})/D$, with $d_\text{VE}$ =
+\code{vernal\_equinox} (21 March at noon, 80.5 for a year of 365 days,
+scaled with the year length) and $D$ = \code{dayspy}. The true longitude
+$\lambda$ follows from $\lambda_m$ by the series in $e$ of the equation of
+the centre up to $e^3$; then
+$\sin\delta = \sin\varepsilon\sin\lambda$ and
+$a/r = (1+e\cos(\lambda-\varpi_p))/(1-e^2)$, with
+$\varpi_p$ = \code{mvelpp}.
+
+\textbf{Zenith angle.}
+$\cos Z = \sin\varphi\sin\delta - \cos\varphi\cos\delta\cos(2\pi d +
+\lambda_\text{lon})$: the fraction of the day $d$ gives the hour angle at
+Greenwich, midnight for an integer $d$.
+
+\subsection{Design Notes}
+
+\textbf{Daily declination.} \code{mod\_sun} and CLM pass to
+\code{orb\_decl} the day from \code{yearpoint} of \code{mod\_date}: the
+whole day of the year, minus a fraction of a day that follows the
+four-year leap cycle in the Gregorian calendar, so that the equinox does
+not drift through the cycle. The declination and the distance factor are
+therefore constant within a day, while the zenith angle uses the time of
+day.
+
+\textbf{Testing.} \code{Testing/share/test\_sunorbit.F90} checks the
+parameters of 1950 against Berger's reference values ($e = 0.016724$,
+$\varepsilon = 23.446°$, $\varpi = 102.04°$), a declination between
+$\pm\varepsilon$ with its maximum at the June solstice and zero at the
+equinox, the distance factor at perihelion (early January) and aphelion
+and its annual mean $1/\sqrt{1-e^2}$, and the zenith angle at noon and
+midnight.

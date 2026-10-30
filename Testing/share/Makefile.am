@@ -25,7 +25,7 @@ check_PROGRAMS = test_date test_spbarcoord test_projections test_hgt \
                  test_vertint test_humid test_interp test_spline \
                  test_memutil test_kdtree2 test_kdinterp test_nchelper \
                  test_ncstream test_async_netcdf test_domain test_stdatm \
-                 test_wavelet test_ensemble
+                 test_wavelet test_ensemble test_sunorbit
 test_date_SOURCES = share_test_utils.F90 test_date.F90
 test_spbarcoord_SOURCES = share_test_utils.F90 test_spbarcoord.F90
 test_projections_SOURCES = share_test_utils.F90 test_projections.F90
@@ -44,6 +44,7 @@ test_domain_SOURCES = share_test_utils.F90 test_domain.F90
 test_stdatm_SOURCES = share_test_utils.F90 test_stdatm.F90
 test_wavelet_SOURCES = share_test_utils.F90 test_wavelet.F90
 test_ensemble_SOURCES = share_test_utils.F90 test_ensemble.F90
+test_sunorbit_SOURCES = share_test_utils.F90 test_sunorbit.F90
 LDADD = $(OMPFLAGS)
 
 FCLD = $(MPIFC)
@@ -86,3 +87,4 @@ test_domain.o : test_domain.F90 share_test_utils.o mod_intkinds.o mod_realkinds.
 test_stdatm.o : test_stdatm.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_stdatm.o
 test_wavelet.o : test_wavelet.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_wavelet.o
 test_ensemble.o : test_ensemble.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_ensemble.o
+test_sunorbit.o : test_sunorbit.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_sunorbit.o
