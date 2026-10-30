@@ -415,7 +415,8 @@ module mod_async_netcdf
       async_put_var_i4_scalar = enqueue_i4(ncid,varid,values,.true.,start,count)
     end function async_put_var_i4_scalar
 
-    integer(ik4) function async_put_var_r4_device_1d(ncid,varid,values,start,count)
+    integer(ik4) function async_put_var_r4_device_1d(ncid,varid,values,start, &
+        count)
       implicit none
       integer(ik4), intent(in) :: ncid, varid
       real(rk4), contiguous, dimension(:), intent(in) :: values
@@ -424,7 +425,8 @@ module mod_async_netcdf
         enqueue_r4_device(ncid,varid,values,start,count)
     end function async_put_var_r4_device_1d
 
-    integer(ik4) function async_put_var_r8_device_1d(ncid,varid,values,start,count)
+    integer(ik4) function async_put_var_r8_device_1d(ncid,varid,values,start, &
+        count)
       implicit none
       integer(ik4), intent(in) :: ncid, varid
       real(rk8), contiguous, dimension(:), intent(in) :: values
@@ -433,7 +435,8 @@ module mod_async_netcdf
         enqueue_r8_device(ncid,varid,values,start,count)
     end function async_put_var_r8_device_1d
 
-    integer(ik4) function async_put_var_i4_device_1d(ncid,varid,values,start,count)
+    integer(ik4) function async_put_var_i4_device_1d(ncid,varid,values,start, &
+        count)
       implicit none
       integer(ik4), intent(in) :: ncid, varid
       integer(ik4), contiguous, dimension(:), intent(in) :: values
@@ -870,7 +873,7 @@ module mod_async_netcdf
       if ( first_error /= async_ok ) then
         enqueue_r4 = first_error
       else if ( .not. enabled ) then
-        enqueue_r4 = put_var_r4_sync(ncid,varid,values,scalar,start,count)
+        enqueue_r4 = put_var_r4_direct(ncid,varid,values,scalar,start,count)
       else
         call reserve_memory(bytes,stat)
         if ( stat /= async_ok ) then
@@ -919,7 +922,7 @@ module mod_async_netcdf
       if ( first_error /= async_ok ) then
         enqueue_r8 = first_error
       else if ( .not. enabled ) then
-        enqueue_r8 = put_var_r8_sync(ncid,varid,values,scalar,start,count)
+        enqueue_r8 = put_var_r8_direct(ncid,varid,values,scalar,start,count)
       else
         call reserve_memory(bytes,stat)
         if ( stat /= async_ok ) then
@@ -968,7 +971,7 @@ module mod_async_netcdf
       if ( first_error /= async_ok ) then
         enqueue_i4 = first_error
       else if ( .not. enabled ) then
-        enqueue_i4 = put_var_i4_sync(ncid,varid,values,scalar,start,count)
+        enqueue_i4 = put_var_i4_direct(ncid,varid,values,scalar,start,count)
       else
         call reserve_memory(bytes,stat)
         if ( stat /= async_ok ) then
@@ -1016,7 +1019,8 @@ module mod_async_netcdf
       if ( first_error /= async_ok ) then
         enqueue_r4_device = first_error
       else if ( .not. enabled ) then
-        enqueue_r4_device = enqueue_r4_device_sync(ncid,varid,values,start,count)
+        enqueue_r4_device = enqueue_r4_device_sync(ncid,varid,values,start, &
+            count)
       else
         call reserve_memory(bytes,stat)
         if ( stat /= async_ok ) then
@@ -1069,7 +1073,8 @@ module mod_async_netcdf
       if ( first_error /= async_ok ) then
         enqueue_r8_device = first_error
       else if ( .not. enabled ) then
-        enqueue_r8_device = enqueue_r8_device_sync(ncid,varid,values,start,count)
+        enqueue_r8_device = enqueue_r8_device_sync(ncid,varid,values,start, &
+            count)
       else
         call reserve_memory(bytes,stat)
         if ( stat /= async_ok ) then
@@ -1122,7 +1127,8 @@ module mod_async_netcdf
       if ( first_error /= async_ok ) then
         enqueue_i4_device = first_error
       else if ( .not. enabled ) then
-        enqueue_i4_device = enqueue_i4_device_sync(ncid,varid,values,start,count)
+        enqueue_i4_device = enqueue_i4_device_sync(ncid,varid,values,start, &
+            count)
       else
         call reserve_memory(bytes,stat)
         if ( stat /= async_ok ) then
@@ -1922,7 +1928,8 @@ module mod_async_netcdf
       item%bytes = bytes
       call copy_bounds(item,start,count)
       call allocate_item_r4(item,nvals,bytes,stat)
-      if ( stat == async_ok ) call copy_device_to_item_r4(item,values,nvals,stat)
+      if ( stat == async_ok ) call copy_device_to_item_r4(item,values,nvals, &
+          stat)
       if ( stat == async_ok ) then
         enqueue_r4_device_sync = put_var_r4(item)
       else
@@ -1954,7 +1961,8 @@ module mod_async_netcdf
       item%bytes = bytes
       call copy_bounds(item,start,count)
       call allocate_item_r8(item,nvals,bytes,stat)
-      if ( stat == async_ok ) call copy_device_to_item_r8(item,values,nvals,stat)
+      if ( stat == async_ok ) call copy_device_to_item_r8(item,values,nvals, &
+          stat)
       if ( stat == async_ok ) then
         enqueue_r8_device_sync = put_var_r8(item)
       else
@@ -1986,7 +1994,8 @@ module mod_async_netcdf
       item%bytes = bytes
       call copy_bounds(item,start,count)
       call allocate_item_i4(item,nvals,bytes,stat)
-      if ( stat == async_ok ) call copy_device_to_item_i4(item,values,nvals,stat)
+      if ( stat == async_ok ) call copy_device_to_item_i4(item,values,nvals, &
+          stat)
       if ( stat == async_ok ) then
         enqueue_i4_device_sync = put_var_i4(item)
       else
@@ -2164,37 +2173,11 @@ module mod_async_netcdf
       end if
     end function get_var_r8
 
-    integer(ik4) function put_var_r4_sync(ncid,varid,values,scalar,start,count)
-      implicit none
-      integer(ik4), intent(in) :: ncid, varid
-      real(rk4), contiguous, dimension(:), intent(in) :: values
-      logical, intent(in) :: scalar
-      integer(ik4), dimension(:), intent(in), optional :: start, count
 
-      put_var_r4_sync = put_var_r4_direct(ncid,varid,values,scalar,start,count)
-    end function put_var_r4_sync
 
-    integer(ik4) function put_var_r8_sync(ncid,varid,values,scalar,start,count)
-      implicit none
-      integer(ik4), intent(in) :: ncid, varid
-      real(rk8), contiguous, dimension(:), intent(in) :: values
-      logical, intent(in) :: scalar
-      integer(ik4), dimension(:), intent(in), optional :: start, count
 
-      put_var_r8_sync = put_var_r8_direct(ncid,varid,values,scalar,start,count)
-    end function put_var_r8_sync
-
-    integer(ik4) function put_var_i4_sync(ncid,varid,values,scalar,start,count)
-      implicit none
-      integer(ik4), intent(in) :: ncid, varid
-      integer(ik4), contiguous, dimension(:), intent(in) :: values
-      logical, intent(in) :: scalar
-      integer(ik4), dimension(:), intent(in), optional :: start, count
-
-      put_var_i4_sync = put_var_i4_direct(ncid,varid,values,scalar,start,count)
-    end function put_var_i4_sync
-
-    integer(ik4) function put_var_r4_direct(ncid,varid,values,scalar,start,count)
+    integer(ik4) function put_var_r4_direct(ncid,varid,values,scalar,start, &
+        count)
       implicit none
       integer(ik4), intent(in) :: ncid, varid
       real(rk4), contiguous, dimension(:), intent(in) :: values
@@ -2220,7 +2203,8 @@ module mod_async_netcdf
       end if
     end function put_var_r4_direct
 
-    integer(ik4) function put_var_r8_direct(ncid,varid,values,scalar,start,count)
+    integer(ik4) function put_var_r8_direct(ncid,varid,values,scalar,start, &
+        count)
       implicit none
       integer(ik4), intent(in) :: ncid, varid
       real(rk8), contiguous, dimension(:), intent(in) :: values
@@ -2246,7 +2230,8 @@ module mod_async_netcdf
       end if
     end function put_var_r8_direct
 
-    integer(ik4) function put_var_i4_direct(ncid,varid,values,scalar,start,count)
+    integer(ik4) function put_var_i4_direct(ncid,varid,values,scalar,start, &
+        count)
       implicit none
       integer(ik4), intent(in) :: ncid, varid
       integer(ik4), contiguous, dimension(:), intent(in) :: values
