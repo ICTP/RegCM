@@ -44,7 +44,6 @@ program pgw_icbc
   use mod_vectutil
   use mod_constants
   use mod_zita
-  use mod_wavelet
 #ifdef PNETCDF
   use mpi_f08
 #endif

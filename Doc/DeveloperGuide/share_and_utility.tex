@@ -32,6 +32,7 @@ check failed.
     (Section~\ref{sec:async_netcdf}) \\
   \code{test\_domain} & \code{mod\_domain} (Section~\ref{sec:domain}) \\
   \code{test\_stdatm} & \code{mod\_stdatm} (Section~\ref{sec:stdatm}) \\
+  \code{test\_wavelet} & \code{mod\_wavelet} (Section~\ref{sec:wavelet}) \\
 \end{longtable}
 
 
@@ -6617,3 +6618,59 @@ continuity at 45°, opposite seasons in the two hemispheres, the density
 against $p/(R_dT)$ (within 10\,\%: the interpolation linear in $\ln p$
 between levels 5~km apart overestimates it by up to 9\,\%), and the
 decrease of water vapour with height up to 300~hPa.
+
+%==============================================================================
+\section{Wavelet Denoising --- \texttt{mod\_wavelet.F90}}
+\label{sec:wavelet}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_wavelet} removes small-scale noise from a 2-D field with one
+level of the Haar wavelet transform and soft thresholding of its detail
+coefficients. The ICBC program uses it for MOLOCH, on the part of the Exner
+function at each level that is not correlated with the pressure, before
+adding back the smoothed pressure part.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_wavelet
+    `-- mod_intkinds, mod_realkinds, mod_constants (rsqrt2)
+\end{lstlisting}
+
+\subsection{Interface}
+
+\begin{longtable}{L{5.6cm} L{8.4cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{wavelet\_denoise(nx, ny, fin, fout, t)} &
+    \code{fout} is \code{fin} with the detail coefficients of the Haar
+    transform shrunk by the threshold \code{t}, in the units of the
+    field. \\
+\end{longtable}
+
+\subsection{Method}
+
+The field is extended to even sizes by repeating its last column and row.
+The orthonormal Haar transform of each pair of points $(a,b)$ along $x$,
+then along $y$, is $((a+b)/\sqrt2, (a-b)/\sqrt2)$: on each $2\times2$
+block it gives one approximation coefficient (twice the block mean) and
+three detail coefficients (the differences along $x$, along $y$, and
+diagonal). Each detail coefficient $c$ becomes
+$\mathrm{sign}(c)\max(|c|-t,0)$; the approximation is kept. The inverse
+transform and the removal of the extension give the result. With $t=0$ the
+field is reproduced exactly; a field constant on $2\times2$ blocks is kept
+for any $t$; a checkerboard of amplitude $a$ has only diagonal coefficients
+$2a$ and is removed by $t \geq 2a$. The filter acts only on the
+$2\times2$ scale of the grid, and the mean of each block is kept.
+
+\subsection{Design Notes}
+
+\textbf{Testing.} \code{Testing/share/test\_wavelet.F90} checks the exact
+reconstruction with $t = 0$ (also for odd sizes), a field constant on
+$2\times2$ blocks, and the removal and halving of a checkerboard.

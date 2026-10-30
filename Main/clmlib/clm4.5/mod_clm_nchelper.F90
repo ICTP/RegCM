@@ -1430,7 +1430,9 @@ module mod_clm_nchelper
     hashed = hash(dname)
     searchdim = -1
     do i = 1, ncid%idimlast
-      if ( ncid%dimhash(i) == hashed ) then
+      if ( ncid%dimhash(i) == hashed .and. &
+           ncid%dimname(i) == &
+             dname(1:min(len(dname),len(ncid%dimname(i)))) ) then
         searchdim = i
         return
       end if
@@ -1453,7 +1455,9 @@ module mod_clm_nchelper
     hashed = hash(vname)
     searchvar = -1
     do i = 1, ncid%ivarlast
-      if ( ncid%varhash(i) == hashed ) then
+      if ( ncid%varhash(i) == hashed .and. &
+           ncid%varname(i) == &
+             vname(1:min(len(vname),len(ncid%varname(i)))) ) then
         searchvar = i
         return
       end if
