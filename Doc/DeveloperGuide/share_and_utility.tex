@@ -37,6 +37,7 @@ check failed.
   \code{test\_sunorbit} & \code{mod\_sunorbit} (Section~\ref{sec:sunorbit}) \\
   \code{test\_intldtr} & \code{mod\_intldtr} (Section~\ref{sec:intldtr}) \\
   \code{test\_rdldtr} & \code{mod\_rdldtr} (Section~\ref{sec:rdldtr}) \\
+  \code{test\_posix} & \code{mod\_posix} (Section~\ref{sec:posix}) \\
 \end{longtable}
 
 
@@ -7055,3 +7056,64 @@ method keeps a constant, that the mean, median and trimmed mean of a ramp
 are its value at the centre of the block, the bounds of the resampled grid,
 the window read without resampling, and \code{gfread} of a ramp with and
 without a land mask.
+
+%==============================================================================
+\section{System Calls --- \texttt{mod\_posix.F90}}
+\label{sec:posix}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_posix} gives Fortran access to two services of the C library
+through \code{iso\_c\_binding}: the name of the host, written by the
+programs in their log and in the CLM files, and the list of the files of a
+directory, used to find the files of a coarse domain when nesting the
+chemistry boundary conditions (\code{mod\_ch\_fnest}).
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_posix
+    |-- iso_c_binding
+    |-- mod_stdio
+    `-- C library: gethostname, opendir, readdir, rewinddir, closedir
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{5cm} L{9cm}}
+  \toprule
+  \textbf{Name} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{hostname(hname)} &
+    The name of the host, up to the end of the C string; \code{unknown} if
+    \code{gethostname} fails. \\
+  \code{dirlist(path, dire)} &
+    Allocates the pointer \code{dire} with one \code{direntry} per entry of
+    the directory, \code{.} and \code{..} included, in the order of
+    \code{readdir}; \code{dire} is left not associated, with a message, if
+    the directory cannot be opened or read. \\
+  \code{direntry} &
+    One entry: \code{ename}, the file name (256 characters). \\
+\end{longtable}
+
+\subsection{Design Notes}
+
+\textbf{C strings.} The path is passed to \code{opendir} as an array of
+\code{c\_char} terminated by \code{C\_NULL\_CHAR}; the names returned by
+\code{readdir} and \code{gethostname} are copied up to their terminator.
+
+\textbf{Directory entries.} \code{readdir} returns a pointer to a
+\code{struct dirent}, mapped on an interoperable type with the layout of
+the GNU C library on 64-bit Linux (inode and offset of 8 bytes, record
+length, type, and a name of 256 characters); other systems may need
+another layout. The directory is read twice: once to count the entries,
+once, after \code{rewinddir}, to copy their names.
+
+\textbf{Testing.} \code{Testing/share/test\_posix.F90} compares the host
+name with the output of the \code{hostname} command and checks that it has
+no C terminator, lists a directory created in the current directory, and
+checks the missing directory.

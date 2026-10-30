@@ -26,7 +26,7 @@ check_PROGRAMS = test_date test_spbarcoord test_projections test_hgt \
                  test_memutil test_kdtree2 test_kdinterp test_nchelper \
                  test_ncstream test_async_netcdf test_domain test_stdatm \
                  test_wavelet test_ensemble test_sunorbit test_intldtr \
-                 test_rdldtr
+                 test_rdldtr test_posix
 test_date_SOURCES = share_test_utils.F90 test_date.F90
 test_spbarcoord_SOURCES = share_test_utils.F90 test_spbarcoord.F90
 test_projections_SOURCES = share_test_utils.F90 test_projections.F90
@@ -48,6 +48,7 @@ test_ensemble_SOURCES = share_test_utils.F90 test_ensemble.F90
 test_sunorbit_SOURCES = share_test_utils.F90 test_sunorbit.F90
 test_intldtr_SOURCES = share_test_utils.F90 test_intldtr.F90
 test_rdldtr_SOURCES = share_test_utils.F90 test_rdldtr.F90
+test_posix_SOURCES = share_test_utils.F90 test_posix.F90
 LDADD = $(OMPFLAGS)
 
 FCLD = $(MPIFC)
@@ -63,11 +64,15 @@ AM_TESTS_ENVIRONMENT = RCM_ASYNC_OUTPUT_GB=0.00005; export RCM_ASYNC_OUTPUT_GB;
 
 distclean-local:
 	rm -f *.mod *__genmod.* *opt.yaml *optrpt test_nchelper.nc test_ncstream*.nc \
-	      test_async_netcdf.nc test_domain*.nc test_rdldtr.nc
+	      test_async_netcdf.nc test_domain*.nc test_rdldtr.nc \
+	      test_posix.host
+	rm -rf test_posix_dir
 
 clean-local:
 	rm -f *.mod *__genmod.* *opt.yaml *optrpt test_nchelper.nc test_ncstream*.nc \
-	      test_async_netcdf.nc test_domain*.nc test_rdldtr.nc
+	      test_async_netcdf.nc test_domain*.nc test_rdldtr.nc \
+	      test_posix.host
+	rm -rf test_posix_dir
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
@@ -93,3 +98,4 @@ test_ensemble.o : test_ensemble.F90 share_test_utils.o mod_intkinds.o mod_realki
 test_sunorbit.o : test_sunorbit.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_sunorbit.o
 test_intldtr.o : test_intldtr.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_intldtr.o
 test_rdldtr.o : test_rdldtr.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_memutil.o mod_kdinterp.o mod_rdldtr.o
+test_posix.o : test_posix.F90 share_test_utils.o mod_posix.o
