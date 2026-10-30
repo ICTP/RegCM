@@ -25,33 +25,19 @@ module mod_spbarcoord
   use mod_realkinds
   use mod_intkinds
   use mod_constants
-  use, intrinsic :: iso_c_binding
 
   implicit none
 
   private
 
-  public :: spherical_barycentric, spcompare
+  public :: spherical_barycentric
 
-  type, bind(C) :: vpoint
-    integer(c_int) :: idx
-    real(c_double), dimension(3) :: v
+  type vpoint
+    integer(ik4) :: idx
+    real(rk8), dimension(3) :: v
   end type vpoint
 
-  real(rk8), dimension(3) :: centroid
-  real(rk8), dimension(3) :: query_point
   real(rk8), parameter :: notzero = epsilon(1.0_rk8)
-
-  interface
-    subroutine qsort(array,elem_count,elem_size,compare) bind(C,name="qsort")
-      import
-      implicit none
-      type(c_ptr), value       :: array
-      integer(c_size_t), value :: elem_count
-      integer(c_size_t), value :: elem_size
-      type(c_funptr), value    :: compare
-    end subroutine qsort !standard C library qsort
-  end interface
 
   contains
 
@@ -61,27 +47,16 @@ module mod_spbarcoord
     real(rk8), intent(in), dimension(3) :: p
     real(rk8), intent(in), dimension(3,np) :: v
     real(rk8), intent(out), dimension(np) :: lambda
-    type(vpoint), target, dimension(np) :: voc
+    type(vpoint), dimension(np) :: voc
     real(rk8), dimension(np) :: alpha
     real(rk8), dimension(np) :: theta
     real(rk8), dimension(np) :: tansum
     real(rk8) :: norm, xs
     integer(ik4) :: i
 
-    ! Compute ordering centroid
-
     if ( np == 0 ) return
 
-    centroid = d_zero
-    do i = 1, np
-      centroid(1) = centroid(1) + v(1,i)
-      centroid(2) = centroid(2) + v(2,i)
-      centroid(3) = centroid(3) + v(3,i)
-    end do
-    centroid = centroid / real(np,rk8)
-    query_point(:) = p(:)
-
-    call set_clockwise_order
+    call set_cyclic_order
     call compute_angles
     tansum(1) = tan(alpha(np)*0.5_rk8) + tan(alpha(1)*0.5_rk8)
     do i = 2, np
@@ -104,18 +79,45 @@ module mod_spbarcoord
 
     contains
 
-      subroutine set_clockwise_order
+      !
+      ! Order the vertices by their angle around the query point p in the
+      ! plane tangent to the sphere at p, so that they form a polygon
+      ! around p (star-shaped as seen from p).
+      !
+      subroutine set_cyclic_order
         implicit none
-        integer(c_size_t) :: lnp, lsize
-        integer(ik4) :: n
+        real(rk8), dimension(3) :: e1, e2, ax
+        real(rk8), dimension(np) :: phi
+        real(rk8) :: phin
+        type(vpoint) :: vn
+        integer(ik4) :: n, m
+        ! Orthonormal basis (e1,e2) of the tangent plane at p, built from
+        ! the coordinate axis least aligned with p
+        ax = d_zero
+        ax(minloc(abs(p),1)) = 1.0_rk8
+        call vecprod(ax,p,e1)
+        e1 = e1 / max(norma(e1),notzero)
+        call vecprod(p,e1,e2)
         do n = 1, np
           voc(n)%idx = n
           voc(n)%v(:) = v(:,n)
+          phi(n) = atan2(dotprod(v(:,n),e2),dotprod(v(:,n),e1))
         end do
-        lnp = np
-        lsize = storage_size(voc(1))/8
-        call qsort(c_loc(voc(1)),lnp,lsize,c_funloc(spcompare))
-      end subroutine set_clockwise_order
+        ! Insertion sort by angle: np is small
+        do n = 2, np
+          vn = voc(n)
+          phin = phi(n)
+          m = n - 1
+          do while ( m >= 1 )
+            if ( phi(m) <= phin ) exit
+            voc(m+1) = voc(m)
+            phi(m+1) = phi(m)
+            m = m - 1
+          end do
+          voc(m+1) = vn
+          phi(m+1) = phin
+        end do
+      end subroutine set_cyclic_order
 
       pure real(rk8) function norma2(x) result(a)
         implicit none
@@ -170,42 +172,6 @@ module mod_spbarcoord
       end subroutine compute_angles
 
   end subroutine spherical_barycentric
-
-  integer(c_int) function spcompare(x1,x2) result(res) bind(C)
-    implicit none
-    type(vpoint), intent(in) :: x1, x2
-    real(rk8), dimension(3) :: p1, p2, n
-    real(rk8) :: xres
-
-    call vecdiff(centroid,x1%v,p1)
-    call vecdiff(centroid,x2%v,p2)
-
-    n(1) = p1(2)*p2(3) - p1(3)*p2(2)
-    n(2) = p1(3)*p2(1) - p1(1)*p2(3)
-    n(3) = p1(1)*p2(2) - p1(2)*p2(1)
-
-    xres = ((n(1)*query_point(1) + n(2)*query_point(2) + n(3)*query_point(3)))
-
-    if ( xres < 0 ) then
-      res = -1
-    else if ( xres > 0 ) then
-      res = 1
-    else
-      res = 0
-    end if
-
-    contains
-
-    subroutine vecdiff(a,b,c)
-      implicit none
-      real(rk8), dimension(3), intent(in) :: a, b
-      real(rk8), dimension(3), intent(out) :: c
-      c(1) = a(1) - b(1)
-      c(2) = a(2) - b(2)
-      c(3) = a(3) - b(3)
-    end subroutine vecdiff
-
-  end function spcompare
 
 end module mod_spbarcoord
 
