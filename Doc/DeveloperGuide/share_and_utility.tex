@@ -40,6 +40,8 @@ check failed.
   \code{test\_posix} & \code{mod\_posix} (Section~\ref{sec:posix}) \\
   \code{test\_capecin} & \code{mod\_capecin} (Section~\ref{sec:capecin}) \\
   \code{test\_nhinterp} & \code{mod\_nhinterp} (Section~\ref{sec:nhinterp}) \\
+  \code{test\_heatindex} & \code{mod\_heatindex}
+    (Section~\ref{sec:heatindex}) \\
 \end{longtable}
 
 
@@ -7309,3 +7311,138 @@ terrain height, the reference temperature and density, the reference
 heights against a numerical hydrostatic integration, that a field linear in
 height on an atmosphere equal to the reference one is interpolated within
 1~m, and that this atmosphere has no pressure perturbation.
+
+%==============================================================================
+\section{Heat Index --- \texttt{mod\_heatindex.F90}}
+\label{sec:heatindex}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_heatindex} computes the extended heat index of
+\citet{lu2022}, for the \code{heatindex} field of the surface output. The
+model computes it from the 2~m temperature averaged over the subgrid
+and the 2~m relative humidity $q_{2m}/q_s(T_{2m},p_s)$, limited to
+$[0,1]$ (\code{mod\_lm\_interface}). The program
+\code{Tools/Programs/heatindex} keeps its own double-precision copy of the
+module, which it applies to daily maximum temperature and relative
+humidity files.
+
+The heat index is the air temperature of a reference environment, with a
+water vapour pressure of 1.6~kPa, in which a walking person (83.6~kg,
+1.69~m, 180~W\,m$^{-2}$ of metabolic heat, core at 310~K, in the shade)
+would be in the same physiological state as in the actual environment.
+The thermoregulation of \citet{lu2022} has six regimes. In each regime one
+variable adjusts to keep the heat balance of the core:
+\begin{longtable}{L{1.8cm} L{3.6cm} L{8.6cm}}
+  \toprule
+  \textbf{Region} & \textbf{Variable} & \textbf{Meaning} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  I & $\phi$ &
+    fraction of the skin covered by clothing, above 0.84 in the cold \\
+  II, III & $R_f$ &
+    thermal resistance of the clothing (II when the reference air is
+    saturated, III when it is not) \\
+  IV & $R_s$ &
+    resistance of the skin, through the blood flow, with no clothing \\
+  V & $R_s$ &
+    the same, with the skin saturated by sweat \\
+  VI & $\mathrm{d}T_c/\mathrm{d}t$ &
+    warming rate of the core, when no more heat can be lost \\
+\end{longtable}
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_heatindex
+    |-- mod_realkinds
+    `-- mod_stdio, mod_message (only with DEBUG)
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{4cm} L{10cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{heatindex(ta, rh)} &
+    Heat index (K) for the air temperature \code{ta} (K) and the relative
+    humidity \code{rh} (0--1), relative to saturation over liquid water
+    above 273.16~K and over ice below. Returns 0 for \code{ta} = 0. Pure,
+    and an OpenACC sequential routine. \\
+\end{longtable}
+
+\subsection{Method}
+
+The saturation vapour pressure is the Rankine--Kirchhoff form of
+\citet{lu2022}, with constant heat capacities; the core vapour pressure is
+$0.9\,p^*(310~\text{K})$ (the salinity of sweat). For the actual
+environment, \code{initial\_find\_eqvar} finds the regime from the heat
+fluxes of the core with the default clothing ($\phi = 0.84$, skin
+resistance 0.0387~K\,m$^2$\,W$^{-1}$). It then solves for the skin and
+clothing temperatures and returns the regime index and the value of the
+regime variable. \code{find\_eqvar} does the same computation for a
+given environment and returns the four regime variables. The heat index
+is the temperature $T$ at which the reference environment gives the same
+value of the regime variable. The reference has a vapour pressure of
+$\min(1.6~\text{kPa}, p^*(T))$ in regions II and III and 1.6~kPa in
+regions IV to VI. In region I the reference air is saturated. $T$ is
+found by bisection in a fixed interval for each regime:
+\begin{longtable}{L{3cm} L{3cm}}
+  \toprule
+  \textbf{Region} & \textbf{Interval (K)} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  I & 0--240 \\
+  II, III & 230--300 \\
+  IV, V & 295--350 \\
+  VI & 340--800 \\
+\end{longtable}
+\noindent The bisection stops at an interval of $10^{-8}$~K, after at most
+100 iterations. Each step of the outer bisection solves the actual
+environment again with the inner bisections for the skin and clothing
+temperatures (\code{solve1} to \code{solve5}).
+
+\subsection{Design Notes}
+
+\textbf{Behaviour.} Below about 238~K (region I) the heat index equals the
+air temperature for any humidity. It agrees with the chart of the US
+National Weather Service within 2~°F inside the chart. It increases with
+temperature and does not decrease with humidity. It is continuous, but its
+slope jumps at the regime boundaries; at the boundary between regions IV
+and V the slope in temperature goes from about 3 to about 12. At high
+temperature and humidity (region VI) it exceeds 400~K: the values
+measure the rate of warming of the core, not a temperature that can be
+felt.
+
+\textbf{Root solvers.} In region I the clothing resistance $R_f$ is
+\code{huge}, so the bisections of the outer solvers compare the signs of
+the function at the two ends rather than their product, which would
+overflow. The module can be built with the floating-point traps of the
+debug configuration.
+
+\textbf{Cost.} Each call nests two levels of bisection. That is
+some thousands of evaluations of the flux functions per point, so the
+heat index is computed only when the \code{heatindex} output is enabled.
+
+\textbf{DEBUG.} With \code{-DDEBUG} the solvers check that the initial
+interval brackets a root, and stop with \code{fatal} if it does not. They
+also warn when the iteration limit is reached. These routines are then not
+pure.
+
+\textbf{Testing.} \code{Testing/share/test\_heatindex.F90} checks:
+\begin{itemize}
+  \item five points of the NWS chart, within 2~°F;
+  \item the cold limit;
+  \item the monotonicity and continuity in temperature (230--330~K) and
+    humidity;
+  \item that the root solvers raise no floating-point overflow.
+\end{itemize}
