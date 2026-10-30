@@ -4447,9 +4447,7 @@ $n_\text{lon} = 61$ cross points, at $i = 31$. A staggered grid is shifted by
 half a grid spacing with respect to the cross grid. The projections working
 with the grid index (\code{LAMCON}, \code{POLSTR}, \code{NORMER},
 \code{ROTMER}) receive the index $c_i + 1$, the latitude--longitude grids
-the offset $c_i$. Before October 2026 the first group placed the centre one
-grid point earlier, at $(c_i, c_j)$; domains created with those versions are
-shifted by one grid point with respect to new ones. The namelist variables
+the offset $c_i$. The namelist variables
 \code{cntri} and \code{cntrj} are not used by the projection.
 
 Below, $R$ is the Earth radius (\code{earthrad\_r8}), $\Delta s$ the grid
@@ -5251,11 +5249,6 @@ repeated level was off by about 0.3 of its values there. Merging the points
 keeps the interpolation exact, and does not change the result for profiles
 without coincident points.
 
-\textbf{Removed code.} The module used to contain horizontal
-interpolations (bilinear, distance-weighted, Cressman, kernel smoothing)
-that are no longer used; they were removed together with their module
-state.
-
 %==============================================================================
 \section{Cubic Splines --- \texttt{mod\_spline.F90}}
 \label{sec:spline}
@@ -5651,15 +5644,14 @@ search serially.
 \textbf{Squared distances.} All the distances in the interface are squared,
 including the radius \code{r2}; \code{mod\_kdinterp} converts them.
 
-\textbf{Changes from the original library.} The searches around a point of
-the data set with a decorrelation window, and the priority queue operations
-not used by the tree (maximum, extraction, deletion), were removed. The
-following were corrected: the \code{balanced} option was applied whenever
-present, whatever its value; the coincident points made the tree building
-recurse without end; with more points found than stored,
-\code{kdtree2\_r\_nearest} sorted beyond the stored results; the
-brute-force radius search excluded the points at the radius, unlike the
-tree.
+\textbf{Differences from the original library.} The searches around a
+point of the data set with a decorrelation window, and the priority queue
+operations that the tree does not need (maximum, extraction, deletion),
+are not included. When the mean of a coordinate falls outside the points of
+a node, as with many coincident points, the node is split at the median;
+with more points in the radius than storage, \code{kdtree2\_r\_nearest}
+returns the nearest ones that fit; the brute-force radius search includes
+the points at the radius, as the tree does.
 
 \textbf{Numerical checks.} On 20\,000 random points on the sphere and 2\,000
 query points the tree searches agree exactly with the brute-force ones, for
@@ -5833,8 +5825,7 @@ the same grids.
 fields removes the small-scale noise that the interpolation from a few
 neighbours may create, and the final limit to the source range prevents
 overshoots of the barycentric weights and of the filter. The 1-D
-interpolation is neither smoothed nor (since October 2026) limited on
-missing points.
+interpolation is not smoothed, and missing points stay missing.
 
 \textbf{Numerical checks.} From a global $1^\circ$ grid to a
 $40\times30$ curvilinear grid: a constant field is reproduced exactly; a
@@ -5959,13 +5950,10 @@ the start and never released.
 \subsection{Design Notes}
 
 \textbf{Zero size arrays.} The address comparison
-(\code{associated(a, target)}) is always false for an array of zero size, so
-before October 2026 such arrays were never released: \code{relmem} left
-the pointer associated and the element in the pool, and every
-\code{getmem} on it added a new element and made the following searches of
-that pool slower. A zero size pointer now releases any zero size array of
-the pool; as such arrays hold no data, which one is released does not
-matter.
+(\code{associated(a, target)}) is always false for an array of zero size,
+so \code{relmem} cannot find such an array by its address: a zero size
+pointer releases any zero size array of the pool. As these arrays hold no
+data, which one is released does not matter.
 
 \textbf{Pointers to pool arrays.} \code{relmem} nullifies only its
 argument, and \code{memory\_destroy} no pointer at all; any other pointer
@@ -6474,10 +6462,6 @@ runs it with a cap of 50~kB, so that in a build with
 run with the worker under \code{valgrind --tool=drd} without reports in
 RegCM code.
 
-\textbf{Changes.} In October 2026 three functions that only forwarded to
-the direct netCDF writes were removed, and the lines longer than 80
-characters were wrapped; no change of behaviour.
-
 %==============================================================================
 \section{Domain File --- \texttt{mod\_domain.F90}}
 \label{sec:domain}
@@ -6558,14 +6542,6 @@ cone factor \code{xcone} of \code{mod\_dynparam}.
 with \code{mod\_ncstream} as \code{terrain} does, for the hydrostatic core,
 MOLOCH and a subgrid, and reads them back with the three forms of
 \code{read\_domain}.
-
-\textbf{Changes.} In October 2026 the unused
-\code{read\_reference\_state} was removed (it passed its optional arguments
-on without checking that they were present), and the MOLOCH parameters
-are compared in the working precision as the others. The check of the
-dynamical core was added: before, a domain or ICBC file of another core
-failed later on a missing variable, or, between the two $\sigma$ cores,
-was accepted.
 
 %==============================================================================
 \section{Standard Atmospheres --- \texttt{mod\_stdatm.F90}}
