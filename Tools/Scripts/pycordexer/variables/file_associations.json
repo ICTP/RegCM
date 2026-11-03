@@ -40,7 +40,6 @@
       "rlds",
       "hfss",
       "hfls",
-      "snw",
       "snm",
       "prc",
       "uas",
@@ -85,6 +84,7 @@
     "vars":[
       "mrsol",
       "mrso",
+      "snw",
       "ua",
       "va",
       "ta",

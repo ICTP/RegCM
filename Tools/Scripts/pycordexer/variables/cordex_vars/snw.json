@@ -12,28 +12,13 @@
         "CorrectTime",
         {
           "offset": {
-            "SRF": 0.0
+            "ATM": 0.0
           }
         }
       ],
       [
         "SaveVariableToDisk",
         {
-          "var_name": "snw",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "long_name": "Surface Snow Amount",
-            "standard_name": "surface_snow_amount",
-            "cell_methods": "area: mean where land time: point",
-            "cell_measures": "area: areacella",
-            "units": "kg m-2"
-          }
-        }
-      ],
-      [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 6,
           "var_name": "snw",
           "fill_value": "1e+20",
           "new_attributes": {

@@ -98,6 +98,7 @@ module mod_outvars
   real(rkx), dimension(:,:), pointer, contiguous :: atm_tgb_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: atm_tpr_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: atm_mrso_out => null()
+  real(rkx), dimension(:,:), pointer, contiguous :: atm_snw_out => null()
   ! stats
   real(rkx), dimension(:,:,:), pointer, contiguous :: atm_stats_supw_out => null()
   real(rkx), dimension(:,:,:), pointer, contiguous :: atm_stats_supc_out => null()

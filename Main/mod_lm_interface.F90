@@ -1418,6 +1418,20 @@ module mod_lm_interface
             end if
           end do
         end if
+        if ( associated(atm_snw_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            if ( lm_ldmsk(j,i) > 0 ) then
+              xsum = d_zero
+              !$acc loop seq
+              do ns = 1, nnsg
+                xsum = xsum + lms_sncv(ns,j,i)
+              end do
+              atm_snw_out(j,i) = xsum*rdnnsg
+            else
+              atm_snw_out(j,i) = dmissval
+            end if
+          end do
+        end if
       end if
     end if
 

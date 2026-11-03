@@ -61,7 +61,7 @@ module mod_ncout
 
   integer(ik4), parameter :: nbase = 6
 
-  integer(ik4), parameter :: natm2dvars = 4 + nbase
+  integer(ik4), parameter :: natm2dvars = 5 + nbase
   integer(ik4), parameter :: natm3dvars = 68
   integer(ik4), parameter :: natmvars = natm2dvars+natm3dvars
 
@@ -182,6 +182,7 @@ module mod_ncout
   integer(ik4), parameter :: atm_tpr   = 8
   integer(ik4), parameter :: atm_tgb   = 9
   integer(ik4), parameter :: atm_mrso  = 10
+  integer(ik4), parameter :: atm_snw   = 11
 
   integer(ik4), parameter :: atm_u            = 1
   integer(ik4), parameter :: atm_v            = 2
@@ -564,6 +565,7 @@ module mod_ncout
       ! enable basic geolocation + vertical coord variables
       enable_atm_vars(1:nbase) = .true.
       enable_atm_vars(atm_mrso) = .true.
+      enable_atm_vars(atm_snw) = .true.
       enable_atm_vars(atm_tgb) = .true.
       enable_atm_vars(natm2dvars+atm_u) = .true.
       enable_atm_vars(natm2dvars+atm_v) = .true.
@@ -585,7 +587,6 @@ module mod_ncout
       enable_srf_vars(srf_tg) = .true.
       enable_srf_vars(srf_tpr) = .true.
       enable_srf_vars(srf_evp) = .true.
-      enable_srf_vars(srf_scv) = .true.
       enable_srf_vars(srf_sena) = .true.
       enable_srf_vars(srf_lena) = .true.
       enable_srf_vars(srf_flw) = .true.
@@ -772,6 +773,18 @@ module mod_ncout
 #else
         enable_atm2d_vars(atm_mrso) = .false.
 #endif
+        ! Snow amount at the output time: CORDEX output only, otherwise
+        ! the SRF time mean.
+        if ( ifcordex .and. irceideal == 0 ) then
+          if ( enable_atm2d_vars(atm_snw) ) then
+            call setup_var(v2dvar_atm,atm_snw,vsize,'snw','kg m-2', &
+              'Surface Snow Amount','surface_snow_amount', &
+              .true.,'time: point',l_fill=.true.)
+            atm_snw_out => v2dvar_atm(atm_snw)%rval
+          end if
+        else
+          enable_atm2d_vars(atm_snw) = .false.
+        end if
         vsize%k2 = kz
         if ( enable_atm3d_vars(atm_u) ) then
           if ( uvrotate ) then
