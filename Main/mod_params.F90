@@ -2384,8 +2384,8 @@ module mod_params
     !-----compute half sigma levels.
     !
     if ( idynamic == 3 ) then
-      call model_zitaf(zita,mo_ztop)
-      call model_zitah(zitah,mo_ztop)
+      call model_zitaf(zita,mo_ztop,mo_h)
+      call model_zitah(zitah,mo_ztop,mo_h)
       mo_dzita = zita(kz)
       sigma = sigmazita(zita,mo_ztop)
       hsigma = sigmazita(zitah,mo_ztop)

@@ -70,7 +70,7 @@ program sigma2p
   integer(ik4) :: avarid, bvarid, ipsvarid, ishvarid, ppvarid, ip0varid
   integer(ik4) :: paivarid
   integer(ik4) :: jx, iy, kz, nt
-  real(rkx) :: ptop, dzita, ztop, zh, a0, htg
+  real(rkx) :: ptop, ztop, zh, a0, htg
   integer(ik4), dimension(4) :: tdimids
   integer(ik4), dimension(3) :: psdimids
   integer(ik4) :: i, j, k, it, iv, iid1, iid2, ii, i3d, p3d, ich
@@ -400,13 +400,12 @@ program sigma2p
     call checkalloc(istatus,__FILE__,__LINE__,'tvar')
     allocate(qvvar(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'qvvar')
-    dzita = ztop/real(kz,rkx)
     allocate(zita(kz+1), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'zita')
     allocate(zitah(kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'zitah')
-    call model_zitaf(zita,ztop)
-    call model_zitah(zitah,ztop)
+    call model_zitaf(zita,ztop,zh)
+    call model_zitah(zitah,ztop,zh)
   end if
 
   if ( has_t ) then
@@ -687,7 +686,7 @@ program sigma2p
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
         istatus = nf90_get_var(ncid, qvarid, qvvar, istart(1:4), icount(1:4))
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
-        call paicompute(ps,z0,tvar,qvvar,pai,fm,dzita,jx,iy,kz)
+        call paicompute(ps,z0,tvar,qvvar,pai,fm,ztop,jx,iy,kz)
       end if
       press(:,:,:) = real(p00 * (pai(:,:,:)**cpovr),rk4)
     end if
@@ -1010,10 +1009,10 @@ program sigma2p
   end subroutine get_ncfilter
 #endif
 
-  subroutine paicompute(ps,z,t,q,pai,fm,dzita,nx,ny,nz)
+  subroutine paicompute(ps,z,t,q,pai,fm,ztop,nx,ny,nz)
     implicit none
     integer(ik4), intent(in) :: nx, ny, nz
-    real(rkx), intent(in) :: dzita
+    real(rkx), intent(in) :: ztop
     real(rk4), dimension(nx,ny), intent(in) :: ps
     real(rk4), dimension(nx,ny,nz), intent(in) :: z, t, q
     real(rk4), dimension(nx,ny,nz+1), intent(in) :: fm
@@ -1038,7 +1037,8 @@ program sigma2p
         do j = 1, nx
           tv1 = t(j,i,k) * (1.0_rk8 + ep1*q(j,i,k))
           tv2 = t(j,i,k+1) * (1.0_rk8 + ep1*q(j,i,k+1))
-          zb = 2.0_rk8*egrav*dzita/(fm(j,i,k+1)*cpd) + tv1 - tv2
+          zb = 2.0_rk8*egrav*model_dzitah(k,nz,ztop) / &
+               (fm(j,i,k+1)*cpd) + tv1 - tv2
           zdelta = sqrt(zb**2 + 4.0_rk8 * tv2 * tv1)
           pai(j,i,k) = -real(pai(j,i,k+1)/(2.0_rk8*tv2)*(zb-zdelta),rk4)
         end do

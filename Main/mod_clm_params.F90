@@ -582,8 +582,8 @@ module mod_clm_params
       subroutine compute_moloch_static
         implicit none
         integer(ik4) :: i, j, k
-        call model_zitaf(zita,mo_ztop)
-        call model_zitah(zitah,mo_ztop)
+        call model_zitaf(zita,mo_ztop,mo_h)
+        call model_zitah(zitah,mo_ztop,mo_h)
         mo_dzita = zita(kz)
         sigma = sigmazita(zita,mo_ztop)
         hsigma = sigmazita(zitah,mo_ztop)

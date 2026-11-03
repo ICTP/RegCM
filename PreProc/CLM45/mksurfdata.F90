@@ -902,7 +902,7 @@ program mksurfdata
     hptop = real(ptop*10.0_rkx)
     call write_vertical_coord(ncid,rsigx,hptop,izvar)
   else
-    call model_zitah(zita,mo_ztop)
+    call model_zitah(zita,mo_ztop,mo_h)
     ax = real(md_ak(zita,mo_ztop,mo_h),rk4)
     bx = real(md_bk(zita,mo_ztop,mo_a0),rk4)
     call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)
@@ -1620,7 +1620,7 @@ program mksurfdata
       hptop = real(ptop*10.0_rkx)
       call write_vertical_coord(ncid,rsigx,hptop,izvar)
     else
-      call model_zitah(zita,mo_ztop)
+      call model_zitah(zita,mo_ztop,mo_h)
       ax = real(md_ak(zita,mo_ztop,mo_h),rk4)
       bx = real(md_bk(zita,mo_ztop,mo_a0),rk4)
       call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)

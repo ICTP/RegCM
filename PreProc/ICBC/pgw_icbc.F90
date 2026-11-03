@@ -81,7 +81,7 @@ program pgw_icbc
   real(rkx), dimension(1) :: nctime
   real(rkx) :: w1, w2, w3, fm, hm
   integer(ik4) :: year, im2, day, hour, im1, im3
-  real(rkx) :: mo_ztop, mo_dzita, mo_h, mo_a0
+  real(rkx) :: mo_ztop, mo_h, mo_a0
 
 #ifdef PNETCDF
   call mpi_init(ierr)
@@ -272,9 +272,8 @@ program pgw_icbc
     ierr = nf90_get_att(icbcin, nf90_global, 'zita_factor_a0', mo_a0)
     call check_ok(__FILE__,__LINE__,'attribute zita_factor_a0 miss', &
                   'ICBC FILE')
-    mo_dzita = mo_ztop/real(kz,rkx)
-    call model_zitaf(zitaf,mo_ztop)
-    call model_zitah(zitah,mo_ztop)
+    call model_zitaf(zitaf,mo_ztop,mo_h)
+    call model_zitah(zitah,mo_ztop,mo_h)
     do k = 1, kz
       do i = 1, iy
         do j = 1, jx
@@ -804,7 +803,8 @@ program pgw_icbc
         do k = nz-1, 1, -1
           tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
           tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
-          zb = d_two*egrav*mo_dzita/(fmz0(j,i,k+1)*cpd) + tv1 - tv2
+          zb = d_two*egrav*model_dzitah(k,nz,mo_ztop) / &
+               (fmz0(j,i,k+1)*cpd) + tv1 - tv2
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
           paikp1 = -paikp1 / (d_two * tv2) * (zb - zdelta)
           pai(j,i,k) = paikp1

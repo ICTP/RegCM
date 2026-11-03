@@ -335,6 +335,10 @@ module mod_atm_stub
         call getmem(dom%vlon,jde1,jde2,ide1,ide2,'storage:vlon')
         call getmem(dom%coriou,jde1,jde2,ice1,ice2,'storage:fu')
         call getmem(dom%coriov,jce1,jce2,ide1,ide2,'storage:fv')
+        call getmem(dom%htu,jde1gb,jde2gb,ide1gb,ide2gb,'storage:htu')
+        call getmem(dom%htv,jde1gb,jde2gb,ide1gb,ide2gb,'storage:htv')
+        call getmem(dom%rlat,idot1,idot2,'storage:rlat')
+        call getmem(dom%rlon,jdot1,jdot2,'storage:rlon')
       else
         call getmem(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
         call getmem(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')

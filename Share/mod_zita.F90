@@ -30,7 +30,11 @@ module mod_zita
     module procedure zh4d_r4
   end interface zita_interp
 
-  public :: model_zitaf, model_zitah, zitasigma, sigmazita
+  ! With two levels (CLM stand alone forcing only) the lowest layer is
+  ! 80 m deep over flat terrain, so the lowest half level is near 40 m.
+  real(rkx), parameter :: clmsa_dz = 80.0_rkx
+
+  public :: model_zitaf, model_zitah, model_dzitah, zitasigma, sigmazita
   public :: md_zeta, md_zeta_h, md_fmz, md_fmz_h, bzita, gzita
   public :: md_ak, md_bk
   public :: zita_interp
@@ -51,30 +55,39 @@ module mod_zita
     zitasigma = ztop * (1.0_rkx - sigma)
   end function zitasigma
 
-  subroutine model_zitaf(zitaf,ztop)
+  subroutine model_zitaf(zitaf,ztop,zh)
 !$acc routine seq
     implicit none
-    real(rkx), intent(in) :: ztop
+    real(rkx), intent(in) :: ztop, zh
     real(rkx), intent(out), dimension(:) :: zitaf
     real(rkx) :: dz
     integer :: kzp1, kz, k
     kzp1 = size(zitaf)
     kz = kzp1-1
-    dz = ztop/real(kz,rkx)
     zitaf(kzp1) = 0.0_rkx
     zitaf(1) = ztop
+    if ( kz == 2 ) then
+      zitaf(2) = clmsa_zitaf(ztop,zh)
+      return
+    end if
+    dz = ztop/real(kz,rkx)
     do k = kz, 2, -1
       zitaf(k) = zitaf(k+1) + dz
     end do
   end subroutine model_zitaf
 
-  subroutine model_zitah(zitah,ztop)
+  subroutine model_zitah(zitah,ztop,zh)
 !$acc routine seq
-    real(rkx), intent(in) :: ztop
+    real(rkx), intent(in) :: ztop, zh
     real(rkx), intent(out), dimension(:) :: zitah
     real(rkx) :: dz
     integer :: kz, k
     kz = size(zitah)
+    if ( kz == 2 ) then
+      zitah(2) = clmsa_zitaf(ztop,zh)*0.5_rkx
+      zitah(1) = (ztop + clmsa_zitaf(ztop,zh))*0.5_rkx
+      return
+    end if
     dz = ztop/real(kz,rkx)
     zitah(kz) = dz*0.5_rkx
     zitah(1) = ztop - dz*0.5_rkx
@@ -82,6 +95,28 @@ module mod_zita
       zitah(k) = zitah(k+1) + dz
     end do
   end subroutine model_zitah
+
+  ! Zita of the interface at clmsa_dz above flat terrain (bzita inverse).
+  pure real(rkx) function clmsa_zitaf(ztop,zh)
+!$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: ztop, zh
+    clmsa_zitaf = zh*log(1.0_rkx + clmsa_dz/zfz(ztop,zh))
+  end function clmsa_zitaf
+
+  ! Distance in zita between the half levels k and k+1, for k < kz.
+  pure real(rkx) function model_dzitah(k,kz,ztop)
+!$acc routine seq
+    implicit none
+    integer(ik4), intent(in) :: k, kz
+    real(rkx), intent(in) :: ztop
+    if ( kz == 2 ) then
+      model_dzitah = ztop*0.5_rkx
+    else
+      model_dzitah = ztop/real(kz,rkx)
+    end if
+    if ( k < 1 .or. k >= kz ) model_dzitah = 0.0_rkx
+  end function model_dzitah
 
   ! Decay function
 

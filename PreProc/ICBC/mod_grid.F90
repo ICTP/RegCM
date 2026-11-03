@@ -68,7 +68,7 @@ module mod_grid
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: zetav
   real(rkx), public, pointer, contiguous, dimension(:,:) :: ps0
 
-  real(rkx), public :: delx, mo_dzita
+  real(rkx), public :: delx
   integer(ik4), public :: i0, i1, j0, j1
   real(rkx), public :: lat0, lat1, lon0, lon1, ts0
 
@@ -188,9 +188,8 @@ module mod_grid
                        xlat_bnds=xlat_bnds,xlon_bnds=xlon_bnds,    &
                        ulat_bnds=ulat_bnds,ulon_bnds=ulon_bnds,    &
                        vlat_bnds=vlat_bnds,vlon_bnds=vlon_bnds)
-      mo_dzita = mo_ztop/real(kz,rkx)
-      call model_zitaf(zitaf,mo_ztop)
-      call model_zitah(zitah,mo_ztop)
+      call model_zitaf(zitaf,mo_ztop,mo_h)
+      call model_zitah(zitah,mo_ztop,mo_h)
       sigmah = sigmazita(zitah,mo_ztop)
       do k = 1, kz
         do i = 1, iy
