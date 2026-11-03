@@ -4089,9 +4089,9 @@ interpolated at $\mathbf{p}$ as $f(\mathbf{p}) = \sum_i \lambda_i f_i$.
 
 The only user is \code{mod\_kdinterp}, which computes the weights of every
 target grid point from the source points found by a kd-tree search
-(\code{compwgt\_genlin}): the 4 nearest points when the target grid is
-finer than the source grid, or the points within a search radius (up to
-32) when it is coarser. The module is \code{private} by default and its
+(\code{compwgt\_genlin}): the 4 corners of the enclosing source cell
+when the target grid is finer than the source grid, or the points within
+a search radius (up to 32) when it is coarser. The module is \code{private} by default and its
 only public symbol is the subroutine \code{spherical\_barycentric}.
 
 \subsection{Dependencies}
@@ -5086,9 +5086,17 @@ mod_zita
 
 \subsection{Levels}
 
-\code{model\_zitaf(zitaf, ztop)} and \code{model\_zitah(zitah, ztop)}
-compute equally spaced full levels ($\zeta_\text{top}$ to 0, $n_z+1$
-values) and half levels (their mid points), ordered from the top. The
+\code{model\_zitaf(zitaf, ztop, zh)} and
+\code{model\_zitah(zitah, ztop, zh)} compute equally spaced full levels
+($\zeta_\text{top}$ to 0, $n_z+1$ values) and half levels (their mid
+points), ordered from the top. With $n_z = 2$, the levels used to force the
+CLM stand-alone program \code{clmsa}, the interior full level is the
+$\zeta$ that \code{bzita} maps to 80~m over flat terrain, for the decay
+height \code{zh} (\code{mo\_h}); the lowest half level is then about
+40~m above the ground, like $\sigma = 0.995$ of the sigma cores.
+\code{model\_dzitah(k, nz, ztop)} is the distance in $\zeta$ between the
+half levels $k$ and $k+1$, used by the hydrostatic integrations of the
+Exner function in the ICBC programs and in \code{sigma2p}. The
 functions \code{sigmazita} $= 1 - \zeta/\zeta_\text{top}$ and its inverse
 \code{zitasigma} map $\zeta$ to a nominal sigma, used as the vertical axis
 of the files and for data prepared on pseudo-sigma levels
@@ -5763,9 +5771,19 @@ the largest diagonal of its cells (\code{maxedis}, in km). The search for
 each target point is then one of:
 
 \begin{itemize}
-  \item \textbf{Interpolation} (the source is at least as fine as the
-        target): the 4 nearest source points. This is the default, and the
-        only mode of the point-list variant.
+  \item \textbf{Interpolation} (the source is not much finer than the
+        target): the 4 corners of the source cell that contains the target
+        point (\code{cell\_corners}), sorted by distance. The cell is one
+        of the four around the nearest source point, and the target is
+        inside it when it is on the same side of the four great-circle
+        edges. A regular source grid that closes the circle in longitude
+        (\code{global\_longitude}) is periodic. Where no cell contains
+        the target (outside the source grid, at the poles, across the
+        seam of a curvilinear grid), the 4 nearest source points. On the
+        shared edge of two cells the weights depend only on its two
+        corners, so the interpolated field is continuous, as with bilinear
+        interpolation. The point-list variant always uses the 4 nearest
+        source points.
   \item \textbf{Averaging} (the source is much finer than the target: its
         cell size is less than half of \code{ds}, or less than the target
         cell size for the variants without \code{ds}): all the source
@@ -5807,11 +5825,11 @@ respect to the source points found (Section~\ref{sec:spbarcoord}).
     the levels together, with the work array \code{ftmp}. Same result as
     the level-by-level version. \\
   \code{h\_interpolate\_nn(h\_i, g, f)} &
-    The value of the valid source point with the largest weight (1-D and
-    2-D). \\
+    The value of the nearest valid source point (1-D and 2-D): the source
+    points of a target are stored in order of distance. \\
   \code{h\_interpolate\_class(h\_i, g, f)} &
-    Categories. For real fields (2-D to 5-D), the value of the source point
-    with the largest weight. For integer fields, the most frequent class
+    Categories. For real fields (2-D to 5-D), the value of the nearest
+    source point. For integer fields, the most frequent class
     among the source points; a target point with no source points gets the
     lowest class. \\
   \code{h\_interpolate\_class(h\_i, g, f, iw, pct)} &

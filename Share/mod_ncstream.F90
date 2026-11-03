@@ -878,6 +878,22 @@ module mod_ncstream
             size(buffer%doublebuff)*4
         end if
 #endif
+      ! The grid mapping variable holds no data: any character will do.
+      if ( stream%l_hasgrid .and. .not. stream%l_keep ) then
+#ifdef PNETCDF
+        ncstat = nf90mpi_put_var_all(stream%id,stvar%map_var%id,'a')
+#else
+        call async_netcdf_lock()
+        ncstat = nf90_put_var(stream%id,stvar%map_var%id,'a')
+        call async_netcdf_unlock()
+#endif
+        if ( ncstat /= nf90_noerr ) then
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          call printerror
+          call die('nc_stream','Cannot write crs in '// &
+            trim(stream%filename),1)
+        end if
+      end if
       ! Put "basic" information in the file
       if ( stream%l_subgrid ) then
         xds = ds/real(nsg,rkx)

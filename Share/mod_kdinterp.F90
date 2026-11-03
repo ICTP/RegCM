@@ -176,7 +176,7 @@ module mod_kdinterp
     type(kdtree2_result), pointer, contiguous, dimension(:) :: results
     integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10, mx
     real(rk8) :: dx, r2, rin
-    logical :: lbil
+    logical :: lbil, lwrap
 
     if ( any(shape(tlat) /= shape(tlon)) ) then
       call die('interp_create_ll_g','Target shapes non conforming',1)
@@ -188,6 +188,7 @@ module mod_kdinterp
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
+    lwrap = global_longitude(slon)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
     rin = maxedis(slat,slon)
     dx = rin/erkm
@@ -219,9 +220,7 @@ module mod_kdinterp
       do j = 1, nj
         call ll2xyz(tlat(j,i),tlon(j,i),p)
         if ( lbil ) then
-          np = minp
-          allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,np,results)
+          call cell_corners(mr,x,p,n1,n2,lwrap,np,results)
         else
           np = kdtree2_r_count(mr,p,r2)
           if ( np < minp ) then
@@ -264,7 +263,7 @@ module mod_kdinterp
     type(kdtree2_result), pointer, contiguous, dimension(:) :: results
     integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10, mx
     real(rk8) :: dx, dx1, r2, rin, rin1
-    logical :: lbil
+    logical :: lbil, lwrap
 
     n1 = size(slat)
     n2 = size(slon)
@@ -273,6 +272,7 @@ module mod_kdinterp
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
+    lwrap = global_longitude(slon)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
     rin = maxedis(slat,slon)
     dx = rin/erkm
@@ -305,9 +305,7 @@ module mod_kdinterp
       do j = 1, nj
         call ll2xyz(tlat(i),tlon(j),p)
         if ( lbil ) then
-          np = minp
-          allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,np,results)
+          call cell_corners(mr,x,p,n1,n2,lwrap,np,results)
         else
           np = kdtree2_r_count(mr,p,r2)
           if ( np < minp ) then
@@ -390,7 +388,7 @@ module mod_kdinterp
     type(kdtree2_result), pointer, contiguous, dimension(:) :: results
     integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10, mx
     real(rk8) :: dx, r2, rin
-    logical :: lbil
+    logical :: lbil, lwrap
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -405,6 +403,7 @@ module mod_kdinterp
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
+    lwrap = .false.
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
     rin = maxedis(slat,slon)
     dx = rin/erkm
@@ -436,9 +435,7 @@ module mod_kdinterp
       do j = 1, nj
         call ll2xyz(tlat(j,i),tlon(j,i),p)
         if ( lbil ) then
-          np = minp
-          allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,np,results)
+          call cell_corners(mr,x,p,n1,n2,lwrap,np,results)
         else
           np = kdtree2_r_count(mr,p,r2)
           if ( np < minp ) then
@@ -481,7 +478,7 @@ module mod_kdinterp
     type(kdtree2_result), pointer, contiguous, dimension(:) :: results
     integer(ik4) :: n1, n2, np, ni, nj, nf, i, j, i10, mx
     real(rk8) :: dx, dx1, r2, rin, rin1
-    logical :: lbil
+    logical :: lbil, lwrap
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -493,6 +490,7 @@ module mod_kdinterp
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
+    lwrap = .false.
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
     rin = maxedis(slat,slon)
     dx = rin/erkm
@@ -525,9 +523,7 @@ module mod_kdinterp
       do j = 1, nj
         call ll2xyz(tlat(i),tlon(j),p)
         if ( lbil ) then
-          np = minp
-          allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,np,results)
+          call cell_corners(mr,x,p,n1,n2,lwrap,np,results)
         else
           np = kdtree2_r_count(mr,p,r2)
           if ( np < minp ) then
@@ -579,7 +575,6 @@ module mod_kdinterp
     real(rkx), dimension(:), intent(in) :: g
     real(rkx), dimension(:), intent(out) :: f
     integer(ik4) :: i, ni, n, si
-    real(rk8) :: gmax
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
       call die('interp_1d_nn','Non conforming shape for source',1)
@@ -589,14 +584,14 @@ module mod_kdinterp
       call die('interp_1d_nn','Non conforming shape for target',1)
     end if
     ni = size(f)
+    ! The source points are sorted by distance: take the first valid one.
     do i = 1, ni
-      gmax = -1.0_rkx
       f(i) = missl
       do n = 1, h_i%tg%ft(i,1)%np
         si = h_i%tg%ft(i,1)%wgt(n)%i
-        if ( g(si) > missc .and. gmax < h_i%tg%ft(i,1)%wgt(n)%wgt ) then
-          gmax = h_i%tg%ft(i,1)%wgt(n)%wgt
+        if ( g(si) > missc ) then
           f(i) = g(si)
+          exit
         end if
       end do
     end do
@@ -815,7 +810,6 @@ module mod_kdinterp
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
     integer(ik4) :: i, j, ni, nj, n, si, sj
-    real(rk8) :: gmax
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_2d_nn','Non conforming shape for source',1)
@@ -826,16 +820,16 @@ module mod_kdinterp
     end if
     nj = size(f,1)
     ni = size(f,2)
+    ! The source points are sorted by distance: take the first valid one.
     do i = 1, ni
       do j = 1, nj
-        gmax = -1.0_rk8
         f(j,i) = missl
         do n = 1, h_i%tg%ft(j,i)%np
           si = h_i%tg%ft(j,i)%wgt(n)%i
           sj = h_i%tg%ft(j,i)%wgt(n)%j
-          if ( g(sj,si) > missc .and. gmax < h_i%tg%ft(j,i)%wgt(n)%wgt ) then
-            gmax = h_i%tg%ft(j,i)%wgt(n)%wgt
+          if ( g(sj,si) > missc ) then
             f(j,i) = g(sj,si)
+            exit
           end if
         end do
       end do
@@ -1197,8 +1191,7 @@ module mod_kdinterp
     type(h_interpolator), intent(in) :: h_i
     real(rkx), dimension(:,:), intent(in) :: g
     real(rkx), dimension(:,:), intent(out) :: f
-    real(rk8), dimension(maxp) :: wgtn
-    integer(ik4) :: i, j, ni, nj, np, n, m(1)
+    integer(ik4) :: i, j, ni, nj
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -1209,15 +1202,11 @@ module mod_kdinterp
     end if
     nj = size(f,1)
     ni = size(f,2)
+    ! The source points are sorted by distance: take the nearest.
     do i = 1, ni
       do j = 1, nj
-        np = h_i%tg%ft(j,i)%np
-        if ( np > 0 ) then
-          do n = 1, np
-            wgtn(n) = h_i%tg%ft(j,i)%wgt(n)%wgt
-          end do
-          m = maxloc(wgtn(1:np))
-          f(j,i) = g(h_i%tg%ft(j,i)%wgt(m(1))%j,h_i%tg%ft(j,i)%wgt(m(1))%i)
+        if ( h_i%tg%ft(j,i)%np > 0 ) then
+          f(j,i) = g(h_i%tg%ft(j,i)%wgt(1)%j,h_i%tg%ft(j,i)%wgt(1)%i)
         else
           f(j,i) = missl
         end if
@@ -1534,6 +1523,95 @@ module mod_kdinterp
       end do
     end do
   end subroutine smtdsmt_r4
+
+  ! Source points of a target p for interpolation from a coarser grid: the
+  ! corners of the source cell that contains p, sorted by distance. The
+  ! cell is one of the four around the nearest source point. If none
+  ! contains p (grid border, poles), the minp nearest points.
+  subroutine cell_corners(mr,x,p,n1,n2,lwrap,np,results)
+    implicit none
+    type(kdtree2), pointer, intent(in) :: mr
+    real(rk8), dimension(:,:), intent(in) :: x
+    real(kdkind), dimension(3), intent(in) :: p
+    integer(ik4), intent(in) :: n1, n2
+    logical, intent(in) :: lwrap
+    integer(ik4), intent(out) :: np
+    type(kdtree2_result), pointer, contiguous, dimension(:) :: results
+    type(kdtree2_result), dimension(1) :: r1
+    type(kdtree2_result) :: rt
+    integer(ik4), dimension(4) :: id
+    real(rk8), dimension(4) :: sp
+    real(rk8), dimension(3) :: cv
+    integer(ik4) :: i0, j0, di, dj, ia, ib, ja, jb, k, kn, m, nn
+    real(rk8) :: tol
+
+    nn = 1
+    call kdtree2_n_nearest(mr,p,nn,r1)
+    i0 = (r1(1)%idx-1)/n2 + 1
+    j0 = r1(1)%idx - n2*(i0-1)
+    do di = -1, 0
+      ia = i0 + di
+      ib = ia + 1
+      if ( ia < 1 .or. ib > n1 ) cycle
+      do dj = -1, 0
+        ja = j0 + dj
+        jb = ja + 1
+        if ( lwrap ) then
+          if ( ja < 1 ) ja = ja + n2
+          if ( jb > n2 ) jb = jb - n2
+        else if ( ja < 1 .or. jb > n2 ) then
+          cycle
+        end if
+        ! Corners in cyclic order
+        id = [ (ia-1)*n2+ja, (ia-1)*n2+jb, (ib-1)*n2+jb, (ib-1)*n2+ja ]
+        do k = 1, 4
+          kn = mod(k,4) + 1
+          cv(1) = x(2,id(k))*x(3,id(kn)) - x(3,id(k))*x(2,id(kn))
+          cv(2) = x(3,id(k))*x(1,id(kn)) - x(1,id(k))*x(3,id(kn))
+          cv(3) = x(1,id(k))*x(2,id(kn)) - x(2,id(k))*x(1,id(kn))
+          sp(k) = dot_product(cv,p)
+        end do
+        tol = 1.0e-10_rk8 * maxval(abs(sp))
+        if ( all(sp >= -tol) .or. all(sp <= tol) ) then
+          np = 4
+          allocate(results(np))
+          do k = 1, 4
+            results(k)%idx = id(k)
+            results(k)%dis = sum((x(:,id(k))-p)**2)
+          end do
+          ! Sort by distance: the nearest neighbour takes the first one.
+          do k = 2, 4
+            rt = results(k)
+            m = k - 1
+            do while ( m >= 1 )
+              if ( results(m)%dis <= rt%dis ) exit
+              results(m+1) = results(m)
+              m = m - 1
+            end do
+            results(m+1) = rt
+          end do
+          return
+        end if
+      end do
+    end do
+    np = minp
+    allocate(results(np))
+    call kdtree2_n_nearest(mr,p,np,results)
+  end subroutine cell_corners
+
+  ! A regular longitude axis that closes the circle.
+  logical function global_longitude(lon) result(lg)
+    implicit none
+    real(rkx), dimension(:), intent(in) :: lon
+    real(rk8) :: dl, span
+    integer(ik4) :: n
+    n = size(lon)
+    lg = .false.
+    if ( n < 3 ) return
+    dl = real(lon(2),rk8) - real(lon(1),rk8)
+    span = real(lon(n),rk8) - real(lon(1),rk8) + dl
+    lg = abs(abs(span) - 360.0_rk8) < 0.01_rk8*abs(dl)
+  end function global_longitude
 
   subroutine compwgt_genlin_1d(np,p,xp,r,w)
     implicit none

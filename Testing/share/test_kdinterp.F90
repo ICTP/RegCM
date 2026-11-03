@@ -14,7 +14,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ! Unit test of Share/mod_kdinterp.F90: from a global 1 degree grid to a
-! curvilinear grid, and between point lists.
+! curvilinear grid, and between point lists; the nearest neighbour against
+! a brute force search, and the real class interpolation equal to it;
+! from a coarser grid, close to bilinear also across the date line.
 
 program test_kdinterp
   use mod_intkinds
@@ -32,6 +34,8 @@ program test_kdinterp
   real(rk8), dimension(nlon,nlat,nk) :: g3
   real(rk8), dimension(nj,ni,nk) :: f3, f3n, ftmp
   real(rkx), dimension(nlon,nlat,1) :: gs
+  real(rkx), dimension(nlon,nlat) :: gc
+  real(rkx), dimension(nj,ni) :: fc
   real(rkx), dimension(nj,ni,1) :: fs
   real(rkx), dimension(50) :: s1lat, s1lon
   real(rkx), dimension(5) :: t1lat, t1lon
@@ -39,7 +43,9 @@ program test_kdinterp
   real(rk8), dimension(5) :: f1
   real(rkx), dimension(nj,3) :: sl, so
   type(h_interpolator) :: hi, hs
-  integer :: i, j, k
+  integer :: i, j, k, ii, jj, ib, jb, jp
+  real(rk8) :: c, cmax, wx, wy, xl
+  logical :: lnear
 
   do j = 1, nlat
     slat(j) = -90.0_rkx + real(j-1,rkx)
@@ -75,6 +81,49 @@ program test_kdinterp
   call h_interpolate_cont(hi,g3,f3n,ftmp,nlon,nlat,nj,ni,nk)
   call check(maxval(abs(f3-f3n)) < 1.0e-10_rk8, &
     '3-D level by level and OpenACC variants agree')
+
+  ! Nearest neighbour: the source index of the closest point.
+  do j = 1, nlat
+    do i = 1, nlon
+      g(i,j) = real(i + 1000*j,rk8)
+    end do
+  end do
+  call h_interpolate_nn(hi,g,f)
+  lnear = .true.
+  do i = 1, ni
+    do j = 1, nj
+      cmax = -2.0_rk8
+      do jj = 1, nlat
+        do ii = 1, nlon
+          c = sin(tlat(j,i)*d2r)*sin(slat(jj)*d2r) + &
+              cos(tlat(j,i)*d2r)*cos(slat(jj)*d2r) * &
+              cos((tlon(j,i)-slon(ii))*d2r)
+          if ( c > cmax ) then
+            cmax = c
+            ib = ii
+            jb = jj
+          end if
+        end do
+      end do
+      ! Accept ties: the chosen point must be as close as the closest.
+      ii = nint(f(j,i)) - 1000*(nint(f(j,i))/1000)
+      jj = nint(f(j,i))/1000
+      c = sin(tlat(j,i)*d2r)*sin(slat(jj)*d2r) + &
+          cos(tlat(j,i)*d2r)*cos(slat(jj)*d2r) * &
+          cos((tlon(j,i)-slon(ii))*d2r)
+      lnear = lnear .and. c > cmax - 1.0e-10_rk8
+    end do
+  end do
+  call check(lnear,'nearest neighbour is the closest source point')
+  gc = real(g,rkx)
+  call h_interpolate_class(hi,gc,fc)
+  call check(all(real(fc,rk8) == f), &
+    'real class interpolation takes the nearest source point')
+  g(ib,jb) = h_missing_value
+  call h_interpolate_nn(hi,g,f)
+  call check(f(nj,ni) /= h_missing_value .and. &
+             f(nj,ni) /= real(ib + 1000*jb,rk8), &
+    'nearest neighbour skips a missing source point')
   call h_interpolator_destroy(hi)
 
   ! Point lists, with missing values in the source.
@@ -114,6 +163,41 @@ program test_kdinterp
   call h_interpolator_create(hs,slat,slon,sl,so)
   call check(.true.,'target grid with 3 rows')
   call h_interpolator_destroy(hs)
+
+  ! From a coarser grid the source points are the corners of the cell
+  ! around the target: close to bilinear, also across the date line.
+  do j = 1, nlat
+    do i = 1, nlon
+      g(i,j) = 280.0_rk8 + 0.1_rk8*slat(j) + &
+               20.0_rk8*cos(slat(j)*d2r)*cos(2.0_rk8*slon(i)*d2r)
+    end do
+  end do
+  do i = 1, ni
+    do j = 1, nj
+      tlat(j,i) = 10.0_rkx + 0.37_rkx*real(i-1,rkx)
+      tlon(j,i) = 178.03_rkx + 0.11_rkx*real(j-1,rkx)
+      if ( tlon(j,i) >= 180.0_rkx ) tlon(j,i) = tlon(j,i) - 360.0_rkx
+    end do
+  end do
+  call h_interpolator_create(hi,slat,slon,tlat,tlon)
+  call h_interpolate_cont(hi,g,f)
+  do i = 1, ni
+    do j = 1, nj
+      ii = int(tlat(j,i)+90.0_rkx) + 1
+      xl = real(tlon(j,i),rk8) + 180.0_rk8
+      jj = int(xl) + 1
+      jp = jj + 1
+      if ( jp > nlon ) jp = 1
+      wy = real(tlat(j,i),rk8) + 90.0_rk8 - real(ii-1,rk8)
+      wx = xl - real(jj-1,rk8)
+      ex(j,i) = (1.0_rk8-wx)*(1.0_rk8-wy)*g(jj,ii) + &
+                wx*(1.0_rk8-wy)*g(jp,ii) + &
+                (1.0_rk8-wx)*wy*g(jj,ii+1) + wx*wy*g(jp,ii+1)
+    end do
+  end do
+  call check(maxval(abs(f-ex)) < 2.0e-3_rk8, &
+    'cell corners: bilinear within 2e-3 K across the date line')
+  call h_interpolator_destroy(hi)
 
   call test_end('test_kdinterp')
 end program test_kdinterp
