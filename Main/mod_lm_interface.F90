@@ -338,6 +338,9 @@ module mod_lm_interface
     !@acc use nvtx
     implicit none
     integer(ik4) :: i, j, n
+#ifdef DEBUG
+    integer(ik4) :: nn, ierr
+#endif
 #ifndef CLM45
     real(rkx) :: wspd
 #endif

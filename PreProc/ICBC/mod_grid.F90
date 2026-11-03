@@ -87,6 +87,7 @@ module mod_grid
     call getmem(topogm,1,nx,1,ny,'mod_grid:topogm')
     call getmem(mask,1,nx,1,ny,'mod_grid:mask')
     call getmem(sigmaf,1,nz+1,'mod_grid:sigmaf')
+    call getmem(sigmah,1,nz,'mod_grid:sigmah')
     call getmem(xlat_bnds,1,4,1,nx,1,ny,'mod_grid:xlat_bnds')
     call getmem(xlon_bnds,1,4,1,nx,1,ny,'mod_grid:xlon_bnds')
     call read_domain_hinfo
@@ -148,11 +149,15 @@ module mod_grid
     implicit none
     integer(ik4) :: incin
     character(len=256) :: fname
+    integer(ik4) :: k
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
     call read_domain(incin,sigmaf,xlat,xlon,ht=topogm,mask=mask, &
                      xlat_bnds=xlat_bnds,xlon_bnds=xlon_bnds)
     call closefile(incin)
+    do k = 1, kz
+      sigmah(k) = d_half*(sigmaf(k+1)+sigmaf(k))
+    end do
   end subroutine read_domain_hinfo
 
   subroutine read_domain_info
