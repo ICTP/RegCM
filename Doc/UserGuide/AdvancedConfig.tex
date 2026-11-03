@@ -599,15 +599,11 @@ written in the files.
  ifchem  = .true.,   ! Output CHE ?
  ifopt   = .false.,  ! Output OPT ?
  chemfrq =     6.,   ! Frequency in hours to write to CHE
- enable_atm_vars = 79*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 65*.true., ! Mask to eventually disable variables SRF
- enable_rad_vars = 31*.true., ! Mask to eventually disable variables RAD
- enable_sub_vars = 19*.true., ! Mask to eventually disable variables SUB
- enable_sts_vars = 29*.true., ! Mask to eventually disable variables STS
- enable_shf_vars = 10*.true., ! Mask to eventually disable variables SHF
- enable_lak_vars = 19*.true., ! Mask to eventually disable variables LAK
- enable_opt_vars = 24*.true., ! Mask to eventually disable variables OPT
- enable_che_vars = 31*.true., ! Mask to eventually disable variables CHE
+ srf_vars_off = 'snm', 'zmla', ! SRF variables not to be written
+ atm_vars_only = 'ta', 'hus',  ! Write only these ATM variables
+                               ! Same for shf, sts, sub, lak, rad, opt, che.
+                               ! Names as in the output files. Ignored if
+                               ! ifcordex is true.
  dirout  = './output',        ! Path where all output will be placed
  lsync   = .false.,           ! If sync of output files at every timestep is
                               ! requested. Note, it has a performance impact.
@@ -646,10 +642,24 @@ in dimparam at \ref{dimparam}, the \verb=ifsub= flag is not considered.
 \item For the output directory, the path variable has a limit of $256$
 characters. This path must be a local path on disk where the user running
 the model has write permissions granted.
-\item The enablevar logical arrays can be used to avoid saving one of the time
-dependent variables in the output file, in the order they are saved in the
-output file itself. Note that geolocation and pressure variables cannot be
-disabled.
+\item The variables of each output file are selected by name, with the
+names used in the file (as shown by \verb=ncdump -h=), in upper or lower
+case. For each file type \verb=xxx= (atm, srf, sts, shf, sub, lak, rad, opt,
+che), the variables in \verb=xxx_vars_off= are not written, and if
+\verb=xxx_vars_only= is given only the variables in it are written. The
+geolocation and surface pressure variables (xlon, xlat, mask, topo,
+areacella, ps, p0) are always written. At startup the model writes in the
+log the list of the variables of each file, written and not written, for
+the current configuration, and a warning for a name that is not found.
+Up to 64 names per list are accepted.
+\item With \verb=ifcordex= the variable list is fixed to the CORDEX
+variables, and the \verb=xxx_vars_off= and \verb=xxx_vars_only= lists are
+ignored. The SRF and RAD files are hourly; the ATM frequency can still be
+set with \verb=atmfrq=.
+\item The \verb=enable_xxx_vars= logical arrays of earlier versions still
+work: they disable variables by their position in the internal list of the
+file, which changes when variables are added to the model. Use the name
+lists instead.
 \end{enumerate}
 
 The \verb=ncfilters= namelist is used if output compression is enabled at

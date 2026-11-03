@@ -96,6 +96,11 @@ module mod_params
       uvrotate, enable_atm_vars, enable_srf_vars, enable_rad_vars,  &
       enable_sub_vars, enable_sts_vars, enable_lak_vars,            &
       enable_opt_vars, enable_che_vars, enable_shf_vars,            &
+      atm_vars_off, atm_vars_only, shf_vars_off, shf_vars_only,     &
+      srf_vars_off, srf_vars_only, sts_vars_off, sts_vars_only,     &
+      sub_vars_off, sub_vars_only, lak_vars_off, lak_vars_only,     &
+      rad_vars_off, rad_vars_only, opt_vars_off, opt_vars_only,     &
+      che_vars_off, che_vars_only,                                  &
       lsync, idiag, icosp, ifcordex, chechgact, diaghfs, diaghf,    &
       do_parallel_netcdf_in, do_parallel_netcdf_out
 
@@ -1275,6 +1280,24 @@ module mod_params
     call bcast(enable_lak_vars)
     call bcast(enable_opt_vars)
     call bcast(enable_che_vars)
+    call bcast(atm_vars_off,varname_len)
+    call bcast(atm_vars_only,varname_len)
+    call bcast(shf_vars_off,varname_len)
+    call bcast(shf_vars_only,varname_len)
+    call bcast(srf_vars_off,varname_len)
+    call bcast(srf_vars_only,varname_len)
+    call bcast(sts_vars_off,varname_len)
+    call bcast(sts_vars_only,varname_len)
+    call bcast(sub_vars_off,varname_len)
+    call bcast(sub_vars_only,varname_len)
+    call bcast(lak_vars_off,varname_len)
+    call bcast(lak_vars_only,varname_len)
+    call bcast(rad_vars_off,varname_len)
+    call bcast(rad_vars_only,varname_len)
+    call bcast(opt_vars_off,varname_len)
+    call bcast(opt_vars_only,varname_len)
+    call bcast(che_vars_off,varname_len)
+    call bcast(che_vars_only,varname_len)
     call bcast(lsync)
     call bcast(uvrotate)
     call bcast(idiag)

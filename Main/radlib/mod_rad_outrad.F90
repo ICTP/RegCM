@@ -256,10 +256,7 @@ module mod_rad_outrad
     if ( ifrad ) then
       if ( lout ) then
         call copy3d(cld,rad_cld_out)
-        call copy3d(clwp,rad_clwp_out)
-        if ( associated(rad_clwp_out) ) then
-          rad_clwp_out = 1.0e-3_rkx * rad_clwp_out * rad_cld_out
-        end if
+        call copy3d_clwp(clwp,cld,rad_clwp_out)
         call copy3d(qrs,rad_qrs_out)
         call copy3d(qrl,rad_qrl_out)
         if ( iclimao3 > 0 ) then
@@ -320,6 +317,28 @@ module mod_rad_outrad
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
     call copy3d1(a,b,1,kz)
   end subroutine copy3d
+
+  ! Cloud liquid water path in the cloudy part, from the packed arrays:
+  ! it does not need the cloud fraction output.
+  subroutine copy3d_clwp(a,c,b)
+    implicit none
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: a, c
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
+    integer(ik4) :: i, j, k, n
+    if ( associated(b) ) then
+      if ( irrtm == 1 ) then
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz )
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = 1.0e-3_rkx * real(a(n,k),rkx) * real(c(n,k),rkx)
+        end do
+      else
+        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz )
+          n = (j-jci1)+(i-ici1)*nj+1
+          b(j,i,k) = 1.0e-3_rkx * real(a(k,n),rkx) * real(c(k,n),rkx)
+        end do
+      end if
+    end if
+  end subroutine copy3d_clwp
 
   subroutine copy3d1(a,b,k1,k2)
     implicit none

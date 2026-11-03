@@ -172,6 +172,47 @@ module mod_ncout
   logical, public, dimension(noptvars) :: enable_opt_vars
   logical, public, dimension(nchevars) :: enable_che_vars
 
+  ! Output variables selected by name in the namelist: the ones in
+  ! xxx_vars_off are not written, and if xxx_vars_only is not empty only
+  ! the ones in it are. The coordinates are always written. Ignored with
+  ! ifcordex, which fixes the variable list.
+  integer(ik4), public, parameter :: maxvarlist = 64
+  integer(ik4), public, parameter :: varname_len = 32
+  character(len=varname_len), public, dimension(maxvarlist) :: &
+    atm_vars_off = ' ', atm_vars_only = ' '
+  character(len=varname_len), public, dimension(maxvarlist) :: &
+    shf_vars_off = ' ', shf_vars_only = ' '
+  character(len=varname_len), public, dimension(maxvarlist) :: &
+    srf_vars_off = ' ', srf_vars_only = ' '
+  character(len=varname_len), public, dimension(maxvarlist) :: &
+    sts_vars_off = ' ', sts_vars_only = ' '
+  character(len=varname_len), public, dimension(maxvarlist) :: &
+    sub_vars_off = ' ', sub_vars_only = ' '
+  character(len=varname_len), public, dimension(maxvarlist) :: &
+    lak_vars_off = ' ', lak_vars_only = ' '
+  character(len=varname_len), public, dimension(maxvarlist) :: &
+    rad_vars_off = ' ', rad_vars_only = ' '
+  character(len=varname_len), public, dimension(maxvarlist) :: &
+    opt_vars_off = ' ', opt_vars_only = ' '
+  character(len=varname_len), public, dimension(maxvarlist) :: &
+    che_vars_off = ' ', che_vars_only = ' '
+
+  character(len=varname_len), dimension(maxvarlist) :: vf_off, vf_only
+  logical, dimension(maxvarlist) :: vf_off_used, vf_only_used
+  logical :: vf_active = .false.
+  logical :: vf_has_only = .false.
+  character(len=3) :: vf_stream = ' '
+  character(len=8192) :: vf_on_names, vf_off_names
+  character(len=*), dimension(7), parameter :: vf_coords = &
+    [ 'xlon     ', 'xlat     ', 'mask     ', 'topo     ', &
+      'areacella', 'ps       ', 'p0       ' ]
+
+  interface filter_flags
+    module procedure filter_flags_2d
+    module procedure filter_flags_3d
+    module procedure filter_flags_4d
+  end interface filter_flags
+
   integer(ik4), parameter :: atm_xlon  = 1
   integer(ik4), parameter :: atm_xlat  = 2
   integer(ik4), parameter :: atm_mask  = 3
@@ -734,6 +775,7 @@ module mod_ncout
 
       if ( nstream == atm_stream ) then
 
+        call set_var_filter('ATM',atm_vars_off,atm_vars_only)
         allocate(v2dvar_atm(natm2dvars))
         allocate(v3dvar_atm(natm3dvars))
         enable_atm2d_vars = enable_atm_vars(1:natm2dvars)
@@ -1345,6 +1387,9 @@ module mod_ncout
           enable_atm3d_vars(atm_tsoil) = .false.
         end if
 
+        call filter_flags(enable_atm2d_vars,v2dvar_atm)
+        call filter_flags(enable_atm3d_vars,v3dvar_atm)
+        call end_var_filter
         enable_atm_vars(1:natm2dvars) = enable_atm2d_vars
         enable_atm_vars(natm2dvars+1:natmvars) = enable_atm3d_vars
         outstream(atm_stream)%nvar = countvars(enable_atm_vars,natmvars)
@@ -1379,6 +1424,7 @@ module mod_ncout
 
       if ( nstream == shf_stream ) then
 
+        call set_var_filter('SHF',shf_vars_off,shf_vars_only)
         allocate(v2dvar_shf(nshf2dvars))
         allocate(v3dvar_shf(nshf3dvars))
         enable_shf2d_vars = enable_shf_vars(1:nshf2dvars)
@@ -1425,6 +1471,9 @@ module mod_ncout
           shf_t2m_out => v3dvar_shf(shf_t2m)%rval
         end if
 
+        call filter_flags(enable_shf2d_vars,v2dvar_shf)
+        call filter_flags(enable_shf3d_vars,v3dvar_shf)
+        call end_var_filter
         enable_shf_vars(1:nshf2dvars) = enable_shf2d_vars
         enable_shf_vars(nshf2dvars+1:nshfvars) = enable_shf3d_vars
         outstream(shf_stream)%nvar = countvars(enable_shf_vars,nshfvars)
@@ -1459,6 +1508,7 @@ module mod_ncout
 
       if ( nstream == srf_stream ) then
 
+        call set_var_filter('SRF',srf_vars_off,srf_vars_only)
         allocate(v2dvar_srf(nsrf2dvars))
         allocate(v3dvar_srf(nsrf3dvars))
         enable_srf2d_vars = enable_srf_vars(1:nsrf2dvars)
@@ -1961,6 +2011,9 @@ module mod_ncout
 #endif
         end if
 
+        call filter_flags(enable_srf2d_vars,v2dvar_srf)
+        call filter_flags(enable_srf3d_vars,v3dvar_srf)
+        call end_var_filter
         enable_srf_vars(1:nsrf2dvars) = enable_srf2d_vars
         enable_srf_vars(nsrf2dvars+1:nsrfvars) = enable_srf3d_vars
         outstream(srf_stream)%nvar = countvars(enable_srf_vars,nsrfvars)
@@ -1995,6 +2048,7 @@ module mod_ncout
 
       if ( nstream == sts_stream ) then
 
+        call set_var_filter('STS',sts_vars_off,sts_vars_only)
         allocate(v2dvar_sts(nsts2dvars))
         allocate(v3dvar_sts(nsts3dvars))
         enable_sts2d_vars = enable_sts_vars(1:nsts2dvars)
@@ -2100,6 +2154,9 @@ module mod_ncout
           sts_w10max_out => v3dvar_sts(sts_w10max)%rval
         end if
 
+        call filter_flags(enable_sts2d_vars,v2dvar_sts)
+        call filter_flags(enable_sts3d_vars,v3dvar_sts)
+        call end_var_filter
         enable_sts_vars(1:nsts2dvars) = enable_sts2d_vars
         enable_sts_vars(nsts2dvars+1:nstsvars) = enable_sts3d_vars
         outstream(sts_stream)%nvar = countvars(enable_sts_vars,nstsvars)
@@ -2134,6 +2191,7 @@ module mod_ncout
 
       if ( nstream == sub_stream ) then
 
+        call set_var_filter('SUB',sub_vars_off,sub_vars_only)
         allocate(v2dvar_sub(nsub2dvars))
         allocate(v3dvar_sub(nsub3dvars))
         enable_sub2d_vars = enable_sub_vars(1:nsub2dvars)
@@ -2305,6 +2363,9 @@ module mod_ncout
           end if
         end if
 
+        call filter_flags(enable_sub2d_vars,v2dvar_sub)
+        call filter_flags(enable_sub3d_vars,v3dvar_sub)
+        call end_var_filter
         enable_sub_vars(1:nsub2dvars) = enable_sub2d_vars
         enable_sub_vars(nsub2dvars+1:nsubvars) = enable_sub3d_vars
         outstream(sub_stream)%nvar = countvars(enable_sub_vars,nsubvars)
@@ -2339,6 +2400,7 @@ module mod_ncout
 
       if ( nstream == rad_stream ) then
 
+        call set_var_filter('RAD',rad_vars_off,rad_vars_only)
         allocate(v2dvar_rad(nrad2dvars))
         allocate(v3dvar_rad(nrad3dvars))
         allocate(v4dvar_rad(nrad4dvars))
@@ -2520,6 +2582,10 @@ module mod_ncout
           enable_rad4d_vars(rad_tauci) = .false.
         end if
 
+        call filter_flags(enable_rad2d_vars,v2dvar_rad)
+        call filter_flags(enable_rad3d_vars,v3dvar_rad)
+        call filter_flags(enable_rad4d_vars,v4dvar_rad)
+        call end_var_filter
         enable_rad_vars(1:nrad2dvars) = enable_rad2d_vars
         enable_rad_vars(nrad2dvars+1:nradvars-nrad4dvars) = enable_rad3d_vars
         enable_rad_vars(nrad2dvars+nrad3dvars+1:nradvars) = enable_rad4d_vars
@@ -2563,6 +2629,7 @@ module mod_ncout
 
       if ( nstream == lak_stream ) then
 
+        call set_var_filter('LAK',lak_vars_off,lak_vars_only)
         allocate(v2dvar_lak(nlak2dvars))
         allocate(v3dvar_lak(nlak3dvars))
         enable_lak2d_vars = enable_lak_vars(1:nlak2dvars)
@@ -2652,6 +2719,9 @@ module mod_ncout
           lak_tlake_out = dmissval
         end if
 
+        call filter_flags(enable_lak2d_vars,v2dvar_lak)
+        call filter_flags(enable_lak3d_vars,v3dvar_lak)
+        call end_var_filter
         enable_lak_vars(1:nlak2dvars) = enable_lak2d_vars
         enable_lak_vars(nlak2dvars+1:nlakvars) = enable_lak3d_vars
         outstream(lak_stream)%nvar = countvars(enable_lak_vars,nlakvars)
@@ -2737,6 +2807,7 @@ module mod_ncout
       end if
 
       if ( nstream == opt_stream ) then
+        call set_var_filter('OPT',opt_vars_off,opt_vars_only)
         allocate(v2dvar_opt(nopt2dvars))
         allocate(v3dvar_opt(nopt3dvars))
         enable_opt2d_vars = enable_opt_vars(1:nopt2dvars)
@@ -2882,6 +2953,9 @@ module mod_ncout
           enable_opt3d_vars(opt_surf) = .false.
         end if
 
+        call filter_flags(enable_opt2d_vars,v2dvar_opt)
+        call filter_flags(enable_opt3d_vars,v3dvar_opt)
+        call end_var_filter
         enable_opt_vars(1:nopt2dvars) = enable_opt2d_vars
         enable_opt_vars(nopt2dvars+1:noptvars) = enable_opt3d_vars
         outstream(opt_stream)%nvar = countvars(enable_opt_vars,noptvars)
@@ -2916,6 +2990,7 @@ module mod_ncout
 
       if ( nstream == che_stream ) then
 
+        call set_var_filter('CHE',che_vars_off,che_vars_only)
         allocate(v2dvar_che(nche2dvars))
         allocate(v3dvar_che(nche3dvars))
         enable_che2d_vars = enable_che_vars(1:nche2dvars)
@@ -3105,6 +3180,9 @@ module mod_ncout
           enable_che3d_vars(che_ncon) = .false.
         end if
 
+        call filter_flags(enable_che2d_vars,v2dvar_che)
+        call filter_flags(enable_che3d_vars,v3dvar_che)
+        call end_var_filter
         enable_che_vars(1:nche2dvars) = enable_che2d_vars
         enable_che_vars(nche2dvars+1:nchevars) = enable_che3d_vars
 
@@ -4198,6 +4276,157 @@ module mod_ncout
       end if
     end if
   end subroutine setup_common_vars
+
+  ! Start the selection by name of the variables of an output stream.
+  subroutine set_var_filter(sname,voff,vonly)
+    implicit none
+    character(len=*), intent(in) :: sname
+    character(len=*), dimension(:), intent(in) :: voff, vonly
+    integer(ik4) :: i
+    vf_stream = sname
+    do i = 1, maxvarlist
+      vf_off(i) = lowercase(voff(i))
+      vf_only(i) = lowercase(vonly(i))
+    end do
+    vf_off_used(:) = .false.
+    vf_only_used(:) = .false.
+    vf_on_names = ' '
+    vf_off_names = ' '
+    vf_has_only = any(vf_only /= ' ')
+    vf_active = any(vf_off /= ' ') .or. vf_has_only
+    if ( vf_active .and. ifcordex ) then
+      if ( myid == italk ) then
+        write(stdout,*) 'WARNING: ifcordex fixes the output variables: ', &
+          'the ',lowercase(sname),'_vars_off/only lists are ignored.'
+      end if
+      vf_active = .false.
+      vf_has_only = .false.
+    end if
+  end subroutine set_var_filter
+
+  ! Report the variables of the stream and the names not found.
+  subroutine end_var_filter
+    implicit none
+    integer(ik4) :: i
+    if ( myid == italk ) then
+      call write_names('written',vf_on_names)
+      if ( vf_off_names /= ' ' ) call write_names('not written',vf_off_names)
+      if ( vf_active ) then
+        do i = 1, maxvarlist
+          if ( vf_off(i) /= ' ' .and. .not. vf_off_used(i) ) then
+            write(stdout,*) 'WARNING: no variable ',trim(vf_off(i)), &
+              ' in ',vf_stream,' output (',lowercase(vf_stream),'_vars_off)'
+          end if
+          if ( vf_only(i) /= ' ' .and. .not. vf_only_used(i) ) then
+            write(stdout,*) 'WARNING: no variable ',trim(vf_only(i)), &
+              ' in ',vf_stream,' output (',lowercase(vf_stream),'_vars_only)'
+          end if
+        end do
+      end if
+    end if
+    vf_active = .false.
+    vf_has_only = .false.
+  end subroutine end_var_filter
+
+  subroutine write_names(what,names)
+    implicit none
+    character(len=*), intent(in) :: what, names
+    integer(ik4) :: i1, i2, n
+    write(stdout,'(1x,a,a,a,a)') vf_stream,' variables ',what,':'
+    n = len_trim(names)
+    i1 = 1
+    do while ( i1 <= n )
+      i2 = min(i1+71,n)
+      if ( i2 < n ) then
+        do while ( i2 > i1 .and. names(i2+1:i2+1) /= ' ' )
+          i2 = i2 - 1
+        end do
+      end if
+      write(stdout,'(4x,a)') trim(adjustl(names(i1:i2)))
+      i1 = i2 + 1
+    end do
+  end subroutine write_names
+
+  ! Is the variable vname written? Also collects the names for the log.
+  logical function var_selected(vname) result(lsel)
+    implicit none
+    character(len=*), intent(in) :: vname
+    character(len=varname_len) :: lname
+    integer(ik4) :: i
+    lname = lowercase(vname)
+    lsel = .true.
+    if ( vf_active .and. .not. any(vf_coords == lname) ) then
+      do i = 1, maxvarlist
+        if ( vf_off(i) == lname ) then
+          vf_off_used(i) = .true.
+          lsel = .false.
+        end if
+      end do
+      if ( vf_has_only ) then
+        lsel = lsel .and. any(vf_only == lname)
+        do i = 1, maxvarlist
+          if ( vf_only(i) == lname ) vf_only_used(i) = .true.
+        end do
+      end if
+    end if
+    if ( lsel ) then
+      vf_on_names = trim(vf_on_names)//' '//trim(vname)
+    else
+      vf_off_names = trim(vf_off_names)//' '//trim(vname)
+    end if
+  end function var_selected
+
+  ! Variables not selected by name are not written. They are still
+  ! computed: other output fields may need them.
+  subroutine filter_flags_2d(eflags,var)
+    implicit none
+    logical, dimension(:), intent(inout) :: eflags
+    type(ncvariable2d_mixed), dimension(:), intent(in) :: var
+    integer(ik4) :: i
+    do i = 1, size(eflags)
+      if ( eflags(i) .and. associated(var(i)%rval) ) then
+        eflags(i) = var_selected(var(i)%vname)
+      end if
+    end do
+  end subroutine filter_flags_2d
+
+  subroutine filter_flags_3d(eflags,var)
+    implicit none
+    logical, dimension(:), intent(inout) :: eflags
+    type(ncvariable3d_mixed), dimension(:), intent(in) :: var
+    integer(ik4) :: i
+    do i = 1, size(eflags)
+      if ( eflags(i) .and. associated(var(i)%rval) ) then
+        eflags(i) = var_selected(var(i)%vname)
+      end if
+    end do
+  end subroutine filter_flags_3d
+
+  subroutine filter_flags_4d(eflags,var)
+    implicit none
+    logical, dimension(:), intent(inout) :: eflags
+    type(ncvariable4d_mixed), dimension(:), intent(in) :: var
+    integer(ik4) :: i
+    do i = 1, size(eflags)
+      if ( eflags(i) .and. associated(var(i)%rval) ) then
+        eflags(i) = var_selected(var(i)%vname)
+      end if
+    end do
+  end subroutine filter_flags_4d
+
+  pure function lowercase(str) result(lstr)
+    implicit none
+    character(len=*), intent(in) :: str
+    character(len=len(str)) :: lstr
+    integer(ik4) :: i, ic
+    lstr = str
+    do i = 1, len(str)
+      ic = ichar(str(i:i))
+      if ( ic >= ichar('A') .and. ic <= ichar('Z') ) then
+        lstr(i:i) = char(ic+32)
+      end if
+    end do
+  end function lowercase
 
   subroutine setup_var_2d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                          l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
