@@ -41,6 +41,8 @@ program clmsa
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
   integer(ik4) :: ierr, iprov
+  ! ERA5 net surface shortwave, from which the downward one is recovered
+  real(rkx), pointer, contiguous, dimension(:,:) :: ssnet => null( )
   data extime /0.0_rk8/
 
   call mpi_init_thread(mpi_thread_single,iprov,ierr)
@@ -140,14 +142,14 @@ program clmsa
     call init_bdy
     call atmval
     if ( sfbcread == 1 ) then
-      call read_clmbc(pptc,solar,flwd,totc)
-      pptc = pptc * 1000.0_rkx * dtsrf/3600.0_rkx ! m/h -> mm in dtsrf
-      swdif = solar * 0.75_rkx * totc
-      swdir = solar - swdif
-      lwdif = flwd * 0.75_rkx * totc
-      lwdir = flwd - lwdif
+      call getmem(ssnet,jci1,jci2,ici1,ici2,'clmsa:ssnet')
+      call read_clmbc(pptc,ssnet,flwd,totc)
     end if
     call initsaclm45(lm)
+    if ( sfbcread == 1 ) then
+      call first_albedo
+      call split_solar
+    end if
     !
     ! Clean up and logging
     !
@@ -174,6 +176,7 @@ program clmsa
       call update_scenario(rcmtimer%year,rcmtimer%month)
       call atmval
       call runsaclm45(lm)
+      call albedoclm45(lm,lms)
       call rcmtimer%advance( )
 
       if ( .not. rcmtimer%reached_endtime ) then
@@ -185,12 +188,8 @@ program clmsa
         end if
         if ( sfbcread == 1 ) then
           if ( alarm_hour%act( ) ) then
-            call read_clmbc(pptc,solar,flwd,totc)
-            pptc = pptc * 1000.0_rkx * dtsrf/3600.0_rkx ! m/h -> mm in dtsrf
-            swdif = solar * 0.75_rkx * totc
-            swdir = solar - swdif
-            lwdif = flwd * 0.75_rkx * totc
-            lwdir = flwd - lwdif
+            call read_clmbc(pptc,ssnet,flwd,totc)
+            call split_solar
           end if
         end if
       end if
@@ -232,6 +231,96 @@ program clmsa
       write(stdout,*) 'CLM45 simulation successfully reached end'
     end if
   end subroutine CLM_finalize
+  !
+  ! Albedos of the initial state, with the defaults of the coupled model
+  ! where CLM has none (sun below the horizon)
+  !
+  subroutine first_albedo
+    implicit none
+    where ( lm%ldmsk1 == 1 )
+      lms%swdiralb = 0.16_rkx
+      lms%swdifalb = 0.16_rkx
+      lms%lwdiralb = 0.32_rkx
+      lms%lwdifalb = 0.32_rkx
+    end where
+    call albedoclm45(lm,lms)
+  end subroutine first_albedo
+  !
+  ! The forcing gives the net surface shortwave. The downward one is the
+  ! net divided by the absorbed fraction, from the CLM albedos of the
+  ! last step (land points only). The downward shortwave is split in
+  ! visible (sw) and near-infrared (lw) bands, half each, and each band
+  ! in direct and diffuse with the empirical direct fractions of the CESM
+  ! data atmosphere (CDEPS). The fractions depend on the downward flux,
+  ! so the absorbed fraction is iterated.
+  !
+  subroutine split_solar
+    implicit none
+    integer(ik4) :: i, j, n, nl, iter
+    integer(ik4), parameter :: niter = 4
+    ! Highest albedo allowed in the division
+    real(rkx), parameter :: maxalb = 0.95_rkx
+    real(rkx) :: s, rvis, rnir, avisd, avisi, anird, aniri, absf
+    do i = ici1, ici2
+      do j = jci1, jci2
+        ! Interpolation may leave round-off negatives
+        ssnet(j,i) = max(ssnet(j,i),0.0_rkx)
+        avisd = 0.0_rkx
+        avisi = 0.0_rkx
+        anird = 0.0_rkx
+        aniri = 0.0_rkx
+        nl = 0
+        do n = 1, nnsg
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
+            nl = nl + 1
+            avisd = avisd + lms%swdiralb(n,j,i)
+            avisi = avisi + lms%swdifalb(n,j,i)
+            anird = anird + lms%lwdiralb(n,j,i)
+            aniri = aniri + lms%lwdifalb(n,j,i)
+          end if
+        end do
+        if ( nl > 0 ) then
+          avisd = min(avisd/real(nl,rkx),maxalb)
+          avisi = min(avisi/real(nl,rkx),maxalb)
+          anird = min(anird/real(nl,rkx),maxalb)
+          aniri = min(aniri/real(nl,rkx),maxalb)
+        end if
+        solar(j,i) = ssnet(j,i)
+        do iter = 1, niter
+          s = solar(j,i) * 0.5_rkx
+          rvis = vis_direct(s)
+          rnir = nir_direct(s)
+          absf = 0.5_rkx * (rvis*(1.0_rkx-avisd) +           &
+                            (1.0_rkx-rvis)*(1.0_rkx-avisi) + &
+                            rnir*(1.0_rkx-anird) +           &
+                            (1.0_rkx-rnir)*(1.0_rkx-aniri))
+          solar(j,i) = ssnet(j,i) / absf
+        end do
+        s = solar(j,i) * 0.5_rkx
+        rvis = vis_direct(s)
+        rnir = nir_direct(s)
+        swdir(j,i) = rvis * s
+        swdif(j,i) = (1.0_rkx - rvis) * s
+        lwdir(j,i) = rnir * s
+        lwdif(j,i) = (1.0_rkx - rnir) * s
+      end do
+    end do
+  end subroutine split_solar
+
+  pure real(rkx) function vis_direct(s)
+    implicit none
+    real(rkx), intent(in) :: s
+    vis_direct = min(0.99_rkx,max(0.17639_rkx + 0.00380_rkx*s - &
+                 9.0039e-06_rkx*s**2 + 8.1351e-09_rkx*s**3,0.01_rkx))
+  end function vis_direct
+
+  pure real(rkx) function nir_direct(s)
+    implicit none
+    real(rkx), intent(in) :: s
+    nir_direct = min(0.99_rkx,max(0.29548_rkx + 0.00504_rkx*s - &
+                 1.4957e-05_rkx*s**2 + 1.4881e-08_rkx*s**3,0.01_rkx))
+  end function nir_direct
+
 end program clmsa
 
 #else

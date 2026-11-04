@@ -311,12 +311,18 @@ module mod_era5
   subroutine get_era5h(idate)
     implicit none
     type(rcm_time_and_date), intent(in) :: idate
-    call era5hour(idate,globidate1)
+    type(rcm_time_interval) :: onehour
+    ! ERA5 accumulations are stamped at the end of their hour: the fluxes
+    ! for the hour starting at idate are in the record of idate + 1 hour.
+    onehour = rcm_time_interval(1,uhrs)
+    call era5hour(idate+onehour,globidate1+onehour)
     write (stdout,*) 'READ IN fields at DATE:', tochar(idate)
     call h_interpolate_nn(cross_hint,prvar,pr)
     call h_interpolate_cont(cross_hint,b2,b3)
-    pr(:,:) = pr(:,:) / secph * 0.001_rkx
-    ssr(:,:) = b3(:,:,1) / secph
+    ! m of water in the hour -> kg m-2 s-1
+    ! Clip the round-off negatives of the interpolation
+    pr(:,:) = max(pr(:,:) * 1000.0_rkx / secph,0.0_rkx)
+    ssr(:,:) = max(b3(:,:,1) / secph,0.0_rkx)
     strd(:,:) = b3(:,:,2) / secph
     clt(:,:) = b3(:,:,3)
   end subroutine get_era5h
