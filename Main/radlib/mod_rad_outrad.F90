@@ -33,6 +33,13 @@ module mod_rad_outrad
   ! radiation call, in use until the next one
   integer(ik4), parameter :: ncurflx = 12
   real(rk8), allocatable, dimension(:,:) :: curflx
+  ! Profiles of the last radiation call, in use until the next one:
+  ! cloud fraction, cloud liquid water path, shortwave and longwave
+  ! heating rates and ozone
+  integer(ik4), parameter :: ncur3d = 5
+  integer(ik4), parameter :: icur_cld = 1, icur_clwp = 2, icur_qrs = 3, &
+                             icur_qrl = 4, icur_o3 = 5
+  real(rk8), allocatable, dimension(:,:,:) :: cur3d
 
   public :: allocate_mod_rad_outrad, radout, accumulate_rad_fluxes
 
@@ -47,7 +54,7 @@ module mod_rad_outrad
 
   subroutine radout(lout,solin,solout,frsa,clrst,clrss,qrs,lwout,        &
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
-                    totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo,    &
+                    totcf,cld,clwp,abv,sol,aeradfo,                      &
                     aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d, &
                     deltaz,o3,outtaucl,outtauci,asaeradfo,asaeradfos,    &
                     asaerlwfo,asaerlwfos,r2m,m2r)
@@ -85,7 +92,7 @@ module mod_rad_outrad
     real(rk8), pointer, contiguous, dimension(:), &
       intent(inout) :: clrls, clrlt,  &
            clrss, clrst, lwout, frla, frsa, solout, slwd, solin,   &
-           soll, solld, sols, solsd, totcf, totcl, totci, totwv,   &
+           soll, solld, sols, solsd, totcf,                         &
            abv, sol, aeradfo, aeradfos, aerlwfo, aerlwfos
     real(rk8), pointer, contiguous, dimension(:,:), &
       intent(inout) :: cld, clwp, qrl, qrs, deltaz, o3
@@ -203,6 +210,15 @@ module mod_rad_outrad
     ! model.
     !
     if ( ifrad ) then
+      if ( .not. allocated(cur3d) ) then
+        allocate(cur3d(size(frsa),kz,ncur3d))
+        cur3d(:,:,:) = 0.0_rk8
+      end if
+      call store3d(cld,icur_cld)
+      call store3d(clwp,icur_clwp,cld,1.0e-3_rk8)
+      call store3d(qrs,icur_qrs)
+      call store3d(qrl,icur_qrl)
+      if ( iclimao3 > 0 ) call store3d(o3,icur_o3)
       curflx(:,1) = frsa(:)
       curflx(:,2) = frla(:)
       curflx(:,3) = clrst(:)
@@ -255,13 +271,6 @@ module mod_rad_outrad
 
     if ( ifrad ) then
       if ( lout ) then
-        call copy3d(cld,rad_cld_out)
-        call copy3d_clwp(clwp,cld,rad_clwp_out)
-        call copy3d(qrs,rad_qrs_out)
-        call copy3d(qrl,rad_qrl_out)
-        if ( iclimao3 > 0 ) then
-          call copy3d(o3,rad_o3_out)
-        end if
         if ( icosp == 1 ) then
           call copy4d1(outtaucl,rad_taucl_out,4)
           call copy4d1(outtauci,rad_tauci_out,4)
@@ -294,56 +303,6 @@ module mod_rad_outrad
       end if
     end if
   end subroutine copy2d_integrate_from3
-
-  subroutine copy3d(a,b)
-    implicit none
-    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: a
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
-    call copy3d1(a,b,1,kz)
-  end subroutine copy3d
-
-  ! Cloud liquid water path in the cloudy part, from the packed arrays:
-  ! it does not need the cloud fraction output.
-  subroutine copy3d_clwp(a,c,b)
-    implicit none
-    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: a, c
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
-    integer(ik4) :: i, j, k, n
-    if ( associated(b) ) then
-      if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz )
-          n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = 1.0e-3_rkx * real(a(n,k),rkx) * real(c(n,k),rkx)
-        end do
-      else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz )
-          n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = 1.0e-3_rkx * real(a(k,n),rkx) * real(c(k,n),rkx)
-        end do
-      end if
-    end if
-  end subroutine copy3d_clwp
-
-  subroutine copy3d1(a,b,k1,k2)
-    implicit none
-    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: a
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
-    integer(ik4), intent(in) :: k1, k2
-    integer(ik4) :: i, j, k, n
-    if ( associated(b) ) then
-      if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2 )
-          n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = real(a(n,k),rkx)
-        end do
-      else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=k1:k2 )
-          n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i,k) = real(a(k,n),rkx)
-        end do
-      end if
-    end if
-  end subroutine copy3d1
 
   subroutine copy4d(a,b,l,ki,kl)
     implicit none
@@ -508,8 +467,64 @@ module mod_rad_outrad
     call add_cur(10,rad_higcl_out)
     call add_cur(11,rad_midcl_out)
     call add_cur(12,rad_lowcl_out)
+    if ( allocated(cur3d) ) then
+      call add_cur3(icur_cld,rad_cld_out)
+      call add_cur3(icur_clwp,rad_clwp_out)
+      call add_cur3(icur_qrs,rad_qrs_out)
+      call add_cur3(icur_qrl,rad_qrl_out)
+      call add_cur3(icur_o3,rad_o3_out)
+    end if
     rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
   end subroutine accumulate_rad_fluxes
+
+  subroutine add_cur3(l,b)
+    implicit none
+    integer(ik4), intent(in) :: l
+    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: b
+    integer(ik4) :: i, j, k, n
+    if ( associated(b) ) then
+      do concurrent ( j=jci1:jci2, i=ici1:ici2, k=1:kz )
+        n = (j-jci1)+(i-ici1)*nj+1
+        b(j,i,k) = real(b(j,i,k) + cur3d(n,k,l),rkx)
+      end do
+    end if
+  end subroutine add_cur3
+  !
+  ! Keep a profile of the radiation call, optionally times a second one
+  ! and a factor; the radiation schemes order the packed arrays as
+  ! (point,level) for RRTMG and (level,point) for the CCM scheme.
+  !
+  subroutine store3d(a,l,c,fac)
+    implicit none
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:) :: a
+    integer(ik4), intent(in) :: l
+    real(rk8), pointer, contiguous, intent(in), dimension(:,:), &
+      optional :: c
+    real(rk8), intent(in), optional :: fac
+    integer(ik4) :: k, n
+    real(rk8) :: f
+    f = 1.0_rk8
+    if ( present(fac) ) f = fac
+    if ( irrtm == 1 ) then
+      do concurrent ( n = 1:size(cur3d,1), k = 1:kz )
+        cur3d(n,k,l) = a(n,k) * f
+      end do
+      if ( present(c) ) then
+        do concurrent ( n = 1:size(cur3d,1), k = 1:kz )
+          cur3d(n,k,l) = cur3d(n,k,l) * c(n,k)
+        end do
+      end if
+    else
+      do concurrent ( n = 1:size(cur3d,1), k = 1:kz )
+        cur3d(n,k,l) = a(k,n) * f
+      end do
+      if ( present(c) ) then
+        do concurrent ( n = 1:size(cur3d,1), k = 1:kz )
+          cur3d(n,k,l) = cur3d(n,k,l) * c(k,n)
+        end do
+      end if
+    end if
+  end subroutine store3d
 
   subroutine add_cur(k,b)
     implicit none

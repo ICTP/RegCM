@@ -1703,6 +1703,11 @@ module mod_output
         call mean_rad_out(rad_solin_out,radfac)
         call mean_rad_out(rad_solout_out,radfac)
         call mean_rad_out(rad_lwout_out,radfac)
+        call mean_rad_out3(rad_cld_out,radfac)
+        call mean_rad_out3(rad_clwp_out,radfac)
+        call mean_rad_out3(rad_qrs_out,radfac)
+        call mean_rad_out3(rad_qrl_out,radfac)
+        call mean_rad_out3(rad_o3_out,radfac)
         call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ', rcmtimer%str( )
@@ -1715,6 +1720,11 @@ module mod_output
         call zero_rad_out(rad_solin_out)
         call zero_rad_out(rad_solout_out)
         call zero_rad_out(rad_lwout_out)
+        call zero_rad_out3(rad_cld_out)
+        call zero_rad_out3(rad_clwp_out)
+        call zero_rad_out3(rad_qrs_out)
+        call zero_rad_out3(rad_qrl_out)
+        call zero_rad_out3(rad_o3_out)
         !$acc kernels
         if ( associated(rad_higcl_out) ) rad_higcl_out(:,:) = d_zero
         if ( associated(rad_midcl_out) ) rad_midcl_out(:,:) = d_zero
@@ -2528,6 +2538,27 @@ module mod_output
       !$acc end kernels
     end if
   end subroutine zero_rad_out
+
+  subroutine mean_rad_out3(f,fac)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: f
+    real(rkx), intent(in) :: fac
+    if ( associated(f) ) then
+      !$acc kernels
+      f(:,:,:) = f(:,:,:) * fac
+      !$acc end kernels
+    end if
+  end subroutine mean_rad_out3
+
+  subroutine zero_rad_out3(f)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: f
+    if ( associated(f) ) then
+      !$acc kernels
+      f(:,:,:) = d_zero
+      !$acc end kernels
+    end if
+  end subroutine zero_rad_out3
 
 end module mod_output
 

@@ -79,9 +79,6 @@ module mod_rrtmg_driver
   real(rk8), pointer, contiguous, dimension(:) :: dlat => null( )
   real(rk8), pointer, contiguous, dimension(:) :: xptrop => null( )
   real(rk8), pointer, contiguous, dimension(:) :: totcf => null( )
-  real(rk8), pointer, contiguous, dimension(:) :: totwv => null( )
-  real(rk8), pointer, contiguous, dimension(:) :: totcl => null( )
-  real(rk8), pointer, contiguous, dimension(:) :: totci => null( )
 
   real(rk8), pointer, contiguous, dimension(:,:) :: qrs => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: qrl => null( )
@@ -256,9 +253,6 @@ module mod_rrtmg_driver
     call getmem(xptrop,1,npr,'rrtmg:xptrop')
     call getmem(ioro,1,npr,'rrtmg:ioro')
     call getmem(totcf,1,npr,'rrtmg:totcf')
-    call getmem(totwv,1,npr,'rrtmg:totwv')
-    call getmem(totcl,1,npr,'rrtmg:totlf')
-    call getmem(totci,1,npr,'rrtmg:totif')
     call getmem(co20,1,npr,'rrtmg:co20')
     call getmem(n2o0,1,npr,'rrtmg:n2o0')
     call getmem(ch40,1,npr,'rrtmg:ch40')
@@ -584,27 +578,13 @@ module mod_rrtmg_driver
       end do
       totcf(n) = max(0.0_rk8,min(1.0_rk8,1.001_rk8-totcf(n)))
     end do
-    totwv(:) = 0.0_rk8
-    totci(:) = 0.0_rk8
-    totcl(:) = 0.0_rk8
-    do k = 1, kz
-      kj = kzp1-k
-      do n = 1, npr
-        totci(n) = totci(n) + &
-          clwp_int(n,k)*cld_int(n,k)*fice(n,k)*0.001_rk8
-        totcl(n) = totcl(n) + &
-          clwp_int(n,k)*cld_int(n,k)*(1.0_rk8-fice(n,k))*0.001_rk8
-        totwv(n) =  totwv(n) + &
-          h2ommr(n,k)*(play(n,k)*100.0_rk8)/(rgas*tlay(n,k))*deltaz(n,k)
-      end do
-    end do
 
     ! Finally call radout for coupling to BATS/CLM/ATM and outputing fields
     ! in RAD files
 
     call radout(lout,solin,solout,frsa,clrst,clrss,qrs,lwout,       &
                 frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,          &
-                solld,totcf,totwv,totcl,totci,cld_int,clwp_int,abv, &
+                solld,totcf,cld_int,clwp_int,abv,                   &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,     &
                 tauasc3d,gtota3d,dzr,o3,outtaucl,outtauci,          &
                 asaeradfo,asaeradfos,asaerlwfo,asaerlwfos,r2m,m2r)

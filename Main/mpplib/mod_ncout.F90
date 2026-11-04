@@ -2534,31 +2534,34 @@ module mod_ncout
         if ( enable_rad3d_vars(rad_cld) ) then
           call setup_var(v3dvar_rad,rad_cld,vsize,'cl','1', &
             'Cloud fractional cover', &
-            'cloud_area_fraction_in_atmosphere_layer',.true.)
+            'cloud_area_fraction_in_atmosphere_layer',.true.,'time: mean')
           rad_cld_out => v3dvar_rad(rad_cld)%rval
         end if
         if ( enable_rad3d_vars(rad_clwp) ) then
           call setup_var(v3dvar_rad,rad_clwp,vsize,'clwp','mm', &
             'In-cloud liquid water path', &
-            'thickness_of_liquid_water_cloud',.true.)
+            'thickness_of_liquid_water_cloud',.true.,'time: mean')
           rad_clwp_out => v3dvar_rad(rad_clwp)%rval
         end if
         if ( enable_rad3d_vars(rad_qrs) ) then
           call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
             'Shortwave radiation heating rate', &
-            'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
+            'tendency_of_air_temperature_due_to_shortwave_heating',.true., &
+            'time: mean')
           rad_qrs_out => v3dvar_rad(rad_qrs)%rval
         end if
         if ( enable_rad3d_vars(rad_qrl) ) then
           call setup_var(v3dvar_rad,rad_qrl,vsize,'qrl','K s-1', &
             'Longwave radiation heating rate', &
-            'tendency_of_air_temperature_due_to_longwave_heating',.true.)
+            'tendency_of_air_temperature_due_to_longwave_heating',.true., &
+            'time: mean')
           rad_qrl_out => v3dvar_rad(rad_qrl)%rval
         end if
         if ( iclimao3 > 0 ) then
           if ( enable_rad3d_vars(rad_o3) ) then
             call setup_var(v3dvar_rad,rad_o3,vsize,'o3','m3 m-3', &
-              'Atmospheric Ozone', 'volume_fraction_of_o3_in_air',.true.)
+              'Atmospheric Ozone', 'volume_fraction_of_o3_in_air',.true., &
+              'time: mean')
             rad_o3_out => v3dvar_rad(rad_o3)%rval
           end if
         else

@@ -57,9 +57,6 @@ module mod_rad_colmod3
     call getmem(rt%xptrop,1,npr,'rad:xptrop')
     call getmem(rt%ts,1,npr,'colmod3:ts')
     call getmem(rt%ps,1,npr,'colmod3:ps')
-    call getmem(rt%totcl,1,npr,'colmod3:totcl')
-    call getmem(rt%totci,1,npr,'colmod3:totci')
-    call getmem(rt%totwv,1,npr,'colmod3:totwv')
     call getmem(rt%fsns,1,npr,'colmod3:fsns')
     call getmem(rt%flwds,1,npr,'colmod3:flwds')
     call getmem(rt%sols,1,npr,'colmod3:sols')
@@ -214,7 +211,6 @@ module mod_rad_colmod3
 
     integer(ik4) :: n, m, i, j, k, k2, itr
     integer(ik4) :: nj, npr
-    real(rk8) :: totci_l, totcl_l, totwv_l
     real(rk8) :: nc, aerc, lwc, kparam
     real(rk8) :: kabs, kabsi, kabsl, cldemis, arg
     real(rk8) :: iwc, tempc, tcels, fsr, aiwc, biwc
@@ -595,45 +591,6 @@ module mod_rad_colmod3
     do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
       rt%ql(k,n) = rt%ql(k,n) + rt%qi(k,n)
     end do
-#if 0
-    !$acc kernels
-    rt%totci(rt%n1:rt%n2) = 0.0_rk8
-    rt%totcl(rt%n1:rt%n2) = 0.0_rk8
-    rt%totwv(rt%n1:rt%n2) = 0.0_rk8
-    !$acc end kernels
-#else
-    do concurrent ( n = rt%n1:rt%n2 )
-      rt%totci(n) = 0.0_rk8
-      rt%totcl(n) = 0.0_rk8
-      rt%totwv(n) = 0.0_rk8
-    end do
-#endif
-#ifdef STDPAR_FIXED
-    !$acc parallel loop gang vector
-    do concurrent ( n = rt%n1:rt%n2 )
-#else
-    !$acc parallel loop gang vector
-    do n = rt%n1, rt%n2
-#endif
-      totci_l = 0.0_rk8
-      totcl_l = 0.0_rk8
-      totwv_l = 0.0_rk8
-      !$acc loop seq
-      do k = 1, kz
-        ! Turn off ice radiative properties by setting fice = 0.0
-        ! rt%fice(k,n) = 0.0_rk8
-        ! Vertical integral of in cloud ice/liquid water path:
-        !    (g/m^2 * cf) / 1000.0 = grid cell average value in kg/m^2
-        totcl_l = totcl_l + &
-             (rt%clwp(k,n)*temp(k,n)*(1.0_rk8-rt%fice(k,n)))*0.001_rk8
-        totci_l = totci_l + &
-             (rt%clwp(k,n)*temp(k,n)*rt%fice(k,n))*0.001_rk8
-        totwv_l = totwv_l + rt%q(k,n)*rt%rho(k,n)*rt%dz(k,n)
-      end do
-      rt%totci(n)= totci_l
-      rt%totcl(n)= totcl_l
-      rt%totwv(n)= totwv_l
-    end do
 
     !FAB : reintroduce simple sulfate indirect effect
     ! from Qian  1999
@@ -733,7 +690,7 @@ module mod_rad_colmod3
     call radout(lout,rt%solin,rt%solout,rt%fsns,rt%fsntc,rt%fsnsc,    &
                 rt%qrs,rt%lwout,rt%flns,rt%flntc,rt%flnsc,rt%qrl,     &
                 rt%flwds,rt%sols,rt%soll,rt%solsd,rt%solld,rt%totcf,  &
-                rt%totwv,rt%totcl,rt%totci,temp,rt%clwp,rt%abv,       &
+                temp,rt%clwp,rt%abv,                                  &
                 rt%sol,rt%aeradfo,rt%aeradfos,rt%aerlwfo,rt%aerlwfos, &
                 tauxar3d,tauasc3d,gtota3d,rt%dz,rt%o3vmr,rt%outtaucl, &
                 rt%outtauci,rt%asaeradfo,rt%asaeradfos,rt%asaerlwfo,  &
