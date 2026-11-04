@@ -35,6 +35,8 @@ def output_files(directory):
     files = []
     for stream in STREAMS:
         files += glob.glob(os.path.join(directory, '*_%s.*.nc' % stream))
+    # CLM history files
+    files += glob.glob(os.path.join(directory, '*.clm.regcm.h0.*.nc'))
     return sorted(os.path.basename(f) for f in files)
 
 

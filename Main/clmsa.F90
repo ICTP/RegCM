@@ -246,7 +246,9 @@ program clmsa
     call albedoclm45(lm,lms)
   end subroutine first_albedo
   !
-  ! The forcing gives the net surface shortwave. The downward one is the
+  ! The forcing gives the net surface shortwave (ERA5 ssr). If the ERA5
+  ! downward shortwave (ssrd) becomes available for download, clmbc should
+  ! write it and this recovery is no longer needed. The downward one is the
   ! net divided by the absorbed fraction, from the CLM albedos of the
   ! last step (land points only). The downward shortwave is split in
   ! visible (sw) and near-infrared (lw) bands, half each, and each band

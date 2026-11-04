@@ -317,11 +317,18 @@ module mod_era5
     onehour = rcm_time_interval(1,uhrs)
     call era5hour(idate+onehour,globidate1+onehour)
     write (stdout,*) 'READ IN fields at DATE:', tochar(idate)
+    ! Precipitation by nearest neighbour, a choice: on a grid much finer
+    ! than ERA5 (0.25 deg) it shows the ERA5 cells as blocks, but keeps
+    ! the rain edges sharp. The continuous interpolation would smooth the
+    ! blocks and spread the rain edges into drizzle.
     call h_interpolate_nn(cross_hint,prvar,pr)
     call h_interpolate_cont(cross_hint,b2,b3)
     ! m of water in the hour -> kg m-2 s-1
     ! Clip the round-off negatives of the interpolation
     pr(:,:) = max(pr(:,:) * 1000.0_rkx / secph,0.0_rkx)
+    ! ssr is the ERA5 NET surface shortwave: clmsa recovers the downward
+    ! flux with the CLM albedo. The ERA5 downward flux (ssrd) would be
+    ! better, and should replace it if it becomes available for download.
     ssr(:,:) = max(b3(:,:,1) / secph,0.0_rkx)
     strd(:,:) = b3(:,:,2) / secph
     clt(:,:) = b3(:,:,3)

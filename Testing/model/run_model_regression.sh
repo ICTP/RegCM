@@ -19,6 +19,9 @@
 #            (default: current directory)
 #   -x exe   model executable (default: bin/regcmMPICLM45 or bin/regcmMPI
 #            in the run directory)
+#   -X exe   CLM stand-alone executable, used for the namelists with a
+#            clmsaparam section (default: bin/clmsaMPICLM45 in the run
+#            directory)
 #   -n np    number of MPI processes (default: 6)
 #   -r dir   reference directory (default: <run directory>/reference)
 #   -o dir   test output directory (default: <run directory>/regression)
@@ -27,34 +30,37 @@
 #
 # Each namelist is run with its dirout set to <test dir>/<namelist name>
 # and compared with <reference dir>/<namelist name>. The restart files are
-# not kept in the reference. MPIEXEC and MPIEXEC_FLAGS select the MPI
-# launcher. The exit status is 0 only if every run completes and is bit for
-# bit identical to its reference.
+# not kept in the reference; the CLM history files (*.clm.regcm.h0.*) are.
+# MPIEXEC and MPIEXEC_FLAGS select the MPI launcher. The exit status is 0
+# only if every run completes and is bit for bit identical to its
+# reference.
 
 here=$(cd $(dirname $0) && pwd)
 rundir=$PWD
 exe=""
+saexe=""
 nproc=6
 refdir=""
 outdir=""
 save=no
 runmodel=yes
 
-while getopts "d:x:n:r:o:sc" opt; do
+while getopts "d:x:X:n:r:o:sc" opt; do
   case $opt in
     d) rundir=$(cd $OPTARG && pwd) ;;
     x) exe=$OPTARG ;;
+    X) saexe=$OPTARG ;;
     n) nproc=$OPTARG ;;
     r) refdir=$OPTARG ;;
     o) outdir=$OPTARG ;;
     s) save=yes ;;
     c) runmodel=no ;;
-    *) sed -n '16,32p' $0 | cut -c3- ; exit 2 ;;
+    *) sed -n '16,36p' $0 | cut -c3- ; exit 2 ;;
   esac
 done
 shift $((OPTIND-1))
 if [ $# -lt 1 ]; then
-  sed -n '16,32p' $0 | cut -c3-
+  sed -n '16,36p' $0 | cut -c3-
   exit 2
 fi
 
@@ -63,6 +69,11 @@ outdir=${outdir:-$rundir/regression}
 if [ -z "$exe" ]; then
   for e in $rundir/bin/regcmMPICLM45 $rundir/bin/regcmMPI; do
     [ -x $e ] && exe=$e && break
+  done
+fi
+if [ -z "$saexe" ]; then
+  for e in $rundir/bin/clmsaMPICLM45; do
+    [ -x $e ] && saexe=$e && break
   done
 fi
 mpiexec=${MPIEXEC:-mpirun}
@@ -76,15 +87,24 @@ for namelist in "$@"; do
   name=$(basename $namelist .in)
   test=$outdir/$name
   if [ $runmodel = yes ]; then
-    if [ ! -x "$exe" ]; then
-      echo "No model executable found: use -x"
-      exit 2
+    if grep -q -i '^ *&clmsaparam' $namelist; then
+      runexe=$saexe
+      if [ ! -x "$runexe" ]; then
+        echo "No CLM stand-alone executable found: use -X"
+        exit 2
+      fi
+    else
+      runexe=$exe
+      if [ ! -x "$runexe" ]; then
+        echo "No model executable found: use -x"
+        exit 2
+      fi
     fi
     rm -rf $test
     mkdir -p $test
     sed "s|^ *dirout *=.*| dirout = '$test',|" $namelist > $test/$name.in
     start=$(date +%s)
-    ( cd $rundir && $mpiexec $MPIEXEC_FLAGS -np $nproc $exe \
+    ( cd $rundir && $mpiexec $MPIEXEC_FLAGS -np $nproc $runexe \
         $test/$name.in > $test/$name.log 2>&1 )
     seconds=$(( $(date +%s) - start ))
     if ! grep -a -q "simulation successfully reached end" $test/$name.log
@@ -101,6 +121,7 @@ for namelist in "$@"; do
     for stream in ATM SRF RAD STS SHF LAK OPT CHE; do
       cp $test/*_$stream.*.nc $refdir/$name/ 2> /dev/null
     done
+    cp $test/*.clm.regcm.h0.*.nc $refdir/$name/ 2> /dev/null
     echo "$name: saved as reference in $refdir/$name"
   else
     echo "$name: comparing with $refdir/$name"
