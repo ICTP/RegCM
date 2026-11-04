@@ -303,6 +303,17 @@ program terrain
       call interp(dsnsg,jxsg,iysg,vlat_s,vlon_s,topov_s, &
                   values,topo_interp_method,rdem=roidem)
     end if
+    ! Slope and elevation spread for the land model, from the full
+    ! resolution DEM
+    if ( ntypec_s > 0 ) then
+      call relmem(values)
+      call read_ncglob(trim(inpter)//pthsep//'SURFACE'//              &
+                       pthsep//trim(tersrc)//'_DEM_30s.nc','z',       &
+                       0,topo_resamp_method,i_band,                   &
+                       xlat_s,xlon_s,grdlnma,grdlnmn,grdltma,grdltmn, &
+                       nlatin,nlonin,values)
+    end if
+    call topostats(dsnsg,jxsg,iysg,xlat_s,xlon_s,values,slope_s,topostd_s)
     call relmem(values)
     write(stdout,*)'Interpolated DEM on SUBGRID'
 
@@ -533,6 +544,17 @@ program terrain
     call interp(ds,jx,iy,vlat,vlon,topov,values, &
                 topo_interp_method,rdem=roidem)
   end if
+  ! Slope and elevation spread for the land model, from the full
+  ! resolution DEM
+  if ( ntypec > 0 ) then
+    call relmem(values)
+    call read_ncglob(trim(inpter)//pthsep//'SURFACE'//          &
+                     pthsep//trim(tersrc)//'_DEM_30s.nc','z',   &
+                     0,topo_resamp_method,i_band,               &
+                     xlat,xlon,grdlnma,grdlnmn,grdltma,grdltmn, &
+                     nlatin,nlonin,values)
+  end if
+  call topostats(ds,jx,iy,xlat,xlon,values,slope,topostd)
   call relmem(values)
   write(stdout,*)'Interpolated DEM on model GRID'
 
@@ -1000,6 +1022,8 @@ program terrain
     df%coriol => coriol_s
     df%mask => mask_s
     df%htgrid => htgrid_s
+    df%slope => slope_s
+    df%topostd => topostd_s
     df%lndout => lndout_s
     df%snowam => snowam_s
     df%smoist => smoist_s
@@ -1134,6 +1158,8 @@ program terrain
   df%coriol => coriol
   df%mask => mask
   df%htgrid => htgrid
+  df%slope => slope
+  df%topostd => topostd
   df%lndout => lndout
   df%snowam => snowam
   df%smoist => smoist

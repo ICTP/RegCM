@@ -40,7 +40,6 @@ program mksurfdata
 
   use mod_intkinds
   use mod_realkinds
-  use mod_constants, only : raddeg, dlowval
   use mod_dynparam
   use mod_posix, only : hostname
   use mod_message
@@ -174,11 +173,10 @@ program mksurfdata
   integer(ik4), dimension(2) :: illvar
   integer(ik4), dimension(3) :: izvar
   integer(ik4), dimension(1) :: istart1, icount1, mxsoil_color, iloc
-  real(rkx) :: spft, mean, diff, argf
+  real(rkx) :: spft, diff
   integer(ik4) :: ierr
   integer(ik4) :: i, j, ip, il, ir, iu, it, ipnt, iurbmax
   integer(ik4) :: jgstart, jgstop, igstart, igstop
-  integer(ik4) :: ii, jj, jp
   ! integer(ik4) :: jjs
   character(len=256) :: namelistfile, prgname
   character(len=256) :: terfile, outfile
@@ -342,7 +340,8 @@ program mksurfdata
     subgrid = .false.
   end if
   call openfile_withname(terfile,ncid)
-  call read_domain(ncid,sigx,xlat,xlon,ht=topo,mask=xmask,lsubgrid=subgrid)
+  call read_domain(ncid,sigx,xlat,xlon,ht=topo,mask=xmask,lsubgrid=subgrid, &
+                   slope=slope,topostd=topostd)
   rxlat = real(xlat)
   rxlon = real(xlon)
   rsigx = real(sigx)
@@ -979,39 +978,10 @@ program mksurfdata
 
   allocate(var3d(jxsg,iysg,2))
   var3d(:,:,1) = 0.0_rkx
-  ! Calculate slope and std
-  do i = igstart, igstop
-    do j = jgstart, jgstop
-      argf = 0.0_rkx
-      mean = 0.0_rkx
-      do ii = i-1, i+1
-        do jj = j-1, j+1
-          jp = jj
-          if ( jj < jgstart ) jp = jgstop
-          if ( jj > jgstop ) jp = jgstart
-          mean = mean + topo(jp,ii)
-          argf = argf + (topo(jp,ii)-topo(j,i))
-        end do
-      end do
-      argf = argf/8.0_rkx
-      if ( abs(argf) > dlowval ) then
-        var3d(j,i,1) = raddeg * atan(argf/(ds*1000.0_rkx))
-      else
-        var3d(j,i,1) = 0.0_rkx
-      end if
-      mean = mean/9.0_rkx
-      argf = 0.0_rkx
-      do ii = i-1, i+1
-        do jj = j-1, j+1
-          jp = jj
-          if ( jj < jgstart ) jp = jgstop
-          if ( jj > jgstop ) jp = jgstart
-          argf = argf + (topo(jp,ii)-mean)**2
-        end do
-      end do
-      var3d(j,i,2) = sqrt(argf/8.0_rkx)
-    end do
-  end do
+  ! Slope and standard deviation of the elevation, computed by terrain
+  ! from the full resolution DEM
+  var3d(:,:,1) = slope
+  var3d(:,:,2) = topostd
   where ( xmask < 0.5_rkx )
     var3d(:,:,1) = vmisdat
     var3d(:,:,2) = vmisdat

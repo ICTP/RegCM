@@ -80,6 +80,8 @@ module mod_write
     real(rkx), dimension(:,:), pointer, contiguous :: coriol
     real(rkx), dimension(:,:), pointer, contiguous :: mask
     real(rkx), dimension(:,:), pointer, contiguous :: htgrid
+    real(rkx), dimension(:,:), pointer, contiguous :: slope
+    real(rkx), dimension(:,:), pointer, contiguous :: topostd
     real(rkx), dimension(:,:), pointer, contiguous :: topou
     real(rkx), dimension(:,:), pointer, contiguous :: topov
     real(rkx), dimension(:,:), pointer, contiguous :: lndout
@@ -156,15 +158,15 @@ module mod_write
     ! (dlat_bnds, dlon_bnds) are always present.  For idynamic==3 we also
     ! have u- and v-grid bounds, giving 8 bound variables total.
     if ( idynamic == 1 ) then
-      nvar2d = 14
+      nvar2d = 16
       nvar3d = 3
       nvar_bnds = 4    ! xlat_bnds, xlon_bnds, dlat_bnds, dlon_bnds
     else if ( idynamic == 2 ) then
-      nvar2d = 15
+      nvar2d = 17
       nvar3d = 7
       nvar_bnds = 4
     else if ( idynamic == 3 ) then
-      nvar2d = 21
+      nvar2d = 23
       nvar3d = 7
       nvar_bnds = 8    ! + ulat_bnds, ulon_bnds, vlat_bnds, vlon_bnds
     end if
@@ -231,6 +233,19 @@ module mod_write
     v2dvar_base(12)%vunit = 'm2'
     v2dvar_base(12)%long_name = 'Atmosphere >Grid-Cell Area'
     v2dvar_base(12)%standard_name = 'cell_area'
+
+    ! Sub-grid statistics of the DEM, the last two 2D variables
+    v2dvar_base(nvar2d-1)%vname = 'slope'
+    v2dvar_base(nvar2d-1)%vunit = 'degree'
+    v2dvar_base(nvar2d-1)%long_name = 'Mean slope of the DEM in the cell'
+    v2dvar_base(nvar2d-1)%standard_name = 'ground_slope_angle'
+    v2dvar_base(nvar2d-1)%cell_method = 'area: mean'
+    v2dvar_base(nvar2d)%vname = 'topo_stddev'
+    v2dvar_base(nvar2d)%vunit = 'm'
+    v2dvar_base(nvar2d)%long_name = &
+      'Standard deviation of the DEM elevation in the cell'
+    v2dvar_base(nvar2d)%standard_name = 'surface_altitude'
+    v2dvar_base(nvar2d)%cell_method = 'area: standard_deviation'
 
     v2dvar_lake%vname = 'dhlake'
     v2dvar_lake%vunit = 'm'
@@ -542,6 +557,8 @@ module mod_write
     v2dvar_base(9)%rval => df%snowam
     v2dvar_base(10)%rval => df%smoist
     v2dvar_base(11)%rval => df%texout
+    v2dvar_base(nvar2d-1)%rval => df%slope
+    v2dvar_base(nvar2d)%rval => df%topostd
 
     ! ---- Assign data pointers for 3D atmospheric variables ----
     v3dvar_base(1)%rval => df%rmoist

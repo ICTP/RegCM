@@ -26,6 +26,8 @@ module mod_maps
         dmap, htgrid, lndout, mask, dpth, snowam, smoist, texout, xlat,  &
         xlon, xmap, ps0, ulat, ulon, vlat, vlon, umap, vmap, topou, topov
   real(rkx), pointer, contiguous, dimension(:,:) :: ulnd, vlnd
+  ! Mean slope (degrees) and elevation standard deviation (m) of the DEM
+  real(rkx), pointer, contiguous, dimension(:,:) :: slope, topostd
   ! CF cell boundary coordinates (nv=4 corners, counterclockwise SW-SE-NE-NW)
   real(rkx), pointer, contiguous, dimension(:,:,:) :: xlat_bnds, xlon_bnds
   real(rkx), pointer, contiguous, dimension(:,:,:) :: dlat_bnds, dlon_bnds
@@ -40,6 +42,7 @@ module mod_maps
         smoist_s, texout_s, xlat_s, xlon_s, xmap_s, ulat_s, ulon_s,   &
         vlat_s, vlon_s, umap_s, vmap_s, ps0_s, topou_s, topov_s
   real(rkx), pointer, contiguous, dimension(:,:) :: ulnd_s, vlnd_s
+  real(rkx), pointer, contiguous, dimension(:,:) :: slope_s, topostd_s
   ! CF cell boundary coordinates for subgrid (nv=4 corners)
   real(rkx), pointer, contiguous, dimension(:,:,:) :: xlat_bnds_s, xlon_bnds_s
   real(rkx), pointer, contiguous, dimension(:,:,:) :: dlat_bnds_s, dlon_bnds_s
@@ -74,6 +77,8 @@ module mod_maps
     call getmem(dlat_bnds,1,4,1,jx,1,iy,'maps:dlat_bnds')
     call getmem(dlon_bnds,1,4,1,jx,1,iy,'maps:dlon_bnds')
     call getmem(htgrid,1,jx,1,iy,'maps:htgrid')
+    call getmem(slope,1,jx,1,iy,'maps:slope')
+    call getmem(topostd,1,jx,1,iy,'maps:topostd')
     call getmem(dpth,1,jx,1,iy,'maps:dpth')
     call getmem(lndout,1,jx,1,iy,'maps:lndout')
     call getmem(mask,1,jx,1,iy,'maps:mask')
@@ -132,6 +137,8 @@ module mod_maps
     call getmem(dlat_bnds_s,1,4,1,jxsg,1,iysg,'maps:dlat_bnds_s')
     call getmem(dlon_bnds_s,1,4,1,jxsg,1,iysg,'maps:dlon_bnds_s')
     call getmem(htgrid_s,1,jxsg,1,iysg,'maps:htgrid_s')
+    call getmem(slope_s,1,jxsg,1,iysg,'maps:slope_s')
+    call getmem(topostd_s,1,jxsg,1,iysg,'maps:topostd_s')
     call getmem(dpth_s,1,jxsg,1,iysg,'maps:dpth_s')
     call getmem(lndout_s,1,jxsg,1,iysg,'maps:lndout_s')
     call getmem(mask_s,1,jxsg,1,iysg,'maps:mask_s')

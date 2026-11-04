@@ -115,7 +115,8 @@ module mod_domain
   subroutine read_domain_array_double(ncid,sigma,xlat,xlon,dlat,dlon, &
           ulat,ulon,vlat,vlon,ht,mask,lndcat,msfx,msfd,coriol,snowam, &
           hlake,topou,topov,xlat_bnds,xlon_bnds,dlat_bnds,dlon_bnds,  &
-          ulat_bnds,ulon_bnds,vlat_bnds,vlon_bnds,lsubgrid)
+          ulat_bnds,ulon_bnds,vlat_bnds,vlon_bnds,lsubgrid,  &
+          slope,topostd)
     implicit none
     integer(ik4), intent(in) :: ncid
     real(rk8), pointer, contiguous, dimension(:), intent(inout) :: sigma
@@ -172,6 +173,11 @@ module mod_domain
     real(rk8), pointer, contiguous, dimension(:,:,:), &
                        intent(inout), optional :: ulon_bnds
     logical, intent(in), optional :: lsubgrid
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: slope
+    real(rk8), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: topostd
+    logical :: has_stats
     logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
     has_dhlake = .true.
@@ -214,12 +220,24 @@ module mod_domain
     if ( present(ulon_bnds) ) call read_var3d_static(ncid,'ulon_bnds',ulon_bnds)
     if ( present(vlat_bnds) ) call read_var3d_static(ncid,'vlat_bnds',vlat_bnds)
     if ( present(vlon_bnds) ) call read_var3d_static(ncid,'vlon_bnds',vlon_bnds)
+    if ( present(slope) .or. present(topostd) ) then
+      has_stats = .true.
+      if ( present(slope) ) &
+        call read_var2d_static(ncid,'slope',slope,has_stats)
+      if ( present(topostd) .and. has_stats ) &
+        call read_var2d_static(ncid,'topo_stddev',topostd,has_stats)
+      if ( .not. has_stats ) then
+        call die('read_domain', &
+          'No slope or topo_stddev in the DOMAIN file: rerun terrain',1)
+      end if
+    end if
   end subroutine read_domain_array_double
 
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon, &
           ulat,ulon,vlat,vlon,ht,mask,lndcat,msfx,msfd,coriol,snowam, &
           hlake,topou,topov,xlat_bnds,xlon_bnds,dlat_bnds,dlon_bnds,  &
-          ulat_bnds,ulon_bnds,vlat_bnds,vlon_bnds,lsubgrid)
+          ulat_bnds,ulon_bnds,vlat_bnds,vlon_bnds,lsubgrid,  &
+          slope,topostd)
     implicit none
     integer(ik4), intent(in) :: ncid
     real(rk4), pointer, contiguous, dimension(:), intent(inout) :: sigma
@@ -276,6 +294,11 @@ module mod_domain
     real(rk4), pointer, contiguous, dimension(:,:,:), &
                        intent(inout), optional :: ulon_bnds
     logical, intent(in), optional :: lsubgrid
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: slope
+    real(rk4), pointer, contiguous, dimension(:,:), &
+                       intent(inout), optional :: topostd
+    logical :: has_stats
     logical :: has_snow, has_dhlake, has_kz
     has_snow = .true.
     has_dhlake = .true.
@@ -318,6 +341,17 @@ module mod_domain
     if ( present(ulon_bnds) ) call read_var3d_static(ncid,'ulon_bnds',ulon_bnds)
     if ( present(vlat_bnds) ) call read_var3d_static(ncid,'vlat_bnds',vlat_bnds)
     if ( present(vlon_bnds) ) call read_var3d_static(ncid,'vlon_bnds',vlon_bnds)
+    if ( present(slope) .or. present(topostd) ) then
+      has_stats = .true.
+      if ( present(slope) ) &
+        call read_var2d_static(ncid,'slope',slope,has_stats)
+      if ( present(topostd) .and. has_stats ) &
+        call read_var2d_static(ncid,'topo_stddev',topostd,has_stats)
+      if ( .not. has_stats ) then
+        call die('read_domain', &
+          'No slope or topo_stddev in the DOMAIN file: rerun terrain',1)
+      end if
+    end if
   end subroutine read_domain_array_single
 
 

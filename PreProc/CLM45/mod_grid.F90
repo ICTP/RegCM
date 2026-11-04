@@ -29,6 +29,8 @@ module mod_grid
   real(rkx), public :: clatx, clonx
 
   real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat, xlon, xmask, topo
+  ! Mean slope (degrees) and elevation standard deviation (m), from terrain
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: slope, topostd
   real(rkx), public, pointer, contiguous, dimension(:) :: sigx, zita
   real(rk4), public, pointer, contiguous, dimension(:,:) :: rxlat, rxlon
   real(rk4), public, pointer, contiguous, dimension(:) :: rsigx, ax, bx
@@ -64,6 +66,8 @@ module mod_grid
     call getmem(rxlon,1,jxsg,1,iysg,'mod_read_domain:rxlon')
     call getmem(xmask,1,jxsg,1,iysg,'mod_read_domain:xmask')
     call getmem(topo,1,jxsg,1,iysg,'mod_read_domain:topo')
+    call getmem(slope,1,jxsg,1,iysg,'mod_read_domain:slope')
+    call getmem(topostd,1,jxsg,1,iysg,'mod_read_domain:topostd')
     call getmem(xtrans_i4,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_i4')
     call getmem(xtrans_r4,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_r4')
     call getmem(xtrans_r8,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_r8')

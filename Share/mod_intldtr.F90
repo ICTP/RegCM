@@ -25,7 +25,7 @@ module mod_intldtr
 
   private
 
-  public :: mxmnll, interp, puddlefilter
+  public :: mxmnll, interp, puddlefilter, topostats
 
   real(rk8), public :: grdlnmn, grdltmn, grdlnma, grdltma
   real(rk8), public :: xmaxlat, xmaxlon, xminlat, xminlon
@@ -540,6 +540,102 @@ module mod_intldtr
         call die('interp')
     end select
   end subroutine interp
+
+  !
+  ! Statistics of the elevation imt (the DEM read by read_ncglob without
+  ! resampling) inside the box of side ds (km) centred on each grid point:
+  ! the mean slope (degrees) and the standard deviation of the elevation
+  ! (m). The slope of a DEM pixel is the magnitude of its centred gradient.
+  ! Values below -1000 m are missing data. If the box is smaller than a
+  ! DEM pixel, the nearest pixel is used.
+  !
+  subroutine topostats(ds,jx,iy,xlat,xlon,imt,slope,stddev)
+    implicit none
+    integer(ik4), intent(in) :: iy, jx
+    real(rkx), intent(in) :: ds
+    real(rkx), intent(in), dimension(jx,iy) :: xlat, xlon
+    real(rkx), intent(in), dimension(nlonin,nlatin) :: imt
+    real(rkx), intent(out), dimension(jx,iy) :: slope, stddev
+    real(rkx), parameter :: zmiss = -1000.0_rkx
+    integer(ik4) :: ii, jj, k, l, kc, lc, nkx, nly, n, ns
+    real(rk8) :: incx, incy, xx, yy, dym, dxm, dxl, gx, gy
+    real(rk8) :: half, zm, zv, sm, plat
+
+    incy = (grdltma-grdltmn)/real(nlatin-1,rk8)
+    if ( lcrosstime ) then
+      if ( grdlnmn > grdlnma ) then
+        incx = ((360.0_rk8+grdlnma)-grdlnmn)/real(nlonin-1,rk8)
+      else
+        incx = (grdlnma-grdlnmn)/real(nlonin-1,rk8)
+      end if
+    else if ( grdlnmn > grdlnma ) then
+      incx = (grdlnma+(360.0_rk8-grdlnmn))/real(nlonin-1,rk8)
+      grdlnmn = -(360.0_rk8-grdlnmn)
+    else
+      incx = (grdlnma-grdlnmn)/real(nlonin-1,rk8)
+    end if
+    ! Pixel size along a meridian (m) and half side of the box (m)
+    dym = earthrad_r8*incy*degrad_r8
+    half = 500.0_rk8*real(ds,rk8)
+
+    do ii = 1, iy
+      do jj = 1, jx
+        yy = (xlat(jj,ii)-grdltmn)/incy + d_one
+        if ( lcrosstime ) then
+          xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn)/incx + d_one
+        else
+          xx = (xlon(jj,ii)-grdlnmn)/incx + d_one
+        end if
+        lc = nint(yy)
+        kc = nint(xx)
+        dxm = max(earthrad_r8*cos(xlat(jj,ii)*degrad_r8)*incx*degrad_r8, &
+                  1.0_rk8)
+        nly = int(half/dym)
+        nkx = int(half/dxm)
+        ! Mean elevation and mean slope
+        n = 0
+        ns = 0
+        zm = 0.0_rk8
+        sm = 0.0_rk8
+        do l = max(lc-nly,1), min(lc+nly,nlatin)
+          plat = grdltmn + real(l-1,rk8)*incy
+          dxl = max(earthrad_r8*cos(plat*degrad_r8)*incx*degrad_r8,1.0_rk8)
+          do k = max(kc-nkx,1), min(kc+nkx,nlonin)
+            if ( imt(k,l) < zmiss ) cycle
+            n = n + 1
+            zm = zm + imt(k,l)
+            if ( l > 1 .and. l < nlatin .and. k > 1 .and. k < nlonin ) then
+              if ( imt(k-1,l) < zmiss .or. imt(k+1,l) < zmiss .or. &
+                   imt(k,l-1) < zmiss .or. imt(k,l+1) < zmiss ) cycle
+              gx = (imt(k+1,l)-imt(k-1,l))/(2.0_rk8*dxl)
+              gy = (imt(k,l+1)-imt(k,l-1))/(2.0_rk8*dym)
+              sm = sm + atan(sqrt(gx*gx+gy*gy))
+              ns = ns + 1
+            end if
+          end do
+        end do
+        if ( ns > 0 ) then
+          slope(jj,ii) = real(raddeg_r8*sm/real(ns,rk8),rkx)
+        else
+          slope(jj,ii) = 0.0_rkx
+        end if
+        ! Standard deviation of the elevation
+        if ( n > 1 ) then
+          zm = zm/real(n,rk8)
+          zv = 0.0_rk8
+          do l = max(lc-nly,1), min(lc+nly,nlatin)
+            do k = max(kc-nkx,1), min(kc+nkx,nlonin)
+              if ( imt(k,l) < zmiss ) cycle
+              zv = zv + (imt(k,l)-zm)**2
+            end do
+          end do
+          stddev(jj,ii) = real(sqrt(zv/real(n,rk8)),rkx)
+        else
+          stddev(jj,ii) = 0.0_rkx
+        end if
+      end do
+    end do
+  end subroutine topostats
 
   subroutine puddlefilter(jx,iy,omt)
     implicit none
