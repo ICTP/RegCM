@@ -239,13 +239,11 @@ module mod_write
     v2dvar_base(nvar2d-1)%vunit = 'degree'
     v2dvar_base(nvar2d-1)%long_name = 'Mean slope of the DEM in the cell'
     v2dvar_base(nvar2d-1)%standard_name = 'ground_slope_angle'
-    v2dvar_base(nvar2d-1)%cell_method = 'area: mean'
     v2dvar_base(nvar2d)%vname = 'topo_stddev'
     v2dvar_base(nvar2d)%vunit = 'm'
     v2dvar_base(nvar2d)%long_name = &
       'Standard deviation of the DEM elevation in the cell'
     v2dvar_base(nvar2d)%standard_name = 'surface_altitude'
-    v2dvar_base(nvar2d)%cell_method = 'area: standard_deviation'
 
     v2dvar_lake%vname = 'dhlake'
     v2dvar_lake%vunit = 'm'
