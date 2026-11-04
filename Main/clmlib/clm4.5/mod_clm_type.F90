@@ -2071,8 +2071,6 @@ module mod_clm_type
     real(rk8), pointer, contiguous, dimension(:) :: frac_sno_eff => null()
     !fractional area with surface water greater than zero
     real(rk8), pointer, contiguous, dimension(:) :: frac_h2osfc => null()
-    !temporay fractional area with surface water greater than zero
-    real(rk8), pointer, contiguous, dimension(:) :: frac_h2osfc_temp => null()
     !gridcell topographic standard deviation (m)
     real(rk8), pointer, contiguous, dimension(:) :: topo_std => null()
     !gridcell topographic index

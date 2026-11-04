@@ -836,8 +836,8 @@ module mod_atm_stub
           end if
           qvatm(j,i) = x0*xqb%b0(j,i,kz) + x1*xqb%b1(j,i,kz)
           rho(j,i) = ps(j,i)/(rgas*tatm(j,i))
-          thatm(j,i) = tatm(j,i) / (p00/patm(j,i))**rovcp
-          tp(j,i) = tatm(j,i) / (ps(j,i)/patm(j,i))**rovcp
+          thatm(j,i) = tatm(j,i) * (p00/patm(j,i))**rovcp
+          tp(j,i) = tatm(j,i) * (ps(j,i)/patm(j,i))**rovcp
         end do
       end do
       xbctime = xbctime + dtsrf

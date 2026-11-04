@@ -1771,7 +1771,6 @@ module mod_clm_typeinit
     allocate(cps%frac_h2osfc(ibeg:iend), source=spval)
     allocate(cps%micro_sigma(ibeg:iend), source=nan_r8)
     allocate(cps%h2osfc_thresh(ibeg:iend), source=nan_r8)
-    allocate(cps%frac_h2osfc_temp(ibeg:iend), source=0.0_rk8)
     allocate(cps%n_melt(ibeg:iend), source=nan_r8)
   end subroutine init_column_pstate_type
   !

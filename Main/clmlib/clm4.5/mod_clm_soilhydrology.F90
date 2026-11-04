@@ -23,7 +23,6 @@ module mod_clm_soilhydrology
   use mod_clm_vicmap, only : CLMVICMap
 #endif
   use mod_clm_varpar, only : nlevsoi, max_pft_per_col, nlevgrnd
-  use mod_clm_h2osfc, only : FracH2oSfc_new
   use mod_clm_tridiagonal, only : Tridiagonal
 
   implicit none
@@ -374,8 +373,6 @@ module mod_clm_soilhydrology
     real(rk8), pointer, contiguous :: h2osfc(:)           ! surface water (mm)
     ! fraction of ground covered by surface water (0 to 1)
     real(rk8), pointer, contiguous :: frac_h2osfc(:)
-    ! fraction of ground covered by surface water (0 to 1)
-    real(rk8), pointer, contiguous :: frac_h2osfc_temp(:)
     real(rk8), pointer, contiguous :: h2osoi_liq(:,:) ! liquid water (kg/m2)
     real(rk8), pointer, contiguous :: h2osoi_ice(:,:) ! ice lens (kg/m2)
     ! volumetric soil water at saturation (porosity)
@@ -394,7 +391,6 @@ module mod_clm_soilhydrology
     real(rk8), pointer, contiguous :: fcov(:)
     ! effective porosity = porosity - vol_ice
     real(rk8), pointer, contiguous :: eff_porosity(:,:)
-    real(rk8), pointer, contiguous :: h2osno(:)         ! snow water (mm H2O)
     real(rk8), pointer, contiguous :: snow_depth(:)     ! snow height (m)
     real(rk8), pointer, contiguous :: topo_slope(:)     ! topographic slope
     ! evaporation flux from snow (W/m**2) [+ to atm]
@@ -459,10 +455,6 @@ module mod_clm_soilhydrology
     real(rk8) :: top_fracice
 #endif
 
-    ! microtopography pdf sigma (m)
-    real(rk8), pointer, contiguous :: micro_sigma(:)
-    ! eff. fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer, contiguous :: frac_sno_eff(:)
     real(rk8), pointer, contiguous :: topo_ndx(:)     ! topographic slope
 
     ! Assign local pointers to derived type members (column-level)
@@ -475,7 +467,6 @@ module mod_clm_soilhydrology
     qflx_evap_soi  => clm3%g%l%c%cwf%pwf_a%qflx_evap_soi
     qflx_h2osfc_surf  => clm3%g%l%c%cwf%qflx_h2osfc_surf
     frac_h2osfc    => clm3%g%l%c%cps%frac_h2osfc
-    frac_h2osfc_temp => clm3%g%l%c%cps%frac_h2osfc_temp
     h2osfc         => clm3%g%l%c%cws%h2osfc
     h2osoi_ice     => clm3%g%l%c%cws%h2osoi_ice
     h2osoi_liq     => clm3%g%l%c%cws%h2osoi_liq
@@ -489,7 +480,6 @@ module mod_clm_soilhydrology
     hksat          => clm3%g%l%c%cps%hksat
     hksat_min      => clm3%g%l%c%cps%hksat_min
     dz             => clm3%g%l%c%cps%dz
-    h2osno         => clm3%g%l%c%cws%h2osno
     snow_depth     => clm3%g%l%c%cps%snow_depth
     t_h2osfc       => clm3%g%l%c%ces%t_h2osfc
     clandunit      => clm3%g%l%c%landunit
@@ -518,15 +508,9 @@ module mod_clm_soilhydrology
 
     h2osoi_liq          => clm3%g%l%c%cws%h2osoi_liq
     h2osfc              => clm3%g%l%c%cws%h2osfc
-    micro_sigma         => clm3%g%l%c%cps%micro_sigma
     topo_slope          => clm3%g%l%c%cps%topo_slope
     topo_ndx            => clm3%g%l%c%cps%topo_ndx
-    ltype               => clm3%g%l%itype
     clandunit           => clm3%g%l%c%landunit
-
-    frac_sno            => clm3%g%l%c%cps%frac_sno
-    frac_sno_eff        => clm3%g%l%c%cps%frac_sno_eff
-    h2osno              => clm3%g%l%c%cws%h2osno
 
     ! Infiltration into surface soil layer (minus the evaporation)
     do concurrent ( fc = 1:num_hydrologyc, j = 1:nlevsoi )
@@ -612,16 +596,10 @@ module mod_clm_soilhydrology
         !5. surface runoff from h2osfc
         if ( h2osfcflag == 1 ) then
           ! calculate runoff from h2osfc
+          ! No runoff below the percolation threshold pc (as in the later
+          ! CLM4.5 releases)
           if ( frac_h2osfc(c) <= pc ) then
-            ! there is a potential conflict between frac_sno and frac_h2osfc
-            ! calculate temporary surface water fraction to enable runoff
-            ! when frac_sno is large
-            if ( h2osfc(c) >= h2osfc_thresh(c) ) then
-              call FracH2oSfc_new(frac_h2osfc_temp(c), &
-                    h2osoi_liq(c,1),h2osfc(c),micro_sigma(c),ltype(l), &
-                    frac_sno(c),frac_sno_eff(c),h2osno(c))
-              frac_infclust = max((frac_h2osfc_temp(c)-pc),0.0_rk8)**mu
-            end if
+            frac_infclust = 0.0_rk8
           else
             frac_infclust = (frac_h2osfc(c)-pc)**mu
           end if

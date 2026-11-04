@@ -14,7 +14,7 @@ module mod_clm_h2osfc
   real(rk8), parameter :: min_h2osfc = 5.e-8_rk8
 
   ! Calculate fraction of land surface that is wet
-  public :: FracH2oSfc, FracH2oSfc_new
+  public :: FracH2oSfc
 
   contains
   !
@@ -111,74 +111,6 @@ module mod_clm_h2osfc
       end if
     end do
   end subroutine FracH2oSfc
-
-  pure subroutine FracH2oSfc_new(frac_h2osfc,h2osoi_liq,h2osfc,micro_sigma, &
-                  ltype,frac_sno,frac_sno_eff,h2osno)
-    !$acc routine seq
-    use mod_clm_type
-    use mod_clm_varcon, only : rpi, istsoil, istcrop
-    implicit none
-
-    ! fractional surface water (mm)
-    real(rk8), intent(inout) :: frac_h2osfc
-    ! liquid water (col,lyr) [kg/m2]
-    real(rk8), intent(inout) :: h2osoi_liq
-    ! surface water (mm)
-    real(rk8), intent(inout) :: h2osfc
-    ! microtopography pdf sigma (m)
-    real(rk8), intent(in) :: micro_sigma
-    integer(ik4), intent(in) :: ltype      ! landunit type
-    ! fraction of ground covered by snow (0 to 1)
-    real(rk8), intent(inout) :: frac_sno
-    ! eff. fraction of ground covered by snow (0 to 1)
-    real(rk8), intent(inout) :: frac_sno_eff
-    real(rk8), intent(in) :: h2osno        ! snow water (mm H2O)
-
-    integer(ik4) :: l    ! indices
-    real(rk8) :: d, fd, dfdd  ! temporary variable for frac_h2oscs iteration
-    real(rk8) :: sigma        ! microtopography pdf sigma in mm
-
-    ! h2osfc only calculated for soil vegetated land units
-    if ( ltype == istsoil .or. ltype == istcrop ) then
-      !  Use newton-raphson method to iteratively determine frac_h20sfc
-      !  based on amount of surface water storage (h2osfc) and
-      !  microtopography variability (micro_sigma)
-      if ( h2osfc > min_h2osfc ) then
-        ! a cutoff is needed for numerical reasons...
-        ! (nonconvergence after 5 iterations)
-        d = 0.0_rk8
-        sigma = 1.0e3_rk8 * micro_sigma ! convert to mm
-        do l = 1, 10
-          if ( d**2/(2.0_rk8*sigma**2) < 25.0_rk8 ) then
-            fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8)))) + &
-                  sigma/sqrt(2.0_rk8*rpi)*exp(-d**2/(2.0_rk8*sigma**2)) - &
-                  h2osfc
-          else
-            fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8))))-h2osfc
-          end if
-          dfdd = 0.5_rk8*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8))))
-          d = d - fd/dfdd
-        end do
-        !--  update the submerged areal fraction using the new d value
-        frac_h2osfc = 0.5_rk8*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8))))
-      else
-        frac_h2osfc = 0._rk8
-        h2osoi_liq = h2osoi_liq + h2osfc
-        h2osfc = 0._rk8
-      end if
-      if ( frac_sno > (1._rk8 - frac_h2osfc) .and. h2osno > 0._rk8 ) then
-        if ( frac_h2osfc > 0.01_rk8 ) then
-          frac_h2osfc = max(1.0_rk8 - frac_sno,0.01_rk8)
-          frac_sno = 1.0_rk8 - frac_h2osfc
-        else
-          frac_sno = 1.0_rk8 - frac_h2osfc
-        end if
-        frac_sno_eff = frac_sno
-      end if
-    else
-      frac_h2osfc = 0._rk8
-    end if
-  end subroutine FracH2oSfc_new
 
 end module mod_clm_h2osfc
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
