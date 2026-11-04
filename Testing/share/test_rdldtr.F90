@@ -40,6 +40,10 @@ program test_rdldtr
   integer(ik4) :: nlatin, nlonin, i, j, m
   type(globalfile) :: gfile
   character(len=48) :: msg
+  real(rkx), parameter :: flag = -1.0_rkx
+  real(rkx), dimension(7,7) :: g2
+  real(rkx), dimension(12,1) :: gl
+  real(rkx), dimension(7,7,2) :: g3
 
   call memory_init
   do i = 1, ni
@@ -114,6 +118,32 @@ program test_rdldtr
              any(abs(var-7.0_rkx) < 1.0e-4_rkx), &
     'masked points are missing')
   call gfclose(gfile)
+
+  ! bestaround: the nearest valid point, not the first one scanned
+  g2 = flag
+  g2(3,3) = 1.0_rkx   ! distance sqrt(2) from (4,4), scanned first
+  g2(4,5) = 2.0_rkx   ! distance 1 from (4,4)
+  call bestaround(g2,flag)
+  call check(g2(4,4) == 2.0_rkx,'bestaround takes the nearest point')
+  call check(g2(1,1) == 1.0_rkx .and. g2(7,7) == 2.0_rkx, &
+    'bestaround fills up to the domain edges')
+  ! A point 10 away is found, one 11 away is not
+  gl = flag
+  gl(11,1) = 5.0_rkx
+  call bestaround(gl,flag)
+  call check(gl(1,1) == 5.0_rkx,'bestaround searches 10 points away')
+  gl = flag
+  gl(12,1) = 5.0_rkx
+  call bestaround(gl,flag)
+  call check(gl(1,1) == h_missing_value .and. gl(2,1) == 5.0_rkx, &
+    'bestaround leaves far points missing')
+  ! All levels are copied from the point chosen on the first level
+  g3 = flag
+  g3(3,3,:) = [1.0_rkx,10.0_rkx]
+  g3(4,5,:) = [2.0_rkx,20.0_rkx]
+  call bestaround(g3,flag)
+  call check(g3(4,4,1) == 2.0_rkx .and. g3(4,4,2) == 20.0_rkx, &
+    'bestaround copies all levels from one point')
 
   call memory_destroy
   call test_end('test_rdldtr')

@@ -1781,180 +1781,112 @@ module mod_rdldtr
     end if
   end subroutine gfclose
 
+  !
+  ! For every point flagged in grid, the nearest point not flagged, by
+  ! distance in grid units, searched up to maxil points away. Ties go to
+  ! the first point in the scan order. Indices are 1-based within the
+  ! array; jn = in = 0 where no valid point is found.
+  !
+  subroutine nearest_valid(valid,jn,in)
+    implicit none
+    logical, dimension(:,:), intent(in) :: valid
+    integer(ik4), dimension(:,:), intent(out) :: jn, in
+    integer(ik4), parameter :: maxil = 10
+    integer(ik4) :: nj, ni, i, j, ii, jj, il, d2, best
+    nj = size(valid,1)
+    ni = size(valid,2)
+    jn = 0
+    in = 0
+    do i = 1, ni
+      do j = 1, nj
+        if ( valid(j,i) ) cycle
+        best = huge(best)
+        do il = 1, maxil
+          ! Points of this ring are at least il away
+          if ( il*il >= best ) exit
+          do ii = max(i-il,1), min(i+il,ni)
+            do jj = max(j-il,1), min(j+il,nj)
+              if ( max(abs(ii-i),abs(jj-j)) /= il ) cycle
+              if ( .not. valid(jj,ii) ) cycle
+              d2 = (ii-i)**2 + (jj-j)**2
+              if ( d2 < best ) then
+                best = d2
+                jn(j,i) = jj
+                in(j,i) = ii
+              end if
+            end do
+          end do
+        end do
+      end do
+    end do
+  end subroutine nearest_valid
+
   subroutine bestaround2d(grid,flagval)
     implicit none
     real(rkx), dimension(:,:), intent(inout) :: grid
     real(rkx), intent(in) :: flagval
-    integer(ik4) :: i, j, ii, jj, js, is, il
-    integer(ik4) :: iis, jjs, iie, jje
-    integer, parameter :: maxil = 10
-    real(rkx), dimension(:,:), allocatable :: destgrid
-
-    jjs = lbound(grid,1)
-    iis = lbound(grid,2)
-    jje = ubound(grid,1)
-    iie = ubound(grid,2)
-
-    allocate(destgrid(jjs:jje,iis:iie))
-    destgrid(:,:) = grid(:,:)
-    do i = iis, iie
-      do j = jjs, jje
-        il = 1
-        if ( grid(j,i) == flagval ) then
-          findloop: do
-            do ii = i - il, i + il
-              is = min(max(ii,iis),iie)
-              do jj = j - il, j + il
-                js = min(max(jj,jjs),jje)
-                if ( grid(js,is) /= flagval ) then
-                  destgrid(j,i) = grid(js,is)
-                  exit findloop
-                end if
-              end do
-            end do
-            il = il + 1
-            if ( il == maxil ) then
-              exit findloop
-            end if
-          end do findloop
+    integer(ik4), dimension(:,:), allocatable :: jn, in
+    real(rkx), dimension(:,:), allocatable :: src
+    integer(ik4) :: i, j
+    allocate(jn(size(grid,1),size(grid,2)),in(size(grid,1),size(grid,2)))
+    call nearest_valid(grid /= flagval,jn,in)
+    src = grid
+    do i = 1, size(grid,2)
+      do j = 1, size(grid,1)
+        if ( src(j,i) /= flagval ) cycle
+        if ( jn(j,i) > 0 ) then
+          grid(j,i) = src(jn(j,i),in(j,i))
+        else
+          grid(j,i) = h_missing_value
         end if
       end do
     end do
-    do i = iis, iie
-      do j = jjs, jje
-        if ( destgrid(j,i) == flagval ) then
-          destgrid(j,i) = h_missing_value
-        end if
-      end do
-    end do
-    grid = destgrid
-    deallocate(destgrid)
   end subroutine bestaround2d
 
   subroutine bestaround3d(grid,flagval)
     implicit none
     real(rkx), dimension(:,:,:), intent(inout) :: grid
     real(rkx), intent(in) :: flagval
-    integer(ik4) :: i, j, k, ii, jj, js, is, il
-    integer(ik4) :: iis, jjs, iie, jje, kks, kke
-    integer, parameter :: maxil = 10
-    integer(ik4), dimension(:,:), allocatable :: igrid, jgrid
-
-    jjs = lbound(grid,1)
-    iis = lbound(grid,2)
-    kks = lbound(grid,3)
-    jje = ubound(grid,1)
-    iie = ubound(grid,2)
-    kke = ubound(grid,3)
-
-    allocate(igrid(jjs:jje,iis:iie),jgrid(jjs:jje,iis:iie))
-    igrid = -1
-    jgrid = -1
-    do i = iis, iie
-      do j = jjs, jje
-        il = 1
-        if ( grid(j,i,kks) == flagval ) then
-          findloop: do
-            do ii = i - il, i + il
-              is = min(max(ii,iis),iie)
-              do jj = j - il, j + il
-                js = min(max(jj,jjs),jje)
-                if ( grid(js,is,kks) /= flagval ) then
-                  jgrid(j,i) = js
-                  igrid(j,i) = is
-                  exit findloop
-                end if
-              end do
-            end do
-            il = il + 1
-            if ( il == maxil ) then
-              jgrid(j,i) = -2
-              igrid(j,i) = -2
-              exit findloop
-            end if
-          end do findloop
-        end if
-      end do
-    end do
-    do k = kks, kke
-      do i = iis, iie
-        do j = jjs, jje
-          if ( jgrid(j,i) > 0 .and. igrid(j,i) > 0 ) then
-            grid(j,i,k) = grid(jgrid(j,i),igrid(j,i),k)
-          else
-            if ( jgrid(j,i) < -1 .and. igrid(j,i) < -1 ) then
-              grid(j,i,k) = h_missing_value
-            end if
+    integer(ik4), dimension(:,:), allocatable :: jn, in
+    integer(ik4) :: i, j, k
+    allocate(jn(size(grid,1),size(grid,2)),in(size(grid,1),size(grid,2)))
+    ! The first level decides which points are missing
+    call nearest_valid(grid(:,:,1) /= flagval,jn,in)
+    do k = 1, size(grid,3)
+      do i = 1, size(grid,2)
+        do j = 1, size(grid,1)
+          if ( jn(j,i) > 0 ) then
+            grid(j,i,k) = grid(jn(j,i),in(j,i),k)
+          else if ( grid(j,i,1) == flagval ) then
+            grid(j,i,k) = h_missing_value
           end if
         end do
       end do
     end do
-    deallocate(igrid,jgrid)
   end subroutine bestaround3d
 
   subroutine bestaround4d(grid,flagval)
     implicit none
     real(rkx), dimension(:,:,:,:), intent(inout) :: grid
     real(rkx), intent(in) :: flagval
-    integer(ik4) :: i, j, k, n, ii, jj, js, is, il
-    integer(ik4) :: iis, jjs, iie, jje, kks, kke, nns, nne
-    integer, parameter :: maxil = 10
-    integer(ik4), dimension(:,:), allocatable :: igrid, jgrid
-
-    jjs = lbound(grid,1)
-    iis = lbound(grid,2)
-    kks = lbound(grid,3)
-    nns = lbound(grid,4)
-    jje = ubound(grid,1)
-    iie = ubound(grid,2)
-    kke = ubound(grid,3)
-    nne = ubound(grid,4)
-
-    allocate(igrid(jjs:jje,iis:iie),jgrid(jjs:jje,iis:iie))
-    igrid = -1
-    jgrid = -1
-    do i = iis, iie
-      do j = jjs, jje
-        il = 1
-        if ( grid(j,i,kks,nns) == flagval ) then
-          findloop: do
-            do ii = i - il, i + il
-              is = min(max(ii,iis),iie)
-              do jj = j - il, j + il
-                js = min(max(jj,jjs),jje)
-                if ( grid(js,is,kks,nns) /= flagval ) then
-                  jgrid(j,i) = js
-                  igrid(j,i) = is
-                  exit findloop
-                end if
-              end do
-            end do
-            il = il + 1
-            if ( il == maxil ) then
-              jgrid(j,i) = -2
-              igrid(j,i) = -2
-              exit findloop
-            end if
-          end do findloop
-        end if
-      end do
-    end do
-    do n = nns, nne
-      do k = kks, kke
-        do i = iis, iie
-          do j = jjs, jje
-            if ( jgrid(j,i) > 0 .and. igrid(j,i) > 0 ) then
-              grid(j,i,k,n) = grid(jgrid(j,i),igrid(j,i),k,n)
-            else
-              if ( jgrid(j,i) < -1 .and. igrid(j,i) < -1 ) then
-                grid(j,i,k,n) = h_missing_value
-              end if
+    integer(ik4), dimension(:,:), allocatable :: jn, in
+    integer(ik4) :: i, j, k, n
+    allocate(jn(size(grid,1),size(grid,2)),in(size(grid,1),size(grid,2)))
+    ! The first level decides which points are missing
+    call nearest_valid(grid(:,:,1,1) /= flagval,jn,in)
+    do n = 1, size(grid,4)
+      do k = 1, size(grid,3)
+        do i = 1, size(grid,2)
+          do j = 1, size(grid,1)
+            if ( jn(j,i) > 0 ) then
+              grid(j,i,k,n) = grid(jn(j,i),in(j,i),k,n)
+            else if ( grid(j,i,1,1) == flagval ) then
+              grid(j,i,k,n) = h_missing_value
             end if
           end do
         end do
       end do
     end do
-    deallocate(igrid,jgrid)
   end subroutine bestaround4d
 
 end module mod_rdldtr
