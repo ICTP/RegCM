@@ -114,6 +114,7 @@ module mod_output
     logical :: lasync_batch
     integer(ik4) :: i, j, k, n, kk, itr
     real(rkx) :: cell, srffac, radfac, lakfac, subfac, optfac, stsfac
+    real(rkx) :: wmass, rtot, wv, wl, wi
     logical, save :: diag_hf_started = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
@@ -1635,6 +1636,43 @@ module mod_output
         if ( associated(rad_pai_out) ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             rad_pai_out(j,i,k) = mo_atm%pai(j,i,k)
+          end do
+        end if
+        ! Water vapour, condensed water (liquid and ice) and ice paths at
+        ! the output time: grid cell means of the prognostic species.
+        ! The layer air mass is divided by 1 + the total water mixing
+        ! ratio to give the dry air mass the mixing ratios refer to.
+        if ( associated(rad_totwv_out) .and. &
+             associated(rad_totcl_out) .and. &
+             associated(rad_totci_out) ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            wv = d_zero
+            wl = d_zero
+            wi = d_zero
+            do k = 1, kz
+              rtot = d_zero
+              do n = 1, nqx
+                if ( idynamic == 3 ) then
+                  rtot = rtot + mo_atm%qx(j,i,k,n)
+                else
+                  rtot = rtot + atm1%qx(j,i,k,n)/sfs%psa(j,i)
+                end if
+              end do
+              if ( idynamic == 3 ) then
+                wmass = mo_atm%rho(j,i,k)*mo_atm%dz(j,i,k)/(d_one+rtot)
+                wv = wv + wmass*mo_atm%qx(j,i,k,iqv)
+                wl = wl + wmass*mo_atm%qx(j,i,k,iqc)
+                if ( ipptls > 1 ) wi = wi + wmass*mo_atm%qx(j,i,k,iqi)
+              else
+                wmass = d_1000*dsigma(k)*regrav/(d_one+rtot)
+                wv = wv + wmass*atm1%qx(j,i,k,iqv)
+                wl = wl + wmass*atm1%qx(j,i,k,iqc)
+                if ( ipptls > 1 ) wi = wi + wmass*atm1%qx(j,i,k,iqi)
+              end if
+            end do
+            rad_totwv_out(j,i) = wv
+            rad_totcl_out(j,i) = wl + wi
+            rad_totci_out(j,i) = wi
           end do
         end if
         if ( associated(rad_higcl_out) ) then

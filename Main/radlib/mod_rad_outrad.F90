@@ -266,26 +266,10 @@ module mod_rad_outrad
           call copy4d1(outtaucl,rad_taucl_out,4)
           call copy4d1(outtauci,rad_tauci_out,4)
         end if
-        call copy2d(totwv,rad_totwv_out)
-        call copy2d(totcl,rad_totcl_out)
-        call copy2d(totci,rad_totci_out)
       end if
     end if
 
   end subroutine radout
-
-  subroutine copy2d(a,b)
-    implicit none
-    real(rk8), pointer, contiguous, intent(in), dimension(:) :: a
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:) :: b
-    integer(ik4) :: i, j, n
-    if ( associated(b) ) then
-      do concurrent ( j=jci1:jci2, i=ici1:ici2 )
-        n = (j-jci1)+(i-ici1)*nj+1
-        b(j,i) = real(a(n),rkx)
-      end do
-    end if
-  end subroutine copy2d
 
   subroutine copy2d_integrate_from3(a,b,l,ki,kl)
     implicit none

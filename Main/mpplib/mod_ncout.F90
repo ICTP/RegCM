@@ -2469,19 +2469,21 @@ module mod_ncout
         end if
         if ( enable_rad2d_vars(rad_totwv) ) then
           call setup_var(v2dvar_rad,rad_totwv,vsize,'prw','kg m-2', &
-            'Water Vapor Path','atmosphere_water_vapor_content',.true.)
+            'Water Vapor Path','atmosphere_water_vapor_content',.true., &
+            'time: point')
           rad_totwv_out => v2dvar_rad(rad_totwv)%rval
         end if
         if ( enable_rad2d_vars(rad_totcl) ) then
           call setup_var(v2dvar_rad,rad_totcl,vsize,'clwvi','kg m-2', &
-            'Condensed Water Mass Content', &
-            'atmosphere_mass_content_of_cloud_condensed_water',.true.)
+            'Condensed Water Path', &
+            'atmosphere_mass_content_of_cloud_condensed_water',.true., &
+            'time: point')
           rad_totcl_out => v2dvar_rad(rad_totcl)%rval
         end if
         if ( enable_rad2d_vars(rad_totci) ) then
           call setup_var(v2dvar_rad,rad_totci,vsize,'clivi','kg m-2', &
-            'Ice Water Mass Content', &
-            'atmosphere_mass_content_of_cloud_ice',.true.)
+            'Ice Water Path', &
+            'atmosphere_mass_content_of_cloud_ice',.true.,'time: point')
           rad_totci_out => v2dvar_rad(rad_totci)%rval
         end if
         if ( enable_rad2d_vars(rad_lwout) ) then
