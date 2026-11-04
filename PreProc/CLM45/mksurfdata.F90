@@ -184,7 +184,6 @@ program mksurfdata
   character(len=64) :: csdate, pftfile, laifile
   real(rkx), dimension(:,:), pointer, contiguous :: pctspec => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: pctslake => null( )
-  real(rkx), dimension(:,:), pointer, contiguous :: pctbare => null( )
   real(rkx), pointer, contiguous, dimension(:,:) :: var2d => null( )
   integer(ik4), pointer, contiguous, dimension(:,:) :: ivar2d => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: var3d => null( )
@@ -932,7 +931,6 @@ program mksurfdata
 
   call getmem(pctspec,1,jxsg,1,iysg,'mksurfdata: pctspec')
   call getmem(pctslake,1,jxsg,1,iysg,'mksurfdata: pctslake')
-  call getmem(pctbare,1,jxsg,1,iysg,'mksurfdata: pctbare')
   call getmem(gcvar,1,ngcells,'mksurfdata: gcvar')
   call getmem(igcvar,1,ngcells,'mksurfdata: igcvar')
   call getmem(iiy,1,ngcells,'mksurfdata: iiy')
@@ -940,7 +938,6 @@ program mksurfdata
   call getmem(landpoint,1,ngcells,'mksurfdata: landpoint')
   pctspec(:,:) = 0.0_rkx
   pctslake(:,:) = 0.0_rkx
-  pctbare(:,:) = 0.0_rkx
   ip = 1
   do i = igstart, igstop
     do j = jgstart, jgstop
@@ -1078,9 +1075,6 @@ program mksurfdata
               diff = spft - (100.0_rkx-pctspec(j,i))
             end do
           end if
-        end if
-        if ( var3dp(j,i,1) > 50.0_rkx ) then
-          pctbare(j,i) = var3dp(j,i,1)
         end if
       end if
     end do
