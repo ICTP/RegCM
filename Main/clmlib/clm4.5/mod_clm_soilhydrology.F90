@@ -1931,11 +1931,12 @@ module mod_clm_soilhydrology
 
     do concurrent ( fc = 1:num_hydrologyc )
       c = filter_hydrologyc(fc)
-      xs1(c) = max(max(h2osoi_liq(c,1),0.0_rk8) - &
+      ! The excess keeps watmin in the layer, to avoid water balance
+      ! errors (as in the later CLM4.5 releases)
+      xs1(c) = max(max(h2osoi_liq(c,1)-watmin,0.0_rk8) - &
                    max(0.0_rk8,(pondmx+watsat(c,1)*dzmm(c,1) - &
-                       h2osoi_ice(c,1))),0.0_rk8)
-      h2osoi_liq(c,1) = min(max(0.0_rk8,pondmx+watsat(c,1)*dzmm(c,1) - &
-              h2osoi_ice(c,1)), h2osoi_liq(c,1))
+                       h2osoi_ice(c,1)-watmin)),0.0_rk8)
+      h2osoi_liq(c,1) = h2osoi_liq(c,1) - xs1(c)
       if ( ltype(clandunit(c)) == isturb ) then
         qflx_rsub_sat(c)     = xs1(c) / dtsrf
       else
