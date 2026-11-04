@@ -1642,8 +1642,8 @@ module mod_output
         ! the output time: grid cell means of the prognostic species.
         ! The layer air mass is divided by 1 + the total water mixing
         ! ratio to give the dry air mass the mixing ratios refer to.
-        if ( associated(rad_totwv_out) .and. &
-             associated(rad_totcl_out) .and. &
+        if ( associated(rad_totwv_out) .or. &
+             associated(rad_totcl_out) .or. &
              associated(rad_totci_out) ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             wv = d_zero
@@ -1670,9 +1670,9 @@ module mod_output
                 if ( ipptls > 1 ) wi = wi + wmass*atm1%qx(j,i,k,iqi)
               end if
             end do
-            rad_totwv_out(j,i) = wv
-            rad_totcl_out(j,i) = wl + wi
-            rad_totci_out(j,i) = wi
+            if ( associated(rad_totwv_out) ) rad_totwv_out(j,i) = wv
+            if ( associated(rad_totcl_out) ) rad_totcl_out(j,i) = wl + wi
+            if ( associated(rad_totci_out) ) rad_totci_out(j,i) = wi
           end do
         end if
         if ( associated(rad_higcl_out) ) then
