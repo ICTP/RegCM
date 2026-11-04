@@ -483,7 +483,6 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%thatm,clm_a2l%forc_th)
     call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
     call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
-    call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
     !$acc kernels
     temps = (lm%cprate+lm%ncprate) * syncro_srf%rw
     !$acc end kernels
@@ -507,6 +506,11 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%lwdif,clm_a2l%notused)
     !$acc kernels
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
+    !$acc end kernels
+    ! Total incident solar (sinc): lm%solar is the visible flux for BATS
+    !$acc kernels
+    clm_a2l%forc_solar = clm_a2l%forc_solad(:,1) + clm_a2l%forc_solad(:,2) + &
+                         clm_a2l%forc_solai(:,1) + clm_a2l%forc_solai(:,2)
     !$acc end kernels
 
     ! Compute or alias
