@@ -32,7 +32,8 @@ module mod_sst_grid
   real(rkx), public, pointer, contiguous, dimension(:,:) :: sstmm, icemm
   real(rkx), public, pointer, contiguous, dimension(:,:) :: xlat, xlon
   real(rkx), pointer, contiguous, dimension(:,:,:) :: xlat_bnds, xlon_bnds
-  real(rkx), pointer, contiguous, dimension(:,:) :: topo, mask
+  real(rkx), pointer, contiguous, dimension(:,:) :: topo, mask, lndcat
+  real(rkx), pointer, contiguous, dimension(:,:) :: sstsrc
   real(rkx), pointer, contiguous, dimension(:) :: sigma
 
   type(nc_output_stream), save :: ncout
@@ -57,6 +58,7 @@ module mod_sst_grid
     call getmem(xlon_bnds,1,4,1,jx,1,iy,'mod_sst_grid:xlon_bnds')
     call getmem(topo,1,jx,1,iy,'mod_sst_grid:topo')
     call getmem(mask,1,jx,1,iy,'mod_sst_grid:mask')
+    call getmem(sstsrc,1,jx,1,iy,'mod_sst_grid:sstsrc')
     call getmem(sigma,1,kzp1,'mod_sst_grid:sigma')
   end subroutine init_grid
 
@@ -75,6 +77,7 @@ module mod_sst_grid
     xlon_bnds => mddom_io%xlon_bnds
     topo     => mddom_io%ht
     mask     => mddom_io%mask
+    lndcat   => mddom_io%lndcat
     call closefile(incin)
   end subroutine read_domain_info
 
@@ -179,9 +182,80 @@ module mod_sst_grid
   subroutine writerec(idate)
     implicit none
     type(rcm_time_and_date), intent(in) :: idate
+    call fill_ocean_sst(idate)
     call outstream_addrec(ncout,idate)
     call outstream_writevar(ncout,v2dvar_sst)
   end subroutine writerec
+  !
+  ! Ocean points (landuse 15) left without SST by the interpolation get
+  ! the inverse distance weighted mean of the valid points in the first
+  ! ring around them holding any, floored at the freezing point of sea
+  ! water. Only values from the source data are used, never filled ones,
+  ! also from land points. All points other than ocean are then set
+  ! missing, so the file shows where icbc uses the SST.
+  !
+  subroutine fill_ocean_sst(idate)
+    implicit none
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: i, j, ii, jj, nr, maxn, nfill, nleft
+    real(rkx) :: icet, wt, wtsum, ssum
+    logical :: found, lany
+
+    select case (ssttyp)
+      case ('EIN15','EIN75','EIXXX')
+        icet = 271.46_rkx
+      case default
+        icet = 271.35_rkx
+    end select
+    sstsrc(:,:) = sstmm(:,:)
+    lany = any(sstsrc > -900.0_rkx)
+    maxn = max(min(jx,iy)/4,1)
+    nfill = 0
+    nleft = 0
+    do i = 1, iy
+      do j = 1, jx
+        if ( lndcat(j,i) < 14.9_rkx .or. lndcat(j,i) > 15.1_rkx ) cycle
+        if ( sstsrc(j,i) > -900.0_rkx ) cycle
+        found = .false.
+        do nr = 1, merge(maxn,0,lany)
+          ssum = 0.0_rkx
+          wtsum = 0.0_rkx
+          do ii = max(i-nr,1), min(i+nr,iy)
+            do jj = max(j-nr,1), min(j+nr,jx)
+              if ( max(abs(ii-i),abs(jj-j)) /= nr ) cycle
+              if ( sstsrc(jj,ii) > -900.0_rkx ) then
+                wt = 1.0_rkx/sqrt(real(ii-i,rkx)**2+real(jj-j,rkx)**2)
+                ssum = ssum + max(icet,sstsrc(jj,ii))*wt
+                wtsum = wtsum + wt
+              end if
+            end do
+          end do
+          if ( wtsum > 0.0_rkx ) then
+            sstmm(j,i) = ssum/wtsum
+            found = .true.
+            exit
+          end if
+        end do
+        if ( found ) then
+          nfill = nfill + 1
+        else
+          nleft = nleft + 1
+        end if
+      end do
+    end do
+    ! Only ocean points receive the SST in icbc: mark all others missing
+    where ( lndcat < 14.9_rkx .or. lndcat > 15.1_rkx )
+      sstmm = -9999.0_rkx
+    end where
+    if ( nfill > 0 ) then
+      write(stdout,'(a,i8,a,a)') ' Filled SST at ', nfill, &
+        ' ocean points for ', tochar(idate)
+    end if
+    if ( nleft > 0 ) then
+      write(stderr,'(a,i8,a,a)') ' WARNING: no SST at ', nleft, &
+        ' ocean points for ', tochar(idate)
+    end if
+  end subroutine fill_ocean_sst
 
 end module mod_sst_grid
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

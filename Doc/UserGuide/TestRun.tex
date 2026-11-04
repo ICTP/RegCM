@@ -185,6 +185,11 @@ $> ncview input/test_001_SST.nc
 \end{Verbatim}
 
 this will allow you to view the interpolated sst field on the X11 window.
+The file holds values only at the ocean points of the domain (land use
+class 15), the points where the \verb=icbc= program uses the SST; all other
+points are missing. Ocean points with no value from the source dataset,
+usually along the coast, get the distance-weighted mean of the nearest
+valid points.
 
 \section{Create the ICBC files using the icbc program}
 

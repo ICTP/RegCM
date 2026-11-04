@@ -39,7 +39,6 @@ module mod_mksst
   real(rkx), dimension(:,:), contiguous, pointer :: work1, work2
   real(rkx), dimension(:,:), contiguous, pointer :: work3, work4
   real(rkx), dimension(:), contiguous, pointer :: xtime
-  real(rkx) :: icet
 
   data lopen/.false./
   character(len=256) :: sstfile
@@ -58,16 +57,10 @@ module mod_mksst
     integer(ik4) :: i, j, irec
     integer(ik4) :: iyy, im, id, ih
     type(rcm_time_interval) :: ks1, ks2
-    real(rkx) :: wt, a, b
+    real(rkx) :: wt
 
     call split_idate(idate,iyy,im,id,ih)
 
-    select case (ssttyp)
-      case ('EIN15','EIN75','EIXXX')
-        icet = 271.46_rkx
-      case default
-        icet = 271.35_rkx
-    end select
     if (.not. lopen) then
       sstfile=trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
       istatus = nf90_open(sstfile, nf90_nowrite, ncst)
@@ -163,10 +156,6 @@ module mod_mksst
                   end if
                 end if
               end if
-            else
-              ! Find nearest water points
-              a = nearn(j,i,work1)
-              if ( a > -900.0_rkx ) tsccm(j,i) = a
             end if
           end if
         end do
@@ -202,69 +191,12 @@ module mod_mksst
                   endif
                 end if
               end if
-            else
-              a = nearn(j,i,work1)
-              b = nearn(j,i,work2)
-              ! Find nearest water points
-              if ( a > -900_rkx .and. b > -900_rkx) then
-                tsccm(j,i) = a*wt + (1.0_rkx-wt)*b
-              end if
             end if
           end if
         end do
       end do
     end if
   end subroutine readsst
-
-  real(rkx) function nearn(jp,ip,sst)
-    implicit none
-    integer(ik4), intent(in) :: jp, ip
-    real(rkx), dimension(:,:), intent(in) :: sst
-    real(rkx) :: wt, wtsum
-    ! real(rkx) :: distsig
-    integer(ik4) :: i, j, nr, np, maxn
-    if ( all(sst < -900_rkx) ) then
-      nearn = -999.0_rkx
-      return
-    end if
-    maxn = min(size(sst,1),size(sst,2))/4
-    nr = 1
-    np = -1
-    nearn = 0.0_rkx
-    wtsum = 0.0_rkx
-    do while ( np < 0 .and. nr < maxn )
-      do i = ip - nr, ip + nr
-        do j = jp - nr, jp + nr
-          if ( j == jp .and. i == ip ) cycle
-          if ( i < 1 .or. i > iy ) cycle
-          if ( j < 1 .or. j > jx ) cycle
-          if ( sst(j,i) > -900.0_rkx ) then
-            wt = 1.0_rkx/sqrt(real(i-ip,rkx)**2+real(j-jp,rkx)**2)
-            !distsig = sign(1.0_rkx,xlat(jp,ip)-xlat(j,i))
-            !if ( (xlat(jp,ip) - xlat(j,i)) > 2.0_rkx*epsilon(d_zero) ) then
-            !  nearn = nearn + (max(icet,sst(j,i) - lrate * &
-            !   (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))) - distsig * &
-            !   gcdist_simple(xlat(jp,ip),xlon(jp,ip), &
-            !                 xlat(j,i),xlon(jp,ip))/100.0_rkx))*wt
-            !else
-            !  nearn = nearn + max(icet,sst(j,i) - lrate * &
-            !   (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))))*wt
-            !  nearn = nearn + max(icet,sst(j,i))*wt
-            !end if
-            nearn = nearn + max(icet,sst(j,i))*wt
-            wtsum = wtsum + wt
-            np = np + 1
-          end if
-        end do
-      end do
-      nr = nr + 1
-    end do
-    if ( wtsum > 0.0_rkx ) then
-      nearn = (nearn / wtsum)
-    else
-      nearn = -999.0_rkx
-    end if
-  end function nearn
 
   subroutine closesst
     implicit none

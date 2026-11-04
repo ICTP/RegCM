@@ -698,6 +698,13 @@ module mod_params
 
       write(stdout,*) 'Reading model namelist file'
 
+      if ( kz < 3 ) then
+        write(stderr,*) 'kz = ', kz, ' : the model needs at least 3 levels.'
+        write(stderr,*) 'Two levels are only for the CLM stand-alone driver.'
+        call fatal(__FILE__,__LINE__, &
+                   'TOO FEW VERTICAL LEVELS')
+      end if
+
       rewind(ipunit)
       read (ipunit, nml=restartparam, iostat=iretval, err=100)
       if ( iretval /= 0 ) then
