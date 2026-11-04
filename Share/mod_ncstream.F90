@@ -841,10 +841,10 @@ module mod_ncstream
         maxnum_double = max(product(buffer%max4d_double),maxnum_double)
       end if
 #ifdef OPENACC
-      size_bytes = 0
-      size_bytes = max(size_bytes,maxnum_int*4)
-      size_bytes = max(size_bytes,maxnum_real*4)
-      size_bytes = max(size_bytes,maxnum_double*8)
+      size_bytes = 0_c_size_t
+      size_bytes = max(size_bytes,int(maxnum_int,c_size_t)*4_c_size_t)
+      size_bytes = max(size_bytes,int(maxnum_real,c_size_t)*4_c_size_t)
+      size_bytes = max(size_bytes,int(maxnum_double,c_size_t)*8_c_size_t)
       if ( size_bytes > 0 ) then
         istat = cudaMallocHost(buffer%cptr, size_bytes)
         if ( istat /= cudaSuccess ) then
