@@ -1698,6 +1698,69 @@ just substitute the executable name:
 $> mpirun -np 2 ./bin/regcmMPICLM45 regcm.in
 \end{Verbatim}
 
+\subsection{CLM 4.5 stand-alone runs}
+\label{clmsa}
+
+The \verb=clmsa= program runs the \verb=CLM 4.5= land model alone, without
+the atmosphere, driven by a reanalysis. It is useful to spin up the soil, or
+to study the land surface at a resolution (for example 1 km) at which a
+full atmospheric run is too expensive. It is built with the
+\verb=--enable-clm45= option, as \verb=clmsaMPICLM45=.
+
+The forcing has two parts:
+\begin{enumerate}
+\item The \verb=icbc= program provides the lowest model level temperature,
+humidity, wind and the surface pressure every \verb=ibdyfrq= hours.
+\item The \verb=clmbc= program writes the hourly surface forcing in the
+\verb=SFBC= files: precipitation, net surface shortwave, downward longwave
+and cloud fraction. It reads the ERA5 hourly surface fields, either for the
+actual dates (\verb=dattyp = 'ERA5'=) or the multi-year mean of each hour
+(\verb=dattyp = 'ERAXX'=), from the \verb=ERA5/hourly= or
+\verb=ERA5_MEAN/hourly= directories in \verb=inpglob=. Each record holds the
+fluxes of the hour starting at its time.
+\end{enumerate}
+
+The \verb=clmsa= program recovers the downward shortwave from the net one
+with the CLM albedo of the last time step, and splits it in visible and
+near-infrared, direct and diffuse fluxes as CLM needs.
+
+The pre-processing chain is the same as for a model run, followed by
+\verb=clmbc=:
+
+\begin{Verbatim}
+$> cd $REGCM_RUN
+$> ./bin/terrainCLM45 clmsa.in
+$> ./bin/mksurfdataCLM45 clmsa.in
+$> ./bin/sstCLM45 clmsa.in
+$> ./bin/icbcCLM45 clmsa.in
+$> ./bin/clmbcCLM45 clmsa.in
+$> mpirun -np 6 ./bin/clmsaMPICLM45 clmsa.in
+\end{Verbatim}
+
+The namelist is the one of a model run, with an added section:
+
+\begin{Verbatim}
+ &clmsaparam
+ dirout = 'output', ! Output directory
+ sfbcread = 1,      ! Read the hourly SFBC surface forcing
+ /
+\end{Verbatim}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item Use \verb=kz = 2=. The land model needs only the lowest atmospheric
+level, and two levels keep the \verb=ICBC= files small. With
+\verb=idynamic = 3= the lowest level is placed about 40~m above the ground,
+as the $\sigma = 0.995$ level of the other cores. The atmospheric model
+does not run with fewer than 3 levels, so these input files are for
+\verb=clmsa= only.
+\item The \verb=idynamic= choice selects only the vertical coordinate of the
+input files: no dynamical core is run.
+\item Every time step is a land model time step: \verb=dt= is set to the
+surface time step \verb=dtsrf=.
+\end{enumerate}
+
 \section{The OASIS options}
 \label{oasis}
 
