@@ -79,7 +79,8 @@ module mod_split
     implicit none
     real(rkx) :: eps1, fac, pdlog
     integer(ik4) :: i, j, k, l, n, ns
-    real(rkx) :: rnpts, lxps, ltbark, lxms, xmsf, rdx2
+    real(rkx) :: rnpts, xmsf, rdx2
+    real(rk8) :: gsum
     real(rkx) :: eps
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'spinit'
@@ -109,26 +110,18 @@ module mod_split
       ! compute xps and tbarh for use in vmodes.
       !
       rnpts = d_one/real((nicross*njcross),rkx)
-      lxps = d_zero
-      lxms = d_zero
-      do i = ice1, ice2
-        do j = jce1, jce2
-          lxms = lxms + rnpts * map(j,i)
-          lxps = lxps + rnpts * sfs%psa(j,i) * map(j,i)
-        end do
-      end do
-      call sumall(lxps,xps)
-      call sumall(lxms,xmsf)
-      xps = xps / xmsf
+      call reproducible_sumall(pack(real(rnpts * &
+        map(jce1:jce2,ice1:ice2),rk8),.true.),gsum)
+      xmsf = real(gsum,rkx)
+      call reproducible_sumall(pack(real(rnpts * &
+        sfs%psa(jce1:jce2,ice1:ice2) * map(jce1:jce2,ice1:ice2),rk8), &
+        .true.),gsum)
+      xps = real(gsum,rkx) / xmsf
       do k = 1, kz
-        ltbark = d_zero
-        do i = ice1, ice2
-          do j = jce1, jce2
-            ltbark = ltbark + rnpts * map(j,i) * atm1%t(j,i,k)
-          end do
-        end do
-        call sumall(ltbark,tbarh(k))
-        tbarh(k) = tbarh(k)/(xmsf*xps)
+        call reproducible_sumall(pack(real(rnpts * &
+          map(jce1:jce2,ice1:ice2) * atm1%t(jce1:jce2,ice1:ice2,k),rk8), &
+          .true.),gsum)
+        tbarh(k) = real(gsum,rkx)/(xmsf*xps)
       end do
     end if
     !

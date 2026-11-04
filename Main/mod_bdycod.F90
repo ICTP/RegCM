@@ -106,8 +106,8 @@ module mod_bdycod
   real(rkx) :: cn0
   real(rkx), pointer, contiguous, dimension(:,:,:) :: zn1 => null( )
   real(rkx), pointer, dimension(:,:), contiguous :: bvx, bvy
-  real(rkx), pointer, dimension(:,:,:), contiguous :: sxg, syg
-  real(rkx), pointer, dimension(:,:,:), contiguous :: sx, sy
+  integer(ik8), pointer, dimension(:,:,:), contiguous :: sxg, syg
+  integer(ik8), pointer, dimension(:,:,:), contiguous :: sx, sy
 
   real(rkx) :: fnudge, gnudge, rtb
   integer(ik4) :: som_month
@@ -471,7 +471,8 @@ module mod_bdycod
     implicit none
     real(rkx), dimension(kz) :: anudge
     real(rkx) :: xfun, cflmin, cflmax
-    real(rk8) :: meanz, np, mpmeanz
+    real(rk8) :: np
+    real(rk8), dimension(kz) :: zsum
     integer(ik4) :: i, j, k, n
     ! Using Supposedly maximum velocity
     real(rkx), parameter, dimension(2) :: speedlimit = [ 300.0_rkx, 10.0_rkx ]
@@ -499,13 +500,9 @@ module mod_bdycod
       if ( mo_top_nudge .or. mo_spectral_nudge ) then
         np = real(njcross*nicross,rk8)
         nztop = 0
+        call reproducible_sumall(mo_atm%zeta,jce1,jce2,ice1,ice2,zsum)
         do k = 1, kz
-          meanz = 0.0_rkx
-          do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-            meanz = meanz + real(mo_atm%zeta(j,i,k),rk8)/np
-          end do
-          call sumall(meanz,mpmeanz)
-          gmeanz(k) = real(mpmeanz,rkx)
+          gmeanz(k) = real(zsum(k)/np,rkx)
           if ( gmeanz(k) > zztop ) then
             nztop = nztop + 1
           end if
@@ -3843,6 +3840,7 @@ module mod_bdycod
     integer(ik4) :: i, j, k, l
     real(rkx), parameter :: cutoff_wavelength_lon_km = 1500.0_rkx
     real(rkx), parameter :: cutoff_wavelength_lat_km =  750.0_rkx
+    integer(ik4) :: ierr
 
     km = max(nint((njcross*ds)/cutoff_wavelength_lon_km),1)
     lm = max(nint((nicross*ds)/cutoff_wavelength_lat_km),1)
@@ -3863,10 +3861,11 @@ module mod_bdycod
     allocate(px(2*km), py(2*lm))
     call getmem(bvx,jde1,jde2,1,2*km,'lowpass::bvx')
     call getmem(bvy,ide1,ide2,1,2*lm,'lowpass::bvy')
-    call getmem(sx,ide1,ide2,1,2*km,1,kz,'lowpass::sx')
-    call getmem(sy,jde1,jde2,1,2*lm,1,kz,'lowpass::sy')
-    call getmem(sxg,ide1,ide2,1,2*km,1,kz,'lowpass::sxg')
-    call getmem(syg,jde1,jde2,1,2*lm,1,kz,'lowpass::syg')
+    allocate(sx(ide1:ide2,2*km,kz),sxg(ide1:ide2,2*km,kz), &
+             sy(jde1:jde2,2*lm,kz),syg(jde1:jde2,2*lm,kz),stat=ierr)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'lowpass: allocation error')
+    end if
     do k = 1, 2*km
       px(k) = exp(-(real(k,rkx)/real(km,rkx))**2)
     end do
@@ -3895,12 +3894,28 @@ module mod_bdycod
     integer(ik4), intent(in) :: j1, j2, i1, i2, jj1, jj2, ii1, ii2
     real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: f
     integer(ik4) :: i, j, k, l, m
+    integer(ik4), dimension(kz) :: shift
+    real(rk8), dimension(kz) :: amax
 
+    ! The projections on the sine modes are sums along the rows and the
+    ! columns of the domain, done on integers to be the same for any
+    ! domain decomposition (see reproducible_sumall). |bvx|, |bvy| < 1,
+    ! so the maximum of |f| bounds the terms.
+    do concurrent ( k = 1:kz )
+      amax(k) = 0.0_rk8
+      do i = i1, i2
+        do j = jj1, jj2
+          amax(k) = max(amax(k),abs(real(f(j,i,k),rk8)))
+        end do
+      end do
+    end do
+    call reprosum_shift(amax,int(jx,ik8),shift)
     do concurrent ( i = ide1:ide2, m = 1:2*km, k = 1:kz )
-      sx(i,m,k) = 0.0_rkx
+      sx(i,m,k) = 0_ik8
       if ( i >= i1 .and. i <= i2 ) then
         do j = jj1, jj2
-          sx(i,m,k) = sx(i,m,k) + f(j,i,k)*bvx(j,m)
+          sx(i,m,k) = sx(i,m,k) + &
+            reprosum_int(real(f(j,i,k)*bvx(j,m),rk8),shift(k))
         end do
       end if
     end do
@@ -3908,14 +3923,25 @@ module mod_bdycod
     do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
       f(j,i,k) = 0.0_rkx
       do m = 1, 2*km
-        f(j,i,k) = f(j,i,k) + sxg(i,m,k)*bvx(j,m)
+        f(j,i,k) = f(j,i,k) + &
+          real(reprosum_real(sxg(i,m,k),shift(k)),rkx)*bvx(j,m)
       end do
     end do
+    do concurrent ( k = 1:kz )
+      amax(k) = 0.0_rk8
+      do i = ii1, ii2
+        do j = j1, j2
+          amax(k) = max(amax(k),abs(real(f(j,i,k),rk8)))
+        end do
+      end do
+    end do
+    call reprosum_shift(amax,int(iy,ik8),shift)
     do concurrent ( j = jde1:jde2, l = 1:2*lm, k = 1:kz )
-      sy(j,l,k) = 0.0_rkx
+      sy(j,l,k) = 0_ik8
       if ( j >= j1 .and. j <= j2 ) then
         do i = ii1, ii2
-          sy(j,l,k) = sy(j,l,k) + f(j,i,k)*bvy(i,l)
+          sy(j,l,k) = sy(j,l,k) + &
+            reprosum_int(real(f(j,i,k)*bvy(i,l),rk8),shift(k))
         end do
       end if
     end do
@@ -3923,7 +3949,8 @@ module mod_bdycod
     do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
       f(j,i,k) = 0.0_rkx
       do l = 1, 2*lm
-        f(j,i,k) = f(j,i,k) + syg(j,l,k)*bvy(i,l)
+        f(j,i,k) = f(j,i,k) + &
+          real(reprosum_real(syg(j,l,k),shift(k)),rkx)*bvy(i,l)
       end do
     end do
   end subroutine lowpass_filter

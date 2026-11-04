@@ -42,6 +42,7 @@ check failed.
   \code{test\_nhinterp} & \code{mod\_nhinterp} (Section~\ref{sec:nhinterp}) \\
   \code{test\_heatindex} & \code{mod\_heatindex}
     (Section~\ref{sec:heatindex}) \\
+  \code{test\_hashrng} & \code{mod\_hashrng} (Section~\ref{sec:hashrng}) \\
 \end{longtable}
 
 
@@ -7463,4 +7464,102 @@ pure.
   \item the monotonicity and continuity in temperature (230--330~K) and
     humidity;
   \item that the root solvers raise no floating-point overflow.
+\end{itemize}
+
+
+%==============================================================================
+\section{Counter-based Random Numbers --- \texttt{mod\_hashrng.F90}}
+\label{sec:hashrng}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_hashrng} gives random numbers that are a function of a stream
+seed, a counter and the three global indices of a grid point. A field
+drawn with it is the same for any domain decomposition, for any order of
+the loop on the points and on CPU or GPU. A restarted run draws the same
+numbers as a continuous one, because there is no generator state to save.
+The model uses it for the random perturbation of the critical relative
+humidity in \code{subex\_cldfrac} (\code{Main/cloudlib}), with the time
+step \code{rcmtimer\%lcount} as the counter.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_hashrng
+    |-- mod_intkinds
+    `-- mod_realkinds
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+\begin{longtable}{L{4.5cm} L{9.5cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{hash\_key(seed, n)} &
+    Key of the stream \code{seed} (\code{ik4}) at the counter \code{n}
+    (\code{ik8}), in $[0,2^{32})$ as an \code{ik8} integer. Computed once,
+    outside the loop on the points. \\
+  \code{hash\_uniform(key, k, i, j)} &
+    Uniform number in $[0,1)$ of kind \code{rkx} for the point
+    (\code{j},\code{i},\code{k}) (\code{ik4}). \\
+  \code{hash\_uint32(key, k, i, j)} &
+    The underlying 32-bit hash, in $[0,2^{32})$. \\
+\end{longtable}
+
+\noindent All three are pure functions and OpenACC sequential routines,
+so they can be called inside \code{do concurrent} loops.
+
+\subsection{Method}
+
+Each input is added in turn to the running hash, which is then mixed with
+the \emph{lowbias32} integer hash of C.~Wellons
+(\url{https://nullprogram.com/blog/2018/07/31/}):
+\[
+  h \leftarrow h \oplus (h \gg 16),\;
+  h \leftarrow h \cdot \mathtt{0x7feb352d},\;
+  h \leftarrow h \oplus (h \gg 15),\;
+  h \leftarrow h \cdot \mathtt{0x846ca68b},\;
+  h \leftarrow h \oplus (h \gg 16),
+\]
+with the products modulo $2^{32}$. The key chains the seed and the two
+32-bit halves of the counter; \code{hash\_uint32} chains the key with
+\code{k}, \code{i} and \code{j}. \code{hash\_uniform} keeps the 24 high
+bits and multiplies them by $2^{-24}$, so the value is exact, and below 1,
+also in single precision.
+
+\subsection{Design Notes}
+
+\textbf{Unsigned arithmetic.} Fortran has no unsigned integers, and
+overflow of a signed integer is not defined. The 32-bit values are kept in
+\code{ik8} integers, and each product is formed from the two 16-bit halves
+of the multiplier, so that no intermediate value exceeds $2^{49}$. The
+results are the same as those of the unsigned C code.
+
+\textbf{Global indices.} The loop indices \code{jci1:jci2},
+\code{ici1:ici2} of the model are global indices, so they can be passed
+as they are.
+
+\textbf{Cost.} About 9~ns per point with the production flags of GNU
+Fortran on x86-64, against 4~ns for the intrinsic \code{random\_number}
+filling an array. The 64-bit products do not vectorise with AVX2. For the
+critical relative humidity this is a few milliseconds per time step for
+$10^5$--$10^6$ points, well below 1\% of the cost of a step.
+
+\textbf{Testing.} \code{Testing/share/test\_hashrng.F90} checks:
+\begin{itemize}
+  \item four values of \code{hash\_uint32} against an independent
+    computation with exact integer arithmetic, one with a counter above
+    $2^{32}$;
+  \item that a field is the same when the points are visited in the
+    opposite order;
+  \item the range $[0,1)$, the mean, the variance and the histogram
+    ($\chi^2$ with 16 bins) of $64 \times 64 \times 16$ values;
+  \item no correlation between neighbouring points or successive counter
+    values;
+  \item that different seeds give different streams.
 \end{itemize}

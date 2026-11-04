@@ -315,6 +315,18 @@ if eval "test x$ASYNC_NETCDF = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+REPRODUCIBLE="0"
+AC_ARG_ENABLE(reproducible,
+  AC_HELP_STRING([--enable-reproducible],
+                 [GNU Fortran: no glibc vector math library (libmvec) and
+                  no fused multiply-add contraction, so that results do
+                  not depend on the MPI domain decomposition. Slower.
+                  [default: no]]),
+  [if test "x$enableval" = "xyes"; then
+     REPRODUCIBLE="1"
+   fi]
+)
+
 DEBUG="0"
 AC_ARG_ENABLE(debug,
   AC_HELP_STRING([--enable-debug],
@@ -812,6 +824,35 @@ else
     AC_SUBST(FCFLAGS)
     CPRDEF="GNU"
     AC_SUBST(NOOPTFC)
+  fi
+fi
+
+# Which points of a loop fall in its vector body and which in the scalar
+# remainder depends on the subdomain size, so the two must give the same
+# result to the last bit:
+# - Ubuntu and Debian gfortran pre-include math-vector-fortran.h, which
+#   makes vectorised loops call libmvec, whose functions differ from the
+#   scalar ones in the last bit. Leaving out the standard include
+#   directories drops the header; the intrinsic modules are then found
+#   with an explicit path.
+# - The compiler may contract a*b+c into a fused multiply-add in one part
+#   of the loop and not in the other.
+if eval "test x$REPRODUCIBLE = x1"; then
+  if test -z "$COMPILER_GNU_TRUE"; then
+    GFC_FINCLUDE=`$FC -print-file-name=finclude`
+    if test -d "$GFC_FINCLUDE"; then
+      REPROFLAGS="-nostdinc -fintrinsic-modules-path $GFC_FINCLUDE"
+    else
+      REPROFLAGS="-nostdinc"
+    fi
+    REPROFLAGS="$REPROFLAGS -ffp-contract=off"
+    AC_MSG_NOTICE([reproducible build: adding $REPROFLAGS])
+    FCFLAGS="$FCFLAGS $REPROFLAGS"
+    NOOPTFC="$NOOPTFC $REPROFLAGS"
+    AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
+  else
+    AC_MSG_WARN([--enable-reproducible has an effect only with GNU Fortran])
   fi
 fi
 

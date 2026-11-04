@@ -26,7 +26,7 @@ module mod_cu_interface
   use mod_regcm_types
   use mod_mppparam, only : exchange_lrbt, uvcross2dot, uvdot2cross, italk
   use mod_mppparam, only : tenxtouvten, uvtentotenx
-  use mod_mppparam, only : meanall, minall, maxall
+  use mod_mppparam, only : reproducible_sumall, minall, maxall
 
   use mod_cu_common, only : cuscheme, total_precip_points, &
       model_cumulus_cloud, init_mod_cumulus
@@ -222,7 +222,8 @@ module mod_cu_interface
     use mod_atm_interface
     implicit none
     integer(ik4) :: i, j, k, n
-    real(rkx) :: ijs, w1, mymean(kz), mymean_tmp
+    real(rkx) :: ijs, w1
+    real(rk8), dimension(kz) :: psum
 
     if ( any(icup == 6) ) then
       w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
@@ -292,23 +293,13 @@ module mod_cu_interface
           !$acc end kernels
         end if
         if ( any(icup == 5) ) then
-          ijs = real(((jci2-jci1+1)*(ici2-ici1+1)),rkx)
+          ! Domain mean pressure profile: sum of the layer pressures over
+          ! the processors, divided by the number of internal points.
+          ijs = real((jout2-jout1+1)*(iout2-iout1+1),rkx)
+          call reproducible_sumall(m2c%pas,jci1,jci2,ici1,ici2,psum)
           do concurrent ( k = 1:kz )
-            mymean_tmp = d_zero
-#ifdef STDPAR
-            do concurrent ( j = jci1:jci2, i = ici1:ici2 ) reduce(+:mymean_tmp)
-#else
-            do i = ici1, ici2
-            do j = jci1, jci2
-#endif
-              mymean_tmp = mymean_tmp + m2c%pas(j,i,k)
-            end do
-#ifndef STDPAR
-            end do
-#endif
-            mymean(k) = mymean_tmp/ijs
+            pmean(k) = real(psum(k),rkx)/ijs
           end do
-          call meanall(mymean,pmean,kz)
           !$acc kernels
           cu_qdetr(:,:,:) = d_zero
           cu_raincc(:,:,:) = d_zero

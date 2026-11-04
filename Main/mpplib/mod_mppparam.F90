@@ -326,15 +326,23 @@ module mod_mppparam
     module procedure sumall_real16, &
                      sumall_real8, &
                      sumall_real4, &
+                     sumall_1D_real8, &
+                     sumall_1D_real4, &
                      sumall_int4,  &
-                     sumall_int4_array
+                     sumall_int4_array, &
+                     sumall_int8, &
+                     sumall_int8_array
   end interface sumall
 #else
   interface sumall
     module procedure sumall_real8, &
                      sumall_real4, &
+                     sumall_1D_real8, &
+                     sumall_1D_real4, &
                      sumall_int4,  &
-                     sumall_int4_array
+                     sumall_int4_array, &
+                     sumall_int8, &
+                     sumall_int8_array
   end interface sumall
 #endif
 
@@ -527,12 +535,27 @@ module mod_mppparam
   interface column_reduce
     module procedure real8_column_reduce
     module procedure real4_column_reduce
+    module procedure int8_column_reduce
   end interface column_reduce
 
   interface row_reduce
     module procedure real8_row_reduce
     module procedure real4_row_reduce
+    module procedure int8_row_reduce
   end interface row_reduce
+
+  ! Sums that do not depend on the domain decomposition: each term is
+  ! rounded to a 64 bit integer at a common power of two scale, and the
+  ! integer sums are exact in any order.
+  interface reproducible_sumall
+    module procedure reproducible_sumall_1d
+    module procedure reproducible_sumall_profile
+  end interface reproducible_sumall
+
+  interface reprosum_shift
+    module procedure reprosum_shift_scalar
+    module procedure reprosum_shift_array
+  end interface reprosum_shift
 
   type(model_area), public :: ma
 
@@ -587,6 +610,8 @@ module mod_mppparam
   public :: gather_r, gather_i
   public :: allgather_r, allgather_i
   public :: row_reduce, column_reduce
+  public :: reproducible_sumall, reprosum_shift
+  public :: reprosum_int, reprosum_real
   public :: reorder_subgrid, reorder_glb_subgrid, reorder_add_subgrid
   public :: input_reorder
   public :: trueforall
@@ -726,6 +751,188 @@ module mod_mppparam
     end if
 #endif
   end subroutine sumall_int4_array
+
+  subroutine sumall_int8(ilval,itval)
+    implicit none
+    integer(ik8), intent(in) :: ilval
+    integer(ik8), intent(out) :: itval
+    call mpi_allreduce(ilval,itval,1,mpi_integer8,mpi_sum,mycomm,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+  end subroutine sumall_int8
+
+  subroutine sumall_int8_array(ilval,itval)
+    implicit none
+    integer(ik8), dimension(:), intent(in) :: ilval
+    integer(ik8), dimension(:), intent(out) :: itval
+    call mpi_allreduce(ilval,itval,size(itval),mpi_integer8, &
+                       mpi_sum,mycomm,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+  end subroutine sumall_int8_array
+
+  subroutine int8_column_reduce(m,g)
+    implicit none
+    integer(ik8), pointer, contiguous, dimension(:,:,:), intent(in) :: m
+    integer(ik8), pointer, contiguous, dimension(:,:,:), intent(inout) :: g
+    !$acc host_data use_device(m,g)
+    call mpi_allreduce(m,g,size(m),mpi_integer8,mpi_sum, &
+                       cartesian_column_communicator,mpierr)
+    !$acc end host_data
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+  end subroutine int8_column_reduce
+
+  subroutine int8_row_reduce(m,g)
+    implicit none
+    integer(ik8), pointer, contiguous, dimension(:,:,:), intent(in) :: m
+    integer(ik8), pointer, contiguous, dimension(:,:,:), intent(inout) :: g
+    !$acc host_data use_device(m,g)
+    call mpi_allreduce(m,g,size(m),mpi_integer8,mpi_sum, &
+                       cartesian_row_communicator,mpierr)
+    !$acc end host_data
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+  end subroutine int8_row_reduce
+  !
+  ! Scale of a reproducible sum. amax is the local maximum of the absolute
+  ! value of the terms, nterm a bound on the number of terms summed over
+  ! all processors (the same on all of them). The returned shift is the
+  ! same on all processors: the terms times 2**shift are below
+  ! 2**62/nterm, so the sum of their nearest integers cannot overflow.
+  !
+  subroutine reprosum_shift_scalar(amax,nterm,shift)
+    implicit none
+    real(rk8), intent(in) :: amax
+    integer(ik8), intent(in) :: nterm
+    integer(ik4), intent(out) :: shift
+    real(rk8) :: gmax
+    call mpi_allreduce(amax,gmax,1,mpi_real8,mpi_max,mycomm,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+    shift = shift_of(gmax,nterm)
+  end subroutine reprosum_shift_scalar
+
+  subroutine reprosum_shift_array(amax,nterm,shift)
+    implicit none
+    real(rk8), dimension(:), intent(in) :: amax
+    integer(ik8), intent(in) :: nterm
+    integer(ik4), dimension(:), intent(out) :: shift
+    real(rk8), dimension(size(amax)) :: gmax
+    integer(ik4) :: k
+    call mpi_allreduce(amax,gmax,size(amax),mpi_real8,mpi_max, &
+                       mycomm,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+    do k = 1, size(amax)
+      shift(k) = shift_of(gmax(k),nterm)
+    end do
+  end subroutine reprosum_shift_array
+
+  pure integer(ik4) function shift_of(gmax,nterm)
+    implicit none
+    real(rk8), intent(in) :: gmax
+    integer(ik8), intent(in) :: nterm
+    if ( gmax > 0.0_rk8 ) then
+      ! gmax < 2**exponent(gmax), nterm < 2**exponent(nterm)
+      shift_of = 62 - exponent(gmax) - exponent(real(max(nterm,1_ik8),rk8))
+    else
+      shift_of = 0
+    end if
+  end function shift_of
+
+  ! A term of a reproducible sum, as an integer.
+  pure elemental integer(ik8) function reprosum_int(x,shift)
+!$acc routine seq
+    implicit none
+    real(rk8), intent(in) :: x
+    integer(ik4), intent(in) :: shift
+    reprosum_int = nint(scale(x,shift),ik8)
+  end function reprosum_int
+
+  ! The value of an integer sum of terms.
+  pure elemental real(rk8) function reprosum_real(n,shift)
+!$acc routine seq
+    implicit none
+    integer(ik8), intent(in) :: n
+    integer(ik4), intent(in) :: shift
+    reprosum_real = scale(real(n,rk8),-shift)
+  end function reprosum_real
+  !
+  ! Sum over all the processors of the local terms x.
+  !
+  subroutine reproducible_sumall_1d(x,gsum)
+    implicit none
+    real(rk8), dimension(:), intent(in) :: x
+    real(rk8), intent(out) :: gsum
+    integer(ik8) :: nloc, nterm, isum, gisum
+    integer(ik4) :: shift, n
+    nloc = size(x)
+    call sumall(nloc,nterm)
+    call reprosum_shift(maxval(abs(x)),nterm,shift)
+    isum = 0_ik8
+    do n = 1, size(x)
+      isum = isum + reprosum_int(x(n),shift)
+    end do
+    call sumall(isum,gisum)
+    gsum = reprosum_real(gisum,shift)
+  end subroutine reproducible_sumall_1d
+  !
+  ! Profile of the sums over all processors of f(j1:j2,i1:i2,k), for
+  ! k = 1, size(gsum).
+  !
+  subroutine reproducible_sumall_profile(f,j1,j2,i1,i2,gsum)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: f
+    integer(ik4), intent(in) :: j1, j2, i1, i2
+    real(rk8), dimension(:), intent(out) :: gsum
+    real(rk8), dimension(size(gsum)) :: amax
+    integer(ik8), dimension(size(gsum)) :: isum, gisum
+    integer(ik4), dimension(size(gsum)) :: shift
+    integer(ik8) :: nloc, nterm
+    integer(ik4) :: i, j, k
+    nloc = int(j2-j1+1,ik8)*int(i2-i1+1,ik8)
+    call sumall(nloc,nterm)
+    do k = 1, size(gsum)
+      amax(k) = 0.0_rk8
+      do i = i1, i2
+        do j = j1, j2
+          amax(k) = max(amax(k),abs(real(f(j,i,k),rk8)))
+        end do
+      end do
+    end do
+    call reprosum_shift(amax,nterm,shift)
+    do k = 1, size(gsum)
+      isum(k) = 0_ik8
+      do i = i1, i2
+        do j = j1, j2
+          isum(k) = isum(k) + reprosum_int(real(f(j,i,k),rk8),shift(k))
+        end do
+      end do
+    end do
+    call sumall(isum,gisum)
+    do k = 1, size(gsum)
+      gsum(k) = reprosum_real(gisum(k),shift(k))
+    end do
+  end subroutine reproducible_sumall_profile
 
   subroutine set_nproc
     implicit none

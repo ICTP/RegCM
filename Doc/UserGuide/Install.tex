@@ -171,6 +171,21 @@ also be generated during model run.
 The default is to build production binaries with all optimization flags
 turned on.
 
+\item Results independent of the number of processors
+\begin{Verbatim}
+  --enable-reproducible
+                     GNU Fortran: no glibc vector math library (libmvec) and
+                     no fused multiply-add contraction, so that results do
+                     not depend on the MPI domain decomposition. Slower.
+\end{Verbatim}
+With the production flags the last bit of some results depends on how the
+domain is split among the processors: a loop computes part of its points
+with vector instructions and the rest with scalar ones, and the two may
+differ in the last bit. The difference then grows during the run. With
+this option a run gives the same results, bit for bit, on any number of
+processors. It has an effect only with GNU Fortran; the default is not to
+use it.
+
 \item Serial code using stub MPI library
 \begin{Verbatim}
   --enable-mpiserial Use the included MPI replacement library for single

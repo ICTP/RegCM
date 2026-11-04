@@ -20,6 +20,7 @@ module mod_cloud_subex
   use mod_constants
   use mod_dynparam
   use mod_runparams
+  use mod_hashrng
 
   implicit none
 
@@ -28,6 +29,8 @@ module mod_cloud_subex
   public :: subex_cldfrac
 
   logical, parameter :: use_dynamic_rhcrit = .true.
+  ! Stream of the random perturbation of the critical relative humidity
+  integer(ik4), parameter :: rhcrit_seed = 19590209
 
   contains
   !
@@ -43,9 +46,6 @@ module mod_cloud_subex
   ! See Pal et al (2000) for more info.
   !
   subroutine subex_cldfrac(t,p,qv,rh,tc0,rh0,rhcrit,fcc)
-#ifdef OPENACC
-    use cutensorex, only : random_number
-#endif
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: t, p
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qv, rh
@@ -57,17 +57,23 @@ module mod_cloud_subex
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
     real(rkx), intent(in) :: tc0
     integer(ik4) :: i, j, k
-    real(rkx) :: tku, rcc, rhrng
+    integer(ik8) :: key
+    real(rkx) :: tku, rcc, rhrng, rnd
     !
     ! A dynamic critical relative humidity based on temperature in
     ! cloud parameterization to improve low cloud in an AGCM
     ! https://doi.org/10.1016/j.atmosres.2025.108183
     !
+    ! The random perturbation is a hash of the time step and of the
+    ! global indices of the point, so it does not depend on the domain
+    ! decomposition and a restart draws the same numbers.
+    !
     if ( use_dynamic_rhcrit ) then
-      call random_number(rhcrit)
+      key = hash_key(rhcrit_seed,rcmtimer%lcount)
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        rnd = hash_uniform(key,k,i,j)
         tku = min(301.0_rkx,max(216.0_rkx,t(j,i,k)))
-        rhcrit(j,i,k) = rh0(j,i) + 0.10_rkx * (rhcrit(j,i,k)-0.5_rkx)
+        rhcrit(j,i,k) = rh0(j,i) + 0.10_rkx * (rnd-0.5_rkx)
         rhcrit(j,i,k) = 0.01_rkx * &
           max(60.0_rkx, min(100.0_rkx, rhcrit(j,i,k)*100.0_rkx + &
          (-21760.24_rkx-0.000004969437_rkx*tku**4+0.005182194_rkx*tku**3 - &

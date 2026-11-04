@@ -120,7 +120,8 @@ module mod_sound
   subroutine init_sound
     implicit none
     integer(ik4) :: i
-    real(rkx) :: maxt, loc_maxt, loc_xmsf
+    real(rkx) :: maxt, loc_maxt
+    real(rk8) :: xmsf8
 
     rnpts = d_one/real((nicross-2)*(njcross-2),rkx)
     if ( ma%bandflag ) then
@@ -154,8 +155,9 @@ module mod_sound
       fi(6) = d_half
       fj(6) = d_half
 
-      loc_xmsf = sum(mddom%msfx(jci1:jci2,ici1:ici2))*rnpts
-      call sumall(loc_xmsf,xmsf)
+      call reproducible_sumall( &
+        pack(real(mddom%msfx(jci1:jci2,ici1:ici2),rk8),.true.),xmsf8)
+      xmsf = real(xmsf8,rkx)*rnpts
     end if
     bet = nhbet
     xkd = nhxkd
@@ -184,9 +186,12 @@ module mod_sound
     !
     ! Variables to implement upper radiative bc
     !
-    real(rkx) :: abar, atot, dxmsfb, ensq, rhon, rhontot, xkeff, &
+    real(rkx) :: abar, dxmsfb, ensq, rhon, xkeff, &
                  xkleff, xleff
-    real(rkx) :: loc_abar, loc_rhon, rho, dppdp0, chh, rofac
+    real(rkx) :: rho, dppdp0, chh, rofac
+    real(rk8) :: atot8, rhontot8
+    real(rk8), dimension(:), allocatable :: terma, termr
+    integer(ik4) :: nn
     real(rkx) :: ppold, cddtmp, cjtmp, cpm, dpterm
     real(rkx) :: denom
     integer(ik4) :: ll, kk, nsi, inn, nsj, jnn
@@ -506,19 +511,22 @@ module mod_sound
             write(stdout,*) 'At ',trim(rcmtimer%str()), &
                ': updating upper radiative BC coefficients'
           end if
-          atot = d_zero
-          rhontot = d_zero
+          allocate(terma((jci2-jci1+1)*(ici2-ici1+1)))
+          allocate(termr((jci2-jci1+1)*(ici2-ici1+1)))
+          nn = 0
           do i = ici1, ici2
             do j = jci1, jci2
-              atot = atot + astore(j,i)
+              nn = nn + 1
+              terma(nn) = real(astore(j,i),rk8)
               ensq = egrav*egrav/cpd/(atm2%t(j,i,1) * rpsb(j,i))
-              rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
+              termr(nn) = real(atm1%rho(j,i,1)*sqrt(ensq),rk8)
             end do
           end do
-          loc_abar = atot*rnpts
-          loc_rhon = rhontot*rnpts
-          call sumall(loc_abar,abar)
-          call sumall(loc_rhon,rhon)
+          call reproducible_sumall(terma,atot8)
+          call reproducible_sumall(termr,rhontot8)
+          deallocate(terma,termr)
+          abar = real(atot8,rkx)*rnpts
+          rhon = real(rhontot8,rkx)*rnpts
           if ( myid == iocpu ) then
             dxmsfb = d_two/dxsq/xmsf
             tmask(:,:) = d_zero

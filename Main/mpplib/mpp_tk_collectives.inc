@@ -95,6 +95,23 @@
 #endif
   end subroutine BCAST_MATR_TK
 
+  subroutine SUMALL_1D_TK(rlval,rtval,elem)
+    implicit none
+    integer(ik4), intent(in) :: elem
+    TK_TYPE, dimension(:), intent(in) :: rlval
+    TK_TYPE, dimension(:), intent(out) :: rtval
+    !$acc data copyin(rlval(1:elem)) copyout(rtval(1:elem))
+    !$acc host_data use_device(rlval,rtval)
+    call mpi_allreduce(rlval,rtval,elem,TK_MPI,mpi_sum,mycomm,mpierr)
+    !$acc end host_data
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+#endif
+    !$acc end data
+  end subroutine SUMALL_1D_TK
+
   subroutine MEANALL_1D_TK(rlval,rtval,elem)
     implicit none
     integer(ik4), intent(in) :: elem
