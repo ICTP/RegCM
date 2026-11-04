@@ -7029,10 +7029,11 @@ mod_rdldtr
     lookup table indexed by a map of units. \\
   \code{gfclose(gfile)} & Closes the dataset and frees the interpolator. \\
   \code{bestaround(grid, flag)} &
-    Replaces each value equal to \code{flag} by the first value different
-    from it found in squares of growing size around the point (up to 9
-    cells); missing if none (2-D, 3-D, 4-D, the search on the first level).
-    \\
+    Replaces each value equal to \code{flag} by the value of the nearest
+    point, in grid units, that is not flagged, up to 10 points away; ties go
+    to the first point in scan order. Missing if none. In 3-D and 4-D the
+    first level decides which points are flagged, and all levels are
+    copied from the same point. \\
 \end{longtable}
 
 \subsection{Resampling}
@@ -7077,8 +7078,10 @@ they also take the default value unless the mask excludes them.
 second dataset in the current directory and checks that every resampling
 method keeps a constant, that the mean, median and trimmed mean of a ramp
 are its value at the centre of the block, the bounds of the resampled grid,
-the window read without resampling, and \code{gfread} of a ramp with and
-without a land mask.
+the window read without resampling, \code{gfread} of a ramp with and
+without a land mask, and that \code{bestaround} takes the nearest point,
+reaches the domain edges, searches 10 points away and copies all levels
+from one point.
 
 %==============================================================================
 \section{System Calls --- \texttt{mod\_posix.F90}}
