@@ -6869,7 +6869,9 @@ midnight.
 moisture, lake depth) from their regular latitude--longitude grid to the
 model grid. Each target point is mapped to fractional indices $(x, y)$ of
 the source grid, and the interpolation works on the source cells around
-it, by a method chosen with \code{itype}.
+it, by a method chosen with \code{itype}. It also computes, for the land
+model, the statistics of the 30 arc second topography inside each grid
+cell (\code{topostats}).
 
 \subsection{Dependencies}
 
@@ -6907,6 +6909,10 @@ are limited to the grid.
     Interpolates the source field \code{imt} to \code{omt} on the model
     points \code{xlat}, \code{xlon}; \code{ds} is the model grid distance
     (km). \\
+  \code{topostats(ds, jx, iy, xlat, xlon, imt, slope, stddev)} &
+    Mean slope (degrees) and standard deviation of the elevation (m) of
+    the DEM \code{imt} in the box of side \code{ds} (km) around each grid
+    point (see below). \\
   \code{puddlefilter(jx, iy, omt)} &
     Replaces the ocean clusters smaller than 6 points of a land use field
     (see below). \\
@@ -6955,6 +6961,23 @@ than 6 points takes the most frequent class among its 8 neighbours that are
 not ocean. This removes isolated water points that the class interpolation
 leaves along irregular coasts.
 
+\textbf{Topography statistics.} \code{terrain} calls \code{topostats} on
+the DEM read without resampling and writes the results in the DOMAIN file
+as \code{slope} and \code{topo\_stddev}; \code{mksurfdata} copies them to
+the CLM surface data as \code{SLOPE} and \code{STD\_ELEV}. The slope of a
+DEM pixel is the angle of its centred gradient,
+$\arctan\sqrt{(\partial z/\partial x)^2 + (\partial z/\partial y)^2}$,
+with the pixel size in metres from the Earth radius and the cosine of the
+pixel latitude. Over the pixels of the box of side \code{ds} around the
+grid point, \code{slope} is the mean of the pixel slopes and
+\code{stddev} the standard deviation of the elevations. Pixels below
+$-1000$~m are missing data, and a pixel without its four neighbours has no
+slope. When the box is smaller than a pixel, the nearest pixel is used, so
+the standard deviation is zero for grid cells of about 1~km. In CLM the
+slope scales the subsurface drainage, the surface water runoff and the
+microtopography, and the standard deviation the snow cover fraction during
+melt.
+
 \subsection{Design Notes}
 
 \textbf{Testing.} \code{Testing/share/test\_intldtr.F90} checks the bilinear
@@ -6962,7 +6985,9 @@ and bicubic interpolation on polynomials they reproduce exactly, the
 distance weighting of a constant, the class threshold for land use and soil
 texture, the class percentage, a class box and a bilinear interpolation
 across the longitude wrap of a global grid, the puddle filter, and the
-extrema of a domain across the date line.
+extrema of a domain across the date line, and the slope and elevation
+spread of \code{topostats} for a plane and for a flat DEM with missing
+pixels.
 
 %==============================================================================
 \section{Reading Surface Datasets --- \texttt{mod\_rdldtr.F90}}

@@ -18,12 +18,14 @@
 ! order polynomials, distance weighting of a constant, the most frequent
 ! class with the water threshold for land use and soil texture, class
 ! percentages, a box across the longitude wrap of a global grid, the
-! removal of small water puddles and the domain extrema of mxmnll.
+! removal of small water puddles, the domain extrema of mxmnll and the
+! DEM statistics of topostats.
 
 program test_intldtr
   use mod_intkinds
   use mod_realkinds
   use mod_intldtr
+  use mod_constants, only : earthrad_r8
   use share_test_utils
   implicit none
   integer(ik4), parameter :: m = 30, n = 20, jx = 7, iy = 5
@@ -33,6 +35,9 @@ program test_intldtr
   real(rkx), dimension(3,3) :: glat, glon, gout
   real(rkx), dimension(10,8) :: lu
   real(rkx), dimension(12,10) :: dlat, dlon
+  real(rkx), dimension(101,101) :: dem
+  real(rkx), dimension(1,1) :: clat, clon, cslope, cstd
+  real(rkx) :: exslope, exstd
   integer(ik4) :: i, j, k
   character(len=40) :: msg
 
@@ -148,6 +153,34 @@ program test_intldtr
   call mxmnll(12,10,dlon,dlat,0)
   call check(lcrosstime .and. .not. lonwrap .and. xminlat == 31.0_rk8 &
              .and. xmaxlat == 40.0_rk8,'domain across the dateline')
+
+  ! DEM statistics: a plane rising 100 m per 0.01 degree pixel to the
+  ! north, at the equator, in a 50 km cell. The slope is uniform; the
+  ! elevation of the 2n+1 rows in the box has standard deviation
+  ! 100 sqrt(n(n+1)/3) m, with n the rows on each side of the centre.
+  call set_grid(101,101,0.0_rk8,1.0_rk8,-0.5_rk8,0.5_rk8,.false.)
+  do j = 1, 101
+    do i = 1, 101
+      dem(i,j) = 100.0_rkx*real(j-1,rkx)
+    end do
+  end do
+  clat = 0.0_rkx
+  clon = 0.5_rkx
+  call topostats(50.0_rkx,1,1,clat,clon,dem,cslope,cstd)
+  exslope = real(atan(100.0_rk8/(earthrad_r8*0.01_rk8* &
+                 acos(-1.0_rk8)/180.0_rk8))*180.0_rk8/acos(-1.0_rk8),rkx)
+  k = int(25000.0_rk8/(earthrad_r8*0.01_rk8*acos(-1.0_rk8)/180.0_rk8))
+  exstd = 100.0_rkx*sqrt(real(k*(k+1),rkx)/3.0_rkx)
+  call check(abs(cslope(1,1)-exslope) < 1.0e-4_rkx*exslope, &
+             'slope of a plane')
+  call check(abs(cstd(1,1)-exstd) < 1.0e-6_rkx*exstd, &
+             'elevation spread of a plane')
+  ! A flat DEM with missing pixels: no slope, no spread
+  dem = 250.0_rkx
+  dem(40:60,40:60) = -32767.0_rkx
+  call topostats(50.0_rkx,1,1,clat,clon,dem,cslope,cstd)
+  call check(cslope(1,1) == 0.0_rkx .and. cstd(1,1) == 0.0_rkx, &
+             'flat DEM with missing pixels')
 
   call test_end('test_intldtr')
 
