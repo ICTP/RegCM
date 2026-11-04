@@ -1110,12 +1110,23 @@ Both radiation schemes return to RegCM the same set of fields via the
 levels, downwelling longwave flux at the surface, and spectrally separated
 shortwave surface components (visible direct and diffuse, near-infrared
 direct and diffuse) needed by the BATS and CLM land surface schemes for
-vegetation and bare-soil energy balance.  Total-column integrated cloud
-liquid and ice water paths and total precipitable water are also accumulated
-for diagnostic output.  Clear-sky shortwave and longwave fluxes are
+vegetation and bare-soil energy balance.  The CCM scheme separates the
+visible from the near-infrared at 0.7~$\mu$m, as CLM does; RRTMG at
+0.625~$\mu$m, the edge of its band 24, which it also uses for the surface
+albedos it receives.  Clear-sky shortwave and longwave fluxes are
 diagnosed in parallel with the all-sky computation in both schemes, enabling
 the direct computation of the shortwave and longwave cloud radiative effects
 at the top of the atmosphere and at the surface.
+
+The fluxes and heating rates of a radiation call are used by the model
+until the next call.  The radiative output therefore accumulates them, with
+the cloud fractions (total, high, middle, low and by layer), the cloud
+liquid water path and the ozone used in the call, at every surface time
+step, and writes their time means
+over the output interval, whatever the radiation time step: these are the
+means of the values the model actually used.  The column water vapour,
+condensed water (liquid plus ice) and ice paths are instead computed at the
+output time from the prognostic water species, as grid-cell means.
 
 \subsection{Land Surface Models}
 
@@ -2183,10 +2194,17 @@ By default $RH_{crit}$ is a function of temperature following \cite{Pal_00}:
 it equals the user-specified minimum threshold $RH_0$ above the freezing level
 and increases toward $RH_{max}$ at low temperatures to reflect the reduced
 sub-grid variance in cirrus cloud layers.  When the dynamic critical relative
-humidity option is active, $RH_{crit}$ is additionally perturbed by a
-temperature-dependent polynomial correction \citep{Vavrus_08} to improve the
-simulation of low cloud.  The grid-mean relative humidity is bounded to the
-interval $[RH_{min}, RH_{max}]$ before the cloud fraction is evaluated.
+humidity option is active, $RH_{crit}$ follows \cite{Wang_25} instead:
+\begin{equation}
+  RH_{crit} = \max\left[0.6,\,\min\left(1,\,
+     RH_0 + 0.1\,(r - 0.5) + 0.01\,P(T)\right)\right]
+\end{equation}
+where $P(T)$ is a fourth-degree polynomial of the temperature (limited to
+216--301~K) and $r$ is a random number uniform in $[0,1)$. The random number
+is a hash of the time step and of the global indices of the grid point, so
+it does not depend on the domain decomposition and a restarted run draws the
+same values.  The grid-mean relative humidity is bounded to the interval
+$[RH_{min}, RH_{max}]$ before the cloud fraction is evaluated.
 
 \paragraph{Autoconversion.}
 Precipitation $P$ forms when the in-cloud liquid water content exceeds the
