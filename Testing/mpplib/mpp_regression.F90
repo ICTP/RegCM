@@ -415,6 +415,8 @@ program mpp_regression
   deallocate(r8g2,r8g3,r8g4,r4g2,r4g3,r4g4,i4g2,i4g3,i4g4,lg2,lg3,lg4)
 
   !======================= subgrid distribute / collect =======================
+  call check_plane_batches
+
   allocate(r8g3(nnsg,jx,iy),r8g4(nnsg,jx,iy,nk))
   allocate(r4g3(nnsg,jx,iy),r4g4(nnsg,jx,iy,nk))
   allocate(i4g3(nnsg,jx,iy),i4g4(nnsg,jx,iy,nk))
@@ -748,6 +750,103 @@ program mpp_regression
     integer(ik4), intent(in) :: j, i, k, n
     gv = real(j,rk8) + 100.0_rk8*i + 10000.0_rk8*k + 100000.0_rk8*n
   end function gv
+
+  subroutine check_plane_batches
+    ! Compare batched 3D/4D collects with single-plane reference gathers.
+    ! The coordinate-coded data also detects transposed or shifted planes.
+    integer, parameter :: lengths(9) = [1,2,3,4,5,6,7,50,51]
+    integer :: trial, kb, jj, ii, kk, nn, jl, ju, il, iu2
+    real(rk8), pointer, contiguous :: a8(:,:,:,:), b8(:,:,:,:)
+    real(rk8), pointer, contiguous :: ref8(:,:,:,:), p8(:,:), s8(:,:)
+    real(rk4), pointer, contiguous :: a4(:,:,:,:), b4(:,:,:,:)
+    real(rk4), pointer, contiguous :: ref4(:,:,:,:), p4(:,:), s4(:,:)
+    integer(ik4), pointer, contiguous :: ai(:,:,:,:), bi(:,:,:,:)
+    integer(ik4), pointer, contiguous :: refi(:,:,:,:), pi(:,:), si(:,:)
+    real(rk8), pointer, contiguous :: a83(:,:,:), b83(:,:,:)
+    real(rk4), pointer, contiguous :: a43(:,:,:), b43(:,:,:)
+    integer(ik4), pointer, contiguous :: ai3(:,:,:), bi3(:,:,:)
+
+    do trial = 1, size(lengths)
+      kb = lengths(trial)-2
+      ! Alternate layouts to exercise invalidation of the cached lookup.
+      jl = jde1 ; ju = jde2 ; il = ide1 ; iu2 = ide2
+      if ( mod(trial,2) == 0 ) then
+        jl = jci1 ; ju = jci2 ; il = ici1 ; iu2 = ici2
+      end if
+      allocate(a8(jl:ju,il:iu2,-1:kb,-1:0))
+      allocate(a4(jl:ju,il:iu2,-1:kb,-1:0))
+      allocate(ai(jl:ju,il:iu2,-1:kb,-1:0))
+      do nn = -1, 0
+        do kk = -1, kb
+          do ii = il, iu2
+            do jj = jl, ju
+              a8(jj,ii,kk,nn) = gv(jj,ii,kk,nn)
+              a4(jj,ii,kk,nn) = real(gv(jj,ii,kk,nn),rk4)
+              ai(jj,ii,kk,nn) = int(gv(jj,ii,kk,nn),ik4)
+            end do
+          end do
+        end do
+      end do
+      nullify(b8,b4,bi,ref8,ref4,refi,p8,p4,pi,b83,b43,bi3)
+      if ( myid == iocpu ) then
+        allocate(b8(jx,iy,-1:kb,-1:0),ref8(jx,iy,-1:kb,-1:0))
+        allocate(b4(jx,iy,-1:kb,-1:0),ref4(jx,iy,-1:kb,-1:0))
+        allocate(bi(jx,iy,-1:kb,-1:0),refi(jx,iy,-1:kb,-1:0))
+        b8 = -999 ; ref8 = -999
+        b4 = -999 ; ref4 = -999
+        bi = -999 ; refi = -999
+      end if
+      call grid_collect(a8,b8,jl,ju,il,iu2,-1,kb,-1,0)
+      call grid_collect(a4,b4,jl,ju,il,iu2,-1,kb,-1,0)
+      call grid_collect(ai,bi,jl,ju,il,iu2,-1,kb,-1,0)
+      do nn = -1, 0
+        do kk = -1, kb
+          call assignpnt(a8,s8,kk,nn)
+          call assignpnt(a4,s4,kk,nn)
+          call assignpnt(ai,si,kk,nn)
+          if ( myid == iocpu ) then
+            call assignpnt(ref8,p8,kk,nn)
+            call assignpnt(ref4,p4,kk,nn)
+            call assignpnt(refi,pi,kk,nn)
+          end if
+          call grid_collect(s8,p8,jl,ju,il,iu2)
+          call grid_collect(s4,p4,jl,ju,il,iu2)
+          call grid_collect(si,pi,jl,ju,il,iu2)
+          ! Check the reference against coordinates, independently of batching.
+          if ( myid == iocpu ) then
+            do ii = 1, iy
+              do jj = 1, jx
+                if ( p8(jj,ii) == -999 ) cycle
+                if ( p8(jj,ii) /= gv(jj,ii,kk,nn) ) &
+                  call mpi_abort(mycomm,90,ierr)
+              end do
+            end do
+          end if
+        end do
+      end do
+      if ( myid == iocpu ) then
+        if ( any(b8 /= ref8) .or. any(b4 /= ref4) .or. any(bi /= refi) ) &
+          call mpi_abort(mycomm,91,ierr)
+        b8 = -999 ; b4 = -999 ; bi = -999
+        call assignpnt(b8,b83,-1)
+        call assignpnt(b4,b43,-1)
+        call assignpnt(bi,bi3,-1)
+      end if
+      call assignpnt(a8,a83,-1)
+      call assignpnt(a4,a43,-1)
+      call assignpnt(ai,ai3,-1)
+      call grid_collect(a83,b83,jl,ju,il,iu2,-1,kb)
+      call grid_collect(a43,b43,jl,ju,il,iu2,-1,kb)
+      call grid_collect(ai3,bi3,jl,ju,il,iu2,-1,kb)
+      if ( myid == iocpu ) then
+        if ( any(b83 /= ref8(:,:,:,-1)) .or. &
+             any(b43 /= ref4(:,:,:,-1)) .or. &
+             any(bi3 /= refi(:,:,:,-1)) ) call mpi_abort(mycomm,92,ierr)
+        deallocate(b8,b4,bi,ref8,ref4,refi)
+      end if
+      deallocate(a8,a4,ai)
+    end do
+  end subroutine check_plane_batches
 
   subroutine fillx
     r8a2 = -1.0_rk8 ; r8a3 = -1.0_rk8 ; r8a4 = -1.0_rk8
