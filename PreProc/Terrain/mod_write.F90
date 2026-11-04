@@ -53,9 +53,10 @@ module mod_write
 
   type domain_datafile
     character (len=256) :: fname
-    logical :: lsub, lndfudge, texfudge, lakfudge
+    logical :: lsub
     integer(ik4) :: ntype
     real(rkx) :: ts0
+    real(rkx) :: ptopstd   ! Standard atmosphere pressure (hPa) at the top
     real(rkx), dimension(:), pointer, contiguous :: sigma
     real(rkx), dimension(:,:), pointer, contiguous :: xlat
     real(rkx), dimension(:,:), pointer, contiguous :: xlon
@@ -243,7 +244,8 @@ module mod_write
     v2dvar_base(nvar2d)%vunit = 'm'
     v2dvar_base(nvar2d)%long_name = &
       'Standard deviation of the DEM elevation in the cell'
-    v2dvar_base(nvar2d)%standard_name = 'surface_altitude'
+    ! No CF standard name for a spatial spread of the altitude
+    v2dvar_base(nvar2d)%standard_name = ''
 
     v2dvar_lake%vname = 'dhlake'
     v2dvar_lake%vunit = 'm'
@@ -253,7 +255,7 @@ module mod_write
     v3dvar_base(1)%vname = 'rmoist'
     v3dvar_base(1)%vunit = 'kg m-2'
     v3dvar_base(1)%long_name = 'Soil Moisture'
-    v3dvar_base(1)%standard_name = 'volume_fraction_of_water_in_soil'
+    v3dvar_base(1)%standard_name = 'mass_content_of_water_in_soil_layer'
     v3dvar_base(1)%lfillvalue = .true.
     v3dvar_base(1)%axis = 'xys'
     v3dvar_base(2)%vname = 'rts'
@@ -462,21 +464,12 @@ module mod_write
       ncattribute_logical('h2o_hgt_over_water',h2ohgt))
     call outstream_addatt(ncout, &
       ncattribute_integer('intermediate_resolution',df%ntype))
-    call outstream_addatt(ncout, &
-      ncattribute_logical('landuse_fudging',df%lndfudge))
-    call outstream_addatt(ncout, &
-      ncattribute_logical('texture_fudging',df%texfudge))
     if ( idynamic == 2 ) then
       call outstream_addatt(ncout, &
         ncattribute_real8('base_state_surface_temperature',df%ts0))
     else if ( idynamic == 3 ) then
       call outstream_addatt(ncout, &
-        ncattribute_real8('top_pressure_stdatm',ptop))
-    end if
-
-    if ( lakedpth ) then
-      call outstream_addatt(ncout, &
-        ncattribute_logical('lake_fudging',df%lakfudge))
+        ncattribute_real8('top_pressure_stdatm',df%ptopstd))
     end if
 
     call outstream_addatt(ncout, &
@@ -613,7 +606,12 @@ module mod_write
       v3dvar_bnds(8)%rval => df%vlat_bnds
     end if
 
-    dx = ds * 1000.0
+    ! Grid spacing (m) of this file: the sub-grid one is ds/nsg
+    if ( df%lsub ) then
+      dx = ds * 1000.0 / real(nsg,rkx)
+    else
+      dx = ds * 1000.0
+    end if
     if ( iproj == 'ROTLLR' ) then
       v2dvar_base(12)%rval = (dx*dx)/df%xmap
     else

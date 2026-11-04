@@ -141,12 +141,13 @@ module mod_intldtr
 
     hbox = nbox / 2
     totpoints = nbox*nbox
+    ! The nbox x nbox source points centred on (x,y), as in pctaround
     ii0 = ifloor(x,m)-hbox
     jj0 = jfloor(y,n)-hbox
     do i = 1, nbox
       do j = 1, nbox
-        rx = real(ii0 + i - 1,rk8)
-        ry = real(jj0 + j - 1,rk8)
+        rx = real(ii0 + i,rk8)
+        ry = real(jj0 + j,rk8)
         ii = ifloor(rx,m)
         jj = jfloor(ry,n)
         binval((i-1)*nbox+j) = grid(ii,jj)
@@ -296,22 +297,16 @@ module mod_intldtr
         end do
       end do
     else
-      ii0 = floor(x)
-      ii = int(ii0)
-      if ( ii < 1 ) ii = ii + m
-      if ( ii > m ) ii = ii - m
+      ! The distances are measured with the unwrapped index i, the grid
+      ! is read at the wrapped one
+      ii = floor(x)
       jj0 = real(min(max(floor(y),1),n),rk8)
       jj = int(jj0)
       pp = 0.0_rk8
       f = 0.0_rk8
       do j = jj - nh, jj + nh
         do i = ii - nh, ii + nh
-          iii = i
-          if ( i < 1 ) then
-            iii = iii + m
-          else if ( i > m ) then
-            iii = iii - m
-          end if
+          iii = modulo(i-1,m) + 1
           jjj = max(1,min(n,j))
           dx = max(1.0e-10_rk8,sqrt((x-real(i,rk8))**2+(y-real(j,rk8))**2))
           pp = pp + d_one/dx
@@ -423,6 +418,7 @@ module mod_intldtr
   subroutine interp(ds,jx,iy,xlat,xlon,omt, &
                     imt,itype,ival,ibnty,h2opct,rdem)
     implicit none
+    real(rk8) :: lnmn   ! Local copy of grdlnmn, continuous across the dateline
     integer(ik4), intent(in) :: iy, jx, itype
     real(rkx), intent(in), dimension(jx,iy) :: xlat, xlon
     real(rkx), intent(out), dimension(jx,iy) :: omt
@@ -436,18 +432,19 @@ module mod_intldtr
     integer, parameter :: nbmax = 100
     real(rk8) :: xx, yy, incx, incy, rincx, rincy, dd, drcm
 
+    lnmn = grdlnmn
     incy = (grdltma-grdltmn)/real(nlatin-1,rk8)
     if ( lcrosstime ) then
-      if ( grdlnmn > grdlnma ) then
-        incx = ((360.0_rk8+grdlnma)-grdlnmn)/real(nlonin-1,rk8)
+      if ( lnmn > grdlnma ) then
+        incx = ((360.0_rk8+grdlnma)-lnmn)/real(nlonin-1,rk8)
       else
-        incx = (grdlnma-grdlnmn)/real(nlonin-1,rk8)
+        incx = (grdlnma-lnmn)/real(nlonin-1,rk8)
       end if
-    else if ( grdlnmn > grdlnma ) then
-      incx = (grdlnma+(360.0_rk8-grdlnmn))/real(nlonin-1,rk8)
-      grdlnmn = -(360.0_rk8-grdlnmn)
+    else if ( lnmn > grdlnma ) then
+      incx = (grdlnma+(360.0_rk8-lnmn))/real(nlonin-1,rk8)
+      lnmn = -(360.0_rk8-lnmn)
     else
-      incx = (grdlnma-grdlnmn)/real(nlonin-1,rk8)
+      incx = (grdlnma-lnmn)/real(nlonin-1,rk8)
     end if
     rincx = d_one/incx
     rincy = d_one/incy
@@ -466,10 +463,10 @@ module mod_intldtr
           do jj = 1, jx
             yy = (xlat(jj,ii)-grdltmn)*rincy + d_one
             if (lcrosstime) then
-              xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn) * &
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-lnmn) * &
                     rincx + d_one
             else
-              xx = (xlon(jj,ii)-grdlnmn)*rincx + d_one
+              xx = (xlon(jj,ii)-lnmn)*rincx + d_one
             end if
             omt(jj,ii) = bilinear(xx,yy,nlonin,nlatin,imt)
           end do
@@ -479,10 +476,10 @@ module mod_intldtr
           do jj = 1, jx
             yy = (xlat(jj,ii)-grdltmn)*rincy + d_one
             if (lcrosstime) then
-              xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn) * &
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-lnmn) * &
                     rincx + d_one
             else
-              xx = (xlon(jj,ii)-grdlnmn)*rincx + d_one
+              xx = (xlon(jj,ii)-lnmn)*rincx + d_one
             end if
             omt(jj,ii) = bicubic(xx,yy,nlonin,nlatin,imt)
           end do
@@ -492,10 +489,10 @@ module mod_intldtr
           do jj = 1, jx
             yy = (xlat(jj,ii)-grdltmn)*rincy + d_one
             if (lcrosstime) then
-              xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn) * &
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-lnmn) * &
                     rincx + d_one
             else
-              xx = (xlon(jj,ii)-grdlnmn)*rincx + d_one
+              xx = (xlon(jj,ii)-lnmn)*rincx + d_one
             end if
             omt(jj,ii) = nearpoint(xx,yy,nlonin,nlatin,imt)
           end do
@@ -505,10 +502,10 @@ module mod_intldtr
           do jj = 1, jx
             yy = (xlat(jj,ii)-grdltmn)*rincy + d_one
             if (lcrosstime) then
-              xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn) * &
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-lnmn) * &
                     rincx + d_one
             else
-              xx = (xlon(jj,ii)-grdlnmn)*rincx + d_one
+              xx = (xlon(jj,ii)-lnmn)*rincx + d_one
             end if
             if (ii == 1 .or. ii == iy ) then
               omt(jj,ii) = nearpoint(xx,yy,nlonin,nlatin,imt)
@@ -520,10 +517,12 @@ module mod_intldtr
                 cycle
               end if
             end if
-            dd = gcdist_simple(real(grdltmn+incy*floor(yy),rkx),   &
-                               real(grdlnmn+incx*floor(xx),rkx),   &
-                               real(grdltmn+incy*ceiling(yy),rkx), &
-                               real(grdlnmn+incx*ceiling(xx),rkx))
+            ! Diagonal of the source cell (floor+1, not ceiling: it is
+            ! the same cell when the point falls exactly on a node)
+            dd = gcdist_simple(real(grdltmn+incy*floor(yy),rkx),     &
+                               real(lnmn+incx*floor(xx),rkx),     &
+                               real(grdltmn+incy*(floor(yy)+1),rkx), &
+                               real(lnmn+incx*(floor(xx)+1),rkx))
             nbox = min(max(nint(drcm/dd),2),nbmax)
             nbox = (nbox / 2) * 2
             if (itype == 4) then
@@ -551,6 +550,7 @@ module mod_intldtr
   !
   subroutine topostats(ds,jx,iy,xlat,xlon,imt,slope,stddev)
     implicit none
+    real(rk8) :: lnmn   ! Local copy of grdlnmn, continuous across the dateline
     integer(ik4), intent(in) :: iy, jx
     real(rkx), intent(in) :: ds
     real(rkx), intent(in), dimension(jx,iy) :: xlat, xlon
@@ -561,18 +561,19 @@ module mod_intldtr
     real(rk8) :: incx, incy, xx, yy, dym, dxm, dxl, gx, gy
     real(rk8) :: half, zm, zv, sm, plat
 
+    lnmn = grdlnmn
     incy = (grdltma-grdltmn)/real(nlatin-1,rk8)
     if ( lcrosstime ) then
-      if ( grdlnmn > grdlnma ) then
-        incx = ((360.0_rk8+grdlnma)-grdlnmn)/real(nlonin-1,rk8)
+      if ( lnmn > grdlnma ) then
+        incx = ((360.0_rk8+grdlnma)-lnmn)/real(nlonin-1,rk8)
       else
-        incx = (grdlnma-grdlnmn)/real(nlonin-1,rk8)
+        incx = (grdlnma-lnmn)/real(nlonin-1,rk8)
       end if
-    else if ( grdlnmn > grdlnma ) then
-      incx = (grdlnma+(360.0_rk8-grdlnmn))/real(nlonin-1,rk8)
-      grdlnmn = -(360.0_rk8-grdlnmn)
+    else if ( lnmn > grdlnma ) then
+      incx = (grdlnma+(360.0_rk8-lnmn))/real(nlonin-1,rk8)
+      lnmn = -(360.0_rk8-lnmn)
     else
-      incx = (grdlnma-grdlnmn)/real(nlonin-1,rk8)
+      incx = (grdlnma-lnmn)/real(nlonin-1,rk8)
     end if
     ! Pixel size along a meridian (m) and half side of the box (m)
     dym = earthrad_r8*incy*degrad_r8
@@ -582,9 +583,9 @@ module mod_intldtr
       do jj = 1, jx
         yy = (xlat(jj,ii)-grdltmn)/incy + d_one
         if ( lcrosstime ) then
-          xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn)/incx + d_one
+          xx = (mod((xlon(jj,ii)+deg360),deg360)-lnmn)/incx + d_one
         else
-          xx = (xlon(jj,ii)-grdlnmn)/incx + d_one
+          xx = (xlon(jj,ii)-lnmn)/incx + d_one
         end if
         lc = nint(yy)
         kc = nint(xx)
@@ -641,45 +642,62 @@ module mod_intldtr
     implicit none
     integer(ik4), intent(in) :: jx, iy
     real(rkx), intent(inout), dimension(jx,iy) :: omt
-    logical, dimension(jx,iy) :: visited
-    integer(ik4), dimension(jx*iy,2) :: cnodes
+    logical, allocatable, dimension(:,:) :: visited
+    integer(ik4), allocatable, dimension(:,:) :: cnodes
     integer(ik4), parameter :: iminc = 6
     integer(ik4) :: i, j, icount
 
+    allocate(visited(jx,iy),cnodes(jx*iy,2))
     visited(:,:) = .false.
     do i = 1, iy
       do j = 1, jx
         if ( int(omt(j,i)) == iocn .and. .not. visited(j,i) ) then
-          icount = 0
-          call dfs_cluster(jx,iy,omt,visited,j,i,cnodes,icount)
+          call find_cluster(jx,iy,omt,visited,j,i,cnodes,icount)
           if ( icount < iminc ) then
             call remove_cluster(jx,iy,omt,cnodes,icount)
           end if
         end if
       end do
     end do
+    deallocate(visited,cnodes)
   end subroutine puddlefilter
-
-  recursive subroutine dfs_cluster(nj,ni,omt,visited,j,i,nodes,ic)
+  !
+  ! The ocean points connected through their sides to (j0,i0), found with
+  ! an explicit stack: nodes(1:ic) holds the points of the cluster, and
+  ! the points not yet expanded are nodes(next:ic).
+  !
+  subroutine find_cluster(nj,ni,omt,visited,j0,i0,nodes,ic)
     implicit none
-    integer(ik4), intent(in) :: i, j, ni, nj
+    integer(ik4), intent(in) :: i0, j0, ni, nj
     real(rkx), intent(in), dimension(nj,ni) :: omt
     logical, intent(inout), dimension(nj,ni) :: visited
-    integer, intent(inout), dimension(nj*ni,2) :: nodes
-    integer, intent(inout) :: ic
+    integer(ik4), intent(inout), dimension(nj*ni,2) :: nodes
+    integer(ik4), intent(out) :: ic
+    integer(ik4), dimension(4), parameter :: dj = [1,-1,0,0]
+    integer(ik4), dimension(4), parameter :: di = [0,0,1,-1]
+    integer(ik4) :: next, k, i, j, ii, jj
 
-    if ( i < 1 .or. i > ni .or. j < 1 .or. j > nj ) return
-    if ( int(omt(j,i)) /= iocn .or. visited(j,i) ) return
-
-    visited(j,i) = .true.
-    ic = ic + 1
-    nodes(ic, 1) = j
-    nodes(ic, 2) = i
-    call dfs_cluster(nj,ni,omt,visited,j+1,i  ,nodes,ic)
-    call dfs_cluster(nj,ni,omt,visited,j-1,i  ,nodes,ic)
-    call dfs_cluster(nj,ni,omt,visited,j  ,i+1,nodes,ic)
-    call dfs_cluster(nj,ni,omt,visited,j  ,i-1,nodes,ic)
-  end subroutine dfs_cluster
+    ic = 1
+    nodes(1,1) = j0
+    nodes(1,2) = i0
+    visited(j0,i0) = .true.
+    next = 1
+    do while ( next <= ic )
+      j = nodes(next,1)
+      i = nodes(next,2)
+      next = next + 1
+      do k = 1, 4
+        jj = j + dj(k)
+        ii = i + di(k)
+        if ( ii < 1 .or. ii > ni .or. jj < 1 .or. jj > nj ) cycle
+        if ( int(omt(jj,ii)) /= iocn .or. visited(jj,ii) ) cycle
+        visited(jj,ii) = .true.
+        ic = ic + 1
+        nodes(ic,1) = jj
+        nodes(ic,2) = ii
+      end do
+    end do
+  end subroutine find_cluster
 
   subroutine remove_cluster(nj,ni,omt,nodes,ic)
     implicit none
@@ -700,9 +718,13 @@ module mod_intldtr
                ii < 1 .or. ii > ni ) cycle
           kk = int(omt(jj,ii))
           if ( kk == iocn ) cycle
+          ! Not a class (missing data)
+          if ( kk < 1 .or. kk > maxbins ) cycle
           cnt(kk) = cnt(kk) + 1
         end do
       end do
+      ! No land class around: the point stays ocean
+      if ( maxval(cnt) == 0 ) cycle
       imax = maxloc(cnt)
       omt(j,i) = real(imax(1),rkx)
     end do

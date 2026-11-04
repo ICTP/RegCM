@@ -373,15 +373,6 @@ module mod_dynparam
   logical, public :: smthbdy
   integer, public :: nsmthbdy
 
-  ! Fudging for landuse and texture for grid and subgrid
-
-  logical, public :: fudge_lnd
-  logical, public :: fudge_lnd_s
-  logical, public :: fudge_tex
-  logical, public :: fudge_tex_s
-  logical, public :: fudge_lak
-  logical, public :: fudge_lak_s
-
   ! Terrain output files
 
   character(len=64), public :: domname
@@ -540,10 +531,9 @@ module mod_dynparam
     namelist /geoparam/ iproj, ds, ptop, clat, clon, plat,    &
       plon, cntri, cntrj, truelatl, truelath, i_band, i_crm
     namelist /terrainparam/ domname, lresamp, smthbdy, nsmthbdy, &
-      lakedpth, lsmoist, fudge_lnd, fudge_lnd_s, fudge_tex,      &
-      fudge_tex_s, fudge_lak, fudge_lak_s, h2opct, h2ohgt,       &
-      ismthlev, dirter, inpter, moist_filename, tersrc, smsrc,   &
-      texsrc, roidem, lclm45lake
+      lakedpth, lsmoist, h2opct, h2ohgt, ismthlev, dirter,       &
+      inpter, moist_filename, tersrc, smsrc, texsrc, roidem,     &
+      lclm45lake
     namelist /debugparam/ debug_level, dbgfrq
     namelist /boundaryparam/ bdy_use_lehmann, nspgx, nspgd, &
       high_nudge, medium_nudge, low_nudge, bdy_nm, bdy_dm

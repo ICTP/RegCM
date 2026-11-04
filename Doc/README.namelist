@@ -79,12 +79,6 @@
                               ! terrain program the domain bathymetry
  lsmoist     = .false.,       ! Use Satellite Soil Moisture Dataset for
                               ! initialization of soil moisture.
- fudge_lnd   = .false.,       ! Fudging Control flag, for landuse of grid 
- fudge_lnd_s = .false.,       ! Fudging Control flag, for landuse of subgrid
- fudge_tex   = .false.,       ! Fudging Control flag, for texture of grid
- fudge_tex_s = .false.,       ! Fudging Control flag, for texture of subgrid
- fudge_lak   = .false.,       ! Fudging Control flag, for lake of grid
- fudge_lak_s = .false.,       ! Fudging Control flag, for lake of subgrid
  dirter = 'input/',           ! Output directory for terrain files
  inpter = 'globdata/',        ! Input directory for SURFACE dataset
  tersrc = 'GMTED',            ! Select GMTED or GTOPO DEM data

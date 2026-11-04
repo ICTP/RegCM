@@ -42,13 +42,15 @@ module mod_smooth
       do i = 1, iy
         do j = 2, jx - 2
           hscr(j,i) = d_rfour*(d_two*htgrid(j,i)+htgrid(j+1,i)+htgrid(j-1,i))
-          if ( hscr(j,i) < d_one ) hscr(j,i) = d_zero
+          if ( hscr(j,i) >= d_zero .and. hscr(j,i) < d_one ) &
+            hscr(j,i) = d_zero
         end do
       end do
       do i = 2, iy - 2
         do j = 1, jx
           htgrid(j,i) = d_rfour*(d_two*hscr(j,i)+hscr(j,i+1)+hscr(j,i-1))
-          if ( htgrid(j,i) < d_one ) htgrid(j,i) = d_zero
+          if ( htgrid(j,i) >= d_zero .and. htgrid(j,i) < d_one ) &
+            htgrid(j,i) = d_zero
         end do
       end do
     end do
@@ -79,7 +81,8 @@ module mod_smooth
             cell = slab(j,i)
             aplus = slab(j+1,i)
             slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell )
-            if ( slab(j,i) < d_one ) slab(j,i) = d_zero
+            if ( slab(j,i) >= d_zero .and. slab(j,i) < d_one ) &
+              slab(j,i) = d_zero
             asv = cell
           end do
         end do
@@ -90,7 +93,8 @@ module mod_smooth
             cell = slab(j,i)
             aplus = slab(j,i+1)
             slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell )
-            if ( slab(j,i) < d_one ) slab(j,i) = d_zero
+            if ( slab(j,i) >= d_zero .and. slab(j,i) < d_one ) &
+              slab(j,i) = d_zero
             asv = cell
           end do
         end do
@@ -161,6 +165,7 @@ module mod_smooth
     real(rkx), intent(inout), dimension(nj,ni) :: slab1
     integer(ik4) :: i, j, k, n, npass
     integer(ik4), allocatable, dimension(:) :: ii, jj
+    real(rkx), allocatable, dimension(:) :: hneg
     !
     ! smooth terrain arrays
     !
@@ -168,6 +173,7 @@ module mod_smooth
     !
     allocate(ii(nj*ni))
     allocate(jj(nj*ni))
+    allocate(hneg(nj*ni))
     n = 0
     do i = 1, ni
       do j = 1, nj
@@ -175,6 +181,7 @@ module mod_smooth
           n = n + 1
           ii(n) = i
           jj(n) = j
+          hneg(n) = slab1(j,i)
           slab1(j,i) = d_zero
         end if
       end do
@@ -193,15 +200,16 @@ module mod_smooth
       end do
     end do
     !
-    ! Put back points with negative elevation
+    ! Put back the points with negative elevation, unsmoothed
     !
     do k = 1, n
       i = ii(k)
       j = jj(k)
-      slab1(j,i) = -0.001_rkx
+      slab1(j,i) = hneg(k)
     end do
     deallocate(ii)
     deallocate(jj)
+    deallocate(hneg)
   end subroutine smthtr
 
 end module mod_smooth

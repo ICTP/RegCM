@@ -43,14 +43,17 @@ module mod_nhinterp
 
   contains
 
-    real(rkx) function base_state_temperature(i1,i2,j1,j2,xlat)
+    ! Reference surface temperature of the domain at the base state
+    ! surface pressure pbase (Pa)
+    real(rkx) function base_state_temperature(i1,i2,j1,j2,xlat,pbase)
       implicit none
       integer(ik4), intent(in) :: i1, i2, j1, j2
       real(rkx), pointer, contiguous, intent(in), dimension(:,:) :: xlat    ! Latitude
+      real(rkx), intent(in) :: pbase
       real(rkx), dimension(j1:j2,i1:i2) :: ts0
       integer(ik4) :: i, j
       do concurrent ( j = j1:j2, i = i1:i2 )
-        ts0(j,i) = stdatm_val(xlat(j,i),p0*d_r100,istdatm_tempk)
+        ts0(j,i) = stdatm_val(xlat(j,i),pbase*d_r100,istdatm_tempk)
       end do
       base_state_temperature = d_half*(maxval(ts0)+minval(ts0))
       write(stdout,*) 'Computed reference surface temperature for domain: ', &

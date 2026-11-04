@@ -3439,12 +3439,6 @@ gzip, code 1), \code{ncfilter\_nparams}, and \code{ncfilter\_params}
   \code{lakedpth}   & \code{.false.} & Create lake bathymetry for the Hostetler
     lake model. \\
   \code{lsmoist}    & \code{.false.} & Generate initial soil moisture dataset. \\
-  \code{fudge\_lnd}, \code{fudge\_lnd\_s} & \code{.false.} &
-    Override land-use classification for grid / sub-grid. \\
-  \code{fudge\_tex}, \code{fudge\_tex\_s} & \code{.false.} &
-    Override soil texture classification for grid / sub-grid. \\
-  \code{fudge\_lak}, \code{fudge\_lak\_s} & \code{.false.} &
-    Override lake mask for grid / sub-grid. \\
   \code{nveg}       & 22 & Number of land-use vegetation categories. \\
 \end{longtable}
 
@@ -6952,14 +6946,18 @@ are limited to the grid.
 limited to 2--100 and rounded down to an even number, with
 $d = \sqrt2\,\Delta s$ (times \code{rdem} if given) the diagonal of a
 model cell and $\delta$ the diagonal of the source cell at the point: the
-box covers about one model cell. The first and last rows of the model grid
+box covers about one model cell. The box is centred on the point: for the
+fractional source index $x$ it takes the cells
+$\lfloor x\rfloor+1-n/2$ to $\lfloor x\rfloor+n/2$, and the same in $y$. The first and last rows of the model grid
 (and columns without \code{lonwrap}) use the nearest cell.
 
 \textbf{Puddles.} \code{puddlefilter} finds the clusters of ocean points
 (class 15) connected through their sides; each point of a cluster of fewer
 than 6 points takes the most frequent class among its 8 neighbours that are
-not ocean. This removes isolated water points that the class interpolation
-leaves along irregular coasts.
+not ocean, and stays ocean if none of them has a land class. This removes
+isolated water points that the class interpolation leaves along irregular
+coasts. The clusters are found with an explicit list of points rather than
+by recursion, so an ocean of any size does not exhaust the stack.
 
 \textbf{Topography statistics.} \code{terrain} calls \code{topostats} on
 the DEM read without resampling and writes the results in the DOMAIN file
@@ -6983,8 +6981,9 @@ melt.
 \textbf{Testing.} \code{Testing/share/test\_intldtr.F90} checks the bilinear
 and bicubic interpolation on polynomials they reproduce exactly, the
 distance weighting of a constant, the class threshold for land use and soil
-texture, the class percentage, a class box and a bilinear interpolation
-across the longitude wrap of a global grid, the puddle filter, and the
+texture, the class percentage, a class box centred on the point, a class
+box, a bilinear interpolation
+and a distance weighting across the longitude wrap of a global grid, the puddle filter, and the
 extrema of a domain across the date line, and the slope and elevation
 spread of \code{topostats} for a plane and for a flat DEM with missing
 pixels.
@@ -7318,10 +7317,10 @@ into account in the heights).
   \endhead
   \bottomrule
   \endfoot
-  \code{base\_state\_temperature(i1, i2, j1, j2, xlat)} &
-    $T_{s0}$ of a domain: the mean of the extremes of the surface
-    temperature of the standard atmospheres (Section~\ref{sec:stdatm}) at
-    the latitudes of the domain. \\
+  \code{base\_state\_temperature(i1, i2, j1, j2, xlat, pbase)} &
+    $T_{s0}$ of a domain: the mean of the extremes of the temperature of
+    the standard atmospheres (Section~\ref{sec:stdatm}) at the pressure
+    \code{pbase} (Pa) and the latitudes of the domain. \\
   \code{nhsetup(ptop, p0, A, ts0)} &
     The parameters of the reference state ($p_t$ in cb). \\
   \code{nhbase(\ldots, sig, ter, ps0, pr0, t0, rho0, z0)} &

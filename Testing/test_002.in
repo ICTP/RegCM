@@ -20,10 +20,6 @@
  &terrainparam
  domname = 'test_002',
  lakedpth = .false.,
- fudge_lnd   = .false.,
- fudge_lnd_s = .false.,
- fudge_tex   = .false.,
- fudge_tex_s = .false.,
  dirter = '/set/this/to/where/your/domain/file/is',
  inpter = '/set/this/to/where/your/surface/dataset/is',
  /

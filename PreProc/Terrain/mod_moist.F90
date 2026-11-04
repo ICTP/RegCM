@@ -19,6 +19,7 @@ module mod_moist
   use mod_realkinds
   use mod_constants
   use mod_stdio
+  use mod_dynparam, only : i_band
   use netcdf
   implicit none
 
@@ -36,7 +37,7 @@ module mod_moist
     integer(ik4), intent(in) :: jx, iy, ns
     logical, intent(out) :: lrmoist, ltsl
     integer(ik4) :: ncid, istat
-    integer(ik4) :: dimid, njx, niy, nlev, ntime
+    integer(ik4) :: dimid, njx, niy, nlev, ntime, j1, j2, nexp
     integer(ik4) :: idmoist, idsnow, idtsl
     integer(ik4) :: istart(4), icount(4)
     real(rkx), dimension(:,:,:), allocatable :: moist_in, tsl_in
@@ -69,9 +70,19 @@ module mod_moist
       write(stderr,*) 'Error reading dimension x in moisture file'
       return
     end if
-    if ( njx /= jx-3 ) then
+    ! The model output has all the columns of a band domain, and the
+    ! columns 2 to jx-2 otherwise
+    if ( i_band == 1 ) then
+      j1 = 1
+      j2 = jx
+    else
+      j1 = 2
+      j2 = jx-2
+    end if
+    nexp = j2 - j1 + 1
+    if ( njx /= nexp ) then
       write(stderr,*) 'Moisture file is not coming from a previous run'
-      write(stderr,*) 'JX : ', jx, njx+3
+      write(stderr,*) 'JX : ', nexp, ' expected, ', njx, ' in the file'
       return
     end if
     istat = nf90_inq_dimid(ncid,'iy',dimid)
@@ -80,6 +91,7 @@ module mod_moist
       istat = nf90_inq_dimid(ncid,'y',dimid)
       if ( istat /= nf90_noerr ) then
         write(stderr,*) 'No iy dimension in moisture file'
+        return
       end if
     end if
     istat = nf90_inquire_dimension(ncid,dimid,len=niy)
@@ -144,7 +156,7 @@ module mod_moist
           if ( istat /= nf90_noerr ) then
             write(stderr,*) 'Error reading variable mrso in moisture file'
           else
-            rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
+            rmoist(j1:j2,2:iy-2,:) = moist_in(:,:,:)
             lrmoist = .true.
           end if
         end if
@@ -153,7 +165,7 @@ module mod_moist
           if ( istat /= nf90_noerr ) then
             write(stderr,*) 'Error reading variable tsl in moisture file'
           else
-            tsl(2:jx-2,2:iy-2,:) = tsl_in(:,:,:)
+            tsl(j1:j2,2:iy-2,:) = tsl_in(:,:,:)
             ltsl = .true.
           end if
         end if
@@ -162,7 +174,7 @@ module mod_moist
           if ( istat /= nf90_noerr ) then
              write(stderr,*) 'Error reading variable snv in moisture file'
           else
-            snow(2:jx-2,2:iy-2) = snow_in(:,:)
+            snow(j1:j2,2:iy-2) = snow_in(:,:)
           end if
         end if
       else
@@ -185,7 +197,7 @@ module mod_moist
           if ( istat /= nf90_noerr ) then
             write(stderr,*) 'Error reading variable mrso in moisture file'
           else
-            rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
+            rmoist(j1:j2,2:iy-2,:) = moist_in(:,:,:)
             lrmoist = .true.
           end if
         end if
@@ -194,7 +206,7 @@ module mod_moist
           if ( istat /= nf90_noerr ) then
             write(stderr,*) 'Error reading variable tsl in moisture file'
           else
-            tsl(2:jx-2,2:iy-2,:) = tsl_in(:,:,:)
+            tsl(j1:j2,2:iy-2,:) = tsl_in(:,:,:)
             ltsl = .true.
           end if
         end if
@@ -209,7 +221,7 @@ module mod_moist
           if ( istat /= nf90_noerr ) then
             write(stderr,*) 'Error reading variable snv in moisture file'
           else
-            snow(2:jx-2,2:iy-2) = snow_in(:,:)
+            snow(j1:j2,2:iy-2) = snow_in(:,:)
           end if
         end if
       end if

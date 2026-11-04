@@ -265,12 +265,6 @@ later when the model calculates climatic parameters.
                               ! terrain program the domain bathymetry
  lsmoist     = .false.,       ! Use Satellite Soil Moisture Dataset for
                               ! initialization of soil moisture.
- fudge_lnd   = .false.,       ! Fudging Control flag, for landuse of grid 
- fudge_lnd_s = .false.,       ! Fudging Control flag, for landuse of subgrid
- fudge_tex   = .false.,       ! Fudging Control flag, for texture of grid
- fudge_tex_s = .false.,       ! Fudging Control flag, for texture of subgrid
- fudge_lak   = .false.,       ! Fudging Control flag, for lake of grid
- fudge_lak_s = .false.,       ! Fudging Control flag, for lake of subgrid
  dirter = 'input/',           ! Output directory for terrain files
  inpter = 'globdata/',        ! Input directory for SURFACE dataset
  tersrc = 'GMTED',            ! Select GMTED or GTOPO DEM data
@@ -295,16 +289,6 @@ land shapes. A zero value means use just the interpolation engine, higher
 values will extend into ocean points the land at land-water interface.
 The h2ohgt parameter allows also water points to have elevation greater
 than zero to avoid wall effects on the coasts.
-\item A number of flags control the capability of the \verb=terrain= program
-to modify on request the class type variables in the \verb=DOMAIN= file. You can
-modify on request the landuse, the texture and the lake/land interface.
-Running once the \verb=terrain= program, it will generate for you aside from the
-\verb=DOMAIN= file a series of ASCII files you can modify with any text
-editor. Running the \verb=terrain= program the second time and setting
-a \verb=fudge= flag, will tell the program to overwrite the selected
-variable with the modified value in the ASCII file. This can be useful
-for sensitivity experiments in the BATS surface model or to design
-a scenario experiment.
 \item Some of the land surface types in BATS have been little tested and used
 or are extremely simplified and thus should be used cautiously. Specifically
 the types are: sea ice, bog/marsh, irrigated crop, glacier. If such types are

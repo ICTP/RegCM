@@ -74,7 +74,6 @@ program terrain
   use mod_smooth
   use mod_maputils
   use mod_intldtr
-  use mod_fudge
   use mod_rdldtr
   use mod_write
   use mod_header
@@ -92,24 +91,18 @@ program terrain
 #endif
 
   implicit none
-  character(len=256) :: char_lnd, char_tex, char_lak
   character(len=256) :: namelistfile, prgname
   integer(ik4) :: i, j, k, ierr, ism, mmx
   integer(ik4) :: year, month, day, hour
-  logical :: ibndry
   real(rkx) :: clong, dsnsg
   integer(ik4) :: ntypec, ntypec_s
-  real(rkx), allocatable, dimension(:,:) :: tmptex
   real(rkx), pointer, contiguous, dimension(:,:) :: values
-  real(rkx) :: psig, psig1, zsig, pstar, tswap, tsig
+  real(rkx) :: psig, psig1, zsig, pstar, tsig
   real(rkx) :: ts0, ptrop
   !type(globalfile) :: gfile
-  character(len=*), parameter :: f99001 = '(a,a,a,a,i0.3)'
-  character(len=*), parameter :: f99002 = '(a,a,a,a)'
   logical :: laround0 = .true.
   type(domain_datafile) :: df
 
-  data ibndry /.false./
 
   ! You should nor modify those, but it may help with "difficult" domains
   ! to obtain better representation of topography and landuse
@@ -279,7 +272,6 @@ program terrain
         do while ( mod(3600,ntypec_s*60) /= 0 .and. ntypec_s > 1 )
           ntypec_s = ntypec_s - 1
         end do
-        ntypec_s = max(ntypec_s, 0)
       end if
     else
       ntypec_s = 0
@@ -420,30 +412,6 @@ program terrain
       end do
     end do
 
-    if ( idynamic /= 3 ) then
-      write (char_lnd,f99001) trim(dirter), pthsep, trim(domname), &
-             '_LANDUSE', nsg
-      call lndfudge(fudge_lnd_s,lndout_s,jxsg,iysg,trim(char_lnd))
-      write (char_tex,f99001) trim(dirter), pthsep, trim(domname), &
-             '_TEXTURE', nsg
-      allocate(tmptex(jxsg,iysg))
-      tmptex(:,:) = texout_s(:,:)
-      call texfudge(fudge_tex_s,texout_s,lndout_s,jxsg,iysg,trim(char_tex))
-      do i = 1, iysg
-        do j = 1, jxsg
-          ! Swap percentages of the old class and the new requested
-          if ( texout_s(j,i) /= tmptex(j,i) ) then
-            tswap = frac_tex_s(j,i,int(tmptex(j,i)))
-            frac_tex_s(j,i,int(tmptex(j,i))) = &
-                    frac_tex_s(j,i,int(texout_s(j,i)))
-            frac_tex_s(j,i,int(texout_s(j,i))) = tswap
-          end if
-        end do
-      end do
-      deallocate(tmptex)
-      write(stdout,*) 'Fudging data (if requested) succeeded'
-    end if
-
   end if
   !
   ! set up the parameters and constants
@@ -514,7 +482,6 @@ program terrain
       do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
         ntypec = ntypec - 1
       end do
-      ntypec = max(ntypec, 0)
     end if
   else
     ntypec = 0
@@ -593,7 +560,7 @@ program terrain
                        nlatin,nlonin,values,month)
       where ( values > d_zero )
         ! The data are mm content in a column of 1.6 m
-        values = values * 0.0016_rkx
+        values = values * 0.000625_rkx
       end where
     else if ( smsrc(1:6) == 'ERA20C' ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'//          &
@@ -664,26 +631,6 @@ program terrain
       rmoist(j,i,:) = -1.0
     end do
   end do
-
-  if ( idynamic /= 3 ) then
-    write (char_lnd,f99002) trim(dirter), pthsep, trim(domname),'_LANDUSE'
-    call lndfudge(fudge_lnd,lndout,jx,iy,trim(char_lnd))
-    write (char_tex,f99002) trim(dirter), pthsep, trim(domname),'_TEXTURE'
-    allocate(tmptex(jx,iy))
-    tmptex(:,:) = texout(:,:)
-    call texfudge(fudge_tex,texout,lndout,jx,iy,trim(char_tex))
-    do i = 1, iy
-      do j = 1, jx
-        ! Swap percentages of the old class and the new requested
-        if ( texout(j,i) /= tmptex(j,i) ) then
-          tswap = frac_tex(j,i,int(tmptex(j,i)))
-          frac_tex(j,i,int(tmptex(j,i))) = frac_tex(j,i,int(texout(j,i)))
-          frac_tex(j,i,int(texout(j,i))) = tswap
-        end if
-      end do
-    end do
-    deallocate(tmptex)
-  end if
 
 #ifdef CLM45
   if ( lclm45lake ) then
@@ -771,75 +718,7 @@ program terrain
     end if
   end if
 
-  if ( ibndry ) then
-    do j = 1, jx
-      htgrid(j,1) = htgrid(j,2)
-      htgrid(j,iy-1) = htgrid(j,iy-2)
-      htgrid(j,iy) = htgrid(j,iy-1)
-      lndout(j,1) = lndout(j,2)
-      lndout(j,iy-1) = lndout(j,iy-2)
-      lndout(j,iy) = lndout(j,iy-1)
-      mask(j,1) = mask(j,2)
-      mask(j,iy-1) = mask(j,iy-2)
-      mask(j,iy) = mask(j,iy-1)
-      texout(j,1) = texout(j,2)
-      texout(j,iy-1) = texout(j,iy-2)
-      texout(j,iy) = texout(j,iy-1)
-      do k = 1, ntex
-        frac_tex(j,1,k) = frac_tex(j,2,k)
-        frac_tex(j,iy-1,k) = frac_tex(j,iy-2,k)
-        frac_tex(j,iy,k) = frac_tex(j,iy-1,k)
-      end do
-    end do
-    if ( i_band /= 1 ) then
-      do i = 2, iy-1
-        htgrid(1,i) = htgrid(2,i)
-        htgrid(jx-1,i) = htgrid(jx-2,i)
-        htgrid(jx,i) = htgrid(jx-1,i)
-        lndout(1,i) = lndout(2,i)
-        lndout(jx-1,i) = lndout(jx-2,i)
-        lndout(jx,i) = lndout(jx-1,i)
-        mask(1,i) = mask(2,i)
-        mask(jx-1,i) = mask(jx-2,i)
-        mask(jx,i) = mask(jx-1,i)
-        texout(1,i) = texout(2,i)
-        texout(jx-1,i) = texout(jx-2,i)
-        texout(jx,i) = texout(jx-1,i)
-        do k = 1, ntex
-          frac_tex(1,i,k) = frac_tex(2,i,k)
-          frac_tex(jx-1,i,k) = frac_tex(jx-2,i,k)
-          frac_tex(jx,i,k) = frac_tex(jx-1,i,k)
-        end do
-      end do
-    end if
-  end if
-
   if ( idynamic == 3 ) then
-    if ( ibndry ) then
-      do j = 1, jx
-        topou(j,1) = topou(j,2)
-        topou(j,iy) = topou(j,iy-1)
-        topov(j,1) = topov(j,2)
-        topov(j,iy) = topov(j,iy-1)
-      end do
-      if ( i_band /= 1 ) then
-        do i = 2, iy-1
-          topou(1,i) = topou(2,i)
-          topou(jx,i) = topou(jx-1,i)
-          topov(1,i) = topov(2,i)
-          topov(jx,i) = topov(jx-1,i)
-        end do
-      end if
-    end if
-  end if
-
-  if ( idynamic == 3 ) then
-    if ( lakedpth ) then
-      write (char_lak,f99002) trim(dirter), pthsep, trim(domname), &
-               '_LAK'
-      call lakfudge(fudge_lak,dpth,lndout,jx,iy,trim(char_lak))
-    end if
-    write(stdout,*) 'Fudging data (if requested) succeeded'
   end if
 
   if ( nsg > 1 ) then
@@ -888,6 +767,9 @@ program terrain
       end where
     end if
 
+    ! Same smoothing as on the main grid
+    ! Preliminary heavy smoothing of boundaries
+    if ( smthbdy ) call smthtr(htgrid_s,jxsg,iysg,nsmthbdy*nsg)
     ! Grell smoothing to eliminate 2 delx wave
     call smtdsmt(htgrid_s,jxsg,iysg)
     ! Smoothing using 1-2-1 smoother
@@ -901,15 +783,27 @@ program terrain
         htgrid_s = 0.0_rkx
       end where
     end if
-
-    if ( idynamic /= 3 ) then
-      if ( lakedpth ) then
-        write (char_lak,f99001) trim(dirter), pthsep, trim(domname), &
-                 '_LAK', nsg
-        call lakfudge(fudge_lak_s,dpth_s,lndout_s,jxsg,iysg, &
-                      trim(char_lak))
+    if ( idynamic == 3 ) then
+      if ( smthbdy ) call smthtr(topou_s,jxsg,iysg,nsmthbdy*nsg)
+      if ( smthbdy ) call smthtr(topov_s,jxsg,iysg,nsmthbdy*nsg)
+      call smtdsmt(topou_s,jxsg,iysg)
+      call smtdsmt(topov_s,jxsg,iysg)
+      do ism = 1, ismthlev
+        call smth121(topou_s,jxsg,iysg)
+        call smth121(topov_s,jxsg,iysg)
+      end do
+      if ( .not. h2ohgt ) then
+        where ( ulnd_s > 14.5_rkx .and. ulnd_s < 15.5_rkx .and. &
+                topou_s > 0.0_rkx )
+          topou_s = 0.0_rkx
+        end where
+        where ( vlnd_s > 14.5_rkx .and. vlnd_s < 15.5_rkx .and. &
+                topov_s > 0.0_rkx )
+          topov_s = 0.0_rkx
+        end where
       end if
     end if
+
     if ( lsmoist ) then
       where ( mask_s < 1.0_rkx )
         smoist_s = smissval
@@ -918,70 +812,12 @@ program terrain
       smoist_s = smissval
     end if
 
-    if ( ibndry ) then
-      do j = 1, jxsg
-        htgrid_s(j,1) = htgrid_s(j,2)
-        htgrid_s(j,iysg-1) = htgrid_s(j,iysg-2)
-        htgrid_s(j,iysg) = htgrid_s(j,iysg-1)
-        lndout_s(j,1) = lndout_s(j,2)
-        lndout_s(j,iysg-1) = lndout_s(j,iysg-2)
-        lndout_s(j,iysg) = lndout_s(j,iysg-1)
-        mask_s(j,1) = mask_s(j,2)
-        mask_s(j,iysg-1) = mask_s(j,iysg-2)
-        mask_s(j,iysg) = mask_s(j,iysg-1)
-        texout_s(j,1) = texout_s(j,2)
-        texout_s(j,iysg-1) = texout_s(j,iysg-2)
-        texout_s(j,iysg) = texout_s(j,iysg-1)
-        do k = 1, ntex
-          frac_tex_s(j,1,k) = frac_tex_s(j,2,k)
-          frac_tex_s(j,iysg-1,k) = frac_tex_s(j,iysg-2,k)
-          frac_tex_s(j,iysg,k) = frac_tex_s(j,iysg-1,k)
-        end do
-      end do
-      if ( i_band /= 1 ) then
-        do i = 2, iysg-1
-          htgrid_s(1,i) = htgrid_s(2,i)
-          htgrid_s(jxsg-1,i) = htgrid_s(jxsg-2,i)
-          htgrid_s(jxsg,i) = htgrid_s(jxsg-1,i)
-          lndout_s(1,i) = lndout_s(2,i)
-          lndout_s(jxsg-1,i) = lndout_s(jxsg-2,i)
-          lndout_s(jxsg,i) = lndout_s(jxsg-1,i)
-          mask_s(1,i) = mask_s(2,i)
-          mask_s(jxsg-1,i) = mask_s(jxsg-2,i)
-          mask_s(jxsg,i) = mask_s(jxsg-1,i)
-          texout_s(1,i) = texout_s(2,i)
-          texout_s(jxsg-1,i) = texout_s(jxsg-2,i)
-          texout_s(jxsg,i) = texout_s(jxsg-1,i)
-          do k = 1, ntex
-            frac_tex_s(1,i,k) = frac_tex_s(2,i,k)
-            frac_tex_s(jxsg-1,i,k) = frac_tex_s(jxsg-2,i,k)
-            frac_tex_s(jxsg,i,k) = frac_tex_s(jxsg-1,i,k)
-          end do
-        end do
-      end if
-    end if
-
     if ( idynamic == 3 ) then
-      if ( ibndry ) then
-        do j = 1, jxsg
-          topou_s(j,1) = topou_s(j,2)
-          topou_s(j,iysg) = topou_s(j,iysg-1)
-          topov_s(j,1) = topov_s(j,2)
-          topov_s(j,iysg) = topov_s(j,iysg-1)
-        end do
-        if ( i_band /= 1 ) then
-          do i = 2, iysg-1
-            topou_s(1,i) = topou_s(2,i)
-            topou_s(jxsg,i) = topou_s(jxsg-1,i)
-            topov_s(1,i) = topov_s(2,i)
-            topov_s(jxsg,i) = topov_s(jxsg-1,i)
-          end do
-        end if
-      end if
     end if
 
     if ( idynamic == 2 ) then
-      ts0 = base_state_temperature(1,iysg,1,jxsg,xlat_s)
+      ts0 = base_state_temperature(1,iysg,1,jxsg,xlat_s, &
+                                   base_state_pressure)
       call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
       call nhbase(1,iysg,1,jxsg,kz+1,sigma,htgrid_s, &
                   ps0_s,pr0_s,t0_s,rho0_s,z0_s)
@@ -1004,9 +840,6 @@ program terrain
     write (df%fname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
     df%lsub = .true.
-    df%lndfudge = fudge_lnd_s
-    df%texfudge = fudge_tex_s
-    df%lakfudge = fudge_lak_s
     df%ntype = ntypec_s
     df%sigma => sigma
     df%xlat => xlat_s
@@ -1049,6 +882,7 @@ program terrain
       df%zetau => zetau_s
       df%zetav => zetav_s
       df%fmz => fmz_s
+      df%ptopstd = ptop_stdatm(sum(zeta_s(:,:,1))/real(jxsg*iysg,rkx))
     else if ( idynamic == 2 ) then
       df%ts0 = ts0
       df%ps0 => ps0_s
@@ -1087,7 +921,7 @@ program terrain
              k, sigma(k), psig, zsig, tsig
     end do
   else if ( idynamic == 2 ) then
-    ts0 = base_state_temperature(1,iy,1,jx,xlat)
+    ts0 = base_state_temperature(1,iy,1,jx,xlat,base_state_pressure)
     call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
     call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0,z0)
     write (stdout,*) 'Vertical Grid Description (mean over domain)'
@@ -1129,20 +963,17 @@ program terrain
       else
         tsig = stdt - lrate * zsig
       end if
-      psig = stdp*(d_one - &
-          0.0065/stdt*zsig)**((egrav*0.0289644)/(8.31432*0.0065))
+      psig = ptop_stdatm(zsig)
       write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigma(k), &
-        psig * d_r100, zsig, tsig
+        psig, zsig, tsig
     end do
-    ptop = psig * d_r100 ! Approximation of top pressure. hPa
+    ! Approximation of top pressure (hPa), for the DOMAIN file
+    df%ptopstd = psig
   end if
 
   write (df%fname,'(a,i0.3,a)') &
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
   df%lsub = .false.
-  df%lndfudge = fudge_lnd
-  df%texfudge = fudge_tex
-  df%lakfudge = fudge_lak
   df%ntype = ntypec
   df%sigma => sigma
   df%xlat => xlat
@@ -1217,6 +1048,16 @@ program terrain
 #endif
 
   contains
+  !
+  ! Standard atmosphere pressure (hPa) at the height z (m), with the
+  ! tropospheric lapse rate
+  !
+  real(rkx) function ptop_stdatm(z)
+    implicit none
+    real(rkx), intent(in) :: z
+    ptop_stdatm = stdp*(d_one - 0.0065_rkx/stdt*z)** &
+         ((egrav*0.0289644_rkx)/(8.31432_rkx*0.0065_rkx)) * d_r100
+  end function ptop_stdatm
 
   subroutine findaround(xx,i,j,imax,jmax,mmx)
     implicit none
@@ -1239,9 +1080,9 @@ program terrain
           end if
         end do
       end do
-      if ( countcc > 0.0_rk8 ) then
-        mincc = mincc / countcc
-        maxcc = maxcc / countcc
+      if ( countcc < 1.0_rk8 ) then
+        mincc = 0.0_rk8
+        maxcc = 0.0_rk8
       end if
       laround0 = .false.
     end if
@@ -1270,10 +1111,15 @@ program terrain
       else
         il = il + 1
         if ( il == maxil ) then
-          write(stderr,*) 'At point lat = ',xlat(j,i)
-          write(stderr,*) '         lon = ',xlon(j,i)
+          ! Source grid coordinates of the point
+          write(stderr,*) 'At point lat = ', grdltmn + (i-1) * &
+                    (grdltma-grdltmn)/real(max(imax-1,1),rk8)
+          write(stderr,*) '         lon = ', grdlnmn + (j-1) * &
+                    (grdlnma-grdlnmn)/real(max(jmax-1,1),rk8)
           write(stderr,*) 'Setting to default value '
+          ! Middle of the range of the valid values
           xx(j,i) = real((maxcc+mincc) * 0.5_rk8,rkx)
+          exit
         end if
       end if
     end do

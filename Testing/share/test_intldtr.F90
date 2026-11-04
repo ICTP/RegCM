@@ -130,6 +130,16 @@ program test_intldtr
   call check(maxval(abs(gout-real(0.5_rk8*(cos(350.0_rk8*acos(-1.0_rk8)/ &
              180.0_rk8)+1.0_rk8),rkx))) < 1.0e-10_rkx, &
     'bilinear across the longitude wrap')
+  ! Distance weighting across the wrap: at 5 W it must give the same as
+  ! the field shifted by 180 degrees at 175 E, away from the seam.
+  glon = -5.0_rkx
+  call interp(50.0_rkx,3,3,glat,glon,gout,gmt,6)
+  ex(1,1) = gout(2,2)
+  gmt = cshift(gmt,18,dim=1)
+  glon = 175.0_rkx
+  call interp(50.0_rkx,3,3,glat,glon,gout,gmt,6)
+  call check(abs(gout(2,2)-ex(1,1)) < 1.0e-6_rkx, &
+    'distance weighting across the longitude wrap')
 
   ! Puddles: an isolated water point becomes the most frequent neighbour.
   lu = 6.0_rkx
@@ -153,6 +163,17 @@ program test_intldtr
   call mxmnll(12,10,dlon,dlat,0)
   call check(lcrosstime .and. .not. lonwrap .and. xminlat == 31.0_rk8 &
              .and. xmaxlat == 40.0_rk8,'domain across the dateline')
+
+  ! The class box is centred on the target point: at x = 13.7 the 2 x 2
+  ! box takes the source columns 13 and 14, and the nearer column 14
+  ! (class 5) wins the tie with column 13 (class 3).
+  call set_grid(m,n,0.0_rk8,real(m-1,rk8),0.0_rk8,real(n-1,rk8),.false.)
+  imt = 3.0_rkx
+  imt(14:m,:) = 5.0_rkx
+  glon = 12.7_rkx
+  glat = 5.5_rkx
+  call interp(50.0_rkx,3,3,glat,glon,gout,imt,4,ibnty=1,h2opct=50.0_rkx)
+  call check(gout(2,2) == 5.0_rkx,'class box centred on the point')
 
   ! DEM statistics: a plane rising 100 m per 0.01 degree pixel to the
   ! north, at the equator, in a 50 km cell. The slope is uniform; the
