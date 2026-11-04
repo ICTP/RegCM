@@ -342,7 +342,8 @@ module mod_ncstream
       type(ncoutstream), pointer :: stream
       type(internal_obuffer), pointer :: buffer
       type(basic_variables), pointer :: stvar
-      integer(ik4) :: maxnum_int, maxnum_real, maxnum_double, i
+      integer(ik8) :: maxnum_int, maxnum_real, maxnum_double
+      integer(ik4) :: i
 #ifdef CLM45
       integer(ik4) :: nl
 #endif
@@ -809,36 +810,36 @@ module mod_ncstream
       !
       ! Allocate buffer space shared by all vars
       !
-      maxnum_int  = buffer%max1d_int(1)
-      maxnum_real = buffer%max1d_real(1)
-      maxnum_double = buffer%max1d_double(1)
+      maxnum_int  = int(buffer%max1d_int(1),ik8)
+      maxnum_real = int(buffer%max1d_real(1),ik8)
+      maxnum_double = int(buffer%max1d_double(1),ik8)
 
       if ( buffer%lhas2dint ) then
-        maxnum_int = max(product(buffer%max2d_int),maxnum_int)
+        maxnum_int = max(product(int(buffer%max2d_int,ik8)),maxnum_int)
       end if
       if ( buffer%lhas2dreal ) then
-        maxnum_real = max(product(buffer%max2d_real),maxnum_real)
+        maxnum_real = max(product(int(buffer%max2d_real,ik8)),maxnum_real)
       end if
       if ( buffer%lhas2ddouble ) then
-        maxnum_double = max(product(buffer%max2d_double),maxnum_double)
+        maxnum_double = max(product(int(buffer%max2d_double,ik8)),maxnum_double)
       end if
       if ( buffer%lhas3dint ) then
-        maxnum_int = max(product(buffer%max3d_int),maxnum_int)
+        maxnum_int = max(product(int(buffer%max3d_int,ik8)),maxnum_int)
       end if
       if ( buffer%lhas3dreal ) then
-        maxnum_real = max(product(buffer%max3d_real),maxnum_real)
+        maxnum_real = max(product(int(buffer%max3d_real,ik8)),maxnum_real)
       end if
       if ( buffer%lhas3ddouble ) then
-        maxnum_double = max(product(buffer%max3d_double),maxnum_double)
+        maxnum_double = max(product(int(buffer%max3d_double,ik8)),maxnum_double)
       end if
       if ( buffer%lhas4dint ) then
-        maxnum_int = max(product(buffer%max4d_int),maxnum_int)
+        maxnum_int = max(product(int(buffer%max4d_int,ik8)),maxnum_int)
       end if
       if ( buffer%lhas4dreal ) then
-        maxnum_real = max(product(buffer%max4d_real),maxnum_real)
+        maxnum_real = max(product(int(buffer%max4d_real,ik8)),maxnum_real)
       end if
       if ( buffer%lhas4ddouble ) then
-        maxnum_double = max(product(buffer%max4d_double),maxnum_double)
+        maxnum_double = max(product(int(buffer%max4d_double,ik8)),maxnum_double)
       end if
 #ifdef OPENACC
       size_bytes = 0_c_size_t
@@ -869,14 +870,14 @@ module mod_ncstream
         write(stdout,*) 'Enabled netCDF output stream ',trim(stream%filename)
         if ( allocated(buffer%intbuff) ) &
           write(stdout,*) 'Total buffer integer size :', &
-            size(buffer%intbuff)*4
+            size(buffer%intbuff,kind=ik8)*4_ik8
         if ( allocated(buffer%realbuff) ) &
           write(stdout,*) 'Total buffer float size   :', &
-            size(buffer%realbuff)*4
-          if ( allocated(buffer%doublebuff) ) &
-            write(stdout,*) 'Total buffer double size   :', &
-            size(buffer%doublebuff)*4
-        end if
+            size(buffer%realbuff,kind=ik8)*4_ik8
+        if ( allocated(buffer%doublebuff) ) &
+          write(stdout,*) 'Total buffer double size  :', &
+            size(buffer%doublebuff,kind=ik8)*8_ik8
+      end if
 #endif
       ! The grid mapping variable holds no data: any character will do.
       if ( stream%l_hasgrid .and. .not. stream%l_keep ) then
