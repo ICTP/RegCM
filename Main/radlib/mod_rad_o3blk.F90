@@ -204,13 +204,14 @@ module mod_rad_o3blk
           o3filename = trim(o3filename) // '201501-204912.nc'
         else
           ystart = 2050
-          yend = 2100
           if ( scenario(4:6) == '585' .or. &
                scenario(4:6) == '370' .or. &
                scenario(4:6) == '245' .or. &
                scenario(4:6) == '126' ) then
+            yend = 2100
             o3filename = trim(o3filename) // '205001-209912.nc'
           else
+            yend = 2101
             o3filename = trim(o3filename) // '205001-210012.nc'
           end if
         end if
@@ -285,6 +286,30 @@ module mod_rad_o3blk
       call fatal(__FILE__,__LINE__,'UNKNOWN SCENARIO for O3')
     end if
   end function o3filename
+
+  !
+  ! Last year with the twelve months in the ozone data of the scenario:
+  ! CONST repeats 2009, the last of the historical data; the CMIP5 RCP
+  ! files and the CMIP6 ssp126, ssp245, ssp370 and ssp585 files end in
+  ! 2099; the other CMIP6 and the CMIP7 scenarios in 2100.
+  !
+  integer(ik4) function o3lastyear( )
+    implicit none
+    if ( scenario(1:5) == 'CONST' ) then
+      o3lastyear = 2009
+    else if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' ) then
+      o3lastyear = 2099
+    else if ( scenario(1:3) == 'SSP' .or. scenario(1:3) == 'ssp' ) then
+      if ( scenario(4:6) == '585' .or. scenario(4:6) == '370' .or. &
+           scenario(4:6) == '245' .or. scenario(4:6) == '126' ) then
+        o3lastyear = 2099
+      else
+        o3lastyear = 2100
+      end if
+    else
+      o3lastyear = 2100
+    end if
+  end function o3lastyear
 
   subroutine allocate_mod_rad_o3blk
     implicit none
@@ -364,17 +389,29 @@ module mod_rad_o3blk
     imonmidd = monmiddle(idatex)
     call split_idate(imonmidd,iyear,imon,iday,ihour)
 
-    if ( iyear < 1850 ) then
-      iyear = 1850
-    else if ( iyear > 2100 ) then
-      iyear = 2100
+    im1 = imon
+    iy1 = iyear
+    im2 = imon
+    iy2 = iyear
+    if ( idatex > imonmidd ) then
+      call inextmon(iy2,im2)
+      iref1 = imonmidd
+      iref2 = monmiddle(nextmon(idatex))
+    else
+      call iprevmon(iy1,im1)
+      iref1 = monmiddle(prevmon(idatex))
+      iref2 = imonmidd
     end if
+    ! Outside the years of the data the first or the last year of the
+    ! data is repeated, with its seasonal cycle
+    iy1 = min(max(iy1,1850),o3lastyear( ))
+    iy2 = min(max(iy2,1850),o3lastyear( ))
 
     if ( ifirst ) then
       call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
       call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
       if ( myid == iocpu ) then
-        infile = o3filename(iyear)
+        infile = o3filename(iy1)
         call init_o3data(infile,ncid,olat,olon,oplev)
         np = size(oplev)
         call bcast(np)
@@ -397,24 +434,6 @@ module mod_rad_o3blk
       call getmem(sgoz2,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz2')
     end if
 
-    im1 = imon
-    iy1 = iyear
-    im2 = imon
-    iy2 = iyear
-    if ( idatex > imonmidd ) then
-      call inextmon(iy2,im2)
-      iref1 = imonmidd
-      iref2 = monmiddle(nextmon(idatex))
-    else
-      call iprevmon(iy1,im1)
-      iref1 = monmiddle(prevmon(idatex))
-      iref2 = imonmidd
-    end if
-    ! The CONST scenario repeats the last year of the historical data
-    if ( scenario(1:5) == 'CONST' ) then
-      iy1 = min(iy1,2009)
-      iy2 = min(iy2,2009)
-    end if
     dointerp = .false.
     if ( ism /= im1 .or. isy /= iy1 ) then
       ism = im1

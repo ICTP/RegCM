@@ -531,7 +531,9 @@ module mod_rrtmg_driver
     do n = 1, npr
       abv(n) = frsa(n) + frla(n)
       sol(n) = swdvisflx(n,1)
-      ! surface SW incident
+      ! surface SW incident. UV/visible is bands 25-28, 0.2-0.625 micron,
+      ! near-IR the others: the land models split at 0.7 micron (see the
+      ! note in mod_clm_regcm, atmosphere_to_land).
       sols(n)  = swddiruviflx(n,1)
       solsd(n) = swddifuviflx(n,1)
       soll(n)  = swddirpirflx(n,1)

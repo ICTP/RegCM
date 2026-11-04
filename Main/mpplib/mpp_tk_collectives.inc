@@ -112,40 +112,6 @@
     !$acc end data
   end subroutine SUMALL_1D_TK
 
-  subroutine MEANALL_1D_TK(rlval,rtval,elem)
-    implicit none
-    integer(ik4), intent(in) :: elem
-    TK_TYPE, dimension(:), intent(in) :: rlval
-    TK_TYPE, dimension(:), intent(out) :: rtval
-    integer(ik4) :: i
-    !$acc data copyin(rlval(1:elem)) copyout(rtval(1:elem))
-    !$acc host_data use_device(rlval,rtval)
-    call mpi_allreduce(rlval,rtval,elem,TK_MPI,mpi_sum,mycomm,mpierr)
-    !$acc end host_data
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
-    end if
-#endif
-    do concurrent( i = 1:elem )
-      rtval(i) = rtval(i)/real(nproc,TK_KIND)
-    end do
-    !$acc end data
-  end subroutine MEANALL_1D_TK
-
-  subroutine MEANALL_TK(rlval,rtval)
-    implicit none
-    TK_TYPE, intent(in) :: rlval
-    TK_TYPE, intent(out) :: rtval
-    call mpi_allreduce(rlval,rtval,1,TK_MPI,mpi_sum,mycomm,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
-    end if
-#endif
-    rtval = rtval/real(nproc,TK_KIND)
-  end subroutine MEANALL_TK
-
   subroutine EXCHANGE_ARRAY_TK(rv1,rv2,isize,icpu,tag1,tag2,srq,rrq)
     implicit none
     integer(ik4), intent(in) :: isize, icpu, tag1, tag2

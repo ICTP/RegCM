@@ -50,9 +50,6 @@ module mod_cloud_subex
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: t, p
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qv, rh
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rhcrit
-#ifdef OPENACC
-    attributes(managed) :: rhcrit
-#endif
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: rh0
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
     real(rkx), intent(in) :: tc0

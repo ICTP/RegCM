@@ -491,6 +491,14 @@ module mod_clm_regcm
     end if
     call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
 
+    ! Band 1 is the visible, band 2 the near-infrared. CLM splits them at
+    ! 0.7 micron. RRTMG gives them split at 0.625 micron (its band 24,
+    ! 0.625-0.778 micron, is all near-infrared), so with RRTMG the part
+    ! of that band below 0.7 micron (about half of its flux), visible for
+    ! CLM, comes in the near-infrared.
+    ! The CCM radiation splits at 0.7 micron as CLM. RRTMG takes the
+    ! albedos back with the same 0.625 micron split, so each scheme is
+    ! consistent in itself.
     call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
     !$acc kernels
     clm_a2l%forc_solad(:,1) = clm_a2l%notused

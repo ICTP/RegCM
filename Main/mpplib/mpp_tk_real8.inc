@@ -36,9 +36,7 @@
 #define BCAST_MATR_TK                             bcast_matr_real8
 #define SUMALL_TK                                 sumall_real8
 #define MAXALL_TK                                 maxall_real8
-#define MEANALL_1D_TK                             meanall_1D_real8
 #define SUMALL_1D_TK                              sumall_1D_real8
-#define MEANALL_TK                                meanall_real8
 #define MINALL_TK                                 minall_real8
 #define EXCHANGE_ARRAY_TK                         exchange_array_r8
 #define CYCLIC_EXCHANGE_ARRAY_TK                  cyclic_exchange_array_r8

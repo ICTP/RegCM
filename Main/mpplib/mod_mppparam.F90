@@ -520,12 +520,6 @@ module mod_mppparam
     module procedure minall_integer4
   end interface minall
 
-  interface meanall
-    module procedure meanall_1D_real8
-    module procedure meanall_1D_real4
-    module procedure meanall_real8
-    module procedure meanall_real4
-  end interface meanall
 
   interface cross2dot
     module procedure cross2dot2d
@@ -606,7 +600,7 @@ module mod_mppparam
   public :: subgrid_distribute, subgrid_collect
   public :: uvcross2dot, uvdot2cross, cross2dot, psc2psd
   public :: tenxtouvten, uvtentotenx
-  public :: bcast, sumall, maxall, minall, meanall
+  public :: bcast, sumall, maxall, minall
   public :: gather_r, gather_i
   public :: allgather_r, allgather_i
   public :: row_reduce, column_reduce

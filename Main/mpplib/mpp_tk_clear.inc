@@ -32,9 +32,7 @@
 #undef BCAST_MATR_TK
 #undef SUMALL_TK
 #undef MAXALL_TK
-#undef MEANALL_1D_TK
 #undef SUMALL_1D_TK
-#undef MEANALL_TK
 #undef MINALL_TK
 #undef EXCHANGE_ARRAY_TK
 #undef CYCLIC_EXCHANGE_ARRAY_TK
