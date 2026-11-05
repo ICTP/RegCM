@@ -232,9 +232,13 @@ module mod_clm_regcm
     end if
   end subroutine initclm45
 
-  subroutine runsaclm45(lm)
+  subroutine runsaclm45(lm,lrstwr,rstdate)
     implicit none
     type(lm_exchange), intent(inout) :: lm
+    ! True if the CLM restart file is written at the end of this step, and
+    ! the date in its name (used by the standalone driver for its own file)
+    logical, intent(out), optional :: lrstwr
+    character(len=*), intent(out), optional :: rstdate
     real(rk8) :: caldayp1, declinp1, eccfp1, declinp
     logical :: doalb, rstwr, nlend, nlomon
     type(rcm_time_interval) :: tdiff, triff
@@ -302,6 +306,8 @@ module mod_clm_regcm
         write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
       end if
     end if
+    if ( present(lrstwr) ) lrstwr = rstwr
+    if ( present(rstdate) ) rstdate = tochar10(nextr)
 
     ! Run CLM
     call clm_drv(doalb,caldayp1,declinp1,declinp,rstwr,nlend,nlomon,rdate)

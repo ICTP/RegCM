@@ -70,6 +70,7 @@ program clmsa
     integer, intent(in), optional :: mpiCommunicator
     integer(ik4) :: ierr
     type(mpi_comm) :: fcom
+    logical :: lsaved
     if (present(mpiCommunicator)) then
       fcom%mpi_val = mpiCommunicator
       call mpi_comm_dup(fcom,mycomm,ierr)
@@ -153,7 +154,11 @@ program clmsa
     end if
     call initsaclm45(lm)
     if ( sfbcread == 1 ) then
-      call first_albedo
+      ! On restart, the albedos kept by albedoclm45 through the night are
+      ! taken from the save file written along with the CLM restart.
+      lsaved = .false.
+      if ( ifrest ) lsaved = read_sa_albedo(tochar10(rcmtimer%idate))
+      if ( .not. lsaved ) call first_albedo
       call split_solar
     end if
     !
@@ -182,6 +187,8 @@ program clmsa
     implicit none
     real(rk8), intent(in) :: timestr   ! starting time-step
     real(rk8), intent(in) :: timeend   ! ending   time-step
+    logical :: lrstwr
+    character(len=16) :: rstdate
 
     do while ( extime >= timestr .and. extime < timeend )
 
@@ -194,8 +201,11 @@ program clmsa
       !
       call zenitm(mddom%xlat,mddom%xlon,coszrs)
       call atmval
-      call runsaclm45(lm)
+      call runsaclm45(lm,lrstwr,rstdate)
       call albedoclm45(lm,lms)
+      if ( sfbcread == 1 .and. lrstwr ) then
+        call write_sa_albedo(rstdate)
+      end if
       call rcmtimer%advance( )
 
       if ( .not. rcmtimer%reached_endtime ) then
@@ -264,6 +274,167 @@ program clmsa
     end where
     call albedoclm45(lm,lms)
   end subroutine first_albedo
+  !
+  ! Save file of the standalone driver. albedoclm45 keeps through the night
+  ! the last albedos with the sun above the horizon, and split_solar uses
+  ! them when the forcing has sunlight and CLM has not (at sunrise). This
+  ! state is not CLM state (the coupled model keeps it in its SAV file),
+  ! so it is saved here, at the same time and date of the CLM restart.
+  !
+  character(len=256) function sa_savefile(cdate)
+    implicit none
+    character(len=*), intent(in) :: cdate
+    sa_savefile = trim(dirout)//trim(domname)//'.clmsa.sav.'// &
+                  trim(cdate)//'.nc'
+  end function sa_savefile
+
+  subroutine sa_check(istat,what,fname)
+    use netcdf
+    implicit none
+    integer(ik4), intent(in) :: istat
+    character(len=*), intent(in) :: what, fname
+    if ( istat /= nf90_noerr ) then
+      write(stderr,*) trim(what), ' ', trim(fname), ' : ', &
+                      trim(nf90_strerror(istat))
+      call fatal(__FILE__,__LINE__,'CLMSA SAVE FILE')
+    end if
+  end subroutine sa_check
+
+  subroutine sa_albedo_pointer(n,p)
+    implicit none
+    integer(ik4), intent(in) :: n
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(out) :: p
+    select case (n)
+      case (1)
+        p => lms%swdiralb
+      case (2)
+        p => lms%swdifalb
+      case (3)
+        p => lms%lwdiralb
+      case default
+        p => lms%lwdifalb
+    end select
+  end subroutine sa_albedo_pointer
+
+  subroutine write_sa_albedo(cdate)
+    use netcdf
+    implicit none
+    character(len=*), intent(in) :: cdate
+    character(len=8), dimension(4), parameter :: vname = &
+      [character(len=8) :: 'swdiralb', 'swdifalb', 'lwdiralb', 'lwdifalb']
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: gbuf => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: p => null( )
+    character(len=256) :: fname
+    integer(ik4) :: ncid, istat, n
+    integer(ik4), dimension(3) :: idims
+    integer(ik4), dimension(4) :: ivar
+    fname = sa_savefile(cdate)
+    if ( myid == iocpu ) then
+      call getmem(gbuf,1,nnsg,jcross1,jcross2,icross1,icross2,'clmsa:gbuf')
+      istat = nf90_create(fname,ior(nf90_clobber,nf90_netcdf4),ncid)
+      call sa_check(istat,'Cannot create',fname)
+      istat = nf90_def_dim(ncid,'nnsg',nnsg,idims(1))
+      call sa_check(istat,'Cannot define nnsg in',fname)
+      istat = nf90_def_dim(ncid,'jx',jcross2-jcross1+1,idims(2))
+      call sa_check(istat,'Cannot define jx in',fname)
+      istat = nf90_def_dim(ncid,'iy',icross2-icross1+1,idims(3))
+      call sa_check(istat,'Cannot define iy in',fname)
+      do n = 1, 4
+        istat = nf90_def_var(ncid,vname(n),nf90_double,idims,ivar(n))
+        call sa_check(istat,'Cannot define '//vname(n)//' in',fname)
+      end do
+      istat = nf90_put_att(ncid,nf90_global,'title', &
+        'clmsa albedos kept through the night, for restart')
+      istat = nf90_put_att(ncid,nf90_global,'date',trim(cdate))
+      istat = nf90_enddef(ncid)
+      call sa_check(istat,'Cannot end definition of',fname)
+    end if
+    do n = 1, 4
+      call sa_albedo_pointer(n,p)
+      call subgrid_collect(p,gbuf,jci1,jci2,ici1,ici2)
+      if ( myid == iocpu ) then
+        istat = nf90_put_var(ncid,ivar(n),gbuf)
+        call sa_check(istat,'Cannot write '//vname(n)//' in',fname)
+      end if
+    end do
+    if ( myid == iocpu ) then
+      istat = nf90_close(ncid)
+      call sa_check(istat,'Cannot close',fname)
+      call relmem(gbuf)
+      if ( myid == italk ) then
+        write(stdout,*) 'Write clmsa save file ', trim(fname)
+      end if
+    end if
+  end subroutine write_sa_albedo
+  !
+  ! Returns .false. (and the caller falls back on the default albedos) if
+  ! the save file is not there, as for restart files of older versions.
+  !
+  logical function read_sa_albedo(cdate) result(lread)
+    use netcdf
+    implicit none
+    character(len=*), intent(in) :: cdate
+    character(len=8), dimension(4), parameter :: vname = &
+      [character(len=8) :: 'swdiralb', 'swdifalb', 'lwdiralb', 'lwdifalb']
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: gbuf => null( )
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: p => null( )
+    character(len=256) :: fname
+    integer(ik4) :: ncid, istat, n, ivar, idim, ilen
+    integer(ik4), dimension(3) :: nexp
+    character(len=4), dimension(3), parameter :: dname = &
+      [character(len=4) :: 'nnsg', 'jx', 'iy']
+    fname = sa_savefile(cdate)
+    if ( myid == iocpu ) then
+      inquire(file=fname,exist=lread)
+    end if
+    call bcast(lread)
+    if ( .not. lread ) then
+      if ( myid == italk ) then
+        write(stdout,*) 'No clmsa save file ', trim(fname), &
+                        ': default albedos until the first sunrise.'
+      end if
+      return
+    end if
+    if ( myid == iocpu ) then
+      call getmem(gbuf,1,nnsg,jcross1,jcross2,icross1,icross2,'clmsa:gbuf')
+      istat = nf90_open(fname,nf90_nowrite,ncid)
+      call sa_check(istat,'Cannot open',fname)
+      nexp = [nnsg, jcross2-jcross1+1, icross2-icross1+1]
+      do n = 1, 3
+        istat = nf90_inq_dimid(ncid,dname(n),idim)
+        call sa_check(istat,'Missing dimension '//dname(n)//' in',fname)
+        istat = nf90_inquire_dimension(ncid,idim,len=ilen)
+        call sa_check(istat,'Cannot read dimension '//dname(n)//' in',fname)
+        if ( ilen /= nexp(n) ) then
+          write(stderr,*) 'Dimension ', dname(n), ' is ', ilen, &
+                          ', expected ', nexp(n), ' in ', trim(fname)
+          call fatal(__FILE__,__LINE__,'CLMSA SAVE FILE')
+        end if
+      end do
+    end if
+    do n = 1, 4
+      if ( myid == iocpu ) then
+        istat = nf90_inq_varid(ncid,vname(n),ivar)
+        call sa_check(istat,'Missing '//vname(n)//' in',fname)
+        istat = nf90_get_var(ncid,ivar,gbuf)
+        call sa_check(istat,'Cannot read '//vname(n)//' in',fname)
+      end if
+      call sa_albedo_pointer(n,p)
+      call subgrid_distribute(gbuf,p,jci1,jci2,ici1,ici2)
+    end do
+    if ( myid == iocpu ) then
+      istat = nf90_close(ncid)
+      call sa_check(istat,'Cannot close',fname)
+      call relmem(gbuf)
+    end if
+    where ( lm%ldmsk1 == 1 )
+      lms%swalb = max(lms%swdiralb,lms%swdifalb)
+      lms%lwalb = max(lms%lwdiralb,lms%lwdifalb)
+    end where
+    if ( myid == italk ) then
+      write(stdout,*) 'Read clmsa save file ', trim(fname)
+    end if
+  end function read_sa_albedo
   !
   ! The forcing gives the net surface shortwave (ERA5 ssr). If the ERA5
   ! downward shortwave (ssrd) becomes available for download, clmbc should
