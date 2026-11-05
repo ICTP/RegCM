@@ -3,9 +3,10 @@
 import os
 import sys
 import time
+
 import numpy as np
-from netCDF4 import Dataset , num2date
 from cftime import date2num
+from netCDF4 import Dataset, num2date
 
 """
 This small program is computing time means of netcdf file variables
@@ -162,10 +163,9 @@ compressed in disk.
                     nco.variables[var].setncattr('cell_methods',  
                                                  'time: mean')
             for attr in ncf.variables[var].ncattrs():
-                if attr != 'cell_methods':
-                    if attr != '_FillValue':
-                        nco.variables[var].setncattr(attr,
-                              getattr(ncf.variables[var],attr))
+                if attr not in ('cell_methods', '_FillValue'):
+                    nco.variables[var].setncattr(attr,
+                          getattr(ncf.variables[var],attr))
 
     if window == 'day':
         rc = date2num(dates, tunit, calendar=times.calendar)
@@ -176,10 +176,10 @@ compressed in disk.
         tbnds[:,1] = dic+1.0
     else:
         ic = np.zeros(len(times),dtype='i4')
-        for it in range(0,len(times)):
+        for it in range(len(times)):
             ic[it] = int(dates[it].year*100+dates[it].month)
         dic = np.unique(ic)
-        for it in range(0,len(dic)):
+        for it in range(len(dic)):
             indx = (ic == dic[it]) 
             if times.units.find('hours since') == 0:
                 hh = (times[1]-times[0])/48.0
@@ -190,7 +190,7 @@ compressed in disk.
             diff = (times[1]-times[0])/2.0
         else:
             diff = 0.5
-        for it in range(0,len(dic)):
+        for it in range(len(dic)):
             indx = (ic == dic[it]) 
             if times.units.find('hours since') == 0:
                 hh = (times[1]-times[0])/48.0
@@ -209,7 +209,7 @@ compressed in disk.
             if var == 'time' or var == 'time_bnds':
               pass
             else:
-                for it in range(0,len(dic)):
+                for it in range(len(dic)):
                     indx = (ic == dic[it]) 
                     nco.variables[var][it,Ellipsis] = (
                         np.nanmean(ncf.variables[var][indx,Ellipsis],axis=0,

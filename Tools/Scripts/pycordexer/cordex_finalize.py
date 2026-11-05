@@ -42,8 +42,8 @@ def main():
               'would assemble {1} {2}-{3} in {0}'.format(*item))
     left = chunks.remaining_segments(args.output_dir)
     if left and not args.dry_run:
-        print('{} segments not assembled (see the errors above):'
-              .format(len(left)), file=sys.stderr)
+        print(f'{len(left)} segments not assembled (see the errors above):'
+              , file=sys.stderr)
         for path in left:
             print('  ' + path, file=sys.stderr)
         return 1

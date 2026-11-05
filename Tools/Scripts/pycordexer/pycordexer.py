@@ -3,19 +3,22 @@
 import argparse
 import logging
 import os
-from netCDF4 import Dataset
-from traceback import format_exc
-from sys import exit as sys_exit
 import signal
+from sys import exit as sys_exit
+from traceback import format_exc
+
+from netCDF4 import Dataset
 
 from utilities.cordex_utils import RegcmOutputFile, RegcmSimulation
-from utilities.globals import OUTPUTDIR, CORDEX_VARS, ASSOCIATIONS, \
-    CORDEX_CMIP6_DEFINITIONS
-from utilities.pycordexer_methods import Action, VariableSkipped, \
-    get_methods
-from utilities.log_utilities import collect_logs, WaitQueueHandler
+from utilities.globals import (
+    ASSOCIATIONS,
+    CORDEX_CMIP6_DEFINITIONS,
+    CORDEX_VARS,
+    OUTPUTDIR,
+)
+from utilities.log_utilities import WaitQueueHandler, collect_logs
 from utilities.pool import Pool
-
+from utilities.pycordexer_methods import Action, VariableSkipped, get_methods
 
 __copyright__ = 'Copyright (C) 2018 ICTP'
 __author__ = 'Stefano Piani <stefano.piani@exact-lab.it>'
@@ -67,7 +70,7 @@ def _read_vars_arg(vars_arg):
 
     for var_name in (v.lower() for v in vars_split):
         if var_name not in CORDEX_VARS:
-            raise InvalidVar('Invalid cordex var: {}'.format(var_name))
+            raise InvalidVar(f'Invalid cordex var: {var_name}')
 
     if len(vars_split) > len(list(set(vars_split))):
         raise ValueError(
@@ -89,8 +92,8 @@ def get_vars_in_file(filename):
             )
             return [t.lower() for t in data_file_type['vars']]
     raise ValueError(
-        '"{}" name does not match any typical file mask. This script can '
-        'not identify the variables it contains.'.format(filename)
+        f'"{filename}" name does not match any typical file mask. This '
+        'script can not identify the variables it contains.'
     )
 
 
@@ -259,8 +262,8 @@ def parse_input():
     args = parser.parse_args()
     if args.institute_id not in CORDEX_CMIP6_DEFINITIONS['institution_id']:
         parser.error(
-            'institute_id "{}" is not in the CORDEX-CMIP6 institution_id '
-            'list'.format(args.institute_id)
+            f'institute_id "{args.institute_id}" is not in the CORDEX-CMIP6 '
+            'institution_id list'
         )
     return args
 
@@ -385,7 +388,7 @@ def execute_var_chain_wrapper(variable, regcm_file_path, simulation, corrflag,
         )
     except Exception:
         LOGGER.error(
-            'Error elaborating variable {}:\n{}'.format(variable, format_exc())
+            f'Error elaborating variable {variable}:\n{format_exc()}'
         )
         sys_exit(1)
 
@@ -396,8 +399,8 @@ def execute_var_chain(variable, regcm_file_path, simulation, corrflag,
 
     if variable not in CORDEX_VARS:
         raise ValueError(
-            'Variable {} not found (it must be added as a json file in the '
-            'variables/cordex_vars directory)'.format(variable))
+            f'Variable {variable} not found (it must be added as a json file '
+            'in the variables/cordex_vars directory)')
 
     var_definition = CORDEX_VARS[variable]
     for action_num, action_definition in enumerate(var_definition):
@@ -417,9 +420,8 @@ def execute_var_chain(variable, regcm_file_path, simulation, corrflag,
                     method_name
                 )
                 if method_name not in METHODS_AVAIL:
-                    raise Exception(
-                        'No method called "{}" found'
-                        .format(method_name)
+                    raise ValueError(
+                        f'No method called "{method_name}" found'
                     )
                 MethodClass = METHODS_AVAIL[method_name]
 
@@ -454,14 +456,14 @@ def execute_var_chain(variable, regcm_file_path, simulation, corrflag,
             return
         except Exception:
             LOGGER.debug(
-                'Building of Action {} failed with the following '
-                'exception:\n{}'.format(action_num + 1, format_exc())
+                f'Building of Action {action_num + 1} failed with the '
+                f'following exception:\n{format_exc()}'
             )
             continue
     else:
         raise VariableFailed(
             'This software has not found a viable action to elaborate the '
-            'variable "{}" from file {}.'.format(variable, regcm_file_path)
+            f'variable "{variable}" from file {regcm_file_path}.'
         )
 
 

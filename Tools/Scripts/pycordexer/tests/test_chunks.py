@@ -15,8 +15,8 @@ import time
 import uuid
 
 import numpy as np
-from netCDF4 import Dataset, date2num, num2date
 from cftime import datetime as cfdatetime
+from netCDF4 import Dataset, date2num, num2date
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(
     __file__))))
@@ -48,8 +48,8 @@ def write_segment(var_dir, freq, dates, calendar='standard', shift=0.0):
         fmt = '{0.year:04d}{0.month:02d}{0.day:02d}'
     else:
         fmt = '{0.year:04d}{0.month:02d}{0.day:02d}{0.hour:02d}{0.minute:02d}'
-    name = '{}_{}-{}.nc'.format(PREFIX.format(freq), fmt.format(dates[0]),
-                                fmt.format(dates[-1]))
+    name = (f'{PREFIX.format(freq)}_{fmt.format(dates[0])}-'
+            f'{fmt.format(dates[-1])}.nc')
     seg_dir = os.path.join(var_dir, chunks.SEGMENT_DIR)
     os.makedirs(seg_dir, exist_ok=True)
     path = os.path.join(seg_dir, name)
@@ -134,7 +134,7 @@ def test_year_in_random_order(root):
         seg = write_segment(var_dir, '6hr', month_dates(1981, m, '6hr'))
         done += chunks.assemble_after_write(seg, '6hr')
         if i < 11:
-            check(not done, 'no chunk before month {} of 12'.format(i + 1)) \
+            check(not done, f'no chunk before month {i + 1} of 12') \
                 if i in (0, 10) else None
     files = chunk_files(var_dir)
     check(files == [PREFIX.format('6hr') +
@@ -307,7 +307,7 @@ def main():
     finally:
         shutil.rmtree(root)
     print('test_chunks: {}'.format('all passed' if NFAIL == 0 else
-                                   '{} failed'.format(NFAIL)))
+                                   f'{NFAIL} failed'))
     return 1 if NFAIL else 0
 
 

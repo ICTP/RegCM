@@ -1,17 +1,17 @@
 import ctypes
 import time
 import uuid
+from copy import copy
 from logging import getLogger
 from multiprocessing import Array
 from os import path
-from numpy.ma import is_masked
-from netCDF4 import Dataset, num2date, date2num
-from copy import copy
 from traceback import format_exc
 
-from utilities.globals import *
-from utilities.variables import Variable, NetCDFData, get_var_with_name
+from netCDF4 import Dataset, date2num, num2date
+from numpy.ma import is_masked
 
+from utilities.globals import *
+from utilities.variables import NetCDFData, Variable, get_var_with_name
 
 __copyright__ = 'Copyright (C) 2018 ICTP'
 __author__ = 'Graziano Giuliani <ggiulian@ictp.it>'
@@ -21,7 +21,7 @@ __credits__ = ["Stefano Piani", "Graziano Giuliani"]
 LOGGER = getLogger(__name__)
 
 
-class RegcmSimulation(object):
+class RegcmSimulation:
     """
     A wrapper that contains the metadata that identify a particular run of RegCM
     and that are saved inside the CORDEX files
@@ -86,8 +86,7 @@ def dtype_2_ctype(dtype):
             break
 
     raise ValueError(
-        'No ctype found with size {} (suitable for dtype {})'
-        .format(dtype_size, dtype)
+        f'No ctype found with size {dtype_size} (suitable for dtype {dtype})'
     )
 
 
@@ -144,7 +143,7 @@ def get_first_and_last_date_str(dates, frequency):
     return fmt.format(dates[0]), fmt.format(dates[-1])
 
 
-class RegcmOutputFile(object):
+class RegcmOutputFile:
     """
     This object is a wrapper around a NetCDF file written by RegCM as output
     It contains all the general attributes of the files that are useful
@@ -165,9 +164,9 @@ class RegcmOutputFile(object):
             of_file = ''
             self._name = 'RegcmFile'
         else:
-            in_file = ' in file {}'.format(path.basename(datafile))
-            of_file = ' of file {}'.format(path.basename(datafile))
-            self._name = 'RegcmFile({})'.format(path.basename(datafile))
+            in_file = f' in file {path.basename(datafile)}'
+            of_file = f' of file {path.basename(datafile)}'
+            self._name = f'RegcmFile({path.basename(datafile)})'
 
         # Save a pointer to the netcdf file inside this object
         # When init ends, this pointer will be destroyed
@@ -175,7 +174,7 @@ class RegcmOutputFile(object):
 
         times = ncf.variables['time']
         if len(times) < 1:
-            raise ValueError('No timesteps found{}'.format(in_file))
+            raise ValueError(f'No timesteps found{in_file}')
 
         LOGGER.debug('Reading attributes%s', of_file)
         self.attributes = {}
@@ -256,8 +255,8 @@ class RegcmOutputFile(object):
                 self._map_type = 'crs'
             else:
                 raise ValueError(
-                    'Unexpected type of map type ({}). Accepted only "rcm_map" '
-                    'and "crs".'.format(orcmap)
+                    f'Unexpected type of map type ({orcmap}). Accepted only '
+                    '"rcm_map" and "crs".'
                 )
             LOGGER.debug('Saving map in memory')
             self._save_in_memory(rcm_map, 'map', rcm_map.datatype)
@@ -342,7 +341,7 @@ class RegcmOutputFile(object):
             except Exception:
                 LOGGER.warning(
                     'Unable to understand the revision "%s"%s for the following '
-                    'reason:\n{}'.format(format_exc()),
+                    f'reason:\n{format_exc()}',
                     rev_temp,
                     of_file
                 )
@@ -694,7 +693,7 @@ class CordexDataset(Dataset):
     def __init__(self, output_file_path, regcm_file, simulation):
 
         LOGGER.debug('Creating file %s', output_file_path)
-        super(CordexDataset, self).__init__(
+        super().__init__(
             output_file_path,
             mode='w',
             format='NETCDF4_CLASSIC'
@@ -722,7 +721,7 @@ class CordexDataset(Dataset):
             driving_expid = CORDEX_CMIP6_DEFINITIONS['driving_experiment_id'][simulation.experiment]
         except Exception:
             driving_expid = 'evaluation'
-        gsize = "{:.1f}".format(regcm_file.grid_size.item()/1000.0)
+        gsize = f"{regcm_file.grid_size.item()/1000.0:.1f}"
         regcm_file.replace_dims = REPLACE_DIMS
         regcm_file.replace_vars = REPLACE_VARS
         if regcm_file.map_projection == 'LAMCON':
@@ -749,9 +748,10 @@ class CordexDataset(Dataset):
             'Conventions': CORDEX_CMIP6_DEFINITIONS['CV']['Conventions'],
             'title': (regcm_file.institute_id+' '+ICTP_Model+
                       ' downscaling of '+global_model+' '+driving_expid+
-                      ' for '+ list(CORDEX_CMIP6_DEFINITIONS['project_id'])[0]+
+                      ' for '+
+                      next(iter(CORDEX_CMIP6_DEFINITIONS['project_id']))+
                       ' '+xdomain),
-            'comment': regcm_file.regcm_model_name+' CORDEX {} run'.format(xdomain),
+            'comment': regcm_file.regcm_model_name+f' CORDEX {xdomain} run',
             'note': 'Regular production', #This will be different for every simulation
             'contact': simulation.mail,
             'creation_date': time.strftime("%Y-%m-%dT%H:%M:%SZ",
@@ -771,7 +771,7 @@ class CordexDataset(Dataset):
             'institution_id': regcm_file.institute_id,
             'source': source,
             'license': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['license'],
-            'project_id': list(CORDEX_CMIP6_DEFINITIONS['project_id'])[0],
+            'project_id': next(iter(CORDEX_CMIP6_DEFINITIONS['project_id'])),
             'source_id': ICTP_Model,
             'source_type': CORDEX_CMIP6_DEFINITIONS['CV']['source_id'][ICTP_Model]['source_type'],
             'tracking_id': CORDEX_CMIP6_DEFINITIONS['CV']['tracking_id'][0][:-2]+str(uuid.uuid1()),
@@ -796,7 +796,7 @@ class CordexDataset(Dataset):
             self.setncattr(attribute, value)
 
         for attribute, value in regcm_file.attributes.items():
-            if attribute not in newattr.keys():
+            if attribute not in newattr:
                 LOGGER.debug(
                     'Adding attribute "%s" with value "%s" to file %s',
                     attribute,
@@ -949,9 +949,9 @@ class CordexDataset(Dataset):
                 dim_current_len = len(self.dimensions[dim_name])
                 if dim_current_len != dim_len:
                     raise ValueError(
-                        'The length of dimension {} is already set to {}. '
-                        'To save variable "{}", it should be {}!'
-                        .format(dim_name, dim_len, var_name, dim_current_len)
+                        f'The length of dimension {dim_name} is already set '
+                        f'to {dim_len}. To save variable "{var_name}", it '
+                        f'should be {dim_current_len}!'
                     )
             else:
                 LOGGER.debug(
@@ -1195,8 +1195,7 @@ class CordexDataset(Dataset):
                 )
             else:
                 raise ValueError(
-                    'Unknown projection type: {}'
-                    .format(regcm_file.map_projection)
+                    f'Unknown projection type: {regcm_file.map_projection}'
                 )
         else:
             # It is expected that copying the file attributes all the
@@ -1236,7 +1235,7 @@ class CordexDataset(Dataset):
                     coord_val
                 )
                 attributes['coordinates'] = re.sub(
-                    r'\b{}\b'.format(dim_old_name),
+                    rf'\b{dim_old_name}\b',
                     dim_new_name,
                     coord_val
                 )
@@ -1342,8 +1341,8 @@ def get_regcm_variable_names(var_name):
 
     if len(regcm_variables) == 0:
         raise KeyError(
-            'Invalid regcm_vars file! No available names for variable "{}"'
-            .format(var_name)
+            'Invalid regcm_vars file! No available names for variable '
+            f'"{var_name}"'
         )
     return regcm_variables
 
@@ -1453,7 +1452,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
     """
 
     if regcm_file.revision is not None:
-        ICTP_Model = '{}{}'.format(regcm_file.regcm_model_name,regcm_file.revision)
+        ICTP_Model = f'{regcm_file.regcm_model_name}{regcm_file.revision}'
         ICTP_Model_Version = regcm_file.revision_version
     else:
         LOGGER.warning('Using fallback values for RegCM version...')
@@ -1475,14 +1474,14 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
         var_freq,
         var_name
     )
-    LOGGER.debug('Checking if directory {} exists'.format(cordex_last_dir))
+    LOGGER.debug(f'Checking if directory {cordex_last_dir} exists')
     if os.path.exists(cordex_last_dir):
         LOGGER.debug('Path already exists. Checking if it is a directory')
         if os.path.isdir(cordex_last_dir):
             LOGGER.debug('Path "%s" exists and is a directory', cordex_last_dir)
         else:
-            raise IOError(
-                'Path "{}" is not a directory!'.format(cordex_last_dir)
+            raise OSError(
+                f'Path "{cordex_last_dir}" is not a directory!'
             )
     else:
         LOGGER.debug('Path does not exist. Creating it...')

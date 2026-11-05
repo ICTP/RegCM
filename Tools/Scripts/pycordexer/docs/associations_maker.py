@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import os
 import json
+import os
+
 from tabulate import tabulate
 
 MAIN_DIR = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/..')

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import os
 import json
+import os
+
 from tabulate import tabulate
 
 MAIN_DIR = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/..')
@@ -17,7 +18,7 @@ for json_file in os.listdir(CORDEX_VARS_DIR):
         for var_name, var_description in  json.load(f).items():
             CORDEX_VARS[var_name.lower()] = var_description
 
-var_names = sorted(list(CORDEX_VARS.keys()))
+var_names = sorted(CORDEX_VARS.keys())
 var_descriptions = []
 
 for var_name in var_names:
@@ -27,11 +28,12 @@ for var_name in var_names:
         for method in action:
             method_name = method[0]
             method_options = method[1]
-            if method_name in ('SaveVariableToDisk', 'SaveMultipleVariablesToDisk'):
-                if 'new_attributes' in method_options:
-                    new_attributes = method_options['new_attributes']
-                    if 'long_name' in new_attributes:
-                        var_descriptions[-1] = new_attributes['long_name']
+            if (method_name in ('SaveVariableToDisk',
+                                'SaveMultipleVariablesToDisk')
+                    and 'new_attributes' in method_options):
+                new_attributes = method_options['new_attributes']
+                if 'long_name' in new_attributes:
+                    var_descriptions[-1] = new_attributes['long_name']
 
 var_table = []
 for i in range(len(var_descriptions)):

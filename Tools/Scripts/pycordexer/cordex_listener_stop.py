@@ -19,16 +19,16 @@ cordex_listener immediately
 The execution of this script ends when cordex_listener is not running anymore
 """
 
-import os
 import argparse
-from traceback import format_exc
-from sys import argv, exit as sys_exit
-from time import sleep
-import signal
 import logging
+import os
+import signal
+from sys import argv
+from sys import exit as sys_exit
+from time import sleep
+from traceback import format_exc
 
 from utilities.log_utilities import OnelinerFormatter
-
 
 __copyright__ = 'Copyright (C) 2017-2018 ICTP'
 __author__ = 'Stefano Piani <stefano.piani@exact-lab.it>'
@@ -70,7 +70,7 @@ def _create_input_parser():
         '--timeout',
         help='The amount of time after which a SIGTERM is send to the '
              'cordex_listener to force a faster termination of the execution '
-             '(in seconds). Default is {} seconds'.format(SIGTERM_TIMEOUT),
+             f'(in seconds). Default is {SIGTERM_TIMEOUT} seconds',
         type=int,
         default=SIGTERM_TIMEOUT,
     )
@@ -179,7 +179,7 @@ def main():
                 raise
             sleep(1)
 
-    LOGGER.debug('The PID read from file is: {}'.format(pid_raw))
+    LOGGER.debug(f'The PID read from file is: {pid_raw}')
 
     pid = int(pid_raw)
     cordex_listener_runs = True

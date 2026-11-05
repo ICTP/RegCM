@@ -22,20 +22,21 @@
 # configuration parameters (the python package f90nml is required).
 
 import argparse
+import glob
+import logging
 import os
-from os.path import join
-from traceback import format_exc
+import re
+import signal
 import time
 from datetime import datetime
-from sys import exit as sys_exit, argv
-from threading import Thread
-import glob
-import f90nml
-import logging
-import signal
-import re
 from multiprocessing import cpu_count
+from os.path import join
+from sys import argv
+from sys import exit as sys_exit
+from threading import Thread
+from traceback import format_exc
 
+import f90nml
 
 # The following module is used to extract the current timezone
 # If it is missing, the date will be saved without timezone
@@ -53,9 +54,8 @@ except ImportError:
     daemon = None
     daemon_import_error = format_exc()
 
-from pycordexer import save_vars as save_cordex_vars
 import utilities.log_utilities
-
+from pycordexer import save_vars as save_cordex_vars
 
 __copyright__ = 'Copyright (C) 2017-2018 ICTP'
 __author__ = 'Alberto Chiusole <alberto.chiusole@exact-lab.it>'
@@ -115,7 +115,7 @@ class FileDeleter(Thread):
     """
 
     def __init__(self, file_path, process_list):
-        super(FileDeleter, self).__init__()
+        super().__init__()
         self.file_path = file_path
         self.process_list = list(process_list)
         self.daemon = False
@@ -152,8 +152,8 @@ class FileDeleter(Thread):
                     LOGGER.info('File %s removed', self.file_path)
                 except Exception:
                     LOGGER.warning(
-                        'Error deleting file {}:\n{}'.format(self.file_path,
-                                                             format_exc())
+                        f'Error deleting file {self.file_path}:\n'
+                        f'{format_exc()}'
                     )
 
         else:
@@ -175,7 +175,7 @@ class TxtHandler(Thread):
     """
 
     def __init__(self, txt_path, process_list, must_be_deleted=False):
-        super(TxtHandler, self).__init__()
+        super().__init__()
         self.txt_path = txt_path
         self.process_list = list(process_list)
         self.delete = must_be_deleted
@@ -213,10 +213,7 @@ class TxtHandler(Thread):
             except Exception:
                 with utilities.log_utilities.FORK_LOCK:
                     LOGGER.error(
-                        'Error deleting file {}:\n{}'.format(
-                            self.txt_path,
-                            format_exc()
-                        )
+                        f'Error deleting file {self.txt_path}:\n{format_exc()}'
                     )
             if deleted:
                 with utilities.log_utilities.FORK_LOCK:
@@ -225,10 +222,7 @@ class TxtHandler(Thread):
             append_string = _get_append_string(all_ok)
             with utilities.log_utilities.FORK_LOCK:
                 LOGGER.debug(
-                    'Appending string {} to file {}'.format(
-                        append_string,
-                        self.txt_path
-                    )
+                    f'Appending string {append_string} to file {self.txt_path}'
                 )
             try:
                 with open(self.txt_path, 'a', encoding='ASCII') as f:
@@ -236,11 +230,8 @@ class TxtHandler(Thread):
             except Exception:
                 with utilities.log_utilities.FORK_LOCK:
                     LOGGER.error(
-                        'Error appending string "{}" to {}:\n{}'.format(
-                            append_string,
-                            self.txt_path,
-                            format_exc()
-                        )
+                        f'Error appending string "{append_string}" to '
+                        f'{self.txt_path}:\n{format_exc()}'
                     )
 
     def run(self):
@@ -320,7 +311,7 @@ def _check_txt_file_is_elaborated(file_path):
             lines = [l.strip('\n') for l in f]
     except Exception:
         LOGGER.warning(
-            'Error opening file {}:\n{}'.format(file_path, format_exc())
+            f'Error opening file {file_path}:\n{format_exc()}'
         )
         raise
 
@@ -362,7 +353,7 @@ def _process_regcm_output_file(file_path, pycordexer_opts, remove_file, pool):
         LOGGER.debug('All process for conversion of file %s spawned', file_path)
     except Exception:
         LOGGER.warning(
-            'Error converting file {}:\n{}'.format(file_path, format_exc())
+            f'Error converting file {file_path}:\n{format_exc()}'
         )
         return [None]
 
@@ -397,7 +388,7 @@ def _process_file_group_in_manual_mode(group_of_files, pycordexer_options,
     if txt_file is None:
         log_message += '\nand no txt file'
     else:
-        log_message += '\nand this txt file:\n    {}'.format(txt_file)
+        log_message += f'\nand this txt file:\n    {txt_file}'
     LOGGER.debug(log_message)
 
     for fl in regcm_netcdf_files:
@@ -431,7 +422,7 @@ def _process_file_group(group_of_files, pycordexer_options, remove_files, pool):
     if txt_file is None:
         log_message += '\nand no txt file'
     else:
-        log_message += '\nand this txt file:\n    {}'.format(txt_file)
+        log_message += f'\nand this txt file:\n    {txt_file}'
     LOGGER.debug(log_message)
 
     if txt_file is None:
@@ -554,13 +545,13 @@ def _process_file_list(list_of_files, pycordexer_options, manual_mode,
 
 def is_valid_file(parser, arg):
     if not os.path.exists(arg):
-        parser.error("{}: no such file or directory.".format(arg))
+        parser.error(f"{arg}: no such file or directory.")
     return arg
 
 
 def is_valid_dir(parser, arg):
     if not os.path.isdir(arg):
-        parser.error("{}: no such file or directory.".format(arg))
+        parser.error(f"{arg}: no such file or directory.")
     return arg
 
 
@@ -704,11 +695,8 @@ def _read_pycordexer_options(args):
             args_from_text_file = f90nml.read(namelist_path)
         except:
             LOGGER.error(
-                'Error reading file "{}":{}\nPlease, submit a '
-                'valid fortran namelist file'.format(
-                    namelist_path,
-                    format_exc(),
-                )
+                f'Error reading file "{namelist_path}":{format_exc()}\n'
+                'Please, submit a valid fortran namelist file'
             )
             raise
     else:
@@ -816,7 +804,7 @@ def _read_pycordexer_options(args):
                 try:
                     namelist_option = postprocess_options.get(p_in_postprocess)
                     if namelist_option is None:
-                        raise ValueError('{} not found in args'.format(p_name))
+                        raise ValueError(f'{p_name} not found in args')
                     pycordexer_options[p_name] = namelist_option
                     LOGGER.debug(
                         '"%s" field read from the namelist file: %s',
@@ -952,7 +940,7 @@ def stop_execution_when_done_max_procs(signum, frame):
         WORKERS_POOL.set_max_number_of_processes(cpu_count())
 
 
-class Listener(object):
+class Listener:
 
     def __init__(self, input_dir, pycordexer_options, manual_mode, remove_files,
                  timer=_SLEEP_TIMER):
@@ -986,9 +974,7 @@ class Listener(object):
                     WORKERS_POOL
                 )
 
-            if self.manual_mode:
-                break
-            elif files_checked_while_exit_when_done:
+            if self.manual_mode or files_checked_while_exit_when_done:
                 break
             elif not (EXIT_NOW or EXIT_WHEN_DONE):
                 LOGGER.debug('Sleeping for %s seconds', self.timer)
@@ -1064,8 +1050,8 @@ def main():
             'timezones. To install this packet, use:\n"pip install tzlocal"'
         )
         LOGGER.debug(
-            'Import of tzlocal package failed with the following error:\n{}'
-            .format(tzlocal_import_error)
+            'Import of tzlocal package failed with the following error:\n'
+            f'{tzlocal_import_error}'
         )
 
     try:
@@ -1073,7 +1059,7 @@ def main():
     except Exception as e:
         LOGGER.error(
             'Error reading command line input. Execution will be terminated!\n'
-            '{}'.format(e)
+            f'{e}'
         )
         sys_exit(1)
 
@@ -1115,8 +1101,8 @@ def main():
                 'Execution aborted'
             )
             LOGGER.debug(
-                'Import of daemon package failed with the following error:\n{}'
-                .format(daemon_import_error)
+                'Import of daemon package failed with the following error:\n'
+                f'{daemon_import_error}'
             )
             sys_exit(2)
 
@@ -1132,9 +1118,7 @@ def main():
             try:
                 pidfile = daemon.pidfile.PIDLockFile(args['pidfile'])
             except:
-                LOGGER.error('Error creating the pid file:\n{}'.format(
-                    format_exc()
-                ))
+                LOGGER.error(f'Error creating the pid file:\n{format_exc()}')
                 raise
             context_options['pidfile'] = pidfile
         else:

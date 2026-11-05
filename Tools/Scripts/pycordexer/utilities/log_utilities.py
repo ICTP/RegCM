@@ -1,13 +1,13 @@
 import logging
 from copy import copy
-from threading import Thread
+from logging.handlers import QueueHandler
+from multiprocessing import Lock, Queue
 from queue import Empty
+from sys import exit as sys_exit
+from sys import stderr
+from threading import Thread
 from time import sleep
 from traceback import print_exc
-from sys import stderr, exit as sys_exit
-from multiprocessing import Queue, Lock
-from logging.handlers import QueueHandler
-
 
 __copyright__ = 'Copyright (C) 2017-2018 ICTP'
 __author__ = 'Stefano Piani <stefano.piani@exact-lab.it>'
@@ -32,12 +32,12 @@ class OnelinerFormatter(logging.Formatter):
     Alter the text of the logs replacing "\n" with " | ".
     """
     def __init__(self, fmt=None, datefmt=None):
-        super(OnelinerFormatter, self).__init__(fmt, datefmt)
+        super().__init__(fmt, datefmt)
 
     def format(self, record):
         new_record = copy(record)
         new_record.msg = new_record.msg.strip('\n').replace('\n', ' | ')
-        return super(OnelinerFormatter, self).format(new_record)
+        return super().format(new_record)
 
 
 class LogCollector(Thread):
@@ -48,7 +48,7 @@ class LogCollector(Thread):
     """
 
     def __init__(self, logs_queue=LOG_QUEUE, lock=FORK_LOCK, wait=0.01):
-        super(LogCollector, self).__init__()
+        super().__init__()
         self.daemon = True
         self.wait = wait
         self.logs_queue = logs_queue

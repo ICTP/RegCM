@@ -1,0 +1,8 @@
+# Ruff configuration for pycordexer
+line-length = 79
+extend-exclude = ["old_doc"]
+
+[lint]
+# The listener and the workers catch every exception at the top level on
+# purpose: they log it and keep running.
+ignore = ["BLE001", "S110"]

@@ -3,7 +3,7 @@ __author__ = 'Stefano Piani <stefano.piani@exact-lab.it>'
 __credits__ = ["Stefano Piani"]
 
 
-class Repeater(object):
+class Repeater:
     """
     A Repeater is substantially a wrapepr around a function.
     Its aim is to avoid to compute a function several times if the function

@@ -7,14 +7,14 @@
 
 
 import argparse
-from getpass import getuser
-from os import path, kill, makedirs
-from datetime import datetime
-from subprocess import Popen, PIPE
-from sys import executable, argv, exit as sys_exit, stderr, stdout
-from threading import Lock
 import signal
-
+from datetime import datetime
+from getpass import getuser
+from os import kill, makedirs, path
+from subprocess import PIPE, Popen
+from sys import argv, executable, stderr, stdout
+from sys import exit as sys_exit
+from threading import Lock
 
 __copyright__ = 'Copyright (C) 2018 ICTP'
 __author__ = 'Stefano Piani <stefano.piani@exact-lab.it>'
@@ -71,7 +71,7 @@ def print_message(msg):
 def stop_execution_spreading_signal(signum, frame):
     global start_other_processes
 
-    print_message('Received signal {}; stopping execution!'.format(signum))
+    print_message(f'Received signal {signum}; stopping execution!')
 
     with editing_processes:
         start_other_processes = False

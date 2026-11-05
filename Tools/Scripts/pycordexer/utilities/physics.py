@@ -10,7 +10,6 @@ model top to the bottom, while 2D arrays have shape (iy, jx).
 
 import numpy as np
 
-
 __copyright__ = 'Copyright (C) 2026 ICTP'
 __author__ = 'Graziano Giuliani <ggiulian@ictp.it>'
 __credits__ = ["Graziano Giuliani"]

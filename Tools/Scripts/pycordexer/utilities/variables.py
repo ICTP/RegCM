@@ -1,12 +1,12 @@
-from netCDF4 import Dataset, num2date
+import numbers
 from logging import getLogger
 from traceback import format_exc
+
 import numpy as np
+from netCDF4 import Dataset, num2date
 from numpy.ma import is_masked, masked_array
-import numbers
 
 from utilities.globals import REGCM_VARS
-
 
 __copyright__ = 'Copyright (C) 2017-2018 ICTP'
 __author__ = 'Stefano Piani <stefano.piani@exact-lab.it>'
@@ -56,7 +56,7 @@ def step_postponer(slice_data):
         return slice1, None
 
 
-class SliceStr(object):
+class SliceStr:
     """
     A wrapper around an object like a tuple of slices, a list of slices or a
     slice.
@@ -79,13 +79,13 @@ class SliceStr(object):
             if start is None:
                 output += 'From beginning'
             else:
-                output += 'From element {}'.format(start)
+                output += f'From element {start}'
             if stop is None:
                 output += ' to end'
             else:
-                output += ' to element {}'.format(stop)
+                output += f' to element {stop}'
         if step is not None:
-            output += ' using a step of {}'.format(step)
+            output += f' using a step of {step}'
         return output
 
     def __str__(self):
@@ -97,7 +97,7 @@ class SliceStr(object):
         return '[' + ', '.join(slice_str_list) + ']'
 
 
-class Variable(object):
+class Variable:
     """
     A Variable is an object that can save all the information that a NetCDF
     variable inside a file can store
@@ -125,9 +125,8 @@ class Variable(object):
         self._frequency = frequency
 
         # In some situation override the flag needs_time_bounds
-        if self._time_bounds is not None:
-            self._needs_time_bounds = True
-        elif self.time_step_size == 24 or self.time_step_size > 670:
+        if (self._time_bounds is not None or self.time_step_size == 24
+                or self.time_step_size > 670):
             self._needs_time_bounds = True
         elif not self.depends_on_time:
             self._needs_time_bounds = False
@@ -152,10 +151,7 @@ class Variable(object):
 
     @property
     def depends_on_time(self):
-        if self._times is None:
-            return False
-        else:
-            return True
+        return self._times is not None
 
     @property
     def needs_time_bounds(self):
@@ -195,7 +191,7 @@ class Variable(object):
         if self.time_step_size > 670:
             return 'month'
 
-        return '{}hr'.format(int(self.time_step_size))
+        return f'{int(self.time_step_size)}hr'
 
     @property
     def dates(self):
@@ -210,10 +206,10 @@ class Variable(object):
         )
 
     def __str__(self):
-        return 'variable {}'.format(self.name)
+        return f'variable {self.name}'
 
 
-class Data(object):
+class Data:
     def __init__(self):
         raise NotImplementedError
 
@@ -238,7 +234,7 @@ class NetCDFData(Data):
 
     def __enter__(self):
         if self.__f_pointer is not None:
-            raise IOError('Trying to open again file {}'.format(self._path))
+            raise OSError(f'Trying to open again file {self._path}')
 
         if self.__lock is not None:
             LOGGER.debug('Acquiring lock on file')
@@ -250,7 +246,7 @@ class NetCDFData(Data):
 
     def __call__(self, slice_data=None):
         if self.__f_pointer is None:
-            raise IOError('File {} is still closed'.format(self._path))
+            raise OSError(f'File {self._path} is still closed')
 
         if slice_data is None:
             slice_data = np.index_exp[:]
@@ -299,10 +295,7 @@ class NetCDFData(Data):
                 self.__f_pointer.close()
             except Exception:
                 LOGGER.warning(
-                    'Unable to close file {}:\n{}'.format(
-                        self._path,
-                        format_exc()
-                    )
+                    f'Unable to close file {self._path}:\n{format_exc()}'
                 )
         if self.__lock is not None:
             LOGGER.debug('Releasing file lock')
@@ -453,7 +446,7 @@ class NetCDFMultiData(Data):
 
     def __enter__(self):
         if self.__f_pointer is not None:
-            raise IOError('Trying to open again file {}'.format(self._path))
+            raise OSError(f'Trying to open again file {self._path}')
 
         if self.__lock is not None:
             LOGGER.debug('Acquiring lock on file')
@@ -465,7 +458,7 @@ class NetCDFMultiData(Data):
 
     def __call__(self, slice_data=None):
         if self.__f_pointer is None:
-            raise IOError('File {} is still closed'.format(self._path))
+            raise OSError(f'File {self._path} is still closed')
 
         if slice_data is None:
             slice_data = np.index_exp[:]
@@ -505,10 +498,7 @@ class NetCDFMultiData(Data):
                 self.__f_pointer.close()
             except Exception:
                 LOGGER.warning(
-                    'Unable to close file {}:\n{}'.format(
-                        self._path,
-                        format_exc()
-                    )
+                    f'Unable to close file {self._path}:\n{format_exc()}'
                 )
 
         if self.__lock is not None:

@@ -1,10 +1,11 @@
 import sys
-from multiprocessing import get_context
-from time import sleep
-from threading import Thread, Lock as TLock
 from logging import getLogger
-import utilities.log_utilities
+from multiprocessing import get_context
+from threading import Lock as TLock
+from threading import Thread
+from time import sleep
 
+import utilities.log_utilities
 
 __copyright__ = 'Copyright (C) 2017-2018 ICTP'
 __author__ = 'Stefano Piani <stefano.piani@exact-lab.it>'
@@ -19,7 +20,7 @@ LOGGER = getLogger(__name__)
 _MP_CONTEXT = get_context('fork' if sys.version_info >= (3, 14) else None)
 
 
-class Pool(object):
+class Pool:
     """
     A Pool is an object similar to multiprocessing.Pool.
 
@@ -106,7 +107,7 @@ class Pool(object):
             return None
 
         self._total_spawned += 1
-        process_name = '{} {}'.format(self._name, self._total_spawned)
+        process_name = f'{self._name} {self._total_spawned}'
         args = args[:] + (utilities.log_utilities.LOG_QUEUE,)
         with utilities.log_utilities.FORK_LOCK:
             LOGGER.debug('Spawning process %s', process_name)
@@ -144,7 +145,7 @@ class ProcessCleaner(Thread):
         self._objects = object_dict
         self._objects_lock = object_dict_lock
 
-        super(ProcessCleaner, self).__init__()
+        super().__init__()
         self.daemon = True
 
     def run(self):

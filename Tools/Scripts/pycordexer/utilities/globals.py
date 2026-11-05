@@ -1,7 +1,8 @@
-import os
 import glob
 import json
+import os
 import re
+
 import numpy as np
 
 # The current version of RegCM. This information will be used only if there is
@@ -114,14 +115,14 @@ for jf in jsonfiles:
         except Exception:
             print('Error reading ' + jf)
             raise(SyntaxError)
-        for k in elements.keys( ):
+        for k in elements:
             CORDEX_CMIP6_DEFINITIONS[k] = elements[k]
 
 # The variables of the CORDEX-CMIP6 tables of each frequency. They give the
 # cell_methods of the variables written at that frequency
 CORDEX_TABLE_VARS = {}
 for frequency in ('1hr', '6hr', 'day', 'mon', 'fx'):
-    table_file = 'CORDEX-CMIP6_{}.json'.format(frequency)
+    table_file = f'CORDEX-CMIP6_{frequency}.json'
     with open(os.path.join(MAIN_DIR, 'variables', table_file)) as f:
         CORDEX_TABLE_VARS[frequency] = json.load(f)['variable_entry']
 del frequency, table_file

@@ -1,28 +1,42 @@
+import logging
 import os
 import re
 import warnings
-import numpy as np
-from numpy.ma import is_masked
-import logging
-from importlib import import_module
-from inspect import isclass, getmembers
 from copy import copy
-from netCDF4 import Dataset, date2num
+from importlib import import_module
+from inspect import getmembers, isclass
+
+import numpy as np
 from cftime import datetime as cfdatetime
+from netCDF4 import Dataset, date2num
+from numpy.ma import is_masked
 
-from utilities.globals import DATATYPE_MAIN, DATATYPE_AUXILIARIES, \
-    CORDEX_MON_VARS, CORDEX_TABLE_VARS
-from utilities.rotate import grid_to_earth_uvrotate
+from utilities import chunks, physics
+from utilities.cordex_utils import (
+    CordexDataset,
+    get_regcm_variable_names,
+    get_var_with_name,
+    prepare_cordex_file_dir,
+    read_variable_from_regcmfile,
+    unit_factor_correction,
+)
+from utilities.globals import (
+    CORDEX_MON_VARS,
+    CORDEX_TABLE_VARS,
+    DATATYPE_AUXILIARIES,
+    DATATYPE_MAIN,
+)
 from utilities.repeater import Repeater
-from utilities.variables import Variable, MemoryData, FilterData,\
-    SubselectedData, SliceData, NetCDFMultiData, SliceStr
-from utilities.cordex_utils import CordexDataset, prepare_cordex_file_dir, \
-    read_variable_from_regcmfile, get_regcm_variable_names, get_var_with_name, \
-    unit_factor_correction
-
-from utilities import physics
-from utilities import chunks
-
+from utilities.rotate import grid_to_earth_uvrotate
+from utilities.variables import (
+    FilterData,
+    MemoryData,
+    NetCDFMultiData,
+    SliceData,
+    SliceStr,
+    SubselectedData,
+    Variable,
+)
 
 __copyright__ = 'Copyright (C) 2018 ICTP'
 __author__ = 'Stefano Piani <stefano.piani@exact-lab.it>'
@@ -43,7 +57,7 @@ def get_dynamical_core(regcm_file_path):
     with Dataset(regcm_file_path) as ncf:
         core = getattr(ncf, 'dynamical_core', 1)
     if core not in DYNAMICAL_CORES:
-        raise ValueError('Unknown dynamical_core : "{}"'.format(core))
+        raise ValueError(f'Unknown dynamical_core : "{core}"')
     return DYNAMICAL_CORES[core]
 
 
@@ -71,7 +85,7 @@ class VariableSkipped(Exception):
     considered as failed."""
 
 
-class Method(object):
+class Method:
     """A Method is a callable object that performs actions on a variable.
 
     It is invoked in the JSON file that describes the actions to perform on a
@@ -88,7 +102,7 @@ class Method(object):
         raise NotImplementedError
 
 
-class Action(object):
+class Action:
     """An Action is a chain of Methods that retrieves a variable.
 
     Each Method (beside the first one) receives the output of its ancestor.
@@ -103,7 +117,7 @@ class Action(object):
         self.corrflag = corrflag
         self.cordex_dir = cordex_dir
         if not isinstance(self._methods[0], ActionStarter):
-            raise ValueError(
+            raise TypeError(
                 'The first Method of the list must be an ActionStarter'
             )
 
@@ -541,8 +555,7 @@ class CorrectTime(Filter):
         LOGGER.debug('Looking for %s in the offset dictionary', ftype)
         if ftype not in self._offset:
             raise KeyError(
-                'No offset value found that is suitable for {} files'
-                .format(ftype)
+                f'No offset value found that is suitable for {ftype} files'
             )
 
         raw_offset = str(self._offset[ftype])
@@ -748,7 +761,7 @@ class InterpolateHeight(Filter):
         self.method = method.lower()
         if method not in ('linear', 'logarithmic'):
             raise ValueError(
-                'Unknown method "{}" for vertical interpolation'.format(method)
+                f'Unknown method "{method}" for vertical interpolation'
             )
         self.core = core
 
@@ -774,8 +787,8 @@ class InterpolateHeight(Filter):
 
         if 'kz' not in dim_names:
             raise ValueError(
-                'No height dimension (kz) found in variable "{}"'
-                .format(prev_result.name)
+                'No height dimension (kz) found in variable '
+                f'"{prev_result.name}"'
             )
 
         kz_index = dim_names.index('kz')
@@ -901,7 +914,7 @@ class InterpolateHeight(Filter):
                         nk = np.shape(p_t)[0]
                         LOGGER.debug('Computing pressure')
                         ptpa = ptop_array * 100.0
-                        for k in range (0,nk):
+                        for k in range (nk):
                             p_t[k,:] = ((p0[:]-ptpa)*sigma_array[k] + 
                                     ptpa) + pp_t[k,:]
                         LOGGER.debug(
@@ -971,7 +984,7 @@ class InterpolateOnMultipleHeights(Filter):
         self.method = method.lower()
         if method not in ('linear', 'logarithmic'):
             raise ValueError(
-                'Unknown method "{}" for vertical interpolation'.format(method)
+                f'Unknown method "{method}" for vertical interpolation'
             )
 
     def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
@@ -1003,7 +1016,7 @@ class InterpolateOnMultipleHeights(Filter):
         LOGGER.debug('Appending pressure level to the names of the variables')
         for interp_var, pressure in zip(interp_vars, self.pressure_levels):
             # The format .0f removes the ".0" at the end of the float
-            interp_var.name += '{:.0f}'.format(pressure*0.01)
+            interp_var.name += f'{pressure*0.01:.0f}'
 
         return interp_vars
 
@@ -1030,8 +1043,10 @@ class ExtractLevel(Filter):
         dim_names = [i[0] for i in prev_result.dimensions]
 
         if self.dimension not in dim_names:
-            raise ValueError('No dimension "{}" found in variable "{}"'
-                             .format(self.dimension, prev_result.name))
+            raise ValueError(
+                f'No dimension "{self.dimension}" found in variable '
+                f'"{prev_result.name}"'
+            )
 
         dim_index = dim_names.index(self.dimension)
         LOGGER.debug('%s is in position %s', self.dimension, dim_index)
@@ -1096,8 +1111,8 @@ class NormFromCoords(ActionStarter):
         if (copy_attributes_from is not None and
                 copy_attributes_from not in compute_from):
             raise ValueError(
-                '{} is not in the list of variables to be read'
-                .format(copy_attributes_from)
+                f'{copy_attributes_from} is not in the list of variables '
+                'to be read'
             )
         self.attributes_from = copy_attributes_from
 
@@ -1179,9 +1194,8 @@ class Thin(Filter):
     def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
                  corrflag, cordex_dir):
         if not prev_result.depends_on_time:
-            raise ValueError('Variable {} does not depend on time'.format(
-                prev_result.name
-            ))
+            raise ValueError(
+                f'Variable {prev_result.name} does not depend on time')
 
         current_step = prev_result.time_step_size
         if abs(current_step - self.new_time_step) < 0.01:
@@ -1208,8 +1222,8 @@ class Thin(Filter):
         thin_step = self.new_time_step / current_step
         if abs(thin_step - int(thin_step)) > 0.1:
             raise ValueError(
-                'The old time step ({}h) and the new one ({}h) are not '
-                'multiples'.format(current_step, self.new_time_step)
+                f'The old time step ({current_step}h) and the new one '
+                f'({self.new_time_step}h) are not multiples'
             )
         thin_step = int(thin_step)
         LOGGER.debug('Taking a value every %s', thin_step)
@@ -1271,9 +1285,8 @@ class ComputeMaximum(Filter):
     def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
                  corrflag, cordex_dir):
         if not prev_result.depends_on_time:
-            raise ValueError('Variable {} does not depend on time'.format(
-                prev_result.name
-            ))
+            raise ValueError(
+                f'Variable {prev_result.name} does not depend on time')
 
         current_step = prev_result.time_step_size
         if abs(current_step - self.new_time_step) < 0.01:
@@ -1300,8 +1313,8 @@ class ComputeMaximum(Filter):
         maximum_step = self.new_time_step / current_step
         if abs(maximum_step - int(maximum_step)) > 0.1:
             raise ValueError(
-                'The old time step ({}h) and the new one ({}h) are not '
-                'multiples'.format(current_step, self.new_time_step)
+                f'The old time step ({current_step}h) and the new one '
+                f'({self.new_time_step}h) are not multiples'
             )
         maximum_step = int(maximum_step)
         LOGGER.debug(
@@ -1640,9 +1653,8 @@ class ComputeAverage(Filter):
     def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
                  corrflag, cordex_dir):
         if not prev_result.depends_on_time:
-            raise ValueError('Variable {} does not depend on time'.format(
-                prev_result.name
-            ))
+            raise ValueError(
+                f'Variable {prev_result.name} does not depend on time')
 
         current_step = prev_result.time_step_size
         if abs(current_step - self.new_time_step) < 0.01:
@@ -1669,8 +1681,8 @@ class ComputeAverage(Filter):
         average_step = self.new_time_step / current_step
         if abs(average_step - int(average_step)) > 0.1:
             raise ValueError(
-                'The old time step ({}h) and the new one ({}h) are not '
-                'multiples'.format(current_step, self.new_time_step)
+                f'The old time step ({current_step}h) and the new one '
+                f'({self.new_time_step}h) are not multiples'
             )
         average_step = int(average_step)
         LOGGER.debug(
@@ -1905,12 +1917,12 @@ class LinearCombinationOfVars(ActionStarter):
         self.var_name = var_name
         self.var_list = combination
 
-        if copy_attributes_from is not None:
-            if copy_attributes_from not in [v[0] for v in combination]:
-                raise ValueError(
-                    '{} is not in the list of variables to be read'
-                    .format(copy_attributes_from)
-                )
+        if (copy_attributes_from is not None
+                and copy_attributes_from not in [v[0] for v in combination]):
+            raise ValueError(
+                f'{copy_attributes_from} is not in the list of '
+                'variables to be read'
+            )
         self.attributes_from = copy_attributes_from
 
         self.new_attributes = new_attributes
@@ -2005,7 +2017,7 @@ class SumOnDimension(Filter):
                     position,
                 )
         if position is None:
-            raise KeyError('No dimension found named {}'.format(self.dimension))
+            raise KeyError(f'No dimension found named {self.dimension}')
 
         LOGGER.debug('Removing dimension %s from the variable', position)
         reduced_dims = dimensions[0:position] + dimensions[position + 1:]
@@ -2330,7 +2342,7 @@ class ComputeGeopotentialHeight(ActionStarter):
             )
 
             return Variable(
-                name="zg{:.0f}".format(self.height*0.01),
+                name=f"zg{self.height*0.01:.0f}",
                 data=MemoryData(data),
                 dimensions=dimensions,
                 attributes=attributes,
@@ -2627,7 +2639,7 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
                 break
         else:
             raise ValueError(
-                'Latitude dimension ("y") not found in variable {}'.format(v)
+                f'Latitude dimension ("y") not found in variable {v}'
             )
 
         LOGGER.debug(
@@ -2646,7 +2658,7 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
                 break
         else:
             raise ValueError(
-                'Longitude dimension ("x") not found in variable {}'.format(v)
+                f'Longitude dimension ("x") not found in variable {v}'
             )
 
         LOGGER.debug('Reading the cone from the attribute "grid_factor"')
@@ -2693,7 +2705,7 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
             elif self.direction == 'northward':
                 return -ff[1], ff[0]
             else:
-                raise ValueError('Invalid direction: {}'.format(self.direction))
+                raise ValueError(f'Invalid direction: {self.direction}')
 
         # Avoid repetition with the same slice
         compute_rotation_coefficients = Repeater(compute_rotation_coefficients)

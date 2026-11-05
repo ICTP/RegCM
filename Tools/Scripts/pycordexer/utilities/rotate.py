@@ -1,6 +1,5 @@
 import numpy as np
 
-
 __copyright__ = 'Copyright (C) 2018 ICTP'
 __author__ = 'Graziano Giuliani <ggiulian@ictp.it>'
 __credits__ = ["Stefano Piani", "Graziano Giuliani"]

@@ -31,8 +31,8 @@ import time
 import uuid
 
 import numpy as np
-from netCDF4 import Dataset, num2date
 from cftime import datetime as cfdatetime
+from netCDF4 import Dataset, num2date
 
 LOGGER = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def time_step(freq):
         return 24.0
     match = _SUBDAILY.match(freq)
     if match is None:
-        raise ValueError('No time step for frequency {}'.format(freq))
+        raise ValueError(f'No time step for frequency {freq}')
     return float(match.group(1))
 
 
@@ -118,11 +118,11 @@ def _read_times(path):
 
 def _date_string(date, freq):
     if freq == 'mon':
-        return '{0.year:04d}{0.month:02d}'.format(date)
+        return f'{date.year:04d}{date.month:02d}'
     if freq == 'day':
-        return '{0.year:04d}{0.month:02d}{0.day:02d}'.format(date)
-    return '{0.year:04d}{0.month:02d}{0.day:02d}{0.hour:02d}{0.minute:02d}' \
-        .format(date)
+        return f'{date.year:04d}{date.month:02d}{date.day:02d}'
+    return (f'{date.year:04d}{date.month:02d}{date.day:02d}'
+            f'{date.hour:02d}{date.minute:02d}')
 
 
 def check_records(dates, freq, start, end, complete=True, late_start=0.0):
@@ -163,7 +163,7 @@ def check_records(dates, freq, start, end, complete=True, late_start=0.0):
     return None
 
 
-class _Source(object):
+class _Source:
     """A file with records for a chunk: a segment or a chunk file"""
 
     def __init__(self, path):
@@ -197,7 +197,7 @@ def _lock(lock_path):
     for _ in range(2):
         try:
             fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            os.write(fd, '{} {}\n'.format(os.uname()[1], os.getpid())
+            os.write(fd, f'{os.uname()[1]} {os.getpid()}\n'
                      .encode())
             os.close(fd)
             return True
@@ -259,8 +259,8 @@ def _write_chunk(records, out_path):
                            if a != '_FillValue'})
             if 'time' in var.dimensions:
                 if var.dimensions[0] != 'time':
-                    raise ValueError('Variable {} of {} has time not as its '
-                                     'first dimension'.format(name, template))
+                    raise ValueError(f'Variable {name} of {template} has '
+                                     'time not as its first dimension')
                 timed.append(name)
             else:
                 out[...] = var[...]
@@ -287,8 +287,7 @@ def assemble_chunk(var_dir, prefix, freq, start, end, complete=True,
     was not written.
     """
     seg_dir = os.path.join(var_dir, SEGMENT_DIR)
-    lock_path = os.path.join(seg_dir, '.lock_{}_{}-{}'.format(prefix, start,
-                                                             end))
+    lock_path = os.path.join(seg_dir, f'.lock_{prefix}_{start}-{end}')
     if not _lock(lock_path):
         LOGGER.info('Chunk %s %d-%d is being assembled by another process',
                     prefix, start, end)
@@ -331,16 +330,18 @@ def assemble_chunk(var_dir, prefix, freq, start, end, complete=True,
                 records[-1][1].append(i)
             else:
                 records.append((source, [i]))
-        out_path = os.path.join(var_dir, '{}_{}-{}.nc'.format(
-            prefix, _date_string(dates[0], freq),
-            _date_string(dates[-1], freq)))
+        out_path = os.path.join(
+            var_dir, f'{prefix}_{_date_string(dates[0], freq)}-'
+            f'{_date_string(dates[-1], freq)}.nc')
         LOGGER.info('Assembling %s from %d files', out_path, len(records))
         _write_chunk(records, out_path)
         # The previous chunk files of these years are replaced
         for source in finals:
-            if source.path != out_path and source in [s for s, _ in in_chunk]:
-                if np.all((source.years >= start) & (source.years <= end)):
-                    os.remove(source.path)
+            if (source.path != out_path
+                    and source in [s for s, _ in in_chunk]
+                    and np.all((source.years >= start)
+                               & (source.years <= end))):
+                os.remove(source.path)
         # A segment used here is removed when all its records of the
         # experiment are in chunk files (this one or others already done)
         assembled = set()
