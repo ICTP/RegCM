@@ -141,6 +141,11 @@ program clmsa
     !
     call init_bdy
     call atmval
+    ! atmval advances the boundary interpolation time. This call only
+    ! provides the fields for the initialization: rewind, or the first
+    ! interval of the run is interpolated one step ahead (and a restarted
+    ! run does not reproduce the continuous one).
+    xbctime = d_zero
     if ( sfbcread == 1 ) then
       call getmem(ssnet,jci1,jci2,ici1,ici2,'clmsa:ssnet')
       call read_clmbc(pptc,ssnet,flwd,totc)
