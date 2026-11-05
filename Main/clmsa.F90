@@ -33,6 +33,7 @@ program clmsa
   use mod_atm_stub
   use mod_clm_regcm
   use mod_ipcc_scenario, only : update_scenario
+  use mod_sun, only : zenitm
   use mod_ncio
   use mpi_f08
   implicit none
@@ -156,6 +157,12 @@ program clmsa
       call split_solar
     end if
     !
+    ! The restart flag forces the solar orbit computation at every call of
+    ! zenitm. After the initialization it must follow the same (daily)
+    ! update as in a continuous run, or a restart does not reproduce it.
+    !
+    doing_restart = .false.
+    !
     ! Clean up and logging
     !
 #ifdef DEBUG
@@ -179,6 +186,13 @@ program clmsa
     do while ( extime >= timestr .and. extime < timeend )
 
       call update_scenario(rcmtimer%year,rcmtimer%month)
+      !
+      ! Solar declination (used by CLM for the daylength and the
+      ! photosynthetic capacity) and zenith angle, updated as in the
+      ! coupled model. Without this the declination stays the one of the
+      ! start date of the run.
+      !
+      call zenitm(mddom%xlat,mddom%xlon,coszrs)
       call atmval
       call runsaclm45(lm)
       call albedoclm45(lm,lms)
