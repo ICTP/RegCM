@@ -67,7 +67,14 @@ module mod_cloud_subex
     !
     if ( use_dynamic_rhcrit ) then
       key = hash_key(rhcrit_seed,rcmtimer%lcount)
+#if !defined(OPENACC) || defined(STDPAR_FIXED)
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+#else
+      !$acc parallel loop collapse(3) gang vector
+      do k = 1, kz
+      do i = ici1, ici2
+      do j = jci1, jci2
+#endif
         rnd = hash_uniform(key,k,i,j)
         tku = min(301.0_rkx,max(216.0_rkx,t(j,i,k)))
         rhcrit(j,i,k) = rh0(j,i) + 0.10_rkx * (rnd-0.5_rkx)
@@ -75,6 +82,10 @@ module mod_cloud_subex
           max(60.0_rkx, min(100.0_rkx, rhcrit(j,i,k)*100.0_rkx + &
          (-21760.24_rkx-0.000004969437_rkx*tku**4+0.005182194_rkx*tku**3 - &
           2.009108_rkx*tku**2+343.0437_rkx*tku)))
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+      end do
+      end do
+#endif
       end do
     else
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
