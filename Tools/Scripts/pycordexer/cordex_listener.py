@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Author: Alberto Chiusole, alberto.chiusole@exact-lab.it
 # Date: 2017-09-29
@@ -84,18 +83,18 @@ APPEND_TXT_STRING = 'Elaborated by Pycordexer at %(now)'
 APPEND_FAILED_TXT_STRING = 'Failed elaboration attempt by Pycordexer at %(now)'
 
 # The set of the files that are already been elaborated by this software
-ALREADY_ELABORATED = set()
+ALREADY_ELABORATED: set[str] = set()
 
 # The pools of processes that must elaborate the data
 WORKERS_POOL = None
 
 # A list with all the threads that are running to delete the original files
 # produced by RegCM
-FILE_DELETERS = []
+FILE_DELETERS: list['FileDeleter'] = []
 
 # A list with all the threads that are running to manage the txt files produced
 # by RegCM
-TXT_HANDLERS = []
+TXT_HANDLERS: list['TxtHandler'] = []
 
 # Save the default handlers for the SIGINT and SIGTERM
 DEFAULT_SIGINT_HANDLER = signal.getsignal(signal.SIGINT)
@@ -318,7 +317,7 @@ def _check_txt_file_is_elaborated(file_path):
     )
     try:
         with open(file_path, 'r') as f:
-            lines = [l.strip('\n') for l in f.readlines()]
+            lines = [l.strip('\n') for l in f]
     except Exception:
         LOGGER.warning(
             'Error opening file {}:\n{}'.format(file_path, format_exc())
@@ -454,7 +453,7 @@ def _process_file_group(group_of_files, pycordexer_options, remove_files, pool):
     )
     try:
         txt_file_elaborated = _check_txt_file_is_elaborated(txt_file)
-    except:
+    except Exception:
         LOGGER.warning(
             'Error reading file "%s". Its group will be elaborated anyway',
             txt_file
@@ -824,7 +823,7 @@ def _read_pycordexer_options(args):
                         p_name,
                         pycordexer_options[p_name]
                     )
-                except:
+                except Exception:
                     LOGGER.debug(
                         'No value for field "%s" found. Pycordexer will use '
                         'the default one',
@@ -906,7 +905,6 @@ def stop_execution_on_signal(signum, frame):
     terminate their execution. Avoid to spawn other processes.
     """
     global EXIT_NOW
-    global WORKERS_POOL
 
     LOGGER.info(
         'Received a signal number %s. Execution will be stopped as soon as '
@@ -1105,7 +1103,7 @@ def main():
         utilities.log_utilities.collect_logs()
         try:
             listener.run(args['processes'])
-        except:
+        except Exception:
             LOGGER.error(format_exc())
     else:
         LOGGER.debug('Preparing to go in daemon mode')

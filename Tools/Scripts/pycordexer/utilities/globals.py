@@ -74,7 +74,7 @@ for json_file in os.listdir(CORDEX_VARS_DIR):
         try:
             for var_name, var_description in json.load(f).items():
                 CORDEX_VARS[var_name.lower()] = var_description
-        except:
+        except Exception:
             print('Error reading '+json_file)
             raise(SyntaxError)
 
@@ -84,7 +84,7 @@ ASSOCIATION_FILE = os.path.join(MAIN_DIR, 'variables/file_associations.json')
 with open(ASSOCIATION_FILE, 'r') as f:
     try:
         ASSOCIATIONS = json.load(f)
-    except:
+    except Exception:
         print('Error reading '+ASSOCIATION_FILE)
         raise(SyntaxError)
 
@@ -101,7 +101,7 @@ REGCM_VAR_FILE = os.path.join(MAIN_DIR, 'variables/regcm_vars.json')
 with open(REGCM_VAR_FILE, 'r') as f:
     try:
         REGCM_VARS = json.load(f)
-    except:
+    except Exception:
         print('Error reading '+REGCM_VAR_FILE)
         raise(SyntaxError)
 
@@ -111,7 +111,7 @@ for jf in jsonfiles:
     with open(jf, 'r') as f:
         try:
             elements = json.load(f)
-        except:
+        except Exception:
             print('Error reading ' + jf)
             raise(SyntaxError)
         for k in elements.keys( ):

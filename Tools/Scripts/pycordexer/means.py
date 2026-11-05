@@ -22,9 +22,6 @@ Its format will be NETCDF4_CLASSIC, and all 2D+ variables will be
 compressed in disk.
     """
 
-    names = { 'day' : 'day',
-              'mon' : 'month' }
-
     ncf = Dataset(datafile)
 
     times = ncf.variables['time']
@@ -68,7 +65,7 @@ compressed in disk.
                 ofile = (str.join('_',pieces[0:8])+
                           '_'+window+'_'+f1+'-'+f2+'.nc')
             nco = Dataset(ofile, 'w', format='NETCDF4_CLASSIC')
-        except:
+        except Exception:
             print(ofile)
             raise RuntimeError('Cannot open output file')
         tunit = 'days since 1950-01-01 00:00:00'
@@ -86,7 +83,7 @@ compressed in disk.
                 ofile = (str.join('_',pieces[0:8])+
                           '_'+window+'_'+f1+'-'+f2+'.nc')
             nco = Dataset(ofile, 'w', format='NETCDF4_CLASSIC')
-        except:
+        except Exception:
             raise RuntimeError('Cannot open output file')
         tunit = 'days since 1950-01-01 00:00:00'
     else:

@@ -4,7 +4,6 @@ from traceback import format_exc
 import numpy as np
 from numpy.ma import is_masked, masked_array
 import numbers
-import sys
 
 from utilities.globals import REGCM_VARS
 
@@ -298,7 +297,7 @@ class NetCDFData(Data):
         if self.__f_pointer is not None:
             try:
                 self.__f_pointer.close()
-            except:
+            except Exception:
                 LOGGER.warning(
                     'Unable to close file {}:\n{}'.format(
                         self._path,
@@ -504,7 +503,7 @@ class NetCDFMultiData(Data):
         if self.__f_pointer is not None:
             try:
                 self.__f_pointer.close()
-            except:
+            except Exception:
                 LOGGER.warning(
                     'Unable to close file {}:\n{}'.format(
                         self._path,

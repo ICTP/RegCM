@@ -64,7 +64,7 @@ compressed in disk.
             nco = Dataset(os.path.join(opth,str.join('_',pieces[0:7])+'_'+
                       'mon'+'_'+f1+'-'+f2+'.nc'),
                       'w', format='NETCDF4_CLASSIC')
-        except:
+        except Exception:
             raise RuntimeError('Cannot open output file')
         tunit = 'days since 1950-01-01 00:00:00'
         for attr in ncf.ncattrs():

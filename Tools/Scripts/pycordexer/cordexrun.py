@@ -5,7 +5,6 @@
 ..Date: 2017-10-23
 """
 
-from __future__ import print_function
 
 import argparse
 from getpass import getuser
@@ -50,7 +49,7 @@ _SLEEP_TIMER = 10
 
 def print_title():
     print(
-        '''
+        r'''
         _____________________________________________
           __   __   __   __   ___      __
          /  ` /  \ |__) |  \ |__  \_/ |__) |  | |\ |
@@ -85,7 +84,7 @@ def stop_execution_spreading_signal(signum, frame):
             with open(cordex_listener_pid_file, 'r') as f:
                 raw_pid = f.read().strip('\n')
             listener_pid = int(raw_pid)
-        except:
+        except Exception:
             listener_pid = None
 
         if listener_pid is not None:
@@ -221,10 +220,12 @@ if __name__ == '__main__':
 
             # Print listener_process standard error on the current standard
             # output
+            listener_process_err = listener_process.stderr
+            assert listener_process_err is not None
             while listener_process.poll() is None:
-                stderr_line = listener_process.stderr.readline()
+                stderr_line = listener_process_err.readline()
                 print(stderr_line.decode('utf-8'), end='')
-            last_line = listener_process.stderr.read().decode('utf-8')
+            last_line = listener_process_err.read().decode('utf-8')
             if last_line.strip('') != '':
                 print(last_line, end='')
 
@@ -277,10 +278,12 @@ if __name__ == '__main__':
             listener_stop_process = Popen(listener_stop_arguments, stderr=PIPE)
 
             # The same that we already did for listener_process
+            listener_stop_process_err = listener_stop_process.stderr
+            assert listener_stop_process_err is not None
             while listener_stop_process.poll() is None:
-                stderr_line = listener_stop_process.stderr.readline()
+                stderr_line = listener_stop_process_err.readline()
                 print(stderr_line.decode('utf-8'), end='')
-            last_line = listener_stop_process.stderr.read().decode('utf-8')
+            last_line = listener_stop_process_err.read().decode('utf-8')
             if last_line != '':
                 print(last_line, end='')
 

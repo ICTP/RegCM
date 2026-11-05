@@ -8,7 +8,6 @@ from numpy.ma import is_masked
 from netCDF4 import Dataset, num2date, date2num
 from copy import copy
 from traceback import format_exc
-from datetime import timedelta
 
 from utilities.globals import *
 from utilities.variables import Variable, NetCDFData, get_var_with_name
@@ -30,7 +29,8 @@ class RegcmSimulation(object):
 
     def __init__(self, mail='esp@ictp.it', domain='NONE', global_model='NONE',
                  global_institute='NONE', experiment='none', ensemble='NN',
-                 notes='none', monthly=True):
+                 notes='none', monthly=True, chunks=True, first_year=None,
+                 last_year=None):
         self.mail = mail
         self.domain = domain
         self.product = 'output'
@@ -41,6 +41,11 @@ class RegcmSimulation(object):
         self.notes = notes
         # Compute also the monthly means when saving daily variables
         self.monthly = monthly
+        # Assemble the time series in archive-size chunks, clipped to the
+        # first and last year of the experiment when given
+        self.chunks = chunks
+        self.first_year = first_year
+        self.last_year = last_year
 
 
 def dtype_2_ctype(dtype):
@@ -295,7 +300,7 @@ class RegcmOutputFile(object):
             self._save_in_memory(xlon_bnds, 'xlon_bnds')
 
         LOGGER.debug('Reading the domain attribute%s', of_file)
-        self._domain = getattr(ncf, 'experiment')
+        self._domain = ncf.experiment
         self._product = 'output'
         LOGGER.debug('The domain is %s', self._domain)
         LOGGER.debug('The product is %s', self._product)
@@ -312,9 +317,9 @@ class RegcmOutputFile(object):
         else:
             LOGGER.debug('Reading the RegCM revision attribute%s', of_file)
             try:
-                rev_temp = getattr(ncf, 'model_revision')
+                rev_temp = ncf.model_revision
                 LOGGER.debug('The model revision is %s', rev_temp)
-            except:
+            except Exception:
                 LOGGER.warning('No attribute "model_revision" found')
                 rev_temp = 'rev0000'
             try:
@@ -370,8 +375,7 @@ class RegcmOutputFile(object):
                         var_name
                     )
                     return True
-            else:
-                LOGGER.debug('Variable "%s" not found', var_name)
+            LOGGER.debug('Variable "%s" not found', var_name)
 
         if check_variable('tasmax'):
             LOGGER.debug('Variable "tsmax" found: the type is "STS"')
@@ -487,7 +491,7 @@ class RegcmOutputFile(object):
         # Nevertheless, when we rebuild the numpy array, the values should
         # be reconstructed in the right way
         mem_pointer = raw_data.ctypes.data_as(ctypes.POINTER(c_datatype))
-        data_size = int(int(ncf_var.size))
+        data_size = int(ncf_var.size)
         getattr(self, '_' + var_name + '_data')[:] = mem_pointer[:data_size]
 
         # Save the dimensions
@@ -658,10 +662,6 @@ class RegcmOutputFile(object):
         return self.attributes['longitude_of_projection_origin']
 
     @property
-    def map_projection_longitude_origin(self):
-        return self.attributes['longitude_of_projection_origin']
-
-    @property
     def map_projection_standard_parallel(self):
         if 'standard_parallel' in self.attributes:
             return self.attributes['standard_parallel']
@@ -708,11 +708,10 @@ class CordexDataset(Dataset):
             ICTP_Model = ICTP_Model_fallback
             ICTP_Model_Version = ICTP_Model_Version_fallback
 
-        scenario = simulation.experiment.upper().replace('.', '')
         xdomain = 'Unspecified'
         try:
             xdomain = CORDEX_CMIP6_DEFINITIONS['domain_id'][simulation.domain]['domain']
-        except:
+        except Exception:
             pass
         global_model = CORDEX_CMIP6_DEFINITIONS['driving_source_id'][simulation.global_model]['driving_source_id']
         if len(CORDEX_CMIP6_DEFINITIONS['driving_source_id'][simulation.global_model]['driving_institution_id']) == 1:
@@ -721,7 +720,7 @@ class CordexDataset(Dataset):
             global_institute = simulation.global_institute
         try:
             driving_expid = CORDEX_CMIP6_DEFINITIONS['driving_experiment_id'][simulation.experiment]
-        except:
+        except Exception:
             driving_expid = 'evaluation'
         gsize = "{:.1f}".format(regcm_file.grid_size.item()/1000.0)
         regcm_file.replace_dims = REPLACE_DIMS
@@ -817,14 +816,14 @@ class CordexDataset(Dataset):
             regcm_file.xlat_attributes['bounds'] = 'lat_bnds'
             regcm_file.xlon_attributes['bounds'] = 'lon_bnds'
 
-        xlat = self.create_var_from_data(
+        self.create_var_from_data(
             regcm_file.replace_vars['xlat'],
             regcm_file.xlat,
             regcm_file.xlat_dimensions,
             attributes=regcm_file.xlat_attributes,
             replace_dims=regcm_file.replace_dims
         )
-        xlon = self.create_var_from_data(
+        self.create_var_from_data(
             regcm_file.replace_vars['xlon'],
             regcm_file.xlon,
             regcm_file.xlon_dimensions,
@@ -833,14 +832,14 @@ class CordexDataset(Dataset):
         )
 
         if regcm_file.has_coordbounds:
-            xlat_bnds = self.create_var_from_data(
+            self.create_var_from_data(
                 regcm_file.replace_vars['xlat_bnds'],
                 regcm_file.xlat_bnds,
                 regcm_file.xlat_bnds_dimensions,
                 attributes=regcm_file.xlat_bnds_attributes,
                 replace_dims=regcm_file.replace_dims
             )
-            xlon_bnds = self.create_var_from_data(
+            self.create_var_from_data(
                 regcm_file.replace_vars['xlon_bnds'],
                 regcm_file.xlon_bnds,
                 regcm_file.xlon_bnds_dimensions,
@@ -888,7 +887,7 @@ class CordexDataset(Dataset):
 
     def create_var_from_data(self, var_name, data, dims,
                              datatype=DATATYPE_AUXILIARIES, attributes=None,
-                             replace_dims={ }):
+                             replace_dims=None):
         """
         Create a new variable in the netcdf file starting from a numpy array
         and some metadata (like the name of the dimensions and the attributes).
@@ -919,6 +918,8 @@ class CordexDataset(Dataset):
 
         if attributes is None:
             attributes = {}
+        if replace_dims is None:
+            replace_dims = {}
 
         # Copy dims
         dim_name_list = []
@@ -1070,6 +1071,10 @@ class CordexDataset(Dataset):
             attributes=regcm_file.map_attributes,
             replace_dims=regcm_file.replace_dims
         )
+        # The grid mapping variable holds no data: a character variable gets
+        # a fixed value, as in the RegCM output, instead of an unwritten byte
+        if crs_var.dtype.kind in 'SU' and crs_var.ndim == 0:
+            crs_var[...] = np.array(b'a', dtype='S1')
 
         if 'grid_mapping_name' not in regcm_file.map_attributes:
             LOGGER.debug('Setting attributes about the projection')

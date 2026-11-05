@@ -1,3 +1,4 @@
+import os
 import re
 import warnings
 import numpy as np
@@ -20,6 +21,7 @@ from utilities.cordex_utils import CordexDataset, prepare_cordex_file_dir, \
     unit_factor_correction
 
 from utilities import physics
+from utilities import chunks
 
 
 __copyright__ = 'Copyright (C) 2018 ICTP'
@@ -29,14 +31,30 @@ __credits__ = ["Stefano Piani", "Graziano Giuliani"]
 
 LOGGER = logging.getLogger(__name__)
 
+DYNAMICAL_CORES = {1: 'hydrostatic', 2: 'non-hydrostatic', 3: 'moloch'}
+
+
+def get_dynamical_core(regcm_file_path):
+    """
+    Return the name of the dynamical core of a RegCM output file.
+
+    Files without a dynamical_core attribute are hydrostatic.
+    """
+    with Dataset(regcm_file_path) as ncf:
+        core = getattr(ncf, 'dynamical_core', 1)
+    if core not in DYNAMICAL_CORES:
+        raise ValueError('Unknown dynamical_core : "{}"'.format(core))
+    return DYNAMICAL_CORES[core]
+
+
 class fake_var(np.ndarray):
 
-    def __new__(cls, input_array, dimensions=[None,], name='noname'):
+    def __new__(cls, input_array, dimensions=None, name='noname'):
         # Input array is an already formed ndarray instance
         # We first cast to be our class type
         obj = np.asarray(input_array).view(cls)
         # add the new attribute to the created instance
-        obj.dimensions = dimensions
+        obj.dimensions = [None] if dimensions is None else dimensions
         obj.name = name
         # Finally, we must return the newly created object:
         return obj
@@ -51,7 +69,6 @@ class VariableSkipped(Exception):
     """Raised by a Method when the variable must not be produced for the
     current RegCM file. The variable is skipped with a warning and it is not
     considered as failed."""
-    pass
 
 
 class Method(object):
@@ -312,10 +329,7 @@ class SaveVariableToDisk(Filter):
                 needs_time_bounds=prev_result.needs_time_bounds,
             )
 
-        LOGGER.info('Writing on file %s', cordex_path)
-        with CordexDataset(cordex_path, regcm_file, simulation) as cdf:
-            cdf.save_cordex_variable(cordex_var, regcm_file)
-        LOGGER.info('Finished writing on file %s', cordex_path)
+        write_cordex_file(cordex_path, cordex_var, regcm_file, simulation)
 
         if simulation.monthly and cordex_var.frequency == 'day':
             monthly_var = compute_monthly_mean(cordex_var)
@@ -328,13 +342,41 @@ class SaveVariableToDisk(Filter):
                     regcm_file,
                     cordex_dir
                 )
-                LOGGER.info('Writing on file %s', monthly_path)
-                with CordexDataset(monthly_path, regcm_file,
-                                   simulation) as cdf:
-                    cdf.save_cordex_variable(monthly_var, regcm_file)
-                LOGGER.info('Finished writing on file %s', monthly_path)
+                write_cordex_file(monthly_path, monthly_var, regcm_file,
+                                  simulation)
 
         return prev_result
+
+
+def write_cordex_file(cordex_path, cordex_var, regcm_file, simulation):
+    """Write a CORDEX variable in the file cordex_path.
+
+    When the archive is assembled in chunks (the default), a variable that
+    depends on time is written as a segment in the hidden directory
+    ".segments" next to cordex_path, under a temporary name renamed when
+    complete; then the chunks touched by the segment are assembled if all
+    their records are there (see utilities/chunks.py).
+    """
+    use_chunks = (simulation.chunks and cordex_var.depends_on_time and
+                  chunks.chunked_frequency(cordex_var.frequency))
+    if not use_chunks:
+        LOGGER.info('Writing on file %s', cordex_path)
+        with CordexDataset(cordex_path, regcm_file, simulation) as cdf:
+            cdf.save_cordex_variable(cordex_var, regcm_file)
+        LOGGER.info('Finished writing on file %s', cordex_path)
+        return
+
+    seg_path = chunks.segment_path(cordex_path)
+    tmp_path = chunks.temporary_path(seg_path)
+    LOGGER.info('Writing on segment %s', seg_path)
+    with CordexDataset(tmp_path, regcm_file, simulation) as cdf:
+        cdf.save_cordex_variable(cordex_var, regcm_file)
+    os.replace(tmp_path, seg_path)
+    LOGGER.info('Finished writing on segment %s', seg_path)
+    for path in chunks.assemble_after_write(
+            seg_path, cordex_var.frequency, simulation.first_year,
+            simulation.last_year):
+        LOGGER.info('Chunk complete: %s', path)
 
 
 def compute_monthly_mean(daily_var):
@@ -556,7 +598,7 @@ class AddDephtVariable(Filter):
                     }
                 )
                 LOGGER.debug('soil_layer variable found in regcm file')
-            except:
+            except Exception:
                 soil_layer = np.array([0.00710063541719354, 0.0279250004153169,
                  0.062258573936546, 0.118865066900143, 0.212193395908963,
                  0.366065797104704, 0.619758497929827, 1.03802705000157,
@@ -586,7 +628,7 @@ class AddDephtVariable(Filter):
                     }
                 )
                 LOGGER.debug('soil_bounds variable found in regcm file')
-            except:
+            except Exception:
                 soil_bounds = np.array([[0, 0.0175128179162552],
                       [0.0175128179162552, 0.0450917871759315],
                       [0.0450917871759315, 0.0905618204183447],
@@ -637,7 +679,7 @@ class ExtractGroundHeight(Filter):
         position = None
         height_val = None
         for i, dim in enumerate(dimensions):
-            dim_name, dim_value = dim
+            dim_name, _ = dim
             dim_match = re.match(r'^m(?P<height>\d+)', dim_name)
             if dim_match:
                 position = i
@@ -767,7 +809,7 @@ class InterpolateHeight(Filter):
                         get_var_with_name(ptop_names, f)[:],
                         dtype=DATATYPE_AUXILIARIES,
                     )
-                except:
+                except Exception:
                     ptop_array = np.array([100.0,])
             elif self.core == 'moloch':
                 LOGGER.debug('Reading pai variable from regcm file')
@@ -795,7 +837,7 @@ class InterpolateHeight(Filter):
                         get_var_with_name(ptop_names, f)[:],
                         dtype=DATATYPE_AUXILIARIES,
                     )
-                except:
+                except Exception:
                     ptop_array = np.array([100.0,])
             LOGGER.debug(
                 'Reading sigma variable from regcm file and saving its content '
@@ -943,20 +985,7 @@ class InterpolateOnMultipleHeights(Filter):
                 'Creating an InterpolateHeight filter for pressure %s',
                 pressure
             )
-            mcore = 'hydrostatic'
-            try:
-                core = Dataset(regcm_file_path).dynamical_core
-                if core == 1:
-                    mcore = 'hydrostatic'
-                elif core == 2:
-                    mcore = 'non-hydrostatic'
-                elif core == 3:
-                    mcore = 'moloch'
-                else:
-                    raise ValueError(
-                            'Unknown dynamical_core : "{}"'.format(core))
-            except:
-                pass
+            mcore = get_dynamical_core(regcm_file_path)
             interp_filter = InterpolateHeight(pressure, self.method, mcore)
 
             LOGGER.debug('Preforming interpolation')
@@ -1967,7 +1996,7 @@ class SumOnDimension(Filter):
 
         position = None
         for i, dim in enumerate(dimensions):
-            dim_name, dim_value = dim
+            dim_name, _ = dim
             if dim_name == self.dimension:
                 position = i
                 LOGGER.debug(
@@ -2174,20 +2203,7 @@ class ComputeGeopotentialHeight(ActionStarter):
     def __call__(self, regcm_file, regcm_file_path, simulation, corrflag,
                  cordex_dir):
 
-        mcore = 'hydrostatic'
-        try:
-            core = Dataset(regcm_file_path).dynamical_core
-            if core == 1:
-                mcore = 'hydrostatic'
-            elif core == 2:
-                mcore = 'non-hydrostatic'
-            elif core == 3:
-                mcore = 'moloch'
-            else:
-                raise ValueError(
-                        'Unknown dynamical_core : "{}"'.format(core))
-        except:
-            pass
+        mcore = get_dynamical_core(regcm_file_path)
 
         # Prepare a function to read exactly one timestep of a netcdf var
         def read_timestep(var_pointer, t_step):
@@ -2221,7 +2237,7 @@ class ComputeGeopotentialHeight(ActionStarter):
                 if v_names == ['ptop']:
                     try:
                         v_pointer = get_var_with_name(v_names, f)
-                    except:
+                    except Exception:
                         v_pointer = fake_var((100.0,))
                 else:
                     v_pointer = get_var_with_name(v_names, f)
@@ -2418,20 +2434,7 @@ class ComputeCapeCin(ActionStarter):
     def __call__(self, regcm_file, regcm_file_path, simulation, corrflag,
                  cordex_dir):
 
-        mcore = 'hydrostatic'
-        try:
-            core = Dataset(regcm_file_path).dynamical_core
-            if core == 1:
-                mcore = 'hydrostatic'
-            elif core == 2:
-                mcore = 'non-hydrostatic'
-            elif core == 3:
-                mcore = 'moloch'
-            else:
-                raise ValueError(
-                   'Unknown dynamical_core : "{}"'.format(core))
-        except:
-            pass
+        mcore = get_dynamical_core(regcm_file_path)
 
         # Prepare a function to read exactly one timestep of a netcdf var
         def read_timestep(var_pointer, t_step):
@@ -2471,7 +2474,7 @@ class ComputeCapeCin(ActionStarter):
                 v_names = get_regcm_variable_names(v)
                 try:
                     v_pointer = get_var_with_name(v_names, f)
-                except:
+                except Exception:
                     v_pointer = fake_var((100.0,))
                 needed_vars.append(v_pointer)
 

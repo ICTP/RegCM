@@ -84,15 +84,14 @@ def get_vars_in_file(filename):
             LOGGER.debug(
                 'The filename %s honours the mask of %s %s file',
                 filename,
-                'an' if ftype.lower()[0] in ('a', 'e', 'i' 'o', 'u') else 'a',
+                'an' if ftype.lower()[0] in ('a', 'e', 'i', 'o', 'u') else 'a',
                 ftype
             )
             return [t.lower() for t in data_file_type['vars']]
-    else:
-        raise ValueError(
-            '"{}" name does not match any typical file mask. This script can '
-            'not identify the variables it contains.'.format(filename)
-        )
+    raise ValueError(
+        '"{}" name does not match any typical file mask. This script can '
+        'not identify the variables it contains.'.format(filename)
+    )
 
 
 def parse_input():
@@ -190,6 +189,25 @@ def parse_input():
         help='Do not compute the monthly means of the daily variables'
     )
     parser.add_argument(
+        '--no-chunks',
+        action='store_true',
+        help='Write one file per RegCM file, instead of assembling the '
+             'archive-size chunks (1 year sub-daily, 5 years daily, 10 '
+             'years monthly) from segments'
+    )
+    parser.add_argument(
+        '--first-year',
+        type=int,
+        default=None,
+        help='First year of the experiment: the first chunk starts here'
+    )
+    parser.add_argument(
+        '--last-year',
+        type=int,
+        default=None,
+        help='Last year of the experiment: the last chunk ends here'
+    )
+    parser.add_argument(
         '--regcm-model-name',
         type=str,
         default='RegCM',
@@ -254,7 +272,8 @@ def save_vars(datafile, requested_vars, worker_pool,
               regcm_model_name='RegCM', regcm_version=None,
               regcm_version_id=None, regcm_nest_tag=None,
               cordex_root_dir=OUTPUTDIR, sigterm_handler=None,
-              sigint_handler=None, monthly=True):
+              sigint_handler=None, monthly=True, chunks=True,
+              first_year=None, last_year=None):
 
     global REGCM_FILE
 
@@ -281,7 +300,10 @@ def save_vars(datafile, requested_vars, worker_pool,
         experiment,
         ensemble,
         notes,
-        monthly
+        monthly,
+        chunks,
+        first_year,
+        last_year
     )
 
     LOGGER.debug('Reading file %s', datafile)
@@ -361,7 +383,7 @@ def execute_var_chain_wrapper(variable, regcm_file_path, simulation, corrflag,
             corrflag,
             cordex_root_dir
         )
-    except:
+    except Exception:
         LOGGER.error(
             'Error elaborating variable {}:\n{}'.format(variable, format_exc())
         )
@@ -499,7 +521,10 @@ def main():
         regcm_version_id,
         regcm_nest_tag,
         output_dir,
-        monthly=not args.no_monthly
+        monthly=not args.no_monthly,
+        chunks=not args.no_chunks,
+        first_year=args.first_year,
+        last_year=args.last_year
     )
 
     worker_pool.close()
