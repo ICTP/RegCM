@@ -173,7 +173,7 @@ module mod_params
     namelist /uwparam/ iuwvadv, atwo, rstbl, czero, nuk
 
     namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-      ifaholtth10, ifaholt, holtth10iter
+      ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl
 
     namelist /cplparam/ cpldt, zomax, ustarmax
 
@@ -536,6 +536,8 @@ module mod_params
     ifaholt = 0
     ifaholtth10 = 2
     holtth10iter = 1
+    lmoistn2 = .false.
+    maxprandtl = 1.0_rkx
     !
     ! slabocparam ;
     !
@@ -1837,6 +1839,8 @@ module mod_params
       call bcast(ifaholtth10)
       call bcast(ifaholt)
       call bcast(holtth10iter)
+      call bcast(lmoistn2)
+      call bcast(maxprandtl)
     end if
     if ( ibltyp == 2 ) then
       call bcast(iuwvadv)
@@ -2543,6 +2547,8 @@ module mod_params
         write(stdout,'(a,i2)') '  ifaholt      = ', ifaholt
         write(stdout,'(a,i2)') '  ifaholtth10  = ', ifaholtth10
         write(stdout,'(a,i4)') '  holtth10iter = ', holtth10iter
+        write(stdout,'(a,l11)') '  lmoistn2     = ', lmoistn2
+        write(stdout,'(a,f11.6)') '  maxprandtl   = ', maxprandtl
       else if ( ibltyp == 2 ) then
         write(stdout,*) 'UW TCM Parameters'
         write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl

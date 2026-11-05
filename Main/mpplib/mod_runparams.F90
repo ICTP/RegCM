@@ -427,6 +427,8 @@ module mod_runparams
   integer(ik4), public :: ifaholtth10
   integer(ik4), public :: ifaholt
   integer(ik4), public :: holtth10iter
+  logical, public :: lmoistn2
+  real(rkx), public :: maxprandtl
 
   ! Chemistry nameliste option
 

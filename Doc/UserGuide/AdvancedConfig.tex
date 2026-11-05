@@ -1184,6 +1184,13 @@ $1$.
                    !      1 => max(th10,tg)
                    !      2 => min(th10,tg)
  holtth10iter = 1, ! Iterations in th10 computation
+ lmoistn2 = .false., ! Use the moist Brunt-Vaisala frequency in cloudy
+                   ! layers for the free atmosphere Richardson number
+                   ! (Lenderink and Holtslag, 2004)
+ maxprandtl = 1.0, ! Upper limit of the stable Prandtl number
+                   ! Km/Kh = 1 + Ri used for the free atmosphere
+                   ! momentum diffusivity. 1.0 => Km = Kh,
+                   ! 2.0 => Lenderink and Holtslag (2004)
  /
 \end{Verbatim}
 }

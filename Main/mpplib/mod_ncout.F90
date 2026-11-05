@@ -3924,6 +3924,10 @@ module mod_ncout
             ncattribute_integer('holtslag_th10_maximize',ifaholt))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('holtslag_th10_niteration',holtth10iter))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('holtslag_moist_n2',lmoistn2))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('holtslag_max_prandtl',maxprandtl))
         end if
         if ( ibltyp == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

@@ -1395,8 +1395,49 @@ non-local formula above.  In the stable case the velocity scale is reduced by a
 Businger-Dyer factor $1/(1+\beta_s z/L)$ where $\beta_s = 5$.
 Above the PBL, a background (minimum) diffusivity of $0.1\;\mathrm{m^2\,s^{-1}}$
 is applied to prevent complete decoupling.  In the free atmosphere the diffusivity
-is diagnosed from local shear and stability using the master length scale
-$l = l_0 \kappa z / \sqrt{S^2}$ subject to a CFL-type upper bound.
+is diagnosed from local shear and stability as
+
+\begin{eqnarray}
+K = l^2 S f(\mathrm{Ri}), \qquad \mathrm{Ri} = {N^2 \over S^2}
+\end{eqnarray}
+
+where $l = \kappa l_0$ with $l_0 = 75\;\mathrm{m}$, $S$ is the vertical
+wind shear and $N^2 = (g/\theta_v)\,\partial\theta_v/\partial z$.  The
+stability function is $f = 1/(1+10\mathrm{Ri}(1+8\mathrm{Ri}))$ for
+$\mathrm{Ri} > 0$ and $f = \sqrt{1-18\mathrm{Ri}}$ otherwise.  The value is
+bounded above by a CFL-type limit and below by the background diffusivity, and
+it also acts as the lower limit of the PBL diffusivities.
+
+Two options of the \verb=holtslagparam= namelist, both off by default, follow
+the length scale formulation of \cite{Lenderink_04}.  With
+\verb=lmoistn2= the Brunt-V\"ais\"al\"a frequency in layers containing
+cloud water or ice is
+
+\begin{eqnarray}
+N^2 = (1-c)\,N^2_d + c\,{g \over T_v}
+  \left( {\alpha_T \over c_p} {\partial s_l \over \partial z} +
+  \alpha_q T {\partial q_t \over \partial z} \right)
+\end{eqnarray}
+
+where $N^2_d$ is the dry value above, $s_l = c_pT + gz - L_v q_l$ is the liquid
+water static energy, $q_t$ and $q_l$ are the total water and the condensate
+specific contents, and the saturated coefficients are \citep{Cuijpers_93}
+
+\begin{eqnarray}
+\alpha_T = { 1 + (1+\epsilon) q_s - q_t + (1+\epsilon) T\,dq_s/dT
+            \over 1 + (L_v/c_p)\,dq_s/dT }, \qquad
+\alpha_q = { L_v \alpha_T \over c_p T } - 1
+\end{eqnarray}
+
+with $\epsilon = R_v/R_d - 1$.  The cloud fraction $c$ is diagnosed at each level
+from the saturation deficit as $c = 0.5 + 0.36 \arctan[1.55\,(q_t-q_s)/(0.04\,q_s)]$,
+limited to $[0,1]$ and set to zero without condensate, and averaged over the
+two levels bounding the interface.  A cloud layer following the moist adiabat
+is then neutral, whereas the dry formula treats it as stable and suppresses
+the mixing inside clouds.  With \verb=maxprandtl= $> 1$ the momentum
+diffusivity in stable layers is the heat diffusivity multiplied by the Prandtl
+number $\mathrm{Pr} = \min(1+\mathrm{Ri},\mathrm{Pr}_{max})$, so that momentum
+is mixed more than heat; \cite{Lenderink_04} use $\mathrm{Pr}_{max}=2$.
 
 Compared to other schemes this formulation tends to produce relatively strong,
 and often excessive, turbulent vertical transfer, particularly in deep convection.

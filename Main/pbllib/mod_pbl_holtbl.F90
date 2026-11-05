@@ -23,7 +23,8 @@ module mod_pbl_holtbl
   use mod_dynparam
   use mod_constants
   use mod_runparams, only : iqv, dt, rdt, ichem, zhnew_fac, &
-       ifaholtth10, ifaholt, holtth10iter, ipptls, iqc, iqi
+       ifaholtth10, ifaholt, holtth10iter, ipptls, iqc, iqi, &
+       lmoistn2, maxprandtl
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -46,7 +47,7 @@ module mod_pbl_holtbl
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: alphak, betak, &
                         coefe, coeff1, coeff2, tpred1, tpred2, cfac, vv
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: kvf, ttnp
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: kvf, kvfm, ttnp
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qtenv
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qtenc
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qteni
@@ -90,6 +91,7 @@ module mod_pbl_holtbl
     call getmem(vv,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:vv')
     call getmem(ri,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ri')
     call getmem(kvf,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:kvf')
+    call getmem(kvfm,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:kvfm')
     call getmem(qtenv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenv')
     call getmem(qtenc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenc')
     if ( ipptls > 1 ) then
@@ -151,6 +153,7 @@ module mod_pbl_holtbl
     real(rkx) :: fak1, fak2, fak3, term
     real(rkx) :: drgdot, uflxsf, vflxsf
     real(rkx) :: coef1, coef2, coef3
+    real(rkx) :: qlu, qll, prfa
     integer(ik4) :: iter
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
@@ -203,6 +206,20 @@ module mod_pbl_holtbl
         ! Brunt-Vaissala frequency
         n2 = egrav * (thvx(j,i,k-1)-thvx(j,i,k)) / &
             (dza(j,i,k-1)*0.5_rkx*(thvx(j,i,k-1)+thvx(j,i,k)))
+        if ( lmoistn2 ) then
+          ! Saturated buoyancy in cloudy layers
+          ! (Lenderink and Holtslag, 2004, QJRMS)
+          qlu = max(m2p%qxatm(j,i,k-1,iqc),d_zero)
+          qll = max(m2p%qxatm(j,i,k,iqc),d_zero)
+          if ( ipptls > 1 ) then
+            qlu = qlu + max(m2p%qxatm(j,i,k-1,iqi),d_zero)
+            qll = qll + max(m2p%qxatm(j,i,k,iqi),d_zero)
+          end if
+          n2 = moist_n2(n2,m2p%tatm(j,i,k-1),m2p%tatm(j,i,k), &
+                 m2p%patm(j,i,k-1),m2p%patm(j,i,k),           &
+                 m2p%qxatm(j,i,k-1,iqv),m2p%qxatm(j,i,k,iqv), &
+                 qlu,qll,dza(j,i,k-1))
+        end if
         ! Compute the gradient Richardson number
         rin = max(minri,min(maxri,n2/ss))
         if ( rin < 0.0_rkx ) then
@@ -212,8 +229,13 @@ module mod_pbl_holtbl
         end if
         kvfh = kzfrac*dza(j,i,k-1)*dza(j,i,k-1)*rdt
         kvf(j,i,k) = max(min(szkm*sqrt(ss)*fofri,kvfh),kvfl)
+        ! Stable conditions mix momentum more than heat: the
+        ! Prandtl number Km/Kh = 1 + Ri is capped at maxprandtl
+        prfa = min(max(1.0_rkx+rin,1.0_rkx),maxprandtl)
+        kvfm(j,i,k) = max(min(szkm*sqrt(ss)*fofri*prfa,kvfh),kvfl)
       else
         kvf(j,i,k) = 0.0_rkx
+        kvfm(j,i,k) = 0.0_rkx
       end if
     end do
     !
@@ -478,7 +500,7 @@ module mod_pbl_holtbl
           hqfac = 0.8_rkx
         end if
         ! compute eddy diffusivities
-        kvm(j,i,k) = max(pblk,kvf(j,i,k))
+        kvm(j,i,k) = max(pblk,kvfm(j,i,k))
         kvh(j,i,k) = max(pblk/pr,kvf(j,i,k))
         kvq(j,i,k) = kvh(j,i,k)*hqfac
       else
@@ -1094,6 +1116,67 @@ module mod_pbl_holtbl
   end subroutine holtbl
 
 #include <pfqsat.inc>
+#include <pfqsdt.inc>
+
+  !
+  ! Moist Brunt-Vaisala frequency across the interface between an upper
+  ! (u) and a lower (l) full level, from the liquid water static energy
+  ! and total water gradients (Cuijpers and Duynkerke, 1993; Stevens,
+  ! 2002) weighted with a diagnostic cloud fraction, as in the KNMI
+  ! RACMO dual mass flux TKE scheme (Lenderink and Holtslag, 2004).
+  ! Where there is no condensate the dry value n2dry is returned.
+  ! The q arguments are mixing ratios, ql is the total condensate.
+  !
+  pure real(rkx) function moist_n2(n2dry,tu,tl,pu,pl,qvu,qvl, &
+                                   qlu,qll,dz) result(n2)
+!$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: n2dry, tu, tl, pu, pl
+    real(rkx), intent(in) :: qvu, qvl, qlu, qll, dz
+    real(rkx) :: qtu, qtl, lcu, lcl, cf, tm, pm, qtm, lcm
+    real(rkx) :: qs, dqs, atm, aqm, dsl, dqt, tvm
+    n2 = n2dry
+    if ( qlu <= d_zero .and. qll <= d_zero ) return
+    ! Specific total water and condensate
+    qtu = (qvu+qlu)/(d_one+qvu+qlu)
+    qtl = (qvl+qll)/(d_one+qvl+qll)
+    lcu = qlu/(d_one+qvu+qlu)
+    lcl = qll/(d_one+qvl+qll)
+    cf = d_half*(diag_cf(qtu,lcu,tu,pu)+diag_cf(qtl,lcl,tl,pl))
+    if ( cf <= d_zero ) return
+    tm = d_half*(tu+tl)
+    pm = d_half*(pu+pl)
+    qtm = d_half*(qtu+qtl)
+    lcm = d_half*(lcu+lcl)
+    qs = pfqsat(tm,pm)
+    dqs = pfqsdt(tm,pm)
+    ! Saturated thermodynamic coefficients
+    atm = (d_one + (d_one+ep1)*qs - qtm + (d_one+ep1)*tm*dqs) / &
+          (d_one + wlhvocp*dqs)
+    aqm = wlhvocp*atm/tm - d_one
+    ! Liquid water static energy and total water differences
+    dsl = cpd*(tu-tl) + egrav*dz - wlhv*(lcu-lcl)
+    dqt = qtu - qtl
+    tvm = tm*(d_one + ep1*(qtm-lcm) - lcm)
+    n2 = (d_one-cf)*n2dry + &
+         cf*egrav*(atm*rcpd*dsl + aqm*tm*dqt)/(dz*tvm)
+  end function moist_n2
+  !
+  ! Diagnostic cloud fraction from the total water saturation deficit
+  ! (KNMI RACMO). Zero where there is no condensate.
+  !
+  pure real(rkx) function diag_cf(qt,ql,t,p) result(cf)
+!$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: qt, ql, t, p
+    real(rkx) :: qs
+    cf = d_zero
+    if ( ql <= d_zero ) return
+    qs = pfqsat(t,p)
+    cf = d_half + 0.36_rkx * &
+         atan(1.55_rkx*(qt-qs)/max(0.04_rkx*qs,1.0e-8_rkx))
+    cf = min(max(cf,d_zero),d_one)
+  end function diag_cf
 
   pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)
 !$acc routine seq
