@@ -64,6 +64,8 @@ module mod_ncio
   integer(ik4) :: somrec
   type(rcm_time_and_date), dimension(:), allocatable :: icbc_idate
   type(rcm_time_and_date), dimension(:), allocatable :: clmbc_idate
+  ! Nominal start date of the open SFBC file (the date in its name)
+  type(rcm_time_and_date) :: clmbc_fdate
   integer(ik4), dimension(16) :: icbc_ivar
   integer(ik4), dimension(4) :: clmbc_ivar
   integer(ik4), dimension(1) :: som_ivar
@@ -778,27 +780,34 @@ module mod_ncio
     implicit none
     type(rcm_time_and_date), intent(in) :: idate
     type(rcm_time_interval) :: tdif
-    character(len=32) :: appdat1, appdat2
+    character(len=32) :: appdat1
     if ( .not. do_parallel_netcdf_in ) then
       if ( myid /= iocpu ) then
         clmbc_search = 1
         return
       end if
     end if
-    if (idate > clmbc_idate(ibcnrec) .or. idate < clmbc_idate(1)) then
+    ! The record is located from the nominal start date of the open file
+    ! (the date in its name), not from the time values stored in it, so
+    ! that files recycled from another year (perpetual forcing) are
+    ! positioned correctly too. Records are hourly.
+    if ( idate < clmbc_fdate ) then
       clmbc_search = -1
     else
-      tdif = idate-clmbc_idate(1)
+      tdif = idate-clmbc_fdate
       clmbcrec = nint(tohours(tdif))+1
-      if ( clmbcrec < 1 .or. clmbcrec > clmbcnrec ) then
-        appdat1 = tochar(idate)
-        write (stderr,*) 'Record is not found in SFBC file for ',appdat1
-        appdat1 = tochar(clmbc_idate(1))
-        appdat2 = tochar(clmbc_idate(clmbcnrec))
-        write (stderr,*) 'Range is : ', appdat1, '-', appdat2
-        call fatal(__FILE__,__LINE__,'SFBC READ')
+      if ( clmbcrec > clmbcnrec ) then
+        clmbc_search = -1
+      else
+        clmbc_search = clmbcrec
       end if
-      clmbc_search = clmbcrec
+    end if
+    if ( clmbc_search < 0 ) then
+      appdat1 = tochar(idate)
+      write (stderr,*) 'Record is not found in SFBC file for ',appdat1
+      appdat1 = tochar(clmbc_fdate)
+      write (stderr,*) 'File starts at ', appdat1, ' with ', clmbcnrec, &
+                       ' hourly records'
     end if
   end function clmbc_search
 
@@ -1519,6 +1528,7 @@ module mod_ncio
       return
     end if
     call close_clmbc
+    clmbc_fdate = idate
     write (ctime, '(a)') tochar10(idate)
     clmbcname = trim(dirglob)//pthsep//trim(domname)// &
                '_SFBC.'//trim(ctime)//'.nc'

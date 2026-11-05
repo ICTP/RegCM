@@ -654,6 +654,15 @@ module mod_atm_stub
       call open_icbc(icbc_date)
       if ( sfbcread == 1 ) then
         call open_clmbc(icbc_date)
+        !
+        ! On restart the run may not begin at the first record of the
+        ! monthly SFBC file: position the reader on the start date.
+        !
+        datefound = clmbc_search(bdydate1)
+        if ( datefound < 0 ) then
+          appdat = tochar(bdydate1)
+          call fatal(__FILE__,__LINE__,'SFBC for '//appdat//' not found')
+        end if
       end if
 
       datefound = icbc_search(bdydate1)
