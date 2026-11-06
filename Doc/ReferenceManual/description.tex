@@ -2339,7 +2339,13 @@ latent heat exchange.  Processes whose characteristic timescale is short
 relative to the model timestep are handled implicitly; slower processes are
 treated explicitly.  The full set of tendencies is assembled into a sparse
 source matrix $Q^{exp}_{mn}$ (explicit rates) and an implicit matrix
-$Q^{imp}_{mn}$ that together feed the NNLS solver.
+$Q^{imp}_{mn}$.  The explicit sinks of each species are scaled, together
+with the corresponding sources of the receiving species, so that they never
+remove more than is available.  The resulting linear system has a column
+diagonally dominant matrix (the diagonal holds one plus the sinks, the
+off-diagonal elements minus the sources) and a non-negative right hand side:
+it is solved by Gaussian elimination without pivoting, which conserves the
+total water to round-off and gives non-negative mixing ratios.
 
 \begin{figure} [htpb!]% Inline image example
 \begin{center}

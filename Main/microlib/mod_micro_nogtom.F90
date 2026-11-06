@@ -46,8 +46,6 @@
 !          amounts
 !       f) Collection fudge factor removed from autoconversion and replaced by
 !          explicit parameterization from Khairoutdinov and Kogan [2000].
-!     202604: Giuliani
-!       a) New positive least square solver plugged in.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -352,9 +350,10 @@ module mod_micro_nogtom
     type(mod_2_micro), intent(in) :: mo2mc
     type(micro_2_mod), intent(inout) :: mc2mo
 
-    integer(ik4) :: i, j, k, kk, n, m, jn, jo
+    integer(ik4) :: i, j, k, n, m, jn, jo
     real(rkx) :: tnew, dp, qe, tmpl, tmpi
     real(rkx) :: qprev, hprev, zdelta, prainx, psnowx
+    real(rkx) :: availq, sinksum, sinkrat
     ! for sedimentation source/sink terms
     real(rkx), dimension(mxqx) :: fallsrce, fallsink
     real(rkx), dimension(mxqx) :: convsrce
@@ -396,10 +395,6 @@ module mod_micro_nogtom
     real(rkx) :: precip, cfpr, acrit
     logical :: lccn, lerror, ldetr, lconden, lactiv, locast
     logical :: ltkgt0, ltklt0, ltkgthomo, lcloud
-    real(rkx), dimension(mxqx) :: rsp1
-    real(rkx), dimension(mxqx) :: rsp2
-    real(rkx), dimension(mxqx) :: rsp3
-    integer(ik4), dimension(mxqx) :: isp1
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
@@ -580,22 +575,27 @@ module mod_micro_nogtom
 
     !--------------------------------ADEED BY RITA
     ! Calculate distance from cloud top
-    ! defined by cloudy layer below a layer with cloud frac <0.01
+    ! defined by cloudy layer below a layer with cloud frac < cldtopcf.
+    ! The distance is reset at each cloud top and accumulated below it
+    ! (k = 1 is the model top).
     !--------------------------------------------------------------
 
-    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
-      cldtopdist(k,j,i) = d_zero
-    end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      cldtopdist(1,j,i) = d_zero
+      !$acc loop seq
       do k = 2, kz
-        do kk = 2, k
-          if ( fcc(kk-1,j,i) > cldtopcf .and. &
-               fcc(kk,j,i)  <= cldtopcf ) then
-            cldtopdist(k,j,i) = cldtopdist(k,j,i) + delz(kk,j,i)
-          end if
-        end do
+        if ( fcc(k-1,j,i) < cldtopcf .and. fcc(k,j,i) >= cldtopcf ) then
+          cldtopdist(k,j,i) = d_zero
+        else
+          cldtopdist(k,j,i) = cldtopdist(k-1,j,i) + delz(k,j,i)
+        end if
       end do
     end do
+    if ( ichem == 1 ) then
+      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
+        remrat(k,j,i) = d_zero
+      end do
+    end if
 
 #ifdef DEBUG
     if ( stats ) then
@@ -627,12 +627,11 @@ module mod_micro_nogtom
     !
 #ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-      local(fallsrce,fallsink,convsrce,vqx,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
-      rsp1,rsp2,rsp3,isp1)
+      local(fallsrce,fallsink,convsrce,vqx,qlhs,qsexp,qsimp,qx0,qxfg,qxn)
 #else
     !$acc parallel loop collapse(2) gang vector &
     !$acc     private(fallsrce,fallsink,convsrce,vqx,qlhs,qsexp,qsimp, &
-    !$acc             qx0,qxfg,qxn,rsp1,rsp2,rsp3,isp1)
+    !$acc             qx0,qxfg,qxn)
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
@@ -847,6 +846,20 @@ module mod_micro_nogtom
             qxfg(iqqi) = qxfg(iqqi) - qx0(iqqi)
             qxfg(iqqv) = qxfg(iqqv) + qx0(iqqi)
           end if
+          ! Negative rain and snow (advection undershoots) back to vapour,
+          ! so that the solver starts from non-negative values.
+          if ( qx0(iqqr) < d_zero ) then
+            qsexp(iqqv,iqqr) = qsexp(iqqv,iqqr) + qx0(iqqr)
+            qsexp(iqqr,iqqv) = qsexp(iqqr,iqqv) - qx0(iqqr)
+            qxfg(iqqr) = qxfg(iqqr) - qx0(iqqr)
+            qxfg(iqqv) = qxfg(iqqv) + qx0(iqqr)
+          end if
+          if ( qx0(iqqs) < d_zero ) then
+            qsexp(iqqv,iqqs) = qsexp(iqqv,iqqs) + qx0(iqqs)
+            qsexp(iqqs,iqqv) = qsexp(iqqs,iqqv) - qx0(iqqs)
+            qxfg(iqqs) = qxfg(iqqs) - qx0(iqqs)
+            qxfg(iqqv) = qxfg(iqqv) + qx0(iqqs)
+          end if
 
           !------------------------------------------------------------------
           !  SEDIMENTATION/FALLING OF *ALL* MICROPHYSICAL SPECIES
@@ -903,7 +916,8 @@ module mod_micro_nogtom
             if ( ltkgt0 ) then
               facl = d_one
             else
-              facl = ccover + koop(k,j,i)*(d_one-ccover)
+              facl = ccover + min(koop(k,j,i),qsliq(k,j,i)/qsmixv) * &
+                     (d_one-ccover)
             end if
           end if
 
@@ -945,7 +959,8 @@ module mod_micro_nogtom
 #endif
             end if
           else
-            if ( subsat < d_zero .and. lconden .and. .not. lcloud ) then
+            if ( subsat < d_zero .and. totcond > activqx .and. &
+                 .not. lcloud ) then
               ! turn subsaturation into vapor, where there is no cloud
               excess = totcond + subsat
               if ( excess < d_zero ) then
@@ -1014,8 +1029,7 @@ module mod_micro_nogtom
           ! rcldiff  : Diffusion coefficient for evaporation by turbulent
           ! mixing (IBID., EQU. 30) rcldiff = 1.0e-6_rkx
           ldifdt = rcldiff*dt
-          !Increase by factor of 5 for convective points
-          if ( lconden ) then
+          if ( totcond > activqx ) then
             leros = ccover * ldifdt * max(qsmixv-qxfg(iqqv),d_zero)
             leros = min(leros,evaplimmix)
             leros = min(leros,totcond)
@@ -1027,6 +1041,7 @@ module mod_micro_nogtom
             qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) + faci
             qxfg(iqql) = qxfg(iqql) - facl
             qxfg(iqqi) = qxfg(iqqi) - faci
+            qxfg(iqqv) = qxfg(iqqv) + facl + faci
 #ifdef DEBUG
             if ( stats ) then
               ngs%statserosw(k,j,i) = qliqfrac*leros
@@ -1159,10 +1174,10 @@ module mod_micro_nogtom
                 case (0,1)
                   qexc = max((qxfg(iqqv)-ccover*qsmixv) / &
                       (d_one-ccover),d_zero)
-                case (2) ! Khairoutdinov and Kogan (2000)
+                case (2) ! Lohmann and Karcher
                   qexc = qxfg(iqqv)
-                case (3) ! Kessler(1969)
-                  qexc = qxfg(iqqv)/totcond
+                case (3) ! Gierens: total water
+                  qexc = qxfg(iqqv)+totcond
               end select
               rhc = rhcrit(j,i)
               zsig = ph(k,j,i)/pbot
@@ -1175,8 +1190,8 @@ module mod_micro_nogtom
                 ! no ice supersaturation allowed
                 facl = d_one
               else
-                ! ice supersaturation
-                facl = koop(k,j,i)
+                ! ice supersaturation, at most liquid saturation
+                facl = min(koop(k,j,i),qsliq(k,j,i)/qsmixv)
               end if
               if ( qexc >= rhc*qsmixv*facl .and. qexc < qsmixv*facl ) then
                 ! note: not **2 on 1-a term if qe is used.
@@ -1205,7 +1220,7 @@ module mod_micro_nogtom
                 ! liquid remains at cold temperatures until next timestep.
                 !-------------------------------------------------------------
                 if ( ltkgthomo ) then
-                  chng = min(chng,qxfg(iqql))
+                  chng = min(chng,qxfg(iqqv))
                   qsexp(iqql,iqqv) = qsexp(iqql,iqqv) + chng
                   qsexp(iqqv,iqql) = qsexp(iqqv,iqql) - chng
                   qxfg(iqql) = qxfg(iqql) + chng
@@ -1252,8 +1267,8 @@ module mod_micro_nogtom
           !--------------------------------------------------------------
           lactiv = qx0(iqql) > activqx .and. ltklt0
           if ( lactiv ) then
-            vpice = eeice(k,j,i) !saturation vapor pressure wrt ice
-            vpliq = eeliq(k,j,i) !saturation vapor pressure wrt liq
+            vpice = eeice(k,j,i)/ep2 !saturation vapor pressure wrt ice
+            vpliq = eeliq(k,j,i)/ep2 !saturation vapor pressure wrt liq
             ! Meyers et al 1992
             icenuclei = d_1000*exp(12.96_rkx * &
                         ((vpliq-vpice)/vpice)-0.639_rkx)
@@ -1360,7 +1375,8 @@ module mod_micro_nogtom
           if ( ql_incld > d_zero ) then
             select case (iautoconv)
               case (1) ! Klein & Pincus (2000)
-                rainaut = dt*auto_rate_klepi*(ql_incld**(2.3_rkx))
+                ! rate = k*ql**2.3, implicit coefficient k*ql**1.3
+                rainaut = dt*auto_rate_klepi*(ql_incld**(1.3_rkx))
                 qsimp(iqql,iqqv) = d_zero
                 qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
                 qsexp(iqqr,iqql) = d_zero
@@ -1369,7 +1385,9 @@ module mod_micro_nogtom
                 qsimp(iqql,iqqv) = d_zero
                 qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
               case (3) ! Kessler(1969)
-                rainaut = dt*auto_rate_kessl*autocrit_kessl
+                ! rate = k*max(ql-qcrit,0), implicit coefficient rate/ql
+                rainaut = dt*auto_rate_kessl * &
+                  max(ql_incld-autocrit_kessl,d_zero)/ql_incld
                 qsimp(iqql,iqqv) = d_zero
                 qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
               case (4) ! Sundqvist
@@ -1383,7 +1401,7 @@ module mod_micro_nogtom
                     ! water undergoing autoconversion
                     ! ccn = number of ccn /m3
                     acrit = ccn(k,j,i)*spherefac * &
-                        ((rcrit*1e-6_rkx)**3)*rhoh2o
+                        ((rcrit*1e-6_rkx)**3)*rhoh2o/dens
                   end if
                 end if
                 !-------------------------------------------------------
@@ -1586,7 +1604,7 @@ module mod_micro_nogtom
           !---------------------------------------------
           qe = max(min(qe,qsliq(k,j,i)),d_zero)
           lactiv = covpclr > d_zero .and. &
-                   covptot > rcovpmin .and. &
+                   covptot > d_zero .and. &
                    qpretot > d_zero .and.      &
                    qx0(iqqr) > activqx .and.   &
                    qe < zrh*qsliq(k,j,i)
@@ -1695,6 +1713,42 @@ module mod_micro_nogtom
         !------------------------------------------------------------------
 
         !--------------------------------------------------------
+        ! Limit the explicit sinks: the processes are computed
+        ! one after the other, and together they can remove more
+        ! than is available, and the solution would be negative.
+        ! A sink
+        ! of n towards jn (qsexp(n,jn) < 0) is the source of jn
+        ! from n (qsexp(jn,n) = -qsexp(n,jn)): both are scaled.
+        ! The second pass handles the sources reduced by the first.
+        !--------------------------------------------------------
+        !$acc loop seq
+        do jo = 1, 2
+          !$acc loop seq
+          do n = 1, nqx
+            availq = qx0(n)
+            sinksum = d_zero
+            !$acc loop seq
+            do jn = 1, nqx
+              if ( jn /= n .and. qsexp(n,jn) < d_zero ) then
+                sinksum = sinksum - qsexp(n,jn)
+              else
+                availq = availq + qsexp(n,jn)
+              end if
+            end do
+            if ( sinksum > max(availq,d_zero) ) then
+              sinkrat = max(availq,d_zero)/sinksum
+              !$acc loop seq
+              do jn = 1, nqx
+                if ( jn /= n .and. qsexp(n,jn) < d_zero ) then
+                  qsexp(n,jn) = qsexp(n,jn)*sinkrat
+                  qsexp(jn,n) = -qsexp(n,jn)
+                end if
+              end do
+            end if
+          end do
+        end do
+
+        !--------------------------------------------------------
         ! Begin solver for the microphysics: linear problem setup
         !--------------------------------------------------------
 
@@ -1731,8 +1785,15 @@ module mod_micro_nogtom
           qxn(n) = qx0(n) + rexplicit
         end do
 
-        rsp1(1:nqx) = qxn(1:nqx)
-        call nnls(nqx,qlhs,rsp1,qxn,rsp2,rsp3,isp1)
+        call gauss_solve(nqx,qlhs,qxn)
+        ! Roundoff negative values go back to vapour
+        !$acc loop seq
+        do n = 1, nqx
+          if ( n /= iqqv .and. qxn(n) < d_zero ) then
+            qxn(iqqv) = qxn(iqqv) + qxn(n)
+            qxn(n) = d_zero
+          end if
+        end do
 
         !---------------------------------------------------------
         ! End solver for the microphysics: qxn is now the solution
@@ -1922,15 +1983,14 @@ module mod_micro_nogtom
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       prainx = pfplsl(kzp1,j,i)*dt
       psnowx = pfplsn(kzp1,j,i)*dt
+      mc2mo%trrate(j,i) = pfplsl(kzp1,j,i) + pfplsn(kzp1,j,i)
       if ( prainx > d_zero ) then
         mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx
         mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsl(kzp1,j,i)
-        mc2mo%trrate(j,i) = pfplsl(kzp1,j,i)
       end if
       if ( psnowx > d_zero ) then
         mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + psnowx
         mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsn(kzp1,j,i)
-        mc2mo%trrate(j,i) = mc2mo%trrate(j,i) + pfplsn(kzp1,j,i)
         mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + pfplsn(kzp1,j,i)
       end if
     end do
@@ -1984,14 +2044,14 @@ module mod_micro_nogtom
     real(rkx) :: xlat, dsize, w1, fsp1, fsp2
 
     ! degrees
-    xlat = 90.0_rkx - lat
+    xlat = 90.0_rkx - abs(lat)
     ! microns
     dsize = max(10.0_rkx,min(2.0_rkx*(t-190.0_rkx),90.0_rkx))
     dsize = max(10.0_rkx, dsize - 0.5_rkx * max(0.0_rkx,(89.0_rkx-xlat)))
     dsize = max(10.0_rkx, dsize - 0.5_rkx * max(0.0_rkx,(20.0_rkx-xlat)))
     w1 = min(1.0_rkx,max(0.0_rkx,(dsize-50.0_rkx)/20.0_rkx))
-    fsp1 = 0.020 * dsize**0.41
-    fsp2 = 0.0013 * dsize**0.98
+    fsp1 = 0.020_rkx * dsize**0.41_rkx
+    fsp2 = 0.0013_rkx * dsize**0.98_rkx
     ice_fallspeed = w1*fsp2 + (1.0_rkx-w1)*fsp1
   end function ice_fallspeed
   !
@@ -2048,486 +2108,42 @@ module mod_micro_nogtom
  !   end do
  ! end function argsort
 
-  pure subroutine solver(n,lhs,rhs,rsp1,rsp2,rsp3,isp1)
-    !$acc routine seq
-    implicit none
-    integer, intent(in) :: n
-    real(rkx), dimension(mxqx,mxqx), intent(inout) :: lhs
-    real(rkx), dimension(mxqx), intent(inout) :: rhs
-    real(rkx), dimension(mxqx), intent(inout) :: rsp1
-    real(rkx), dimension(mxqx), intent(inout) :: rsp2
-    real(rkx), dimension(mxqx), intent(inout) :: rsp3
-    integer(ik4), dimension(mxqx), intent(out) :: isp1
-    rsp1(1:n) = rhs(1:n)
-    call nnls(n, lhs, rsp1, rhs, rsp2, rsp3, isp1)
-  end subroutine solver
   !
-  !  The original version of this code was developed by
-  !  Charles L. Lawson and Richard J. Hanson at Jet Propulsion Laboratory
-  !  1973 JUN 15, and published in the book
-  !  "SOLVING LEAST SQUARES PROBLEMS", Prentice-Hall, 1974.
-  !  Revised FEB 1995 to accompany reprinting of the book by SIAM.
+  ! Solve the linear system a x = b by Gaussian elimination without
+  ! pivoting. On entry x holds b, on exit the solution; a is
+  ! overwritten. The matrix of the microphysics has the diagonal
+  ! 1 + sinks and the off-diagonal elements - sources, so it is
+  ! column diagonally dominant with non-positive off-diagonal
+  ! elements: no pivoting is needed, and a non-negative b gives a
+  ! non-negative x.
   !
-  !  This translation into Fortran 90 by Alan Miller, February 1997
-  !  Latest revision - 10 June 1997
-  !
-  !  Reduced for squared problems in this subroutine.
-  !
-  !  GIVEN AN N BY N MATRIX, A, AND AN N-VECTOR, B,  COMPUTE AN
-  !  N-VECTOR, X, THAT SOLVES THE LEAST SQUARES PROBLEM
-  !
-  !                   A * X = B  SUBJECT TO X  >=  0
-  !  ------------------------------------------------------------------
-  !                  Subroutine Arguments
-  !
-  !  A(), N, N  ON ENTRY, A() CONTAINS THE M BY N MATRIX, A.
-  !             ON EXIT, A() CONTAINS THE PRODUCT MATRIX, Q*A , WHERE Q IS AN
-  !             N x N ORTHOGONAL MATRIX GENERATED IMPLICITLY BY THIS SUBROUTINE.
-  !  B()     ON ENTRY B() CONTAINS THE N-VECTOR, B.   ON EXIT B() CONTAINS Q*B.
-  !  X()     ON ENTRY X() NEED NOT BE INITIALIZED.
-  !          ON EXIT X() WILL CONTAIN THE SOLUTION VECTOR.
-  !  W()     AN N-ARRAY OF WORKING SPACE.  ON EXIT W() WILL CONTAIN THE DUAL
-  !          SOLUTION VECTOR.   W WILL SATISFY W(I) = 0. FOR ALL I IN SET P
-  !          AND W(I) <= 0. FOR ALL I IN SET Z
-  !  ZZ( )   AN N-ARRAY OF WORKING SPACE.
-  !  INDX()  AN INTEGER WORKING ARRAY OF LENGTH N.
-  !          ON EXIT THE CONTENTS OF THIS ARRAY DEFINE THE SETS P AND Z
-  !          AS FOLLOWS..
-  !              INDX(1)   THRU INDX(NSETP) = SET P.
-  !              INDX(IZ1) THRU INDX(IZ2)   = SET Z.
-  !              IZ1 = NSETP + 1 = NPP1
-  !              IZ2 = N
-  !  ------------------------------------------------------------------
-  pure subroutine nnls (n, a, b, x, w, zz, indx)
+  pure subroutine gauss_solve(n,a,x)
     !$acc routine seq
     implicit none
     integer(ik4), intent(in) :: n
-    real(rkx), intent(inout), dimension(mxqx,mxqx) :: a
-    real(rkx), intent(inout), dimension(mxqx) :: b
-    real(rkx), intent(out), dimension(mxqx) :: x, w, zz
-    integer(ik4), intent(out), dimension(mxqx) :: indx
-    integer(ik4) :: i, ii, ip, iter, itmax, iz, iz1, iz2, izmax,   &
-                    j, jj, jz, l, npp1, nsetp
-    real(rkx) :: alpha, asave, cc, ss, t, temp, unorm, up, wmax, ztest
-    real(rkx) :: h_b, h_cl, h_clinv, h_sm
-    real(rkx), parameter :: factor = 0.01_rkx
-
-    iter = 0
-    itmax = 3*n
-    ! Initialize the arrays indx() and x().
-    do i = 1, n
-      x(i) = d_zero
-      indx(i) = i
-    end do
-
-    iz2 = n
-    iz1 = 1
-    nsetp = 0
-    npp1 = 1
-    !                       ******  MAIN LOOP BEGINS HERE  ******
-    !              QUIT IF ALL COEFFICIENTS ARE ALREADY IN THE SOLUTION.
-    !                    OR IF M COLS OF A HAVE BEEN TRIANGULARIZED.
-
-30  if ( iz1 > iz2 .or. nsetp >= n ) goto 350
-
-    !     COMPUTE COMPONENTS OF THE DUAL (NEGATIVE GRADIENT) VECTOR W().
-
-    do iz = iz1, iz2
-      j = indx(iz)
-      w(j) = d_zero
-      do i = npp1, n
-        w(j) = w(j) + a(i,j)*b(i)
-      end do
-    end do
-    !                               FIND LARGEST POSITIVE W(J).
-60  wmax = d_zero
-    do iz = iz1, iz2
-      j = indx(iz)
-      if (w(j) > wmax) then
-        wmax = w(j)
-        izmax = iz
-      end if
-    end do
-
-    !        IF WMAX  <=  0. GO TO TERMINATION.
-    !         THIS INDICATES SATISFACTION OF THE KUHN-TUCKER CONDITIONS.
-
-    if ( wmax <= d_zero ) goto 350
-    iz = izmax
-    j = indx(iz)
-
-    ! THE SIGN OF W(J) IS OK FOR J TO BE MOVED TO SET P.
-    ! BEGIN THE TRANSFORMATION AND CHECK NEW DIAGONAL ELEMENT TO AVOID
-    ! NEAR LINEAR DEPENDENCE.
-
-    asave = a(npp1,j)
-    ! Specialized inline H1 construction.  The original H12 call used
-    ! dummy(1) with NCV=0, so no C vector is involved in this operation.
-    if ( npp1+1 <= n ) then
-      h_cl = abs(a(npp1,j))
-      do i = npp1+1, n
-        h_cl = max(abs(a(i,j)),h_cl)
-      end do
-      if ( h_cl > d_zero ) then
-        h_clinv = d_one/h_cl
-        h_sm = (a(npp1,j)*h_clinv)**2
-        do i = npp1+1, n
-          h_sm = h_sm + (a(i,j)*h_clinv)**2
+    real(rkx), dimension(mxqx,mxqx), intent(inout) :: a
+    real(rkx), dimension(mxqx), intent(inout) :: x
+    integer(ik4) :: ii, jj, kk
+    real(rkx) :: fac
+    ! Forward elimination
+    do kk = 1, n - 1
+      do ii = kk + 1, n
+        fac = a(ii,kk)/a(kk,kk)
+        a(ii,kk) = d_zero
+        do jj = kk + 1, n
+          a(ii,jj) = a(ii,jj) - fac*a(kk,jj)
         end do
-        h_cl = h_cl*sqrt(h_sm)
-        if ( a(npp1,j) > d_zero ) h_cl = -h_cl
-        up = a(npp1,j) - h_cl
-        a(npp1,j) = h_cl
-      end if
-    end if
-    unorm = d_zero
-    if ( nsetp /= 0 ) then
-      do i = 1, nsetp
-        unorm = unorm + a(i,j)*a(i,j)
+        x(ii) = x(ii) - fac*x(kk)
       end do
-    end if
-    unorm = sqrt(unorm)
-    if ( unorm + abs(a(npp1,j))*factor - unorm > d_zero ) then
-
-      ! COL J IS SUFFICIENTLY INDEPENDENT.  COPY B INTO ZZ, UPDATE ZZ
-      ! AND SOLVE FOR ZTEST ( = PROPOSED NEW VALUE FOR X(J) ).
-
-      zz(1:n) = b(1:n)
-      ! Specialized inline H2 application to ZZ.
-      if ( npp1+1 <= n ) then
-        h_cl = abs(a(npp1,j))
-        if ( h_cl > d_zero ) then
-          h_b = up*a(npp1,j)
-          if ( h_b < d_zero ) then
-            h_b = d_one/h_b
-            h_sm = zz(npp1)*up
-            do i = npp1+1, n
-              h_sm = h_sm + zz(i)*a(i,j)
-            end do
-            if ( h_sm /= d_zero ) then
-              h_sm = h_sm*h_b
-              zz(npp1) = zz(npp1) + h_sm*up
-              do i = npp1+1, n
-                zz(i) = zz(i) + h_sm*a(i,j)
-              end do
-            end if
-          end if
-        end if
-      end if
-      ztest = zz(npp1)/a(npp1,j)
-      !                                 SEE IF ZTEST IS POSITIVE
-      if ( ztest > d_zero ) goto 140
-    end if
-
-    ! REJECT J AS A CANDIDATE TO BE MOVED FROM SET Z TO SET P.
-    ! RESTORE A(NPP1,J), SET W(J) = 0., AND LOOP BACK TO TEST DUAL
-    ! COEFFS AGAIN.
-
-    a(npp1,j) = asave
-    w(j) = d_zero
-    goto 60
-
-    ! THE INDEX  J = indx(IZ)  HAS BEEN SELECTED TO BE MOVED FROM
-    ! SET Z TO SET P.    UPDATE B,  UPDATE INDICES,  APPLY HOUSEHOLDER
-    ! TRANSFORMATIONS TO COLS IN NEW SET Z,  ZERO SUBDIAGONAL ELTS IN
-    ! COL J,  SET W(J) = 0.
-
-140 b(1:n) = zz(1:n)
-
-    indx(iz) = indx(iz1)
-    indx(iz1) = j
-    iz1 = iz1+1
-    nsetp = npp1
-    npp1 = npp1+1
-
-    if ( iz1 <= iz2 ) then
-      do jz = iz1, iz2
-        jj = indx(jz)
-        ! Specialized inline H2 application to column JJ of A.
-        if ( npp1 <= n ) then
-          h_cl = abs(a(nsetp,j))
-          if ( h_cl > d_zero ) then
-            h_b = up*a(nsetp,j)
-            if ( h_b < d_zero ) then
-              h_b = d_one/h_b
-              h_sm = a(nsetp,jj)*up
-              do i = npp1, n
-                h_sm = h_sm + a(i,jj)*a(i,j)
-              end do
-              if ( h_sm /= d_zero ) then
-                h_sm = h_sm*h_b
-                a(nsetp,jj) = a(nsetp,jj) + h_sm*up
-                do i = npp1, n
-                  a(i,jj) = a(i,jj) + h_sm*a(i,j)
-                end do
-              end if
-            end if
-          end if
-        end if
+    end do
+    ! Back substitution
+    do ii = n, 1, -1
+      do jj = ii + 1, n
+        x(ii) = x(ii) - a(ii,jj)*x(jj)
       end do
-    end if
-
-    if ( nsetp /= n ) then
-      a(npp1:n,j) = d_zero
-    end if
-
-    w(j) = d_zero
-    !                            SOLVE THE TRIANGULAR SYSTEM.
-    !                            STORE THE SOLUTION TEMPORARILY IN ZZ().
-    call solve_triangular(n, zz, a, nsetp, indx)
-
-    !                   ******  SECONDARY LOOP BEGINS HERE ******
-    !                      ITERATION COUNTER.
-
-210 iter = iter+1
-    if ( iter > itmax ) then
-      goto 350
-    end if
-    !                SEE IF ALL NEW CONSTRAINED COEFFS ARE FEASIBLE.
-    !                              IF NOT COMPUTE ALPHA.
-    alpha = d_two
-    do ip = 1, nsetp
-      l = indx(ip)
-      if ( zz(ip) <= d_zero ) then
-        t = -x(l)/(zz(ip)-x(l))
-        if ( alpha > t ) then
-          alpha = t
-          jj = ip
-        end if
-      end if
+      x(ii) = x(ii)/a(ii,ii)
     end do
-
-    ! IF ALL NEW CONSTRAINED COEFFS ARE FEASIBLE THEN ALPHA WILL
-    ! STILL = 2.    IF SO EXIT FROM SECONDARY LOOP TO MAIN LOOP.
-
-    if ( alpha == d_two ) goto 330
-
-    ! OTHERWISE USE ALPHA WHICH WILL BE BETWEEN 0. AND 1. TO
-    ! INTERPOLATE BETWEEN THE OLD X AND THE NEW ZZ.
-
-    do ip = 1, nsetp
-      l = indx(ip)
-      x(l) = x(l) + alpha*(zz(ip)-x(l))
-    end do
-
-    ! MODIFY A AND B AND THE INDEX ARRAYS TO MOVE COEFFICIENT I
-    ! FROM SET P TO SET Z.
-
-    i = indx(jj)
-260 x(i) = d_zero
-
-    if ( jj /= nsetp ) then
-      jj = jj+1
-      do j = jj, nsetp
-        ii = indx(j)
-        indx(j-1) = ii
-        call g1(a(j-1,ii), a(j,ii), cc, ss, temp)
-        a(j-1,ii) = temp
-        a(j,ii) = d_zero
-        do l = 1, n
-          if ( l /= ii ) then
-            ! Apply procedure G2 (CC,SS,A(J-1,L),A(J,L))
-
-            temp = a(j-1,l)
-            a(j-1,l) = cc*temp + ss*a(j,l)
-            a(j,l)   = -ss*temp + cc*a(j,l)
-          end if
-        end do
-        ! Apply procedure G2 (CC,SS,B(J-1),B(J))
-        temp = b(j-1)
-        b(j-1) = cc*temp + ss*b(j)
-        b(j)   = -ss*temp + cc*b(j)
-      end do
-    end if
-
-    npp1 = nsetp
-    nsetp = nsetp-1
-    iz1 = iz1-1
-    indx(iz1) = i
-
-    ! SEE IF THE REMAINING COEFFS IN SET P ARE FEASIBLE.  THEY SHOULD
-    ! BE BECAUSE OF THE WAY ALPHA WAS DETERMINED.
-    ! IF ANY ARE INFEASIBLE IT IS DUE TO ROUND-OFF ERROR.  ANY
-    ! THAT ARE NONPOSITIVE WILL BE SET TO ZERO
-    ! AND MOVED FROM SET P TO SET Z.
-
-    do jj = 1, nsetp
-      i = indx(jj)
-      if ( x(i) <= d_zero ) goto 260
-    end do
-
-    ! COPY B( ) INTO ZZ( ).  THEN SOLVE AGAIN AND LOOP BACK.
-
-    zz(1:n) = b(1:n)
-    calL solve_triangular(n, zz, a, nsetp, indx)
-    goto 210
-    !             ******  END OF SECONDARY LOOP  ******
-
-330 do ip = 1, nsetp
-      i = indx(ip)
-      x(i) = zz(ip)
-    end do
-    !    ALL NEW COEFFS ARE POSITIVE.  LOOP BACK TO BEGINNING.
-    goto 30
-
-    !            ******  END OF MAIN LOOP  ******
-
-    !               COME TO HERE FOR TERMINATION.
-    !               COMPUTE THE NORM OF THE FINAL RESIDUAL VECTOR.
-
-350 continue
-    if ( npp1 > n ) then
-      w(1:n) = d_zero
-    end if
-  end subroutine nnls
-  !
-  ! THE FOLLOWING BLOCK OF CODE WAS USED AS AN INTERNAL SUBROUTINE
-  ! TO SOLVE THE TRIANGULAR SYSTEM, PUTTING THE SOLUTION IN ZZ().
-  !
-  pure subroutine solve_triangular(n, zz, a, nsetp, indx)
-    !$acc routine seq
-    implicit none
-    integer(ik4), intent(in) :: n
-    real(rkx), dimension(mxqx), intent(inout) :: zz
-    real(rkx), dimension(mxqx,mxqx), intent(in) :: a
-    integer(ik4), dimension(mxqx), intent(in) :: indx
-    integer(ik4), intent(in) :: nsetp
-    integer(ik4) :: i, l, ip, jj
-    do l = 1, nsetp
-      ip = nsetp+1-l
-      if ( l /= 1 ) then
-        do i = 1, ip
-          zz(i) = zz(i) - a(i,jj)*zz(ip+1)
-        end do
-      end if
-      jj = indx(ip)
-      zz(ip) = zz(ip) / a(ip,jj)
-    end do
-  end subroutine solve_triangular
-  !
-  ! COMPUTE ORTHOGONAL ROTATION MATRIX..
-  !
-  !  COMPUTE.. MATRIX   (C, S) SO THAT (C, S)(A) = (SQRT(A**2+B**2))
-  !                     (-S,C)         (-S,C)(B)   (   0          )
-  !  COMPUTE SIG = SQRT(A**2+B**2)
-  !     SIG IS COMPUTED LAST TO ALLOW FOR THE POSSIBILITY THAT
-  !     SIG MAY BE IN THE SAME LOCATION AS A OR B .
-  !
-  pure subroutine g1(a, b, cterm, sterm, sig)
-    !$acc routine seq
-    implicit none
-    real(rkx), intent(in) :: a, b
-    real(rkx), intent(out) :: cterm, sterm, sig
-    real(rkx) :: xr, yr
-    if ( abs(a) > abs(b) ) then
-      xr = b / a
-      yr = sqrt(d_one + xr**2)
-      cterm = sign(d_one/yr, a)
-      sterm = cterm * xr
-      sig = abs(a) * yr
-    else if ( b /= d_zero ) then
-      xr = a / b
-      yr = sqrt(d_one + xr**2)
-      sterm = sign(d_one/yr, b)
-      cterm = sterm * xr
-      sig = abs(b) * yr
-    else
-      ! SIG = ZERO
-      cterm = d_zero
-      sterm = d_one
-    end if
-  end subroutine g1
-  !
-  ! SUBROUTINE h12 (mode, lpivot, l1, m, u, up, c, ice, icv, ncv)
-  !
-  !  CONSTRUCTION AND/OR APPLICATION OF A SINGLE
-  !  HOUSEHOLDER TRANSFORMATION..     Q = I + U*(U**T)/B
-  !
-  !     MODE   = 1 OR 2   Selects Algorithm H1 to construct and apply a
-  !            Householder transformation, or Algorithm H2 to apply a
-  !            previously constructed transformation.
-  !     LPIVOT IS THE INDEX OF THE PIVOT ELEMENT.
-  !     L1,M   IF L1  <=  M   THE TRANSFORMATION WILL BE CONSTRUCTED TO
-  !            ZERO ELEMENTS INDEXED FROM L1 THROUGH M.   IF L1 GT. M
-  !            THE SUBROUTINE DOES AN IDENTITY TRANSFORMATION.
-  !     U(),IUE,UP    On entry with MODE = 1, U() contains the pivot
-  !            vector.  IUE is the storage increment between elements.
-  !            On exit when MODE = 1, U() and UP contain quantities
-  !            defining the vector U of the Householder transformation.
-  !            on entry with MODE = 2, U() and UP should contain
-  !            quantities previously computed with MODE = 1.  These will
-  !            not be modified during the entry with MODE = 2.
-  !     C()    ON ENTRY with MODE = 1 or 2, C() CONTAINS A MATRIX WHICH
-  !            WILL BE REGARDED AS A SET OF VECTORS TO WHICH THE
-  !            HOUSEHOLDER TRANSFORMATION IS TO BE APPLIED.
-  !            ON EXIT C() CONTAINS THE SET OF TRANSFORMED VECTORS.
-  !     ICE    STORAGE INCREMENT BETWEEN ELEMENTS OF VECTORS IN C().
-  !     ICV    STORAGE INCREMENT BETWEEN VECTORS IN C().
-  !     NCV    NUMBER OF VECTORS IN C() TO BE TRANSFORMED. IF NCV  <=  0
-  !            NO OPERATIONS WILL BE DONE ON C().
-  !     ------------------------------------------------------------------
-  pure subroutine h12(mode, lpivot, l1, m, nu, nc, u, c, up, ice, icv, ncv)
-    !$acc routine seq
-    implicit none
-    integer(ik4), intent(in) :: mode, lpivot, l1, m, nu, nc, ice, icv, ncv
-    real(rkx), dimension(nu), intent(inout) :: u
-    real(rkx), dimension(nc), intent(inout) :: c
-    real(rkx), intent(inout) :: up
-    integer(ik4) :: i, i2, i3, i4, incr, j
-    real(rkx) :: b, cl, clinv, sm
-
-    if ( 0 >= lpivot .or. lpivot >= l1 .or. l1 > m ) return
-    cl = abs(u(lpivot))
-    if ( mode /= 2 ) then
-      ! ****** CONSTRUCT THE TRANSFORMATION. ******
-      do j = l1, m
-        cl = max(abs(u(j)),cl)
-      end do
-      if ( cl <= 0 ) return
-      clinv = d_one / cl
-      sm = (u(lpivot)*clinv) ** 2
-      do i = l1, m
-        sm = sm + (u(i)*clinv) ** 2
-      end do
-      cl = cl * sqrt(sm)
-      if ( u(lpivot) > 0 ) then
-        cl = -cl
-      end if
-      up = u(lpivot) - cl
-      u(lpivot) = cl
-    else
-      ! ****** APPLY THE TRANSFORMATION  I+U*(U**T)/B  TO C. ******
-      if ( cl <= 0 ) return
-    end if
-    if ( ncv <= 0 ) return
-
-    b = up * u(lpivot)
-    !                  B  MUST BE NONPOSITIVE HERE.  IF B = 0., RETURN.
-
-    if ( b < 0 ) then
-      b = d_one / b
-      i2 = 1 - icv + ice * (lpivot-1)
-      incr = ice * (l1-lpivot)
-      do j = 1, ncv
-        i2 = i2 + icv
-        i3 = i2 + incr
-        i4 = i3
-        sm = c(i2) * up
-        do i = l1, m
-          sm = sm + c(i3) * u(i)
-          i3 = i3 + ice
-        end do
-        if ( sm /= 0 ) then
-          sm = sm * b
-          c(i2) = c(i2) + sm * up
-          do i = l1, m
-            c(i4) = c(i4) + sm * u(i)
-            i4 = i4 + ice
-          end do
-        end if
-      end do ! j = 1, ncv
-    end if
-  end subroutine h12
+  end subroutine gauss_solve
 
 end module mod_micro_nogtom
 
