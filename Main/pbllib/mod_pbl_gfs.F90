@@ -19,7 +19,7 @@ module mod_pbl_gfs
   use mod_realkinds
   use mod_constants
   use mod_memutil
-  use mod_dynparam, only : kz, kzp1, kzm1, ntr, idynamic
+  use mod_dynparam, only : kz, kzp1, ntr, idynamic
   use mod_dynparam, only : ici1, ici2, jci1, jci2
   use mod_runparams, only : dt, nqx, ichem, ipptls, iqv, iqi
   use mod_regcm_types, only : mod_2_pbl, pbl_2_mod
@@ -38,7 +38,7 @@ module mod_pbl_gfs
   real(rkx), dimension(:,:,:), pointer, contiguous :: qo
   real(rkx), dimension(:), pointer, contiguous :: psk, rbsoil
   real(rkx), dimension(:), pointer, contiguous :: fm, fh, spd1
-  real(rkx), dimension(:,:), pointer, contiguous :: prsi, phii, z, dz
+  real(rkx), dimension(:,:), pointer, contiguous :: prsi, phii
   real(rkx), dimension(:,:), pointer, contiguous :: del, prsl, prslk
   real(rkx), dimension(:,:), pointer, contiguous :: phil, thraten
   real(rkx), dimension(:), pointer, contiguous :: heat, evap, stress
@@ -83,8 +83,6 @@ module mod_pbl_gfs
       call getmem(prslk,1,iblp,1,kz,'mod_pbl_gfs:prslk')
       call getmem(phil,1,iblp,1,kz,'mod_pbl_gfs:phil')
       call getmem(thraten,1,iblp,1,kz,'mod_pbl_gfs:thraten')
-      call getmem(z,1,iblp,1,kz,'mod_pbl_gfs:z')
-      call getmem(dz,1,iblp,1,kz,'mod_pbl_gfs:dz')
       call getmem(heat,1,iblp,'mod_pbl_gfs:heat')
       call getmem(evap,1,iblp,'mod_pbl_gfs:evap')
       call getmem(rrho,1,iblp,'mod_pbl_gfs:rrho')
@@ -99,7 +97,7 @@ module mod_pbl_gfs
       type(mod_2_pbl), intent(in) :: m2p
       type(pbl_2_mod), intent(inout) :: p2m
 
-      integer(ik4) :: i, j, k, kk, km, n
+      integer(ik4) :: i, j, k, kk, n
       integer(ik4) :: iq, it, iit
       real(rkx) :: ps, uflxsfx, vflxsfx, uu
 
@@ -116,12 +114,15 @@ module mod_pbl_gfs
           vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)*rrho(n)
           uu = max(uflxsfx*uflxsfx+vflxsfx*vflxsfx,0.00000001_rkx)
           ustar(n) = sqrt(sqrt(uu))
-          stress(n) = (ustar(n)*ustar(n))*m2p%rhox2d(j,i)
+          ! Kinematic surface stress (m2/s2)
+          stress(n) = ustar(n)*ustar(n)
           heat(n) = m2p%hfx(j,i)*rcpd*rrho(n)
           evap(n) = m2p%qfx(j,i)*rrho(n)
           spd1(n) = max(sqrt(m2p%uxatm(j,i,kz)**2 + &
                              m2p%vxatm(j,i,kz)**2), 0.5_rkx)
+          ! Interfaces: kk = 1 is the surface
           prsi(n,1) = ps*d_r1000
+          phii(n,1) = d_zero
           n = n + 1
         end do
       end do
@@ -136,40 +137,14 @@ module mod_pbl_gfs
             vo(n,kk) = m2p%vxatm(j,i,k)
             prsl(n,kk) = m2p%patm(j,i,k)*d_r1000
             prslk(n,kk) = (m2p%patm(j,i,k)/p00)**rovcp
-            dz(n,kk) = m2p%dzq(j,i,k)
-            z(n,kk) = m2p%za(j,i,k)
+            ! Layer kk lies between interfaces kk and kk+1
+            prsi(n,kk+1) = m2p%patmf(j,i,k)*d_r1000
+            del(n,kk) = (m2p%patmf(j,i,k+1)-m2p%patmf(j,i,k))*d_r1000
+            phii(n,kk+1) = m2p%zq(j,i,k)*egrav
+            phil(n,kk) = m2p%za(j,i,k)*egrav
             thraten(n,kk) = m2p%heatrt(j,i,k)/prslk(n,kk)
             n = n + 1
           end do
-        end do
-      end do
-
-      do n = 1, iblp
-        phii(n,1) = z(n,1) * egrav
-      end do
-
-      do k = 2, kz
-        n = 1
-        km = k - 1
-        do i = ici1, ici2
-          do j = jci1, jci2
-            del(n,km) = prsl(n,km)/rovg*dz(n,km)/to(n,km)
-            prsi(n,k) = prsi(n,km)-del(n,km)
-            phii(n,k) = z(n,k)*egrav
-            phil(n,km) = d_half*(z(n,k)+z(n,km))*egrav
-            n = n + 1
-          end do
-        end do
-      end do
-
-      n = 1
-      do i = ici1, ici2
-        do j = jci1, jci2
-          del(n,kz) = del(n,kzm1)
-          prsi(n,kzp1) = prsi(n,kz)-del(n,kzm1)
-          phii(n,kzp1) = phii(n,kz)+dz(n,kz)*egrav
-          phil(n,kz) = phii(n,kz)-phil(n,kzm1)+phii(n,kz)
-          n = n + 1
         end do
       end do
 

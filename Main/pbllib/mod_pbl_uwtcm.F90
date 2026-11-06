@@ -345,9 +345,11 @@ module mod_pbl_uwtcm
         end do
       end if
 
-      do k = 1, kz
-        ! Level spacing
-        rdza(k) = d_one/(zqx(k)-zqx(k+1))
+      ! Spacing between the half levels above and below full level k
+      rdza(1) = d_zero
+      rhoxfl(1) = rhoxhl(1)
+      do k = 2, kz
+        rdza(k) = d_one/(zax(k-1)-zax(k))
         ! Density
         fracz = (zqx(k)-zax(k))*rdza(k)
         rhoxfl(k) = rhoxhl(k) + (rhoxhl(k-1)-rhoxhl(k))*fracz
