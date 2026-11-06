@@ -195,7 +195,14 @@ module mod_pbl_holtbl
     ! The unstable Richardson number function (Ri<0) is taken from  CCM1.
     ! f = sqrt(1 - 18*Ri)
     !
+#if !defined(OPENACC) || defined(STDPAR_FIXED)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
+#else
+    !$acc parallel loop collapse(3) gang vector
+    do k = 2, kz
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
       if ( k >= kmxpbl(j,i) ) then
         vv(j,i,k) = max(m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
                         m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k), 0.01_rkx)
@@ -237,6 +244,10 @@ module mod_pbl_holtbl
         kvf(j,i,k) = 0.0_rkx
         kvfm(j,i,k) = 0.0_rkx
       end if
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+    end do
+    end do
+#endif
     end do
     !
     ! Holtslag pbl

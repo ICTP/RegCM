@@ -3901,6 +3901,22 @@ module mod_bdycod
     ! columns of the domain, done on integers to be the same for any
     ! domain decomposition (see reproducible_sumall). |bvx|, |bvy| < 1,
     ! so the maximum of |f| bounds the terms.
+#ifdef OPENACC
+    !$acc parallel loop
+    do k = 1, kz
+      amax(k) = 0.0_rk8
+    end do
+
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do i = i1, i2
+    do j = jj1, jj2
+      !$acc atomic update
+      amax(k) = max(amax(k),abs(real(f(j,i,k),rk8)))
+    end do
+    end do
+    end do
+#else
     do concurrent ( k = 1:kz )
       amax(k) = 0.0_rk8
       do i = i1, i2
@@ -3909,8 +3925,16 @@ module mod_bdycod
         end do
       end do
     end do
+#endif
     call reprosum_shift(amax,int(jx,ik8),shift)
+#if !defined(OPENACC) || defined(STDPAR_FIXED)
     do concurrent ( i = ide1:ide2, m = 1:2*km, k = 1:kz )
+#else
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do m = 1, 2*km
+    do i = ide1, ide2
+#endif
       sx(i,m,k) = 0_ik8
       if ( i >= i1 .and. i <= i2 ) then
         do j = jj1, jj2
@@ -3918,15 +3942,46 @@ module mod_bdycod
             reprosum_int(real(f(j,i,k)*bvx(j,m),rk8),shift(k))
         end do
       end if
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+    end do
+    end do
+#endif
     end do
     call row_reduce(sx,sxg)
+#if !defined(OPENACC) || defined(STDPAR_FIXED)
     do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+#else
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do i = i1, i2
+    do j = j1, j2
+#endif
       f(j,i,k) = 0.0_rkx
       do m = 1, 2*km
         f(j,i,k) = f(j,i,k) + &
           real(reprosum_real(sxg(i,m,k),shift(k)),rkx)*bvx(j,m)
       end do
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
     end do
+    end do
+#endif
+    end do
+#ifdef OPENACC
+    !$acc parallel loop
+    do k = 1, kz
+      amax(k) = 0.0_rk8
+    end do
+
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do i = ii1, ii2
+    do j = j1, j2
+      !$acc atomic update
+      amax(k) = max(amax(k),abs(real(f(j,i,k),rk8)))
+    end do
+    end do
+    end do
+#else
     do concurrent ( k = 1:kz )
       amax(k) = 0.0_rk8
       do i = ii1, ii2
@@ -3935,8 +3990,16 @@ module mod_bdycod
         end do
       end do
     end do
+#endif
     call reprosum_shift(amax,int(iy,ik8),shift)
+#if !defined(OPENACC) || defined(STDPAR_FIXED)
     do concurrent ( j = jde1:jde2, l = 1:2*lm, k = 1:kz )
+#else
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do l = 1, 2*lm
+    do j = jde1, jde2
+#endif
       sy(j,l,k) = 0_ik8
       if ( j >= j1 .and. j <= j2 ) then
         do i = ii1, ii2
@@ -3944,14 +4007,29 @@ module mod_bdycod
             reprosum_int(real(f(j,i,k)*bvy(i,l),rk8),shift(k))
         end do
       end if
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+    end do
+    end do
+#endif
     end do
     call column_reduce(sy,syg)
+#if !defined(OPENACC) || defined(STDPAR_FIXED)
     do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
+#else
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do i = i1, i2
+    do j = j1, j2
+#endif
       f(j,i,k) = 0.0_rkx
       do l = 1, 2*lm
         f(j,i,k) = f(j,i,k) + &
           real(reprosum_real(syg(j,l,k),shift(k)),rkx)*bvy(i,l)
       end do
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+    end do
+    end do
+#endif
     end do
   end subroutine lowpass_filter
 
