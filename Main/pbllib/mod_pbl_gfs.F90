@@ -221,8 +221,9 @@ module mod_pbl_gfs
         kk = kzp1 - k
         do i = ici1, ici2
           do j = jci1, jci2
-            p2m%uten(j,i,k) = p2m%uten(j,i,k)+du(n,kk)*xpfac(j,i)
-            p2m%vten(j,i,k) = p2m%vten(j,i,k)+dv(n,kk)*xpfac(j,i)
+            ! The wind tendencies are coupled with pressure in the interface
+            p2m%uten(j,i,k) = p2m%uten(j,i,k)+du(n,kk)
+            p2m%vten(j,i,k) = p2m%vten(j,i,k)+dv(n,kk)
             p2m%tten(j,i,k) = p2m%tten(j,i,k) + tau(n,kk)*xpfac(j,i)
             n = n + 1
           end do
