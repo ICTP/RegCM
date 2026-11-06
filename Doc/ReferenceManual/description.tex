@@ -1685,8 +1685,16 @@ entrainment diffusivity is computed from a convective velocity scale driven by
 the radiative cooling, and a buoyancy jump is used to set a
 cloud-top-enhanced diffusivity $K_{ct}$.  An enhanced entrainment efficiency
 $A_2 = 1$ (versus the default $A_1 = 0.2$) is applied when the cloud-top
-instability parameter $\theta_{e,\mathrm{above}}/\theta_{e,\mathrm{below}}$
-exceeds a threshold, following \cite{Han_11}.  This cloud-top mechanism allows
+instability parameter
+
+\begin{equation}
+  \kappa_{ct} = \frac{c_p\,\Delta\theta_e}{L_v\,\Delta q_t}
+\end{equation}
+
+exceeds 0.7, following \cite{Han_11}.  Here $\Delta\theta_e$ and $\Delta q_t$
+are the decreases of equivalent potential temperature and total water from
+the cloud-top layer to the layer above it, and the test is made only when
+both are positive.  This cloud-top mechanism allows
 the GFS scheme to maintain stratocumulus decks without the more complex
 moist-thermodynamics framework of the UW scheme.
 
