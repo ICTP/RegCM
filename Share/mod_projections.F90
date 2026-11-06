@@ -469,6 +469,13 @@ module mod_projections
     pphi = degrad_r8*plat
     plam = degrad_r8*plon
     call get_equator(pphi,plam,pj%p%phi0,pj%p%lam0)
+    ! The rotated grid is defined by the equator point, so its north
+    ! pole is the antipode of a southern hemisphere pole: use it for the
+    ! wind rotation angle, which would otherwise be off by 180 degrees.
+    if ( pphi < 0.0_rk8 ) then
+      pphi = -pphi
+      plam = plam + mathpi_r8
+    end if
     cphi = degrad_r8 * clat
     clam = degrad_r8 * clon
     call geo_to_rotated(pj%p%phi0,pj%p%lam0,cphi,clam, &
