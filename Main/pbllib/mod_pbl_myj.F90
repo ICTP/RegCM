@@ -45,7 +45,8 @@ module mod_pbl_myj
 
   public :: init_myjpbl, myjpbl, myjtkemin
 
-  real(rkx), parameter :: myjtkemin = 1.0e-3_rkx
+  ! Half of epsq2, the minimum q**2
+  real(rkx), parameter :: myjtkemin = 0.1_rkx
 
   real(rkx), parameter :: elocp = eliwv/cpd
   real(rkx), parameter :: epsq2 = 0.2_rkx
@@ -57,8 +58,6 @@ module mod_pbl_myj
   real(rkx), parameter :: epstrb = 1.e-24_rkx
   real(rkx), parameter :: epsa = 1.e-8_rkx
   real(rkx), parameter :: epsit = 1.e-4_rkx
-  real(rkx), parameter :: epsu2 = 1.e-4_rkx
-  real(rkx), parameter :: epsust = 0.07_rkx
   real(rkx), parameter :: fh = 1.01_rkx
   real(rkx), parameter :: alph = 0.30_rkx
   real(rkx), parameter :: beta = d_one/273.0_rkx
@@ -74,25 +73,9 @@ module mod_pbl_myj
   real(rkx), parameter :: c1 = 0.000830955950095854396_rkx
   real(rkx), parameter :: elz0 = 0.0_rkx
   real(rkx), parameter :: esq = 5.0_rkx
-  real(rkx), parameter :: glkbr = 10.0_rkx
-  real(rkx), parameter :: glkbs = 30.0_rkx
-  real(rkx), parameter :: qvisc = 2.1e-5_rkx
-  real(rkx), parameter :: small = 0.35_rkx
-  real(rkx), parameter :: sqpr = 0.84_rkx
-  real(rkx), parameter :: sqsc = 0.84_rkx
-  real(rkx), parameter :: sqvisc = 258.2_rkx
-  real(rkx), parameter :: tvisc = 2.1e-5_rkx
-  real(rkx), parameter :: ustc = 0.7_rkx
-  real(rkx), parameter :: ustr = 0.225_rkx
-  real(rkx), parameter :: visc = 1.5e-5_rkx
-  real(rkx), parameter :: seafc = 0.98_rkx
   real(rkx), parameter :: btg = beta*egrav
-  real(rkx), parameter :: cziv = small*glkbs
   real(rkx), parameter :: esqhf = 0.5_rkx*5.0_rkx
   real(rkx), parameter :: rb1 = d_one/b1
-  real(rkx), parameter :: rtvisc = d_one/tvisc
-  real(rkx), parameter :: rvisc = d_one/visc
-  real(rkx), parameter :: zqrzt = sqsc/sqpr
   real(rkx), parameter :: adnh = 9.0_rkx*a1*axx*axx * &
                (12.0_rkx*a1+3.0_rkx*b2)*btg*btg
   real(rkx), parameter :: adnm = 18.0_rkx*a1*a1*axx*(b2-3.0_rkx*axx)*btg
@@ -109,16 +92,8 @@ module mod_pbl_myj
   real(rkx), parameter :: bshm = 18.0_rkx*a1*a1*axx*c1
   real(rkx), parameter :: bsmh = -3.0_rkx*a1*axx * &
              (3.0_rkx*axx+3.0_rkx*b2*c1+12.0_rkx*a1*c1-b2)*btg
-  real(rkx), parameter :: grrs = glkbr/glkbs
   real(rkx), parameter :: cesh = axx
   real(rkx), parameter :: cesm = a1*(1.0_rkx-3.0_rkx*c1)
-  real(rkx), parameter :: fzq1 = rtvisc*qvisc*zqrzt
-  real(rkx), parameter :: fzq2 = fzq1
-  real(rkx), parameter :: fzt1 = rvisc*tvisc*sqpr
-  real(rkx), parameter :: fzt2 = cziv*grrs*tvisc*sqpr
-  real(rkx), parameter :: fzu1 = cziv*visc
-  real(rkx), parameter :: rqvisc = d_one/qvisc
-  real(rkx), parameter :: ustfc = 0.018_rkx/egrav
   !
   ! Free term in the equilibrium equation for (L/Q)**2
   !
@@ -170,16 +145,15 @@ module mod_pbl_myj
 
   subroutine myjpbl(m2p,p2m)
     implicit none
-    type(mod_2_pbl), intent(inout) :: m2p   ! inout: uz0/vz0/thz0/qz0 updated
+    type(mod_2_pbl), intent(in) :: m2p
     type(pbl_2_mod), intent(inout) :: p2m
     !
     ! nspec is the number of mass species to be vertically mixed
     !
     integer(ik4) :: i, j, k, n, lmxl, nums
-    real(rkx) :: akhs_dens, akms_dens, dqdt, dtdif, dtdt, &
+    real(rkx) :: akms_dens, dqdt, dtdif, dtdt, &
           dtturbl, qold, ratiomx,rdtturbl, thnew, thold, tx, exner, ct
-    real(rkx) :: akhs, akms
-    real(rkx), dimension(nspec) :: clow, cts, sz0
+    real(rkx), dimension(nspec) :: rkbot, sflux, cts, sz0
     real(rkx), dimension(kz) :: cwmk, pk, q2k, qk, thek , &
             tk, uk, vk, qcwk, qcik
     real(rkx), dimension(nspec,kz) :: species
@@ -191,7 +165,7 @@ module mod_pbl_myj
     real(rkx), dimension(jci1:jci2,ici1:ici2,kzp1) :: zint
     real(rkx) :: pfac
     ! 2-D fields from the surface layer call
-    real(rkx), dimension(jci1:jci2,ici1:ici2) :: ustar, akms2d, akhs2d
+    real(rkx), dimension(jci1:jci2,ici1:ici2) :: ustar
 
     dtturbl = dt
     rdtturbl = d_one/dtturbl
@@ -217,12 +191,11 @@ module mod_pbl_myj
     end do
 
     !
-    ! Compute ustar, akms, akhs, and update uz0/vz0/thz0/qz0 via the
-    ! Janjic Eta surface layer (Janjic 1994; NCEP ON 437).
-    ! This replaces the ad-hoc ram1/rah1 derivation and provides
-    ! self-consistent Monin-Obukhov exchange coefficients.
+    ! Janjic Eta surface layer (Janjic 1994; NCEP ON 437): ustar, the
+    ! lower boundary condition of the TKE. The surface fluxes are the
+    ! ones of the surface scheme (see main_integration).
     !
-    call myj_sfclayer(m2p, ustar, akms2d, akhs2d)
+    call myj_sfclayer(m2p, ustar)
 
     setup_integration: &
     do i = ici1, ici2
@@ -255,7 +228,7 @@ module mod_pbl_myj
         !
         ! Solve for the production/dissipation of the turbulent kinetic energy
         !
-        call prodq2(dtturbl,ustar(j,i),gm,gh,el,q2k)
+        call prodq2(dtsec,ustar(j,i),gm,gh,el,q2k)
         !
         ! Find the exchange coefficients in the free atmosphere
         !
@@ -271,7 +244,7 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of turbulent kinetic energy
         !
-        call vdifq(dtdif,q2k,el,zhk)
+        call vdifq(dtsec,q2k,el,zhk)
         !
         ! Save the new TKE and mixing length.
         !
@@ -325,29 +298,24 @@ module mod_pbl_myj
         end do
 
         !
-        ! Retrieve the M-O exchange coefficients from the surface layer call.
-        ! akms, akhs [m/s];  uz0, vz0, thz0, qz0 already updated in m2p.
+        ! Surface boundary conditions: the sensible heat and moisture
+        ! fluxes of the surface scheme are applied as they are, so that
+        ! energy and water are conserved. The tracers have no flux (the
+        ! emissions are added by the chemistry) and, with ichdrdepo = 2,
+        ! an implicit dry deposition sink rho*vd*chi.
         !
-        akms = akms2d(j,i)
-        akhs = akhs2d(j,i)
-        akhs_dens = akhs * rhok(kz)      ! [kg m^-2 s^-1]
-
-        !
-        ! Surface boundary values for the diffusion routines.
-        ! thz0 and qz0 come from the viscous-sublayer parameterisation
-        ! in myj_sfclayer, which was already applied above.
-        !
-        sz0(1) = m2p%thz0(j,i)
-        sz0(2) = m2p%qz0(j,i)
-        do nums = 3, nspec
+        do nums = 1, nspec
           sz0(nums) = d_zero
+          rkbot(nums) = d_zero
+          sflux(nums) = d_zero
         end do
-
-        clow(1) = d_one
-        clow(2) = minqq
-        do nums = 3, nspec
-          clow(nums) = d_zero
-        end do
+        sflux(1) = m2p%hfx(j,i)*ape(j,i,kz)/cpd
+        sflux(2) = m2p%qfx(j,i)
+        if ( ichem == 1 .and. ichdrdepo == 2 ) then
+          do n = 1, ntr
+            rkbot(ispb+n) = rhok(kz)*m2p%drydepv(j,i,n)
+          end do
+        end if
 
         cts(1) = ct
         do nums = 2, nspec
@@ -356,7 +324,7 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of temperature and water vapor
         !
-        call vdifh(dtdif,p2m%kpbl(j,i),sz0,akhs_dens,clow,cts, &
+        call vdifh(dtdif,p2m%kpbl(j,i),sz0,rkbot,sflux,cts, &
                    species,nspec,akhk,zhk,rhok)
         !
         ! Compute primary variable tendencies.
@@ -402,6 +370,15 @@ module mod_pbl_myj
                    (species(ispb+n,k)-m2p%chib(j,i,k,n))*rdtturbl*pfac
             end do
           end do
+          if ( ichdrdepo == 2 ) then
+            ! Deposited amount, as accumulated by the Holtslag scheme
+            do n = 1, ntr
+              p2m%remdrd(j,i,n) = p2m%remdrd(j,i,n) + &
+                  m2p%chib(j,i,kz,n)*m2p%drydepv(j,i,n)*dtturbl * &
+                  d_half*m2p%rhox2d(j,i)*egrav / &
+                  (m2p%patmf(j,i,kzp1)-m2p%patmf(j,i,kz))*pfac
+            end do
+          end if
         end if
         !
         ! Density-weight the momentum exchange coefficients and diffuse
@@ -411,7 +388,9 @@ module mod_pbl_myj
           akmk(k) = akm(j,i,k) * (rhok(k)+rhok(k+1)) * d_half
         end do
 
-        akms_dens = akms * rhok(kz)     ! [kg m^-2 s^-1]
+        ! The surface stress of the surface scheme, uvdrag*|U|, applied
+        ! implicitly with no slip at the surface
+        akms_dens = m2p%uvdrag(j,i)     ! [kg m^-2 s^-1]
         do k = 1, kz
           uk(k) = m2p%uxatm(j,i,k)
           vk(k) = m2p%vxatm(j,i,k)
@@ -419,8 +398,7 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of velocity components
         !
-        call vdifv(dtdif,m2p%uz0(j,i),m2p%vz0(j,i), &
-                   akms_dens,uk,vk,akmk,zhk,rhok)
+        call vdifv(dtdif,akms_dens,uk,vk,akmk,zhk,rhok)
         !
         ! Compute momentum tendencies
         !
@@ -550,7 +528,7 @@ module mod_pbl_myj
     ! unrealistically large mixing lengths in deep convective situations.
     !
     el0 = min(alph*szq*d_half/sq, el0max)
-    el0 = min(el0, blmx)          ! cap at mixed-layer depth
+    if ( lmxl < kz ) el0 = min(el0, blmx) ! cap at mixed-layer depth
     el0 = max(el0, el0min)
     !
     ! Above the pbl top
@@ -804,12 +782,15 @@ module mod_pbl_myj
   !
   ! Vertical diffusion of mass variables
   !
-  subroutine vdifh(dtdif,lpbl,sz0,rkhs,clow,cts, &
+  ! At the surface, each species has the flux sflux plus the implicit
+  ! exchange rkbot*(sz0 - species(kz)).
+  !
+  subroutine vdifh(dtdif,lpbl,sz0,rkbot,sflux,cts, &
                    species,ns,rkh,zhk,rho)
     implicit none
     integer(ik4), intent(in) :: lpbl, ns
-    real(rkx), intent(in) :: dtdif, rkhs
-    real(rkx), dimension(nspec), intent(in) :: clow, cts, sz0
+    real(rkx), intent(in) :: dtdif
+    real(rkx), dimension(nspec), intent(in) :: rkbot, sflux, cts, sz0
     real(rkx), dimension(kzm1), intent(in) :: rkh
     real(rkx), dimension(kz), intent(in) :: rho
     real(rkx), dimension(kzp1), intent(in) :: zhk
@@ -859,10 +840,10 @@ module mod_pbl_myj
     cmb   = cr(kzm1)*cf
     rhok  = rho(kz)
     do m = 1, ns
-      rkss = rkhs*clow(m)
+      rkss = rkbot(m)
       cmsb = -cmb+(rkhh+rkss)*dtozs+rhok
       rssb = -rss(m,kzm1)*cf+rkct(m,kzm1)*dtozs+species(m,kz)*rhok
-      species(m,kz) = (dtozs*rkss*sz0(m)+rssb)/cmsb
+      species(m,kz) = (dtozs*(rkss*sz0(m)+sflux(m))+rssb)/cmsb
     end do
     ! Backsubstitution
     do k = kzm1, 1, -1
@@ -875,15 +856,17 @@ module mod_pbl_myj
   !
   ! Vertical diffusion of velocity components
   !
-  subroutine vdifv(dtdif,uz0,vz0,rkms,u,v,rkm,z,rho)
+  ! At the surface the stress is rkms*u, with no slip.
+  !
+  subroutine vdifv(dtdif,rkms,u,v,rkm,z,rho)
     implicit none
-    real(rkx), intent(in) :: rkms, dtdif, uz0, vz0
+    real(rkx), intent(in) :: rkms, dtdif
     real(rkx), dimension(kzm1), intent(in) :: rkm
     real(rkx), dimension(kz), intent(in) :: rho
     real(rkx), dimension(kzp1), intent(in) :: z
     real(rkx), dimension(kz), intent(inout) :: u, v
     integer(ik4) :: k
-    real(rkx) :: cf, dtozak, dtozl, dtozs, rcml, rcmvb, rhok, rkmh
+    real(rkx) :: cf, dtozl, dtozs, rcml, rcmvb, rhok, rkmh
     real(rkx), dimension(kzm1) :: cm, cr, dtoz, rsu, rsv
 
     do k = 1, kzm1
@@ -910,9 +893,8 @@ module mod_pbl_myj
     cf     = -dtozs*rkmh/cm(kzm1)
     rhok   = rho(kz)
     rcmvb  = d_one/((rkmh+rkms)*dtozs-cr(kzm1)*cf+rhok)
-    dtozak = dtozs*rkms
-    u(kz) = (dtozak*uz0-rsu(kzm1)*cf+u(kz)*rhok)*rcmvb
-    v(kz) = (dtozak*vz0-rsv(kzm1)*cf+v(kz)*rhok)*rcmvb
+    u(kz) = (-rsu(kzm1)*cf+u(kz)*rhok)*rcmvb
+    v(kz) = (-rsv(kzm1)*cf+v(kz)*rhok)*rcmvb
 
     do k = kzm1, 1, -1
       rcml = d_one/cm(k)

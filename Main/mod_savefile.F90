@@ -160,10 +160,6 @@ module mod_savefile
 
   integer(ik4), public, pointer, contiguous, dimension(:,:) :: kpbl_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: zpbl_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: myjsf_uz0_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: myjsf_vz0_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: myjsf_thz0_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: myjsf_qz0_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:) :: cbmf2d_io => null( )
 
@@ -319,10 +315,6 @@ module mod_savefile
       if ( ibltyp == 2 ) then
         call getmem(kpbl_io,jci1,jci2,ici1,ici2,'kpbl_io')
       else if ( ibltyp == 4 ) then
-        call getmem(myjsf_uz0_io,jci1,jci2,ici1,ici2,'myjsf_uz0_io')
-        call getmem(myjsf_vz0_io,jci1,jci2,ici1,ici2,'myjsf_vz0_io')
-        call getmem(myjsf_thz0_io,jci1,jci2,ici1,ici2,'myjsf_thz0_io')
-        call getmem(myjsf_qz0_io,jci1,jci2,ici1,ici2,'myjsf_qz0_io')
         call getmem(kpbl_io,jci1,jci2,ici1,ici2,'kpbl_io')
       end if
       if ( idcsst == 1 ) then
@@ -492,14 +484,6 @@ module mod_savefile
         if ( ibltyp == 2 ) then
           call getmem(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
         else if ( ibltyp == 4 ) then
-          call getmem(myjsf_uz0_io,jcross1,jcross2, &
-                                     icross1,icross2,'myjsf_uz0_io')
-          call getmem(myjsf_vz0_io,jcross1,jcross2, &
-                                     icross1,icross2,'myjsf_vz0_io')
-          call getmem(myjsf_thz0_io,jcross1,jcross2, &
-                                      icross1,icross2,'myjsf_thz0_io')
-          call getmem(myjsf_qz0_io,jcross1,jcross2, &
-                                     icross1,icross2,'myjsf_qz0_io')
           call getmem(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
         end if
         if ( idcsst == 1 ) then
@@ -632,10 +616,6 @@ module mod_savefile
     else if ( ibltyp == 4 ) then
       call mygetvar(ncid,'tke_pbl',tke_pbl_io)
       call mygetvar(ncid,'kpbl',kpbl_io)
-      call mygetvar(ncid,'myjsf_uz0',myjsf_uz0_io)
-      call mygetvar(ncid,'myjsf_vz0',myjsf_vz0_io)
-      call mygetvar(ncid,'myjsf_thz0',myjsf_thz0_io)
-      call mygetvar(ncid,'myjsf_qz0',myjsf_qz0_io)
     else if ( ibltyp == 5 ) then
       call mygetvar(ncid,'tke_pbl',tke_pbl_io)
     end if
@@ -884,10 +864,6 @@ module mod_savefile
       wrkdim(3) = dimids(idkh)
       call savedefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
-      call savedefvar(ncid,'myjsf_uz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call savedefvar(ncid,'myjsf_vz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call savedefvar(ncid,'myjsf_thz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call savedefvar(ncid,'myjsf_qz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
     else if ( ibltyp == 5 ) then
       wrkdim(3) = dimids(idkh)
       call savedefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -1119,10 +1095,6 @@ module mod_savefile
     else if ( ibltyp == 4 ) then
       call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
       call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
-      call myputvar(ncid,'myjsf_uz0',myjsf_uz0_io,varids,ivcc)
-      call myputvar(ncid,'myjsf_vz0',myjsf_vz0_io,varids,ivcc)
-      call myputvar(ncid,'myjsf_thz0',myjsf_thz0_io,varids,ivcc)
-      call myputvar(ncid,'myjsf_qz0',myjsf_qz0_io,varids,ivcc)
     else if ( ibltyp == 5 ) then
       call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
     end if

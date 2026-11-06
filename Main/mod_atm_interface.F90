@@ -953,12 +953,6 @@ module mod_atm_interface
       call getmem(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
       call getmem(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')
       call getmem(sfs%v10m,jci1,jci2,ici1,ici2,'surf:v10m')
-      if ( ibltyp == 4 ) then
-        call getmem(sfs%uz0,jci1,jci2,ici1,ici2,'surf:uz0')
-        call getmem(sfs%vz0,jci1,jci2,ici1,ici2,'surf:vz0')
-        call getmem(sfs%thz0,jci1,jci2,ici1,ici2,'surf:thz0')
-        call getmem(sfs%qz0,jci1,jci2,ici1,ici2,'surf:qz0')
-      end if
     end subroutine allocate_surfstate
 
     subroutine allocate_slice(ax,a0)

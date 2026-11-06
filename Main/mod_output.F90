@@ -1831,10 +1831,6 @@ module mod_output
           if ( ibltyp == 4 ) then
             tke_pbl_io = atms%tkepbl
             kpbl_io = kpbl
-            myjsf_uz0_io = sfs%uz0
-            myjsf_vz0_io = sfs%vz0
-            myjsf_thz0_io = sfs%thz0
-            myjsf_qz0_io = sfs%qz0
           end if
           if ( ibltyp == 5 ) then
             tke_pbl_io = atms%tkepbl
@@ -2015,10 +2011,6 @@ module mod_output
           if ( ibltyp == 4 ) then
             call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)
             call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sfs%uz0,myjsf_uz0_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sfs%vz0,myjsf_vz0_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sfs%thz0,myjsf_thz0_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sfs%qz0,myjsf_qz0_io,jci1,jci2,ici1,ici2)
           end if
           if ( ibltyp == 5 ) then
             call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)

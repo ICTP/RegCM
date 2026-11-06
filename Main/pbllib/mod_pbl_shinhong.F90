@@ -142,7 +142,7 @@ module mod_pbl_shinhong
     ! zol2d       Monin-Obukhov stability parameter za/L per column
     !
     integer :: i, j, k, kk, it, ibin
-    real(rkx) :: rrho, uflxsfx, vflxsfx, thvx_kz, qha, ratiomx, exner_kz
+    real(rkx) :: rrho, uflxsfx, vflxsfx, thvx_kz, qha, ratiomx, exner_kz, thvsfc
 
     !
     ! Compute ustar and Obukhov stability parameter za/L via the
@@ -191,13 +191,13 @@ module mod_pbl_shinhong
         ! g/theta_v at the surface (virtual: consistent with buoyancy)
         govrth(ibin) = egrav / thvx_kz
 
-        ! Bulk Richardson number (sign-only for stable PBL classification).
-        ! Use wind speed squared in the denominator (dimensionally correct),
-        ! and virtual potential temperature throughout.
-        ! zol2d already provides the self-consistent stability; br is kept
-        ! only for the stable SBL height search (brcr_sbro branch in shinhong2d).
-        br(ibin) = govrth(ibin) * za(ibin) * zol2d(j,i) * &
-                   ust(ibin)**2 / max(wspd(ibin)**2, 0.001_rkx)
+        ! Bulk Richardson number of the surface layer, as in the WRF
+        ! surface layer: g/theta * za * (theta_v - theta_v,sfc) / U**2,
+        ! with the lowest level humidity at the surface.
+        thvsfc = m2p%tg(j,i) * (p00/psfc(ibin))**rovcp * &
+                 (d_one + ep1 * qha)
+        br(ibin) = govrth(ibin) * za(ibin) * (thvx_kz - thvsfc) / &
+                   wspd(ibin)**2
         br(ibin) = max(-5.0_rkx, min(10.0_rkx, br(ibin)))
 
         ! Map 2D zol2d to the 1D column-ordered array for shinhong2d

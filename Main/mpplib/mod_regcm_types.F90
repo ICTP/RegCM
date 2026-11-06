@@ -314,10 +314,6 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:) :: ram1 => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: rah1 => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: br => null( )
-    real(rkx), pointer, contiguous, dimension(:,:) :: uz0 => null( )    ! MYJ SF layer
-    real(rkx), pointer, contiguous, dimension(:,:) :: vz0 => null( )    ! MYJ SF layer
-    real(rkx), pointer, contiguous, dimension(:,:) :: thz0 => null( )   ! MYJ SF layer
-    real(rkx), pointer, contiguous, dimension(:,:) :: qz0 => null( )    ! MYJ SF layer
     real(rkx), pointer, contiguous, dimension(:,:) :: dtrnof => null( ) ! rnoff
   end type surfstate
 
@@ -726,10 +722,6 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:,:) :: chifxuw => null( ) ! chifxuw
     real(rkx), pointer, contiguous, dimension(:,:,:) :: drydepv => null( ) ! drydepv
     real(rkx), pointer, contiguous, dimension(:,:,:) :: heatrt => null( )  ! radiation
-    real(rkx), pointer, contiguous, dimension(:,:) :: uz0 => null( )   ! MYJ SF layer
-    real(rkx), pointer, contiguous, dimension(:,:) :: vz0 => null( )   ! MYJ SF layer
-    real(rkx), pointer, contiguous, dimension(:,:) :: thz0 => null( )  ! MYJ SF layer
-    real(rkx), pointer, contiguous, dimension(:,:) :: qz0 => null( )   ! MYJ SF layer
   end type mod_2_pbl
 
   type pbl_2_mod

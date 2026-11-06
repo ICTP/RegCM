@@ -255,10 +255,6 @@ module mod_init
           mo_atm%tke(:,:,:) = tkemin
         else if ( ibltyp == 4 ) then
           atms%tkepbl(:,:,:) = tkemin
-          sfs%uz0 = d_zero
-          sfs%vz0 = d_zero
-          sfs%thz0 = d_zero
-          sfs%qz0 = d_zero
         else if ( ibltyp == 5 ) then
           atms%tkepbl(:,:,:) = tkemin
         end if
@@ -268,10 +264,6 @@ module mod_init
           atm2%tke(:,:,:) = tkemin
         else if ( ibltyp == 4 ) then
           atms%tkepbl = tkemin
-          sfs%uz0 = d_zero
-          sfs%vz0 = d_zero
-          sfs%thz0 = d_zero
-          sfs%qz0 = d_zero
         else if ( ibltyp == 5 ) then
           atms%tkepbl(:,:,:) = tkemin
         end if
@@ -488,10 +480,6 @@ module mod_init
         if ( ibltyp == 4 ) then
           atms%tkepbl = tke_pbl_io
           kpbl = kpbl_io
-          sfs%uz0 = myjsf_uz0_io
-          sfs%vz0 = myjsf_vz0_io
-          sfs%thz0 = myjsf_thz0_io
-          sfs%qz0 = myjsf_qz0_io
         end if
         if ( ibltyp == 5 ) then
           atms%tkepbl = tke_pbl_io
@@ -677,10 +665,6 @@ module mod_init
           call grid_distribute(tke_pbl_io,atms%tkepbl, &
                                jci1,jci2,ici1,ici2,1,kz)
           call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
-          call grid_distribute(myjsf_uz0_io,sfs%uz0,jci1,jci2,ici1,ici2)
-          call grid_distribute(myjsf_vz0_io,sfs%vz0,jci1,jci2,ici1,ici2)
-          call grid_distribute(myjsf_thz0_io,sfs%thz0,jci1,jci2,ici1,ici2)
-          call grid_distribute(myjsf_qz0_io,sfs%qz0,jci1,jci2,ici1,ici2)
         end if
         if ( ibltyp == 5 ) then
           call grid_distribute(tke_pbl_io,atms%tkepbl, &

@@ -1576,16 +1576,13 @@ follows the down-gradient approximation, and there are no non-local
 counter-gradient transport terms.
 
 \paragraph{Surface layer.}
-Exchange coefficients at the lowest model level are provided by the
-self-consistent Janjic Eta surface-layer parameterisation
-\citep{Janjic_94,Janjic_02}, implemented in RegCM as a companion module.  The
-module computes the friction velocity $u_*$ from the surface momentum flux, the
-Obukhov length $L$ from the virtual heat flux, and Businger-Dyer-Pandolfo
-stability functions.  A three-regime viscous sublayer parameterisation
-(smooth, transitional, wavy) provides the roughness lengths for heat ($z_{0h}$)
-and moisture ($z_{0q}$), and the corresponding surface values $\theta_{z_0}$ and
-$q_{z_0}$ are passed directly to the diffusion solver as lower boundary
-conditions.
+The surface fluxes of sensible heat, moisture and momentum are the ones
+computed by the land and ocean schemes: the heat and moisture fluxes are
+imposed at the bottom of the lowest layer, and the surface stress is applied
+implicitly with the drag coefficient of the surface scheme and no slip at the
+surface, so that energy, water and momentum are exchanged consistently with
+the surface.  The friction velocity $u_*$, computed from the surface stress,
+sets the lower boundary value $q^2 = B_1^{2/3} u_*^2$.
 
 \paragraph{Mixing length and TKE production.}
 Within the PBL the master length scale follows the Blackadar asymptotic formula
@@ -1596,7 +1593,8 @@ Within the PBL the master length scale follows the Blackadar asymptotic formula
 
 where $\kappa$ is the von K\'{a}rm\'{a}n constant and the asymptotic length
 scale $l_0$ is computed from the TKE-weighted integral of $\sqrt{q^2}$ over the
-mixed layer, capped at the mixed-layer depth $z_{mxl}$.  Above the PBL, a
+mixed layer, capped at the mixed-layer depth $z_{mxl}$ when a mixed-layer top
+is found.  Above the PBL, a
 shorter length scale is used.  The equilibrium solution of the Mellor-Yamada
 level-2 equations is used to convert the length scale and $q^2$ into stability
 functions $G_m$ and $G_h$ (proportional to the normalised shear and buoyancy
@@ -1619,7 +1617,9 @@ the algebraic equilibrium equations \citep{Mellor_82}.
 Vertical diffusion of potential temperature, specific humidity, cloud water,
 cloud ice (when mixed-phase microphysics is active), and trace gases is then
 carried out implicitly in time using the tridiagonal Thomas algorithm, driven
-by the surface boundary conditions from the Eta surface-layer module.
+by the surface fluxes.  With the dry deposition of the tracers computed in the
+boundary layer, the deposition is an implicit sink $\rho v_d \chi$ at the
+surface.
 Momentum is diffused separately with the momentum exchange coefficient $K_m$.
 The scheme is entirely diagnostic in terms of phase: it diffuses the separate
 condensate fields rather than a conserved liquid-water potential temperature.
@@ -1699,9 +1699,10 @@ the dominant eddies ($\Delta x \approx 100$--$2000\;\mathrm{m}$).  It builds
 on the YSU non-local scheme \citep{Hong_06} for stable conditions and the free
 atmosphere, and replaces the YSU treatment inside the convective PBL with
 scale-dependent non-local transport profiles derived from large-eddy simulation
-\citep{Shin_13}.  The surface layer is provided by the Janjic Eta
-surface-layer module (Section~\ref{sec:myj}), which supplies the friction
-velocity $u_*$ and the Obukhov stability parameter $\zeta = z_a/L$ to the scheme.
+\citep{Shin_13}.  The surface layer is provided by a
+surface-layer module, which supplies the friction velocity $u_*$, from the
+surface stress of the land and ocean schemes, and the Obukhov stability
+parameter $\zeta = z_a/L$ at the height $z_a$ of the lowest model level.
 
 \paragraph{PBL height.}
 The boundary layer height $h$ is determined by a three-pass bulk Richardson

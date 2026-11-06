@@ -133,10 +133,6 @@ module mod_pbl_interface
       end if
     else if ( ibltyp == 4 ) then
       call assignpnt(atms%tkepbl,m2p%tkests)
-      call assignpnt(sfs%uz0,m2p%uz0)
-      call assignpnt(sfs%vz0,m2p%vz0)
-      call assignpnt(sfs%thz0,m2p%thz0)
-      call assignpnt(sfs%qz0,m2p%qz0)
     end if
     call assignpnt(drydepv,m2p%drydepv)
     call assignpnt(chifxuw,m2p%chifxuw)
@@ -182,6 +178,13 @@ module mod_pbl_interface
     use mod_atm_interface
     implicit none
     integer(ik4) :: i, j, k
+    ! The cross point wind tendencies are accumulated by the schemes
+    if ( ibltyp > 1 .and. idynamic /= 3 ) then
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
+        utenx(j,i,k) = d_zero
+        vtenx(j,i,k) = d_zero
+      end do
+    end if
     select case ( ibltyp )
       case (1)
         call holtbl(m2p,p2m)
