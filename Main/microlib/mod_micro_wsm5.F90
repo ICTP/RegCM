@@ -110,6 +110,8 @@ module mod_micro_wsm5
   real(rkx), dimension(:,:,:), pointer, contiguous :: qci
   real(rkx), dimension(:,:,:), pointer, contiguous :: qrs
   real(rkx), dimension(:,:,:), pointer, contiguous :: fall
+  ! cloud water converted to precipitation in the step (chemistry)
+  real(rkx), dimension(:,:), pointer, contiguous :: pccw
   real(rkx), dimension(:,:), pointer, contiguous :: den
   real(rkx), dimension(:,:), pointer, contiguous :: delz
   real(rkx), dimension(:,:), pointer, contiguous :: p
@@ -134,6 +136,7 @@ module mod_micro_wsm5
     call getmem(rh,is,ie,1,kz,1,2,'wsm5::rh')
     call getmem(fall,is,ie,1,kz,1,2,'wsm5::fall')
     call getmem(den,is,ie,1,kz,'wsm5::den')
+    call getmem(pccw,is,ie,1,kz,'wsm5::pccw')
     call getmem(delz,is,ie,1,kz,'wsm5::delz')
     call getmem(p,is,ie,1,kz,'wsm5::p')
     !call getmem(cloud_er,is,ie,1,kz,'wsm5::cloud_er')
@@ -215,7 +218,7 @@ module mod_micro_wsm5
     type(micro_2_mod), intent(inout) :: mc2mo
 
     integer(ik4) :: i, j, k, kk, n
-    real(rkx) :: pf1, pf2, qcw, totp
+    real(rkx) :: qcw, totp
 
     ! to calculate effective radius for radiation
     !real(rkx), dimension(kz) :: qv1d, t1d, p1d, qr1d, qs1d
@@ -254,6 +257,9 @@ module mod_micro_wsm5
         mc2mo%remrat(j,i,k) = d_zero
       end do
     end if
+    do concurrent ( n = is:ie, k = 1:kz )
+      pccw(n,k) = d_zero
+    end do
 
     call wsm52d(dt,is,ie)
 
@@ -275,20 +281,15 @@ module mod_micro_wsm5
     end do
 
     if ( ichem == 1 ) then
+      ! Cloud removal rate [1/s], as in subex: cloud water converted to
+      ! precipitation over the step, divided by the cloud water.
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         kk = kzp1-k
         n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
-        if ( qrs(n,kk,1) > dlowval ) then
-          pf1 = fall(n,kk,1)*delz(n,kk)/den(n,kk)/qrs(n,kk,1)
-        else
-          pf1 = d_zero
+        qcw = mo2mc%qcn(j,i,k)
+        if ( qcw > dlowval ) then
+          mc2mo%remrat(j,i,k) = pccw(n,kk)*rdt/qcw
         end if
-        if ( qrs(n,kk,2) > dlowval ) then
-          pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o/qrs(n,kk,2)
-        else
-          pf2 = d_zero
-        end if
-        mc2mo%remrat(j,i,k) = pf1 + pf2
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         mc2mo%rembc(j,i,1) = d_zero
@@ -309,7 +310,8 @@ module mod_micro_wsm5
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
-      totp = rain(n) + snow(n)
+      ! rain is the total surface precipitation, snow is a part of it
+      totp = rain(n)
       mc2mo%trrate(j,i) = totp * rdt
       mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp
       mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + mc2mo%trrate(j,i)
@@ -845,6 +847,8 @@ module mod_micro_wsm5
           work2(i,k) = -(prevp(i,k)+psdep(i,k)+pigen(i,k)+pidep(i,k))
           ! update
           qv(i,k) = qv(i,k)+work2(i,k)*dtcld
+          pccw(i,k) = pccw(i,k) + min(qci(i,k,1), &
+            (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld)
           qci(i,k,1) = max(qci(i,k,1) - &
             (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld, d_zero)
           qrs(i,k,1) = max(qrs(i,k,1) + &
@@ -893,6 +897,8 @@ module mod_micro_wsm5
           work2(i,k)=-(prevp(i,k)+psevp(i,k))
           ! update
           qv(i,k) = qv(i,k)+work2(i,k)*dtcld
+          pccw(i,k) = pccw(i,k) + min(qci(i,k,1), &
+            (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld)
           qci(i,k,1) = max(qci(i,k,1) - &
             (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld, d_zero)
           qrs(i,k,1) = max(qrs(i,k,1) + &

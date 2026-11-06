@@ -152,6 +152,8 @@ module mod_micro_wsm7
   real(rkx), dimension(:,:,:), pointer, contiguous :: qci
   real(rkx), dimension(:,:,:), pointer, contiguous :: qrs
   real(rkx), dimension(:,:,:), pointer, contiguous :: fall
+  ! cloud water converted to precipitation in the step (chemistry)
+  real(rkx), dimension(:,:), pointer, contiguous :: pccw
   real(rkx), dimension(:,:), pointer, contiguous :: den
   real(rkx), dimension(:,:), pointer, contiguous :: delz
   real(rkx), dimension(:,:), pointer, contiguous :: p
@@ -178,6 +180,7 @@ module mod_micro_wsm7
     call getmem(rh,is,ie,1,kz,1,2,'wsm7::rh')
     call getmem(fall,is,ie,1,kz,1,4,'wsm7::fall')
     call getmem(den,is,ie,1,kz,'wsm7::den')
+    call getmem(pccw,is,ie,1,kz,'wsm7::pccw')
     call getmem(delz,is,ie,1,kz,'wsm7::delz')
     call getmem(p,is,ie,1,kz,'wsm7::p')
     !call getmem(cloud_er,is,ie,1,kz,'wsm7::cloud_er')
@@ -303,7 +306,7 @@ module mod_micro_wsm7
     type(micro_2_mod), intent(inout) :: mc2mo
 
     integer(ik4) :: i, j, k, kk, n
-    real(rkx) :: pf1, pf2, pf3, pf4, qcw, totp
+    real(rkx) :: qcw, totp
 
     ! to calculate effective radius for radiation
     !real(rkx), dimension(kz) :: qv1d, t1d, p1d, qr1d, qs1d
@@ -345,6 +348,9 @@ module mod_micro_wsm7
       end do
     end if
 
+    do concurrent ( n = is:ie, k = 1:kz )
+      pccw(n,k) = d_zero
+    end do
     call wsm72d(dt,is,ie)
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -369,30 +375,15 @@ module mod_micro_wsm7
     end do
 
     if ( ichem == 1 ) then
+      ! Cloud removal rate [1/s], as in subex: cloud water converted to
+      ! precipitation over the step, divided by the cloud water.
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         kk = kzp1-k
         n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
-        if ( qrs(n,kk,1) > dlowval ) then
-          pf1 = fall(n,kk,1)*delz(n,kk)/den(n,kk)/qrs(n,kk,1)
-        else
-          pf1 = d_zero
+        qcw = mo2mc%qcn(j,i,k)
+        if ( qcw > dlowval ) then
+          mc2mo%remrat(j,i,k) = pccw(n,kk)*rdt/qcw
         end if
-        if ( qrs(n,kk,2) > dlowval ) then
-          pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o/qrs(n,kk,2)
-        else
-          pf2 = d_zero
-        end if
-        if ( qrs(n,kk,3) > dlowval ) then
-          pf3 = fall(n,kk,3)*delz(n,kk)/rhoh2o/qrs(n,kk,3)
-        else
-          pf3 = d_zero
-        end if
-        if ( qrs(n,kk,4) > dlowval ) then
-          pf4 = fall(n,kk,4)*delz(n,kk)/rhoh2o/qrs(n,kk,4)
-        else
-          pf4 = d_zero
-        end if
-        mc2mo%remrat(j,i,k) = pf1 + pf2 + pf3 + pf4
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         mc2mo%rembc(j,i,1) = d_zero
@@ -413,7 +404,8 @@ module mod_micro_wsm7
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
-      totp = rain(n) + snow(n) + grpl(n) + hail(n)
+      ! rain is the total surface precipitation, the others are parts
+      totp = rain(n)
       mc2mo%trrate(j,i) = totp * rdt
       mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp
       mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*rdt
@@ -1340,7 +1332,8 @@ module mod_micro_wsm7
           ! cloud water
           !
           qval = max(qci(i,k,1),qcimin)
-          source = (praut(i,k)+pracw(i,k)+paacw(i,k)+phacw(i,k))*dtcld
+          source = (praut(i,k)+pracw(i,k)+paacw(i,k)+paacw(i,k) + &
+                    phacw(i,k))*dtcld
           if ( source > qval ) then
             factor = qval/source
             praut(i,k) = praut(i,k)*factor
@@ -1459,8 +1452,10 @@ module mod_micro_wsm7
                        pigen(i,k)+pidep(i,k))
           ! update
           qv(i,k) = qv(i,k)+work2(i,k)*dtcld
+          pccw(i,k) = pccw(i,k) + min(qci(i,k,1),(praut(i,k) + &
+                       pracw(i,k)+paacw(i,k)+paacw(i,k)+phacw(i,k))*dtcld)
           qci(i,k,1) = max(qci(i,k,1)-(praut(i,k)+pracw(i,k) + &
-                       paacw(i,k)+phacw(i,k))*dtcld,d_zero)
+                       paacw(i,k)+paacw(i,k)+phacw(i,k))*dtcld,d_zero)
           qrs(i,k,1) = max(qrs(i,k,1)+(praut(i,k)+pracw(i,k) + &
                           prevp(i,k)-piacr(i,k)-pgacr(i,k)   - &
                           psacr(i,k)-phacr(i,k))*dtcld,d_zero)
@@ -1494,15 +1489,16 @@ module mod_micro_wsm7
           xlf = wlhs-xl(i,k)
           xlwork2 = -wlhs*(psdep(i,k)+pgdep(i,k)+phdep(i,k)+pidep(i,k) + &
                      pigen(i,k))-xl(i,k)*prevp(i,k)                    - &
-                     xlf*(piacr(i,k)+paacw(i,k)+phacw(i,k)+phacr(i,k)  + &
-                     pgacr(i,k)+psacr(i,k))
+                     xlf*(piacr(i,k)+paacw(i,k)+paacw(i,k)+phacw(i,k)  + &
+                     phacr(i,k)+pgacr(i,k)+psacr(i,k))
           t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
         else   ! T > tzero
           !
           ! cloud water
           !
           qval = max(qci(i,k,1),qcimin)
-          source = (praut(i,k)+pracw(i,k)+paacw(i,k)+phacw(i,k))*dtcld
+          source = (praut(i,k)+pracw(i,k)+paacw(i,k)+paacw(i,k) + &
+                    phacw(i,k))*dtcld
           if ( source > qval ) then
             factor = qval/source
             praut(i,k) = praut(i,k)*factor
@@ -1515,7 +1511,7 @@ module mod_micro_wsm7
           !
           qval = max(qrs(i,k,1),qrsmin)
           source = (pseml(i,k)+pgeml(i,k)+pheml(i,k) - &
-                    pracw(i,k)-paacw(i,k)-phacw(i,k) - &
+                    pracw(i,k)-paacw(i,k)-paacw(i,k)-phacw(i,k) - &
                     prevp(i,k)-praut(i,k))*dtcld
           if ( source > qval ) then
             factor = qval/source
@@ -1567,16 +1563,18 @@ module mod_micro_wsm7
           work2(i,k)=-(prevp(i,k)+psevp(i,k)+pgevp(i,k)+phevp(i,k))
           ! update
           qv(i,k) = qv(i,k)+work2(i,k)*dtcld
+          pccw(i,k) = pccw(i,k) + min(qci(i,k,1),(praut(i,k) + &
+                   pracw(i,k)+paacw(i,k)+paacw(i,k)+phacw(i,k))*dtcld)
           qci(i,k,1) = max(qci(i,k,1)-(praut(i,k)+pracw(i,k) + &
-                   paacw(i,k)+phacw(i,k))*dtcld,d_zero)
+                   paacw(i,k)+paacw(i,k)+phacw(i,k))*dtcld,d_zero)
           qrs(i,k,1) = max(qrs(i,k,1)+(praut(i,k)+pracw(i,k)      + &
-                   prevp(i,k)+paacw(i,k)+phacw(i,k)-pseml(i,k)    - &
-                   pgeml(i,k)-pheml(i,k))*dtcld,d_zero)
+                   prevp(i,k)+paacw(i,k)+paacw(i,k)+phacw(i,k)    - &
+                   pseml(i,k)-pgeml(i,k)-pheml(i,k))*dtcld,d_zero)
           qrs(i,k,2) = max(qrs(i,k,2)+(psevp(i,k)+pseml(i,k)      - &
                    pgacs(i,k)-phacs(i,k))*dtcld,d_zero)
           qrs(i,k,3) = max(qrs(i,k,3)+(pgacs(i,k)+pgevp(i,k)+pgeml(i,k) - &
                    phacg(i,k))*dtcld,d_zero)
-          qrs(i,k,4) = max(qrs(i,k,4)-(phacs(i,k)+phacg(i,k)+phevp(i,k) + &
+          qrs(i,k,4) = max(qrs(i,k,4)+(phacs(i,k)+phacg(i,k)+phevp(i,k) + &
                    pheml(i,k))*dtcld,d_zero)
           xlf = wlhs-xl(i,k)
           xlwork2 = -xl(i,k)*(prevp(i,k)+psevp(i,k)+pgevp(i,k) + &
