@@ -208,8 +208,8 @@ module mod_moloch
         call getmem(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'moloch:chiten0')
       end if
     end if
-    call getmem(ud,jde1,jde2,ice1,ice2,1,kz,'moloch:ud')
-    call getmem(vd,jce1,jce2,ide1,ide2,1,kz,'moloch:vd')
+    call getmem(ud,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'moloch:ud')
+    call getmem(vd,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'moloch:vd')
     call getmem(xkdamp,1,kz,'moloch:xkdamp')
     call getmem(xknu,1,kz,'moloch:xknu')
   end subroutine allocate_moloch
@@ -597,13 +597,15 @@ module mod_moloch
 
     do nsound = 1, mo_nsound
 
-      call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
-      call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
+      ! Full exchange (with corners): the Coriolis terms average the
+      ! other wind component over the four surrounding points.
+      call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
+      call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
 
-      do concurrent ( j = jde1:jde2, i = ice1:ice2, k = 1:kz )
+      do concurrent ( j = jde1ga:jde2ga, i = ice1ga:ice2ga, k = 1:kz )
         ud(j,i,k) = u(j,i,k)
       end do
-      do concurrent ( j = jce1:jce2, i = ide1:ide2, k = 1:kz )
+      do concurrent ( j = jce1ga:jce2ga, i = ide1ga:ide2ga, k = 1:kz )
         vd(j,i,k) = v(j,i,k)
       end do
 
@@ -698,7 +700,9 @@ module mod_moloch
         zcx = dtrdx * mxu(j,i)
         zfz = egrav * dts
         zrom1u = 0.5_rkx * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-        zcor1u = coru(j,i) * dts * vd(j,i,k)
+        ! v averaged to the u point (C grid)
+        zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                 (vd(j-1,i,k) + vd(j,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
         ! Equation 17
         u(j,i,k) = u(j,i,k) + bdywtu(j,i,k) * ( zcor1u - &
                    zfz * hx(j,i) * gzitakh(k) - &
@@ -708,7 +712,9 @@ module mod_moloch
         zcy = dtrdy * myv(j,i)
         zfz = egrav * dts
         zrom1v = 0.5_rkx * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-        zcor1v = corv(j,i) * dts * ud(j,i,k)
+        ! u averaged to the v point (C grid)
+        zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                 (ud(j,i-1,k) + ud(j+1,i-1,k) + ud(j,i,k) + ud(j+1,i,k))
         ! Equation 18
         v(j,i,k) = v(j,i,k) + bdywtv(j,i,k) * (-zcor1v - &
                    zfz * hy(j,i) * gzitakh(k) - &
