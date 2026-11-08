@@ -11,7 +11,7 @@ module mod_clm_soilhydrology
   use mod_mpmessage
   use mod_runparams, only : dtsrf
   use mod_clm_type
-  use mod_clm_varcon, only : e_ice, denh2o, denice, rpi, pc, mu
+  use mod_clm_varcon, only : denh2o, denice, rpi, pc, mu
   use mod_clm_varcon, only : wimp, pondmx_urban, roverg,  &
            icol_roof, icol_sunwall, icol_shadewall, istsoil, &
            icol_road_imperv, icol_road_perv, isturb, tfrz, istcrop
@@ -44,6 +44,12 @@ module mod_clm_soilhydrology
   !use control soil hydraulic properties
   integer(ik4) :: origflag = 0
 
+  ! Soil ice impedance factor (Omega): hydraulic conductivity, infiltration
+  ! capacity and drainage of partly frozen layers are multiplied by
+  ! 10**(-e_ice*icefrac). CLM4.5 default 6.0; lower values let more
+  ! snowmelt infiltrate into partly frozen soil.
+  real(rk8), public :: e_ice = 6.0_rk8
+
   contains
   !
   ! Read namelist for SoilHydrology
@@ -54,7 +60,7 @@ module mod_clm_soilhydrology
     integer(ik4) :: unitn                ! unit for namelist file
     character(len=32) :: subname = 'SoilHydrology_readnl'  ! subroutine name
 
-    namelist / clm_soilhydrology_inparm / h2osfcflag, origflag
+    namelist / clm_soilhydrology_inparm / h2osfcflag, origflag, e_ice
 
     ! ----------------------------------------------------------------------
     ! Read namelist from standard input.
@@ -78,6 +84,14 @@ module mod_clm_soilhydrology
     ! Broadcast namelist variables read in
     call bcast(h2osfcflag)
     call bcast(origflag)
+    call bcast(e_ice)
+    if ( e_ice < 0.0_rk8 ) then
+      call fatal(__FILE__,__LINE__, &
+          subname // ':: ERROR e_ice must not be negative')
+    end if
+    if ( myid == iocpu ) then
+      write(stdout,*) 'CLM4.5 soil ice impedance factor e_ice = ', e_ice
+    end if
   end subroutine SoilHydrology_readnl
   !
   ! Calculate surface runoff
