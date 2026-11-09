@@ -225,7 +225,9 @@ module mod_pbl_uwtcm
         zax(k) = m2p%za(j,i,k)
         rttenx(k) = m2p%heatrt(j,i,k)
         preshl(k) = m2p%patm(j,i,k)
-        rlv(k) = wlh(tx(k))
+        ! Liquid latent heat: constant Lv, the same used in the inversion
+        ! below (wlh(T) returns Ls for T<0 and a T dependent Lv above).
+        rlv(k) = wlhv
         cp(k) = cpd*(d_one-qx(k)) + cpv*qx(k)
         orlv(k) = d_one/rlv(k)
         ocp(k) = d_one/cp(k)
@@ -559,8 +561,8 @@ module mod_pbl_uwtcm
           end if
 
           ! Newton iteration for liquid+vapour only.
-          ! Uses wlhv (constant Lv) because the ice enthalpy is in templ;
-          ! using rlv(k)=wlh(T) which returns Ls for T<0 would be inconsistent.
+          ! Uses wlhv (constant Lv, as rlv) because the ice enthalpy is
+          ! in templ.
           temps  = templ
           rvls   = pfwsat(temps, preshl(k))
           cpoxlv = cp(k) / wlhv
