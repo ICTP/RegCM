@@ -72,6 +72,8 @@ module mod_micro_nogtom
   use mod_runparams, only : iqqi => iqi !ice
   use mod_runparams, only : iqqs => iqs !snow
   use mod_runparams, only : dt, rdt
+  use mod_runparams, only : rhcrit_lnd, rhcrit_sea, &
+                            siglow => rhcrit_siglow
   use mod_runparams, only : ichem, iaerosol, iindirect, rcrit
   use mod_runparams, only : budget_compute, nssopt, iautoconv
   use mod_runparams, only : auto_rate_khair, auto_rate_kessl, &
@@ -99,10 +101,7 @@ module mod_micro_nogtom
   real(rkx), parameter :: autocrit_kessl = 5.e-4_rkx
   real(rkx), parameter :: rclcrit_land = 5.e-4_rkx
   real(rkx), parameter :: rclcrit_sea = 3.e-4_rkx
-  real(rkx), parameter :: rhcrit_lnd = 0.80_rkx
-  real(rkx), parameter :: rhcrit_sea = 0.90_rkx
   real(rkx), parameter :: rprc1 = 3.e2_rkx  ! in Sundqvist = 300
-  real(rkx), parameter :: siglow = 0.8_rkx
   ! Cloud fraction threshold that defines cloud top
   real(rkx), parameter :: cldtopcf = 0.1_rkx
   ! Fraction of deposition rate in cloud top layer

@@ -740,8 +740,9 @@ sensitivity experiments to select the best scheme for your application.
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
- iconvlwp =          1, ! Use convective algo for lwp in the large-scale
-                        ! This is reset to zero if using ipptls = 2
+ iconvlwp =          0, ! Use convective algo for lwp in the large-scale
+                        ! (temperature based in-cloud water for all
+                        ! clouds, ignoring the microphysics cloud water)
  icldfrac =          0, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical

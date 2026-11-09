@@ -70,7 +70,8 @@ module mod_pbl_uwtcm
   use mod_pbl_common
   use mod_pbl_thetal
   use mod_runparams, only : iqv, iqc, iqi, atwo, rstbl, &
-          czero, nuk, dt, rdt, ichem, ipptls
+          czero, nuk, dt, rdt, ichem, ipptls, rhcrit_lnd, rhcrit_sea, &
+          rhcrit_siglow
   use mod_regcm_types
   use mod_service
 
@@ -131,6 +132,7 @@ module mod_pbl_uwtcm
     real(rkx) :: uflxp, vflxp, rhoxsf, tskx, tvcon, fracz, dudz, &
                  dvdz, thgb, pblx, uu, qfxx, hfxx, uvdragx, &
                  q0s, tvfac, svs, cpoxlv, pfcor, ustx, leff, qt_liq
+    real(rkx) :: rhc0, zsig, dqc
     ! real(rkx) :: kh0, thvflx
     real(rkx) :: thv0, thx_t, thvx_t, dthv, dthv_t
     integer(ik4) :: kpbl2dx  ! Top of PBL
@@ -147,6 +149,8 @@ module mod_pbl_uwtcm
          rimp1, uimp2, rimp2, rlv, orlv, cp, ocp
     !real(rkx), dimension(maxvert) :: qwxs, thlxs
     real(rkx), dimension(maxvert) :: qix, qixs
+    ! Critical relative humidity for the subgrid condensation
+    real(rkx), dimension(maxvert) :: rhcx
     ! Ice-decoupled arrays for n2(): qwx without qi, thlx corrected for qi.
     ! n2() solves a liquid+vapour saturation problem; feeding it qwx+qi causes
     ! rcldb = max(qwx+qi-rvls,0) to overcount condensate, which can flip the
@@ -171,7 +175,7 @@ module mod_pbl_uwtcm
             kethl,thlx,thxs,tx,tvx,rttenx,preshl,qcx,qwx,rrhoxhl,uxs,qxs, &
             rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,bimp,cimp,uimp1,   &
             rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,qwxliq,thlxliq,    &
-            qtotcx,chix,chixs,chifxx,ktop,kbot) ! qwxs, thlxs
+            qtotcx,chix,chixs,chifxx,ktop,kbot,rhcx) ! qwxs, thlxs
 #else
     !$acc parallel loop collapse(2) gang vector &
     !$acc     private(zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,     &
@@ -181,7 +185,7 @@ module mod_pbl_uwtcm
     !$acc             exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,bimp,cimp,     &
     !$acc             uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,  &
     !$acc             qwxliq,thlxliq,qtotcx,chix,chixs,chifxx,ktop,      &
-    !$acc             kbot) ! qwxs, thlxs
+    !$acc             kbot,rhcx) ! qwxs, thlxs
     do i = ici1, ici2
     do j = jci1, jci2
 #endif
@@ -203,6 +207,11 @@ module mod_pbl_uwtcm
       hfxx = m2p%hfx(j,i)
       uvdragx = m2p%uvdrag(j,i)
       pfcor = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
+      if ( m2p%ldmsk(j,i) == 1 ) then
+        rhc0 = rhcrit_lnd
+      else
+        rhc0 = rhcrit_sea
+      end if
 
       ! Integrate the hydrostatic equation to calculate the level height
       ! Set variables that are on full levels
@@ -232,6 +241,18 @@ module mod_pbl_uwtcm
         orlv(k) = d_one/rlv(k)
         ocp(k) = d_one/cp(k)
       end do
+
+      if ( ipptls > 1 ) then
+        ! As in NoTo: rhcrit, increased to 1 towards the surface
+        do k = 1, kz
+          zsig = preshl(k)/presfl(kzp1)
+          rhcx(k) = rhc0
+          if ( zsig > rhcrit_siglow ) then
+            rhcx(k) = rhc0 + (d_one-rhc0) * &
+              ((zsig-rhcrit_siglow)/(d_one-rhcrit_siglow))**2
+          end if
+        end do
+      end if
 
       if ( implicit_ice .and. ipptls > 1 ) then
         do k = 1, kz
@@ -421,8 +442,13 @@ module mod_pbl_uwtcm
       ! Pass ice-decoupled thlxliq/qwxliq so n2 solves only the liquid+vapour
       ! saturation problem. Feeding qwx+qi would make rcldb overcount condensate
       ! and can spuriously flip the sign of nsquar, triggering TKE explosion.
-      call n2(kz,thlxliq,qwxliq,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv,rdza, &
-              rcldb,nsquar)
+      if ( ipptls > 1 ) then
+        call n2sg(kz,thlxliq,qwxliq,exnerfl,exnerhl,presfl,preshl,cp, &
+                  rhcx,rdza,rcldb,nsquar)
+      else
+        call n2(kz,thlxliq,qwxliq,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
+                orlv,rdza,rcldb,nsquar)
+      end if
       ! Estimate the surface N^2 from the surface virtual heat flux
       ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
       nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
@@ -504,8 +530,8 @@ module mod_pbl_uwtcm
             qwxliq(k)  = uimp2(k) - qix(k)
             thlxliq(k) = uimp1(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
           end do
-          call n2(kz,thlxliq,qwxliq,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
-                  orlv,rdza,rcldb,nsquar)
+          call n2sg(kz,thlxliq,qwxliq,exnerfl,exnerhl,presfl,preshl,cp, &
+                    rhcx,rdza,rcldb,nsquar)
         else
           call n2(kz,uimp1,uimp2,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
                   orlv,rdza,rcldb,nsquar)
@@ -560,22 +586,37 @@ module mod_pbl_uwtcm
             templ  = thlx(k) * exnerhl(k)
           end if
 
-          ! Newton iteration for liquid+vapour only.
-          ! Uses wlhv (constant Lv, as rlv) because the ice enthalpy is
-          ! in templ.
-          temps  = templ
-          rvls   = pfwsat(temps, preshl(k))
-          cpoxlv = cp(k) / wlhv
-          do iteration = 1, 3
-            deltat = ((templ - temps)*cpoxlv + qt_liq - rvls) / &
-                     (cpoxlv + ep2*wlhv*rvls/rgas/temps/temps)
-            if ( abs(deltat) < 0.01_rkx ) exit
-            temps = temps + deltat
-            rvls  = pfwsat(temps, preshl(k))
-          end do
+          if ( ipptls > 1 ) then
+            ! Subgrid condensation, consistent with the microphysics:
+            ! condensate exists from RH = rhc (NoTo cloud generation
+            ! threshold), so the grid-scale adjustment would evaporate
+            ! the subgrid clouds on every call. Only the change of the
+            ! subgrid diagnosed condensate between the states before
+            ! and after mixing is applied to the existing cloud water:
+            ! no mixing, no phase change.
+            dqc = sgcond(templ,qt_liq,preshl(k),rhcx(k),cp(k)) - &
+                  sgcond(tx(k)-wlhv*qcxs(k)*ocp(k),qxs(k)+qcxs(k), &
+                         preshl(k),rhcx(k),cp(k))
+            qcx(k) = min(max(qcxs(k)+dqc,d_zero),qt_liq)
+          else
+            ! Newton iteration for liquid+vapour only.
+            ! Uses wlhv (constant Lv, as rlv) because the ice enthalpy is
+            ! in templ.
+            temps  = templ
+            rvls   = pfwsat(temps, preshl(k))
+            cpoxlv = cp(k) / wlhv
+            do iteration = 1, 3
+              deltat = ((templ - temps)*cpoxlv + qt_liq - rvls) / &
+                       (cpoxlv + ep2*wlhv*rvls/rgas/temps/temps)
+              if ( abs(deltat) < 0.01_rkx ) exit
+              temps = temps + deltat
+              rvls  = pfwsat(temps, preshl(k))
+            end do
 
-          ! Phase split: liquid, vapour, ice (already known)
-          qcx(k) = max(qt_liq - rvls, d_zero)
+            ! Phase split: grid-scale saturation adjustment
+            qcx(k) = max(qt_liq - rvls, d_zero)
+          end if
+          ! Liquid, vapour, ice (already known)
           qx(k)  = qt_liq - qcx(k)
           ! qix(k) unchanged -- from its own implicit diffusion
 
@@ -867,6 +908,105 @@ module mod_pbl_uwtcm
   end subroutine uwtcm
 
 #include <wlh.inc>
+
+  ! Grid mean liquid condensate qc and cloud fraction cf for a
+  ! triangular subgrid distribution of total water (Smith, 1990,
+  ! QJRMS 116, 435-460) with half width (1-rhc)*qs(Tl): no cloud
+  ! below RH = rhc, grid-scale saturation adjustment for rhc = 1.
+  pure subroutine sgcloud(tl,qt,p,rhc,cpx,qc,cf)
+!$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: tl, qt, p, rhc, cpx
+    real(rkx), intent(out) :: qc, cf
+    real(rkx) :: qsl, al, qcs, bs, qn
+    qsl = pfwsat(tl,p)
+    al = d_one/(d_one+wlhv/cpx*ep2*wlhv*qsl/(rgas*tl*tl))
+    qcs = al*(qt-qsl)
+    bs = al*qsl*(d_one-rhc)
+    if ( bs < 1.0e-10_rkx ) then
+      qc = max(qcs,d_zero)
+      cf = merge(d_one,d_zero,qcs > d_zero)
+      return
+    end if
+    qn = qcs/bs
+    if ( qn <= -d_one ) then
+      qc = d_zero
+      cf = d_zero
+    else if ( qn <= d_zero ) then
+      qc = bs*(d_one+qn)**3/6.0_rkx
+      cf = d_half*(d_one+qn)**2
+    else if ( qn < d_one ) then
+      qc = bs*(qn+(d_one-qn)**3/6.0_rkx)
+      cf = d_one-d_half*(d_one-qn)**2
+    else
+      qc = qcs
+      cf = d_one
+    end if
+  end subroutine sgcloud
+
+  pure real(rkx) function sgcond(tl,qt,p,rhc,cpx)
+!$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: tl, qt, p, rhc, cpx
+    real(rkx) :: cf
+    call sgcloud(tl,qt,p,rhc,cpx,sgcond,cf)
+  end function sgcond
+
+  ! N^2 with the subgrid cloud fraction (ipptls > 1). The buoyancy
+  ! coefficients of the thetal and qt gradients are weighted between
+  ! their clear and saturated values with the interface cloud fraction
+  ! (Bretherton and Park, 2009, J. Climate 22, 3422-3448), the mean of
+  ! the layer cloud fractions of the subgrid distribution in sgcloud.
+  ! rcldb is the grid mean liquid condensate of the layer.
+  pure subroutine n2sg(kz,thlxin,qwxin,exnerfl,exnerhl,presfl,preshl, &
+                       cp,rhcx,rdza,rcldb,nsquar)
+!$acc routine seq
+    implicit none
+    integer(ik4), intent(in) :: kz
+    real(rkx), intent(in), dimension(kz) :: thlxin, qwxin, rdza
+    real(rkx), intent(in), dimension(kz) :: exnerhl, preshl, cp, rhcx
+    real(rkx), intent(in), dimension(kz+1) :: exnerfl, presfl
+    real(rkx), intent(out), dimension(kz+1) :: rcldb
+    real(rkx), intent(out), dimension(kz+1) :: nsquar
+    real(rkx), dimension(kz) :: cfl
+    real(rkx) :: thl, qt, qs, qc, th, thv, tk, gam, kap, a, bet
+    real(rkx) :: chu, cmu, chs, cms, cf, dthl, dqt
+    integer(ik4) :: k
+
+    do k = 1, kz
+      call sgcloud(thlxin(k)*exnerhl(k),qwxin(k),preshl(k),rhcx(k), &
+                   cp(k),rcldb(k),cfl(k))
+    end do
+    rcldb(kz+1) = d_zero
+    do k = 2, kz
+      thl = d_half*(thlxin(k-1)+thlxin(k))
+      qt = d_half*(qwxin(k-1)+qwxin(k))
+      kap = wlhv/(cp(k)*exnerfl(k))
+      ! saturated (in cloud) state at the interface
+      qs = pfwsat(thl*exnerfl(k),presfl(k))
+      qc = max(qt-qs,d_zero)
+      th = thl + kap*qc
+      tk = th*exnerfl(k)
+      qs = pfwsat(tk,presfl(k))
+      qc = max(qt-qs,d_zero)
+      gam = wlhv/cp(k)*ep2*wlhv*qs/(rgas*tk*tk)
+      thv = th*(d_one+ep1*(qt-qc)-qc)
+      ! clear air: d(thv) = chu*d(thl) + cmu*d(qt)
+      chu = d_one + ep1*qt
+      cmu = ep1*thl
+      ! saturated air: qv = qs(T,p), condensate adjusts
+      a = d_one + ep1*qs - qc
+      bet = (th*(d_one+ep1) - a*kap)/(d_one+gam)
+      chs = a + bet*gam/kap
+      cms = a*kap - th + bet*gam
+      cf = d_half*(cfl(k-1)+cfl(k))
+      dthl = (thlxin(k-1)-thlxin(k))*rdza(k)
+      dqt = (qwxin(k-1)-qwxin(k))*rdza(k)
+      nsquar(k) = egrav/thv * ((cf*chs+(d_one-cf)*chu)*dthl + &
+                               (cf*cms+(d_one-cf)*cmu)*dqt)
+    end do
+    nsquar(1) = nsquar(2)
+  end subroutine n2sg
 #include <pfwsat.inc>
 #include <pfmxsat.inc>
 

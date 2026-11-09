@@ -310,7 +310,7 @@ module mod_params
     idcsst = 0
     iwhitecap = 0
     iseaice = 0
-    iconvlwp = 1
+    iconvlwp = 0
 #ifdef RCEMIP
     icldfrac = 7
 #else

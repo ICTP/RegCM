@@ -192,6 +192,13 @@ module mod_runparams
        0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &  ! qr, qs, qg, qh,
        1.0e10_rkx, 100.0_rkx, 0.01_rkx ]      ! ncc, nc, nr
 
+  ! Critical relative humidity for subgrid condensation, over land
+  ! (ldmsk == 1) and elsewhere, ramped to 1 below sigma rhcrit_siglow.
+  ! Shared by the NoTo microphysics and the UW PBL (ipptls > 1).
+  real(rkx), parameter, public :: rhcrit_lnd = 0.80_rkx
+  real(rkx), parameter, public :: rhcrit_sea = 0.90_rkx
+  real(rkx), parameter, public :: rhcrit_siglow = 0.8_rkx
+
   real(rkx), public :: dt, dt2, dtsq, dtcb, dtbdys, rdt
   real(rkx), public :: dx, dx2, dx4, dx8, dx16, dxsq
   real(rkx), public :: rdx, rdxsq
