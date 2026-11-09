@@ -31,8 +31,8 @@ module mod_clm_varcon
 
   ! Fsca shape parameter
   real(rk8), public, parameter :: n_melt = 0.7_rk8
-  ! Soil ice impedance factor
-  real(rk8), public, parameter :: e_ice = 6.0_rk8
+  ! Soil ice impedance factor: now a namelist parameter (e_ice in
+  ! clm_soilhydrology_inparm, module mod_clm_soilhydrology), default 6.0
   ! Threshold probability
   real(rk8), public, parameter :: pc = 0.4_rk8
   ! Connectivity exponent
