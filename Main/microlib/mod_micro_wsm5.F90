@@ -41,8 +41,10 @@ module mod_micro_wsm5
   real(rkx), parameter :: r0 = 0.8e-5_rkx
   ! collection efficiency
   real(rkx), parameter :: peaut = 0.55_rkx
-  ! maritime cloud in contrast to 3.e8 in tc80
-  real(rkx), parameter :: xncr = 3.e8_rkx
+  ! cloud droplet number concentration [m-3]: tc80 continental value
+  ! over land (ldmsk == 1), maritime value elsewhere (water, sea ice)
+  real(rkx), parameter :: xncr_land = 3.e8_rkx
+  real(rkx), parameter :: xncr_sea = 1.e8_rkx
   ! the dynamic viscosity kgm-1s-1
   real(rkx), parameter :: xmyu = 1.718e-5_rkx
   ! a constant for terminal velocity of snow
@@ -88,7 +90,7 @@ module mod_micro_wsm5
                                         exp(xb*(1.0_rkx-wattp/tzero))
   real(rkx), parameter :: lv1 = cpw-cpv
 
-  real(rkx), save :: qc0, qck1, bvtr2, bvtr3,  &
+  real(rkx), save :: qc0l, qc0s, qck1l, qck1s, bvtr2, bvtr3,  &
           bvtr4, g3pbr, g4pbr, g5pbro2, pvtr, eacrr,  &
           pacrr, precr1, precr2, roqimax, &
           bvts2, bvts3, bvts4, g3pbs, g4pbs, g5pbso2, &
@@ -119,6 +121,10 @@ module mod_micro_wsm5
 !  real(rkx), dimension(:,:), pointer, contiguous :: ice_er
 !  real(rkx), dimension(:,:), pointer, contiguous :: snow_er
   real(rkx), dimension(:), pointer, contiguous :: ptfac
+  ! per column droplet number and autoconversion threshold/coefficient
+  real(rkx), dimension(:), pointer, contiguous :: xncr
+  real(rkx), dimension(:), pointer, contiguous :: qc0
+  real(rkx), dimension(:), pointer, contiguous :: qck1
   real(rkx), dimension(:), pointer, contiguous :: rain
   real(rkx), dimension(:), pointer, contiguous :: snow
 
@@ -143,15 +149,21 @@ module mod_micro_wsm5
     !call getmem(ice_er,is,ie,1,kz,'wsm5::ice_er')
     !call getmem(snow_er,is,ie,1,kz,'wsm5::snow_er')
     call getmem(ptfac,is,ie,'wsm5::ptfac')
+    call getmem(xncr,is,ie,'wsm5::xncr')
+    call getmem(qc0,is,ie,'wsm5::qc0')
+    call getmem(qck1,is,ie,'wsm5::qck1')
     call getmem(rain,is,ie,'wsm5::rain')
     call getmem(snow,is,ie,'wsm5::snow')
   end subroutine allocate_mod_wsm5
 
   subroutine init_wsm5
     implicit none
-    qc0  = fourt*mathpi*rhoh2o*r0**3*xncr/stdrho  ! 0.419e-3 -- .61e-3
-    qck1 = 0.104_rkx*egrav*peaut / &
-                  (xncr*rhoh2o)**(onet)/xmyu*stdrho**(fourt) ! 7.03
+    qc0l  = fourt*mathpi*rhoh2o*r0**3*xncr_land/stdrho
+    qc0s  = fourt*mathpi*rhoh2o*r0**3*xncr_sea/stdrho
+    qck1l = 0.104_rkx*egrav*peaut / &
+                  (xncr_land*rhoh2o)**(onet)/xmyu*stdrho**(fourt)
+    qck1s = 0.104_rkx*egrav*peaut / &
+                  (xncr_sea*rhoh2o)**(onet)/xmyu*stdrho**(fourt)
     !pidnc = mathpi*rhoh2o/d_six        ! syb
     bvtr2 = 2.5_rkx+d_half*bvtr
     bvtr3 = 3.0_rkx+bvtr
@@ -259,6 +271,19 @@ module mod_micro_wsm5
     end if
     do concurrent ( n = is:ie, k = 1:kz )
       pccw(n,k) = d_zero
+    end do
+
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
+      if ( mo2mc%ldmsk(j,i) == 1 ) then
+        xncr(n) = xncr_land
+        qc0(n) = qc0l
+        qck1(n) = qck1l
+      else
+        xncr(n) = xncr_sea
+        qc0(n) = qc0s
+        qck1(n) = qck1s
+      end if
     end do
 
     call wsm52d(dt,is,ie)
@@ -597,7 +622,7 @@ module mod_micro_wsm5
         if ( supcol > d_zero .and. qci(i,k,1) > 0.0_rkx ) then
           supcolt = min(supcol,50.0_rkx)
           pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-d_one) * &
-               den(i,k)/rhoh2o/xncr*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
+               den(i,k)/rhoh2o/xncr(i)*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
           qci(i,k,2) = qci(i,k,2) + pfrzdtc
           t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtc
           qci(i,k,1) = qci(i,k,1)-pfrzdtc
@@ -645,8 +670,8 @@ module mod_micro_wsm5
         ! praut: auto conversion rate from cloud to rain [hdc 16]
         !        (c->r)
         !
-        if ( qci(i,k,1) > qc0 ) then
-          praut(i,k) = qck1*exp(log(qci(i,k,1))*((7.0_rkx/3.0_rkx)))
+        if ( qci(i,k,1) > qc0(i) ) then
+          praut(i,k) = qck1(i)*exp(log(qci(i,k,1))*((7.0_rkx/3.0_rkx)))
           praut(i,k) = min(praut(i,k),qci(i,k,1)*rdtcld)
         end if
         !

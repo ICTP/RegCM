@@ -135,7 +135,7 @@ module mod_massck
           tqeva = tqeva + sfs%qfx(j,i)*dxsq*dt
         end do
       end do
-      do n = 1, nqx
+      do n = 1, iqlst
         do k = 1, kz
           do i = ici1, ici2
             do j = jci1, jci2
@@ -251,7 +251,7 @@ module mod_massck
           tqeva = tqeva + sfs%qfx(j,i)*dxsq*dt
         end do
       end do
-      do n = 1, nqx
+      do n = 1, iqlst
         do k = 1, kz
           tttmp = q_zero
           do i = ici1, ici2

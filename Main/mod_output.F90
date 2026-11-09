@@ -1651,7 +1651,7 @@ module mod_output
             wi = d_zero
             do k = 1, kz
               rtot = d_zero
-              do n = 1, nqx
+              do n = 1, iqlst
                 if ( idynamic == 3 ) then
                   rtot = rtot + mo_atm%qx(j,i,k,n)
                 else
