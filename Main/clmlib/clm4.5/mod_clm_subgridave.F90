@@ -557,6 +557,9 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! gridcell of corresponding pft
     integer(ik4), pointer, contiguous, dimension(:) :: pgridcell
+    ! pft range of each gridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: gpfti
+    integer(ik4), pointer, contiguous, dimension(:) :: gpftf
     ! column type
     integer(ik4), pointer, contiguous, dimension(:) :: ctype
     ! landunit of corresponding column
@@ -574,6 +577,8 @@ module  mod_clm_subgridave
     wtgcell   => clm3%g%l%c%p%wtgcell
     pcolumn   => clm3%g%l%c%p%column
     pgridcell => clm3%g%l%c%p%gridcell
+    gpfti => clm3%g%pfti
+    gpftf => clm3%g%pftf
     plandunit => clm3%g%l%c%p%landunit
 
     call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
@@ -672,21 +677,22 @@ module  mod_clm_subgridave
         end if
       end if
     end do
+    ! One thread per gridcell, its pfts summed in order: reproducible
     !$acc parallel loop gang vector async
-    do p = lbp, ubp
-      if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
-        c = pcolumn(p)
-        l = plandunit(p)
-        if ( parr(p) /= spval .and. &
-             scale_c2l(c) /= spval .and. scale_l2g(l) /= spval ) then
-          g = pgridcell(p)
-          !$acc atomic update
-          garr(g) = garr(g) + &
+    do g = lbg, ubg
+      !$acc loop seq
+      do p = gpfti(g), gpftf(g)
+        if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
+          c = pcolumn(p)
+          l = plandunit(p)
+          if ( parr(p) /= spval .and. &
+               scale_c2l(c) /= spval .and. scale_l2g(l) /= spval ) then
+            garr(g) = garr(g) + &
               parr(p) * scale_p2c(p) * scale_c2l(c) * scale_l2g(l) * wtgcell(p)
-          !$acc atomic update
-          sumwt(g) = sumwt(g) + wtgcell(p)
+            sumwt(g) = sumwt(g) + wtgcell(p)
+          end if
         end if
-      end if
+      end do
     end do
 
     found = .false.
@@ -742,6 +748,9 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: plandunit
     ! gridcell of corresponding pft
     integer(ik4), pointer, contiguous, dimension(:) :: pgridcell
+    ! pft range of each gridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: gpfti
+    integer(ik4), pointer, contiguous, dimension(:) :: gpftf
     ! landunit of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
@@ -757,6 +766,8 @@ module  mod_clm_subgridave
     wtgcell      => clm3%g%l%c%p%wtgcell
     pcolumn      => clm3%g%l%c%p%column
     pgridcell    => clm3%g%l%c%p%gridcell
+    gpfti => clm3%g%pfti
+    gpftf => clm3%g%pftf
     plandunit    => clm3%g%l%c%p%landunit
 
     call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
@@ -859,22 +870,23 @@ module  mod_clm_subgridave
     end do
 #endif
     end do
+    ! One thread per gridcell, its pfts summed in order: reproducible
     !$acc parallel loop collapse(2) gang vector async
     do j = 1, num2d
-      do p = lbp, ubp
-        if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
-          c = pcolumn(p)
-          l = plandunit(p)
-          if ( parr(p,j) /= spval .and. &
-               scale_c2l(c) /= spval .and. scale_l2g(l) /= spval ) then
-            g = pgridcell(p)
-            !$acc atomic update
-            garr(g,j) = garr(g,j) + &
+      do g = lbg, ubg
+        !$acc loop seq
+        do p = gpfti(g), gpftf(g)
+          if ( pactive(p) .and. wtgcell(p) /= 0._rk8 ) then
+            c = pcolumn(p)
+            l = plandunit(p)
+            if ( parr(p,j) /= spval .and. &
+                 scale_c2l(c) /= spval .and. scale_l2g(l) /= spval ) then
+              garr(g,j) = garr(g,j) + &
                  parr(p,j)*scale_p2c(p)*scale_c2l(c)*scale_l2g(l)*wtgcell(p)
-            !$acc atomic update
-            sumwt(g,j) = sumwt(g,j) + wtgcell(p)
+              sumwt(g,j) = sumwt(g,j) + wtgcell(p)
+            end if
           end if
-        end if
+        end do
       end do
     end do
     found = .false.
@@ -1147,6 +1159,9 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! gridcell of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
+    ! column range of each gridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: gcoli
+    integer(ik4), pointer, contiguous, dimension(:) :: gcolf
     ! initial column index in gridcell
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
     integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
@@ -1160,6 +1175,8 @@ module  mod_clm_subgridave
     wtgcell    => clm3%g%l%c%wtgcell
     clandunit  => clm3%g%l%c%landunit
     cgridcell  => clm3%g%l%c%gridcell
+    gcoli => clm3%g%coli
+    gcolf => clm3%g%colf
 
     call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
@@ -1242,19 +1259,21 @@ module  mod_clm_subgridave
         end if
       end if
     end do
+    ! One thread per gridcell, its columns summed in order: reproducible
     !$acc parallel loop gang vector async
-    do c = lbc, ubc
-      if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
-        l = clandunit(c)
-        if ( carr(c) /= spval .and. &
-             scale_c2l(c) /= spval .and. scale_l2g(l) /= spval ) then
-          g = cgridcell(c)
-          !$acc atomic update
-          garr(g) = garr(g) + carr(c) * scale_c2l(c) * scale_l2g(l) * wtgcell(c)
-          !$acc atomic update
-          sumwt(g) = sumwt(g) + wtgcell(c)
+    do g = lbg, ubg
+      !$acc loop seq
+      do c = gcoli(g), gcolf(g)
+        if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
+          l = clandunit(c)
+          if ( carr(c) /= spval .and. &
+               scale_c2l(c) /= spval .and. scale_l2g(l) /= spval ) then
+            garr(g) = garr(g) + &
+              carr(c) * scale_c2l(c) * scale_l2g(l) * wtgcell(c)
+            sumwt(g) = sumwt(g) + wtgcell(c)
+          end if
         end if
-      end if
+      end do
     end do
     found = .false.
     !$acc parallel loop gang vector copy(found) copyout(iind) async
@@ -1304,6 +1323,9 @@ module  mod_clm_subgridave
     integer(ik4), pointer, contiguous, dimension(:) :: clandunit
     ! gridcell of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
+    ! column range of each gridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: gcoli
+    integer(ik4), pointer, contiguous, dimension(:) :: gcolf
     ! initial column index in gridcell
     integer(ik4), pointer, contiguous, dimension(:) :: ctype ! column type
     integer(ik4), pointer, contiguous, dimension(:) :: ltype ! landunit type
@@ -1317,6 +1339,8 @@ module  mod_clm_subgridave
     wtgcell    => clm3%g%l%c%wtgcell
     clandunit  => clm3%g%l%c%landunit
     cgridcell  => clm3%g%l%c%gridcell
+    gcoli => clm3%g%coli
+    gcolf => clm3%g%colf
 
     call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
@@ -1403,21 +1427,22 @@ module  mod_clm_subgridave
     end do
 #endif
     end do
+    ! One thread per gridcell, its columns summed in order: reproducible
     !$acc parallel loop collapse(2) gang vector async
     do j = 1, num2d
-      do c = lbc, ubc
-        if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
-          l = clandunit(c)
-          if ( carr(c,j) /= spval .and. &
-               scale_c2l(c) /= spval .and. scale_l2g(l) /= spval) then
-            g = cgridcell(c)
-            !$acc atomic update
-            garr(g,j) = garr(g,j) + &
-               carr(c,j) * scale_c2l(c) * scale_l2g(l) * wtgcell(c)
-            !$acc atomic update
-            sumwt(g,j) = sumwt(g,j) + wtgcell(c)
+      do g = lbg, ubg
+        !$acc loop seq
+        do c = gcoli(g), gcolf(g)
+          if ( cactive(c) .and. wtgcell(c) /= 0._rk8 ) then
+            l = clandunit(c)
+            if ( carr(c,j) /= spval .and. &
+                 scale_c2l(c) /= spval .and. scale_l2g(l) /= spval) then
+              garr(g,j) = garr(g,j) + &
+                 carr(c,j) * scale_c2l(c) * scale_l2g(l) * wtgcell(c)
+              sumwt(g,j) = sumwt(g,j) + wtgcell(c)
+            end if
           end if
-        end if
+        end do
       end do
     end do
     found = .false.
@@ -1460,10 +1485,15 @@ module  mod_clm_subgridave
     real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! gridcell of corresponding landunit
     integer(ik4), pointer, contiguous, dimension(:) :: lgridcell
+    ! landunit range of each gridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: gluni
+    integer(ik4), pointer, contiguous, dimension(:) :: glunf
 
     lactive    => clm3%g%l%active
     wtgcell    => clm3%g%l%wtgcell
     lgridcell  => clm3%g%l%gridcell
+    gluni => clm3%g%luni
+    glunf => clm3%g%lunf
 
     call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
@@ -1484,17 +1514,18 @@ module  mod_clm_subgridave
         end if
       end if
     end do
+    ! One thread per gridcell, its landunits summed in order: reproducible
     !$acc parallel loop gang vector async
-    do l = lbl, ubl
-      if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
-        if ( larr(l) /= spval .and. scale_l2g(l) /= spval ) then
-          g = lgridcell(l)
-          !$acc atomic update
-          garr(g) = garr(g) + larr(l) * scale_l2g(l) * wtgcell(l)
-          !$acc atomic update
-          sumwt(g) = sumwt(g) + wtgcell(l)
+    do g = lbg, ubg
+      !$acc loop seq
+      do l = gluni(g), glunf(g)
+        if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
+          if ( larr(l) /= spval .and. scale_l2g(l) /= spval ) then
+            garr(g) = garr(g) + larr(l) * scale_l2g(l) * wtgcell(l)
+            sumwt(g) = sumwt(g) + wtgcell(l)
+          end if
         end if
-      end if
+      end do
     end do
     found = .false.
     !$acc parallel loop gang vector copy(found) copyout(iind) async
@@ -1537,10 +1568,15 @@ module  mod_clm_subgridave
     real(rk8), pointer, contiguous, dimension(:) :: wtgcell
     ! gridcell of corresponding landunit
     integer(ik4), pointer, contiguous, dimension(:) :: lgridcell
+    ! landunit range of each gridcell
+    integer(ik4), pointer, contiguous, dimension(:) :: gluni
+    integer(ik4), pointer, contiguous, dimension(:) :: glunf
 
     lactive   => clm3%g%l%active
     wtgcell   => clm3%g%l%wtgcell
     lgridcell => clm3%g%l%gridcell
+    gluni => clm3%g%luni
+    glunf => clm3%g%lunf
 
     call build_scale_l2g_async(l2g_scale_type,lbl,ubl,scale_l2g)
 
@@ -1565,18 +1601,19 @@ module  mod_clm_subgridave
     end do
 #endif
     end do
+    ! One thread per gridcell, its landunits summed in order: reproducible
     !$acc parallel loop collapse(2) gang vector async
     do j = 1, num2d
-      do l = lbl, ubl
-        if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
-          if ( larr(l,j) /= spval .and. scale_l2g(l) /= spval ) then
-            g = lgridcell(l)
-            !$acc atomic update
-            garr(g,j) = garr(g,j) + larr(l,j) * scale_l2g(l) * wtgcell(l)
-            !$acc atomic update
-            sumwt(g,j) = sumwt(g,j) + wtgcell(l)
+      do g = lbg, ubg
+        !$acc loop seq
+        do l = gluni(g), glunf(g)
+          if ( lactive(l) .and. wtgcell(l) /= 0._rk8 ) then
+            if ( larr(l,j) /= spval .and. scale_l2g(l) /= spval ) then
+              garr(g,j) = garr(g,j) + larr(l,j) * scale_l2g(l) * wtgcell(l)
+              sumwt(g,j) = sumwt(g,j) + wtgcell(l)
+            end if
           end if
-        end if
+        end do
       end do
     end do
 

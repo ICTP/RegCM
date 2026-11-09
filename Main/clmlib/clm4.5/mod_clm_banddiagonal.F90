@@ -277,7 +277,8 @@ subroutine BandDiagonal_gpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
     integer(ik4), dimension(:), allocatable :: indices, sizes,locind
 
     ! cuSPARSE handles and buffers
-    type(cusparseHandle) :: cusparse_h
+    ! The handle is created once: it must keep its value between calls
+    type(cusparseHandle), save :: cusparse_h
     integer :: algo = 0  ! QR factorization (only one supported at this time)
     integer :: k,stat, batchSize
     integer(ik8) :: bufferSize
@@ -400,6 +401,12 @@ subroutine BandDiagonal_gpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
        ! Solve the batch
        stat = cusparseDgpsvInterleavedBatch(cusparse_h, algo, n, &
               d_S, d_L, d_M, d_U, d_W, d_X, batchSize, d_buffer)
+       if ( stat /= CUSPARSE_STATUS_SUCCESS ) then
+         call fatal(__FILE__,__LINE__,'cuSPARSE gpsv batch solve failed')
+       end if
+       ! cuSPARSE runs on its own stream: wait for the solution before
+       ! the OpenACC copy back reads it
+       stat = cudaDeviceSynchronize()
 
        ! Copy the solution back to the proper index
 

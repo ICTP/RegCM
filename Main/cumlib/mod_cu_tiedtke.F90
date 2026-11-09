@@ -348,7 +348,11 @@ module mod_cu_tiedtke
     !   KTYPE = 3 => MIDLEVEL CONVECTION
     !
     if ( ipptls > 1 ) then
+#ifdef STDPAR
+      do concurrent ( ii = 1:nipoi ) reduce(+:total_precip_points)
+#else
       do concurrent ( ii = 1:nipoi )
+#endif
         if (ktype(ii) > 0) then
           i = imap(ii)
           j = jmap(ii)
@@ -359,7 +363,11 @@ module mod_cu_tiedtke
         end if
       end do
     else
+#ifdef STDPAR
+      do concurrent ( ii = 1:nipoi ) reduce(+:total_precip_points)
+#else
       do concurrent ( ii = 1:nipoi )
+#endif
         if (ktype(ii) > 0) then
           i = imap(ii)
           j = jmap(ii)
@@ -998,9 +1006,12 @@ module mod_cu_tiedtke
         ilwmin(n) = nk
         wmax(n) = d_zero
       end do
-      do concurrent ( n = n1:n2, k = nk-1:2:-1 )
-        zs = max(cpd*tf(n,k)+geof(n,k),cpd*tf(n,k+1)+geof(n,k+1))
-        tf(n,k) = (zs-geof(n,k))*rcpd
+      ! Downward recurrence on tf: k must be sequential
+      do concurrent ( n = n1:n2 )
+        do k = nk-1, 2, -1
+          zs = max(cpd*tf(n,k)+geof(n,k),cpd*tf(n,k+1)+geof(n,k+1))
+          tf(n,k) = (zs-geof(n,k))*rcpd
+        end do
       end do
       do k = nk, 3, -1
         do concurrent ( n = n1:n2 )
@@ -1435,7 +1446,11 @@ module mod_cu_tiedtke
         end if
         if ( kk < nk ) then
           llreset = .false.
+#ifdef STDPAR
+          do concurrent ( n = n1:n2 ) reduce(.or.:llreset)
+#else
           do concurrent ( n = n1:n2 )
+#endif
             if ( .not.lldeep(n) ) then
               kt = ictop(n)
               kb = icbot(n)
@@ -1703,7 +1718,11 @@ module mod_cu_tiedtke
         call mcbase(ik)
         is = 0
         nlm = 0
+#ifdef STDPAR
+        do concurrent ( n = n1:n2 ) reduce(+:is)
+#else
         do concurrent ( n = n1:n2 )
+#endif
           llflag(n) = .false.
           precip(n) = d_zero
           llo1(n) = .false.

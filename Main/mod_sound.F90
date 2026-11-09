@@ -452,6 +452,9 @@ module mod_sound
                           atmc%u(j,i+1,k)   * mddom%msfd(j,i+1) ) /  &
                       mddom%msfx(j,i) - &
                       d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
+      end do
+      ! rhs uses ptend at k-1: a separate loop, k is concurrent
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
         rhs(j,i,k) = atmc%w(j,i,k) +                                    &
                 aten%w(j,i,k,pc_total) + ca(j,i,k) * ( bpxbm *          &
                  ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &

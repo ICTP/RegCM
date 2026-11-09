@@ -194,10 +194,13 @@ module mod_split
     call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
 
-    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz, l = 1:nsplit )
-      dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * map(j,i) * rdx2 * &
+    ! The sum over k is sequential: k must not be a concurrent index
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, l = 1:nsplit )
+      do k = 1, kz
+        dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * map(j,i) * rdx2 * &
                  (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
                    vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
+      end do
     end do
     !
     ! Geopotential manipulations
@@ -270,10 +273,12 @@ module mod_split
         deld(j,i,l,3) = d_zero
       end do
 
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        deld(j,i,l,3) = deld(j,i,l,3) + zmatxr(l,k) * rdx2 * map(j,i) * &
-               (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
-                 vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+        do k = 1, kz
+          deld(j,i,l,3) = deld(j,i,l,3) + zmatxr(l,k) * rdx2 * map(j,i) * &
+                 (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
+                   vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
+        end do
       end do
     end do
 
@@ -295,10 +300,12 @@ module mod_split
       do concurrent ( j = jde1:jde2, i = ide1:ide2 )
         deld(j,i,l,2) = d_zero
       end do
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        deld(j,i,l,2) = deld(j,i,l,2) + zmatxr(l,k) * rdx2 * map(j,i) * &
-              (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
-                vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+        do k = 1, kz
+          deld(j,i,l,2) = deld(j,i,l,2) + zmatxr(l,k) * rdx2 * map(j,i) * &
+                (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
+                  vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
+        end do
       end do
     end do
 

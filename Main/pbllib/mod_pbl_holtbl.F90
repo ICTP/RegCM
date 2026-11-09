@@ -983,8 +983,7 @@ module mod_pbl_holtbl
       ttnp(j,i,1) = d_zero
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-      ttnp(j,i,k) = cfac(j,i,k)*hydf(j,i,k)*rhohf(j,i,k-1) * &
-                        kvh(j,i,k)*cgh(j,i,k)
+      ttnp(j,i,k) = cfac(j,i,k)*rhohf(j,i,k-1)*kvh(j,i,k)*cgh(j,i,k)
     end do
     if ( idynamic /= 3 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
@@ -995,17 +994,17 @@ module mod_pbl_holtbl
     !   compute the tendencies:
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
-      p2m%tten(j,i,k) = p2m%tten(j,i,k)+(ttnp(j,i,k+1)-ttnp(j,i,k))
+      p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
+                     hydf(j,i,k)*(ttnp(j,i,k+1)-ttnp(j,i,k))
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - ttnp(j,i,kz)
+      p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - hydf(j,i,kz)*ttnp(j,i,kz)
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       ttnp(j,i,1) = d_zero
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-      ttnp(j,i,k) = hydf(j,i,k)*rhohf(j,i,k-1) * &
-                        kvq(j,i,k)*cgs(j,i,k)*kqfs(j,i)
+      ttnp(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)*cgs(j,i,k)*kqfs(j,i)
     end do
     if ( idynamic /= 3 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
@@ -1016,10 +1015,11 @@ module mod_pbl_holtbl
     !   compute the tendencies:
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
-      qtenv(j,i,k) = qtenv(j,i,k) + (ttnp(j,i,k+1)-ttnp(j,i,k))
+      qtenv(j,i,k) = qtenv(j,i,k) + &
+                     hydf(j,i,k)*(ttnp(j,i,k+1)-ttnp(j,i,k))
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      qtenv(j,i,kz) = qtenv(j,i,kz) - ttnp(j,i,kz)
+      qtenv(j,i,kz) = qtenv(j,i,kz) - hydf(j,i,kz)*ttnp(j,i,kz)
     end do
 
 #ifdef RCEMIP

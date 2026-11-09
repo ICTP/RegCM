@@ -291,14 +291,18 @@ module mod_rad_outrad
         b(j,i) = d_zero
       end do
       if ( irrtm == 1 ) then
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
+        do concurrent ( j=jci1:jci2, i=ici1:ici2 )
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i) = real(b(j,i) + a(n,k,l),rkx)
+          do k = ki, kl
+            b(j,i) = real(b(j,i) + a(n,k,l),rkx)
+          end do
         end do
       else
-        do concurrent ( j=jci1:jci2, i=ici1:ici2, k=ki:kl )
+        do concurrent ( j=jci1:jci2, i=ici1:ici2 )
           n = (j-jci1)+(i-ici1)*nj+1
-          b(j,i) = real(b(j,i) + a(k,n,l),rkx)
+          do k = ki, kl
+            b(j,i) = real(b(j,i) + a(k,n,l),rkx)
+          end do
         end do
       end if
     end if

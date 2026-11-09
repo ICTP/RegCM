@@ -774,7 +774,7 @@ module mod_tendency
 
     subroutine decouple( )
       implicit none
-      integer(ik4) :: i, j, k
+      integer(ik4) :: i, j, k, n
       !
       ! Helper
       !
@@ -1002,12 +1002,11 @@ module mod_tendency
       ! Total water load
       !
       if ( ipptls > 1 ) then
-        !$acc kernels
-        qcd(:,:,:) = d_zero
-        !$acc end kernels
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, &
-                        k = 1:kz, n = iqfrst:iqlst )
-          qcd(j,i,k) = qcd(j,i,k) + atmx%qx(j,i,k,n)
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          qcd(j,i,k) = d_zero
+          do n = iqfrst, iqlst
+            qcd(j,i,k) = qcd(j,i,k) + atmx%qx(j,i,k,n)
+          end do
         end do
       end if
     end subroutine decouple

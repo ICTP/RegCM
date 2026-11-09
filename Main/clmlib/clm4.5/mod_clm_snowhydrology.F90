@@ -605,6 +605,7 @@ module mod_clm_snowhydrology
     real(rk8) :: void   ! void (1 - vol_ice - vol_liq)
     real(rk8) :: wx     ! water mass (ice+liquid) [kg/m2]
     real(rk8) :: bi     ! partial density of ice [kg/m3]
+    integer(ik4) :: jj  ! snow layer index for the water sum
     real(rk8) :: wsum   ! snowpack total water mass (ice+liquid) [kg/m2]
     real(rk8) :: fsno_melt
     integer(ik4), pointer, contiguous :: clandunit(:)       !landunit index for each column
@@ -637,7 +638,13 @@ module mod_clm_snowhydrology
     burden(lbc:ubc) = 0._rk8
     !$acc end kernels
 
+#ifdef STDPAR
+    do concurrent ( fc = 1:num_snowc ) &
+      local(c,l,j,jj,wx,void,bi,fi,td,dexpf,ddz1,ddz2,ddz3,pdzdtc, &
+            wsum,fsno_melt)
+#else
     do concurrent ( fc = 1:num_snowc )
+#endif
       c = filter_snowc(fc)
       !$acc loop seq
       do j = -nlevsno+1, 0
@@ -686,8 +693,11 @@ module mod_clm_snowhydrology
 
                 ! 2nd term is delta fsno over fsno, allowing for
                 ! negative values for ddz3
-                wsum = sum(h2osoi_liq(c,snl(c)+1:0) + &
-                           h2osoi_ice(c,snl(c)+1:0))
+                ! Explicit loop: no array temporary in device code
+                wsum = 0._rk8
+                do jj = snl(c)+1, 0
+                  wsum = wsum + h2osoi_liq(c,jj) + h2osoi_ice(c,jj)
+                end do
                 fsno_melt = 1.0_rk8 - &
                         (acos(2.0_rk8*min(1._rk8,wsum/int_snow(c)) - &
                         1._rk8)/rpi)**(n_melt(c))
