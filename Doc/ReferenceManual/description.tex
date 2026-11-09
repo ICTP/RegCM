@@ -1542,11 +1542,44 @@ water mixing ratio, $Q_w$ (including vapour, liquid, and cloud ice when mixed-ph
 microphysics is active), and momentum, $u_i$.  The use of these variables ensures
 that enthalpy and water are explicitly conserved when mixing between clear and
 cloudy parcels of air; care has to be taken otherwise (when using $\theta$ and
-$q$) to ensure conservation in this situation.  When mixed-phase microphysics
-is active, cloud ice is diffused with the scalar diffusivity $K_h$ alongside
-the liquid-water potential temperature, and the phase partitioning after
-diffusion is performed by a Newton iteration on the ice-decoupled
-liquid/vapour system.
+$q$) to ensure conservation in this situation.  The liquid-ice water potential
+temperature uses a constant latent heat of vaporisation $L_v$ for the cloud
+liquid and the latent heat of sublimation $L_s$ for the cloud ice, the same
+constants used to recover $\theta$ after mixing.  When mixed-phase
+microphysics is active, cloud ice is diffused with the scalar diffusivity $K_h$
+alongside the liquid-water potential temperature, and only liquid water and
+vapour are partitioned after diffusion.
+
+With the SUBEX microphysics (\texttt{ipptls}=1) the partitioning is a
+grid-scale saturation adjustment, solved by a Newton iteration, and the moist
+buoyancy frequency $N^2$ treats each layer as either saturated or clear.  With
+the other microphysics schemes (\texttt{ipptls}>1) the clouds exist below grid
+saturation, and UW uses a subgrid condensation consistent with them.  Total
+water has a triangular subgrid distribution \citep{Smith_90} with half width
+$(1-RH_c)\,q_s(T_l)$, which gives the grid-mean liquid water $q_l^{sg}$ and the
+cloud fraction $C$ as functions of $\theta_l$, $Q_w$ and the pressure.  The
+critical relative humidity $RH_c$ is that of the Nogherotto-Tompkins cloud
+formation: 0.8 over land and 0.9 elsewhere, increased to 1 towards the surface
+below $\sigma = 0.8$.  Only the change of the diagnosed condensate across the
+mixing step is applied to the cloud water carried by the model,
+\begin{equation}
+  q_l^{n+1} = q_l^{n} + q_l^{sg}(\theta_l^{n+1},Q_w^{n+1}) -
+              q_l^{sg}(\theta_l^{n},Q_w^{n}),
+\end{equation}
+bounded between zero and the available water, so that without mixing the
+cloud water set by the microphysics is left unchanged.  The buoyancy frequency
+at each interface weights the clear and saturated buoyancy coefficients of the
+$\theta_l$ and $Q_w$ gradients with the interface cloud fraction, the mean of
+the fractions of the two adjacent layers \citep{Bretherton_09}:
+\begin{equation}
+  N^2 = \frac{g}{\theta_v}\left\{\left[C\,c_{h,s}+(1-C)\,c_{h,u}\right]
+        \frac{\partial \theta_l}{\partial z} +
+        \left[C\,c_{m,s}+(1-C)\,c_{m,u}\right]
+        \frac{\partial Q_w}{\partial z}\right\},
+\end{equation}
+where $c_{h,u} = 1+\epsilon Q_w$ and $c_{m,u} = \epsilon\,\theta_l$ hold for
+clear air ($\epsilon = R_v/R_d - 1$), and the saturated coefficients $c_{h,s}$
+and $c_{m,s}$ include the condensation of the excess over saturation.
 
 At each model timestep, the UW model does the following: determines the
 boundary layer height, $h$, calculates the surface TKE, predicts the change in
@@ -2102,7 +2135,9 @@ fraction follows a maximum-overlap assumption,
 \end{equation}
 and the corresponding in-cloud liquid water content (LWC) is a weighted blend
 of the large-scale condensate and a temperature-based estimate for the
-convective part. The scheme-weighted LWC is optionally scaled following the
+convective part. With \texttt{iconvlwp}=1 the temperature-based estimate is
+used for all clouds instead, and the radiation does not see the condensate of
+the microphysics; the default is \texttt{iconvlwp}=0. The scheme-weighted LWC is optionally scaled following the
 observational constraint of \citet{Liang_05} to account for the systematic
 relationship between cloud fraction and optical depth at the grid scale.
 The eight large-scale schemes, indexed by \texttt{icldfrac} from 0 to 7,
@@ -2112,7 +2147,7 @@ are described below.\\
 \begin{enumerate}
 \setcounter{enumi}{-1}
 
-\item {\bf SUBEX (Sundqvist--Pal, \texttt{icldfrac}=0):} The default scheme.
+\item {\bf SUBEX (Sundqvist--Pal, \texttt{icldfrac}=0):}
 The Subgrid Explicit Moisture Scheme follows the statistical framework of
 \citet{Sundqvist_89} and is fully described in \citet{Pal_00}. The cloud
 fraction is a function of grid-mean relative humidity $RH$ and a critical
@@ -2126,19 +2161,21 @@ RH_\mathrm{max}$. The critical relative humidity $RH_\mathrm{crit}$ is a
 function of temperature and pressure following \citet{Pal_00}, with an optional
 correction for Arctic low cloud based on \citet{Vavrus_08}.\\
 
-\item {\bf Xu--Randall (\texttt{icldfrac}=1):} The semiempirical scheme of
+\item {\bf Xu--Randall (\texttt{icldfrac}=1):} The default scheme.
+The semiempirical scheme of
 \citet{xu:96a} expresses cloud fraction as a joint function of both the
 grid-mean relative humidity $RH$ and the grid-mean cloud liquid water mixing
 ratio $q_c$:
 \begin{equation}
   FC = RH^{\,p}\!\left[1 - \exp\!\left(-\frac{\alpha_0\,q_c}
-       {(1 - RH)\,q_\mathrm{sat}^{\,\gamma}}\right)\right],
+       {\left[(1 - RH)\,q_\mathrm{sat}\right]^{\gamma}}\right)\right],
 \end{equation}
 where $p$, $\alpha_0$, and $\gamma$ are empirical constants fitted to
 large-eddy simulation data, and $q_\mathrm{sat}$ is the saturation mixing
 ratio. The formula captures the joint dependence of cloud fraction on both
 thermodynamic state and the amount of condensate produced by the
-microphysics.\\
+microphysics: there is no cloud without condensate, and $FC = 1$ at
+saturation.\\
 
 \item {\bf Thompson (\texttt{icldfrac}=2):} The scheme adapts the treatment
 used in the WRF Thompson microphysics \citep{Thompson_08} to diagnose cloud
@@ -2420,7 +2457,10 @@ capped at $q_i/\Delta t$.  Snow melts to rain ($q_s \to q_r$) when $T > 0$°C.
 \paragraph{Warm processes.}
 Cloud water autoconversion to rain ($q_c \to q_r$) follows a threshold
 formulation with a collection efficiency of 0.55 and a critical cloud droplet
-radius of $8$~\textmu m.  Collection of cloud water by rain ($q_c \to q_r$,
+radius of $8$~\textmu m.  The cloud droplet number concentration in the
+autoconversion and in the freezing of cloud water is
+$3\times10^{8}$~m$^{-3}$ over land and $10^{8}$~m$^{-3}$ elsewhere (water and
+sea ice).  Collection of cloud water by rain ($q_c \to q_r$,
 accretion $P_{racw}$) and below-cloud evaporation of rain ($q_r \to q_v$) are
 also included.  Condensation is diagnosed from the saturation adjustment.
 
