@@ -3910,7 +3910,7 @@ module mod_bdycod
       amax(k) = 0.0_rk8
     end do
 
-    !$acc parallel loop collapse(2) gang vector
+    !$acc parallel loop collapse(2) gang vector private(amax_local)
     do k = 1, kz
     do j = jj1, jj2
       amax_local = 0.0_rk8
