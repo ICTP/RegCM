@@ -3896,6 +3896,9 @@ module mod_bdycod
     integer(ik4) :: i, j, k, l, m
     integer(ik4), dimension(kz) :: shift
     real(rk8), dimension(kz) :: amax
+#ifdef OPENACC
+    real(rk8) :: amax_local
+#endif
 
     ! The projections on the sine modes are sums along the rows and the
     ! columns of the domain, done on integers to be the same for any
@@ -3907,13 +3910,16 @@ module mod_bdycod
       amax(k) = 0.0_rk8
     end do
 
-    !$acc parallel loop collapse(3) gang vector
+    !$acc parallel loop collapse(2) gang vector
     do k = 1, kz
-    do i = i1, i2
     do j = jj1, jj2
+      amax_local = 0.0_rk8
+      !$acc loop seq
+      do i = i1, i2
+        amax_local = max(amax_local,abs(real(f(j,i,k),rk8)))
+      end do
       !$acc atomic update
-      amax(k) = max(amax(k),abs(real(f(j,i,k),rk8)))
-    end do
+      amax(k) = max(amax(k),amax_local)
     end do
     end do
 #else
@@ -3972,13 +3978,16 @@ module mod_bdycod
       amax(k) = 0.0_rk8
     end do
 
-    !$acc parallel loop collapse(3) gang vector
+    !$acc parallel loop collapse(2) gang vector
     do k = 1, kz
-    do i = ii1, ii2
     do j = j1, j2
+      amax_local = 0.0_rk8
+      !$acc loop seq
+      do i = ii1, ii2
+        amax_local = max(amax_local,abs(real(f(j,i,k),rk8)))
+      end do
       !$acc atomic update
-      amax(k) = max(amax(k),abs(real(f(j,i,k),rk8)))
-    end do
+      amax(k) = max(amax(k),amax_local)
     end do
     end do
 #else

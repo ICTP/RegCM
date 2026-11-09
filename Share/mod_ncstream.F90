@@ -117,10 +117,12 @@ module mod_ncstream
       type(rcm_time_and_date) :: tt
       integer(ik4) :: imode, ofmod
 
-      if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
+      if ( associated(ncout%ncp%xs) ) &
+        call outstream_dispose(ncout,keep_buffer=.true.)
       ! Allocate all space
       allocate(ncout%ncp%xs)
-      allocate(ncout%obp%xb)
+      if ( .not. associated(ncout%obp%xb) ) allocate(ncout%obp%xb)
+      call reset_obuffer_metadata(ncout%obp%xb)
       allocate(ncout%svp%xv)
       imode = iomode
       stream => ncout%ncp%xs
@@ -270,11 +272,15 @@ module mod_ncstream
       call add_common_global_params(ncout)
     end subroutine outstream_setup
 
-    subroutine outstream_dispose(ncout)
+    subroutine outstream_dispose(ncout,keep_buffer)
       implicit none
       type(nc_output_stream), intent(inout) :: ncout
+      logical, intent(in), optional :: keep_buffer
       type(ncoutstream), pointer :: stream
+      logical :: retain_buffer
 
+      retain_buffer = .false.
+      if ( present(keep_buffer) ) retain_buffer = keep_buffer
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
       if ( stream%id >= 0 ) then
@@ -289,14 +295,49 @@ module mod_ncstream
           call die('nc_stream','Cannot close file '//trim(stream%filename),1)
         end if
       end if
-      call deallocate_obuffer(ncout%obp%xb)
+      if ( .not. retain_buffer ) then
+        call deallocate_obuffer(ncout%obp%xb)
+        deallocate(ncout%obp%xb)
+        nullify(ncout%obp%xb)
+      end if
 #ifdef DEBUG
       write(stdout,*) 'Closed output stream ',trim(stream%filename)
 #endif
       deallocate(ncout%ncp%xs)
-      deallocate(ncout%obp%xb)
       deallocate(ncout%svp%xv)
+      nullify(ncout%ncp%xs,ncout%svp%xv)
     end subroutine outstream_dispose
+
+    subroutine reset_obuffer_metadata(xbf)
+      implicit none
+      type(internal_obuffer), intent(inout) :: xbf
+
+      ! Keep storage across file rollovers.
+      xbf%lhas1dint = .false.
+      xbf%lhas2dint = .false.
+      xbf%lhas3dint = .false.
+      xbf%lhas4dint = .false.
+      xbf%lhas1dreal = .false.
+      xbf%lhas2dreal = .false.
+      xbf%lhas3dreal = .false.
+      xbf%lhas4dreal = .false.
+      xbf%lhas1ddouble = .false.
+      xbf%lhas2ddouble = .false.
+      xbf%lhas3ddouble = .false.
+      xbf%lhas4ddouble = .false.
+      xbf%max1d_int = 0
+      xbf%max2d_int = 0
+      xbf%max3d_int = 0
+      xbf%max4d_int = 0
+      xbf%max1d_real = 0
+      xbf%max2d_real = 0
+      xbf%max3d_real = 0
+      xbf%max4d_real = 0
+      xbf%max1d_double = 0
+      xbf%max2d_double = 0
+      xbf%max3d_double = 0
+      xbf%max4d_double = 0
+    end subroutine reset_obuffer_metadata
 
     subroutine deallocate_obuffer(xbf)
 #ifdef OPENACC
@@ -310,17 +351,16 @@ module mod_ncstream
 #endif
       if ( .not. associated(xbf) ) return
 #ifdef OPENACC
-      if ( associated(xbf%intbuff) .or. associated(xbf%realbuff) &
-        .or. associated(xbf%doublebuff) ) then
+      if ( c_associated(xbf%cptr) ) then
         istat = cudaFreeHost(xbf%cptr)
         if ( istat /= cudaSuccess ) then
           write(*,*) 'cudaFreeHost failed with status: ',istat
           stop
         end if
-        xbf%intbuff => null()
-        xbf%realbuff => null()
-        xbf%doublebuff => null()
       end if
+      xbf%cptr = c_null_ptr
+      xbf%capacity_bytes = 0_c_size_t
+      nullify(xbf%intbuff,xbf%realbuff,xbf%doublebuff)
 #else
       if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
       if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
@@ -846,12 +886,17 @@ module mod_ncstream
       size_bytes = max(size_bytes,int(maxnum_int,c_size_t)*4_c_size_t)
       size_bytes = max(size_bytes,int(maxnum_real,c_size_t)*4_c_size_t)
       size_bytes = max(size_bytes,int(maxnum_double,c_size_t)*8_c_size_t)
-      if ( size_bytes > 0 ) then
+      if ( size_bytes > buffer%capacity_bytes ) then
+        call deallocate_obuffer(buffer)
         istat = cudaMallocHost(buffer%cptr, size_bytes)
         if ( istat /= cudaSuccess ) then
           write(*,*) 'cudaMallocHost failed with status: ',istat
           stop
         end if
+        buffer%capacity_bytes = size_bytes
+      end if
+      nullify(buffer%intbuff,buffer%realbuff,buffer%doublebuff)
+      if ( size_bytes > 0 ) then
         if ( maxnum_int > 0 ) &
           call c_f_pointer(buffer%cptr, buffer%intbuff, [maxnum_int])
         if ( maxnum_real > 0 ) &
@@ -860,21 +905,48 @@ module mod_ncstream
           call c_f_pointer(buffer%cptr, buffer%doublebuff, [maxnum_double])
       end if
 #else
-      if ( maxnum_int > 0 ) allocate(buffer%intbuff(maxnum_int))
-      if ( maxnum_real > 0 ) allocate(buffer%realbuff(maxnum_real))
-      if ( maxnum_double > 0 ) allocate(buffer%doublebuff(maxnum_double))
+      if ( allocated(buffer%intbuff) ) then
+        if ( size(buffer%intbuff,kind=ik8) < maxnum_int ) &
+          deallocate(buffer%intbuff)
+      end if
+      if ( allocated(buffer%realbuff) ) then
+        if ( size(buffer%realbuff,kind=ik8) < maxnum_real ) &
+          deallocate(buffer%realbuff)
+      end if
+      if ( allocated(buffer%doublebuff) ) then
+        if ( size(buffer%doublebuff,kind=ik8) < maxnum_double ) &
+          deallocate(buffer%doublebuff)
+      end if
+      if ( maxnum_int > 0 .and. .not. allocated(buffer%intbuff) ) &
+        allocate(buffer%intbuff(maxnum_int))
+      if ( maxnum_real > 0 .and. .not. allocated(buffer%realbuff) ) &
+        allocate(buffer%realbuff(maxnum_real))
+      if ( maxnum_double > 0 .and. .not. allocated(buffer%doublebuff) ) &
+        allocate(buffer%doublebuff(maxnum_double))
 #endif
       stream%l_enabled = .true.
 #ifdef DEBUG
       if ( myid == 0 ) then
         write(stdout,*) 'Enabled netCDF output stream ',trim(stream%filename)
+#ifdef OPENACC
+        if ( associated(buffer%intbuff) ) &
+#else
         if ( allocated(buffer%intbuff) ) &
+#endif
           write(stdout,*) 'Total buffer integer size :', &
             size(buffer%intbuff,kind=ik8)*4_ik8
+#ifdef OPENACC
+        if ( associated(buffer%realbuff) ) &
+#else
         if ( allocated(buffer%realbuff) ) &
+#endif
           write(stdout,*) 'Total buffer float size   :', &
             size(buffer%realbuff,kind=ik8)*4_ik8
+#ifdef OPENACC
+        if ( associated(buffer%doublebuff) ) &
+#else
         if ( allocated(buffer%doublebuff) ) &
+#endif
           write(stdout,*) 'Total buffer double size  :', &
             size(buffer%doublebuff,kind=ik8)*8_ik8
       end if

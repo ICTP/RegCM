@@ -123,7 +123,8 @@ module mod_ncstream_types
     integer(ik4), pointer, contiguous, dimension(:) :: intbuff => null()
     real(rk4), pointer, contiguous, dimension(:) :: realbuff => null()
     real(rk8), pointer, contiguous, dimension(:) :: doublebuff => null()
-    type(c_ptr) :: cptr
+    type(c_ptr) :: cptr = c_null_ptr
+    integer(c_size_t) :: capacity_bytes = 0_c_size_t
 #else
     integer(ik4), dimension(:), allocatable :: intbuff
     real(rk4), dimension(:), allocatable :: realbuff
