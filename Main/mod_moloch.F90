@@ -891,7 +891,12 @@ module mod_moloch
                                              (d_one-zphi)*pp(j,i,k))
     end do
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-      zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
+      if ( .not. mo_lcap .and. k == 1 ) then
+        ! Uncapped: fmzf = 0 at the top interface, s = wfw = 0
+        zrfmu = d_zero
+      else
+        zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
+      end if
       zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
       zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
       wz(j,i,k) = pp(j,i,k) - wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv
@@ -929,7 +934,12 @@ module mod_moloch
           ((d_one+zphi)*wz(j,i,k+1) + (d_one-zphi)*wz(j,i,k))
       end do
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
+        if ( .not. mo_lcap .and. k == 1 ) then
+          ! Uncapped: fmzf = 0 at the top interface, s = wfw = 0
+          zrfmu = d_zero
+        else
+          zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
+        end if
         zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
         zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
         wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv

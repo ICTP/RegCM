@@ -211,10 +211,19 @@ module mod_init
           mo_atm%pf(j,i,k) = p00 * &
                 (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
         end do
-        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-          mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) - egrav * mo_atm%rho(j,i,1) * &
+        if ( mo_lcap ) then
+          do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+            mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) - egrav * &
+                      mo_atm%rho(j,i,1) * &
                       (mo_atm%zetaf(j,i,1)-mo_atm%zetaf(j,i,2))
-        end do
+          end do
+        else
+          ! Uncapped: zero pressure at the top. The physics gets the top
+          ! half layer mirrored in log(p), consistent with zetaf(1).
+          do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+            mo_atm%pf(j,i,1) = mo_atm%p(j,i,1)**2/mo_atm%pf(j,i,2)
+          end do
+        end if
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
           mo_atm%w(j,i,k) = d_zero
         end do
@@ -919,10 +928,16 @@ module mod_init
               (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
       end do
       ! Top pressure
-      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-        mo_atm%pf(j,i,1) = mo_atm%p(j,i,1) - egrav * mo_atm%rho(j,i,1) * &
-                      (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
-      end do
+      if ( mo_lcap ) then
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          mo_atm%pf(j,i,1) = mo_atm%p(j,i,1) - egrav * mo_atm%rho(j,i,1) * &
+                        (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
+        end do
+      else
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          mo_atm%pf(j,i,1) = mo_atm%p(j,i,1)**2/mo_atm%pf(j,i,2)
+        end do
+      end if
     end if
 
     if ( irceideal == 1 ) then
@@ -976,7 +991,11 @@ module mod_init
         if ( gmeanz(k) < 18000.0_rkx ) then
           ffilt(k) = d_zero
         else
-          zzi = (gmeanz(k)-18000.0_rkx)/(mo_ztop-18000.0_rkx)
+          if ( mo_lcap ) then
+            zzi = (gmeanz(k)-18000.0_rkx)/(mo_ztop-18000.0_rkx)
+          else
+            zzi = (gmeanz(k)-18000.0_rkx)/(rayzd-18000.0_rkx)
+          end if
           ffilt(k) = mo_zfilt_fac*sin(d_half*mathpi*zzi)**2
         end if
       end do

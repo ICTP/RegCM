@@ -3322,10 +3322,23 @@ module mod_params
           mo_atm%zetaf(j,i,k) = md_zeta(zita(k), &
                    mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
         end do
+        if ( .not. mo_lcap ) then
+          ! Uncapped coordinate: the top interface is at infinite height.
+          ! The physics gets a finite one, mirroring the top half layer
+          ! (fmzf stays zero there for the dynamics).
+          do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+            mo_atm%zetaf(j,i,1) = d_two*mo_atm%zeta(j,i,1) - &
+                                  mo_atm%zetaf(j,i,2)
+          end do
+        end if
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%dz(j,i,k) = mo_atm%zetaf(j,i,k) - mo_atm%zetaf(j,i,k+1)
         end do
-        rayzd = mo_ztop
+        if ( mo_lcap ) then
+          rayzd = mo_ztop
+        else
+          call maxall(maxval(mo_atm%zetaf(jci1:jci2,ici1:ici2,1)),rayzd)
+        end if
         if ( myid == italk ) then
 #ifdef RCEMIP
           write(stdout,'(a)') 'Vertical level height profile: '
@@ -3333,7 +3346,7 @@ module mod_params
             write(stdout,'(i3,f9.2)') kzp1-k, mo_atm%zeta(jci1,ici1,k)
           end do
 #endif
-          write(stdout,*) 'Model top at ',mo_ztop,' m'
+          write(stdout,*) 'Model top at ',rayzd,' m'
         end if
       end subroutine compute_moloch_static
 

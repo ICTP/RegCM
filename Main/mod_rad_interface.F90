@@ -83,7 +83,8 @@ module mod_rad_interface
     ktf = kzp1
 
     if ( irrtm == 1 ) then
-      if ( rrtm_extend ) then
+      ! The uncapped Moloch coordinate already reaches zero pressure
+      if ( rrtm_extend .and. (idynamic /= 3 .or. mo_lcap) ) then
         if ( idynamic /= 3 ) then
           do k = 1, n_prehlev
             kclimh = k
