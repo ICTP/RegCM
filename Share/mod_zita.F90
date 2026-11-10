@@ -34,6 +34,10 @@ module mod_zita
   ! With two levels (CLM stand alone forcing only) the lowest layer is
   ! 80 m deep over flat terrain, so the lowest half level is near 40 m.
   real(rkx), parameter :: clmsa_dz = 80.0_rkx
+  ! Uncapped coordinate: finite stand in for the infinite height of the
+  ! top interface (zita = h), so that it can be written in the output.
+  ! No computation is meant to use it.
+  real(rkx), parameter :: uncapped_ztop = 100000.0_rkx
 
   public :: model_zitaf, model_zitah, model_dzitah, zitasigma, sigmazita
   public :: md_zeta, md_zeta_h, md_fmz, md_fmz_h, bzita, gzita
@@ -153,7 +157,11 @@ module mod_zita
       bzita = zfz(ztop,zh)*(exp(zita/zh)-1.0_rkx)
     else
       ratio = zita/ztop
-      bzita = -ztop*(mo_b0+(1.0_rkx-mo_b0)*ratio)*log(1.0_rkx-ratio)
+      if ( ratio < 1.0_rkx ) then
+        bzita = -ztop*(mo_b0+(1.0_rkx-mo_b0)*ratio)*log(1.0_rkx-ratio)
+      else
+        bzita = uncapped_ztop
+      end if
     end if
   end function bzita
 
@@ -167,8 +175,13 @@ module mod_zita
       bzitap = zfz(ztop,zh)*exp(zita/zh)/zh
     else
       ratio = zita/ztop
-      bzitap = (mo_b0+(1.0_rkx-mo_b0)*ratio)/(1.0_rkx-ratio) - &
-               (1.0_rkx-mo_b0)*log(1.0_rkx-ratio)
+      if ( ratio < 1.0_rkx ) then
+        bzitap = (mo_b0+(1.0_rkx-mo_b0)*ratio)/(1.0_rkx-ratio) - &
+                 (1.0_rkx-mo_b0)*log(1.0_rkx-ratio)
+      else
+        ! Infinite at the top interface: md_fmz_h returns zero there
+        bzitap = 0.0_rkx
+      end if
     end if
   end function bzitap
 
@@ -205,7 +218,12 @@ module mod_zita
     implicit none
     real(rkx), intent(in) :: zita, orog, ztop, zh, a0
     ! Equation 9
-    md_fmz_h = 1.0_rkx/(gzitap(zita,ztop,a0)*orog + bzitap(zita,ztop,zh))
+    if ( .not. mo_lcap .and. zita >= ztop ) then
+      ! Uncapped top interface: infinite dz/dzita (as fmzh in MOLOCH)
+      md_fmz_h = 0.0_rkx
+    else
+      md_fmz_h = 1.0_rkx/(gzitap(zita,ztop,a0)*orog + bzitap(zita,ztop,zh))
+    end if
   end function md_fmz_h
 
   ! Elevation above orography as function of zita

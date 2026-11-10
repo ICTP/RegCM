@@ -625,6 +625,8 @@ module mod_dynparam
     if ( idynamic == 3 ) then
       rewind(ipunit)
       read(ipunit, nml=molochparam, iostat=iresult)
+      ! The uncapped coordinate has zita from 0 to mo_h
+      if ( .not. mo_lcap ) mo_ztop = mo_h
     end if
 
 #ifdef NETCDF4_HDF5

@@ -1050,13 +1050,20 @@ program terrain
   contains
   !
   ! Standard atmosphere pressure (hPa) at the height z (m), with the
-  ! tropospheric lapse rate
+  ! tropospheric lapse rate. It reaches zero near 44 km, and stays zero
+  ! above (as at the top of the uncapped Moloch coordinate).
   !
   real(rkx) function ptop_stdatm(z)
     implicit none
     real(rkx), intent(in) :: z
-    ptop_stdatm = stdp*(d_one - 0.0065_rkx/stdt*z)** &
+    real(rkx) :: base
+    base = d_one - 0.0065_rkx/stdt*z
+    if ( base > d_zero ) then
+      ptop_stdatm = stdp*base** &
          ((egrav*0.0289644_rkx)/(8.31432_rkx*0.0065_rkx)) * d_r100
+    else
+      ptop_stdatm = d_zero
+    end if
   end function ptop_stdatm
 
   subroutine findaround(xx,i,j,imax,jmax,mmx)
