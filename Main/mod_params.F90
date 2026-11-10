@@ -501,7 +501,7 @@ module mod_params
     lmftrac   = .true.  ! chemical tracer transport is on
     lmfsmooth = .false. ! smoot of mass fluxes for tracers
     lmfwstar  = .false. ! Grant w* closure for shallow conv
-    lmfcapebl = .false. ! Boundary layer CAPE in deep closure
+    lmfcapebl = .true.  ! Boundary layer CAPE in deep closure
     !
     ! kfparam ;
     ! Taken from WRF KFeta parametrization

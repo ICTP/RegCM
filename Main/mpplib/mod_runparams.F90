@@ -343,7 +343,7 @@ module mod_runparams
   logical, public :: lmfsmooth = .false. ! smoot of mass fluxes for tracers
   logical, public :: lmfwstar  = .false. ! Grant w* closure for shallow conv
   ! Subtract the boundary layer CAPE production in the deep closure
-  logical, public :: lmfcapebl = .false.
+  logical, public :: lmfcapebl = .true.
 
   real(rkx), public :: entrdd  ! entrainment rate for cumulus downdrafts
 

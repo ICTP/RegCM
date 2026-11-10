@@ -1135,7 +1135,7 @@ selected number is $2, 4, 5$.
  lmftrac   = .true.,  ! chemical tracer transport is on
  lmfsmooth = .false., ! smoot of mass fluxes for tracers
  lmfwstar  = .false., ! Grant w* closure for shallow conv
- lmfcapebl = .false., ! Subtract the boundary layer CAPE production
+ lmfcapebl = .true.,  ! Subtract the boundary layer CAPE production
                      ! from CAPE in the deep convection closure
                      ! (Bechtold et al. 2014)
  /
@@ -1163,8 +1163,8 @@ schemes only the relevant (Ocean or Land) control values are used.
 \item Minimum and maximum values of the fraction of reevaporated water in the
 downdraft for the Grell scheme is essentially a measure of the precipitation
 efficiency: increasing their value generally decrease convective precipitation.
-\item With \verb=lmfcapebl = .true.= the Tiedtke deep convection closure
-removes from CAPE the part produced by the boundary layer heating, as in the
+\item With \verb=lmfcapebl = .true.= (the default) the Tiedtke deep
+convection closure removes from CAPE the part produced by the boundary layer heating, as in the
 ECMWF IFS \citep{Bechtold_14}. It acts only on convection starting in the
 lowest 50 hPa and is meant to delay the peak of convection over land toward
 the late afternoon. It works with any PBL scheme: the boundary layer heating

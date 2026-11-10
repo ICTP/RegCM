@@ -704,7 +704,7 @@
  lmftrac   = .true.,    ! chemical tracer transport is on
  lmfsmooth = .false.,   ! smoot of mass fluxes for tracers
  lmfwstar  = .false.,   ! Grant w* closure for shallow conv
- lmfcapebl = .false.,   ! Subtract the boundary layer CAPE production
+ lmfcapebl = .true.,    ! Subtract the boundary layer CAPE production
                       ! from CAPE in the deep convection closure
                       ! (Bechtold et al. 2014)
  /
