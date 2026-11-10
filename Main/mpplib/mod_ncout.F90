@@ -3619,6 +3619,11 @@ module mod_ncout
         if ( idynamic == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('pressure_gradient_scheme',ipgf))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('split_explicit_modes',nsplit))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('split_explicit_standard_atmosphere', &
+            lstand))
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('surface_emissivity_factor_computed',iemiss))
@@ -3628,6 +3633,21 @@ module mod_ncout
           ncattribute_integer('chemical_aerosol_scheme_activated',ichem))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_string('ipcc_scenario_code',scenario))
+        if ( scenario == 'CONST' ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('ghg_constant_year',ghg_year_const))
+        end if
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('temperature_tendency_max_value', &
+          temp_tend_maxval))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('wind_tendency_max_value',wind_tend_maxval))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('rce_idealized_run',irceideal))
+        if ( icopcpl == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('coupled_cop_export',icopcpl))
+        end if
         if ( lconst2050 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('ghg_fixed_at_2050',lconst2050))
@@ -3666,6 +3686,8 @@ module mod_ncout
           ncattribute_integer('cloud_bottom_level_with_no_clouds',ncld))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_rh_with_fcc_one',rhmax))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_rh_minimum',rhmin))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_rh_threshold_for_land',rh0land))
         call outstream_addatt(outstream(i)%ncout(j), &
@@ -3838,6 +3860,26 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('mit_maximum_ocean_precipitation_efficiency', &
             epmax_ocn))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('mit_stochastic_parameters',istochastic))
+          if ( istochastic == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('mit_stochastic_epmax_lnd_min',epmax_lnd_min))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('mit_stochastic_epmax_lnd_max',epmax_lnd_max))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('mit_stochastic_elcrit_lnd_min',elcrit_lnd_min))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('mit_stochastic_elcrit_lnd_max',elcrit_lnd_max))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('mit_stochastic_sigs_min',sigs_min))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('mit_stochastic_sigs_max',sigs_max))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('mit_stochastic_sigd_min',sigd_min))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('mit_stochastic_sigd_max',sigd_max))
+          end if
         end if
         if ( any(icup == 5) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -3872,6 +3914,8 @@ module mod_ncout
            ncattribute_real8('tiedtke_detrainment_rate_deep_ocean',detrpen_ocn))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_shallow_entrainment',entshalp))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_downdraft_entrainment',entrdd))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_cloud_cover_evap_over_land',rcuc_lnd))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -3912,6 +3956,16 @@ module mod_ncout
             ncattribute_real8('kf_CAPE_consumption_time_max',kf_max_dtcape))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('kf_TKE_maximum_value_subcloud',kf_tkemax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('kf_stochastic_parameters',istochastic))
+          if ( istochastic == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('kf_stochastic_rad_sigma',rad_sigma))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('kf_stochastic_rad_min',rad_min))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('kf_stochastic_rad_max',rad_max))
+          end if
         end if
         if ( ibltyp == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -3954,7 +4008,7 @@ module mod_ncout
             iceflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_opt_properties_calculation_sw_liq', &
-            iceflgsw))
+            liqflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_opt_properties_calculation_lw_vap', &
             inflglw))
@@ -3963,7 +4017,7 @@ module mod_ncout
             iceflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_opt_properties_calculation_lw_liq', &
-            iceflglw))
+            liqflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -4015,12 +4069,23 @@ module mod_ncout
             ncattribute_integer('chem_activate_diag',ichdiag))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_activate_smoke_tracers',ismoke))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_read_boundary_conditions',ichebdy))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_cloud_aod_on_photolysis',ichjphcld))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('chem_carbon_aging_control', &
+            carb_aging_control))
 
 
         end if
         if ( iocncpl == 1 .or. iwavcpl == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('cpl_coupling_timestep_in_seconds',cpldt))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('cpl_max_wave_roughness',zomax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('cpl_max_wave_ustar',ustarmax))
         end if
 
         if ( islab_ocean == 1 ) then
