@@ -31,19 +31,14 @@ module mod_clm_mkarbinit
   use mod_clm_varctl, only : pertlim, DoSurfaceSaturate
   use mod_clm_decomp, only : get_proc_bounds
   use mod_clm_snicar, only : snw_rds_min
+  use mod_clm_varpar, only : nlevsoifl
+  use mod_clm_initimeconst, only : lwater_ini, h2osoi_ini, zwt_ini
 
   implicit none
 
   private
 
   logical, parameter :: lsnowhack = .false.
-
-  real(rk8), dimension(22), parameter :: slmo = &
-    [ 0.50_rk8, 0.50_rk8, 0.50_rk8, 0.50_rk8, 0.50_rk8, &
-      0.50_rk8, 0.50_rk8, 0.01_rk8, 0.50_rk8, 0.50_rk8, &
-      0.10_rk8, 0.50_rk8, 0.90_rk8, 1.00_rk8, 1.00_rk8, &
-      0.50_rk8, 0.30_rk8, 0.50_rk8, 0.50_rk8, 0.80_rk8, &
-      0.10_rk8, 0.50_rk8 ]
 
   save
 
@@ -734,6 +729,8 @@ module mod_clm_mkarbinit
     real(rk8), pointer, contiguous, dimension(:,:) :: sucsat
     ! interface level below a "z" level (m)
     real(rk8), pointer, contiguous, dimension(:,:) :: zi
+    ! layer depth (m)
+    real(rk8), pointer, contiguous, dimension(:,:) :: z
     ! water in the unconfined aquifer (mm)
     real(rk8), pointer, contiguous, dimension(:) :: wa
     ! water table depth (m)
@@ -867,6 +864,13 @@ module mod_clm_mkarbinit
 
     if ( myid == italk )then
       write(stdout,*) 'Setting initial data to non-spun up values'
+      if ( lwater_ini ) then
+        write(stdout,*) 'Initial soil water and water table from the '// &
+                        'surface dataset'
+      else
+        write(stdout,*) 'No initial soil water in the surface dataset: '// &
+                        'half saturation'
+      end if
     end if
 
     ! Assign local pointers to derived subtypes components (landunit-level)
@@ -907,6 +911,7 @@ module mod_clm_mkarbinit
     t_grnd           => clm3%g%l%c%ces%t_grnd
     tsoi17           => clm3%g%l%c%ces%tsoi17
     zi               => clm3%g%l%c%cps%zi
+    z                => clm3%g%l%c%cps%z
     wa               => clm3%g%l%c%cws%wa
     zwt              => clm3%g%l%c%cws%zwt
     fsat             => clm3%g%l%c%cws%fsat
@@ -1150,10 +1155,25 @@ module mod_clm_mkarbinit
           zwt_perched(c) = spval
           frost_table(c) = spval
         else
-          wa(c)  = 4000._rk8
-          ! One meter below soil column
+          if ( lwater_ini .and. &
+               (ltype(l) == istsoil .or. ltype(l) == istcrop) ) then
+            ! Water table from the surface dataset. Aquifer water as in
+            ! the CLM hydrology: full when the water table is inside the
+            ! soil column, (25 m + column bottom - zwt) * 200 mm below it.
+            g = cgridcell(c)
+            zwt(c) = max(zwt_ini(g),0.0_rk8)
+            if ( zwt(c) <= zi(c,nlevsoi) ) then
+              wa(c) = 5000._rk8
+            else
+              wa(c) = min(5000._rk8, &
+                      (25._rk8 + zi(c,nlevsoi) - zwt(c))*0.2_rk8*1000._rk8)
+            end if
+          else
+            wa(c)  = 4000._rk8
+            ! One meter below soil column
+            zwt(c) = (25._rk8 + zi(c,nlevsoi)) - wa(c)/0.2_rk8 /1000._rk8
+          end if
           ! initialize frost_table, zwt_perched to bottom of soil column
-          zwt(c) = (25._rk8 + zi(c,nlevsoi)) - wa(c)/0.2_rk8 /1000._rk8
           zwt_perched(c) = zi(c,nlevsoi)
           frost_table(c) = zi(c,nlevsoi)
         end if
@@ -1177,12 +1197,14 @@ module mod_clm_mkarbinit
               if ( lsmoist ) then
                 sfcsat = adomain%smoist(g)
                 h2osoi_vol(c,j) = sfcsat + w1*(0.9_rk8*watsat(c,j)-sfcsat)
+              else if ( DoSurfaceSaturate ) then
+                h2osoi_vol(c,j) = watsat(c,j)
+              else if ( lwater_ini ) then
+                ! Spun up soil water from the surface dataset
+                h2osoi_vol(c,j) = water_at_depth(g,z(c,j))
               else
-                if ( DoSurfaceSaturate ) then
-                  h2osoi_vol(c,j) = watsat(c,j)
-                else
-                  h2osoi_vol(c,j) = slmo(adomain%iveg(g))*watsat(c,j)
-                end if
+                ! Surface dataset without initial water: half saturation
+                h2osoi_vol(c,j) = 0.5_rk8*watsat(c,j)
               end if
             end if
           end do
@@ -1384,6 +1406,43 @@ module mod_clm_mkarbinit
         sno_liq_top(c) = spval
       end if
     end do
+    if ( allocated(h2osoi_ini) ) deallocate(h2osoi_ini)
+    if ( allocated(zwt_ini) ) deallocate(zwt_ini)
+
+    contains
+    !
+    ! Soil water of the dataset at the depth zz (m) of gridcell g, linear
+    ! between the node depths of its nlevsoifl standard CLM4.5 layers.
+    !
+    pure real(rk8) function water_at_depth(g,zz)
+      implicit none
+      integer(ik4), intent(in) :: g
+      real(rk8), intent(in) :: zz
+      integer(ik4) :: k
+      real(rk8) :: z1, z2
+      z1 = zstd(1)
+      if ( zz <= z1 ) then
+        water_at_depth = h2osoi_ini(g,1)
+        return
+      end if
+      do k = 1, nlevsoifl-1
+        z1 = zstd(k)
+        z2 = zstd(k+1)
+        if ( zz <= z2 ) then
+          water_at_depth = h2osoi_ini(g,k) + (zz-z1)/(z2-z1) * &
+                   (h2osoi_ini(g,k+1)-h2osoi_ini(g,k))
+          return
+        end if
+      end do
+      water_at_depth = h2osoi_ini(g,nlevsoifl)
+    end function water_at_depth
+
+    pure real(rk8) function zstd(k)
+      implicit none
+      integer(ik4), intent(in) :: k
+      zstd = 0.025_rk8*(exp(0.5_rk8*(real(k,rk8)-0.5_rk8))-1.0_rk8)
+    end function zstd
+
   end subroutine mkregcminit
   !
   ! Perturbs initial conditions by the amount in the namelist variable pertlim.

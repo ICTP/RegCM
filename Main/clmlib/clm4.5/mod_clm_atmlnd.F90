@@ -22,7 +22,6 @@ module mod_clm_atmlnd
     real(rk8), pointer, contiguous, dimension(:) :: xlon => null()
     real(rk8), pointer, contiguous, dimension(:) :: topo => null()
     real(rk8), pointer, contiguous, dimension(:) :: area => null()
-    integer(ik4), pointer, contiguous, dimension(:) :: iveg => null()
     integer(ik4), pointer, contiguous, dimension(:) :: itex => null()
     real(rk8), pointer, contiguous, dimension(:) :: snow => null()
     real(rk8), pointer, contiguous, dimension(:) :: smoist => null()

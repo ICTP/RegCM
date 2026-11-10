@@ -55,6 +55,13 @@ module mod_clm_initimeconst
 
   public :: iniTimeConst, daylength
 
+  ! Initial soil water state for a cold start, from the surface dataset:
+  ! volumetric water of the nlevsoifl standard soil layers and water table
+  ! depth. Used and released by mkregcminit.
+  logical, public :: lwater_ini = .false.
+  real(rk8), public, allocatable, dimension(:,:) :: h2osoi_ini
+  real(rk8), public, allocatable, dimension(:) :: zwt_ini
+
   contains
   !
   ! Initialize time invariant clm variables
@@ -625,6 +632,15 @@ module mod_clm_initimeconst
     call clm_readvar(ncid,'PCT_SAND',sand3d,gcomm_gridcell)
 
     call clm_readvar(ncid,'PCT_CLAY',clay3d,gcomm_gridcell)
+
+    ! Initial soil water state, if the surface dataset has it
+    lwater_ini = clm_check_var(ncid,'H2OSOI_INI') .and. &
+                 clm_check_var(ncid,'ZWT_INI')
+    if ( lwater_ini ) then
+      allocate(h2osoi_ini(begg:endg,nlevsoifl), zwt_ini(begg:endg))
+      call clm_readvar(ncid,'H2OSOI_INI',h2osoi_ini,gcomm_gridcell)
+      call clm_readvar(ncid,'ZWT_INI',zwt_ini,gcomm_gridcell)
+    end if
 
     call clm_closefile(ncid)
 

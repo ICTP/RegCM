@@ -1315,6 +1315,8 @@ program mksurfdata
   end do
   deallocate(var3d)
 
+  write(stdout,*) 'Created VOC/horganic informations...'
+
   allocate(var3d(jxsg,iysg,nsoil))
   allocate(var2d(jxsg,iysg))
   call mkwattab('mksrf_water.nc',xmask,var3d,var2d)
@@ -1333,7 +1335,7 @@ program mksurfdata
   deallocate(var2d)
   deallocate(var3d)
 
-  write(stdout,*) 'Created VOC/horganic informations...'
+  write(stdout,*) 'Created Water Table informations...'
 
   allocate(var2d(jxsg,iysg))
   call mklake('mksrf_lake.nc',xmask,var2d)
