@@ -654,6 +654,7 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chias => null( ) ! atms%chib3d
     real(rkx), pointer, contiguous, dimension(:,:) :: qfx => null( )       ! sfs%qfx
     real(rkx), pointer, contiguous, dimension(:,:) :: hfx => null( )       ! sfs%hfx
+    real(rkx), pointer, contiguous, dimension(:,:) :: zpbl => null( )    ! zpbl
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )     ! aten%t
     real(rkx), pointer, contiguous, dimension(:,:,:) :: uten => null( )     ! aten%u
     real(rkx), pointer, contiguous, dimension(:,:,:) :: vten => null( )     ! aten%v

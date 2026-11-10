@@ -23,7 +23,7 @@ module mod_cu_tiedtke
   use mod_constants
   use mod_cu_common
   use mod_service
-  use mod_runparams, only : sigma, iqc, iqv, iqi, dx, ichem, iaerosol, &
+  use mod_runparams, only : iqc, iqv, iqi, dx, ichem, iaerosol, &
          iindirect, ipptls, ichcumtra, rcmtimer, icup, dtcum, io3
   use mod_runparams, only : k2_const, kfac_deep, kfac_shal
   use mod_mpmessage
@@ -34,7 +34,7 @@ module mod_cu_tiedtke
   use mod_runparams, only : rhebc_ocn, rhebc_lnd, rcuc_lnd, rcuc_ocn
   use mod_runparams, only : rcpec_ocn, rcpec_lnd
   use mod_runparams, only : lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
-          lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar
+          lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl
   use mod_regcm_types
 
   implicit none
@@ -76,8 +76,10 @@ module mod_cu_tiedtke
   ! Fractional massflux for downdrafts at lfs
   real(rkx), parameter :: rmfdeps = 0.3_rkx
 
-  ! approximate max PBL top in sigma
-  real(rkx), parameter :: sigma_pbl = 0.85_rkx
+  ! Ratio of the entrainment heat flux at the PBL top to the surface flux
+  real(rkx), parameter :: entflx = 0.2_rkx
+  ! Minimum PBL height for the turbulent flux profiles (m)
+  real(rkx), parameter :: minpbl = 100.0_rkx
 
   ! evaporation coefficient for kuo0
   integer(ik4), pointer, contiguous, dimension(:,:) :: ilab
@@ -88,7 +90,7 @@ module mod_cu_tiedtke
         pxlm1, pxim1, pxite, papp1, paphp1, pxtec, pqtec, zlude, &
         pmflxr, pccn, zcvrout
   real(rkx), pointer, contiguous, dimension(:) :: prsfc, pssfc, &
-        ptopmax, xphfx, xpqfx
+        ptopmax, xphfx, xpqfx, xpzpbl
   real(rkx), pointer, contiguous, dimension(:,:) :: ptte, pvom, pvol, pqte, &
         pxlte, pverv, pmfu, xpg, xpgh
   integer(ik4), pointer, contiguous, dimension(:) :: kctop, kcbot
@@ -182,6 +184,7 @@ module mod_cu_tiedtke
     call getmem(ptopmax,1,nipoi,'mod_cu_tiedtke:ptopmax')
     call getmem(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
     call getmem(xpqfx,1,nipoi,'mod_cu_tiedtke:xpqfx')
+    call getmem(xpzpbl,1,nipoi,'mod_cu_tiedtke:xpzpbl')
     call getmem(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
 
   end subroutine allocate_mod_cu_tiedtke
@@ -257,6 +260,7 @@ module mod_cu_tiedtke
       j = jmap(ii)
       xpqfx(ii) = m2c%qfx(j,i)
       xphfx(ii) = m2c%hfx(j,i)
+      xpzpbl(ii) = max(m2c%zpbl(j,i),minpbl)
       ldland(ii) = (m2c%ldmsk(j,i) == 1)
     end do
 
@@ -668,13 +672,18 @@ module mod_cu_tiedtke
     ! I presume REGCM's turbulence scheme already or can easily provide these
     ! quantities...
     !
+    ! Here the fluxes, positive downward, are linear in height inside the
+    ! PBL of height zpbl: the moisture flux goes from the surface value to
+    ! zero, the heat flux to -entflx times the surface value (entrainment
+    ! at the PBL top). Above the PBL they are zero.
+    !
     do concurrent ( jl = 1:kproma )
-      do jk = kz, 1, -1
-        if ( sigma(jk) >= sigma_pbl ) then
+      do jk = klev, 1, -1
+        if ( pgeoh(jl,jk)*regrav < xpzpbl(jl) ) then
           pqhfl(jl,jk) = -xpqfx(jl) * &
-            (sigma(jk) - sigma_pbl) / (d_one - sigma_pbl)
+            (d_one - pgeoh(jl,jk)*regrav/xpzpbl(jl))
           pahfs(jl,jk) = -xphfx(jl) * &
-            (sigma(jk) - sigma_pbl) / (d_one - sigma_pbl)
+            (d_one - (d_one+entflx)*pgeoh(jl,jk)*regrav/xpzpbl(jl))
         else
           pqhfl(jl,jk) = d_zero
           pahfs(jl,jk) = d_zero
@@ -929,6 +938,7 @@ module mod_cu_tiedtke
                  derate, duten, dvten, tdis, xalv
     real(rkx), dimension(np) :: sfl
     real(rkx), dimension(np) :: tau ! adjustment time
+    real(rkx) :: taubl, ubl, capebl, dtvdt, dpk
     ! scaling factor for momentum and tracer massflux
     real(rkx), dimension(np) :: mfs, mfuub, mfuvb, xsum12, xsum22
     real(rkx), dimension(np) :: mf_shal
@@ -2334,6 +2344,40 @@ module mod_cu_tiedtke
                    ((d_two+min(15.0_rkx,wmean(n)))*egrav)*rtau
         tau(n) = max(dtc,min(10800.0_rkx,tau(n)))
         tau(n) = max(720.0_rkx,tau(n))
+        !
+        ! Bechtold et al. (2014): for surface based convection subtract
+        ! the CAPE produced by the boundary layer over the time scale
+        ! taubl. The boundary layer warming comes from the divergence of
+        ! the turbulent fluxes between the surface and cloud base. Over
+        ! land taubl is the convective time scale, over sea the
+        ! advective time scale of the sub-cloud layer.
+        !
+        if ( lmfcapebl ) then
+          if ( pf(n,nk+1)-pf(n,idpl(n)) < 50.0e2_rkx ) then
+            if ( ldland(n) ) then
+              taubl = tau(n)
+            else
+              ubl = d_zero
+              !$acc loop seq
+              do k = ikb, nk
+                ubl = ubl + sqrt(u(n,k)**2+v(n,k)**2)*(pf(n,k+1)-pf(n,k))
+              end do
+              ubl = d_two + ubl/(pf(n,nk+1)-pf(n,ikb))
+              taubl = min(300.0_rkx,(geof(n,ikb)-geof(n,nk+1))/(egrav*ubl))
+            end if
+            capebl = d_zero
+            !$acc loop seq
+            do k = ikb, nk
+              dpk = pf(n,k+1) - pf(n,k)
+              dtvdt = (d_one+ep1*q(n,k)) * &
+                      egrav*(ahfs(n,k)-ahfs(n,k+1))/(cpd*dpk) + &
+                      ep1*t(n,k)*egrav*(qhfl(n,k)-qhfl(n,k+1))/dpk
+              capebl = capebl + dtvdt/(t(n,k)*(d_one+ep1*q(n,k))) * &
+                       (geof(n,k)-geof(n,k+1))
+            end do
+            xcape(n) = max(d_zero,xcape(n)-max(d_zero,taubl*capebl))
+          end if
+        end if
         mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n))
         mfub1(n) = max(mfub1(n),0.001_rkx)
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia

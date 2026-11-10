@@ -342,6 +342,8 @@ module mod_runparams
   logical, public :: lmftrac   = .true.  ! chemical tracer transport is on
   logical, public :: lmfsmooth = .false. ! smoot of mass fluxes for tracers
   logical, public :: lmfwstar  = .false. ! Grant w* closure for shallow conv
+  ! Subtract the boundary layer CAPE production in the deep closure
+  logical, public :: lmfcapebl = .false.
 
   real(rkx), public :: entrdd  ! entrainment rate for cumulus downdrafts
 

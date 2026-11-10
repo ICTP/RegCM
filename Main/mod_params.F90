@@ -156,7 +156,7 @@ module mod_params
       detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
       rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
       revap_lnd, revap_ocn, lmfpen, lmfmid, lmfdd, lepcld, lmfdudv,   &
-      lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar
+      lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl
 
     namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
       kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate,        &
@@ -501,6 +501,7 @@ module mod_params
     lmftrac   = .true.  ! chemical tracer transport is on
     lmfsmooth = .false. ! smoot of mass fluxes for tracers
     lmfwstar  = .false. ! Grant w* closure for shallow conv
+    lmfcapebl = .false. ! Boundary layer CAPE in deep closure
     !
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
@@ -1812,6 +1813,7 @@ module mod_params
       call bcast(lmftrac)
       call bcast(lmfsmooth)
       call bcast(lmfwstar)
+      call bcast(lmfcapebl)
     end if
 
     if ( any(icup == 6) ) then

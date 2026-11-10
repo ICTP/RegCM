@@ -164,6 +164,7 @@ module mod_cu_interface
     call assignpnt(qdot,m2c%qdot)
     call assignpnt(sfs%qfx,m2c%qfx)
     call assignpnt(sfs%hfx,m2c%hfx)
+    call assignpnt(zpbl,m2c%zpbl)
     call assignpnt(ktrop,m2c%ktrop)
     call assignpnt(ccn,m2c%ccn)
     call assignpnt(heatrt,m2c%heatrt)
