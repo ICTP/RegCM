@@ -80,6 +80,10 @@ module mod_cu_tiedtke
   real(rkx), parameter :: entflx = 0.2_rkx
   ! Minimum PBL height for the turbulent flux profiles (m)
   real(rkx), parameter :: minpbl = 100.0_rkx
+  ! Temperature scale and minimum CAPE fraction of the boundary layer
+  ! CAPE correction (Bechtold et al. 2014)
+  real(rkx), parameter :: tstar = 1.0_rkx
+  real(rkx), parameter :: rmincape = 0.05_rkx
 
   ! evaporation coefficient for kuo0
   integer(ik4), pointer, contiguous, dimension(:,:) :: ilab
@@ -2345,25 +2349,23 @@ module mod_cu_tiedtke
         tau(n) = max(dtc,min(10800.0_rkx,tau(n)))
         tau(n) = max(720.0_rkx,tau(n))
         !
-        ! Bechtold et al. (2014): for surface based convection subtract
-        ! the CAPE produced by the boundary layer over the time scale
-        ! taubl. The boundary layer warming comes from the divergence of
-        ! the turbulent fluxes between the surface and cloud base. Over
-        ! land taubl is the convective time scale, over sea the
-        ! advective time scale of the sub-cloud layer.
+        ! Bechtold et al. (2014), as RCAPDCYCL = 2 in the IFS: for surface
+        ! based convection subtract the CAPE produced by the boundary
+        ! layer over the time scale taubl. The boundary layer warming is
+        ! the divergence of the turbulent fluxes between the surface and
+        ! cloud base, normalized by tstar = 1 K. Over land taubl is the
+        ! convective time scale without the resolution factor, over sea
+        ! the advective time scale of the sub-cloud layer. At least the
+        ! fraction rmincape of CAPE is always consumed.
         !
         if ( lmfcapebl ) then
           if ( pf(n,nk+1)-pf(n,idpl(n)) < 50.0e2_rkx ) then
             if ( ldland(n) ) then
-              taubl = tau(n)
+              taubl = tau(n)/rtau
             else
-              ubl = d_zero
-              !$acc loop seq
-              do k = ikb, nk
-                ubl = ubl + sqrt(u(n,k)**2+v(n,k)**2)*(pf(n,k+1)-pf(n,k))
-              end do
-              ubl = d_two + ubl/(pf(n,nk+1)-pf(n,ikb))
-              taubl = min(300.0_rkx,(geof(n,ikb)-geof(n,nk+1))/(egrav*ubl))
+              ubl = d_two + sqrt(d_half*(u(n,ikb)**2+v(n,ikb)**2 + &
+                                         u(n,nk)**2+v(n,nk)**2))
+              taubl = min(1.0e4_rkx,(geof(n,ikb)-geof(n,nk+1))*regrav) / ubl
             end if
             capebl = d_zero
             !$acc loop seq
@@ -2372,10 +2374,9 @@ module mod_cu_tiedtke
               dtvdt = (d_one+ep1*q(n,k)) * &
                       egrav*(ahfs(n,k)-ahfs(n,k+1))/(cpd*dpk) + &
                       ep1*t(n,k)*egrav*(qhfl(n,k)-qhfl(n,k+1))/dpk
-              capebl = capebl + dtvdt/(t(n,k)*(d_one+ep1*q(n,k))) * &
-                       (geof(n,k)-geof(n,k+1))
+              capebl = capebl + dtvdt/tstar*(geof(n,k)-geof(n,k+1))
             end do
-            xcape(n) = max(d_zero,xcape(n)-max(d_zero,taubl*capebl))
+            xcape(n) = max(rmincape*xcape(n),xcape(n)-taubl*capebl)
           end if
         end if
         mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n))
