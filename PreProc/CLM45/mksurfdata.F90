@@ -63,6 +63,7 @@ program mksurfdata
   use mod_mkabm
   use mod_mkvocef
   use mod_mkorganic
+  use mod_mkwattab
   use mod_mklake
   use mod_mkalbedo
   use mod_zita
@@ -140,6 +141,7 @@ program mksurfdata
   integer(ik4) :: islopevar, istdvar, igdpvar, ipeatfvar, iabmvar
   integer(ik4) :: ief_btrvar, ief_crpvar, ief_fdtvar, ief_fetvar
   integer(ik4) :: ief_grsvar, ief_shrvar, iorganicvar, idepthvar
+  integer(ik4) :: ih2osoivar, izwtvar
   integer(ik4) :: ilndvar, iscvar, ilatvar, ilonvar, itopovar, iroughvar
   integer(ik4), dimension(npu2d) :: iurb2d
   integer(ik4), dimension(npu3d) :: iurb3d
@@ -732,6 +734,24 @@ program mksurfdata
           'assumed carbon content 0.58 gC per gOM')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add organic long_name')
   istatus = nf90_put_att(ncid, iorganicvar, 'units','kg m-3')
+
+  ! Initial soil water state for a cold start
+  istatus = nf90_def_var(ncid, 'H2OSOI_INI', regcm_vartype, &
+                         ivdims(1:2), ih2osoivar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var H2OSOI_INI')
+  istatus = nf90_put_att(ncid, ih2osoivar, 'long_name', &
+          'initial volumetric soil water (liquid plus ice)')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add H2OSOI_INI long_name')
+  istatus = nf90_put_att(ncid, ih2osoivar, 'units','m3 m-3')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add H2OSOI_INI units')
+  istatus = nf90_def_var(ncid, 'ZWT_INI', regcm_vartype, &
+                         idims(7), izwtvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ZWT_INI')
+  istatus = nf90_put_att(ncid, izwtvar, 'long_name', &
+          'initial water table depth')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ZWT_INI long_name')
+  istatus = nf90_put_att(ncid, izwtvar, 'units','m')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ZWT_INI units')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add organic units')
 
   istatus = nf90_def_var(ncid, 'LAKEDEPTH',regcm_vartype,idims(7),idepthvar)
@@ -1293,6 +1313,24 @@ program mksurfdata
     istatus = nf90_put_var(ncid, iorganicvar, gcvar,istart(1:2),icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write organic')
   end do
+  deallocate(var3d)
+
+  allocate(var3d(jxsg,iysg,nsoil))
+  allocate(var2d(jxsg,iysg))
+  call mkwattab('mksrf_water.nc',xmask,var3d,var2d)
+  do il = 1, nsoil
+    istart(1) = 1
+    icount(1) = ngcells
+    istart(2) = il
+    icount(2) = 1
+    call mypack(var3d(:,:,il),gcvar)
+    istatus = nf90_put_var(ncid, ih2osoivar, gcvar,istart(1:2),icount(1:2))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write H2OSOI_INI')
+  end do
+  call mypack(var2d,gcvar)
+  istatus = nf90_put_var(ncid, izwtvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ZWT_INI')
+  deallocate(var2d)
   deallocate(var3d)
 
   write(stdout,*) 'Created VOC/horganic informations...'
