@@ -3865,6 +3865,8 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('tiedtke_shallow_wstar_closure',lmfwstar))
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_deep_pbl_cape_closure',lmfcapebl))
+          call outstream_addatt(outstream(i)%ncout(j), &
            ncattribute_real8('tiedtke_detrainment_rate_deep_land',detrpen_lnd))
           call outstream_addatt(outstream(i)%ncout(j), &
            ncattribute_real8('tiedtke_detrainment_rate_deep_ocean',detrpen_ocn))
