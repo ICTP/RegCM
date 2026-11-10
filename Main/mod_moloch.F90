@@ -97,6 +97,9 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: rfmzu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: rfmzv => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: fmzf => null( )
+  ! Metric of the vertical derivatives between full levels in the w
+  ! equation: fmzf (capped), or dzita over the full level distance
+  real(rkx), dimension(:,:,:), pointer, contiguous :: fmzd => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: pai => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tetav => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tvirt => null( )
@@ -230,6 +233,11 @@ module mod_moloch
     call assignpnt(mo_atm%rfmzu,rfmzu)
     call assignpnt(mo_atm%rfmzv,rfmzv)
     call assignpnt(mo_atm%fmzf,fmzf)
+    if ( mo_lcap ) then
+      call assignpnt(mo_atm%fmzf,fmzd)
+    else
+      call getmem(fmzd,jce1,jce2,ice1,ice2,1,kzp1,'moloch:fmzd')
+    end if
     call assignpnt(mo_atm%pai,pai)
     call assignpnt(mo_atm%tetav,tetav)
     call assignpnt(mo_atm%u,u)
@@ -276,6 +284,19 @@ module mod_moloch
     gzitak = gzita(zita,mo_ztop,mo_a0)
     gzitakh = gzita(zitah,mo_ztop,mo_a0)
     rdzita = 1.0_rkx / mo_dzita
+    if ( .not. mo_lcap ) then
+      ! The uncapped layers are strongly stretched near the top, where
+      ! dzita/fmzf misses the full level distance by up to 10%: use the
+      ! distance itself, consistent with the hydrostatic pai of the ICBC
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
+        if ( k == 1 .or. k == kzp1 ) then
+          fmzd(j,i,k) = fmzf(j,i,k)
+        else
+          fmzd(j,i,k) = mo_dzita / &
+                (mo_atm%zeta(j,i,k-1) - mo_atm%zeta(j,i,k))
+        end if
+      end do
+    end if
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       w(j,i,1) = d_zero
     end do
@@ -657,9 +678,9 @@ module mod_moloch
         do k = kz, 2, -1
           ! explicit w:
           !    it must be consistent with the initialization of pai
-          tetavf(j,i,k) = tetavf(j,i,k) - w(j,i,k)*fmzf(j,i,k) * &
+          tetavf(j,i,k) = tetavf(j,i,k) - w(j,i,k)*fmzd(j,i,k) * &
                dtrdz * (tetav(j,i,k-1) - tetav(j,i,k))
-          zrom1w = cpd * tetavf(j,i,k) * fmzf(j,i,k)
+          zrom1w = cpd * tetavf(j,i,k) * fmzd(j,i,k)
           zwexpl = w(j,i,k) - zrom1w * dtrdz * &
                    (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts
           zwexpl = zwexpl + rdrcv * zrom1w * dtrdz * &

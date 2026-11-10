@@ -3778,7 +3778,12 @@ module mod_bdycod
       do k = kzm1, 1, -1
         tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
         tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
-        zb = d_two*egrav*mo_dzita/(mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
+        if ( mo_lcap ) then
+          zb = d_two*egrav*mo_dzita/(mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
+        else
+          ! Full level distance, as the w equation (fmzd in mod_moloch)
+          zb = d_two*egrav*(z(j,i,k)-z(j,i,k+1))/cpd + tv1 - tv2
+        end if
         zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
         paikp1 = -paikp1 / (d_two * tv2) * (zb - zdelta)
         pai(j,i,k) = paikp1

@@ -32,7 +32,7 @@ end subroutine myabort
 program pgw_icbc
   use mod_intkinds
   use mod_realkinds
-  use mod_dynparam, only : npgwlev
+  use mod_dynparam, only : npgwlev, mo_lcap
   use mod_message
   use mod_header
   use mod_stdio
@@ -803,8 +803,13 @@ program pgw_icbc
         do k = nz-1, 1, -1
           tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
           tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
-          zb = d_two*egrav*model_dzitah(k,nz,mo_ztop) / &
-               (fmz0(j,i,k+1)*cpd) + tv1 - tv2
+          if ( mo_lcap ) then
+            zb = d_two*egrav*model_dzitah(k,nz,mo_ztop) / &
+                 (fmz0(j,i,k+1)*cpd) + tv1 - tv2
+          else
+            ! Full level distance, as the Moloch w equation
+            zb = d_two*egrav*(z(j,i,k)-z(j,i,k+1))/cpd + tv1 - tv2
+          end if
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
           paikp1 = -paikp1 / (d_two * tv2) * (zb - zdelta)
           pai(j,i,k) = paikp1
