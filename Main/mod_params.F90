@@ -314,7 +314,7 @@ module mod_params
 #ifdef RCEMIP
     icldfrac = 7
 #else
-    icldfrac = 1
+    icldfrac = 0
 #endif
     icldmstrat = 0
     irrtm = 0

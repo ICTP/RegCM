@@ -394,8 +394,12 @@
  iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
  iconvlwp =          0, ! Use convective algo for lwp in the large-scale
-                        ! This is reset to zero if using ipptls = 2
- icldfrac =          1, ! Cloud fraction algorithm
+                        ! (temperature based in-cloud water for all
+                        ! clouds, ignoring the microphysics cloud water)
+                        ! NOTE: suitable only for the hydrostatic core
+                        !       with the Kuo convection scheme (icup = 1),
+                        !       for which it was introduced.
+ icldfrac =          0, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
                         !   2 : Thompson scheme

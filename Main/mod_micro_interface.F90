@@ -248,7 +248,7 @@ module mod_micro_interface
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           liq = mo2mc%qcn(j,i,k)
           ice = mo2mc%qin(j,i,k)
-          if ( liq < 2.0e-5_rkx ) liq = 0.0_rkx
+          if ( liq < 2.0e-7_rkx ) liq = 0.0_rkx
           if ( ice < 2.0e-7_rkx ) ice = 0.0_rkx
           totc(j,i,k) = liq + ice + mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
         end do
@@ -256,7 +256,7 @@ module mod_micro_interface
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           liq = mo2mc%qcn(j,i,k)
           ice = mo2mc%qin(j,i,k)
-          if ( liq < 2.0e-5_rkx ) liq = 0.0_rkx
+          if ( liq < 2.0e-7_rkx ) liq = 0.0_rkx
           if ( ice < 2.0e-7_rkx ) ice = 0.0_rkx
           totc(j,i,k) = liq + ice
         end do
