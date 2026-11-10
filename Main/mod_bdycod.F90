@@ -3198,8 +3198,8 @@ module mod_bdycod
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
           if ( .not. ba_dt%bsouth(j,i) ) cycle
           ib = ba_dt%ibnd(j,i)
-          xf = hefc(ib,k)
-          xg = hegc(ib,k)
+          xf = hefd(ib,k)
+          xg = hegd(ib,k)
           fls0 = fg1(j,i,k)
           fls1 = fg1(j-1,i,k)
           fls2 = fg1(j+1,i,k)
