@@ -1163,6 +1163,12 @@ schemes only the relevant (Ocean or Land) control values are used.
 \item Minimum and maximum values of the fraction of reevaporated water in the
 downdraft for the Grell scheme is essentially a measure of the precipitation
 efficiency: increasing their value generally decrease convective precipitation.
+\item With \verb=lmfcapebl = .true.= the Tiedtke deep convection closure
+removes from CAPE the part produced by the boundary layer heating, as in the
+ECMWF IFS \citep{Bechtold_14}. It acts only on convection starting in the
+lowest 50 hPa and is meant to delay the peak of convection over land toward
+the late afternoon. It works with any PBL scheme: the boundary layer heating
+comes from the surface fluxes and the PBL height.
 \item Again, read carefully the Reference Manual before attempting any tuning,
 and report in any work modification of this parameters.
 \end{enumerate}

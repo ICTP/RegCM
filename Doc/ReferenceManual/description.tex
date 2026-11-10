@@ -2044,6 +2044,52 @@ M_b &=& \frac{CAPE}{\tau_c\,\partial CAPE / \partial M_b}
 \label{eqn_model:TIEDcape}
 \end{eqnarray}
 
+The parcel for convection starting at the lowest model level gets a
+temperature and moisture excess from the surface fluxes,
+
+\begin{eqnarray}
+\Delta T = -1.5\,\frac{F_H}{\rho\,w_s\,c_p}, \qquad
+\Delta q = -1.5\,\frac{F_q}{\rho\,w_s}
+\label{eqn_model:TIEDexcess}
+\end{eqnarray}
+
+where $F_H$ and $F_q$ are the surface sensible heat and moisture fluxes
+(positive downward) and $w_s$ is a convective velocity scale of the lowest
+layer, computed only when the surface virtual heat flux is upward.
+
+Inside the planetary boundary layer of height $h$, given by the PBL scheme,
+the turbulent fluxes have a linear profile in height $z$: the moisture flux
+goes from its surface value to zero at $h$, the heat flux to $-0.2$ times its
+surface value (entrainment at the PBL top). Both are zero above $h$:
+
+\begin{eqnarray}
+F_q(z) = F_q(0)\left(1-\frac{z}{h}\right), \qquad
+F_H(z) = F_H(0)\left(1-1.2\,\frac{z}{h}\right), \qquad z < h
+\label{eqn_model:TIEDfluxprof}
+\end{eqnarray}
+
+Optionally (\verb=lmfcapebl=), the deep closure follows \citet{Bechtold_14}
+for convection starting in the lowest 50 hPa: the CAPE produced by the
+boundary layer over a time scale $\tau_{bl}$ is removed from CAPE before
+Eq.~\ref{eqn_model:TIEDcape} is applied,
+
+\begin{eqnarray}
+CAPE' = \max\left(0.05\,CAPE,\; CAPE - \frac{\tau_{bl}}{T_*}
+        \int_{z_s}^{z_{b}} \left(\frac{\partial T_v}{\partial t}\right)_{bl}
+        g\,dz\right)
+\label{eqn_model:TIEDcapebl}
+\end{eqnarray}
+
+where $T_*=1$~K, $z_b$ is the cloud base height and the boundary layer
+virtual temperature tendency is the divergence of the flux profiles of
+Eq.~\ref{eqn_model:TIEDfluxprof}. Over land $\tau_{bl}$ is the convective
+time scale $\tau_c$ without its resolution factor; over sea it is the
+advective time scale $\min(z_b,10\,\mathrm{km})/(2+\bar{U})$, with $\bar{U}$
+the mean of the wind speed at cloud base and at the lowest model level.
+Convection then remains close to equilibrium with the boundary layer forcing,
+which shifts the diurnal cycle of convective precipitation over land later in
+the day.
+
 The scheme produces temperature and moisture tendencies from the vertical
 divergence of the mass-flux profiles, and generates separate liquid and ice
 precipitation fluxes that are passed to the microphysics.\\
