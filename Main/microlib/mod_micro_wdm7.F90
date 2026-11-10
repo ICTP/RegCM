@@ -20,7 +20,7 @@ module mod_micro_wdm7
   use mod_constants
   use mod_dynparam
   use mod_memutil
-  use mod_runparams, only : ichem, dt, rdt
+  use mod_runparams, only : ichem, dt, rdt, dtsec
   use mod_runparams, only : iqi, iqc, iqr, iqg, iqh, iqs, iqv
   use mod_runparams, only : cqn, cqc, cqr
   use mod_regcm_types
@@ -445,7 +445,7 @@ module mod_micro_wdm7
       n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
       ! rain is the total surface precipitation, the others are parts
       totp = rain(n)
-      mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp
+      mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp*rdt*dtsec
       mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*rdt
       mc2mo%grplnc(j,i) = mc2mo%grplnc(j,i) + grpl(n)*rdt
       mc2mo%hailnc(j,i) = mc2mo%hailnc(j,i) + hail(n)*rdt

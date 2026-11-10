@@ -1168,8 +1168,8 @@ module mod_cu_tiedtke
                 if ( khvfl < d_zero ) then
                   ws = 1.2_rkx*ws**.3333_rkx
                   iilab(n,kk) = 1
-                  texc = max(-1.15_rkx*ahfs(n,kk+1)/(rho*ws*cpd),d_zero)
-                  qexc = max(-1.15_rkx*qhfl(n,kk+1)/(rho*ws),d_zero)
+                  texc = max(-1.5_rkx*ahfs(n,kk+1)/(rho*ws*cpd),d_zero)
+                  qexc = max(-1.5_rkx*qhfl(n,kk+1)/(rho*ws),d_zero)
                   xqu(n,kk) = xqenh(n,kk) + qexc
                   suh(n,kk) = xsenh(n,kk) + cpd*texc
                   xtu(n,kk) = (xsenh(n,kk)-geof(n,kk))*rcpd + texc

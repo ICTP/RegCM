@@ -4,7 +4,7 @@
       [
         "ReadVariableFromFile",
         {
-          "var_name": "prhmax",
+          "var_name": "pr",
           "need_time_bounds": true
         }
       ],

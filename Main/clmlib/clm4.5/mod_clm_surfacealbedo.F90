@@ -98,9 +98,9 @@ module mod_clm_surfacealbedo
     integer(ik4), pointer, contiguous, dimension(:) :: pcolumn
     ! gridcell of corresponding column
     integer(ik4), pointer, contiguous, dimension(:) :: cgridcell
-    ! gridcell latitude (radians)
+    ! gridcell latitude (degrees)
     real(rk8), pointer, contiguous, dimension(:) :: lat
-    ! gridcell longitude (radians)
+    ! gridcell longitude (degrees)
     real(rk8), pointer, contiguous, dimension(:) :: lon
     ! one-sided leaf area index, no burying by snow
     real(rk8), pointer, contiguous, dimension(:) :: tlai
@@ -333,8 +333,8 @@ module mod_clm_surfacealbedo
 
     ! Assign local pointers to derived subtypes components (gridcell-level)
 
-    lat => clm3%g%lat
-    lon => clm3%g%lon
+    lat => clm3%g%latdeg
+    lon => clm3%g%londeg
 
     ! Assign local pointers to derived subtypes components (landunit level)
 

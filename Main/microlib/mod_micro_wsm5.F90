@@ -21,7 +21,7 @@ module mod_micro_wsm5
   use mod_dynparam
   use mod_memutil
   use mod_runparams, only : ichem, dt, iqi, iqc, iqr, iqs, iqv
-  use mod_runparams, only : rdt
+  use mod_runparams, only : rdt, dtsec
   use mod_regcm_types
   implicit none
 
@@ -338,7 +338,7 @@ module mod_micro_wsm5
       ! rain is the total surface precipitation, snow is a part of it
       totp = rain(n)
       mc2mo%trrate(j,i) = totp * rdt
-      mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp
+      mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp*rdt*dtsec
       mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + mc2mo%trrate(j,i)
       mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*rdt
     end do

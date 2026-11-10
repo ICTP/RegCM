@@ -71,7 +71,7 @@ module mod_micro_nogtom
   use mod_runparams, only : iqqr => iqr !rain
   use mod_runparams, only : iqqi => iqi !ice
   use mod_runparams, only : iqqs => iqs !snow
-  use mod_runparams, only : dt, rdt
+  use mod_runparams, only : dt, rdt, dtsec
   use mod_runparams, only : rhcrit_lnd, rhcrit_sea, &
                             siglow => rhcrit_siglow
   use mod_runparams, only : ichem, iaerosol, iindirect, rcrit
@@ -1980,8 +1980,8 @@ module mod_micro_nogtom
     ! the surface physics and the output sum up through the levels
     !--------------------------------------------------------------
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      prainx = pfplsl(kzp1,j,i)*dt
-      psnowx = pfplsn(kzp1,j,i)*dt
+      prainx = pfplsl(kzp1,j,i)*dtsec
+      psnowx = pfplsn(kzp1,j,i)*dtsec
       mc2mo%trrate(j,i) = pfplsl(kzp1,j,i) + pfplsn(kzp1,j,i)
       if ( prainx > d_zero ) then
         mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx

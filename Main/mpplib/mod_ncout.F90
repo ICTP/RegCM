@@ -1441,8 +1441,8 @@ module mod_ncout
           shf_pcpavg_out => v2dvar_shf(shf_pcpavg)%rval
         end if
         if ( enable_shf_vars(shf_pcpmax) ) then
-          call setup_var(v2dvar_shf,shf_pcpmax,vsize,'prhmax','kg m-2 s-1', &
-            'Maximum Hourly Precipitation Rate','precipitation_flux', &
+          call setup_var(v2dvar_shf,shf_pcpmax,vsize,'prmax','kg m-2 s-1', &
+            'Maximum Precipitation Rate','precipitation_flux', &
             .true.,'time: maximum')
           shf_pcpmax_out => v2dvar_shf(shf_pcpmax)%rval
         end if
@@ -1795,8 +1795,8 @@ module mod_ncout
           enable_srf2d_vars(srf_tprw) = .false.
         else
           if ( enable_srf2d_vars(srf_pcpmax) ) then
-            call setup_var(v2dvar_srf,srf_pcpmax,vsize,'prhmax','kg m-2 s-1', &
-              'Maximum Hourly Precipitation Rate','precipitation_flux', &
+            call setup_var(v2dvar_srf,srf_pcpmax,vsize,'prmax','kg m-2 s-1', &
+              'Maximum Precipitation Rate','precipitation_flux', &
               .true.,'time: maximum')
             srf_pcpmax_out => v2dvar_srf(srf_pcpmax)%rval
           end if
@@ -2075,7 +2075,7 @@ module mod_ncout
         end if
         if ( enable_sts2d_vars(sts_pcpmax) ) then
           call setup_var(v2dvar_sts,sts_pcpmax,vsize,'prmax','kg m-2 s-1', &
-            'Maximum Precipitation','precipitation_flux', &
+            'Maximum Precipitation Rate','precipitation_flux', &
             .true.,'time: maximum')
           sts_pcpmax_out => v2dvar_sts(sts_pcpmax)%rval
         end if

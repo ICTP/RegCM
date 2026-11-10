@@ -378,6 +378,8 @@ module mod_micro_subex
           mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx
           mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pptsum(j,i)
           mc2mo%trrate(j,i) = pptsum(j,i)
+        else
+          mc2mo%trrate(j,i) = d_zero
         end if
       end do
     end do
