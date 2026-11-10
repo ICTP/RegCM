@@ -18,6 +18,7 @@ module mod_zita
   use mod_realkinds
   use mod_intkinds
   use mod_constants
+  use mod_dynparam, only : mo_lcap, mo_b0
 
   implicit none
 
@@ -97,11 +98,22 @@ module mod_zita
   end subroutine model_zitah
 
   ! Zita of the interface at clmsa_dz above flat terrain (bzita inverse).
+  ! The uncapped height function has no closed inverse: Newton iterations
+  ! from the near surface value zita = clmsa_dz/b0.
   pure real(rkx) function clmsa_zitaf(ztop,zh)
 !$acc routine seq
     implicit none
     real(rkx), intent(in) :: ztop, zh
-    clmsa_zitaf = zh*log(1.0_rkx + clmsa_dz/zfz(ztop,zh))
+    integer(ik4) :: it
+    if ( mo_lcap ) then
+      clmsa_zitaf = zh*log(1.0_rkx + clmsa_dz/zfz(ztop,zh))
+    else
+      clmsa_zitaf = clmsa_dz/mo_b0
+      do it = 1, 20
+        clmsa_zitaf = clmsa_zitaf - &
+          (bzita(clmsa_zitaf,ztop,zh)-clmsa_dz)/bzitap(clmsa_zitaf,ztop,zh)
+      end do
+    end if
   end function clmsa_zitaf
 
   ! Distance in zita between the half levels k and k+1, for k < kz.
@@ -127,20 +139,41 @@ module mod_zita
     zfz = ztop/(exp(ztop/zh)-1.0_rkx)
   end function zfz
 
+  ! Height above flat terrain as function of zita. Capped: exponential
+  ! stretching from 0 to ztop. Uncapped (original MOLOCH, ztop = h):
+  ! z = -h*b(zita)*log(1-zita/h), b(zita) = b0+(1-b0)*zita/h, which is a
+  ! reference pressure coordinate p = p0*(1-zita/h) for b0 = 1 and goes to
+  ! infinity at zita = h.
   pure real(rkx) elemental function bzita(zita,ztop,zh)
 !$acc routine seq
     implicit none
     real(rkx), intent(in) :: zita, ztop, zh
-    bzita = zfz(ztop,zh)*(exp(zita/zh)-1.0_rkx)
+    real(rkx) :: ratio
+    if ( mo_lcap ) then
+      bzita = zfz(ztop,zh)*(exp(zita/zh)-1.0_rkx)
+    else
+      ratio = zita/ztop
+      bzita = -ztop*(mo_b0+(1.0_rkx-mo_b0)*ratio)*log(1.0_rkx-ratio)
+    end if
   end function bzita
 
+  ! Derivative of bzita in zita
   pure real(rkx) elemental function bzitap(zita,ztop,zh)
 !$acc routine seq
     implicit none
     real(rkx), intent(in) :: zita, ztop, zh
-    bzitap = zfz(ztop,zh)*exp(zita/zh)/zh
+    real(rkx) :: ratio
+    if ( mo_lcap ) then
+      bzitap = zfz(ztop,zh)*exp(zita/zh)/zh
+    else
+      ratio = zita/ztop
+      bzitap = (mo_b0+(1.0_rkx-mo_b0)*ratio)/(1.0_rkx-ratio) - &
+               (1.0_rkx-mo_b0)*log(1.0_rkx-ratio)
+    end if
   end function bzitap
 
+  ! The decay function is the same in both coordinates (in the uncapped
+  ! one ztop = h, as in the original MOLOCH).
   pure real(rkx) elemental function gzita(zita,ztop,a0)
 !$acc routine seq
     implicit none

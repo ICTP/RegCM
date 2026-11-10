@@ -231,6 +231,13 @@ module mod_dynparam
   real(rkx), public :: mo_ztop = 30000.0_rkx
   real(rkx), public :: mo_h = 8000.0_rkx
   real(rkx), public :: mo_a0 = 0.0_rkx
+  ! Vertical coordinate: .true. capped at the height mo_ztop, .false. the
+  ! original MOLOCH coordinate, with zita from 0 to mo_h, zero pressure and
+  ! infinite height at the top. Then the zita functions in mod_zita get
+  ! ztop = mo_h. Constant for now: the uncapped option is in progress.
+  logical, parameter, public :: mo_lcap = .true.
+  ! Stretching factor b0 of the uncapped coordinate (b0 = 1: no stretching)
+  real(rkx), parameter, public :: mo_b0 = 0.5_rkx
   logical, public :: mo_divdamp = .true.
   logical, public :: mo_spectral_nudge = .true.
   logical, public :: mo_divfilter = .true.
