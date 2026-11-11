@@ -55,7 +55,8 @@ module mod_micro_interface
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rh0adj => null( )
 
   integer(ik4), parameter :: nchi = 256
-  real(rkx), dimension(0:nchi-1) :: chis
+  ! Allocate through getmem so GPU stdpar can access the table in managed mode.
+  real(rkx), pointer, contiguous, dimension(:) :: chis => null()
   real(rkx), parameter :: xchi = nchi-1
   real(rkx), parameter :: rchi = 1.0_rkx/xchi
 
@@ -124,6 +125,7 @@ module mod_micro_interface
       call getmem(rhcrit,jci1,jci2,ici1,ici2,1,kz,'micro:rhcrit')
     end if
     call getmem(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
+    call getmem(chis,0,nchi-1,'micro:chis')
     do i = 1, nchi
       cf = real(i-1,rkx)*rchi
       chis(i-1) = 0.97_rkx*exp(-((cf-0.098_rkx)**2)/0.0365_rkx)+0.255_rkx
