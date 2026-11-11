@@ -39,7 +39,7 @@ module mod_zita
   ! No computation is meant to use it.
   real(rkx), parameter :: uncapped_ztop = 100000.0_rkx
 
-  public :: model_zitaf, model_zitah, model_dzitah, zitasigma, sigmazita
+  public :: model_zitaf, model_zitah, zitasigma, sigmazita
   public :: md_zeta, md_zeta_h, md_fmz, md_fmz_h, bzita, gzita
   public :: md_ak, md_bk
   public :: zita_interp
@@ -119,20 +119,6 @@ module mod_zita
       end do
     end if
   end function clmsa_zitaf
-
-  ! Distance in zita between the half levels k and k+1, for k < kz.
-  pure real(rkx) function model_dzitah(k,kz,ztop)
-!$acc routine seq
-    implicit none
-    integer(ik4), intent(in) :: k, kz
-    real(rkx), intent(in) :: ztop
-    if ( kz == 2 ) then
-      model_dzitah = ztop*0.5_rkx
-    else
-      model_dzitah = ztop/real(kz,rkx)
-    end if
-    if ( k < 1 .or. k >= kz ) model_dzitah = 0.0_rkx
-  end function model_dzitah
 
   ! Decay function
 

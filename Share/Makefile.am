@@ -95,6 +95,7 @@ mod_earth.o : mod_earth.F90 mod_realkinds.o mod_intkinds.o mod_constants.o
 mod_spbarcoord.o : mod_spbarcoord.F90 mod_realkinds.o mod_intkinds.o mod_constants.o
 mod_kdinterp.o : mod_kdinterp.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_stdio.o mod_message.o mod_earth.o mod_kdtree2.o mod_spbarcoord.o mod_dynparam.o
 mod_zita.o : mod_zita.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_heatindex.o : mod_heatindex.F90 mod_realkinds.o mod_stdio.o mod_message.o
 mod_wavelet.o : mod_wavelet.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_hashrng.o : mod_hashrng.F90 mod_intkinds.o mod_realkinds.o

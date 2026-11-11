@@ -775,12 +775,26 @@ Given the definition of the $\zeta$ hybrid vertical coordinate in
 the new coordinate system is thus:
 
 \begin{eqnarray}
-\sigma &=& 1 - \frac{\zeta}{Z_{top}} \\
-Z_f &=& \frac{Z_{top}}{e^{\frac{Z_{top}}{H}-1}} \\
+\sigma &=& 1 - \frac{\zeta}{\zeta_{top}} \\
 F_z &=& \frac{\partial \zeta}{\partial z} =
-     \frac{1}{G(\zeta) h(x,y) + \frac{1}{H}
-     Z_f e^{\frac{\zeta}{H}}}
+     \frac{1}{G'(\zeta)\, h(x,y) + B'(\zeta)}
 \end{eqnarray}
+
+where the prime denotes the derivative with respect to $\zeta$. For the
+capped levels $B'(\zeta) = Z_f e^{\zeta/H}/H$; for the uncapped levels
+$B'(\zeta) = b(\zeta)/(1 - \zeta/H) - (1 - b_0)\ln(1 - \zeta/H)$, and
+$F_z = 0$ at the top interface. $\sigma$ is a nominal coordinate used to
+label the levels: for the uncapped levels it is the reference pressure
+ratio of an isothermal atmosphere.
+
+The vertical derivatives between two full levels, in the vertical momentum
+equation (the pressure gradient and the advection of $\Theta_v$ by $w$),
+are computed over the distance between the full levels,
+$\Delta\zeta / (z_{k-1} - z_k)$, rather than with $F_z$ at the interface
+between them. The two differ where the layers are strongly stretched (up to
+10\% near the top of the uncapped levels). The hydrostatic initialization
+of $\Pi$ in the initial and boundary conditions uses the same distance, so
+that they are in balance with the model equations.
 
 which allows for the generalized vertical velocity to be expressed as:
 

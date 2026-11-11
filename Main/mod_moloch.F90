@@ -98,7 +98,7 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: rfmzv => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: fmzf => null( )
   ! Metric of the vertical derivatives between full levels in the w
-  ! equation: fmzf (capped), or dzita over the full level distance
+  ! equation: dzita over the full level distance
   real(rkx), dimension(:,:,:), pointer, contiguous :: fmzd => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: pai => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tetav => null( )
@@ -177,6 +177,7 @@ module mod_moloch
     lrotllr = (iproj == 'ROTLLR')
     call getmem(gzitak,1,kzp1,'moloch:gzitak')
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
+    call getmem(fmzd,jce1,jce2,ice1,ice2,1,kzp1,'moloch:fmzd')
     call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
     call getmem(bdywtu,jdi1,jdi2,ici1,ici2,1,kz,'moloch:bdywtu')
     call getmem(bdywtv,jci1,jci2,idi1,idi2,1,kz,'moloch:bdywtv')
@@ -233,11 +234,6 @@ module mod_moloch
     call assignpnt(mo_atm%rfmzu,rfmzu)
     call assignpnt(mo_atm%rfmzv,rfmzv)
     call assignpnt(mo_atm%fmzf,fmzf)
-    if ( mo_lcap ) then
-      call assignpnt(mo_atm%fmzf,fmzd)
-    else
-      call getmem(fmzd,jce1,jce2,ice1,ice2,1,kzp1,'moloch:fmzd')
-    end if
     call assignpnt(mo_atm%pai,pai)
     call assignpnt(mo_atm%tetav,tetav)
     call assignpnt(mo_atm%u,u)
@@ -284,19 +280,19 @@ module mod_moloch
     gzitak = gzita(zita,mo_ztop,mo_a0)
     gzitakh = gzita(zitah,mo_ztop,mo_a0)
     rdzita = 1.0_rkx / mo_dzita
-    if ( .not. mo_lcap ) then
-      ! The uncapped layers are strongly stretched near the top, where
-      ! dzita/fmzf misses the full level distance by up to 10%: use the
-      ! distance itself, consistent with the hydrostatic pai of the ICBC
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
-        if ( k == 1 .or. k == kzp1 ) then
-          fmzd(j,i,k) = fmzf(j,i,k)
-        else
-          fmzd(j,i,k) = mo_dzita / &
-                (mo_atm%zeta(j,i,k-1) - mo_atm%zeta(j,i,k))
-        end if
-      end do
-    end if
+    ! Between full levels the vertical derivatives use the full level
+    ! distance, not dzita/fmzf at the interface: the two differ where the
+    ! layers are stretched (up to 10% near the uncapped top, up to about
+    ! 1% over high orography with few capped levels). This is consistent
+    ! with the hydrostatic pai of the ICBC and of the boundary conditions.
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
+      if ( k == 1 .or. k == kzp1 ) then
+        fmzd(j,i,k) = fmzf(j,i,k)
+      else
+        fmzd(j,i,k) = mo_dzita / &
+              (mo_atm%zeta(j,i,k-1) - mo_atm%zeta(j,i,k))
+      end if
+    end do
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       w(j,i,1) = d_zero
     end do

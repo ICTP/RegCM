@@ -316,28 +316,52 @@ solid lines denote half-sigma levels.}
 \end{figure}
 
 The \ac{MOLOCH} dynamical core uses a terrain following $H$ coordinate
-$\zeta$ (Figure~\ref{moloch_levels}) which transform the $Z$ vertical
-interval $[h, Z_{top}]$ into the regularly spaced interval $\zeta_i
-\in [0,Z_{top}]$:
-
-\begin{eqnarray}
-  \Delta \zeta &=& \frac{Z_{top}}{kz} \\
-  Z_f &=& \frac{Z_{top}}{e^{\frac{Z_{top}}{H}-1}} \\
-  Z &=& h(x,y) G(\zeta) + Z_f e^{\frac{\zeta}{H}-1}
-\end{eqnarray}
-
-where $h(x,y)$ is the local topography, $G(\zeta)$ have the
-following analythical formulation:
+$\zeta$ (Figure~\ref{moloch_levels}), with the $kz$ layers regularly spaced
+in $\zeta$ between 0 at the ground and $\zeta_{top}$. The height of a point
+above the sea level is
 
 \begin{equation}
-G(\zeta) = 1 - a_0 \frac{\zeta}{Z_{top}} -
-       (3 - 2 a_0)\left( \frac{\zeta}{Z_{top}} \right)^2 +
-       (2 - a_0) \left( \frac{\zeta}{Z_{top}} \right)^3
+  Z = h(x,y)\, G(\zeta) + B(\zeta)
 \end{equation}
 
-and $H$ is a scale height of the atmosphere.
+where $h(x,y)$ is the local topography and $G(\zeta)$ the decay of its
+effect with height:
 
-with $Z_{top}$, $H$ and $a_0$ as configurable constant parameter.
+\begin{equation}
+G(\zeta) = 1 - a_0 \frac{\zeta}{\zeta_{top}} -
+       (3 - 2 a_0)\left( \frac{\zeta}{\zeta_{top}} \right)^2 +
+       (2 - a_0) \left( \frac{\zeta}{\zeta_{top}} \right)^3
+\end{equation}
+
+with $G(0) = 1$ and $G(\zeta_{top}) = 0$. Two choices of $B(\zeta)$ are
+available (namelist parameter \texttt{mo\_lcap}).
+
+\textbf{Capped levels} (default). The model top is a rigid lid at the
+height $Z_{top}$ ($\zeta_{top} = Z_{top}$), and the levels are stretched
+exponentially with the scale height $H$:
+
+\begin{eqnarray}
+  Z_f &=& \frac{Z_{top}}{e^{Z_{top}/H}-1} \\
+  B(\zeta) &=& Z_f \left( e^{\zeta/H} - 1 \right)
+\end{eqnarray}
+
+\textbf{Uncapped levels}. These are the original \ac{MOLOCH} levels
+\citep{Malguzzi_11}, with $\zeta_{top} = H$ and
+
+\begin{eqnarray}
+  b(\zeta) &=& b_0 + (1 - b_0)\frac{\zeta}{H} \\
+  B(\zeta) &=& -H\, b(\zeta) \ln\left(1 - \frac{\zeta}{H}\right)
+\end{eqnarray}
+
+with $b_0 = 0.5$. For $b_0 = 1$ this is a reference pressure coordinate,
+$p = p_0 (1 - \zeta/H)$ in an isothermal atmosphere: the layers have equal
+reference pressure thickness, and $b_0 < 1$ makes them thinner near the
+ground. The top interface ($\zeta = H$) is at zero pressure and infinite
+height, so that the whole atmospheric column is in the model. The physical
+parameterizations get a finite top interface, mirroring the top half layer
+in height and in the logarithm of pressure.
+
+$Z_{top}$ (capped levels only), $H$ and $a_0$ are configurable parameters.
 
 \section{Map Projections and Map-Scale Factors}
 The modeling system has a

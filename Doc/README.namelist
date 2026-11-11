@@ -495,7 +495,11 @@
 ! MOLOCH control parameters
 ! 
  &molochparam
- mo_ztop = 30000.0,          ! Atmosphere top lid in meters
+ mo_lcap = .true.,           ! Vertical levels:
+                             !  .true. : capped at the height mo_ztop
+                             !  .false.: original MOLOCH levels, up to zero
+                             !           pressure (mo_ztop is not used)
+ mo_ztop = 30000.0,          ! Atmosphere top lid in meters (capped levels)
  mo_h = 8000.0,              ! Atmosphere reference height
  mo_a0 = 0.0,                ! Vertical stretching in model level equations
  mo_nadv = 2,                ! Number of advection loops for physics loop

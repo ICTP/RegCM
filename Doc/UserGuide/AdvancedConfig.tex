@@ -825,7 +825,11 @@ conditions and the base state vertical profile curve shape.
  logp_lrate = 47.70,             ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
  /
  &molochparam
- mo_ztop = 20000.0, ! Atmosphere top lid in meters
+ mo_lcap = .true.,  ! Vertical levels:
+                    !  .true. : capped at the height mo_ztop
+                    !  .false.: original MOLOCH levels, up to zero
+                    !           pressure (mo_ztop is not used)
+ mo_ztop = 20000.0, ! Atmosphere top lid in meters (capped levels)
  mo_h = 6500.0,     ! Atmosphere reference height
  mo_a0 = 0.0,       ! Vertical stretching in model level equations
  /
@@ -854,6 +858,18 @@ conditions and the base state vertical profile curve shape.
 
 \begin{enumerate}
 \item The upper radiative boundary layer option has a high computational cost.
+\item The MOLOCH core has two choices of vertical levels. With
+\verb=mo_lcap = .true.= (default) the levels end at a fixed height
+\verb=mo_ztop= (a rigid lid, about 10--15 hPa for 30 km), and the RRTM
+radiation can add climatological layers above it (\verb=rrtm_extend=).
+With \verb=mo_lcap = .false.= the model uses the original MOLOCH levels:
+equal steps in a reference pressure, stretched near the ground by a fixed
+factor 0.5, up to zero pressure at the top, so that the whole atmospheric
+column is in the model and \verb=mo_ztop= is not used. The top full level
+is then near 33~km for 32 levels and the top layer is thick, damped by the
+top sponge. The choice must be the same for \verb=terrain=, \verb=icbc= and
+the model: it is written in the files (attribute \verb=zita_capped=) and the
+model stops if its namelist does not match the DOMAIN file.
 \end{enumerate}
 
 \subsection{hydroparam namelist}

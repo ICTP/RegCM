@@ -5062,14 +5062,27 @@ non-negative.
 \subsection{Overview}
 
 \code{mod\_zita} defines the height-based, terrain-following coordinate
-$\zeta$ of the MOLOCH core, from 0 at the surface to $\zeta_\text{top}$
-(\code{mo\_ztop}), and the related functions. The height of a point is
+$\zeta$ of the MOLOCH core, from 0 at the surface to $\zeta_\text{top}$,
+and the related functions. The height of a point is
 \[
   z = b(\zeta) + h\,g(\zeta)
 \]
-with $h$ the orography, so that $z = h$ at $\zeta = 0$ and
-$z = \zeta_\text{top}$ at the top, where the effect of the orography has
-vanished.
+with $h$ the orography, so that $z = h$ at $\zeta = 0$; at the top the
+effect of the orography has vanished. Two forms of $b$ are selected by
+\code{mo\_lcap} (namelist \code{molochparam}):
+\begin{itemize}
+  \item capped levels (\code{mo\_lcap = .true.}): $\zeta_\text{top}$ is
+    \code{mo\_ztop} and $z = \zeta_\text{top}$ at the top;
+  \item uncapped levels (\code{mo\_lcap = .false.}), the original MOLOCH
+    levels: $\zeta_\text{top}$ is the scale height \code{mo\_h} (the
+    namelist reader sets \code{mo\_ztop = mo\_h}), with zero pressure and
+    infinite height at the top.
+\end{itemize}
+All the functions take $\zeta_\text{top}$ as their \code{ztop} argument,
+so the callers are the same for both. The choice is written in the files
+as the global attribute \code{zita\_capped} (\code{mod\_ncstream}); the
+model checks it against the DOMAIN file (\code{mod\_domain}), and
+\code{pgw\_icbc} and \code{sigma2p} take it from their input file.
 
 \subsection{Dependencies}
 
@@ -5077,6 +5090,7 @@ vanished.
 mod_zita
     |-- mod_realkinds, mod_intkinds
     |-- mod_constants   (egrav, rgas, regrav)
+    |-- mod_dynparam    (mo_lcap, mo_b0)
 \end{lstlisting}
 
 \subsection{Levels}
@@ -5088,10 +5102,12 @@ points), ordered from the top. With $n_z = 2$, the levels used to force the
 CLM stand-alone program \code{clmsa}, the interior full level is the
 $\zeta$ that \code{bzita} maps to 80~m over flat terrain, for the decay
 height \code{zh} (\code{mo\_h}); the lowest half level is then about
-40~m above the ground, like $\sigma = 0.995$ of the sigma cores.
-\code{model\_dzitah(k, nz, ztop)} is the distance in $\zeta$ between the
-half levels $k$ and $k+1$, used by the hydrostatic integrations of the
-Exner function in the ICBC programs and in \code{sigma2p}. The
+40~m above the ground, like $\sigma = 0.995$ of the sigma cores. For the
+uncapped levels this $\zeta$ has no closed form and is found by Newton
+iterations. The hydrostatic integrations of the Exner function (ICBC
+programs, model boundaries, \code{sigma2p}) do not use these functions:
+they step between full levels with the height difference of the levels,
+as the MOLOCH vertical momentum equation does. The
 functions \code{sigmazita} $= 1 - \zeta/\zeta_\text{top}$ and its inverse
 \code{zitasigma} map $\zeta$ to a nominal sigma, used as the vertical axis
 of the files and for data prepared on pseudo-sigma levels
@@ -5108,11 +5124,15 @@ of the files and for data prepared on pseudo-sigma levels
   \bottomrule
   \endfoot
   \code{bzita(zita, ztop, zh)} &
-    $b(\zeta) = Z_f\,(e^{\zeta/z_h} - 1)$ with
+    Capped: $b(\zeta) = Z_f\,(e^{\zeta/z_h} - 1)$ with
     $Z_f = \zeta_\text{top}/(e^{\zeta_\text{top}/z_h} - 1)$
     (\code{zfz}): $b(0) = 0$, $b(\zeta_\text{top}) = \zeta_\text{top}$,
-    with the vertical scale $z_h$ (\code{mo\_h}). \code{md\_ak} is the same
-    function. \\
+    with the vertical scale $z_h$ (\code{mo\_h}).
+    Uncapped: $b(\zeta) = -\zeta_\text{top}\,(b_0 + (1-b_0)r)\ln(1 - r)$
+    with $r = \zeta/\zeta_\text{top}$ and $b_0$ = \code{mo\_b0} (0.5). At
+    the top interface, where it is infinite, it returns the finite stand-in
+    \code{uncapped\_ztop} (100~km), never used in a computation.
+    \code{md\_ak} is the same function. \\
   \code{gzita(zita, ztop, a0)} &
     Cubic decay of the orography, with $r = \zeta/\zeta_\text{top}$:
     $g = 1 - a_0 r - (3 - 2a_0)r^2 + (2 - a_0)r^3$, so that $g(0) = 1$
@@ -5123,7 +5143,8 @@ of the files and for data prepared on pseudo-sigma levels
   \code{md\_zeta\_h(zita, orog, ...)} &
     Height above the orography, $z - h = b + h(g - 1)$. \\
   \code{md\_fmz\_h(zita, orog, ...)} &
-    Metric factor $1/(\partial z/\partial\zeta) = 1/(b' + h g')$. \\
+    Metric factor $1/(\partial z/\partial\zeta) = 1/(b' + h g')$; zero at
+    the top interface of the uncapped levels. \\
   \code{md\_zeta}, \code{md\_fmz} &
     The same with the surface geopotential instead of the orography. \\
 \end{longtable}

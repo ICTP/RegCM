@@ -51,7 +51,7 @@ program pgw_icbc
 
   implicit none
 
-  integer(ik4) :: ierr, idynamic
+  integer(ik4) :: ierr, idynamic, icapped
   integer(ik4) :: jx, iy, kz, icheck, jcheck
   integer(ik4) :: pgwin, icbcin
   integer(ik4) :: idimid, ivarid
@@ -61,10 +61,10 @@ program pgw_icbc
   real(rkx), pointer, contiguous, dimension(:) :: plev, sigma
   real(rkx), pointer, contiguous, dimension(:) :: sigmar
   real(rkx), pointer, contiguous, dimension(:) :: dsigma, sigmaf
-  real(rkx), pointer, contiguous, dimension(:) :: zitah, zitaf
+  real(rkx), pointer, contiguous, dimension(:) :: zitah
   real(rkx), pointer, contiguous, dimension(:,:) :: ps, pspa, pd, ts, ps0
   real(rkx), pointer, contiguous, dimension(:,:) :: topo, xmap
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: z0, fmz0, p0, t0, p
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: z0, p0, t0, p
   real(rkx), pointer, contiguous, dimension(:,:,:) :: u, v, t, q, pp, ww, pai
   real(rkx), pointer, contiguous, dimension(:,:) :: bps, ps1, ps2, ps3
   real(rkx), pointer, contiguous, dimension(:,:) :: bts, ts1, ts2, ts3
@@ -240,12 +240,10 @@ program pgw_icbc
     call getmem(ww,1,jx,1,iy,1,kz,'pgw_icbc:ww')
   else if ( idynamic == 3 ) then
     call getmem(pspa,1,jx,1,iy,'pgw_icbc:pspa')
-    call getmem(zitaf,1,kz+1,'pgw_icbc:zitaf')
     call getmem(zitah,1,kz,'pgw_icbc:zitah')
     call getmem(z0,1,jx,1,iy,1,kz,'pgw_icbc:z0')
     call getmem(p,1,jx,1,iy,1,kz,'pgw_icbc:p')
     call getmem(pai,1,jx,1,iy,1,kz,'pgw_icbc:pai')
-    call getmem(fmz0,1,jx,1,iy,1,kz+1,'pgw_icbc:fmz0')
   else
     stop
   end if
@@ -272,19 +270,14 @@ program pgw_icbc
     ierr = nf90_get_att(icbcin, nf90_global, 'zita_factor_a0', mo_a0)
     call check_ok(__FILE__,__LINE__,'attribute zita_factor_a0 miss', &
                   'ICBC FILE')
-    call model_zitaf(zitaf,mo_ztop,mo_h)
+    ! Files written before the uncapped option are capped
+    ierr = nf90_get_att(icbcin, nf90_global, 'zita_capped', icapped)
+    mo_lcap = ( ierr /= nf90_noerr .or. icapped == 1 )
     call model_zitah(zitah,mo_ztop,mo_h)
     do k = 1, kz
       do i = 1, iy
         do j = 1, jx
           z0(j,i,k) = md_zeta_h(zitah(k),topo(j,i),mo_ztop,mo_h,mo_a0)
-        end do
-      end do
-    end do
-    do k = 1, kz+1
-      do i = 1, iy
-        do j = 1, jx
-          fmz0(j,i,k) = md_fmz_h(zitaf(k),topo(j,i),mo_ztop,mo_h,mo_a0)
         end do
       end do
     end do
@@ -803,13 +796,8 @@ program pgw_icbc
         do k = nz-1, 1, -1
           tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
           tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
-          if ( mo_lcap ) then
-            zb = d_two*egrav*model_dzitah(k,nz,mo_ztop) / &
-                 (fmz0(j,i,k+1)*cpd) + tv1 - tv2
-          else
-            ! Full level distance, as the Moloch w equation
-            zb = d_two*egrav*(z(j,i,k)-z(j,i,k+1))/cpd + tv1 - tv2
-          end if
+          ! Full level distance, as the Moloch w equation
+          zb = d_two*egrav*(z(j,i,k)-z(j,i,k+1))/cpd + tv1 - tv2
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
           paikp1 = -paikp1 / (d_two * tv2) * (zb - zdelta)
           pai(j,i,k) = paikp1

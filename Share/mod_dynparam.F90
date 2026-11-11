@@ -234,8 +234,9 @@ module mod_dynparam
   ! Vertical coordinate: .true. capped at the height mo_ztop, .false. the
   ! original MOLOCH coordinate, with zita from 0 to mo_h, zero pressure and
   ! infinite height at the top. Then the zita functions in mod_zita get
-  ! ztop = mo_h. Constant for now: the uncapped option is in progress.
-  logical, parameter, public :: mo_lcap = .true.
+  ! ztop = mo_h.
+  logical, public :: mo_lcap = .true.
+!$acc declare create(mo_lcap)
   ! Stretching factor b0 of the uncapped coordinate (b0 = 1: no stretching)
   real(rkx), parameter, public :: mo_b0 = 0.5_rkx
   logical, public :: mo_divdamp = .true.
@@ -533,7 +534,7 @@ module mod_dynparam
 
     namelist /dimparam/ iy, jx, kz, dsmax, dsmin, nsg, njxcpus, niycpus
     namelist /coreparam/ idynamic
-    namelist /molochparam/ mo_a0, mo_ztop, mo_h, mo_divfilter, &
+    namelist /molochparam/ mo_a0, mo_ztop, mo_h, mo_lcap, mo_divfilter, &
       mo_divdamp, mo_spectral_nudge, mo_top_nudge, mo_nadv, mo_nsound
     namelist /geoparam/ iproj, ds, ptop, clat, clon, plat,    &
       plon, cntri, cntrj, truelatl, truelath, i_band, i_crm
@@ -627,6 +628,7 @@ module mod_dynparam
       read(ipunit, nml=molochparam, iostat=iresult)
       ! The uncapped coordinate has zita from 0 to mo_h
       if ( .not. mo_lcap ) mo_ztop = mo_h
+!$acc update device(mo_lcap)
     end if
 
 #ifdef NETCDF4_HDF5

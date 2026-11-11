@@ -408,6 +408,7 @@ module mod_domain
     logical :: lh, lb, ls, lsfc
     real(rkx) :: dsx, iclat, iclon, ptsp
     real(rkx) :: moloch_ztop, moloch_hscale, moloch_a0
+    integer(ik4) :: moloch_capped
     real(rkx), dimension(2) :: icntr
 
     lh = .false.
@@ -581,6 +582,14 @@ module mod_domain
         write(stderr,*) 'DOMAIN FILE : ', moloch_a0
         write(stderr,*) 'NAMELIST    : ', mo_a0
         call die('Mismatch: mo_a0 in DOMAIN file /= mo_a0 in namelist')
+      end if
+      ! Files written before the uncapped option are capped
+      istatus = nf90_get_att(ncid,nf90_global,'zita_capped',moloch_capped)
+      if ( istatus /= nf90_noerr ) moloch_capped = 1
+      if ( (moloch_capped == 1) .neqv. mo_lcap ) then
+        write(stderr,*) 'DOMAIN FILE : ', moloch_capped == 1
+        write(stderr,*) 'NAMELIST    : ', mo_lcap
+        call die('Mismatch: mo_lcap in DOMAIN file /= mo_lcap in namelist')
       end if
     end if
   end subroutine check_domain

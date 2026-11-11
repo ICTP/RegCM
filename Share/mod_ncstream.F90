@@ -4103,6 +4103,9 @@ module mod_ncstream
         attr%aname = 'zita_atmosphere_h'
         attr%theval = mo_h
         call add_attribute(stream,attr)
+        atti%aname = 'zita_capped'
+        atti%theval = merge(1,0,mo_lcap)
+        call add_attribute(stream,atti)
       end if
       atti%aname = 'dynamical_core'
       atti%theval = idynamic

@@ -928,13 +928,8 @@ module mod_write
         do k = nz-1, 1, -1
           tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
           tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
-          if ( mo_lcap ) then
-            zb = d_two*egrav*model_dzitah(k,nz,mo_ztop) / &
-                 (fmz0(j,i,k+1)*cpd) + tv1 - tv2
-          else
-            ! Full level distance, as the Moloch w equation
-            zb = d_two*egrav*(z(j,i,k)-z(j,i,k+1))/cpd + tv1 - tv2
-          end if
+          ! Full level distance, as the Moloch w equation
+          zb = d_two*egrav*(z(j,i,k)-z(j,i,k+1))/cpd + tv1 - tv2
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
           paikp1 = -paikp1 / (d_two * tv2) * (zb - zdelta)
           pai(j,i,k) = paikp1

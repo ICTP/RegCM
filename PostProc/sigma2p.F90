@@ -23,7 +23,7 @@ program sigma2p
   use mod_intkinds
   use mod_realkinds
   use mod_constants
-  use mod_dynparam, only : iomode
+  use mod_dynparam, only : iomode, mo_lcap
   use mod_stdio, only : stderr
 #ifdef NETCDF4_HDF5
   use mod_dynparam, only : ncfilter, ncfilter_nparams, ncfilter_params
@@ -42,13 +42,13 @@ program sigma2p
 
   character(256) :: prgname, ncsfile, ncpfile
   character(128) :: attname, dimname, varname, psunit
-  integer(ik4) :: numarg, istatus, ncid, ncout
+  integer(ik4) :: numarg, istatus, ncid, ncout, icapped
 
   integer(ik4), allocatable, dimension(:) :: dimids, dimlen
   real(rk4), allocatable, dimension(:) :: sigma, ak, bk
   real(rk4), allocatable, dimension(:,:,:) :: tmpvar, qvar, hzvar
   real(rk4), allocatable, dimension(:,:,:) :: pp, press, zeta, pai
-  real(rk4), allocatable, dimension(:,:,:) :: fm, z0, tvar, qvvar
+  real(rk4), allocatable, dimension(:,:,:) :: z0, tvar, qvvar
   real(rk4), allocatable, save, dimension(:,:,:) :: pvar, xvar
   real(rk4), allocatable, dimension(:,:) :: ps, topo, mslpr, ps0, plow
   real(rk4), allocatable, dimension(:) :: avar
@@ -79,7 +79,7 @@ program sigma2p
   logical :: make_rh, make_hgt, has_sph
   integer(ik4) :: n3d, ip3d, iodyn, np, ipunit, iresult
   real(rk4), allocatable, dimension(:) :: plevs
-  real(rkx), allocatable, dimension(:) :: zita, zitah
+  real(rkx), allocatable, dimension(:) :: zitah
 
   data has_t /.false./
   data has_q /.false./
@@ -392,19 +392,17 @@ program sigma2p
     istatus = nf90_get_att(ncid, nf90_global, 'zita_factor_a0', a0)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error reading attribute zita_factor_a0')
-    allocate(fm(jx,iy,kz+1), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'fm')
+    ! Files written before the uncapped option are capped
+    istatus = nf90_get_att(ncid, nf90_global, 'zita_capped', icapped)
+    mo_lcap = ( istatus /= nf90_noerr .or. icapped == 1 )
     allocate(z0(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'z0')
     allocate(tvar(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'tvar')
     allocate(qvvar(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'qvvar')
-    allocate(zita(kz+1), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'zita')
     allocate(zitah(kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'zitah')
-    call model_zitaf(zita,ztop,zh)
     call model_zitah(zitah,ztop,zh)
   end if
 
@@ -542,14 +540,6 @@ program sigma2p
       zeta(:,:,k) = real(ak(k) + (bk(k) - 1.0_rkx) * topo(:,:),rk4)
     end do
     if ( is_icbc ) then
-      do k = 1, kz+1
-        do i = 1, iy
-          do j = 1, jx
-            htg = topo(j,i)
-            fm(j,i,k) = real(md_fmz_h(zita(k),htg,ztop,zh,a0),rk4)
-          end do
-        end do
-      end do
       do k = 1, kz
         do i = 1, iy
           do j = 1, jx
@@ -686,7 +676,7 @@ program sigma2p
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
         istatus = nf90_get_var(ncid, qvarid, qvvar, istart(1:4), icount(1:4))
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
-        call paicompute(ps,z0,tvar,qvvar,pai,fm,ztop,jx,iy,kz)
+        call paicompute(ps,z0,tvar,qvvar,pai,jx,iy,kz)
       end if
       press(:,:,:) = real(p00 * (pai(:,:,:)**cpovr),rk4)
     end if
@@ -1009,13 +999,11 @@ program sigma2p
   end subroutine get_ncfilter
 #endif
 
-  subroutine paicompute(ps,z,t,q,pai,fm,ztop,nx,ny,nz)
+  subroutine paicompute(ps,z,t,q,pai,nx,ny,nz)
     implicit none
     integer(ik4), intent(in) :: nx, ny, nz
-    real(rkx), intent(in) :: ztop
     real(rk4), dimension(nx,ny), intent(in) :: ps
     real(rk4), dimension(nx,ny,nz), intent(in) :: z, t, q
-    real(rk4), dimension(nx,ny,nz+1), intent(in) :: fm
     real(rk4), dimension(nx,ny,nz), intent(inout) :: pai
     real(rk8) :: tv, tv1, tv2, p, zb, zdelta, zz, lrt
     integer(ik4) :: i, j, k
@@ -1037,8 +1025,8 @@ program sigma2p
         do j = 1, nx
           tv1 = t(j,i,k) * (1.0_rk8 + ep1*q(j,i,k))
           tv2 = t(j,i,k+1) * (1.0_rk8 + ep1*q(j,i,k+1))
-          zb = 2.0_rk8*egrav*model_dzitah(k,nz,ztop) / &
-               (fm(j,i,k+1)*cpd) + tv1 - tv2
+          ! Full level distance, as the Moloch w equation
+          zb = 2.0_rk8*egrav*(z(j,i,k)-z(j,i,k+1))/cpd + tv1 - tv2
           zdelta = sqrt(zb**2 + 4.0_rk8 * tv2 * tv1)
           pai(j,i,k) = -real(pai(j,i,k+1)/(2.0_rk8*tv2)*(zb-zdelta),rk4)
         end do
