@@ -355,6 +355,8 @@ AM_CONDITIONAL(COMPILER_CRAY, [test "$fc_vendor" = cray])
 # Base flags: big-endian unformatted I/O, OpenMP, target architecture
 case $fc_vendor in
   gnu)
+    # The default -g -O2 would follow, and override, the -O3 or -O0 below
+    test "x$rcm_user_fcflags" = xyes || FCFLAGS=""
     FCFLAGS="$FCFLAGS -fconvert=big-endian -fno-range-check -fPIC"
     OMPFLAGS="-fopenmp"
     test "x$USE_KNL" = x1 && FCFLAGS="$FCFLAGS -march=knl"
