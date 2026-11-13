@@ -2360,10 +2360,14 @@ module mod_params
       write(stdout,'(a,f11.4)') '  Scenario year offset        : ', &
         year_offset
       write(stdout,'(a,l2)') '  GHG fixed at 2050 values    : ', lconst2050
-      write(stdout,'(a,f11.4)') '  Max T tendency (K s-1)      : ', &
-        temp_tend_maxval
-      write(stdout,'(a,f11.4)') '  Max wind tendency (m s-2)   : ', &
-        wind_tend_maxval
+#ifdef DEBUG
+      if ( idynamic < 3 ) then
+        write(stdout,'(a,f11.4)') '  Max T tendency check value  : ', &
+          temp_tend_maxval
+        write(stdout,'(a,f11.4)') '  Max wind tendency check     : ', &
+          wind_tend_maxval
+      end if
+#endif
 #ifndef RCEMIP
       write(stdout,*) 'Boundary Pameterizations'
       write(stdout,'(a,i3)') '  Num. of bndy points cross  : ', nspgx
