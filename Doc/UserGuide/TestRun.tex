@@ -247,10 +247,27 @@ printed on screen. As this is a simulation known to behave well, no stoppers
 will appear, so you may want now to have a coffee break and come back in 10
 minutes from now.
 
+Before the time integration starts, the model prints a summary of the run
+settings: the restart and output options, the physics schemes selected, and
+the value of every namelist parameter used by the run, grouped by topic
+(dynamical core, radiation, clouds, microphysics, convection, PBL,
+chemistry, coupling). Only the parameters of the schemes actually selected
+are printed, so the parameters of, for example, the Tiedtke convection
+scheme appear only when \verb=icup= selects it. Parameters not set in the
+namelist file are printed with their default value. When a whole optional
+namelist group is missing, the model says so and uses the defaults, as in
+\verb='Using default cloud parameter.'=. This summary is the record of the
+configuration of the run, and it is a good practice to keep it by
+redirecting the standard output to a log file:
+
+\begin{Verbatim}
+$> mpirun ./bin/regcmMPICLM45 test_001.in > test_001.log 2>&1
+\end{Verbatim}
+
 At the end of the run, the model will print the following message:
 
 \begin{Verbatim}
- RegCM V4 simulation successfully reached end
+ RegCM V5 simulation successfully reached end
 \end{Verbatim}
 
 The output directory now contains four files:
