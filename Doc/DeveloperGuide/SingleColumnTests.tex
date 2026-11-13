@@ -1,0 +1,154 @@
+\chapter{Single column tests}
+
+The directory \verb=Testing/scm= holds single column tests of the physics
+schemes: a program calls one scheme through its model entry point on a set
+of atmospheric columns, without the dynamical core. They serve as
+regression tests, run by \code{make check}, and as a quick way to look at
+the response of a scheme to its parameters. The Tiedtke cumulus scheme
+(\code{icup}~=~5) is the first one covered.
+
+\section{Files}
+
+\begin{itemize}
+  \item \verb=scm_tiedtke.F90=: the driver of the Tiedtke scheme;
+  \item \verb=scm_tiedtke.py=: the Python wrapper (run, summary, parameter
+        sweep, plot, comparison with a reference);
+  \item \verb=scm_profiles.txt=: the test columns;
+  \item \verb=make_profiles.py=: builds \verb=scm_profiles.txt= from ERA5;
+  \item \verb=run_scm_tests.sh=: the test run by \code{make check};
+  \item \verb=reference/=: the reference outputs;
+  \item \verb=README=: usage notes.
+\end{itemize}
+
+\section{The driver}
+
+The columns are laid out as a $1 \times n$ grid: \code{set\_grid} sets all
+the index ranges of the domain (\code{jci1:jci2}, \code{jce1ga:jce2ga},
+\ldots) to \code{1:n} by \code{1:1}. The driver then sets the model
+configuration seen by the scheme, the one of the MOLOCH core
+(\code{idynamic}~=~3, \code{ipptls}~=~2, no chemistry), allocates the
+cumulus arrays with the model routines (\code{init\_mod\_cumulus},
+\code{allocate\_mod\_cu\_tiedtke}), fills a \code{mod\_2\_cum} structure
+from the profiles and calls \code{tiedtkedrv} once. The input humidity is
+converted from specific humidity to mixing ratio, as the model stores it;
+the vertical velocity goes to \code{avg\_ww} and the domain mean pressure
+profile to \code{pmean}, as \code{cumulus} does in
+\verb=mod_cu_interface.F90=. The outputs are the \verb=cu_*= arrays of
+\verb=mod_cu_common=, plus the cloud type \code{ktype} and the updraft
+mass flux \code{pmfu}, public in \verb=mod_cu_tiedtke= for this purpose.
+
+The namelist file (default \verb=scm_tiedtke.in=, or the first argument)
+has a \code{scmparam} group (\code{infile}, \code{outfile}, \code{dtcum},
+\code{dxkm}) and the model groups \code{tiedtkeparam}, complete, and
+\code{cldparam}, with only \code{kfac\_deep}, \code{kfac\_shal} and
+\code{k2\_const}. The defaults are the ones of \verb=mod_params.F90=: a
+change of a default in the model must be repeated in the driver.
+
+The output is plain text: a header with the namelists used, then for each
+column a \verb=COLUMN= line (land flag, cloud type, top and base level,
+rain and snow rate, column heating and moistening, the ERA5 CAPE and
+convective rain of the profile) and one line per level, top to bottom:
+height, pressure, updraft mass flux, tendencies of temperature, humidity,
+cloud liquid and ice and of the wind components, convective cloud fraction
+and detrained condensate.
+
+\section{Test columns}
+
+\verb=scm_profiles.txt= has twelve columns, six per hemisphere, land and
+ocean: Sahel, India, Great Plains, West Pacific warm pool, California
+stratocumulus, North Atlantic trades; Amazon, Congo, central Australia,
+SPCZ, South East Atlantic stratocumulus, South Atlantic trades. They are
+built by \verb=make_profiles.py= from ERA5 (September 2023):
+\begin{itemize}
+  \item the deep convection columns are taken at the 6-hourly time of the
+        month with the largest ERA5 convective rain rate at the point, the
+        others at a fixed time of a given day;
+  \item the vertical grid is the one of the 32 MOLOCH levels of the South
+        America test case ($z = a + b\,h_s$), heights above the ground;
+  \item temperature, humidity and wind on the ERA5 pressure levels above
+        the ground are interpolated in height; below the lowest of them the
+        surface layer is well mixed (constant potential temperature,
+        humidity and wind), as a model column is after the PBL scheme; the
+        pressure is integrated hydrostatically from the ERA5 surface
+        pressure; the vertical velocity is the ERA5 monthly mean;
+  \item surface fluxes are the ERA5 monthly means, over land scaled by a
+        half sine diurnal cycle (peak $\pi$ times the daily mean) at the
+        local solar time; the PBL height is diagnosed from the bulk
+        Richardson number (critical value 0.25);
+  \item the input tendencies are zero, as in the model, where the cumulus
+        scheme is the first physics call of the time step.
+\end{itemize}
+Each column line of the file has the name, position, land flag, date,
+surface pressure, surface fluxes, PBL height, the ERA5 CAPE and convective
+rain rate, and the orography; then one line per level (height, pressure,
+temperature, specific humidity, wind, vertical velocity, input tendencies
+of temperature and humidity) and one per half level (height, pressure).
+The ERA5 CAPE and rain rate are a reference for the reader, not a target.
+
+\section{The Python wrapper}
+
+\verb=scm_tiedtke.py= writes the namelist, runs the program in a temporary
+directory and reads the output. It needs only the Python standard library,
+except for the plot (matplotlib). The program is looked for in the
+\code{--exe} option, the \code{SCM\_TIEDTKE} environment variable, the
+current directory and the directory of the script.
+\begin{verbatim}
+  scm_tiedtke.py                            defaults, summary table
+  scm_tiedtke.py --list                     namelists used
+  scm_tiedtke.py --set entrpen_ocn=1.0e-3 --set lmfwstar=.true.
+  scm_tiedtke.py --sweep rprc_ocn=1.0e-3,1.4e-3,2.0e-3
+  scm_tiedtke.py --plot tiedtke.png         profiles of every column
+  scm_tiedtke.py --save run.out --compare reference/scm_tiedtke.out
+  scm_tiedtke.py --check a.out b.out        compare two outputs
+\end{verbatim}
+The parameter names are the ones of the RegCM namelist; the wrapper knows
+the group of each one. The summary table lists, per column, the cloud type,
+base and top height, maximum mass flux, rain rate, column heating and
+moistening.
+
+The comparison of two outputs requires the same cloud type, base and top in
+every column, and the real values to agree within a relative tolerance
+(\code{--rtol} or \code{SCM\_RTOL}, default $10^{-4}$) plus an absolute one
+(\code{--atol} or \code{SCM\_ATOL}, default $10^{-5}$ times the largest
+magnitude of the field in the column), to allow for compiler and flag
+differences. It stops at the first difference of each field in a column
+and returns a non zero exit status if any is found.
+
+\section{Running the tests}
+
+\code{make check} in \verb=Testing/scm= (or in \verb=Testing=, or at the
+top level) builds the drivers, linking the model libraries
+\verb=Main/cumlib/libcum.a= and \verb=Main/mpplib/libmpp.a= with the
+\verb=Share= library, and runs \verb=run_scm_tests.sh=. For each scheme the
+script writes a namelist with the default settings, runs the program in
+\verb=scm_output/<scheme>= (or \code{SCM\_OUTDIR}) and, if \code{python3}
+is available, compares the output with \verb=reference/scm_<scheme>.out=.
+The model libraries must have been built first.
+
+After a change of a scheme meant to change its results, the reference is
+updated with
+\begin{verbatim}
+  scm_tiedtke.py --save reference/scm_tiedtke.out
+\end{verbatim}
+and its \verb=# profiles:= header line set to \verb=scm_profiles.txt=, so
+that the reference does not hold a local path.
+
+\section{Adding a scheme}
+
+A test of another scheme needs:
+\begin{enumerate}
+  \item a driver \verb=scm_<scheme>.F90= reading \verb=scm_profiles.txt=,
+        setting the configuration the scheme sees and calling its model
+        entry point, with the namelist groups of the scheme;
+  \item the program in \code{check\_PROGRAMS} of
+        \verb=Testing/scm/Makefile.am=, with the model library of the
+        scheme in its \code{LDADD} and module path in \code{CPPFLAGS};
+  \item the scheme in the loop of \verb=run_scm_tests.sh=;
+  \item a wrapper, or an extension of \verb=scm_tiedtke.py=, and the
+        reference output in \verb=reference/=;
+  \item the new files in \code{EXTRA\_DIST} and the program in
+        \verb=.gitignore=.
+\end{enumerate}
+New columns are added in \code{COLUMNS} of \verb=make_profiles.py=; the
+regenerated profile file changes the results, so all the references must
+be updated with it.
