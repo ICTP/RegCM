@@ -212,7 +212,10 @@ module mod_runparams
 
 #ifdef CLM45
   integer(ik4), public :: sfbcread
-  logical, public :: rcm_megan_enabled
+#endif
+#if defined(CLM45) || defined(ECLM)
+  ! the land model gives the isoprene emission (MEGAN)
+  logical, public :: rcm_megan_enabled = .false.
 #endif
   integer(ik4), public :: iboudy, ichem, ipgf, ipptls
   integer(ik4), public :: istochastic = 0
