@@ -1,0 +1,374 @@
+\chapter{Build system}
+\label{chap:build}
+\sloppy
+
+\PR is built with the GNU autotools. This chapter describes how the
+\code{configure} script chooses the compiler flags and the preprocessor
+definitions, and how to change it. The user side (prerequisites, options,
+\code{make install}) is in the User Guide.
+
+\section{Files}
+
+\begin{longtable}{L{3cm} L{10.5cm}}
+  \toprule
+  \textbf{File} & \textbf{Content} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{configure.ac} & Options, compiler detection and flags, library
+    checks, the substituted variables and the list of generated
+    \code{Makefile}s. \\
+  \code{acinclude.m4} & The \PR macros: NetCDF and Parallel NetCDF
+    discovery (\code{AX\_PROG\_NC\_CONFIG}, \code{AX\_PROG\_NF\_CONFIG},
+    \code{RR\_PATH\_NETCDF}, \code{RR\_PATH\_NETCDF\_F90},
+    \code{RR\_NETCDF4}, \code{RR\_CDF5}, \code{AX\_PROG\_PNETCDF\_CONFIG},
+    \code{RR\_PATH\_PNETCDF}), the MPI compiler (\code{ACX\_MPI},
+    \code{RCM\_MPI\_CHECK\_MPI3}), Fortran feature checks
+    (\code{RCM\_FC\_CHECK\_IEEE\_ARITHMETIC},
+    \code{RCM\_FC\_CHECK\_QUAD\_PRECISION}) and the compiler identification
+    (\code{RCM\_FC\_VENDOR}). \\
+  \code{bootstrap.sh} & Runs \code{autoreconf -f -i}. \\
+  \code{makeinc} & Included by every \code{Makefile.am}: the
+    \code{GITVER} definition (\code{-DGIT\_VER} from \code{git describe} or
+    the \code{tag} file) and the CLM~4.5 scheme switches. \\
+  \code{*/Makefile.am} & One per directory, with explicit compile rules
+    and module dependencies. \\
+\end{longtable}
+
+The generated files (\code{configure}, \code{Makefile.in}, \code{aclocal.m4},
+\code{config.h}, \ldots) are not in the repository. \code{config.h} is
+written by \code{AC\_CONFIG\_HEADERS} but no source file includes it: all
+the definitions reach the code as \code{-D} flags.
+
+\section{Order of the checks}
+
+\code{configure.ac} runs in this order:
+
+\begin{enumerate}
+  \item The \code{--with} and \code{--enable} options. Each option that
+    selects code adds its definition to \code{AM\_CPPFLAGS}.
+  \item The NetCDF (and Parallel NetCDF) paths, through \code{nc-config}
+    and \code{nf-config} when available.
+  \item The Fortran compiler vendor (Section~\ref{sec:fcvendor}) and the
+    \code{COMPILER\_*} conditionals.
+  \item The base flags of the vendor, then the debug or production flags,
+    then the \code{--enable-reproducible} and OpenACC flags
+    (Section~\ref{sec:fcflags}).
+  \item The NetCDF features (NetCDF4/HDF5, filters, CDF5), the Fortran
+    feature checks, which add \code{-DF2008} and \code{-DQUAD\_PRECISION}
+    to \code{FCFLAGS} when supported, and the MPI compiler with its MPI-3
+    check. \code{configure} stops if the MPI library lacks the MPI-3
+    interfaces.
+  \item The check that \code{MPIFC} and \code{FC} are the same compiler,
+    the OASIS libraries, the final \code{CPPFLAGS} and \code{LIBS}.
+  \item One list of \code{AC\_SUBST} calls and \code{AC\_OUTPUT}.
+\end{enumerate}
+
+\code{AC\_SUBST} only marks a variable for substitution: the value written
+to the \code{Makefile}s is the one the variable has at \code{AC\_OUTPUT}.
+The substitutions are therefore listed once, at the end, and a variable
+can be changed anywhere before.
+
+\section{Options}
+
+Every \code{--enable} option follows the same pattern: a variable with
+default \code{0} (off), set to \code{1} only when the option is given with a
+value other than \code{no}, so that \code{--disable-OPTION} and
+\code{--enable-OPTION=no} leave the option off:
+
+\begin{lstlisting}
+USE_FOO="0"
+AC_ARG_ENABLE(foo,
+  AS_HELP_STRING([--enable-foo], [Compile the foo option.]),
+  [AS_IF([test "x$enableval" != xno], [USE_FOO="1"])]
+)
+if test "x$USE_FOO" = x1; then
+  AM_CPPFLAGS="-DFOO $AM_CPPFLAGS"
+fi
+\end{lstlisting}
+
+Add a \code{-D} definition only if the code reads it, and an
+\code{AM\_CONDITIONAL} only if a \code{Makefile.am} needs it. When several
+options set the same variable (the four OpenACC options set
+\code{USE\_OPENACC} to 1--4), their actions run in the order of the
+\code{AC\_ARG\_ENABLE} calls in \code{configure.ac}, not in the order of the
+command line, so the last declared of the given options wins.
+
+The preprocessor definitions set by \code{configure} are:
+
+\begin{longtable}{L{4.5cm} L{9cm}}
+  \toprule
+  \textbf{Definition} & \textbf{Set by} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{CLM45} & \code{--enable-clm45} \\
+  \code{OASIS}, \code{ECLM} & \code{--enable-oasis}; \code{--enable-eclm}
+    sets both \\
+  \code{CPL} & \code{--enable-cpl} \\
+  \code{DEBUG} & \code{--enable-debug} \\
+  \code{SINGLE\_PRECISION\_REAL} & \code{--enable-singleprecision} \\
+  \code{OPENACC}, \code{STDPAR} & any OpenACC option; \code{STDPAR} only
+    with \code{--enable-openacc-stdpar} \\
+  \code{ASYNC\_NETCDF} & \code{--enable-async-netcdf} \\
+  \code{PNETCDF}, \code{PNETCDF\_IN\_NETCDF}, \code{NETCDF4\_COMPRESS} &
+    \code{--enable-pnetcdf}, \code{--enable-parallel-nc},
+    \code{--enable-nc4-filters}; each later one removes the earlier
+    definitions \\
+  \code{NETCDF4\_HDF5}, \code{NCFILTERS\_AVAIL}, \code{NETCDF\_CDF5} &
+    \code{RR\_NETCDF4} and \code{RR\_CDF5}, when the NetCDF library supports
+    the feature \\
+  \code{F2008}, \code{QUAD\_PRECISION} & the Fortran feature checks, added
+    to \code{FCFLAGS} \\
+  \code{IBM} & IBM XL compiler, added to \code{FCFLAGS} \\
+\end{longtable}
+
+The processor options (\code{--enable-knl}, \code{-zen3}, \code{-bdw},
+\code{-nhl}, \code{-skl}) and \code{--enable-profile} define nothing: they
+only add compiler flags.
+
+\section{Compiler identification}
+\label{sec:fcvendor}
+
+\code{RCM\_FC\_VENDOR(COMMAND, VARIABLE)} identifies the compiler run by
+\code{COMMAND} from the banner it prints, not from the command name, so
+that versioned names (\code{gfortran-13}), MPI wrappers (\code{mpifort},
+\code{mpiifx}) and the Cray \code{ftn} wrapper are recognised. Leading
+words that start with \code{scorep} or \code{-} are skipped, so a Score-P
+prefix is ignored. The macro runs the compiler with \code{--version},
+\code{-V} and \code{-qversion} (each compiler answers at least one, the
+others just fail) and matches the output, in this order:
+
+\begin{longtable}{L{4.5cm} L{2.5cm} L{6.3cm}}
+  \toprule
+  \textbf{Banner contains} & \textbf{Vendor} & \textbf{Compiler} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{Cray Fortran} & \code{cray} & Cray CCE \\
+  \code{NAG Fortran} & \code{nag} & NAG nagfor \\
+  \code{IBM XL Fortran}, \code{IBM Open XL Fortran} & \code{ibm} &
+    IBM XL \\
+  \code{nvfortran}, \code{pgfortran}, \code{pgf9}$n$ & \code{nvhpc} &
+    NVIDIA HPC SDK, PGI \\
+  \code{(IFX)} & \code{intel\_llvm} & Intel ifx \\
+  \code{(IFORT)} & \code{intel} & Intel ifort \\
+  \code{GNU Fortran} & \code{gnu} & GNU gfortran \\
+  anything else & \code{unknown} & no vendor flags, with a warning \\
+\end{longtable}
+
+The order matters because a wrapper banner can name more than one
+compiler: Cray CCE comes first, so that \code{ftn} is \code{cray} only when
+it fronts CCE and is otherwise the compiler it fronts. The macro also sets
+\code{VARIABLE\_major} to the major version of ifort, which chooses between
+\code{-openmp} (before version 17) and \code{-qopenmp}.
+
+\code{configure} calls the macro twice: on \code{FC}, to choose the flags
+(\code{fc\_vendor}), and on \code{MPIFC} after \code{ACX\_MPI}
+(\code{mpifc\_vendor}). The model and most tools are compiled with
+\code{MPIFC}, so a warning is printed when the two differ.
+
+The vendor sets the automake conditionals \code{COMPILER\_GNU},
+\code{COMPILER\_INTEL}, \code{COMPILER\_INTEL\_LLVM}, \code{COMPILER\_PGI}
+(for \code{nvhpc}), \code{COMPILER\_NAG}, \code{COMPILER\_IBM} and
+\code{COMPILER\_CRAY}. Only \code{COMPILER\_PGI} is used, in
+\code{Main/Makefile.am} and \code{Main/mpplib/Makefile.am}, to work around
+nvfortran crashes on single files (\code{-Mnoinline} or \code{NOOPTFC}).
+
+To support a new compiler: add its banner to \code{RCM\_FC\_VENDOR} before
+any vendor its banner may also mention, add a branch to the three
+\code{case \$fc\_vendor} blocks (base, debug and production flags) and, if
+the \code{Makefile}s need it, a conditional.
+
+\section{Compiler flags}
+\label{sec:fcflags}
+
+\code{configure} produces three Fortran flag sets:
+
+\begin{description}
+  \item[\code{FCFLAGS}] The flags of every Fortran compilation.
+  \item[\code{NOOPTFC}] The flags for files compiled with less (or no)
+    optimisation: the RRTMG k-distribution tables when they are compiled
+    into the code (\code{Main/radlib}) and the files worked around for
+    nvfortran.
+  \item[\code{OMPFLAGS}] The OpenMP flag. It is used in \code{Share}, the
+    pre- and post-processing programs and the tests, not in the model
+    (\code{Main}), which is parallel through MPI only.
+\end{description}
+
+The vendor branches first set the base flags: big-endian unformatted I/O,
+OpenMP and the processor options. The debug (\code{--enable-debug}) or
+production branch then sets the optimisation and checks. The optimisation
+and check flags are put in front of the \code{FCFLAGS} given by the user,
+so that the user flags come later on the command line and win. In debug,
+\code{NOOPTFC} is the same as \code{FCFLAGS} for every vendor.
+
+When the user gives no \code{FCFLAGS}, \code{AC\_PROG\_FC} sets a default
+(\code{-g}, plus \code{-O2} for a compiler it takes for GNU).
+\code{configure} records at its start whether \code{FCFLAGS} was given
+(\code{rcm\_user\_fcflags}); the \code{gnu}, \code{intel},
+\code{intel\_llvm} and \code{nvhpc} branches drop the default, and keep the
+flags of the user. For \code{gnu} this matters: the default \code{-O2}
+would come after, and override, the \code{-O3} of production and the
+\code{-O0} of debug. The \code{cray} branch removes \code{-g} and
+\code{-O2} from \code{FCFLAGS} in any case; \code{nag} and \code{ibm} keep
+the default \code{-g}.
+
+\begin{description}
+  \item[\code{gnu}] \mbox{}
+    \begin{itemize}
+      \item Base: \code{-fconvert=big-endian -fno-range-check -fPIC};
+        OpenMP \code{-fopenmp}; \code{-march=} for the processor options.
+      \item Production on Linux: \code{-O3 -finline-functions
+        -mtune=native -ftree-vectorize -march=native}; on macOS:
+        \code{-O3 -finline-functions}. \code{NOOPTFC}: \code{-O2
+        -finline-functions}.
+      \item Debug: \code{-O0 -g -fbacktrace -fdump-core}, the warnings
+        and \code{-fcheck=array-temps,bounds,do,mem,recursion}; on Linux
+        also \code{-pg}, \code{-fcheck=pointer} and
+        \code{-ffpe-trap=zero,invalid,overflow,underflow}.
+    \end{itemize}
+  \item[\code{intel}] \mbox{}
+    \begin{itemize}
+      \item Base: \code{-convert big\_endian
+        -assume byterecl -heap-arrays -fPIC}; OpenMP \code{-qopenmp};
+        \code{-x}/\code{-ax} for the processor options.
+      \item Production: \code{-ftz -ip -O3 -finline-functions -fp-model
+        source}. \code{NOOPTFC}: \code{-ftz -O0 -fp-model source}.
+      \item Debug: \code{-O0 -fpe0 -g -check all -traceback -warn all -ftz
+        -fimf-arch-consistency=true -fltconsistency -mieee-fp}.
+    \end{itemize}
+  \item[\code{intel\_llvm}] \mbox{}
+    \begin{itemize}
+      \item Base: as \code{intel} plus
+        \code{-qopt-report}; OpenMP \code{-fiopenmp
+        -fno-openmp-target-do-concurrent}, none in debug.
+      \item Production: \code{-ftz -O3 -flto -finline-functions -fp-model
+        source}. \code{NOOPTFC}: \code{-ftz -O0 -fp-model source}.
+      \item Debug: \code{-O0 -g -traceback -warn all -check
+        bounds,contiguous -mieee-fp -fpe0}.
+    \end{itemize}
+  \item[\code{nvhpc}] \mbox{}
+    \begin{itemize}
+      \item Base: \code{-byteswapio}; OpenMP
+        \code{-mp}.
+      \item Production: \code{-O3 -fast -fastsse}. \code{NOOPTFC}:
+        \code{-O1}.
+      \item Debug: \code{-Mbounds -Mcache\_align -Mchkstk -Mdalign
+        -Miomutex -Mrecursive -Ktrap=divz -O0 -g -gopt -traceback}.
+    \end{itemize}
+  \item[\code{nag}] \mbox{}
+    \begin{itemize}
+      \item Base: \code{-convert=big-endian -pic -f2018}; OpenMP
+        \code{-openmp}.
+      \item Production: \code{-O3}. \code{NOOPTFC}: \code{-O2}.
+      \item Debug: \code{-O0 -g -pg -mtrace=all
+        -gline -ieee=nonstd -nan -Warn=allocation -C=all}.
+    \end{itemize}
+  \item[\code{ibm}] \mbox{}
+    \begin{itemize}
+      \item Base: \code{-DIBM}; OpenMP \code{-qsmp=omp}.
+      \item Production: \code{-qsuppress=1501-245 -O3 -qstrict
+        -qxlf2003=polymorphic -qmaxmem=-1 -qzerosize}. \code{NOOPTFC}:
+        the base flags only.
+      \item Debug: \code{-O0 -qsuppress=1501-245 -qcheck
+        -qflttrap=nanq,overflow -qxlf2003=polymorphic -qmaxmem=-1
+        -qzerosize}.
+    \end{itemize}
+  \item[\code{cray}] \mbox{}
+    \begin{itemize}
+      \item Base: removes the autoconf defaults \code{-g}, which limits
+        the CCE optimisation, and \code{-O2}, which would override the
+        level set later; then \code{-h byteswapio}; OpenMP
+        \code{-fopenmp}.
+      \item Production: \code{-O3}. \code{NOOPTFC}: the base flags only.
+      \item Debug: \code{-O0 -g}.
+    \end{itemize}
+\end{description}
+
+\code{--enable-reproducible} works only with \code{gnu}. It adds
+\code{-ffp-contract=off}, so that no \code{a*b+c} is contracted to a fused
+multiply-add in one part of a loop and not in the other, and
+\code{-nostdinc} with an explicit \code{-fintrinsic-modules-path}: some
+Linux distributions make gfortran pre-include
+\code{math-vector-fortran.h}, so that vectorised loops call the glibc
+vector math library, whose results differ in the last bit from the scalar
+functions. With both, the results do not depend on the MPI domain
+decomposition.
+
+The OpenACC options work only with \code{nvhpc}; otherwise
+\code{configure} warns and sets no GPU flag. They add to \code{FCFLAGS},
+\code{NOOPTFC} and \code{LDFLAGS} (\code{-traceback
+-cudalib=nvtx,cusparse,curand}):
+
+\begin{longtable}{L{4.5cm} L{9cm}}
+  \toprule
+  \textbf{Option} & \textbf{Flags} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{--enable-openacc} & \code{-acc=gpu -cuda -gpu=ccnative,lineinfo
+    -Minfo=accel} \\
+  \code{--enable-openacc-debug} & \code{-acc=gpu -cuda
+    -gpu=ccnative,autocompare -Minfo=accel}, on the \code{NOOPTFC} flags
+    for every file \\
+  \code{--enable-openacc-managed} & \code{-acc=gpu -cuda
+    -gpu=ccnative,lineinfo,mem:managed -Minfo=accel} \\
+  \code{--enable-openacc-stdpar} & \code{-stdpar=gpu -cuda
+    -gpu=ccnative,lineinfo,mem:unified -Minfo=accel} \\
+\end{longtable}
+
+\section{Substituted variables}
+
+Besides the standard autoconf ones, \code{configure} substitutes:
+
+\begin{longtable}{L{4cm} L{9.5cm}}
+  \toprule
+  \textbf{Variable} & \textbf{Content} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{MPIFC} & The MPI Fortran compiler (\code{ACX\_MPI}), used by most
+    compile rules and as \code{FCLD}. \\
+  \code{FCFLAGS}, \code{F90FLAGS}, \code{NOOPTFC}, \code{OMPFLAGS} & The
+    Fortran flags (Section~\ref{sec:fcflags}); \code{F90FLAGS} is a copy
+    of \code{FCFLAGS}. \\
+  \code{AM\_CPPFLAGS} & The \code{-D} definitions and the include paths of
+    \code{external} and NetCDF. \\
+  \code{CPPFLAGS} & \code{AM\_CPPFLAGS} plus \code{-I} of \code{Share}. \\
+  \code{AM\_LDFLAGS}, \code{LDFLAGS} & Library paths (\code{external},
+    NetCDF) and the GPU link flags. \\
+  \code{LIBS}, \code{SYSLIBS} & \code{-lrcmlib} of \code{Share}, then
+    NetCDF, OASIS and pthread libraries. \\
+  \code{NC\_CC}, \code{NC\_PREFIX}, \code{NF\_PREFIX}, \code{NC\_INCLUDES},
+    \code{NC\_LDFLAGS}, \code{NC\_LIBS} & The NetCDF installation. \\
+  \code{REGCM\_ROOT} & The source directory, also the default install
+    prefix. \\
+\end{longtable}
+
+\section{Testing a change}
+
+A change to \code{configure.ac} or \code{acinclude.m4} that should not
+change the flags is checked by comparing the variables of the generated
+top-level \code{Makefile} before and after, for several option sets:
+
+\begin{lstlisting}
+./bootstrap.sh
+./configure --enable-clm45 --enable-debug
+grep -E '^[A-Za-z0-9_]+ = ' Makefile | sort > after.txt
+\end{lstlisting}
+
+The values in \code{config.status} are split over several lines and do not
+suit a plain comparison. A compiler that is not installed can be imitated
+by a small script that prints its banner for \code{--version} and passes
+the other calls to an installed compiler, removing the flags that compiler
+does not accept; pass the same script as \code{FC} and \code{MPIFC}. A
+change that should alter the flags is finished with a clean full build
+(\code{make clean; make}) and the model regression tests.
+
+\fussy
