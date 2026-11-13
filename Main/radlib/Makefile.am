@@ -23,13 +23,8 @@ RRTMG = RRTMG/librrtmg.a
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
-if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE) -M$(REGCM_ROOT)/external
-NOOPTFC += -M$(MPP_INCLUDE) -M$(REGCM_ROOT)/external
-else
 FCFLAGS += -I$(MPP_INCLUDE) -I$(REGCM_ROOT)/external
 NOOPTFC += -I$(MPP_INCLUDE) -I$(REGCM_ROOT)/external
-endif
 
 noinst_LIBRARIES = librad.a
 if RRTM_NC
@@ -60,11 +55,7 @@ librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
   rrtmg_lw_cldprmc.F90  rrtmg_lw_k_g.F90 rrtmg_lw_rtrnmr.F90
 endif
 
-if COMPILER_SUN
-  CPPFLAGS += -MRRTMG
-else
-  CPPFLAGS += -IRRTMG
-endif
+CPPFLAGS += -IRRTMG
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<

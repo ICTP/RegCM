@@ -37,17 +37,9 @@ libchem_a_SOURCES = mod_che_param.F90 mod_che_common.F90 mod_che_mppio.F90 \
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
-if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE) 
-else
 FCFLAGS += -I$(MPP_INCLUDE)
-endif
 
-if COMPILER_SUN
-  CPPFLAGS += -MGAS_CBMZ_NEW
-else
-  CPPFLAGS += -IGAS_CBMZ_NEW
-endif
+CPPFLAGS += -IGAS_CBMZ_NEW
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<

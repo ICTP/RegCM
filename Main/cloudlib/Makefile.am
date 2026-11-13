@@ -27,11 +27,7 @@ libcloud_a_SOURCES = mod_cloud_subex.F90 mod_cloud_xuran.F90 \
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
-if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE) 
-else
 FCFLAGS += -I$(MPP_INCLUDE)
-endif
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<

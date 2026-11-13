@@ -27,11 +27,7 @@ libcbmz_a_SOURCES = mod_cbmz_precision.F90 mod_cbmz_parameters.F90 \
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
-if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE)
-else
 FCFLAGS += -I$(MPP_INCLUDE)
-endif
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<

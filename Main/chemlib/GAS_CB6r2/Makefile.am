@@ -28,11 +28,7 @@ libcb6_a_SOURCES = mod_cb6_Precision.F90 mod_cb6_Parameters.F90 \
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
-if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE)
-else
 FCFLAGS += -I$(MPP_INCLUDE)
-endif
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<

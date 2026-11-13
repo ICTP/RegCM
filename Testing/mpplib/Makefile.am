@@ -22,11 +22,7 @@ include $(REGCM_ROOT)/makeinc
 
 MPPLIBPTH = $(REGCM_ROOT)/Main/mpplib
 
-if COMPILER_SUN
-  CPPFLAGS += -M$(MPPLIBPTH)
-else
-  CPPFLAGS += -I$(MPPLIBPTH)
-endif
+CPPFLAGS += -I$(MPPLIBPTH)
 
 check_PROGRAMS = mpp_regression
 mpp_regression_SOURCES = mpp_regression.F90

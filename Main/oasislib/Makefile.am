@@ -19,11 +19,7 @@ vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
 MPPLIBPTH = $(REGCM_ROOT)/Main/mpplib
 MPPLIB = -L$(MPPLIBPTH) -lmpp
-if COMPILER_SUN
-  MPPINC = -M$(MPPLIBPTH)
-else
   MPPINC = -I$(MPPLIBPTH)
-endif
 
 noinst_LIBRARIES = liboasis.a
 

@@ -26,11 +26,7 @@ libbats_a_SOURCES = mod_bats_common.F90 mod_bats_param.F90 mod_bats_bndry.F90 \
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
-if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE) 
-else
 FCFLAGS += -I$(MPP_INCLUDE)
-endif
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<

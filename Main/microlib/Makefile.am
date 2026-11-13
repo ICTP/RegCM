@@ -26,11 +26,7 @@ libmicro_a_SOURCES = mod_micro_nogtom.F90 mod_micro_subex.F90 \
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
-if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE) 
-else
 FCFLAGS += -I$(MPP_INCLUDE)
-endif
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<

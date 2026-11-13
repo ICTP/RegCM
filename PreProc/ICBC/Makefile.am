@@ -32,11 +32,7 @@ CMIP6LIB = cmip6/libcmip6.a
 CMIP7PTH = cmip7
 CMIP7LIB = cmip7/libcmip7.a
 
-if COMPILER_SUN
-  CPPFLAGS += -M$(CMIP6PTH) -M$(CMIP7PTH)
-else
-  CPPFLAGS += -I$(CMIP6PTH) -I$(CMIP7PTH)
-endif
+CPPFLAGS += -I$(CMIP6PTH) -I$(CMIP7PTH)
 
 LCMIPLIB = -L$(CMIP6PTH) -lcmip6 -L$(CMIP7PTH) -lcmip7
 

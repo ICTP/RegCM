@@ -481,15 +481,12 @@ AM_CONDITIONAL(OSNAME_LINUX, [ test -z "${osname##Linux}" ] )
 FCPROG=`basename $(echo $FC | cut -d " " -f 1)`
 AC_SUBST(FCPROG)
 
-AM_CONDITIONAL(COMPILER_IBM, [ test -z "${FCPROG##xlf200*}" -o \
-                                    -z "${FCPROG##bgxlf200*}" ] )
+AM_CONDITIONAL(COMPILER_IBM, [ test -z "${FCPROG##xlf200*}" ] )
 AM_CONDITIONAL(COMPILER_CRAY, [ test -z "${FCPROG##ftn*}" ] )
 AM_CONDITIONAL(COMPILER_GNU, [ test -z "${FCPROG##gfortran*}" -o \
                                     -z "${FCPROG##\/gfortran*}" -o \
                                     -z "${FCPROG##scorep}" ] )
 AM_CONDITIONAL(COMPILER_NAG, [ test -z "${FCPROG##nagfor}" ] )
-AM_CONDITIONAL(COMPILER_G95, [ test -z "${FCPROG##g95*}" ] )
-AM_CONDITIONAL(COMPILER_SUN, [ test -z "${FCPROG##sunf9*}" ] )
 # FCPROG alone only catches direct nvfortran/pgf90 invocations. A generic MPI
 # wrapper name (e.g. HPC-X's "mpifort") also fronts nvfortran but doesn't
 # match any of those patterns, so fall back to probing the wrapper's own
@@ -498,9 +495,9 @@ case "$FCPROG" in
   pgf9*|nvf9*|pgfortran*|nvfortran*)
     is_pgi_family=yes
     ;;
-  xlf200*|bgxlf200*|ftn*|gfortran*|\/gfortran*|scorep|nagfor|g95*|sunf9*)
+  xlf200*|ftn*|gfortran*|\/gfortran*|scorep|nagfor)
     # Already matched by one of the vendor-specific AM_CONDITIONALs above
-    # (IBM/Cray/GNU/NAG/G95/SUN) -- don't let the generic --version probe
+    # (IBM/Cray/GNU/NAG) -- don't let the generic --version probe
     # below also claim it for PGI/NVHPC just because its banner happens to
     # mention "nvfortran" (e.g. Cray CPE fronting an NVIDIA backend).
     is_pgi_family=no
@@ -632,13 +629,6 @@ if test -z "$COMPILER_INTEL_TRUE"; then
     AC_SUBST(FCFLAGS)
   fi
 fi
-if test -z "$COMPILER_G95_TRUE"; then
-  FCFLAGS="$FCFLAGS -fendian=big -fmultiple-save"
-  OMPFLAGS=""
-  CPRDEF="GNU"
-  AC_SUBST(FCFLAGS)
-  AC_SUBST(OMPFLAGS)
-fi
 if test -z "$COMPILER_PGI_TRUE"; then
   FCFLAGS="-byteswapio"
   OMPFLAGS="-mp"
@@ -653,11 +643,6 @@ if test -z "$COMPILER_IBM_TRUE"; then
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
 fi
-if test -x "$COMPILER_SUN_TRUE"; then
-  CPRDEF="WORKSHOP"
-  OMPFLAGS="-xopenmp=parallel"
-  AC_SUBST(OMPFLAGS)
-fi
 if test -z "$COMPILER_CRAY_TRUE"; then
   FCFLAGS="$FCFLAGS"
   CPRDEF="GNU"
@@ -668,12 +653,6 @@ AC_SUBST(CPRDEF)
 
 # Set debug/production flags
 if eval "test x$DEBUG = x1"; then
-  if test -z "$COMPILER_G95_TRUE"; then
-    FCFLAGS="$FCFLAGS -O0 -g -Wall -Wextra -fbounds-check -ftrace=full"
-    NOOPTFC="$FCFLAGS"
-    AC_SUBST(FCFLAGS)
-    AC_SUBST(NOOPTFC)
-  fi
   if test -z "$COMPILER_NAG_TRUE"; then
     FCFLAGS="-O0 -g -pg -mtrace=all -gline -ieee=nonstd -nan \
 	    -Warn=allocation -C=all"
@@ -741,12 +720,6 @@ if eval "test x$DEBUG = x1"; then
     CPRDEF="GNU"
   fi
 else
-  if test -z "$COMPILER_G95_TRUE"; then
-    NOOPTFC="$FCFLAGS"
-    FCFLAGS="-O3 $FCFLAGS"
-    AC_SUBST(FCFLAGS)
-    AC_SUBST(NOOPTFC)
-  fi
   if test -z "$COMPILER_NAG_TRUE"; then
     NOOPTFC="-O2 $FCFLAGS"
     FCFLAGS="-O3 $FCFLAGS"
@@ -801,14 +774,6 @@ else
     NOOPTFC="$FCFLAGS"
     FCFLAGS="-qsuppress=1501-245 -O3 -qstrict -qxlf2003=polymorphic \
              -qmaxmem=-1 -qzerosize $FCFLAGS"
-    AC_SUBST(FCFLAGS)
-    AC_SUBST(NOOPTFC)
-  fi
-  if test -z "$COMPILER_SUN_TRUE"; then
-    NOOPTFC="-xfilebyteorder=big16:%all \
-	    -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
-    FCFLAGS="-O3 -xfilebyteorder=big16:%all \
-             -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
   fi
@@ -914,15 +879,9 @@ RCM_FC_CHECK_IEEE_ARITHMETIC
 RCM_FC_CHECK_QUAD_PRECISION
 
 MCTPATH="${PWD}/external"
-if test -z "$COMPILER_SUN_TRUE"; then
-  MCTFLAGS="-M$MCTPATH"
-  AM_CPPFLAGS="$MCTFLAGS $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
-else
-  MCTFLAGS="-I$MCTPATH"
-  AM_CPPFLAGS="$MCTFLAGS $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
-fi
+MCTFLAGS="-I$MCTPATH"
+AM_CPPFLAGS="$MCTFLAGS $AM_CPPFLAGS"
+AC_SUBST(AM_CPPFLAGS)
 AM_LDFLAGS="-L$MCTPATH $AM_LDFLAGS"
 AC_SUBST(AM_LDFLAGS)
 ACX_MPI
@@ -938,13 +897,8 @@ AC_SUBST(MPEUCFLAGS)
 AC_SUBST(MPEUFCFLAGS)
 
 if eval "test x"$USEOASIS" = x1"; then
-  if test -z "$COMPILER_SUN_TRUE"; then
-    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/include"
-    AC_SUBST(AM_CPPFLAGS)
-  else
-    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/include"
-    AC_SUBST(AM_CPPFLAGS)
-  fi
+  AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/include"
+  AC_SUBST(AM_CPPFLAGS)
   OASIS3_LIBS="-L$OASIS_PREFIX/lib -lpsmile.$OASIS_CHAN -lmct -lmpeu -lscrip"
   LIBS="$LIBS $OASIS3_LIBS"
   AC_SUBST(LIBS)
@@ -957,13 +911,8 @@ REGCM_ROOT=${PWD}
 AC_SUBST(REGCM_ROOT)
 AC_PREFIX_DEFAULT(${PWD})
 
-if test -z "$COMPILER_SUN_TRUE"; then
-  CPPFLAGS="$AM_CPPFLAGS -M$REGCM_ROOT/Share"
-  AC_SUBST(CPPFLAGS)
-else
-  CPPFLAGS="$AM_CPPFLAGS -I$REGCM_ROOT/Share"
-  AC_SUBST(CPPFLAGS)
-fi
+CPPFLAGS="$AM_CPPFLAGS -I$REGCM_ROOT/Share"
+AC_SUBST(CPPFLAGS)
 if eval "test x$ASYNC_NETCDF = x1"; then
   AC_LANG_PUSH([C])
   AC_CHECK_HEADERS([pthread.h], [], [
