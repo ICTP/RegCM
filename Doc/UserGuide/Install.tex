@@ -30,17 +30,13 @@ needed:
     \item GNU build system (\verb=autoconf=, \verb=automake= and
         \verb=libtool= programs)
     \item GNU \verb=make= program
-    \item Fortran 2008 compiler
-    \item One in:
-  \begin{enumerate}
-    \item C compiler for the serial option (\verb=enable-mpi-serial= at
-      configure)
-    \item MPI3 Message Passing Library compiled with the above fortran compiler
-     for parallel runs using multiple core single machines or cluster of
-     machines (default).  Source code for the implementation code was tested
-     with can be obtained at: \\
+    \item Fortran 2008 compiler and a C compiler
+    \item MPI-3 Message Passing Library compiled with the above Fortran
+     compiler. The model always runs through MPI, also on a single
+     multicore machine; \verb=configure= stops if the library lacks the MPI-3
+     interfaces. Source code of an implementation the model was tested with
+     can be obtained at: \\
      {\bf http://www.open-mpi.org}
-  \end{enumerate}
 \item netCDF (\cite{Rew_90}) Format I/O library compiled with the above
   Fortran compiler with netCDF4 format support. Source code can be found from \\
   {\bf https://downloads.unidata.ucar.edu/netcdf/} \\
@@ -94,6 +90,35 @@ Currently tested and supported configurations (OS/Compiler) are:
 \item Linux with NVIDIA\texttrademark nvfortran compiler version $\ge 21.0$
 \item Mac OsX\texttrademark with gfortran compiler $\ge 6.0$ from Homebrew
 \end{enumerate}
+
+The \verb=configure= script also sets flags for the NAG, IBM XL and Cray CCE
+Fortran compilers, which are not regularly tested.
+
+The script recognises the Fortran compiler from the version banner the
+compiler itself prints (its answer to \verb=--version=, \verb=-V= or
+\verb=-qversion=), not from the name of the command. The \verb=FC= variable
+can therefore name the compiler in any way: a versioned command
+(\verb=gfortran-13=), an MPI wrapper (\verb=mpifort=, \verb=mpiifx=) or the
+Cray \verb=ftn= wrapper, which is treated as the compiler it fronts. A
+Score-P prefix (\verb|FC="scorep gfortran"|) is skipped. The result is
+reported as:
+
+\begin{Verbatim}
+checking for the Fortran compiler vendor... gnu
+\end{Verbatim}
+
+The possible answers are \verb=gnu=, \verb=intel= (ifort), \verb=intel_llvm=
+(ifx), \verb=nvhpc= (nvfortran), \verb=nag=, \verb=ibm=, \verb=cray= and
+\verb=unknown=. For an unknown compiler a warning is printed and no
+compiler-specific flags are set: no big-endian conversion of unformatted
+files, no OpenMP and no optimisation flags. In that case the flags must be
+given with \verb=FCFLAGS=.
+
+The model is compiled with the MPI Fortran compiler \verb=MPIFC=, which
+\verb=configure= searches for (\verb=mpifort=, \verb=mpiifort=,
+\verb=mpiifx=, \ldots) if not given, while the flags are chosen for
+\verb=FC=. If the two are different compilers, \verb=configure= prints a
+warning, and \verb=MPIFC= should be set to the MPI wrapper of \verb=FC=.
 
 The 5.0 version of the RegCM model relies on the standard GNU autotools to
 configure and build the model code.
@@ -160,6 +185,10 @@ The useful arguments to successfully build the model are:
 \subsection{Model configuration at build stage}
 \label{modconf}
 
+All the options below are off by default. An option is switched on with
+\verb=--enable-OPTION= and stays off with \verb=--disable-OPTION= or
+\verb|--enable-OPTION=no|; when both are given, the last one wins.
+
 \begin{enumerate}
 \item Enable debug
 \begin{Verbatim}
@@ -186,18 +215,35 @@ this option a run gives the same results, bit for bit, on any number of
 processors. It has an effect only with GNU Fortran; the default is not to
 use it.
 
-\item Serial code using stub MPI library
+\item Target processor
 \begin{Verbatim}
-  --enable-mpiserial Use the included MPI replacement library for single
-                     processor
+  --enable-knl            Compile with Xeon Phi flags.
+  --enable-zen3           Compile with Zen3 processor optimization
+  --enable-bdw            Compile with AVX2 flags.
+  --enable-nhl            Compile with SSE 4.2 flags.
+  --enable-skl            Compile with Sky Lake flags.
 \end{Verbatim}
-The model is coded to use an MPI2 library to run in parallel mode using
-multiple cores/processors or run on a cluster. To enable instead a serial
-compilation option, a stub MPI library with empty callbacks needs to be
-compiled and linked to the executable.
-The RegCM team strongly suggest to build MPI enabled model also on standalone
-systems, to take advantage of the multicore capabilities of any modern
-processor.
+These options add the instruction set flags of the processor family:
+\verb=-march= for GNU Fortran and \verb=-x=/\verb=-ax= for the Intel
+compilers. They have no effect with the other compilers. On Linux the GNU
+production flags already include \verb|-march=native|, which is the right
+choice when the model runs on the machine it is compiled on.
+
+\item GPU offloading
+\begin{Verbatim}
+  --enable-openacc         OpenACC directives
+  --enable-openacc-debug   OpenACC directives with autocompare against
+                           the CPU, at reduced optimisation (-O1)
+  --enable-openacc-managed OpenACC directives with managed memory
+  --enable-openacc-stdpar  OpenACC directives with stdpar (do concurrent
+                           loops on the GPU, unified memory)
+\end{Verbatim}
+These options compile the model for NVIDIA GPUs and need the NVIDIA
+nvfortran compiler; with any other compiler \verb=configure= prints a warning
+and the GPU flags are not set. Only one of them is used: if more are given,
+the one lower in the list above wins, whatever their order on the command
+line.
+
 \item Async NetCDF option
 \begin{Verbatim}
   --enable-async-netcdf

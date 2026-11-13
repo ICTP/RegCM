@@ -113,25 +113,25 @@ PGI_GPU_ARCH="ccnative"
 
 AC_ARG_ENABLE(openacc,
   AS_HELP_STRING([--enable-openacc],
-                 [Compile OpenACC directives (only for PGI fortran compilation)]),
+                 [Compile OpenACC directives (NVIDIA nvfortran only)]),
                  [AS_IF([test "x$enableval" != xno], [USE_OPENACC="1"])]
 )
 
 AC_ARG_ENABLE(openacc-debug,
   AS_HELP_STRING([--enable-openacc-debug],
-                 [Compile OpenACC directives with autocompare (only for PGI fortran compilation)]),
+                 [Compile OpenACC directives with autocompare (NVIDIA nvfortran only)]),
                  [AS_IF([test "x$enableval" != xno], [USE_OPENACC="2"])]
 )
 
 AC_ARG_ENABLE(openacc-managed,
   AS_HELP_STRING([--enable-openacc-managed],
-                 [Compile OpenACC directives with managed memory (only for PGI fortran compilation)]),
+                 [Compile OpenACC directives with managed memory (NVIDIA nvfortran only)]),
                  [AS_IF([test "x$enableval" != xno], [USE_OPENACC="3"])]
 )
 
 AC_ARG_ENABLE(openacc-stdpar,
   AS_HELP_STRING([--enable-openacc-stdpar],
-                 [Compile OpenACC directives with stdpar (only for PGI fortran compilation)]),
+                 [Compile OpenACC directives with stdpar (NVIDIA nvfortran only)]),
                  [AS_IF([test "x$enableval" != xno], [USE_OPENACC="4"])]
 )
 if test "x$USE_OPENACC" != x0; then
