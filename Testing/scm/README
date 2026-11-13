@@ -1,0 +1,78 @@
+Single column tests of the RegCM physics schemes
+================================================
+
+The programs here call one physics scheme through its model entry point
+on a set of atmospheric columns, without the dynamical core. They are
+regression tests ("make check") and a quick way to look at the response
+of a scheme to its parameters. For now: the Tiedtke cumulus scheme
+(icup = 5).
+
+Files
+-----
+  scm_tiedtke.F90     driver of mod_cu_tiedtke (tiedtkedrv), MOLOCH setup
+                      (idynamic = 3, NoTo microphysics, no chemistry)
+  scm_tiedtke.py      Python wrapper: run, summary, sweep, plot, compare
+  scm_profiles.txt    the twelve test columns (from ERA5, see below)
+  make_profiles.py    builds scm_profiles.txt from ERA5
+  run_scm_tests.sh    the "make check" test
+  reference/          reference outputs of the check
+
+Test columns
+------------
+Six columns per hemisphere, land and ocean, on the 32 MOLOCH levels of
+the South America test:
+  Sahel, India, Great Plains (land), West Pacific warm pool, California
+  stratocumulus, North Atlantic trades (ocean);
+  Amazon, Congo, central Australia (land), SPCZ, South East Atlantic
+  stratocumulus, South Atlantic trades (ocean).
+The deep convection columns are taken at the 6-hourly time of September
+2023 with the largest ERA5 convective rain at the point, the others on
+2023-09-15. Surface fluxes are ERA5 monthly means (land: scaled by a half
+sine diurnal cycle at the local time), the PBL height a bulk Richardson
+number diagnosis. The input tendencies are zero, as in the model where
+the cumulus scheme is the first physics call. ERA5 CAPE and convective
+rain rate are listed as a reference, not as a target.
+
+Running
+-------
+"make check" in this directory builds scm_tiedtke and runs it with the
+default settings, then compares the output with reference/ if python3 is
+available. After a change of the scheme that is meant to change the
+results, update the reference:
+
+  ./scm_tiedtke.py --save reference/scm_tiedtke.out
+
+then edit its "# profiles:" line to read "scm_profiles.txt".
+
+The wrapper takes the same parameter names as the RegCM namelist
+(&tiedtkeparam, and kfac_deep, kfac_shal, k2_const of &cldparam), plus
+dtcum and dxkm:
+
+  ./scm_tiedtke.py                            defaults, summary table
+  ./scm_tiedtke.py --list                     parameters used
+  ./scm_tiedtke.py --set entrpen_ocn=1.0e-3 --set lmfwstar=.true.
+  ./scm_tiedtke.py --sweep rprc_ocn=1.0e-3,1.4e-3,2.0e-3
+  ./scm_tiedtke.py --plot tiedtke.png         profiles, needs matplotlib
+  ./scm_tiedtke.py --compare reference/scm_tiedtke.out
+  ./scm_tiedtke.py --check a.out b.out        compare two outputs
+
+The comparison is exact for the cloud type, base and top, and within a
+relative tolerance (--rtol, SCM_RTOL, default 1e-4) plus an absolute one
+(--atol, SCM_ATOL, default 1e-5 times the largest value of the field in
+the column) for the real values, to allow for compiler differences.
+
+Output
+------
+Plain text: a header with the namelists used, then for each column a
+COLUMN line (land flag, cloud type 0 none 1 deep 2 shallow 3 midlevel,
+top and base level, rain and snow in mm/day, column heating and
+moistening in W/m2, ERA5 CAPE and convective rain) and one line per
+level, top to bottom: height, pressure, updraft mass flux, tendencies of
+T, q, cloud liquid and ice, u and v (per day), convective cloud fraction
+and detrained condensate.
+
+Adding a scheme
+---------------
+Write scm_<scheme>.F90 reading the same scm_profiles.txt, add it to
+check_PROGRAMS in Makefile.am and to the scheme list of run_scm_tests.sh,
+and store its reference output in reference/scm_<scheme>.out.

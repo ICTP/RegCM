@@ -149,6 +149,17 @@ Testing/mpplib/*.mod
 Testing/mpplib/*.opt.yaml
 Testing/mpplib/*.optrpt
 Testing/mpplib/*.o
+Testing/scm/Makefile
+Testing/scm/Makefile.in
+Testing/scm/scm_tiedtke
+Testing/scm/scm_output
+Testing/scm/*.log
+Testing/scm/*.trs
+Testing/scm/*.mod
+Testing/scm/*.opt.yaml
+Testing/scm/*.optrpt
+Testing/scm/*.o
+Testing/scm/__pycache__
 Testing/share/Makefile
 Testing/share/Makefile.in
 Testing/share/.libs
