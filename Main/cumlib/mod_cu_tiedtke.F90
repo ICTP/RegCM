@@ -42,6 +42,9 @@ module mod_cu_tiedtke
   private
 
   public :: allocate_mod_cu_tiedtke, tiedtkedrv
+  ! Cloud type and updraft mass flux of the last call, for the single
+  ! column test in Testing/scm
+  public :: ktype, pmfu
 
   real(rkx), parameter :: rhow = 1000.0_rkx
   real(rkx), parameter :: rkap = 0.4_rkx
@@ -1545,6 +1548,15 @@ module mod_cu_tiedtke
             (wlhv*tenq(n,k)+cpd*tent(n,k))*(pf(n,k+1)-pf(n,k))
         end if
       end do
+      ! The input tendencies do not include the PBL: cumulus is the
+      ! first physics call. Add the convergence in the sub cloud layer
+      ! of the turbulent fluxes (positive downward) built by cucall from
+      ! the surface fluxes, i.e. the vertical diffusion term of the IFS.
+      if ( ldcum(n) ) then
+        k = kcbot(n)
+        dhpbl(n) = dhpbl(n) + egrav * &
+          (wlhv*(qhfl(n,k)-qhfl(n,nk+1)) + (ahfs(n,k)-ahfs(n,nk+1)))
+      end if
     end do
     !-----------------------------------------------------
     ! Estimate cloud height for entrainment/detrainment
