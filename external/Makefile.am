@@ -23,13 +23,13 @@ libaerosol_a_SOURCES = mo_simple_plumes.f90
 libbmi_a_SOURCES = bmi.f90
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(MPEUCFLAGS) -c $<
+	$(CC) $(CFLAGS) -c $<
 
 %.o: %.f90
-	  $(FC) $(CPPFLAGS) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
+	  $(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	  $(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
+	  $(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod *__genmod.* *opt.yaml *optrpt mpif.h

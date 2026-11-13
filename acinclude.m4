@@ -549,3 +549,49 @@ AC_DEFUN([RCM_MPI_CHECK_MPI3],[
     AC_MSG_ERROR([RegCM requires an MPI library with MPI-3 support (mpi_f08, neighborhood collectives).])
   fi
 ]) # RCM_MPI_CHECK_MPI3
+
+# RCM_FC_VENDOR(COMMAND, VARIABLE)
+# -------------------------------
+# Identify the Fortran compiler run by COMMAND from its own version banner,
+# so that MPI wrappers (mpifort, mpiifort, ftn, ...), versioned names
+# (gfortran-13) and a Score-P prefix are all recognised. Set VARIABLE to
+# one of gnu, intel, intel_llvm, nvhpc, nag, ibm, cray or unknown, and
+# VARIABLE_major to the major version when it is needed (Intel classic).
+AC_DEFUN([RCM_FC_VENDOR],[
+  # Score-P instruments by prefixing the compiler: skip it and its options
+  rcm_fc_probe=""
+  rcm_fc_skip=yes
+  for rcm_fc_word in $1; do
+    if test "$rcm_fc_skip" = yes; then
+      case $rcm_fc_word in
+        scorep*|-*) continue ;;
+      esac
+      rcm_fc_skip=no
+    fi
+    rcm_fc_probe="$rcm_fc_probe $rcm_fc_word"
+  done
+  # Each compiler answers at least one of these; the others just complain.
+  rcm_fc_banner=`$rcm_fc_probe --version 2>&1 </dev/null;
+                 $rcm_fc_probe -V 2>&1 </dev/null;
+                 $rcm_fc_probe -qversion 2>&1 </dev/null`
+  # Order matters: a wrapper banner may also name the backend compiler.
+  if echo "$rcm_fc_banner" | grep -q "Cray Fortran"; then
+    $2=cray
+  elif echo "$rcm_fc_banner" | grep -q "NAG Fortran"; then
+    $2=nag
+  elif echo "$rcm_fc_banner" | grep -qE "IBM (Open )?XL Fortran"; then
+    $2=ibm
+  elif echo "$rcm_fc_banner" | grep -qiE "nvfortran|pgfortran|pgf9[[0-9]]"; then
+    $2=nvhpc
+  elif echo "$rcm_fc_banner" | grep -q "(IFX)"; then
+    $2=intel_llvm
+  elif echo "$rcm_fc_banner" | grep -q "(IFORT)"; then
+    $2=intel
+  elif echo "$rcm_fc_banner" | grep -q "GNU Fortran"; then
+    $2=gnu
+  else
+    $2=unknown
+  fi
+  $2_major=`echo "$rcm_fc_banner" | \
+            sed -n 's/.*(IFORT) \([[0-9]]*\).*/\1/p' | head -1`
+]) # RCM_FC_VENDOR
