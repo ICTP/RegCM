@@ -399,6 +399,14 @@ case $fc_vendor in
     FCFLAGS="$FCFLAGS -DIBM"
     OMPFLAGS="-qsmp=omp"
     ;;
+  cray)
+    # Drop the autoconf defaults: -g limits the CCE optimisation, and a
+    # later -O2 would override the optimisation level set below
+    FCFLAGS=`echo " $FCFLAGS " | sed -e 's/ -g / /g' -e 's/ -g / /g' \
+             -e 's/ -O2 / /g' -e 's/  */ /g' -e 's/^ //' -e 's/ $//'`
+    FCFLAGS="$FCFLAGS -h byteswapio"
+    OMPFLAGS="-fopenmp"
+    ;;
 esac
 
 # Only the GNU optimisation and debug flags depend on the OS: Linux or
@@ -457,7 +465,7 @@ if test "x$DEBUG" = x1; then
       NOOPTFC="$FCFLAGS"
       ;;
     cray)
-      FCFLAGS="-g $FCFLAGS"
+      FCFLAGS="-O0 -g $FCFLAGS"
       NOOPTFC="$FCFLAGS"
       ;;
   esac
@@ -506,6 +514,7 @@ else
       ;;
     cray)
       NOOPTFC="$FCFLAGS"
+      FCFLAGS="-O3 $FCFLAGS"
       ;;
   esac
 fi
