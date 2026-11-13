@@ -2357,7 +2357,8 @@ module mod_params
       write(stdout,'(a,i2)') '  Slab ocean model            : ', islab_ocean
       write(stdout,'(a,i2)') '  Data tweaking               : ', itweak
       write(stdout,'(a,i2)') '  Idealized RCE case          : ', irceideal
-      write(stdout,'(a,i6)') '  Scenario year offset        : ', year_offset
+      write(stdout,'(a,f11.4)') '  Scenario year offset        : ', &
+        year_offset
       write(stdout,'(a,l2)') '  GHG fixed at 2050 values    : ', lconst2050
       write(stdout,'(a,f11.4)') '  Max T tendency (K s-1)      : ', &
         temp_tend_maxval
