@@ -15,6 +15,10 @@
 
 AC_INIT([RegCM], [5.0.0], [ggiulian@ictp.it])
 
+# Whether the user gave FCFLAGS: AC_PROG_FC otherwise sets a default (-g,
+# plus -O2 for a GNU compiler) that some vendor branches below drop
+rcm_user_fcflags=${FCFLAGS+yes}
+
 AC_SUBST([PACKAGE_URL], ["https://github.com/ICTP/RegCM"])
 
 #AC_PREREQ([2.64])
@@ -369,7 +373,8 @@ case $fc_vendor in
     else
       OMPFLAGS="-fiopenmp -fno-openmp-target-do-concurrent"
     fi
-    FCFLAGS="-convert big_endian -assume byterecl \
+    test "x$rcm_user_fcflags" = xyes || FCFLAGS=""
+    FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
              -heap-arrays -qopt-report -fPIC"
     LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
     test "x$USE_ZEN3" = x1 && FCFLAGS="$FCFLAGS -axCORE-AVX2"
@@ -378,7 +383,8 @@ case $fc_vendor in
     test "x$USE_NHL" = x1 && FCFLAGS="$FCFLAGS -xSSE4.2"
     ;;
   intel)
-    FCFLAGS="-convert big_endian -assume byterecl -heap-arrays -fPIC"
+    test "x$rcm_user_fcflags" = xyes || FCFLAGS=""
+    FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl -heap-arrays -fPIC"
     if test -n "$fc_vendor_major" && test "$fc_vendor_major" -lt 17; then
       OMPFLAGS="-openmp"
     else
@@ -392,7 +398,8 @@ case $fc_vendor in
     test "x$USE_NHL" = x1 && FCFLAGS="$FCFLAGS -xSSE4.2"
     ;;
   nvhpc)
-    FCFLAGS="-byteswapio"
+    test "x$rcm_user_fcflags" = xyes || FCFLAGS=""
+    FCFLAGS="$FCFLAGS -byteswapio"
     OMPFLAGS="-mp"
     ;;
   ibm)
@@ -418,7 +425,8 @@ if test "x$DEBUG" = x1; then
   case $fc_vendor in
     nag)
       FCFLAGS="-O0 -g -pg -mtrace=all -gline -ieee=nonstd -nan \
-               -Warn=allocation -C=all"
+               -Warn=allocation -C=all $FCFLAGS"
+      NOOPTFC="$FCFLAGS"
       ;;
     gnu)
       if test -z "${osname##Linux}"; then

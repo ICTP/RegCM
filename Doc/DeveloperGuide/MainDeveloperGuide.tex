@@ -128,18 +128,19 @@ are converted to lowercase by the compiler.
 
 \section{Target Computers}
 
-\PR is primarily developed on Linux Cluster in both its serial and parallel versions using the MPI communication library. 
-
-During its developing phase the code is compiled using three different suite of compilers:
+\PR is developed on Linux clusters and always runs through an MPI-3
+library, also on a single machine. The code is regularly compiled and tested
+with:
 
 \begin{itemize}
-\item Intel suite compiler (from 10.1 to 12.0 )
-\item gfortran compiler  version 4.4 on 
-\item Pgi suite of compiler (version 9.03 on) 
+\item GNU gfortran, version 9 or later, also on macOS;
+\item Intel ifort and ifx;
+\item NVIDIA nvfortran, for the CPU and, with OpenACC, for NVIDIA GPUs.
 \end{itemize}
 
-The code is, however, developed having in mind portability (see later for a detailed
-discussion about this issue) and it has also been carefully tested (parallel version) on AIX SP6 IBM platform with xlf  compiler.
+The build system also sets flags for the NAG, IBM XL and Cray CCE compilers
+(Chapter~\ref{chap:build}), which are not regularly tested. The code is
+written with portability in mind (see later for a detailed discussion).
 
 \section{Module Template}
 
