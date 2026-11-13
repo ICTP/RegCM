@@ -272,7 +272,6 @@ module mod_runparams
   real(rkx), public :: nhxkd
   ! Raleigh dumping activation
   integer(ik4), public :: ifrayd
-  integer(ik4), public :: itopnudge
   integer(ik4), public :: rayndamp
   real(rkx), public :: rayalpha0
   real(rkx), public :: rayzd

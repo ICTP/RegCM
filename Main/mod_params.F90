@@ -120,7 +120,7 @@ module mod_params
     namelist /hydroparam/ nsplit, lstand
 
     namelist /nonhydroparam/ ifupr, nhbet, nhxkd,    &
-      ifrayd, rayndamp, rayalpha0, rayhd, itopnudge
+      ifrayd, rayndamp, rayalpha0, rayhd
 
     namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw,    &
       iceflglw, liqflglw, icld, irng, imcica, nradfo, rrtm_extend
@@ -342,7 +342,6 @@ module mod_params
     ifupr = 1
     nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
-    itopnudge = 0
     ifrayd = 0
     rayndamp = 5
     rayalpha0 = 1.0_rkx/86400.0_rkx
@@ -1398,7 +1397,6 @@ module mod_params
       call bcast(ifupr)
       call bcast(nhbet)
       call bcast(nhxkd)
-      call bcast(itopnudge)
       call bcast(ifrayd)
       call bcast(rayndamp)
       call bcast(rayalpha0)
@@ -2337,6 +2335,34 @@ module mod_params
       write(stdout,'(a,i2)') '  Marine stratocumulus        : ', icldmstrat
       write(stdout,'(a,i2)') '  Climate O3 dataset          : ', iclimao3
       write(stdout,'(a,i2)') '  Climate Aerosol dataset     : ', iclimaaer
+      if ( iclimaaer == 2 ) then
+        write(stdout,'(a,a)') '  MERRA2 aerosol data path    : ', &
+          trim(radclimpath)
+      end if
+      write(stdout,'(a,i2)') '  PBL scheme                  : ', ibltyp
+      if ( idynamic /= 3 ) then
+        write(stdout,'(a,i2)') '  Diffusion scheme            : ', idiffu
+      end if
+      write(stdout,'(a,i2)') '  Whitecap effect on albedo   : ', iwhitecap
+      write(stdout,'(a,i2)') '  RRTM radiation scheme       : ', irrtm
+      write(stdout,'(a,i2)') '  Constant solar constant     : ', isolconst
+      write(stdout,'(a,i2)') '  Fixed solar value           : ', ifixsolar
+      if ( ifixsolar == 1 ) then
+        write(stdout,'(a,f11.4)') '  Fixed solar value (W m-2)   : ', &
+          fixedsolarval
+      end if
+      if ( any(icup == 1) .or. any(icup == 3) ) then
+        write(stdout,'(a,i2)') '  Cumulus cloud formula       : ', icumcloud
+      end if
+      write(stdout,'(a,i2)') '  Slab ocean model            : ', islab_ocean
+      write(stdout,'(a,i2)') '  Data tweaking               : ', itweak
+      write(stdout,'(a,i2)') '  Idealized RCE case          : ', irceideal
+      write(stdout,'(a,i6)') '  Scenario year offset        : ', year_offset
+      write(stdout,'(a,l2)') '  GHG fixed at 2050 values    : ', lconst2050
+      write(stdout,'(a,f11.4)') '  Max T tendency (K s-1)      : ', &
+        temp_tend_maxval
+      write(stdout,'(a,f11.4)') '  Max wind tendency (m s-2)   : ', &
+        wind_tend_maxval
 #ifndef RCEMIP
       write(stdout,*) 'Boundary Pameterizations'
       write(stdout,'(a,i3)') '  Num. of bndy points cross  : ', nspgx
@@ -2363,6 +2389,161 @@ module mod_params
       if ( ichem == 1 ) then
         write(stdout,'(a,f18.6)') '  time step for chemistry '// &
               'model in seconds : ', dtche
+      end if
+      write(stdout,*) 'Restart and output parameters'
+      write(stdout,'(a,l11)') '  Restart run                       : ', ifrest
+      write(stdout,'(a,i11)') '  Global start date (mdate0)        : ', mdate0
+      write(stdout,'(a,i11)') '  Run start date (mdate1)           : ', mdate1
+      write(stdout,'(a,i11)') '  Run end date (mdate2)             : ', mdate2
+      write(stdout,'(a,a)') '  Output directory                  : ', &
+        trim(dirout)
+      write(stdout,'(a,a)') '  Output file name prefix           : ', &
+        trim(prestr)
+      write(stdout,'(a,l11)') '  Winds rotated to true north       : ', uvrotate
+      write(stdout,'(a,l11)') '  Sync files after each write       : ', lsync
+      write(stdout,'(a,i11)') '  Tendency diagnostics (idiag)      : ', idiag
+      write(stdout,'(a,i11)') '  COSP fields in output (icosp)     : ', icosp
+      write(stdout,'(a,l11)') &
+        '  Parallel NetCDF input             : ', do_parallel_netcdf_in
+      write(stdout,'(a,l11)') &
+        '  Parallel NetCDF output            : ', do_parallel_netcdf_out
+      if ( diaghfs > 0 .and. diaghf > 0.0_rkx ) then
+        write(stdout,'(a,i11)') '  High frequency ATM output from    : ', &
+          diaghfs
+        write(stdout,'(a,f11.4)') '  High frequency ATM output (hours) : ', &
+          diaghf
+      end if
+      if ( idynamic < 3 ) then
+        write(stdout,*) 'Dynamical core parameters'
+        write(stdout,'(a,f11.6)') '  Time filter coefficient gnu1      : ', gnu1
+        write(stdout,'(a,f11.6)') '  Time filter coefficient gnu2      : ', gnu2
+        write(stdout,'(a,i11)') &
+          '  Topography in diffusion           : ', diffu_hgtf
+        write(stdout,'(a,f11.6)') '  Diffusion coefficient factor      : ', ckh
+        write(stdout,'(a,f11.6)') &
+          '  Dynamical diffusion factor        : ', adyndif
+        write(stdout,'(a,l11)') &
+          '  Off centering in advection        : ', upstream_mode
+        write(stdout,'(a,f11.6)') &
+          '  Off centering coefficient         : ', uoffc
+        write(stdout,'(a,l11)') &
+          '  Advection stability check         : ', stability_enhance
+        write(stdout,'(a,f11.6)') &
+          '  Max T gradient in advection (K)   : ', t_extrema
+        write(stdout,'(a,f11.6)') &
+          '  Max rel. QV gradient in advection : ', q_rel_extrema
+        if ( idynamic == 1 ) then
+          write(stdout,'(a,i11)') '  Number of split explicit modes    : ', &
+            nsplit
+          write(stdout,'(a,l11)') '  Standard atmosphere for modes     : ', &
+            lstand
+        else
+          write(stdout,'(a,i11)') &
+            '  Upper radiative boundary (ifupr)  : ', ifupr
+          write(stdout,'(a,f11.6)') &
+            '  Sound wave implicit factor nhbet  : ', nhbet
+          write(stdout,'(a,f11.6)') &
+            '  Sound wave divergence damp nhxkd  : ', nhxkd
+          write(stdout,'(a,i11)') &
+            '  Rayleigh damping (ifrayd)         : ', ifrayd
+          if ( ifrayd == 1 ) then
+            write(stdout,'(a,i11)') &
+              '  Rayleigh damping top levels       : ', rayndamp
+            write(stdout,'(a,f11.6)') &
+              '  Rayleigh damping coefficient      : ', rayalpha0
+            write(stdout,'(a,f11.4)') &
+              '  Rayleigh damping depth (m)        : ', rayhd
+          end if
+        end if
+      end if
+      if ( irrtm == 1 ) then
+        write(stdout,*) 'RRTM radiation parameters'
+        write(stdout,'(a,i11)') &
+          '  SW cloud optical properties (inflg: ', inflgsw
+        write(stdout,'(a,i11)') &
+          '  SW ice optical properties         : ', iceflgsw
+        write(stdout,'(a,i11)') &
+          '  SW liquid optical properties      : ', liqflgsw
+        write(stdout,'(a,i11)') &
+          '  LW cloud optical properties (inflg: ', inflglw
+        write(stdout,'(a,i11)') &
+          '  LW ice optical properties         : ', iceflglw
+        write(stdout,'(a,i11)') &
+          '  LW liquid optical properties      : ', liqflglw
+        write(stdout,'(a,i11)') '  Cloud overlap (icld)              : ', icld
+        write(stdout,'(a,i11)') '  Random number generator (irng)    : ', irng
+        write(stdout,'(a,i11)') '  McICA (imcica)                    : ', imcica
+        write(stdout,'(a,i11)') '  Radiation levels above top (nradfo: ', nradfo
+        write(stdout,'(a,l11)') &
+          '  Extend RRTM above model top       : ', rrtm_extend
+      end if
+      if ( iocncpl == 1 .or. iwavcpl == 1 .or. icopcpl == 1 ) then
+        write(stdout,*) 'Coupling parameters'
+        write(stdout,'(a,f11.4)') &
+          '  Coupling time step (s)            : ', cpldt
+        write(stdout,'(a,f11.4)') &
+          '  Maximum roughness length (m)      : ', zomax
+        write(stdout,'(a,f11.4)') &
+          '  Maximum friction velocity (m/s)   : ', ustarmax
+      end if
+      if ( islab_ocean == 1 ) then
+        write(stdout,*) 'Slab ocean parameters'
+        write(stdout,'(a,l11)') &
+          '  Q flux adjustment                 : ', do_qflux_adj
+        write(stdout,'(a,l11)') &
+          '  Restore SST                       : ', do_restore_sst
+        write(stdout,'(a,f11.4)') &
+          '  SST restore timescale (days)      : ', sst_restore_timescale
+        write(stdout,'(a,f11.4)') &
+          '  Mixed layer depth (m)             : ', mixed_layer_depth
+      end if
+      if ( ichem == 1 ) then
+        write(stdout,*) 'Chemistry parameters'
+        write(stdout,'(a,a)') '  Chemistry simulation type         : ', &
+          trim(chemsimtype)
+        write(stdout,'(a,i11)') &
+          '  Large scale wet removal           : ', ichremlsc
+        write(stdout,'(a,i11)') &
+          '  Convective wet removal            : ', ichremcvc
+        write(stdout,'(a,i11)') &
+          '  Dry deposition                    : ', ichdrdepo
+        write(stdout,'(a,i11)') &
+          '  Convective transport              : ', ichcumtra
+        write(stdout,'(a,i11)') &
+          '  Gas phase solver                  : ', ichsolver
+        write(stdout,'(a,i11)') &
+          '  Aerosol direct effect             : ', idirect
+        write(stdout,'(a,i11)') &
+          '  Aerosol indirect effect           : ', iindirect
+        write(stdout,'(a,i11)') &
+          '  Dust emission distribution        : ', ichdustemd
+        write(stdout,'(a,i11)') &
+          '  Dust parameters (ichdustparam)    : ', ichdustparam
+        write(stdout,'(a,f11.6)') &
+          '  Dust emission tuning factor       : ', rdstemfac
+        write(stdout,'(a,i11)') &
+          '  Diagnostic output                 : ', ichdiag
+        write(stdout,'(a,i11)') &
+          '  Surface source diagnostic         : ', ichsursrc
+        write(stdout,'(a,i11)') &
+          '  Chemical boundary conditions      : ', ichebdy
+        write(stdout,'(a,i11)') &
+          '  Photolysis cloud effect           : ', ichjphcld
+        write(stdout,'(a,i11)') &
+          '  Biogenic NOx emission             : ', ichbion
+        write(stdout,'(a,i11)') '  Smoke emission (ismoke)           : ', ismoke
+        write(stdout,'(a,f11.6)') &
+          '  Organic carbon emission factor    : ', rocemfac
+        write(stdout,'(a,i11)') &
+          '  Lightning NOx                     : ', ichlinox
+        write(stdout,'(a,i11)') &
+          '  Snow darkening                    : ', isnowdark
+        write(stdout,'(a,i11)') &
+          '  Chemistry cold start              : ', ichecold
+        write(stdout,'(a,l11)') &
+          '  Carbon aging control              : ', carb_aging_control
+        write(stdout,'(a,l11)') &
+          '  Carbon aging check (chechgact)    : ', chechgact
       end if
     end if
 
@@ -2596,7 +2777,15 @@ module mod_params
       write(stdout,'(a,f11.6)') &
           '  Conv. CF UMF factor deep cumulus  : ', kfac_deep
       write(stdout,'(a,f11.6)') &
-          '  Conv. CF UMF factor deep cumulus  : ', kfac_deep
+          '  Conv. CF UMF factor shallow cumul.: ', kfac_shal
+      write(stdout,'(a,f11.6)') &
+          '  Max convective cloud cover        : ', clfrcvmax
+      write(stdout,'(a,f11.6)') &
+          '  CCN mean critical radius          : ', rcrit
+      write(stdout,'(a,es11.4)') &
+          '  CCN coefficient                   : ', coef_ccn
+      write(stdout,'(a,f11.6)') &
+          '  CCN bulk activation ratio         : ', abulk
       write(stdout,'(a,f11.6)') &
           '  Conv. CF UMF factor k2            : ', k2_const
       write(stdout,'(a,l11)') &
@@ -2645,6 +2834,33 @@ module mod_params
         end if
         write(stdout,'(a,f11.6)') &
             '  Condensation efficiency           : ', conf
+      else if ( ipptls == 2 ) then
+        write(stdout,*) 'NoTo microphysics parameters'
+        write(stdout,'(a,l11)') '  Statistics output                 : ', stats
+        write(stdout,'(a,l11)') &
+          '  Budget check                      : ', budget_compute
+        write(stdout,'(a,i11)') '  Saturation option (nssopt)        : ', nssopt
+        write(stdout,'(a,i11)') &
+          '  Autoconversion scheme             : ', iautoconv
+        write(stdout,'(a,f11.6)') '  Rain fall speed                   : ', vfqr
+        write(stdout,'(a,f11.6)') '  Ice fall speed                    : ', vfqi
+        write(stdout,'(a,f11.6)') '  Snow fall speed                   : ', vfqs
+        write(stdout,'(a,f11.6)') &
+          '  Autoconversion rate Khairoutdinov : ', auto_rate_khair
+        write(stdout,'(a,es11.4)') &
+          '  Autoconversion rate Kessler       : ', auto_rate_kessl
+        write(stdout,'(a,es11.4)') &
+          '  Autoconversion rate Klepi         : ', auto_rate_klepi
+        write(stdout,'(a,es11.4)') &
+          '  Liquid autoconversion (rkconv)    : ', rkconv
+        write(stdout,'(a,es11.4)') &
+          '  Ice autoconversion (skconv)       : ', skconv
+        write(stdout,'(a,f11.6)') &
+          '  Min precipitation coverage        : ', rcovpmin
+        write(stdout,'(a,es11.4)') &
+          '  Rain evaporation (rpecons)        : ', rpecons
+        write(stdout,'(a,es11.4)') &
+          '  Cloud diffusion (rcldiff)         : ', rcldiff
       end if
     end if
     !
@@ -2744,6 +2960,23 @@ module mod_params
         write(stdout,'(a,f11.6)') '  Max Cloud Base  : ', skbmax
         write(stdout,'(a,f11.6)') '  Max Heating     : ', htmax
         write(stdout,'(a,f11.6)') '  Min Heating     : ', htmin
+        write(stdout,'(a,i11)') '  Closure (igcc)                    : ', igcc
+        write(stdout,'(a,f11.6)') &
+          '  Max Shear (ocean)                 : ', shrmax_ocn
+        write(stdout,'(a,f11.6)') &
+          '  Min Shear (ocean)                 : ', shrmin_ocn
+        write(stdout,'(a,f11.6)') &
+          '  Max PPT eff (ocean)               : ', edtmax_ocn
+        write(stdout,'(a,f11.6)') &
+          '  Min PPT eff (ocean)               : ', edtmin_ocn
+        write(stdout,'(a,f11.6)') &
+          '  Max PPT eff(o) (ocean)            : ', edtmaxo_ocn
+        write(stdout,'(a,f11.6)') &
+          '  Min PPT eff(o) (ocean)            : ', edtmino_ocn
+        write(stdout,'(a,f11.6)') &
+          '  Max PPT eff(x) (ocean)            : ', edtmaxx_ocn
+        write(stdout,'(a,f11.6)') &
+          '  Min PPT eff(x) (ocean)            : ', edtminx_ocn
         if ( igcc == 1 ) then
           write(stdout,*) ' Arakawa-Schubert (1974) Closure Assumption'
         else if ( igcc == 2 ) then
@@ -2804,7 +3037,7 @@ module mod_params
           '  Autoconversion Threshold to zero  : ',tlcrit
         write(stdout,'(a,f11.6)') '  Entrainment Coefficient           : ',entp
         write(stdout,'(a,f11.6)') '  Fractional area of uns. downdraft : ',sigd
-        write(stdout,'(a,f11.6)') '  Fractional area of uns. downdraft : ',sigd
+        write(stdout,'(a,f11.6)') '  Fraction of precip. outside cloud : ',sigs
         write(stdout,'(a,f11.6)') &
           '  Fall speed of rain                : ',omtrain
         write(stdout,'(a,f11.6)') &
@@ -2823,6 +3056,26 @@ module mod_params
           epmax_lnd
         write(stdout,'(a,f11.6)') '  Precipitation efficienct (ocean)  : ', &
           epmax_ocn
+        write(stdout,'(a,i11)') &
+          '  Stochastic parameterization       : ', istochastic
+        if ( istochastic == 1 ) then
+          write(stdout,'(a,f11.6)') &
+            '  Prec. efficiency land min         : ', epmax_lnd_min
+          write(stdout,'(a,f11.6)') &
+            '  Prec. efficiency land max         : ', epmax_lnd_max
+          write(stdout,'(a,f11.6)') &
+            '  Autoconv. threshold land min      : ', elcrit_lnd_min
+          write(stdout,'(a,f11.6)') &
+            '  Autoconv. threshold land max      : ', elcrit_lnd_max
+          write(stdout,'(a,f11.6)') &
+            '  Precip. outside cloud min         : ', sigs_min
+          write(stdout,'(a,f11.6)') &
+            '  Precip. outside cloud max         : ', sigs_max
+          write(stdout,'(a,f11.6)') &
+            '  Unsaturated downdraft min         : ', sigd_min
+          write(stdout,'(a,f11.6)') &
+            '  Unsaturated downdraft max         : ', sigd_max
+        end if
       end if
     end if
     if ( any(icup == 5)  ) then
@@ -2832,6 +3085,51 @@ module mod_params
           '  Entrainment rate pen. conv. land  : ',entrpen_lnd
         write(stdout,'(a,f11.6)') &
           '  Entrainment rate pen. conv. ocean : ',entrpen_ocn
+        write(stdout,'(a,es11.4)') &
+          '  Detrainment rate pen. conv. land  : ', detrpen_lnd
+        write(stdout,'(a,es11.4)') &
+          '  Detrainment rate pen. conv. ocean : ', detrpen_ocn
+        write(stdout,'(a,es11.4)') &
+          '  Entrainment rate downdrafts       : ', entrdd
+        write(stdout,'(a,f11.6)') &
+          '  Shallow entrainment factor        : ', entshalp
+        write(stdout,'(a,f11.6)') &
+          '  Conv. cover rain evap. land       : ', rcuc_lnd
+        write(stdout,'(a,f11.6)') &
+          '  Conv. cover rain evap. ocean      : ', rcuc_ocn
+        write(stdout,'(a,es11.4)') &
+          '  Rain evap. below cloud land       : ', rcpec_lnd
+        write(stdout,'(a,es11.4)') &
+          '  Rain evap. below cloud ocean      : ', rcpec_ocn
+        write(stdout,'(a,f11.6)') &
+          '  Critical RH rain evap. land       : ', rhebc_lnd
+        write(stdout,'(a,f11.6)') &
+          '  Critical RH rain evap. ocean      : ', rhebc_ocn
+        write(stdout,'(a,es11.4)') &
+          '  Cloud water to rain land          : ', rprc_lnd
+        write(stdout,'(a,es11.4)') &
+          '  Cloud water to rain ocean         : ', rprc_ocn
+        write(stdout,'(a,es11.4)') &
+          '  Evaporation coefficient land      : ', revap_lnd
+        write(stdout,'(a,es11.4)') &
+          '  Evaporation coefficient ocean     : ', revap_ocn
+        write(stdout,'(a,l11)') '  Penetrative convection            : ', lmfpen
+        write(stdout,'(a,l11)') '  Midlevel convection               : ', lmfmid
+        write(stdout,'(a,l11)') '  Shallow convection                : ', lmfscv
+        write(stdout,'(a,l11)') '  Downdrafts                        : ', lmfdd
+        write(stdout,'(a,l11)') '  Prognostic cloud scheme           : ', lepcld
+        write(stdout,'(a,l11)') &
+          '  Cumulus friction                  : ', lmfdudv
+        write(stdout,'(a,l11)') &
+          '  Kinetic energy dissipation        : ', lmfuvdis
+        write(stdout,'(a,l11)') &
+          '  Tracer transport                  : ', lmftrac
+        write(stdout,'(a,l11)') &
+          '  Smoothed tracer mass fluxes       : ', lmfsmooth
+        write(stdout,'(a,l11)') &
+          '  Grant w* shallow closure          : ', lmfwstar
+        write(stdout,'(a,l11)') &
+          '  PBL CAPE in deep closure          : ', lmfcapebl
       end if
     end if
     if ( any(icup == 6)  ) then
@@ -2855,6 +3153,16 @@ module mod_params
           '  CAPE removal time max.      : ', kf_max_dtcape
         write(stdout,'(a,f11.6)') &
           '  TKE maximum in sub cloud    : ', kf_tkemax
+        write(stdout,'(a,i11)') &
+          '  Stochastic parameterization       : ', istochastic
+        if ( istochastic == 1 ) then
+          write(stdout,'(a,f11.6)') &
+            '  Stochastic radius sigma           : ', rad_sigma
+          write(stdout,'(a,f11.6)') &
+            '  Stochastic radius minimum         : ', rad_min
+          write(stdout,'(a,f11.6)') &
+            '  Stochastic radius maximum         : ', rad_max
+        end if
       end if
     end if
 
@@ -2962,6 +3270,10 @@ module mod_params
           write(stdout,'(a,f11.6,a)') ' Value added to temperature      : ', &
                   temperature_tweak, ' K'
         end if
+        if ( itweak_sst == 1 ) then
+          write(stdout,'(a,f11.6,a)') ' Value added to SST              : ', &
+                  sst_tweak, ' K'
+        end if
         if ( itweak_solar_irradiance == 1 ) then
           write(stdout,'(a,f11.6,a)') ' Value added to solar irradiance : ', &
                   solar_tweak, ' W m-2'
@@ -3018,6 +3330,85 @@ module mod_params
        write(stdout,*) 'Component name is: ', comp_name
        write(stdout,"(A,I2)") '   Component id is: ', comp_id
        write(stdout,*) '      Sync lag is: ', oasis_sync_lag
+       write(stdout,'(a,l2)') '   Write grids: ', l_write_grids
+       write(stdout,'(a,i2)') '   Restart option: ', write_restart_option
+       write(stdout,*) 'OASIS coupling fields:'
+       if ( l_cpl_im_sst ) write(stdout,*) '  import RCM_SST'
+       if ( l_cpl_im_wz0 ) write(stdout,*) '  import RCM_WZ0'
+       if ( l_cpl_im_wust ) write(stdout,*) '  import RCM_WUST'
+       if ( l_cpl_ex_u10m ) write(stdout,*) '  export RCM_U10M'
+       if ( l_cpl_ex_v10m ) write(stdout,*) '  export RCM_V10M'
+       if ( l_cpl_ex_wspd ) write(stdout,*) '  export RCM_WSPD'
+       if ( l_cpl_ex_wdir ) write(stdout,*) '  export RCM_WDIR'
+       if ( l_cpl_ex_t2m ) write(stdout,*) '  export RCM_T2M'
+       if ( l_cpl_ex_q2m ) write(stdout,*) '  export RCM_Q2M'
+       if ( l_cpl_ex_slp ) write(stdout,*) '  export RCM_SLP'
+       if ( l_cpl_ex_taux ) write(stdout,*) '  export RCM_TAUX'
+       if ( l_cpl_ex_tauy ) write(stdout,*) '  export RCM_TAUY'
+       if ( l_cpl_ex_z0 ) write(stdout,*) '  export RCM_Z0'
+       if ( l_cpl_ex_ustr ) write(stdout,*) '  export RCM_USTR'
+       if ( l_cpl_ex_evap ) write(stdout,*) '  export RCM_EVAP'
+       if ( l_cpl_ex_prec ) write(stdout,*) '  export RCM_PREC'
+       if ( l_cpl_ex_nuwa ) write(stdout,*) '  export RCM_NUWA'
+       if ( l_cpl_ex_ulhf ) write(stdout,*) '  export RCM_ULHF'
+       if ( l_cpl_ex_ushf ) write(stdout,*) '  export RCM_USHF'
+       if ( l_cpl_ex_uwlw ) write(stdout,*) '  export RCM_UWLW'
+       if ( l_cpl_ex_dwlw ) write(stdout,*) '  export RCM_DWLW'
+       if ( l_cpl_ex_nulw ) write(stdout,*) '  export RCM_NULW'
+       if ( l_cpl_ex_uwsw ) write(stdout,*) '  export RCM_UWSW'
+       if ( l_cpl_ex_dwsw ) write(stdout,*) '  export RCM_DWSW'
+       if ( l_cpl_ex_ndsw ) write(stdout,*) '  export RCM_NDSW'
+       if ( l_cpl_ex_rhoa ) write(stdout,*) '  export RCM_RHOA'
+#ifdef ECLM
+       if ( l_cpl_ex_tatm ) write(stdout,*) '  export RCM_TATM'
+       if ( l_cpl_ex_uatm ) write(stdout,*) '  export RCM_UATM'
+       if ( l_cpl_ex_vatm ) write(stdout,*) '  export RCM_VATM'
+       if ( l_cpl_ex_qatm ) write(stdout,*) '  export RCM_QATM'
+       if ( l_cpl_ex_hgt ) write(stdout,*) '  export RCM_HGT'
+       if ( l_cpl_ex_patm ) write(stdout,*) '  export RCM_PATM'
+       if ( l_cpl_ex_dwrlwf ) write(stdout,*) '  export RCM_DWRLWF'
+       if ( l_cpl_ex_swdir ) write(stdout,*) '  export RCM_SWDIR'
+       if ( l_cpl_ex_swdif ) write(stdout,*) '  export RCM_SWDIF'
+       if ( l_cpl_ex_rainf ) write(stdout,*) '  export RCM_RAINF'
+       if ( l_cpl_ex_snow ) write(stdout,*) '  export RCM_SNOW'
+       if ( l_cpl_im_t2m ) write(stdout,*) '  import RCM_T2M_In'
+       if ( l_cpl_im_q2m ) write(stdout,*) '  import RCM_Q2M_In'
+       if ( l_cpl_im_u10m ) write(stdout,*) '  import RCM_U10M_In'
+       if ( l_cpl_im_sent ) write(stdout,*) '  import RCM_SENT'
+       if ( l_cpl_im_evpr ) write(stdout,*) '  import RCM_EVPR'
+       if ( l_cpl_im_ram1 ) write(stdout,*) '  import RCM_RAM1'
+       if ( l_cpl_im_rah1 ) write(stdout,*) '  import RCM_RAH1'
+       if ( l_cpl_im_taux ) write(stdout,*) '  import RCM_TAUX_In'
+       if ( l_cpl_im_tauy ) write(stdout,*) '  import RCM_TAUY_In'
+       if ( l_cpl_im_sncv ) write(stdout,*) '  import RCM_SNCV'
+       if ( l_cpl_im_wt ) write(stdout,*) '  import RCM_WT'
+       if ( l_cpl_im_zo ) write(stdout,*) '  import RCM_ZO'
+       if ( l_cpl_im_tlef ) write(stdout,*) '  import RCM_TLEF'
+       if ( l_cpl_im_albei ) write(stdout,*) '  import RCM_ALBEI'
+       if ( l_cpl_im_albed ) write(stdout,*) '  import RCM_ALBED'
+       if ( l_cpl_im_albei_2 ) write(stdout,*) '  import RCM_ALBEI_2'
+       if ( l_cpl_im_albed_2 ) write(stdout,*) '  import RCM_ALBED_2'
+       if ( l_cpl_im_fluxch4 ) write(stdout,*) '  import RCM_FLUXCH4'
+       if ( l_cpl_im_tlai ) write(stdout,*) '  import RCM_TLAI'
+       if ( l_cpl_im_roff ) write(stdout,*) '  import RCM_ROFF'
+       if ( l_cpl_im_srfroff ) write(stdout,*) '  import RCM_SRFROFF'
+       if ( l_cpl_im_snwmelt ) write(stdout,*) '  import RCM_SNWMELT'
+       if ( l_cpl_im_tgrd ) write(stdout,*) '  import RCM_TGRD'
+       if ( l_cpl_im_tgbb ) write(stdout,*) '  import RCM_TGBB'
+       if ( l_cpl_im_h2o10cm ) write(stdout,*) '  import RCM_H2O10CM'
+       if ( l_cpl_im_flxvoc ) write(stdout,*) '  import RCM_FLXVOC'
+       if ( l_cpl_im_flxdst ) write(stdout,*) '  import RCM_FLXDST'
+       if ( l_cpl_im_ddvel ) write(stdout,*) '  import RCM_DDVEL'
+       if ( l_cpl_im_tsoi ) write(stdout,*) '  import RCM_TSOI'
+       if ( l_cpl_im_h2ovol ) write(stdout,*) '  import RCM_H2OVOL'
+       if ( l_cpl_im_h2oliq ) write(stdout,*) '  import RCM_H2OLIQ'
+       if ( l_cpl_im_h2oice ) write(stdout,*) '  import RCM_H2OICE'
+       write(stdout,'(a,i4)') '   eCLM soil layers   : ', oasis_nlevsoi
+       write(stdout,'(a,i4)') '   eCLM dry dep. spec.: ', oasis_nddvel
+       write(stdout,*) '   eCLM MEGAN compounds: ', &
+         ( trim(oasis_megan_cmp(k))//' ', k = 1, &
+           count(oasis_megan_cmp /= ' ') )
+#endif
      end if
      if ( .not. l_cpl_im_sst  .and. &
           .not. l_cpl_im_wz0  .and. &
