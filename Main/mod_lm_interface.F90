@@ -32,6 +32,9 @@ module mod_lm_interface
   use mod_slabocean
   use mod_heatindex
   use mod_rad_outrad, only : accumulate_rad_fluxes
+#ifdef ECLM
+  use mod_oasis_params, only : oasis_nlevsoi, oasis_ndust
+#endif
 
 #ifdef CLM45
   use mod_clm_regcm
@@ -137,6 +140,19 @@ module mod_lm_interface
                                     ici1,ici2,1,num_soil_layers,'lm:sw_vol')
     call getmem(lms%tsoi,1,nnsg,jci1,jci2, &
                                   ici1,ici2,1,num_soil_layers,'lm:tsoi')
+#endif
+#ifdef ECLM
+    ! Fields received from eCLM; the soil profiles have the eCLM layers
+    call getmem(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
+    call getmem(lms%dustemiss,1,nnsg,jci1,jci2, &
+                              ici1,ici2,1,oasis_ndust,'lm:dustemiss')
+    call getmem(lms%ddepv,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:ddepv')
+    call getmem(lms%sw_vol,1,nnsg,jci1,jci2, &
+                           ici1,ici2,1,oasis_nlevsoi,'lm:sw_vol')
+    call getmem(lms%tsoi,1,nnsg,jci1,jci2, &
+                         ici1,ici2,1,oasis_nlevsoi,'lm:tsoi')
+    call getmem(lms%h2osoi,1,nnsg,jci1,jci2, &
+                           ici1,ici2,1,oasis_nlevsoi,'lm:h2osoi')
 #endif
 
     if ( lakemod == 1 ) then
@@ -360,9 +376,18 @@ module mod_lm_interface
     end if
 #else
 #ifdef ECLM
-    write(stdout, *) 'ECLM version ENABLED!'
-#endif
+    ! The land fluxes come from eCLM through OASIS. Keep the tile values
+    ! of the atmospheric forcing that BATS would set.
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        lms%prcp(n,j,i) = (lm%ncprate(j,i) + lm%cprate(j,i)) * &
+                          syncro_srf%rw
+        lms%sfcp(n,j,i) = lm%sfps(j,i)
+      end if
+    end do
+#else
     if ( irceideal == 0 ) call vecbats(lm,lms)
+#endif
 #endif
     if ( islab_ocean == 1 ) then
       !@acc call nvtxStartRange("update_slabocean")
@@ -566,7 +591,8 @@ module mod_lm_interface
     implicit none
     type(imp_data), intent(in) :: impfie
     real(rkx), intent(in) :: tol
-    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ldmskb, wetdry
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: ldmskb
+    integer(ik4), pointer, contiguous, dimension(:,:), intent(in) :: wetdry
     integer(ik4) :: i, j, n
     logical :: flag
 !    character (len=*), parameter :: f99001 =                   &

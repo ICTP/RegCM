@@ -1892,8 +1892,9 @@ implemented yet.
 \end{enumerate}
 
 \begin{table}[ht]
-\caption{Available grids for OASIS exchanges. {\tt *m} have the ocean
-         mask; {\tt *n} don't. {\tt jx} and {\tt iy} refer to the
+\caption{Available grids for OASIS exchanges. {\tt *m} have a mask,
+         {\tt *n} don't: the ocean grids mask the land, the land grid
+         {\tt rlim} masks the ocean. {\tt jx} and {\tt iy} refer to the
          parameters of the {\tt dimparam} namelist.}
 \vspace{0.05 in}
 \centering
@@ -1905,6 +1906,8 @@ Name & Description & Dimensions\\
 \verb=rdim= or \verb=rdin= & dot grid without the borders & \verb=(jx-2,iy-2)=\\
 \verb=rcem= or \verb=rcen= & cross grid & \verb=(jx-1,iy-1)=\\
 \verb=rcim= or \verb=rcin= & cross grid without the borders & \verb=(jx-3,iy-3)=\\
+\verb=rlim= or \verb=rlin= & cross grid without the borders, land
+  (only with \verb=--enable-eclm=) & \verb=(jx-3,iy-3)=\\
 \hline
 \end{tabular}
 \label{oasis_grid_list}
@@ -1951,6 +1954,116 @@ Name & Direction & Description & Unit\\
 \end{tabular}
 \label{oasis_field_list}
 \end{table}
+
+When the model is built with \verb=--enable-eclm=, the land surface comes
+from the eCLM land model through OASIS: BATS is not run, and the fields of
+table \ref{oasis_eclm_field_list} are exchanged on the land grid
+\verb=rlim=/\verb=rlin=. Some of them are bundles, a set of fields of the
+same kind (soil layers, size bins, species) declared as one \verb=namcouple=
+entry: each member is interpolated in two dimensions with the same weights.
+The number of members must be the same in RegCM and in eCLM, and is set in
+\verb=oasisparam= with \verb=oasis_nlevsoi= (soil layers, default 20),
+\verb=oasis_nddvel= (dry deposition species) and \verb=oasis_megan_cmp=
+(names of the MEGAN compounds, in the eCLM order).
+
+{\footnotesize
+\begin{longtable}{p{4.5cm}|c|p{6.5cm}|c}
+\caption{Fields for the eCLM coupling.}
+\label{oasis_eclm_field_list}\\
+\hline
+Name & Direction & Description & Unit\\
+\hline
+\endfirsthead
+\hline
+Name & Direction & Description & Unit\\
+\hline
+\endhead
+\verb=RCM_TATM= & out & Air temperature, lowest model level & $K$\\
+\verb=RCM_UATM= &
+  out &
+  Grid relative zonal wind, lowest model level &
+  $m.s^{-1}$\\
+\verb=RCM_VATM= &
+  out &
+  Grid relative meridional wind, lowest model level &
+  $m.s^{-1}$\\
+\verb=RCM_QATM= & out & Specific humidity, lowest model level & $kg.kg^{-1}$\\
+\verb=RCM_HGT= & out & Height of the lowest model level & $m$\\
+\verb=RCM_PATM= & out & Pressure, lowest model level & $Pa$\\
+\verb=RCM_DWRLWF= & out & Downward long-wave radiation & $W.m^{-2}$\\
+\verb=RCM_SWDIR= &
+  out &
+  Direct short-wave radiation, visible + near infrared &
+  $W.m^{-2}$\\
+\verb=RCM_SWDIF= &
+  out &
+  Diffuse short-wave radiation, visible + near infrared &
+  $W.m^{-2}$\\
+\verb=RCM_RAINF= &
+  out &
+  Rain (air at the lowest level above $1^{\circ}C$) &
+  $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_SNOW= &
+  out &
+  Snow (air at the lowest level below $1^{\circ}C$) &
+  $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_T2M_In= & in & Air temperature at 2 m & $K$\\
+\verb=RCM_Q2M_In= & in & Specific humidity at 2 m & $kg.kg^{-1}$\\
+\verb=RCM_U10M_In= & in & Wind speed at 10 m & $m.s^{-1}$\\
+\verb=RCM_SENT= & in & Sensible heat flux & $W.m^{-2}$\\
+\verb=RCM_EVPR= & in & Evapotranspiration & $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_RAM1=, \verb=RCM_RAH1= & in & Momentum and heat transfer factors & \\
+\verb=RCM_TAUX_In=, \verb=RCM_TAUY_In= &
+  in &
+  Wind stress (both or none) &
+  $N.m^{-2}$\\
+\verb=RCM_SNCV= & in & Snow water equivalent & $kg.m^{-2}$\\
+\verb=RCM_WT= & in & Fraction of ground emitting dust & \\
+\verb=RCM_ZO= & in & Roughness length & $m$\\
+\verb=RCM_TLEF= & in & Leaf temperature & $K$\\
+\verb=RCM_TLAI= & in & Leaf area index & \\
+\verb=RCM_ROFF= & in & Total runoff & $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_SRFROFF= & in & Surface runoff & $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_SNWMELT= & in & Snow melt rate & $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_H2O10CM= & in & Soil water in the top 10 cm & $kg.m^{-2}$\\
+\verb=RCM_ALBED=, \verb=RCM_ALBEI= &
+  in &
+  Short-wave direct and diffuse albedo &
+  \\
+\verb=RCM_ALBED_2=, \verb=RCM_ALBEI_2= &
+  in &
+  Long-wave direct and diffuse albedo &
+  \\
+\verb=RCM_TGRD= & in & Ground temperature & $K$\\
+\verb=RCM_TGBB= & in & Radiative surface temperature & $K$\\
+\verb=RCM_FLUXCH4= & in & Methane emission, as carbon & $kgC.m^{-2}.s^{-1}$\\
+\verb=RCM_TSOI= &
+  in &
+  Soil temperature, bundle of {\tt oasis\_nlevsoi} layers &
+  $K$\\
+\verb=RCM_H2OVOL= &
+  in &
+  Volumetric soil water, bundle of layers &
+  $m^3.m^{-3}$\\
+\verb=RCM_H2OLIQ=, \verb=RCM_H2OICE= &
+  in &
+  Liquid and frozen soil water, bundles of layers &
+  $kg.m^{-2}$\\
+\verb=RCM_FLXDST= &
+  in &
+  Dust emission, bundle of 4 size bins &
+  $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_FLXVOC= &
+  in &
+  MEGAN emissions, bundle of {\tt oasis\_megan\_cmp} &
+  $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_DDVEL= &
+  in &
+  Dry deposition velocities, bundle of {\tt oasis\_nddvel} &
+  $m.s^{-1}$\\
+\hline
+\end{longtable}
+}
 
 More information on how to use OASIS is given in \cite{valcke_oasis}.
 To run the \verb=OASIS= option in the RegCM model,

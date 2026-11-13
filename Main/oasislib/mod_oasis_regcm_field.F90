@@ -76,7 +76,8 @@ module mod_oasis_regcm_field
   integer, parameter :: oasis_2d_maxfields = 56
   integer, parameter :: oasis_3d_maxfields = 7
 
-  type(regcm_oasis_field_2d), dimension(oasis_2d_maxfields) :: exch_2d = &
+  type(regcm_oasis_field_2d), dimension(oasis_2d_maxfields), &
+          target :: exch_2d = &
     [ regcm_oasis_field_2d(0,'RCM_SP',   .false.,null( ),null( ),null( )), &
       regcm_oasis_field_2d(0,'RCM_SST',  .false.,null( ),null( ),null( )), &
       regcm_oasis_field_2d(0,'RCM_WZ0',  .false.,null( ),null( ),null( )), &
@@ -133,14 +134,15 @@ module mod_oasis_regcm_field
       regcm_oasis_field_2d(0,'RCM_ALBI2',.false.,null( ),null( ),null( )), &
       regcm_oasis_field_2d(0,'RCM_ALBD2',.false.,null( ),null( ),null( )), &
       regcm_oasis_field_2d(0,'RCM_DEFLX',.false.,null( ),null( ),null( )) ]
-  type(regcm_oasis_field_3d), dimension(oasis_3d_maxfields) :: exch_3d = &
-    [ regcm_oasis_field_3d(0,'RCM_TSOI', .false.,null( ),null( ),null( )), &
-      regcm_oasis_field_3d(0,'RCM_H2OV', .false.,null( ),null( ),null( )), &
-      regcm_oasis_field_3d(0,'RCM_H2OL', .false.,null( ),null( ),null( )), &
-      regcm_oasis_field_3d(0,'RCM_H2OI', .false.,null( ),null( ),null( )), &
-      regcm_oasis_field_3d(0,'RCM_FVOC', .false.,null( ),null( ),null( )), &
-      regcm_oasis_field_3d(0,'RCM_FDST', .false.,null( ),null( ),null( )), &
-      regcm_oasis_field_3d(0,'RCM_DDVEL',.false.,null( ),null( ),null( )) ]
+  type(regcm_oasis_field_3d), dimension(oasis_3d_maxfields), &
+          target :: exch_3d = &
+    [ regcm_oasis_field_3d(0,'RCM_TSOI',.false.,null( ),null( ),1,null( )), &
+      regcm_oasis_field_3d(0,'RCM_H2OV',.false.,null( ),null( ),1,null( )), &
+      regcm_oasis_field_3d(0,'RCM_H2OL',.false.,null( ),null( ),1,null( )), &
+      regcm_oasis_field_3d(0,'RCM_H2OI',.false.,null( ),null( ),1,null( )), &
+      regcm_oasis_field_3d(0,'RCM_FVOC',.false.,null( ),null( ),1,null( )), &
+      regcm_oasis_field_3d(0,'RCM_FDST',.false.,null( ),null( ),1,null( )), &
+      regcm_oasis_field_3d(0,'RCM_DDVEL',.false.,null( ),null( ),1,null( )) ]
 
 #ifdef TESTME
   integer :: counter = 1

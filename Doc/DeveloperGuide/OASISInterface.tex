@@ -1,31 +1,34 @@
 \chapter{The OASIS Interface}
 
-This interface was developped with \OA\ \citep{craig_2017} (see the module's user guide:
+This interface was developped with \OA\ \citep{craig_2017} (see the module's
+user guide:
 \cite{valcke_oasis}).
 
 \section{OASIS-related code}
 
 Are listed below the sections of the code which are related to the use of OASIS:
 \begin{itemize}
-	\item 	the library \verb=oasislib=, needing only \verb=Share= and \verb=mpplib=;
-	\item 	the module \verb=mod_oasis_interface.F90=, which links all \verb=oasislib=
-		processes with the model's variables, and transfers the needed
-		accessibility to \verb=oasislib= parameters (in the rest of the code,
-		one only need to \verb=use mod_oasis_interface.F90=);
-	\item	several lines in \verb=mod_params.F90= for reading the \verb=oasisparam=
-		namelist (and the parameter \verb=ioasiscpl= is added to the
-		\verb=physicsparam= namelist);
-	\item	several lines in \verb=mod_regcm_interface.F90= for calling the needed
-		subroutines along the run;
-	\item	several lines in \verb=regcm.F90= for implementing the MPI initialization
-		of OASIS;
-	\item	appropriate lines in the \verb=Main='s \verb=Makefiles.am=;
-	\item	several lines in \verb=configure.ac= for the configuration options.
+  \item the library \verb=oasislib=, needing only \verb=Share= and
+        \verb=mpplib=;
+  \item the module \verb=mod_oasis_interface.F90=, which links all
+        \verb=oasislib= processes with the model's variables, and transfers the
+        needed accessibility to \verb=oasislib= parameters (in the rest of the
+        code, one only need to \verb=use mod_oasis_interface.F90=);
+  \item several lines in \verb=mod_params.F90= for reading the \verb=oasisparam=
+        namelist (and the parameter \verb=ioasiscpl= is added to the
+        \verb=physicsparam= namelist);
+  \item several lines in \verb=mod_regcm_interface.F90= for calling the needed
+        subroutines along the run;
+  \item several lines in \verb=regcm.F90= for implementing the MPI
+        initialization of OASIS;
+  \item appropriate lines in the \verb=Main='s \verb=Makefiles.am=;
+  \item several lines in \verb=configure.ac= for the configuration options.
 \end{itemize}
 
-OASIS-related sections are enabled only if the builder is configured with
-the option \verb=--enable-oasis=. In the code, these sections (except for the parameter
-\verb=ioasiscpl= which is in \verb=physicsparam= anyways) are inserted within
+OASIS-related sections are enabled only if the builder is configured with the
+option \verb=--enable-oasis=. In the code, these sections (except for the
+parameter \verb=ioasiscpl= which is in \verb=physicsparam= anyways) are inserted
+within
 \begin{verbatim}
 #ifdef OASIS
  ! Something to be done only in OASIS mode
@@ -34,18 +37,83 @@ the option \verb=--enable-oasis=. In the code, these sections (except for the pa
 
 \section{Adding fields}
 
-The interface is not exclusively for handling air-sea interactions, even though it was
-initially developped for it. Indeed, its types, variables, and subroutines remain quite
-general, such that one could for instance implement another exchange grid, and/or set up
+The interface is not exclusively for handling air-sea interactions, even though
+it was
+initially developped for it. Indeed, its types, variables, and subroutines
+remain quite
+general, such that one could for instance implement another exchange grid,
+and/or set up
 the fields which are needed for a precise coupling experiment.
 
-The locations where lines should be added for implementing new fields are notified with
+The locations where lines should be added for implementing new fields are
+notified with
 the comment \verb=! OASIS field +++=, which may be \verb=grep=ped...
 
-Any interaction between fields from OASIS and the model's variables should be done in
-\verb=mod_oasis_interface.F90=, where developpers are invited to use the model's variables
+Any interaction between fields from OASIS and the model's variables should be
+done in
+\verb=mod_oasis_interface.F90=, where developpers are invited to use the model's
+variables
 which are already public.
 
-Finally, simply adding a field should not need changes in the \verb=oasislib=, although
-consulting it may be useful for understanding then handling all types, variables and
+Finally, simply adding a field should not need changes in the \verb=oasislib=,
+although
+consulting it may be useful for understanding then handling all types, variables
+and
 subroutines. Explicit comments are normally present in the code.
+
+\section{eCLM land coupling}
+
+With \verb=--enable-eclm= (which implies \verb=--enable-oasis=, and defines
+\verb=ECLM=) the land surface model is eCLM, run as a separate OASIS
+component:
+\begin{itemize}
+  \item BATS is not run. \verb=surface_model= in \verb=mod_lm_interface.F90=
+        keeps only the tile values of the atmospheric forcing that BATS
+        would set: the precipitation \verb=lms%prcp=, averaged over the
+        surface step as in BATS, and the surface pressure \verb=lms%sfcp=.
+        Fluxes, temperatures, albedos and roughness come from eCLM.
+  \item The eCLM fields use their own grid, \verb=rlin=/\verb=rlim= in
+        \verb=mod_oasis_interface.F90= (\verb=grdlnd=): the points of
+        \verb=rcin=/\verb=rcim=, with the ocean masked instead of the land.
+        Having separate names lets the ocean and the land couplings run
+        together; the ocean grids keep their land mask.
+  \item The received land fields are written on the land tiles of the
+        \verb=lms= arrays with \verb=fill_land=; the wind speed at 10 m
+        takes the direction of the wind at the lowest model level, and
+        the drag is $|\tau|/|V|$, as used by the atmosphere.
+\end{itemize}
+
+\subsection{Multi-level fields}
+
+Soil profiles, dust size bins and chemical species are exchanged as OASIS
+bundles: \verb=type(info3dfld)= in \verb=mod_oasis_params.F90= holds the
+number of members \verb=nz=, \verb=oasisxregcm_def_3dfield= declares the
+variable with \verb=var_nodims = [1,nz]= on the 2d partition of its grid, and
+\verb=oasisxregcm_rcv_3d= receives an array \verb=(j,i,nz)=. A bundle is one
+\verb=namcouple= entry; OASIS interpolates each member in two dimensions
+with the same weights, and both components must declare the same \verb=nz=.
+A rank-3 call needs at least two members (OASIS3-MCT 5 aborts, version 6
+takes it as an unbundled 3d field), so a single member is received as a
+rank-2 array.
+
+The sizes come from \verb=oasisparam=: \verb=oasis_nlevsoi= for the soil
+profiles (\verb=RCM_TSOI=, \verb=RCM_H2OVOL=, \verb=RCM_H2OLIQ=,
+\verb=RCM_H2OICE=), \verb=oasis_nddvel= for \verb=RCM_DDVEL=, the names in
+\verb=oasis_megan_cmp= for \verb=RCM_FLXVOC=, and the parameter
+\verb=oasis_ndust= (4) for \verb=RCM_FLXDST=. The soil profiles are stored
+in \verb=lms%tsoi=, \verb=lms%sw_vol= and \verb=lms%h2osoi= (liquid plus
+frozen water), allocated with \verb=oasis_nlevsoi= layers; the three
+\verb=lms%sw= layers of the RegCM output and restart files keep the BATS
+layout. Dust emissions go to \verb=lms%dustemiss=, isoprene (found by name
+among the MEGAN compounds) and methane to \verb=lms%vocemiss=. These are
+not yet passed to the chemistry, whose land model hooks are compiled only
+with \verb=CLM45=; \verb=RCM_DDVEL= is received but not used, as the order
+of its species is not known to RegCM.
+
+\subsection{OASIS3-MCT versions}
+
+The routines and arguments used by the interface are the same in
+OASIS3-MCT 5.0, in the J\"ulich patched 5.0 used with eCLM in TSMP, and in
+OASIS3-MCT 6. The J\"ulich patches rename the MCT
+modules (to coexist with the MCT of CLM in one executable) and add
+ensemble support for PDAF; neither changes the interface used by RegCM.

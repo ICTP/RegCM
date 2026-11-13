@@ -204,8 +204,9 @@ module mod_params
       l_cpl_im_ddvel,   l_cpl_im_tlai,    l_cpl_im_roff,    &
       l_cpl_im_srfroff, l_cpl_im_tsoi,    l_cpl_im_snwmelt, &
       l_cpl_im_h2ovol,  l_cpl_im_h2oliq,  l_cpl_im_h2oice,  &
-      l_cpl_im_h2o10cm , l_cpl_im_tgrd , l_cpl_im_albei_2,  &
-      l_cpl_im_albed_2
+      l_cpl_im_h2o10cm, l_cpl_im_tgrd,    l_cpl_im_albei_2, &
+      l_cpl_im_albed_2, oasis_nlevsoi,    oasis_nddvel,     &
+      oasis_megan_cmp
 #endif
     ! OASIS field +++
 #endif
@@ -681,6 +682,13 @@ module mod_params
     l_cpl_im_h2ovol = .false.
     l_cpl_im_h2oliq = .false.
     l_cpl_im_h2oice = .false.
+    ! Sizes of the eCLM bundles: CLM5 default soil (20 layers) and the
+    ! MEGAN compounds of the eCLM configuration
+    oasis_nlevsoi = 20
+    oasis_nddvel = 0
+    oasis_megan_cmp = ' '
+    oasis_megan_cmp(1:9) = [ character(len=8) :: 'ISOP', 'LIMO', 'APIN', &
+                             'BPIN', '3CAR', 'OCIM', 'MYRC', 'SABI', 'OMTP' ]
 #endif
     ! OASIS field +++
 #endif
@@ -1589,6 +1597,11 @@ module mod_params
       call bcast(l_cpl_ex_patm)
       call bcast(l_cpl_ex_snow)
       call bcast(l_cpl_ex_rainf)
+      call bcast(oasis_nlevsoi)
+      call bcast(oasis_nddvel)
+      do n = 1, oasis_max_megan
+        call bcast(oasis_megan_cmp(n),8)
+      end do
 #endif
       ! OASIS field +++
     end if
@@ -3090,6 +3103,25 @@ module mod_params
        end if
        ioasiscpl = 0
      end if
+#ifdef ECLM
+     if ( ioasiscpl == 1 ) then
+       if ( ( l_cpl_im_tsoi .or. l_cpl_im_h2ovol .or. &
+              l_cpl_im_h2oliq .or. l_cpl_im_h2oice ) .and. &
+            oasis_nlevsoi < 1 ) then
+         call fatal(__FILE__,__LINE__,'OASIS: oasis_nlevsoi < 1')
+       end if
+       if ( l_cpl_im_ddvel .and. oasis_nddvel < 1 ) then
+         call fatal(__FILE__,__LINE__,'OASIS: oasis_nddvel < 1')
+       end if
+       if ( l_cpl_im_flxvoc .and. all(oasis_megan_cmp == ' ') ) then
+         call fatal(__FILE__,__LINE__,'OASIS: no oasis_megan_cmp names')
+       end if
+       if ( l_cpl_im_taux .neqv. l_cpl_im_tauy ) then
+         call fatal(__FILE__,__LINE__, &
+                 'OASIS: l_cpl_im_taux and l_cpl_im_tauy go together')
+       end if
+     end if
+#endif
      if ( ioasiscpl == 1 ) then
        if ( write_restart_option < 0 .or. write_restart_option > 3 ) then
          if ( myid == italk ) then

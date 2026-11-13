@@ -33,18 +33,27 @@ module mod_regcm_types
     logical, pointer, contiguous, dimension(:,:,:) :: sgmask => null( )
     integer(ik4), pointer, contiguous, dimension(:,:,:) :: sgmask_id => null( )
     logical, pointer, contiguous, dimension(:,:) :: global_gmask => null( )
-    integer(ik4), pointer, contiguous, dimension(:,:) :: global_gmask_id => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:) :: &
+        global_gmask_id => null( )
     logical, pointer, contiguous, dimension(:,:,:) :: global_sgmask => null( )
-    integer(ik4), pointer, contiguous, dimension(:,:,:) :: global_sgmask_id => null( )
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: &
+        global_sgmask_id => null( )
     logical, pointer, contiguous, dimension(:,:) :: global_out_sgmask => null( )
-    integer(ik4), pointer, contiguous, dimension(:) :: linear_npoint_g => null( )
+    integer(ik4), pointer, contiguous, dimension(:) :: &
+        linear_npoint_g => null( )
     integer(ik4), pointer, contiguous, dimension(:) :: linear_displ_g => null( )
-    integer(ik4), pointer, contiguous, dimension(:) :: cartesian_npoint_g => null( )
-    integer(ik4), pointer, contiguous, dimension(:) :: cartesian_displ_g => null( )
-    integer(ik4), pointer, contiguous, dimension(:) :: linear_npoint_sg => null( )
-    integer(ik4), pointer, contiguous, dimension(:) :: linear_displ_sg => null( )
-    integer(ik4), pointer, contiguous, dimension(:) :: cartesian_npoint_sg => null( )
-    integer(ik4), pointer, contiguous, dimension(:) :: cartesian_displ_sg => null( )
+    integer(ik4), pointer, contiguous, dimension(:) :: &
+        cartesian_npoint_g => null( )
+    integer(ik4), pointer, contiguous, dimension(:) :: &
+        cartesian_displ_g => null( )
+    integer(ik4), pointer, contiguous, dimension(:) :: &
+        linear_npoint_sg => null( )
+    integer(ik4), pointer, contiguous, dimension(:) :: &
+        linear_displ_sg => null( )
+    integer(ik4), pointer, contiguous, dimension(:) :: &
+        cartesian_npoint_sg => null( )
+    integer(ik4), pointer, contiguous, dimension(:) :: &
+        cartesian_displ_sg => null( )
   end type masked_comm
 
   type model_area
@@ -129,7 +138,8 @@ module mod_regcm_types
   end type domain_subgrid
 
   type mass_divergence
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: cr => null( ) ! cross points
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        cr => null( ) ! cross points
   end type mass_divergence
 
   type atmosphere
@@ -236,14 +246,22 @@ module mod_regcm_types
   end type crosswind_tendency
 
   type atmstate_decoupled
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: uc => null( )  ! pressure
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vc => null( )  ! pressure
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: umc => null( ) ! mapfactor
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vmc => null( ) ! mapfactor
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: ud => null( )  ! De-coupled
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vd => null( )  ! De-coupled
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: umd => null( ) ! mapfactor
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vmd => null( ) ! mapfactor
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        uc => null( )  ! pressure
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vc => null( )  ! pressure
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        umc => null( ) ! mapfactor
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vmc => null( ) ! mapfactor
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        ud => null( )  ! De-coupled
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vd => null( )  ! De-coupled
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        umd => null( ) ! mapfactor
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vmd => null( ) ! mapfactor
     real(rkx), pointer, contiguous, dimension(:,:,:) :: w => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: t => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tv => null( )
@@ -256,9 +274,11 @@ module mod_regcm_types
 
   type tcm_state
     ! Vertical momentum diffusivity
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: kzm => null( )    ! (m^2/s)
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        kzm => null( )    ! (m^2/s)
     ! Vertical scalar diffusivity
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: kth => null( )    ! (m^2/s)
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        kth => null( )    ! (m^2/s)
   end type tcm_state
 
   type tendiag
@@ -485,6 +505,10 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: sw_vol => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: tsoi => null( )
 #endif
+#ifdef ECLM
+    ! soil water (liquid + ice) per eCLM layer [kg/m2]
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: h2osoi => null( )
+#endif
   end type lm_state
 
   type lm_exchange
@@ -496,82 +520,143 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:) :: sxlai2d => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: sw_vol => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: tsoi => null( )
-    real(rkx), pointer, contiguous, dimension(:,:) :: xlat => null( )     ! mddom%xlat
-    real(rkx), pointer, contiguous, dimension(:,:) :: xlon => null( )     ! mddom%xlon
-    real(rkx), pointer, contiguous, dimension(:,:) :: lndcat => null( )   ! mddom%lndcat
-    real(rkx), pointer, contiguous, dimension(:,:) :: ht => null( )       ! mddom%ht
-    real(rkx), pointer, contiguous, dimension(:,:) :: snowam => null( )   ! mddom%snowam
-    real(rkx), pointer, contiguous, dimension(:,:) :: smoist => null( )   ! mddom%smoist
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rmoist => null( ) ! mddom%rmoist
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rts => null( )    ! mddom%rts
-    integer(ik4), pointer, contiguous, dimension(:,:) :: iveg => null( )  ! mddom%iveg
-    integer(ik4), pointer, contiguous, dimension(:,:) :: itex => null( )  ! mddom%itex
-    integer(ik4), pointer, contiguous, dimension(:,:) :: ldmsk => null( ) ! mddom%ldmsk
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: ht1 => null( )    ! mdsub%ht
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: lndcat1 => null( ) ! mdsub%lndcat
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: area1 => null( )   ! mdsub%area
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: xlat1 => null( )   ! mdsub%xlat
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: xlon1 => null( )   ! mdsub%xlon
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: dhlake1 => null( ) ! mdsub%dhlake
-    integer(ik4), pointer, contiguous, dimension(:,:,:) :: ldmsk1 => null( ) ! mdsub%ldmsk
-    integer(ik4), pointer, contiguous, dimension(:,:,:) :: iveg1 => null( )  ! mdsub%iveg
-    integer(ik4), pointer, contiguous, dimension(:,:,:) :: itex1 => null( )  ! mdsub%itex
-    integer(ik4), pointer, contiguous, dimension(:,:) :: icplmsk => null( )  ! cplmsk
-    real(rkx), pointer, contiguous, dimension(:,:) :: patm => null( ) ! atms%pb3d(kz)
-    real(rkx), pointer, contiguous, dimension(:,:) :: uatm => null( ) ! atms%ubx3d(kz)
-    real(rkx), pointer, contiguous, dimension(:,:) :: vatm => null( ) ! atms%vbx3d(kz)
-    real(rkx), pointer, contiguous, dimension(:,:) :: tatm => null( ) ! atms%tb3d(kz)
-    real(rkx), pointer, contiguous, dimension(:,:) :: thatm => null( )! atms%th3d(kz)
-    real(rkx), pointer, contiguous, dimension(:,:) :: qvatm => null( )! atms%qxb3d(kz,iqv)
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        xlat => null( )     ! mddom%xlat
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        xlon => null( )     ! mddom%xlon
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        lndcat => null( )   ! mddom%lndcat
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        ht => null( )       ! mddom%ht
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        snowam => null( )   ! mddom%snowam
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        smoist => null( )   ! mddom%smoist
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rmoist => null( ) ! mddom%rmoist
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rts => null( )    ! mddom%rts
+    integer(ik4), pointer, contiguous, dimension(:,:) :: &
+        iveg => null( )  ! mddom%iveg
+    integer(ik4), pointer, contiguous, dimension(:,:) :: &
+        itex => null( )  ! mddom%itex
+    integer(ik4), pointer, contiguous, dimension(:,:) :: &
+        ldmsk => null( ) ! mddom%ldmsk
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        ht1 => null( )    ! mdsub%ht
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        lndcat1 => null( ) ! mdsub%lndcat
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        area1 => null( )   ! mdsub%area
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        xlat1 => null( )   ! mdsub%xlat
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        xlon1 => null( )   ! mdsub%xlon
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        dhlake1 => null( ) ! mdsub%dhlake
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: &
+        ldmsk1 => null( ) ! mdsub%ldmsk
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: &
+        iveg1 => null( )  ! mdsub%iveg
+    integer(ik4), pointer, contiguous, dimension(:,:,:) :: &
+        itex1 => null( )  ! mdsub%itex
+    integer(ik4), pointer, contiguous, dimension(:,:) :: &
+        icplmsk => null( )  ! cplmsk
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        patm => null( ) ! atms%pb3d(kz)
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        uatm => null( ) ! atms%ubx3d(kz)
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        vatm => null( ) ! atms%vbx3d(kz)
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        tatm => null( ) ! atms%tb3d(kz)
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        thatm => null( )! atms%th3d(kz)
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        qvatm => null( )! atms%qxb3d(kz,iqv)
     real(rkx), pointer, contiguous, dimension(:,:) :: hgt => null( )  ! za(kz)
     real(rkx), pointer, contiguous, dimension(:,:) :: hpbl => null( ) ! zpbl
     real(rkx), pointer, contiguous, dimension(:,:) :: hfx => null( )  ! sfs%hfx
     real(rkx), pointer, contiguous, dimension(:,:) :: qfx => null( )  ! sfs%qfx
     real(rkx), pointer, contiguous, dimension(:,:) :: totcf => null( ) ! totcf
     real(rkx), pointer, contiguous, dimension(:,:) :: sfps => null( )  ! sfs%psb
-    real(rkx), pointer, contiguous, dimension(:,:) :: sfta => null( )  ! atms%ts2d
-    real(rkx), pointer, contiguous, dimension(:,:) :: uvdrag => null( ) ! sfs%uvdrag
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        sfta => null( )  ! atms%ts2d
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        uvdrag => null( ) ! sfs%uvdrag
     real(rkx), pointer, contiguous, dimension(:,:) :: tg => null( )     ! sfs%tg
-    real(rkx), pointer, contiguous, dimension(:,:) :: tgbb => null( )   ! sfs%tgbb
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        tgbb => null( )   ! sfs%tgbb
     real(rkx), pointer, contiguous, dimension(:,:) :: cram => null( )
-    real(rkx), pointer, contiguous, dimension(:,:) :: ram1 => null( )   ! sfs%ram1
-    real(rkx), pointer, contiguous, dimension(:,:) :: rah1 => null( )   ! sfs%rah1
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        ram1 => null( )   ! sfs%ram1
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        rah1 => null( )   ! sfs%rah1
     real(rkx), pointer, contiguous, dimension(:,:) :: br => null( )     ! sfs%br
-    real(rkx), pointer, contiguous, dimension(:,:) :: u10m => null( )   ! sfs%u10m
-    real(rkx), pointer, contiguous, dimension(:,:) :: v10m => null( )   ! sfs%v10m
-    real(rkx), pointer, contiguous, dimension(:,:) :: q2m => null( )    ! sfs%q2m
-    real(rkx), pointer, contiguous, dimension(:,:) :: t2m => null( )    ! sfs%t2m
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        u10m => null( )   ! sfs%u10m
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        v10m => null( )   ! sfs%v10m
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        q2m => null( )    ! sfs%q2m
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        t2m => null( )    ! sfs%t2m
     real(rkx), pointer, contiguous, dimension(:,:) :: rhox => null( )   ! rhox2d
     real(rkx), pointer, contiguous, dimension(:,:) :: rswf => null( )   ! fsw
     real(rkx), pointer, contiguous, dimension(:,:) :: rlwf => null( )   ! flw
     real(rkx), pointer, contiguous, dimension(:,:) :: dwrlwf => null( ) ! flwd
-    real(rkx), pointer, contiguous, dimension(:,:) :: zencos => null( )   ! coszrs
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        zencos => null( )   ! coszrs
     real(rkx), pointer, contiguous, dimension(:,:) :: dtrnof => null( ) ! rnoff
-    real(rkx), pointer, contiguous, dimension(:,:) :: ncprate => null( )  ! pptnc
-    real(rkx), pointer, contiguous, dimension(:,:) :: cprate => null( )   ! cprate
-    real(rkx), pointer, contiguous, dimension(:,:) :: snwrat => null( )   ! snwrat
-    real(rkx), pointer, contiguous, dimension(:,:) :: csrate => null( )   ! csrate
-    real(rkx), pointer, contiguous, dimension(:,:) :: grprat => null( )   ! grprat
-    real(rkx), pointer, contiguous, dimension(:,:) :: hairat => null( )   ! hairat
-    real(rkx), pointer, contiguous, dimension(:,:) :: vegswab => null( )  ! sabveg
-    real(rkx), pointer, contiguous, dimension(:,:) :: lwalb => null( )    ! albvl
-    real(rkx), pointer, contiguous, dimension(:,:) :: swalb => null( )    ! albvs
-    real(rkx), pointer, contiguous, dimension(:,:) :: swdiralb => null( ) ! aldirs
-    real(rkx), pointer, contiguous, dimension(:,:) :: swdifalb => null( ) ! aldifs
-    real(rkx), pointer, contiguous, dimension(:,:) :: lwdiralb => null( ) ! aldirl
-    real(rkx), pointer, contiguous, dimension(:,:) :: lwdifalb => null( ) ! aldifl
-    real(rkx), pointer, contiguous, dimension(:,:) :: swdir => null( )    ! solvs
-    real(rkx), pointer, contiguous, dimension(:,:) :: swdif => null( )    ! solvsd
-    real(rkx), pointer, contiguous, dimension(:,:) :: lwdir => null( )    ! solvl
-    real(rkx), pointer, contiguous, dimension(:,:) :: lwdif => null( )    ! solvld
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        ncprate => null( )  ! pptnc
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        cprate => null( )   ! cprate
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        snwrat => null( )   ! snwrat
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        csrate => null( )   ! csrate
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        grprat => null( )   ! grprat
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        hairat => null( )   ! hairat
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        vegswab => null( )  ! sabveg
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        lwalb => null( )    ! albvl
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        swalb => null( )    ! albvs
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        swdiralb => null( ) ! aldirs
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        swdifalb => null( ) ! aldifs
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        lwdiralb => null( ) ! aldirl
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        lwdifalb => null( ) ! aldifl
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        swdir => null( )    ! solvs
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        swdif => null( )    ! solvsd
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        lwdir => null( )    ! solvl
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        lwdif => null( )    ! solvld
     real(rkx), pointer, contiguous, dimension(:,:) :: solinc => null( )   ! sinc
-    real(rkx), pointer, contiguous, dimension(:,:) :: solar => null( )    ! solis
-    real(rkx), pointer, contiguous, dimension(:,:) :: emissivity => null( ) ! emiss
-    real(rkx), pointer, contiguous, dimension(:,:) :: deltaq => null( )     ! sdelq
-    real(rkx), pointer, contiguous, dimension(:,:) :: deltat => null( )     ! sdelt
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: drydepflx => null( ) ! drydepflx
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: wetdepflx => null( ) ! wetdepflx
-    integer(ik4), pointer, contiguous, dimension(:) :: idust => null( ) ! dust indices
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        solar => null( )    ! solis
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        emissivity => null( ) ! emiss
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        deltaq => null( )     ! sdelq
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        deltat => null( )     ! sdelt
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        drydepflx => null( ) ! drydepflx
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        wetdepflx => null( ) ! wetdepflx
+    integer(ik4), pointer, contiguous, dimension(:) :: &
+        idust => null( ) ! dust indices
     real(rkx), pointer, contiguous, dimension(:,:) :: zo => null( )     ! zo
     real(rkx), pointer, contiguous, dimension(:,:) :: ustar => null( )  ! ustar
     real(rkx), pointer, contiguous, dimension(:,:) :: w10m => null( )   ! w10m
@@ -580,21 +665,36 @@ module mod_regcm_types
   type mod_2_rad
     real(rkx), pointer, contiguous, dimension(:,:,:) :: cldfrc => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: cldlwc => null( )
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tatms => null( )     ! atms%tb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rhatms => null( )    ! atms%rhb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rhoatms => null( )   ! atms%rhob3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: phatms => null( )    ! atms%pb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: pfatms => null( )    ! atms%pf3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: za => null( )        ! atms%za
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: zq => null( )        ! atms%zq
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: deltaz => null( )    ! atms%dzq
-    real(rkx), pointer, contiguous, dimension(:,:) :: psatms => null( )      ! atms%ps2d
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxatms => null( )  ! atms%qxb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiatms => null( ) ! atms%chib3d
-    real(rkx), pointer, contiguous, dimension(:,:) :: tg => null( )     ! sfs%tgbb
-    real(rkx), pointer, contiguous, dimension(:,:) :: xlat => null( )   ! mddom%xlat
-    real(rkx), pointer, contiguous, dimension(:,:) :: xlon => null( )   ! mddom%xlon
-    real(rkx), pointer, contiguous, dimension(:,:) :: ht => null( )     ! mddom%ht
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tatms => null( )     ! atms%tb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rhatms => null( )    ! atms%rhb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rhoatms => null( )   ! atms%rhob3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        phatms => null( )    ! atms%pb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        pfatms => null( )    ! atms%pf3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        za => null( )        ! atms%za
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        zq => null( )        ! atms%zq
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        deltaz => null( )    ! atms%dzq
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        psatms => null( )      ! atms%ps2d
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        qxatms => null( )  ! atms%qxb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        chiatms => null( ) ! atms%chib3d
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        tg => null( )     ! sfs%tgbb
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        xlat => null( )   ! mddom%xlat
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        xlon => null( )   ! mddom%xlon
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        ht => null( )     ! mddom%ht
     real(rkx), pointer, contiguous, dimension(:,:) :: ptrop => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: coszrs => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: albvs => null( )
@@ -630,53 +730,92 @@ module mod_regcm_types
   end type rad_2_mod
 
   type mod_2_cum
-    real(rkx), pointer, contiguous, dimension(:,:) :: ht => null( )        ! mddom%ht
-    real(rkx), pointer, contiguous, dimension(:,:) :: psa => null( )       ! sfs%psa
-    real(rkx), pointer, contiguous, dimension(:,:) :: psb => null( )       ! sfs%psb
-    real(rkx), pointer, contiguous, dimension(:,:) :: psdotb => null( )    ! sfs%psdotb
-    real(rkx), pointer, contiguous, dimension(:,:) :: psf => null( )       ! atms%ps2d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: pas => null( )     ! atms%pb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: pasf => null( )    ! atms%pf3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: zas => null( )     ! atms%za
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tas => null( )     ! atms%tb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: uas => null( )     ! atms%ubx3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vas => null( )     ! atms%vbx3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: was => null( )     ! atms%wx3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: wpas => null( )    ! atms%wpx3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qsas => null( )    ! atms%qsb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tkeas => null( )   ! atms%tke
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rhoas => null( )   ! atms%rhob3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: zfs => null( )     ! atms%zq
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: dzq => null( )     ! atms%dzq
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qq1 => null( )     ! atm1%q
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qdot => null( )    ! qdot
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxas => null( )  ! atms%qxb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chias => null( ) ! atms%chib3d
-    real(rkx), pointer, contiguous, dimension(:,:) :: qfx => null( )       ! sfs%qfx
-    real(rkx), pointer, contiguous, dimension(:,:) :: hfx => null( )       ! sfs%hfx
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        ht => null( )        ! mddom%ht
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        psa => null( )       ! sfs%psa
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        psb => null( )       ! sfs%psb
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        psdotb => null( )    ! sfs%psdotb
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        psf => null( )       ! atms%ps2d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        pas => null( )     ! atms%pb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        pasf => null( )    ! atms%pf3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        zas => null( )     ! atms%za
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tas => null( )     ! atms%tb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        uas => null( )     ! atms%ubx3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vas => null( )     ! atms%vbx3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        was => null( )     ! atms%wx3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        wpas => null( )    ! atms%wpx3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qsas => null( )    ! atms%qsb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tkeas => null( )   ! atms%tke
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rhoas => null( )   ! atms%rhob3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        zfs => null( )     ! atms%zq
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        dzq => null( )     ! atms%dzq
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qq1 => null( )     ! atm1%q
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qdot => null( )    ! qdot
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        qxas => null( )  ! atms%qxb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        chias => null( ) ! atms%chib3d
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        qfx => null( )       ! sfs%qfx
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        hfx => null( )       ! sfs%hfx
     real(rkx), pointer, contiguous, dimension(:,:) :: zpbl => null( )    ! zpbl
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )     ! aten%t
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: uten => null( )     ! aten%u
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vten => null( )     ! aten%v
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxten => null( )  ! aten%qx
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: dynqx => null( )  ! aten%qx
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten => null( ) ! aten%chi
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: heatrt => null( )   ! radiation
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: ccn => null( )      ! ccn
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tten => null( )     ! aten%t
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        uten => null( )     ! aten%u
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vten => null( )     ! aten%v
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        qxten => null( )  ! aten%qx
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        dynqx => null( )  ! aten%qx
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        chiten => null( ) ! aten%chi
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        heatrt => null( )   ! radiation
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        ccn => null( )      ! ccn
     integer(ik4), pointer, contiguous, dimension(:,:) :: ktrop => null( )
-    integer(ik4), pointer, contiguous, dimension(:,:) :: ldmsk => null( )   ! mddom
+    integer(ik4), pointer, contiguous, dimension(:,:) :: &
+        ldmsk => null( )   ! mddom
   end type mod_2_cum
 
   type cum_2_mod
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )     ! aten%t
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: uten => null( )     ! aten%u
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vten => null( )     ! aten%v
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxten => null( )  ! aten%qx
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten => null( ) ! aten%chi
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tten => null( )     ! aten%t
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        uten => null( )     ! aten%u
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vten => null( )     ! aten%v
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        qxten => null( )  ! aten%qx
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        chiten => null( ) ! aten%chi
     real(rkx), pointer, contiguous, dimension(:,:) :: rainc => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: pcratec => null( )
     real(rkx), pointer, contiguous, dimension(:,:) :: sratec => null( )
-    real(rkx), pointer, contiguous, dimension(:,:) :: trrate => null( )     ! trrate
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        trrate => null( )     ! trrate
     real(rkx), pointer, contiguous, dimension(:,:,:) :: convpr => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: cldfrc => null( )
     real(rkx), pointer, contiguous, dimension(:,:,:) :: cldlwc => null( )
@@ -687,123 +826,220 @@ module mod_regcm_types
   end type cum_2_mod
 
   type mod_2_pbl
-    real(rkx), pointer, contiguous, dimension(:,:) :: coriol => null( )    ! mddom%coriol
-    integer(ik4), pointer, contiguous, dimension(:,:) :: ldmsk => null( )  ! mddom%ldmsk
-    real(rkx), pointer, contiguous, dimension(:,:) :: ht => null( )        ! mddom%ht
-    real(rkx), pointer, contiguous, dimension(:,:) :: psb => null( )       ! sfs%psb
-    real(rkx), pointer, contiguous, dimension(:,:) :: psdotb => null( )    ! sfs%psdotb
-    real(rkx), pointer, contiguous, dimension(:,:) :: tg => null( )        ! sfs%tgbb
-    real(rkx), pointer, contiguous, dimension(:,:) :: q2m => null( )       ! sfs%q2m
-    real(rkx), pointer, contiguous, dimension(:,:) :: u10m => null( )      ! sfs%u10m
-    real(rkx), pointer, contiguous, dimension(:,:) :: v10m => null( )      ! sfs%v10m
-    real(rkx), pointer, contiguous, dimension(:,:) :: qfx => null( )       ! sfs%qfx
-    real(rkx), pointer, contiguous, dimension(:,:) :: hfx => null( )       ! sfs%hfx
-    real(rkx), pointer, contiguous, dimension(:,:) :: uvdrag => null( )    ! sfs%uvdrag
-    real(rkx), pointer, contiguous, dimension(:,:) :: zo => null( )        ! sfs%zo
-    real(rkx), pointer, contiguous, dimension(:,:) :: ram1 => null( )      ! sfs%ram1
-    real(rkx), pointer, contiguous, dimension(:,:) :: rah1 => null( )      ! sfs%rah1
-    real(rkx), pointer, contiguous, dimension(:,:) :: br => null( )        ! sfs%br
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: uxatm => null( )   ! atms%ubx3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vxatm => null( )   ! atms%vbx3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: udatm => null( )   ! atms%ubd3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vdatm => null( )   ! atms%vbd3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tatm => null( )    ! atms%tb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: patm => null( )    ! atms%pb3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rhoatm => null( )  ! atms%rhob3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: patmf => null( )   ! atms%pf3d
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxatm => null( ) ! atms%qx
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tkests => null( )  ! atms%tke
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: thatm => null( )   ! atms%th3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tvatm => null( )   ! atms%tv3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: za => null( )      ! atms%za
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: zq => null( )      ! atms%zq
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: dzq => null( )     ! atms%dzq
-    real(rkx), pointer, contiguous, dimension(:,:) :: rhox2d => null( )    ! atms%rhox2d
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chib => null( )  ! atms%chib3d
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: chifxuw => null( ) ! chifxuw
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: drydepv => null( ) ! drydepv
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: heatrt => null( )  ! radiation
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        coriol => null( )    ! mddom%coriol
+    integer(ik4), pointer, contiguous, dimension(:,:) :: &
+        ldmsk => null( )  ! mddom%ldmsk
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        ht => null( )        ! mddom%ht
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        psb => null( )       ! sfs%psb
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        psdotb => null( )    ! sfs%psdotb
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        tg => null( )        ! sfs%tgbb
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        q2m => null( )       ! sfs%q2m
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        u10m => null( )      ! sfs%u10m
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        v10m => null( )      ! sfs%v10m
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        qfx => null( )       ! sfs%qfx
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        hfx => null( )       ! sfs%hfx
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        uvdrag => null( )    ! sfs%uvdrag
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        zo => null( )        ! sfs%zo
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        ram1 => null( )      ! sfs%ram1
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        rah1 => null( )      ! sfs%rah1
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        br => null( )        ! sfs%br
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        uxatm => null( )   ! atms%ubx3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vxatm => null( )   ! atms%vbx3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        udatm => null( )   ! atms%ubd3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vdatm => null( )   ! atms%vbd3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tatm => null( )    ! atms%tb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        patm => null( )    ! atms%pb3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rhoatm => null( )  ! atms%rhob3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        patmf => null( )   ! atms%pf3d
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        qxatm => null( ) ! atms%qx
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tkests => null( )  ! atms%tke
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        thatm => null( )   ! atms%th3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tvatm => null( )   ! atms%tv3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        za => null( )      ! atms%za
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        zq => null( )      ! atms%zq
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        dzq => null( )     ! atms%dzq
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        rhox2d => null( )    ! atms%rhox2d
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        chib => null( )  ! atms%chib3d
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        chifxuw => null( ) ! chifxuw
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        drydepv => null( ) ! drydepv
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        heatrt => null( )  ! radiation
   end type mod_2_pbl
 
   type pbl_2_mod
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )       ! aten%t
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: uten => null( )       ! aten%u
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vten => null( )       ! aten%v
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: utend => null( )      ! aten%u
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: vtend => null( )      ! aten%v
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxten => null( )    ! aten%qx
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tketen => null( )     ! aten%tke
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten => null( )   ! chiten
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: remdrd => null( )     ! remdrd
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tkepbl => null( )     ! MYJ pbl
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tten => null( )       ! aten%t
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        uten => null( )       ! aten%u
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vten => null( )       ! aten%v
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        utend => null( )      ! aten%u
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        vtend => null( )      ! aten%v
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        qxten => null( )    ! aten%qx
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tketen => null( )     ! aten%tke
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        chiten => null( )   ! chiten
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        remdrd => null( )     ! remdrd
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tkepbl => null( )     ! MYJ pbl
     real(rkx), pointer, contiguous, dimension(:,:) :: zpbl => null( )
     integer(ik4), pointer, contiguous, dimension(:,:) :: kpbl => null( )
   end type pbl_2_mod
 
   type mod_2_micro
-    real(rkx), pointer, contiguous, dimension(:,:) :: xlat => null( )     ! mddom
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        xlat => null( )     ! mddom
     real(rkx), pointer, contiguous, dimension(:,:) :: psb => null( )      ! sfc
-    real(rkx), pointer, contiguous, dimension(:,:) :: ps2 => null( )      ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: phs => null( )    ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: pfs => null( )    ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: delz => null( )   ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: t => null( )      ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: z => null( )      ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rho => null( )    ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: pverv => null( )  ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: verv => null( )   ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxx => null( )  ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qs => null( )     ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rh => null( )     ! from atms
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: heatrt => null( ) ! radiation
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qdetr => null( )  ! conv. detr.
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: ccn => null( )    ! CCN from chem
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qvn => null( )    ! qxx(iqv)
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qcn => null( )    ! qxx(iqc)
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qin => null( )    ! qxx(iqi)
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qsn => null( )    ! qxx(iqs)
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: qrn => null( )    ! qxx(iqr)
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: cldf => null( )   ! cloud fraction
-    integer(ik4), pointer, contiguous, dimension(:,:) :: ldmsk => null( ) ! mddom
-    integer(ik4), pointer, contiguous, dimension(:,:) :: iveg => null( )  ! mddom
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        ps2 => null( )      ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        phs => null( )    ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        pfs => null( )    ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        delz => null( )   ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        t => null( )      ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        z => null( )      ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rho => null( )    ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        pverv => null( )  ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        verv => null( )   ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        qxx => null( )  ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qs => null( )     ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rh => null( )     ! from atms
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        heatrt => null( ) ! radiation
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qdetr => null( )  ! conv. detr.
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        ccn => null( )    ! CCN from chem
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qvn => null( )    ! qxx(iqv)
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qcn => null( )    ! qxx(iqc)
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qin => null( )    ! qxx(iqi)
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qsn => null( )    ! qxx(iqs)
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        qrn => null( )    ! qxx(iqr)
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        cldf => null( )   ! cloud fraction
+    integer(ik4), pointer, contiguous, dimension(:,:) :: &
+        ldmsk => null( ) ! mddom
+    integer(ik4), pointer, contiguous, dimension(:,:) :: &
+        iveg => null( )  ! mddom
   end type mod_2_micro
 
   type micro_2_mod
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: fcc => null( )   ! Cloud cover
-    real(rkx), pointer, contiguous, dimension(:,:) :: trrate => null( )  ! trrate
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        fcc => null( )   ! Cloud cover
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        trrate => null( )  ! trrate
     real(rkx), pointer, contiguous, dimension(:,:) :: rainnc => null( )  ! sfc
     real(rkx), pointer, contiguous, dimension(:,:) :: lsmrnc => null( )  ! sfc
     real(rkx), pointer, contiguous, dimension(:,:) :: snownc => null( )  ! sfc
     real(rkx), pointer, contiguous, dimension(:,:) :: grplnc => null( )  ! sfc
     real(rkx), pointer, contiguous, dimension(:,:) :: hailnc => null( )  ! sfc
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rainls => null( ) ! Rain here
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: remrat => null( ) ! Rain here
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: rembc => null( )  ! Rain here
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: tten => null( )    ! tendency
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: qxten => null( ) ! tendency
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: dia_qcr => null( ) ! diag for ccn
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: dia_qcl => null( ) ! diag for ccn
-    real(rkx), pointer, contiguous, dimension(:,:,:) :: dia_acr => null( ) ! diag for ccn
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rainls => null( ) ! Rain here
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        remrat => null( ) ! Rain here
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rembc => null( )  ! Rain here
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        tten => null( )    ! tendency
+    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
+        qxten => null( ) ! tendency
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        dia_qcr => null( ) ! diag for ccn
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        dia_qcl => null( ) ! diag for ccn
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        dia_acr => null( ) ! diag for ccn
   end type micro_2_mod
 
   type nogtom_stats
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statssupw => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statssupc => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statserosw => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statserosc => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsdetrw => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsdetrc => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsevapw => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsevapc => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statscond1w => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statscond1c => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsdepos => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsmelt => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsfrz => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsrainev => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statssnowev => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsautocvw => null( )
-    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: statsautocvc => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statssupw => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statssupc => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statserosw => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statserosc => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsdetrw => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsdetrc => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsevapw => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsevapc => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statscond1w => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statscond1c => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsdepos => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsmelt => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsfrz => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsrainev => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statssnowev => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsautocvw => null( )
+    real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+        statsautocvc => null( )
   end type nogtom_stats
 
 end module mod_regcm_types

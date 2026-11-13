@@ -1003,6 +1003,65 @@
  l_cpl_ex_ndsw = .false.,  ! RCM_NDSW | rcin/rcim
  l_cpl_ex_rhoa = .false.,  ! RCM_RHOA | rcin/rcim
                            !------ NAMCOUPLE FIELD ENTRIES ------
+                           !
+                           ! Only with --enable-eclm: land coupling
+                           ! with eCLM on the land grid rlin/rlim
+                           ! (same points as rcin/rcim, ocean masked)
+                           !------ NAMCOUPLE FIELD ENTRIES ------
+                           ! field       | grid      | bundle
+                           !----------------------------------------
+ l_cpl_ex_tatm    = .false., ! RCM_TATM    | rlin/rlim |
+ l_cpl_ex_uatm    = .false., ! RCM_UATM    | rlin/rlim |
+ l_cpl_ex_vatm    = .false., ! RCM_VATM    | rlin/rlim |
+ l_cpl_ex_qatm    = .false., ! RCM_QATM    | rlin/rlim |
+ l_cpl_ex_hgt     = .false., ! RCM_HGT     | rlin/rlim |
+ l_cpl_ex_patm    = .false., ! RCM_PATM    | rlin/rlim |
+ l_cpl_ex_dwrlwf  = .false., ! RCM_DWRLWF  | rlin/rlim |
+ l_cpl_ex_swdir   = .false., ! RCM_SWDIR   | rlin/rlim |
+ l_cpl_ex_swdif   = .false., ! RCM_SWDIF   | rlin/rlim |
+ l_cpl_ex_rainf   = .false., ! RCM_RAINF   | rlin/rlim |
+ l_cpl_ex_snow    = .false., ! RCM_SNOW    | rlin/rlim |
+ l_cpl_im_t2m     = .false., ! RCM_T2M_In  | rlim      |
+ l_cpl_im_q2m     = .false., ! RCM_Q2M_In  | rlim      |
+ l_cpl_im_u10m    = .false., ! RCM_U10M_In | rlim      |
+ l_cpl_im_sent    = .false., ! RCM_SENT    | rlim      |
+ l_cpl_im_evpr    = .false., ! RCM_EVPR    | rlim      |
+ l_cpl_im_ram1    = .false., ! RCM_RAM1    | rlim      |
+ l_cpl_im_rah1    = .false., ! RCM_RAH1    | rlim      |
+ l_cpl_im_taux    = .false., ! RCM_TAUX_In | rlim      | (with tauy)
+ l_cpl_im_tauy    = .false., ! RCM_TAUY_In | rlim      | (with taux)
+ l_cpl_im_sncv    = .false., ! RCM_SNCV    | rlim      |
+ l_cpl_im_wt      = .false., ! RCM_WT      | rlim      |
+ l_cpl_im_zo      = .false., ! RCM_ZO      | rlim      |
+ l_cpl_im_tlef    = .false., ! RCM_TLEF    | rlim      |
+ l_cpl_im_tlai    = .false., ! RCM_TLAI    | rlim      |
+ l_cpl_im_roff    = .false., ! RCM_ROFF    | rlim      |
+ l_cpl_im_srfroff = .false., ! RCM_SRFROFF | rlim      |
+ l_cpl_im_snwmelt = .false., ! RCM_SNWMELT | rlim      |
+ l_cpl_im_h2o10cm = .false., ! RCM_H2O10CM | rlim      |
+ l_cpl_im_albed   = .false., ! RCM_ALBED   | rlim      |
+ l_cpl_im_albei   = .false., ! RCM_ALBEI   | rlim      |
+ l_cpl_im_albed_2 = .false., ! RCM_ALBED_2 | rlim      |
+ l_cpl_im_albei_2 = .false., ! RCM_ALBEI_2 | rlim      |
+ l_cpl_im_tgrd    = .false., ! RCM_TGRD    | rlim      |
+ l_cpl_im_tgbb    = .false., ! RCM_TGBB    | rlim      |
+ l_cpl_im_fluxch4 = .false., ! RCM_FLUXCH4 | rlim      |
+ l_cpl_im_tsoi    = .false., ! RCM_TSOI    | rlim      | oasis_nlevsoi
+ l_cpl_im_h2ovol  = .false., ! RCM_H2OVOL  | rlim      | oasis_nlevsoi
+ l_cpl_im_h2oliq  = .false., ! RCM_H2OLIQ  | rlim      | oasis_nlevsoi
+ l_cpl_im_h2oice  = .false., ! RCM_H2OICE  | rlim      | oasis_nlevsoi
+ l_cpl_im_flxdst  = .false., ! RCM_FLXDST  | rlim      | 4 dust bins
+ l_cpl_im_flxvoc  = .false., ! RCM_FLXVOC  | rlim      | oasis_megan_cmp
+ l_cpl_im_ddvel   = .false., ! RCM_DDVEL   | rlim      | oasis_nddvel
+                           !------ NAMCOUPLE FIELD ENTRIES ------
+                           ! Bundle sizes: must match eCLM. A bundle
+                           ! is one namcouple entry; each member is
+                           ! interpolated in 2d with the same weights.
+ oasis_nlevsoi = 20,       ! Soil layers of the soil profiles
+ oasis_nddvel = 0,         ! Species of the deposition velocities
+                           ! MEGAN compounds of RCM_FLXVOC, eCLM order
+ oasis_megan_cmp = 'ISOP', 'LIMO', 'APIN', 'BPIN', '3CAR',
+                   'OCIM', 'MYRC', 'SABI', 'OMTP',
  /
 ! ####################################################################
 ! PostProc
