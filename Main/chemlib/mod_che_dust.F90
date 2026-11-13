@@ -34,7 +34,7 @@ module mod_che_dust
 
   real(rkx), dimension(4,2) :: dustbsiz1
   real(rkx), dimension(12,2) :: dustbsiz2
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
   real(rkx), pointer, contiguous, dimension(:,:) :: sumdflux
 #endif
 
@@ -95,7 +95,9 @@ module mod_che_dust
   integer(ik4), parameter :: ndi_12 = 6500
 
   !choice emission scheme and size distribution 1=  MB95  + alfaro/gomes
-  !                                             2 = Kok et al, 2014, 2011 with thresholf friction vel based on MB95
+  !                                             2 = Kok et al, 2014, 2011 with
+  !                                             thresholf friction vel based on
+  !                                             MB95
   ! ichdustemd is set in regcm.in
   !
   ! lognormal alfaro parameters
@@ -199,7 +201,7 @@ module mod_che_dust
           call getmem(cminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:cminer')
           call getmem(sminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:sminer')
         end if
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
         if ( ichdustemd == 3 ) then
           call getmem(sumdflux,jci1,jci2,ici1,ici2,'che_dust:sumdflux')
         end if
@@ -249,7 +251,8 @@ module mod_che_dust
       !
       !! Soil texture characterisation/
       !! Based on STAT-FAO soil data types and summarized in Menut et al. 2013
-      !! gives the texture composition (percent of CS,FMS,Silt, Clay, Salt)  for each of the 12 categories
+      !! gives the texture composition (percent of CS,FMS,Silt, Clay, Salt)  for
+      !! each of the 12 categories
       data   soiltexpc / 0.46_rkx, 0.46_rkx, 0.05_rkx, 0.03_rkx, 0.0_rkx, &
                          0.41_rkx, 0.41_rkx, 0.18_rkx, 0.00_rkx, 0.0_rkx, &
                          0.29_rkx, 0.29_rkx, 0.32_rkx, 0.10_rkx, 0.0_rkx, &
@@ -262,7 +265,8 @@ module mod_che_dust
                          0.00_rkx, 0.52_rkx, 0.06_rkx, 0.42_rkx, 0.0_rkx, &
                          0.00_rkx, 0.06_rkx, 0.47_rkx, 0.47_rkx, 0.0_rkx, &
                          0.00_rkx, 0.22_rkx, 0.20_rkx, 0.58_rkx, 0.0_rkx/
-      ! soil distribution parameters for each of the texture component, also summarized in Menut et al. 2013
+      ! soil distribution parameters for each of the texture component, also
+      ! summarized in Menut et al. 2013
       data  texmmd  / 690.0_rkx, 210.0_rkx, 125.0_rkx,2.0_rkx, 520.0_rkx /
       data  texstd  / 1.6_rkx,   1.6_rkx,   1.8_rkx,  2.0_rkx, 1.50_rkx /
 
@@ -949,8 +953,8 @@ module mod_che_dust
       do k = 1, nbin
         do nt = 1, nats
           do j = jl1, jl2
-#ifdef CLM45
-            ! CLM45 sends fraction of ground emitting dust
+#if defined(CLM45) || defined(ECLM)
+            ! CLM45 and eCLM send the fraction of ground emitting dust
             rsfrow(j,k) = rsfrow(j,k) + rsfrowt(j,k,nt)*ftex(j,nt) * &
                           (d_one - vegfrac(j))
 #else
@@ -966,7 +970,7 @@ module mod_che_dust
 
     subroutine clm_dust_tend
       implicit none
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
       integer(ik4) :: i, j, n, ib
       ! real(rkx) :: cdsfrq
       ! Update dust tendency with dust fluxes calculated in CLM
@@ -975,7 +979,8 @@ module mod_che_dust
       ! distrib frac(n) is the weight relatibe to bin n ..
       ! this insure consistency between emission distrbution and effective
       ! readius and optical properties
-      ! use the same tuning  rdstemfac and also add the erodibility source function (fixed to 1 in CLM)
+      ! use the same tuning  rdstemfac and also add the erodibility source
+      ! function (fixed to 1 in CLM)
       ! from external data.
 
       do i = ici1, ici2

@@ -3120,7 +3120,31 @@ module mod_params
          call fatal(__FILE__,__LINE__, &
                  'OASIS: l_cpl_im_taux and l_cpl_im_tauy go together')
        end if
+       ! The chemistry takes the land model fields from eCLM
+       if ( ichem == 1 ) then
+         if ( ichdustemd == 3 .and. .not. l_cpl_im_flxdst ) then
+           call fatal(__FILE__,__LINE__, &
+                   'OASIS: ichdustemd = 3 needs l_cpl_im_flxdst')
+         end if
+         if ( ichbion == 1 ) then
+           if ( .not. ( l_cpl_im_tsoi .and. l_cpl_im_h2ovol ) ) then
+             call fatal(__FILE__,__LINE__, &
+               'OASIS: ichbion = 1 needs l_cpl_im_tsoi and l_cpl_im_h2ovol')
+           end if
+           if ( oasis_nlevsoi < 3 ) then
+             call fatal(__FILE__,__LINE__, &
+                     'OASIS: ichbion = 1 needs oasis_nlevsoi >= 3')
+           end if
+         end if
+         if ( .not. l_cpl_im_wt .and. myid == italk ) then
+           write(stdout,*) 'Warning: l_cpl_im_wt is off: the chemistry'
+           write(stdout,*) 'sees no ground emitting dust.'
+         end if
+       end if
      end if
+     ! Isoprene from the eCLM MEGAN emissions replaces the inventory
+     rcm_megan_enabled = ( ioasiscpl == 1 .and. l_cpl_im_flxvoc .and. &
+                           any(oasis_megan_cmp == 'ISOP') )
 #endif
      if ( ioasiscpl == 1 ) then
        if ( write_restart_option < 0 .or. write_restart_option > 3 ) then

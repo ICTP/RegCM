@@ -30,10 +30,14 @@ module mod_che_mppio
 
   private
 
-  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: rainout_io, washout_io
-  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: remdrd_io, convpr_io
-  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: duflux_io, voflux_io
-  real(rkx), pointer, contiguous, public, dimension(:,:) :: ssw2da_io, sdelt_io,   &
+  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: &
+      rainout_io, washout_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: &
+      remdrd_io, convpr_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: &
+      duflux_io, voflux_io
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: &
+      ssw2da_io, sdelt_io,   &
                                          sdelq_io, sfracv2d_io, &
                                          sfracb2d_io, sfracs2d_io, &
                                          svegfrac2d_io
@@ -73,7 +77,7 @@ module mod_che_mppio
                         1,ntr,'che_mppio:remdrd_io')
           call getmem(ssw2da_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:ssw2da_io')
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
           call getmem(duflux_io,jci1,jci2,ici1,ici2, &
                         1,4,'che_mppio:duflux_io')
           call getmem(voflux_io,jci1,jci2,ici1,ici2, &
@@ -115,7 +119,7 @@ module mod_che_mppio
 
           call getmem(ssw2da_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:ssw2da_io')
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
           call getmem(duflux_io,jcross1,jcross2,icross1,icross2, &
                         1,4,'che_mppio:duflux_io')
           call getmem(voflux_io,jcross1,jcross2,icross1,icross2, &

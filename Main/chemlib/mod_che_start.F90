@@ -396,10 +396,10 @@ module mod_che_start
 !!$      end do
 !!$        print*,'test', itr, chtrname(itr), trac%indchbdy(itr)
 !!$     end do
-#ifndef CLM45
+#if !defined(CLM45) && !defined(ECLM)
     if ( ichdustemd == 3 ) then
       call fatal(__FILE__,__LINE__, &
-        'ichdustemd == 3 valid only if CLM45 is active.')
+        'ichdustemd == 3 valid only with CLM45 or eCLM.')
     end if
 #endif
     if ( nbin > 0 .or. ichbion == 1 ) then

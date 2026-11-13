@@ -23,7 +23,7 @@ module mod_che_emission
   use mod_mpmessage
   use mod_service
   use mod_dynparam
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
   use mod_runparams, only : rcm_megan_enabled
 #endif
   use mod_che_common
@@ -178,7 +178,7 @@ module mod_che_emission
     ! gather anthropogenic and biogenic emissions and
     ! calculate the emission tendency from emission fluxes
 
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
     ! overwrite or add chemsrc for biogenic in case of CLM45/BVOC option
     ! test if CLM BVOC is activated and add bio component to chemsrc.
     ! isoprene ( overwrite biogenic emission from inventory  / rq
@@ -213,7 +213,7 @@ module mod_che_emission
 
     ! methane : add the biogenic part from CLM to anthropogenic
     ! nb the CN/LCH4 CLM flag have to be activated
-#ifdef LCH4
+#if defined(LCH4) || defined(ECLM)
     if ( ich4 > 0 ) then
       do j = jci1, jci2
         chemsrc(j,i,ich4) = chemsrc(j,i,ich4) + cvoc_em_clm(j,i,ich4)
@@ -318,7 +318,7 @@ module mod_che_emission
     end if
 
     ! put back chemsrc to its mean value after diurnal cycle
-#ifndef CLM45
+#if !defined(CLM45) && !defined(ECLM)
     if ( iisop > 0 ) then
       chemsrc(:,i,iisop) = tmpsrc(:,i,iisop)
     end if

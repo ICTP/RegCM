@@ -175,7 +175,7 @@ module mod_che_tend
             bchi(j,:,:,i) = chib(j,i,:,:)
           end if
           ! fraction of vegetation
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
           vegfrac(j,i) = d_one - csfracb2d(j,i)
           ! csfracb2d points on clm dust emitting ground fraction
           ! it already accouts for snow and lake mask, and is calculated

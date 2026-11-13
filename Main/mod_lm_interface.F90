@@ -306,9 +306,11 @@ module mod_lm_interface
       call assignpnt(sxlai2d,lm%sxlai2d)
       call assignpnt(wetdepflx,lm%wetdepflx)
       call assignpnt(drydepflx,lm%drydepflx)
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
       call assignpnt(sw_vol,lm%sw_vol)
       call assignpnt(tsoi,lm%tsoi)
+#endif
+#ifdef CLM45
       call assignpnt(idust,lm%idust)
 #endif
     end if
@@ -348,7 +350,7 @@ module mod_lm_interface
   end subroutine initialize_surface_model
 
   subroutine surface_model
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
     use mod_atm_interface, only : voc_em_clm, dustflx_clm, ddepv_clm
 #endif
     !@acc use nvtx
@@ -362,18 +364,6 @@ module mod_lm_interface
 #endif
 #ifdef CLM45
     if ( irceideal == 0 ) call runclm45(lm,lms)
-    !coupling of biogenic VOC and other stuff from CLM45 speicif to chemistry
-    if ( ichem == 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:ntr )
-        voc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:4 )
-        dustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:ntr )
-        ddepv_clm(j,i,n) = sum(lms%ddepv(:,j,i,n),1) * rdnnsg
-      end do
-    end if
 #else
 #ifdef ECLM
     ! The land fluxes come from eCLM through OASIS. Keep the tile values
@@ -388,6 +378,21 @@ module mod_lm_interface
 #else
     if ( irceideal == 0 ) call vecbats(lm,lms)
 #endif
+#endif
+#if defined(CLM45) || defined(ECLM)
+    ! Biogenic VOC, dust and deposition velocities of the land model
+    ! to the chemistry
+    if ( ichem == 1 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:ntr )
+        voc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:4 )
+        dustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:ntr )
+        ddepv_clm(j,i,n) = sum(lms%ddepv(:,j,i,n),1) * rdnnsg
+      end do
+    end if
 #endif
     if ( islab_ocean == 1 ) then
       !@acc call nvtxStartRange("update_slabocean")
@@ -441,7 +446,7 @@ module mod_lm_interface
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg
       lm%sxlai2d = sum(lms%xlai,1)*rdnnsg
       lm%cram = lm%ram1/(vonkar*lm%ustar)   ! dimensionless -> [s/m]
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
       ! FAB here take humidity of first soil layer, sw should be always defined
       lm%ssw2da = sum(lms%tsw(:,:,:),1)*rdnnsg
       lm%sw_vol = sum(lms%sw_vol(:,:,:,:),1)*rdnnsg

@@ -60,7 +60,8 @@ module mod_che_common
   real(rkx), pointer, contiguous, dimension(:,:,:) :: chemsrc, tmpsrc
   real(rkx), pointer, contiguous, dimension(:,:,:) :: chemsrcbb, chemsrcan
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chia, chib, chemt
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: dtrace, wdwout, wdrout, ddv_out
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+      dtrace, wdwout, wdrout, ddv_out
   real(rkx), pointer, contiguous, dimension(:,:,:) :: drydepv, cfmz
 
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chemall, jphoto
@@ -75,7 +76,8 @@ module mod_che_common
   integer(ik4), pointer, contiguous, dimension(:,:) :: imine
   integer(ik4), parameter :: nphoto = 56
 
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: convcldfra, cemtrac, remdrd
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+      convcldfra, cemtrac, remdrd
 
   ! diagnostic
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: washout, rainout
@@ -96,7 +98,8 @@ module mod_che_common
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ctb3d, cubx3d, cvbx3d,  &
          crhob3d, cpb3d, cpf3d, cfcc, cza, czq, cdzq, ccldfra, &
          crembc, cremrat,  cconvpr, crhb3d, cdrydepflx, cwetdepflx
-  real(rkx), pointer, contiguous, dimension(:,:) :: cpsb, ctg, ctga, clndcat, cht, &
+  real(rkx), pointer, contiguous, dimension(:,:) :: &
+      cpsb, ctg, ctga, clndcat, cht, &
          cssw2da, cvegfrac, cxlai2d, csol2d, csdeltk2d, csdelqk2d, &
          custar, csfracv2d, csfracb2d, csfracs2d, cxlat, crainc,  &
          cps2d, cps0, cptrop, cw10m, cdlat,cdlon, cra, czo
@@ -106,6 +109,9 @@ module mod_che_common
 #if defined CLM45
   ! Tracer mask that uses MEGAN indices
   integer(ik4), pointer, contiguous, dimension(:) :: bvoc_trmask
+#endif
+#if defined(CLM45) || defined(ECLM)
+  ! Land model emissions, deposition velocities and soil profiles
   real(rkx), pointer, contiguous, dimension(:,:,:) :: cvoc_em_clm
   real(rkx), pointer, contiguous, dimension(:,:,:) :: cdustflx_clm
   real(rkx), pointer, contiguous, dimension(:,:,:) :: cddepv_clm

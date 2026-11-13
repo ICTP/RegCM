@@ -52,6 +52,9 @@ module mod_init
   use mod_zita
   use mod_sound, only : init_sound
   use mod_moloch, only : init_moloch
+#ifdef ECLM
+  use mod_oasis_params, only : oasis_nlevsoi
+#endif
 
   implicit none
 
@@ -554,6 +557,12 @@ module mod_init
         lms%ldew = ldew_io
         lms%taf = taf_io
 #endif
+#ifdef ECLM
+        if ( ichem == 1 .and. ichecold == 0 ) then
+          tsoi = tsoi_io
+          sw_vol = swvol_io
+        end if
+#endif
         lms%tgrd = tgrd_io
         lms%tgbrd = tgbrd_io
         lms%tlef = tlef_io
@@ -608,7 +617,7 @@ module mod_init
             taucldsp = taucldsp_io
           end if
           ssw2da = ssw2da_io
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
           dustflx_clm = duflux_io
           voc_em_clm = voflux_io
 #else
@@ -742,6 +751,14 @@ module mod_init
         call subgrid_distribute(ldew_io,lms%ldew,jci1,jci2,ici1,ici2)
         call subgrid_distribute(taf_io,lms%taf,jci1,jci2,ici1,ici2)
 #endif
+#ifdef ECLM
+        if ( ichem == 1 .and. ichecold == 0 ) then
+          call grid_distribute(tsoi_io,tsoi,jci1,jci2, &
+                               ici1,ici2,1,oasis_nlevsoi)
+          call grid_distribute(swvol_io,sw_vol,jci1,jci2, &
+                               ici1,ici2,1,oasis_nlevsoi)
+        end if
+#endif
         call subgrid_distribute(tgrd_io,lms%tgrd,jci1,jci2,ici1,ici2)
         call subgrid_distribute(tgbrd_io,lms%tgbrd,jci1,jci2,ici1,ici2)
         call subgrid_distribute(tlef_io,lms%tlef,jci1,jci2,ici1,ici2)
@@ -799,7 +816,7 @@ module mod_init
                                  jci1,jci2,ici1,ici2,0,kz,1,nspi)
           end if
           call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
           call grid_distribute(duflux_io,dustflx_clm,jci1,jci2,ici1,ici2,1,4)
           call grid_distribute(voflux_io,voc_em_clm,jci1,jci2,ici1,ici2,1,ntr)
 #else

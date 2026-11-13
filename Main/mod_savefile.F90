@@ -30,6 +30,9 @@ module mod_savefile
   use mod_che_interface
   use mod_che_mppio
   use mod_massck
+#ifdef ECLM
+  use mod_oasis_params, only : oasis_nlevsoi
+#endif
   use netcdf
   use mpi_f08, only : mpi_comm, mpi_comm_self
 
@@ -47,7 +50,7 @@ module mod_savefile
   public :: read_savefile
   public :: write_savefile
 
-  integer(ik4), parameter :: maxdims = 18
+  integer(ik4), parameter :: maxdims = 19
   integer(ik4), parameter :: maxvars = 128
   integer(ik4) :: ncstatus
 
@@ -74,35 +77,60 @@ module mod_savefile
   integer(ik4), parameter :: ikern = 16
   integer(ik4), parameter :: indep = 17
   integer(ik4), parameter :: idndu = 18
+  integer(ik4), parameter :: idnls = 19
 
-  integer(ik4), public, pointer, contiguous, dimension(:,:,:) :: ldmsk1_io => null( )
-  integer(ik4), public, pointer, contiguous, dimension(:,:) :: ldmsk_io => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:,:) :: &
+      ldmsk1_io => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: &
+      ldmsk_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_u_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_v_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_w_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_pai_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_t_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm_tke_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: atm_qx_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm_u_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm_v_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm_w_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm_pai_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm_t_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm_tke_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: &
+      atm_qx_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: ps_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_u_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_u_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_v_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_v_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_t_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_t_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_w_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_w_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_pp_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_pp_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: atm1_qx_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: atm2_qx_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm1_tke_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: atm2_tke_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm1_u_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm2_u_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm1_v_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm2_v_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm1_t_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm2_t_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm1_w_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm2_w_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm1_pp_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm2_pp_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: &
+      atm1_qx_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: &
+      atm2_qx_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm1_tke_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      atm2_tke_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tke_pbl_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      tke_pbl_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:) :: psa_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: psb_io => null( )
@@ -126,20 +154,25 @@ module mod_savefile
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: ldew_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: snag_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sncv_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sfice_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      sfice_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: gwet_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: sw_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tsoi_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: swvol_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      swvol_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: taf_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tgrd_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tgbrd_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      tgbrd_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tlef_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: emisv_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      emisv_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: um10_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: eta_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: hi_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: tlak_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: &
+      tlak_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:) :: flw_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: flwd_io => null( )
@@ -154,44 +187,64 @@ module mod_savefile
   real(rkx), public, pointer, contiguous, dimension(:,:) :: solvld_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sst_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tskin_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tdeltas_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: deltas_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      tskin_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      tdeltas_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      deltas_io => null( )
 
-  integer(ik4), public, pointer, contiguous, dimension(:,:) :: kpbl_io => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: &
+      kpbl_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: zpbl_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:) :: cbmf2d_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: fcc_io => null( )
 
-  real(rk8), public, pointer, contiguous, dimension(:,:,:,:) :: gasabsnxt_io => null( )
-  real(rk8), public, pointer, contiguous, dimension(:,:,:,:) :: gasabstot_io => null( )
-  real(rk8), public, pointer, contiguous, dimension(:,:,:) :: gasemstot_io => null( )
+  real(rk8), public, pointer, contiguous, dimension(:,:,:,:) :: &
+      gasabsnxt_io => null( )
+  real(rk8), public, pointer, contiguous, dimension(:,:,:,:) :: &
+      gasabstot_io => null( )
+  real(rk8), public, pointer, contiguous, dimension(:,:,:) :: &
+      gasemstot_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: cldfra_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: heatrt_io => null( )
-  real(rk8), public, pointer, contiguous, dimension(:,:,:) :: o3prof_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      cldfra_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      heatrt_io => null( )
+  real(rk8), public, pointer, contiguous, dimension(:,:,:) :: &
+      o3prof_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: dstor_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: hstor_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      dstor_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      hstor_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:) :: cldefi_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: cu_avg_ww_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      cu_avg_ww_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
     qflux_restore_sst_io => null( )
 
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: swalb_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: lwalb_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: swdiralb_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: swdifalb_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: lwdiralb_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: lwdifalb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      swalb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      lwalb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      swdiralb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      swdifalb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      lwdiralb_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      lwdifalb_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: tmp_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: &
+      tmp_io => null( )
 
   interface myputvar
     module procedure myputvar2dd
@@ -288,6 +341,14 @@ module mod_savefile
       call getmem(gwet_io,1,nnsg,jci1,jci2,ici1,ici2,'gwet_io')
       call getmem(ldew_io,1,nnsg,jci1,jci2,ici1,ici2,'ldew_io')
       call getmem(taf_io,1,nnsg,jci1,jci2,ici1,ici2,'taf_io')
+#endif
+#ifdef ECLM
+      if ( ichem == 1 ) then
+        call getmem(tsoi_io,jci1,jci2,ici1,ici2, &
+                            1,oasis_nlevsoi,'tsoi_io')
+        call getmem(swvol_io,jci1,jci2,ici1,ici2, &
+                            1,oasis_nlevsoi,'swvol_io')
+      end if
 #endif
       call getmem(sncv_io,1,nnsg,jci1,jci2,ici1,ici2,'sncv_io')
       call getmem(sfice_io,1,nnsg,jci1,jci2,ici1,ici2,'sfice_io')
@@ -454,6 +515,14 @@ module mod_savefile
         call getmem(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
         call getmem(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
         call getmem(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
+#endif
+#ifdef ECLM
+        if ( ichem == 1 ) then
+          call getmem(tsoi_io,jcross1,jcross2,icross1,icross2, &
+                              1,oasis_nlevsoi,'tsoi_io')
+          call getmem(swvol_io,jcross1,jcross2,icross1,icross2, &
+                              1,oasis_nlevsoi,'swvol_io')
+        end if
 #endif
         call getmem(sncv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv_io')
         call getmem(sfice_io,1,nnsg,jcross1,jcross2, &
@@ -687,6 +756,12 @@ module mod_savefile
     call mygetvar(ncid,'ldew',ldew_io)
     call mygetvar(ncid,'taf',taf_io)
 #endif
+#ifdef ECLM
+    if ( ichem == 1 .and. ichecold == 0 ) then
+      call mygetvar(ncid,'tsoi',tsoi_io)
+      call mygetvar(ncid,'swvol',swvol_io)
+    end if
+#endif
     call mygetvar(ncid,'sfice',sfice_io)
     call mygetvar(ncid,'snag',snag_io)
     call mygetvar(ncid,'ldmsk1',ldmsk1_io)
@@ -725,7 +800,7 @@ module mod_savefile
       call mygetvar(ncid,'washout',washout_io)
       call mygetvar(ncid,'remdrd',remdrd_io)
       call mygetvar(ncid,'ssw2da',ssw2da_io)
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
       call mygetvar(ncid,'duflux',duflux_io)
       call mygetvar(ncid,'voflux',voflux_io)
 #else
@@ -799,7 +874,7 @@ module mod_savefile
         dimids(idspi) = savedefdim(ncid,'nspi',nspi)
         dimids(idtotsp) = savedefdim(ncid,'totsp',totsp)
       end if
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
       dimids(idndu) = savedefdim(ncid,'ndust',4)
 #endif
     end if
@@ -810,6 +885,11 @@ module mod_savefile
       dimids(ikern) = savedefdim(ncid,'ikern',13)
     end if
     dimids(indep) = savedefdim(ncid,'soil_layers',num_soil_layers)
+#ifdef ECLM
+    if ( ichem == 1 ) then
+      dimids(idnls) = savedefdim(ncid,'eclm_soil_layers',oasis_nlevsoi)
+    end if
+#endif
 
     ivcc = 0
     if ( idynamic == 3 ) then
@@ -947,6 +1027,15 @@ module mod_savefile
     call savedefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'taf',regcm_vartype,wrkdim,1,3,varids,ivcc)
 #endif
+#ifdef ECLM
+    if ( ichem == 1 ) then
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(idicross)
+      wrkdim(3) = dimids(idnls)
+      call savedefvar(ncid,'tsoi',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'swvol',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    end if
+#endif
     wrkdim(1) = dimids(idnnsg)
     wrkdim(2) = dimids(idjcross)
     wrkdim(3) = dimids(idicross)
@@ -1009,7 +1098,7 @@ module mod_savefile
       wrkdim(3) = dimids(idntr)
       call savedefvar(ncid,'remdrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'ssw2da',regcm_vartype,wrkdim,1,2,varids,ivcc)
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
       wrkdim(3) = dimids(idndu)
       call savedefvar(ncid,'duflux',regcm_vartype,wrkdim,1,3,varids,ivcc)
       wrkdim(3) = dimids(idntr)
@@ -1160,6 +1249,12 @@ module mod_savefile
     call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
     call myputvar(ncid,'taf',taf_io,varids,ivcc)
 #endif
+#ifdef ECLM
+    if ( ichem == 1 ) then
+      call myputvar(ncid,'tsoi',tsoi_io,varids,ivcc)
+      call myputvar(ncid,'swvol',swvol_io,varids,ivcc)
+    end if
+#endif
     call myputvar(ncid,'sfice',sfice_io,varids,ivcc)
     call myputvar(ncid,'snag',snag_io,varids,ivcc)
     call myputvar(ncid,'ldmsk1',ldmsk1_io,varids,ivcc)
@@ -1204,7 +1299,7 @@ module mod_savefile
       call myputvar(ncid,'washout',washout_io,varids,ivcc)
       call myputvar(ncid,'remdrd',remdrd_io,varids,ivcc)
       call myputvar(ncid,'ssw2da',ssw2da_io,varids,ivcc)
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
       call myputvar(ncid,'duflux',duflux_io,varids,ivcc)
       call myputvar(ncid,'voflux',voflux_io,varids,ivcc)
 #else

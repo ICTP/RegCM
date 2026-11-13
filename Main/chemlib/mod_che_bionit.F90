@@ -175,7 +175,7 @@ contains
     nsum3         = d_zero
     noxflux       = d_zero
 
-#ifndef CLM45
+#if !defined(CLM45) && !defined(ECLM)
     do i = ici1, ici2
       do j = jci1, jci2
         ! cycle on sea points
@@ -208,7 +208,7 @@ contains
       end do
     end do
 #endif
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
     do i = ici1, ici2
       do j = jci1, jci2
         ! cycle on sea points

@@ -104,11 +104,40 @@ profiles (\verb=RCM_TSOI=, \verb=RCM_H2OVOL=, \verb=RCM_H2OLIQ=,
 in \verb=lms%tsoi=, \verb=lms%sw_vol= and \verb=lms%h2osoi= (liquid plus
 frozen water), allocated with \verb=oasis_nlevsoi= layers; the three
 \verb=lms%sw= layers of the RegCM output and restart files keep the BATS
-layout. Dust emissions go to \verb=lms%dustemiss=, isoprene (found by name
-among the MEGAN compounds) and methane to \verb=lms%vocemiss=. These are
-not yet passed to the chemistry, whose land model hooks are compiled only
-with \verb=CLM45=; \verb=RCM_DDVEL= is received but not used, as the order
-of its species is not known to RegCM.
+layout.
+
+\subsection{Chemistry}
+
+For the chemistry an ECLM build works as a CLM45 build: the code shared by
+the two is under \verb=#if defined(CLM45) || defined(ECLM)=.
+\begin{itemize}
+  \item \verb=surface_model= averages over the subgrid the emissions
+        \verb=lms%vocemiss=, \verb=lms%dustemiss= and the deposition
+        velocities \verb=lms%ddepv= into \verb=voc_em_clm=,
+        \verb=dustflx_clm= and \verb=ddepv_clm= of
+        \verb=mod_atm_interface.F90=, which the chemistry sees as
+        \verb=cvoc_em_clm=, \verb=cdustflx_clm= and \verb=cddepv_clm=.
+  \item Isoprene: \verb=RCM_FLXVOC= is a bundle of MEGAN compounds; the one
+        named \verb=ISOP= in \verb=oasis_megan_cmp= goes to the isoprene
+        tracer. \verb=rcm_megan_enabled= is set when it is coupled, and the
+        isoprene of the inventory is then replaced (\verb=mod_che_emission=).
+  \item Methane: \verb=RCM_FLUXCH4= (carbon) is converted to methane mass
+        and added to the anthropogenic emission.
+  \item Dust: with \verb=ichdustemd = 3= the dust flux of eCLM
+        (\verb=RCM_FLXDST=, 4 bins) is redistributed on the dust bins of
+        RegCM (\verb=clm_dust_tend=). The RegCM dust scheme instead uses the
+        fraction of ground emitting dust \verb=RCM_WT= (\verb=lms%wt=).
+  \item The biogenic NO$_x$ emission (\verb=ichbion = 1=) takes the soil
+        moisture of the second and the temperature of the first and third
+        layers of \verb=RCM_H2OVOL= and \verb=RCM_TSOI=; the soil water of
+        the top 10 cm, \verb=RCM_H2O10CM=, is \verb=ssw2da=.
+  \item \verb=dustflx_clm=, \verb=voc_em_clm= and the soil profiles
+        \verb=tsoi=, \verb=sw_vol= are in the restart file, the profiles on
+        their own dimension \verb=eclm_soil_layers=: the hydrostatic and
+        non-hydrostatic cores compute the chemistry before the surface.
+  \item \verb=RCM_DDVEL= is received, but \verb=ddepv_clm= is not used by
+        the dry deposition, as for CLM45.
+\end{itemize}
 
 \subsection{OASIS3-MCT versions}
 

@@ -45,6 +45,9 @@ module mod_output
   use mod_moloch
   use mod_capecin
   use mod_timer
+#ifdef ECLM
+  use mod_oasis_params, only : oasis_nlevsoi
+#endif
 
   implicit none
 
@@ -1896,6 +1899,12 @@ module mod_output
           ldew_io = lms%ldew
           taf_io = lms%taf
 #endif
+#ifdef ECLM
+          if ( ichem == 1 ) then
+            tsoi_io = tsoi
+            swvol_io = sw_vol
+          end if
+#endif
           tgrd_io = lms%tgrd
           tgbrd_io = lms%tgbrd
           tlef_io = lms%tlef
@@ -1952,7 +1961,7 @@ module mod_output
               taucldsp_io = taucldsp
             end if
             ssw2da_io = ssw2da
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
             duflux_io = dustflx_clm
             voflux_io = voc_em_clm
 #else
@@ -2077,6 +2086,14 @@ module mod_output
           call subgrid_collect(lms%ldew,ldew_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%taf,taf_io,jci1,jci2,ici1,ici2)
 #endif
+#ifdef ECLM
+          if ( ichem == 1 ) then
+            call grid_collect(tsoi,tsoi_io,jci1,jci2,ici1,ici2, &
+                              1,oasis_nlevsoi)
+            call grid_collect(sw_vol,swvol_io,jci1,jci2,ici1,ici2, &
+                              1,oasis_nlevsoi)
+          end if
+#endif
           call subgrid_collect(lms%tgrd,tgrd_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%tgbrd,tgbrd_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%tlef,tlef_io,jci1,jci2,ici1,ici2)
@@ -2131,7 +2148,7 @@ module mod_output
                                 0,kz,1,nspi)
             end if
             call grid_collect(ssw2da,ssw2da_io,jci1,jci2,ici1,ici2)
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
             call grid_collect(dustflx_clm,duflux_io,jci1,jci2,ici1,ici2,1,4)
             call grid_collect(voc_em_clm,voflux_io,jci1,jci2,ici1,ici2,1,ntr)
 #else

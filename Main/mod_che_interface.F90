@@ -179,7 +179,7 @@ module mod_che_interface
       call assignpnt(ccn,cccn)
     end if
 
-#if (defined CLM45)
+#if defined(CLM45) || defined(ECLM)
     call assignpnt(voc_em_clm,cvoc_em_clm)
     call assignpnt(dustflx_clm,cdustflx_clm)
     call assignpnt(ddepv_clm,cddepv_clm)

@@ -1966,6 +1966,15 @@ The number of members must be the same in RegCM and in eCLM, and is set in
 \verb=oasis_nddvel= (dry deposition species) and \verb=oasis_megan_cmp=
 (names of the MEGAN compounds, in the eCLM order).
 
+With the chemistry active, the eCLM fields replace those of the RegCM land
+model, as with CLM 4.5: the isoprene of \verb=RCM_FLXVOC= (the compound
+named \verb=ISOP=) replaces the inventory isoprene, the methane flux
+\verb=RCM_FLUXCH4= is added to the anthropogenic one, \verb=ichdustemd = 3=
+takes the dust flux \verb=RCM_FLXDST= of eCLM, and the RegCM dust scheme
+uses the fraction of ground emitting dust \verb=RCM_WT=. The biogenic
+NO$_x$ emission (\verb=ichbion = 1=) needs \verb=RCM_TSOI= and
+\verb=RCM_H2OVOL= with at least three layers.
+
 {\footnotesize
 \begin{longtable}{p{4.5cm}|c|p{6.5cm}|c}
 \caption{Fields for the eCLM coupling.}

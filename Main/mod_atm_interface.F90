@@ -24,6 +24,9 @@ module mod_atm_interface
   use mod_service
   use mod_memutil
   use mod_regcm_types
+#ifdef ECLM
+  use mod_oasis_params, only : oasis_nlevsoi
+#endif
 
   implicit none
 
@@ -72,8 +75,10 @@ module mod_atm_interface
   real(rkx), public, pointer, contiguous, dimension(:,:) :: coszrs => null( )
 
   ! Cumulus
-  integer(ik4), public, pointer, contiguous, dimension(:,:) :: icumbot => null( )
-  integer(ik4), public, pointer, contiguous, dimension(:,:) :: icumtop => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: &
+      icumbot => null( )
+  integer(ik4), public, pointer, contiguous, dimension(:,:) :: &
+      icumtop => null( )
   integer(ik4), public, pointer, contiguous, dimension(:,:) :: ktrop => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: convpr => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: pptc => null( )
@@ -148,21 +153,27 @@ module mod_atm_interface
   real(rkx), public, pointer, contiguous, dimension(:,:) :: sfracv2d => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: sfracb2d => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: sfracs2d => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: svegfrac2d => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:) :: &
+      svegfrac2d => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: sxlai2d => null( )
 
-#ifdef CLM45
-  ! real(rkx), public, pointer, contiguous, dimension(:,:) :: ustar => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: voc_em_clm => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: dustflx_clm => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: ddepv_clm => null( )
+#if defined(CLM45) || defined(ECLM)
+  ! Land model fields for the chemistry
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      voc_em_clm => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      dustflx_clm => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      ddepv_clm => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sw_vol => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tsoi => null( )
 #endif
 
   !chemistry for surface
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: wetdepflx => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: drydepflx => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      wetdepflx => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      drydepflx => null( )
 
   ! Coupling
   integer(ik4), public, pointer, contiguous, dimension(:,:) :: cplmsk => null( )
@@ -1116,17 +1127,26 @@ module mod_atm_interface
         call getmem(sfracs2d,jci1,jci2,ici1,ici2,'storage:sfracs2d')
         call getmem(svegfrac2d,jci1,jci2,ici1,ici2,'storage:svegfrac2d')
         call getmem(sxlai2d,jci1,jci2,ici1,ici2,'storage:sxlai2d')
-#ifdef CLM45
+#if defined(CLM45) || defined(ECLM)
         call getmem(voc_em_clm,jci1,jci2, &
                                  ici1,ici2,1,ntr,'storage:voc_em_clm')
         call getmem(dustflx_clm,jci1,jci2, &
                                   ici1,ici2,1,4,'storage:dustflx_clm')
         call getmem(ddepv_clm,jci1,jci2, &
                                   ici1,ici2,1,ntr,'storage:ddepv_clm')
+#endif
+#ifdef CLM45
         call getmem(sw_vol,jci1,jci2, &
                              ici1,ici2,1,num_soil_layers,'storage:sw_vol')
         call getmem(tsoi,jci1,jci2, &
                            ici1,ici2,1,num_soil_layers,'storage:tsoi')
+#endif
+#ifdef ECLM
+        ! soil profiles have the eCLM layers
+        call getmem(sw_vol,jci1,jci2, &
+                             ici1,ici2,1,oasis_nlevsoi,'storage:sw_vol')
+        call getmem(tsoi,jci1,jci2, &
+                           ici1,ici2,1,oasis_nlevsoi,'storage:tsoi')
 #endif
         call getmem(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
