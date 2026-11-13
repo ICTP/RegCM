@@ -1,0 +1,105 @@
+\chapter{Model parameters}
+
+The run time parameters of the model are read from the namelist file by
+the subroutine \code{param} in \verb=Main/mod_params.F90=. This chapter
+describes how a parameter goes from the namelist file to the model code and
+to the run log, and what to change when a parameter is added or removed.
+
+\section{Where a parameter lives}
+
+A parameter of the model touches the following places:
+\begin{itemize}
+  \item the declaration as a public variable, for most parameters in
+        \verb=Main/mpplib/mod_runparams.F90= (the OASIS parameters in
+        \verb=Main/oasislib/mod_oasis_params.F90=), so that every module
+        of the model can \code{use} it;
+  \item a \code{namelist} group statement at the top of \code{param};
+  \item the default value, assigned in \code{param} before the namelist
+        file is read;
+  \item the \code{read} of the group;
+  \item the \code{bcast} to all the MPI processes;
+  \item the settings printout to standard output;
+  \item optionally a global attribute of the output files, written in
+        \verb=Main/mpplib/mod_ncout.F90=;
+  \item the documentation of the namelist: \verb=Doc/README.namelist= and
+        the User Guide.
+\end{itemize}
+
+\section{Reading}
+
+The namelist file is opened and read only by the processor \code{iocpu}.
+Each group is read after a \code{rewind}, so the order of the groups in the
+file does not matter. The groups \code{restartparam}, \code{timeparam},
+\code{outparam} and \code{physicsparam} are mandatory: a missing group stops
+the model. All the other groups are optional, and when one is missing the
+model writes a message such as \verb='Using default cloud parameter.'= and
+keeps the defaults. A group with a syntax error or an unknown variable stops
+the model through the \code{err=} labels at the end of \code{param}.
+Therefore removing a variable from a group makes old namelist files that
+still set it fail at the read.
+
+Groups belonging to a scheme are read only when that scheme is selected,
+for example \code{subexparam} only with \code{ipptls}~=~1,
+\code{microparam} only with \code{ipptls}~=~2, the convection groups
+according to \code{icup}, \code{dynparam}, \code{hydroparam} and
+\code{nonhydroparam} according to \code{idynamic}, \code{rrtmparam} only
+with \code{irrtm}~=~1, \code{chemparam} only with \code{ichem}~=~1 and
+\code{oasisparam} only with \code{ioasiscpl}~=~1.
+
+After the read, every parameter is broadcast with \code{call bcast(var)}
+from \verb=mod_mppparam=. A parameter that is read but not broadcast has
+its namelist value only on \code{iocpu}, and the default everywhere else.
+
+\section{Settings printout}
+
+The processor \code{italk} writes the settings of the run to standard
+output, inside \code{if ( myid == italk )} blocks. The printout is the
+record of the run configuration in the log, so every namelist parameter
+which is used by the run is printed. The rules are:
+\begin{itemize}
+  \item the values are grouped by topic with a title line written with
+        \code{write(stdout,*)}, for example \verb='Physical Parameterizations'=,
+        \verb='Restart and output parameters'=,
+        \verb='Dynamical core parameters'=, \verb='RRTM radiation parameters'=,
+        \verb='NoTo microphysics parameters'=, \verb='Chemistry parameters'=;
+  \item the parameters of a scheme are printed only when the scheme is
+        active, using the same conditions as the read (for example the
+        Rayleigh damping coefficients only when \code{ifrayd}~=~1, the
+        stochastic ranges only when \code{istochastic}~=~1, the OASIS
+        coupling fields only when their \verb=l_cpl_*= switch is true);
+  \item every value is on its own line, a two blank indented label padded
+        to a fixed width, a colon and the value, for example
+\begin{verbatim}
+      write(stdout,'(a,f11.6)') '  Maximum relative humidity         : ' ,rhmax
+\end{verbatim}
+        with \verb='(a,i2)'= or \verb='(a,i11)'= for integers,
+        \verb='(a,f11.6)'= or \verb='(a,es11.4)'= for reals,
+        \verb='(a,l11)'= for logicals and \verb='(a,a)'= with \code{trim} for
+        strings;
+  \item the source lines stay within 80 characters: the value goes on a
+        continuation line when the label is long;
+  \item the output variable selections (\verb=enable_*_vars=,
+        \verb=*_vars_off=, \verb=*_vars_only=) are not printed in
+        \code{param}, because \verb=mod_ncout= reports them when it sets
+        up the output streams.
+\end{itemize}
+
+\section{Adding or removing a parameter}
+
+To add a parameter:
+\begin{enumerate}
+  \item declare it in \verb=mod_runparams.F90= (or in the module of the
+        component it belongs to);
+  \item add it to the namelist group in \code{param};
+  \item set its default before the read;
+  \item add the \code{bcast};
+  \item print it in the settings printout, inside the condition of the
+        scheme it belongs to;
+  \item document it in \verb=Doc/README.namelist= and in the User Guide;
+  \item if it changes the model results, consider adding it to the global
+        attributes of the output files in \verb=mod_ncout.F90=.
+\end{enumerate}
+To remove a parameter, check with \code{grep} on the whole source tree that
+nothing uses it (the global attributes in \verb=mod_ncout.F90= included),
+then remove it from all the places above, and check the namelist files in
+\verb=Testing= and in the test cases, which would otherwise fail to read.

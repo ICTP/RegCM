@@ -15,7 +15,8 @@ Are listed below the sections of the code which are related to the use of OASIS:
         needed accessibility to \verb=oasislib= parameters (in the rest of the
         code, one only need to \verb=use mod_oasis_interface.F90=);
   \item several lines in \verb=mod_params.F90= for reading the \verb=oasisparam=
-        namelist (and the parameter \verb=ioasiscpl= is added to the
+        namelist and printing its settings, with the list of the active
+        coupling fields (and the parameter \verb=ioasiscpl= is added to the
         \verb=physicsparam= namelist);
   \item several lines in \verb=mod_regcm_interface.F90= for calling the needed
         subroutines along the run;

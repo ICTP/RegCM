@@ -3359,6 +3359,7 @@ module mod_params
        if ( l_cpl_ex_dwsw ) write(stdout,*) '  export RCM_DWSW'
        if ( l_cpl_ex_ndsw ) write(stdout,*) '  export RCM_NDSW'
        if ( l_cpl_ex_rhoa ) write(stdout,*) '  export RCM_RHOA'
+       ! OASIS field +++
 #ifdef ECLM
        if ( l_cpl_ex_tatm ) write(stdout,*) '  export RCM_TATM'
        if ( l_cpl_ex_uatm ) write(stdout,*) '  export RCM_UATM'
