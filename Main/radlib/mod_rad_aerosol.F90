@@ -1561,7 +1561,7 @@ module mod_rad_aerosol
       type (rcm_time_and_date), intent(in) :: idatex
       type(mod_2_rad), intent(in) :: m2r
       type(rcm_time_interval) :: tdif
-      real(rk8) :: w1, w2, step
+      real(rk8) :: w1, w2
       integer(ik4) :: i, j, k, n, ib
 
       if ( .not. aerclima_init ) then
@@ -1576,13 +1576,10 @@ module mod_rad_aerosol
           write(stdout, *) 'Ready AEROSOL data from ', &
               tochar10(d1),' to ',tochar10(d2)
         end if
-        step = 0.0_rk8
-      else
-        step = dtsec/3600.0_rk8
       end if
 
       if ( idatex >= d2 ) then
-        aerm2 = aerm1
+        aerm1 = aerm2
         d1 = d2
         d2 = d1 + aefreq
         if ( d2 > aetime(naetime) ) then
@@ -1596,7 +1593,7 @@ module mod_rad_aerosol
       end if
 
       tdif = d2 - idatex
-      w1 = (real(tohours(tdif),rk8)-step)/aerfreq
+      w1 = real(tohours(tdif),rk8)/aerfreq
       w2 = 1.0_rk8 - w1
       do n = 1, ntr
         do k = 1, kz

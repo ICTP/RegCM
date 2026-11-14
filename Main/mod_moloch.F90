@@ -1266,7 +1266,7 @@ module mod_moloch
     !------------------------------------------------
     !
     if ( do_radiation ) then
-      if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
+      if ( rcmtimer%start() .or. syncro_rad%act( ) ) then
         if ( debug_level > 3 .and. myid == italk ) then
           write(stdout,*) &
             'Calling radiative transfer at ',trim(rcmtimer%str())
@@ -1294,7 +1294,7 @@ module mod_moloch
           !@acc call nvtxEndRange
         end if
         loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
-        labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
+        labsem = ( rcmtimer%start() .or. syncro_emi%act() )
         if ( debug_level > 3 .and. myid == italk ) then
           if ( labsem ) then
             write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())

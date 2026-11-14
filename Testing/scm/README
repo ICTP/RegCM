@@ -29,7 +29,9 @@ The deep convection columns are taken at the 6-hourly time of September
 2023 with the largest ERA5 convective rain at the point, the others on
 2023-09-15. Surface fluxes are ERA5 monthly means (land: scaled by a half
 sine diurnal cycle at the local time), the PBL height a bulk Richardson
-number diagnosis. The input tendencies are zero, as in the model where
+number diagnosis. The friction velocity is set by the driver from the
+wind of the lowest level (neutral log law, z0 0.1 m on land, 1 mm on the
+ocean). The input tendencies are zero, as in the model where
 the cumulus scheme is the first physics call. ERA5 CAPE and convective
 rain rate are listed as a reference, not as a target.
 
@@ -45,7 +47,8 @@ results, update the reference:
 then edit its "# profiles:" line to read "scm_profiles.txt".
 
 The wrapper takes the same parameter names as the RegCM namelist
-(&tiedtkeparam, and kfac_deep, kfac_shal, k2_const of &cldparam), plus
+(&tiedtkeparam, and kfac_deep, kfac_shal, k2_const, iconvcf of
+&cldparam), plus
 dtcum and dxkm:
 
   ./scm_tiedtke.py                            defaults, summary table
@@ -68,8 +71,9 @@ COLUMN line (land flag, cloud type 0 none 1 deep 2 shallow 3 midlevel,
 top and base level, rain and snow in mm/day, column heating and
 moistening in W/m2, ERA5 CAPE and convective rain) and one line per
 level, top to bottom: height, pressure, updraft mass flux, tendencies of
-T, q, cloud liquid and ice, u and v (per day), convective cloud fraction
-and detrained condensate.
+T, q, cloud liquid and ice, u and v (per day), convective cloud fraction,
+detrained condensate and in cloud convective condensate for radiation
+(g/m3).
 
 Adding a scheme
 ---------------

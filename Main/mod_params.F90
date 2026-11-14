@@ -127,7 +127,7 @@ module mod_params
 
     namelist /cldparam/ ncld, rhmax, rhmin, rh0oce, rh0land, tc0,  &
       cllwcv, clfrcvmax, cftotmax, kfac_shal, kfac_deep, k2_const, &
-      lsrfhack, larcticcorr, rcrit, coef_ccn, abulk
+      iconvcf, lsrfhack, larcticcorr, rcrit, coef_ccn, abulk
 
     namelist /subexparam/ qck1land, qck1oce, gulland, guloce,  &
       cevaplnd, cevapoce, caccrlnd, caccroce, conf
@@ -388,6 +388,7 @@ module mod_params
     k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
+    iconvcf   = 0          ! Conv. cf formula: 0 log of mfu, 1 Xu-Krueger
     lsrfhack  = .false.    ! Surface radiation hack
     larcticcorr = .true.   ! Vavrus and Waliser Arctic cloud correction
     rcrit     = 13.5_rkx   ! Mean critical radius
@@ -1213,26 +1214,22 @@ module mod_params
       if ( dtrad < dt ) dtrad = dt
       if ( dtabem < dt ) dtabem = dt
 
-      dtsrf = ceiling(dtsrf / dt) * dt
-      do while ( mod(minfrq,dtsrf) > d_zero )
-        dtsrf = dtsrf - dt
-      end do
-
-      dtcum = ceiling(dtcum / dt) * dt
-      do while ( mod(minfrq,dtcum) > d_zero )
-        dtcum = dtcum - dt
-      end do
-      dtcum = max(int(dtcum / (0.5_rkx*dtsrf)),1) * (0.5_rkx*dtsrf)
-
-      ! The radiation time step is a multiple of the surface time step, so
-      ! that the land models can update the albedo at the radiation calls.
-      ! It needs not divide the output intervals: the RAD output means are
-      ! accumulated at every surface step.
-      dtrad = ceiling(dtrad / dt) * dt
-      dtrad = max(int(dtrad / (3.0_rkx*dtsrf)),1) * (3.0_rkx*dtsrf)
-      dtabem = max(int(dtabem / (36_rkx*dtrad)),1) * (36.0_rkx*dtrad)
-
-      dtche = ceiling(dtche / dt) * dt
+      ! All the physics intervals are multiples of the model time step and
+      ! divide the day, so that every package is called at the restart
+      ! time (restarts are at 00 UTC). The surface interval also divides
+      ! the output intervals. The radiation interval is a multiple of the
+      ! surface interval, so that the land models update the albedo at the
+      ! surface call ending at the radiation time. The absorptivity and
+      ! emissivity interval is a multiple of the radiation interval which
+      ! may not divide the day (18 hours by default, so that the update
+      ! is not always at the same time of the day): the tables are then
+      ! in the restart file.
+      dtsrf = fit_interval(dtsrf,dt,real(gcd_rec(int(minfrq), &
+                                                 int(secpd)),rkx))
+      dtcum = fit_interval(dtcum,dt,secpd)
+      dtche = fit_interval(dtche,dt,secpd)
+      dtrad = fit_interval(dtrad,dtsrf,secpd)
+      dtabem = max(ceiling(dtabem/dtrad),1) * dtrad
 
       if ( iseaice == 1 ) then
         select case (ssttyp)
@@ -1670,6 +1667,7 @@ module mod_params
     call bcast(lsrfhack)
     call bcast(larcticcorr)
     call bcast(k2_const)
+    call bcast(iconvcf)
     call bcast(kfac_shal)
     call bcast(kfac_deep)
 
@@ -2793,6 +2791,8 @@ module mod_params
           '  CCN bulk activation ratio         : ', abulk
       write(stdout,'(a,f11.6)') &
           '  Conv. CF UMF factor k2            : ', k2_const
+      write(stdout,'(a,i11)') &
+          '  Conv. CF formula                  : ', iconvcf
       write(stdout,'(a,l11)') &
           '  Surface radiation hack            : ', lsrfhack
       write(stdout,'(a,l11)') &
@@ -3812,6 +3812,37 @@ module mod_params
           gcd = v
         end if
       end function gcd_rec
+
+      !
+      ! The multiple of base nearest to req from above that divides period,
+      ! or the largest one below req if none. When base does not divide
+      ! period, the day is used as period.
+      !
+      real(rkx) function fit_interval(req,base,period) result(v)
+        implicit none
+        real(rkx), intent(in) :: req, base, period
+        integer(ik8) :: ib, ip, n, n0
+        ib = nint(base,ik8)
+        ip = nint(period,ik8)
+        if ( mod(ip,ib) /= 0 ) then
+          write(stderr,*) 'WARNING: interval ', ib, ' does not divide ', &
+            ip, ' s: using the day.'
+          ip = nint(secpd,ik8)
+        end if
+        n0 = max(ceiling(req/base,ik8),1_ik8)
+        n = n0
+        do while ( n <= ip/ib )
+          if ( mod(ip,n*ib) == 0 ) exit
+          n = n + 1
+        end do
+        if ( n > ip/ib ) then
+          n = n0
+          do while ( mod(ip,n*ib) /= 0 )
+            n = n - 1
+          end do
+        end if
+        v = real(n*ib,rkx)
+      end function fit_interval
 
       real(rkx) function check_against_outparams(dt,dec) result(newdt)
         implicit none

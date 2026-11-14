@@ -1654,7 +1654,7 @@ module mod_tendency
       !       Call radiative transfer package
       !------------------------------------------------
       !
-      if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
+      if ( rcmtimer%start() .or. syncro_rad%act( ) ) then
         if ( debug_level > 3 .and. myid == italk ) then
           write(stdout,*) 'Calling radiative transfer at ',trim(rcmtimer%str())
         end if
@@ -1671,7 +1671,7 @@ module mod_tendency
           call updateaeropp_cmip6(rcmtimer%idate)
         end if
         loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
-        labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
+        labsem = ( rcmtimer%start() .or. syncro_emi%act() )
         if ( debug_level > 3 .and. labsem .and. myid == italk ) then
           write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
         end if

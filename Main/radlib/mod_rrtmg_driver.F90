@@ -378,7 +378,7 @@ module mod_rrtmg_driver
     call prep_dat_rrtm(m2r,iyear,imonth)
     adjes = real(eccf,rk8)
 
-    lradfor = ( rcmtimer%start( ) .or. syncro_radfor%will_act( ) )
+    lradfor = ( rcmtimer%start( ) .or. syncro_radfor%act( ) )
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
     !

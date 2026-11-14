@@ -200,11 +200,15 @@ module mod_ocn_common
       lms%lakmsk = .false.
       call l2c_ss(ocncomm,lakmsk,lms%lakmsk)
     end if
-    emiss = ocean_emissivity(um10)
-    ! emiss = ocn_sfcemiss
-    where ( mod(mask,2) > 0 )
-      emiss = ice_sfcemiss
-    end where
+    ! As in ocn_interf: on restart this rebuilds the emissivity of the
+    ! last ocean call (same um10 and mask).
+    do concurrent ( n = iocnbeg:iocnend )
+      if ( mask(n) == 2 .or. mask(n) == 4 ) then
+        emiss(n) = ice_sfcemiss
+      else
+        emiss(n) = ocean_emissivity(um10(n))
+      end if
+    end do
     call l2c_ss(ocncomm,emiss,lms%emisv)
   end subroutine initocn
 
@@ -216,34 +220,7 @@ module mod_ocn_common
     integer(ik4) :: i, j, i1, i2, n
     if ( ivers == 1 ) then
       ! RegCM -> OCN
-      if ( llake .or. lseaice ) then
-        call c2l_ss(ocncomm,lm%ldmsk1,mask)
-        if ( llake ) then
-          do concurrent ( n = iocnbeg:iocnend )
-            if ( ilake(n) == 1 ) then
-              if ( mask(n) == 2 ) then
-                mask(n) = 4
-              else
-                mask(n) = 3
-              end if
-            else
-              if ( mask(n) == 2 ) then
-                mask(n) = 2
-              else
-                mask(n) = 1
-              end if
-            end if
-          end do
-        else
-          do concurrent ( n = iocnbeg:iocnend )
-            if ( mask(n) == 2 ) then
-              mask(n) = 2
-            else
-              mask(n) = 1
-            end if
-          end do
-        end if
-      end if
+      call ocean_mask(lm)
       if ( lseaice .or. llake ) then
         call c2l_ss(ocncomm,lms%sfice,sfice)
       end if
@@ -370,6 +347,11 @@ module mod_ocn_common
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
     integer(ik4) :: i, j, n
+    ! Albedo for the time of the radiation call: current solar zenith
+    ! angle and water/ice mask (the copies of the last ocean call are
+    ! one surface step old, and the mask is relabelled 0/2 after it).
+    call c2l_gs(ocncomm,lm%zencos,czenith)
+    call ocean_mask(lm)
     call ocn_albedo
     call l2c_ss(ocncomm,swdiral,lms%swdiralb)
     call l2c_ss(ocncomm,lwdiral,lms%lwdiralb)
@@ -382,6 +364,43 @@ module mod_ocn_common
       end if
     end do
   end subroutine albedoocn
+  !
+  ! Ocean mask from the RegCM subgrid mask: 1 water, 2 sea ice,
+  ! 3 lake water, 4 lake ice.
+  !
+  subroutine ocean_mask(lm)
+    implicit none
+    type(lm_exchange), intent(in) :: lm
+    integer(ik4) :: n
+    if ( llake .or. lseaice ) then
+      call c2l_ss(ocncomm,lm%ldmsk1,mask)
+      if ( llake ) then
+        do concurrent ( n = iocnbeg:iocnend )
+          if ( ilake(n) == 1 ) then
+            if ( mask(n) == 2 ) then
+              mask(n) = 4
+            else
+              mask(n) = 3
+            end if
+          else
+            if ( mask(n) == 2 ) then
+              mask(n) = 2
+            else
+              mask(n) = 1
+            end if
+          end if
+        end do
+      else
+        do concurrent ( n = iocnbeg:iocnend )
+          if ( mask(n) == 2 ) then
+            mask(n) = 2
+          else
+            mask(n) = 1
+          end if
+        end do
+      end if
+    end if
+  end subroutine ocean_mask
   !
   ! Ocean emissivity estimate function of observation angle and wind speed
   ! International Journal of Remote Sensing

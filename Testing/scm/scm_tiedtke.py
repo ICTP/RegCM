@@ -50,12 +50,12 @@ GROUPS = {
                      'lmfpen', 'lmfmid', 'lmfdd', 'lepcld', 'lmfdudv',
                      'lmfscv', 'lmfuvdis', 'lmftrac', 'lmfsmooth',
                      'lmfwstar', 'lmfcapebl'],
-    'cldparam': ['kfac_deep', 'kfac_shal', 'k2_const'],
+    'cldparam': ['kfac_deep', 'kfac_shal', 'k2_const', 'iconvcf'],
 }
 GROUP_OF = {v: g for g, vs in GROUPS.items() for v in vs}
 
 LEVEL_FIELDS = ['z', 'p', 'mfu', 'dT', 'dq', 'dqc', 'dqi', 'du', 'dv',
-                'cldfrc', 'qdetr']
+                'cldfrc', 'qdetr', 'cldlwc']
 COLUMN_FIELDS = ['land', 'ktype', 'kctop', 'kcbot', 'rain', 'snow', 'heat',
                  'moist', 'era5_cape', 'era5_crr']
 KTYPE = {0: '-', 1: 'deep', 2: 'shallow', 3: 'midlevel'}

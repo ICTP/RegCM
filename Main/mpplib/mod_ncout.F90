@@ -3707,6 +3707,8 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_k2_convective_cf_param',k2_const))
         call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('cloud_convective_cf_formula',iconvcf))
+        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_logical('cloud_surface_radiation_hack',lsrfhack))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_logical('cloud_arctic_cloud_correction',larcticcorr))

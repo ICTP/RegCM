@@ -489,6 +489,9 @@ module mod_runparams
                                   ! empirical relationship with mass flux
   real(rkx), public :: k2_const  ! Convective cloud fraction factor for
                                   ! empirical relationship with mass flux
+  integer(ik4), public :: iconvcf ! Convective cloud fraction formula:
+                                  ! 0 kfac*log(1+k2_const*mfu)
+                                  ! 1 Xu and Krueger (1991) thin layer fit
 
   ! Large scale SUBEX parameters
 

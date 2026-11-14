@@ -22,9 +22,9 @@
 ! MOLOCH core does (idynamic = 3, NoTo microphysics, no chemistry). The
 ! namelist has a &scmparam group (files, time step, grid spacing) and the
 ! model groups &tiedtkeparam and &cldparam (only kfac_deep, kfac_shal,
-! k2_const), with the RegCM defaults. The output file is plain text, read
-! by scm_tiedtke.py: a header with the namelists used, then per column a
-! COLUMN line and one line per level, top to bottom.
+! k2_const, iconvcf), with the RegCM defaults. The output file is plain
+! text, read by scm_tiedtke.py: a header with the namelists used, then per
+! column a COLUMN line and one line per level, top to bottom.
 
 program scm_tiedtke
   use mod_intkinds
@@ -49,7 +49,7 @@ program scm_tiedtke
   integer(ik4), allocatable, dimension(:) :: col_land
   type(mod_2_cum) :: m2c
   real(rkx), pointer, contiguous, dimension(:,:,:) :: omega
-  real(rkx) :: rain, heat, moist, dp
+  real(rkx) :: rain, heat, moist, dp, z0
   character(len=512) :: line
 
   namelist /scmparam/ infile, outfile, dtcum, dxkm
@@ -58,7 +58,7 @@ program scm_tiedtke
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
     revap_lnd, revap_ocn, lmfpen, lmfmid, lmfdd, lepcld, lmfdudv,   &
     lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl
-  namelist /cldparam/ kfac_deep, kfac_shal, k2_const
+  namelist /cldparam/ kfac_deep, kfac_shal, k2_const, iconvcf
 
   ! Defaults: as in Main/mod_params.F90
   infile = 'scm_profiles.txt'
@@ -95,6 +95,7 @@ program scm_tiedtke
   k2_const = 500.0_rkx
   kfac_shal = 0.07_rkx
   kfac_deep = 0.14_rkx
+  iconvcf = 0
 
   nmlfile = 'scm_tiedtke.in'
   if ( command_argument_count( ) > 0 ) call get_command_argument(1,nmlfile)
@@ -168,6 +169,11 @@ program scm_tiedtke
     m2c%hfx(j,1) = col_shf(j)
     m2c%qfx(j,1) = col_lhf(j)/wlhv
     m2c%zpbl(j,1) = col_zpbl(j)
+    ! Friction velocity from the wind of the lowest level, neutral log
+    ! law with a roughness length of 0.1 m on land, 1 mm on the ocean
+    z0 = merge(0.1_rkx,1.0e-3_rkx,col_land(j) == 1)
+    m2c%ustar(j,1) = vonkar*sqrt(m2c%uas(j,1,nk)**2+m2c%vas(j,1,nk)**2) / &
+      log(max(m2c%zas(j,1,nk),d_two*z0)/z0)
     m2c%ldmsk(j,1) = col_land(j)
     m2c%psb(j,1) = col_ps(j)
   end do
@@ -187,6 +193,7 @@ program scm_tiedtke
   cu_uten(:,:,:) = d_zero
   cu_vten(:,:,:) = d_zero
   cu_cldfrc(:,:,:) = d_zero
+  cu_cldlwc(:,:,:) = d_zero
   cu_qdetr(:,:,:) = d_zero
   cu_raincc(:,:,:) = d_zero
   total_precip_points = 0
@@ -204,7 +211,7 @@ program scm_tiedtke
     'era5_conv_rain(mm/day)'
   write(iu,'(a)') '# z(m) p(hPa) mfu(kg/m2/s) dT(K/day) dq(g/kg/day) '// &
     'dqc(g/kg/day) dqi(g/kg/day) du(m/s/day) dv(m/s/day) cldfrc '// &
-    'qdetr(g/kg)'
+    'qdetr(g/kg) cldlwc(g/m3)'
   write(iu,'(a,2i6)') 'NCOL ', ncol, nk
   do j = 1, ncol
     heat = d_zero
@@ -219,12 +226,12 @@ program scm_tiedtke
       trim(col_name(j)), col_land(j), ktype(j), cu_ktop(j,1), cu_kbot(j,1), &
       rain, cu_srate(j,1)*86400.0_rkx, heat, moist, col_cape(j), col_crr(j)
     do k = 1, nk
-      write(iu,'(f10.2,f10.3,9es14.5)') m2c%zas(j,1,k), &
+      write(iu,'(f10.2,f10.3,10es14.5)') m2c%zas(j,1,k), &
         m2c%pas(j,1,k)*0.01_rkx, pmfu(j,k),                      &
         cu_tten(j,1,k)*86400.0_rkx, cu_qten(j,1,k,iqv)*8.64e7_rkx, &
         cu_qten(j,1,k,iqc)*8.64e7_rkx, cu_qten(j,1,k,iqi)*8.64e7_rkx, &
         cu_uten(j,1,k)*86400.0_rkx, cu_vten(j,1,k)*86400.0_rkx,     &
-        cu_cldfrc(j,1,k), cu_qdetr(j,1,k)*1000.0_rkx
+        cu_cldfrc(j,1,k), cu_qdetr(j,1,k)*1000.0_rkx, cu_cldlwc(j,1,k)
     end do
   end do
   close(iu)
@@ -268,6 +275,7 @@ program scm_tiedtke
     call getmem(m2c%qfx,1,ncol,1,1,'scm:qfx')
     call getmem(m2c%hfx,1,ncol,1,1,'scm:hfx')
     call getmem(m2c%zpbl,1,ncol,1,1,'scm:zpbl')
+    call getmem(m2c%ustar,1,ncol,1,1,'scm:ustar')
     call getmem(m2c%psb,1,ncol,1,1,'scm:psb')
     call getmem(m2c%ldmsk,1,ncol,1,1,'scm:ldmsk')
     m2c%qxas(:,:,:,:) = d_zero

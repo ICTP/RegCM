@@ -539,6 +539,9 @@ module mod_bats_common
     implicit none
     type(lm_exchange), intent(inout) :: lm
     type(lm_state), intent(inout) :: lms
+    ! Albedo for the time of the radiation call: current solar zenith
+    ! angle (the copy of the last surface call is one step old).
+    call c2l_gs(lndcomm,lm%zencos,czenith)
     call albedo
     call l2c_ss(lndcomm,swal,lms%swalb)
     call l2c_ss(lndcomm,lwal,lms%lwalb)

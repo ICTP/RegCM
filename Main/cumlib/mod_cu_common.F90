@@ -40,6 +40,9 @@ module mod_cu_common
   real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_raincc
   real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_convpr
   real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_cldfrc
+  ! In cloud convective condensate for radiation [g/m3], zero where the
+  ! scheme does not provide it
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: cu_cldlwc
   integer(ik4), pointer, contiguous, public, dimension(:,:) :: cu_ktop
   integer(ik4), pointer, contiguous, public, dimension(:,:) :: cu_kbot
 
@@ -74,6 +77,7 @@ module mod_cu_common
     call getmem(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
     call getmem(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
     call getmem(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')
+    call getmem(cu_cldlwc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldlwc')
     call getmem(cu_prate,jci1,jci2,ici1,ici2,'cumulus:prate')
     if ( ipptls > 1 .and. any(icup == 5) ) then
       call getmem(cu_srate,jci1,jci2,ici1,ici2,'cumulus:srate')

@@ -186,11 +186,7 @@ module mod_init
             end do
           end if
         end if
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
-                           (d_one + ep1*mo_atm%qx(j,i,k,iqv))
-          mo_atm%tetav(j,i,k) = mo_atm%tvirt(j,i,k)/mo_atm%pai(j,i,k)
-        end do
+        call moloch_tvirt
         ! Compute pressure and density
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
@@ -850,7 +846,6 @@ module mod_init
         end do
       end if
       rdnnsg = d_one/real(nnsg,rkx)
-      emiss = sum(lms%emisv,1)*rdnnsg
       aldirs = sum(lms%swdiralb,1)*rdnnsg
       aldirl = sum(lms%lwdiralb,1)*rdnnsg
       aldifs = sum(lms%swdifalb,1)*rdnnsg
@@ -932,11 +927,7 @@ module mod_init
         mo_atm%qs(j,i,k) = pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k))
         mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas*mo_atm%t(j,i,k))
       end do
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
-                           (d_one + ep1*mo_atm%qx(j,i,k,iqv))
-        mo_atm%tetav(j,i,k) = mo_atm%tvirt(j,i,k)/mo_atm%pai(j,i,k)
-      end do
+      call moloch_tvirt
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)
       end do
@@ -1045,6 +1036,37 @@ module mod_init
 #endif
 
   end subroutine init
+
+  !
+  ! MOLOCH virtual temperature with the condensate loading and virtual
+  ! potential temperature, as computed by the model at the end of each
+  ! time step (temp_to_tvirt in mod_moloch).
+  !
+  subroutine moloch_tvirt
+    implicit none
+    integer(ik4) :: i, j, k
+    if ( ipptls > 1 ) then
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+               (d_one + ep1*mo_atm%qx(j,i,k,iqv) - &
+                mo_atm%qx(j,i,k,iqc) - mo_atm%qx(j,i,k,iqi) - &
+                mo_atm%qx(j,i,k,iqr) - mo_atm%qx(j,i,k,iqs))
+      end do
+    else if ( ipptls == 1 ) then
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+               (d_one + ep1*mo_atm%qx(j,i,k,iqv) - mo_atm%qx(j,i,k,iqc))
+      end do
+    else
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+               (d_one + ep1*mo_atm%qx(j,i,k,iqv))
+      end do
+    end if
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+      mo_atm%tetav(j,i,k) = mo_atm%tvirt(j,i,k)/mo_atm%pai(j,i,k)
+    end do
+  end subroutine moloch_tvirt
 
   subroutine uvstagtox(u,v,ux,vx)
     implicit none

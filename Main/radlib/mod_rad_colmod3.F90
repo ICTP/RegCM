@@ -213,7 +213,7 @@ module mod_rad_colmod3
     integer(ik4) :: nj, npr
     real(rk8) :: nc, aerc, lwc, kparam
     real(rk8) :: kabs, kabsi, kabsl, cldemis, arg
-    real(rk8) :: iwc, tempc, tcels, fsr, aiwc, biwc
+    real(rk8) :: iwc, tempc, tcels, fsr, aiwc, biwc, lwcic
     !real(rk8) :: tpara
     real(rk8), parameter :: minus20 = 253.15_rk8
 #ifdef DEBUG
@@ -563,13 +563,16 @@ module mod_rad_colmod3
       !
       ! g/m3, already account for cum and ls clouds
       if ( temp(k,n) > lowcld ) then
+        ! In cloud liquid water content [kg/m3] seen by radiation, large
+        ! scale and convective
+        lwcic = rt%clwp(k,n)*(1.0_rk8-rt%fice(k,n))/rt%dz(k,n)*0.001_rk8
         if ( rt%ioro(n) == 1 ) then
           rt%rel(k,n) = max(4.0_rk8,min(20.0_rk8, &
-            (((3.0_rk8*max(rt%ql(k,n)*rt%rho(k,n)/temp(k,n),1.0e-10_rk8)) / &
+            (((3.0_rk8*max(lwcic,1.0e-10_rk8)) / &
               (4.0_rk8*mathpi*rhoh2o*0.67_rk8*300.0e6_rk8))**onet)*1.0e6_rk8))
         else
           rt%rel(k,n) = max(4.0_rk8,min(20.0_rk8, &
-            (((3.0_rk8*max(rt%ql(k,n)*rt%rho(k,n)/temp(k,n),1.0e-10_rk8)) / &
+            (((3.0_rk8*max(lwcic,1.0e-10_rk8)) / &
               (4.0_rk8*mathpi*rhoh2o*0.80_rk8*100.0e6_rk8))**onet)*1.0e6_rk8))
         end if
         !

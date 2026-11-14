@@ -317,21 +317,21 @@ module mod_clm_regcm
     type(lm_state), intent(inout) :: lms
     real(rk8) :: caldayp1, declinp1, eccfp1, declinp
     logical :: doalb, rstwr, nlend, nlomon
-    type(rcm_time_interval) :: tdiff, triff
-    type(rcm_time_and_date) :: nextt, nextr
+    type(rcm_time_interval) :: triff
+    type(rcm_time_and_date) :: nextr
     character(len=64) :: rdate
     !@acc call nvtxStartRange("runclm45")
     !@acc call nvtxStartRange("atmosphere_to_land")
     call atmosphere_to_land(lm)
     !@acc call nvtxEndRange
     ! Compute NEXT calday
-    tdiff = dtsrf
     triff = dtsec
-    nextt = rcmtimer%idate+tdiff
     nextr = rcmtimer%idate+triff
     declinp = declin
-    caldayp1 = yeardayfrac(nextt)
-    call orb_decl(real(yearpoint(nextt),rk8),eccen,mvelpp, &
+    ! The albedo computed at this call (doalb) is used by the radiation
+    ! at the next model time step: compute it for that time.
+    caldayp1 = yeardayfrac(nextr)
+    call orb_decl(real(yearpoint(nextr),rk8),eccen,mvelpp, &
                   lambm0,obliqr,declinp1,eccfp1)
     if ( rcmtimer%start( ) .or. syncro_rad%will_act() ) then
       if ( debug_level > 3 .and. myid == italk ) then

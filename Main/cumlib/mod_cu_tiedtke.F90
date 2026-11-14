@@ -25,7 +25,7 @@ module mod_cu_tiedtke
   use mod_service
   use mod_runparams, only : iqc, iqv, iqi, dx, ichem, iaerosol, &
          iindirect, ipptls, ichcumtra, rcmtimer, icup, dtcum, io3
-  use mod_runparams, only : k2_const, kfac_deep, kfac_shal
+  use mod_runparams, only : k2_const, kfac_deep, kfac_shal, iconvcf
   use mod_mpmessage
   use mod_runparams, only : rcrit
   use mod_runparams, only : entrdd, entshalp, entrpen_lnd, entrpen_ocn
@@ -97,9 +97,9 @@ module mod_cu_tiedtke
         pxlm1, pxim1, pxite, papp1, paphp1, pxtec, pqtec, zlude, &
         pmflxr, pccn, zcvrout
   real(rkx), pointer, contiguous, dimension(:) :: prsfc, pssfc, &
-        ptopmax, xphfx, xpqfx, xpzpbl
+        ptopmax, xphfx, xpqfx, xpzpbl, xpust
   real(rkx), pointer, contiguous, dimension(:,:) :: ptte, pvom, pvol, pqte, &
-        pxlte, pverv, pmfu, xpg, xpgh
+        pxlte, pverv, pmfu, xpg, xpgh, plu, pwu
   integer(ik4), pointer, contiguous, dimension(:) :: kctop, kcbot
   integer(ik4) :: nipoi
   integer(ik4), pointer, contiguous, dimension(:) :: imap, jmap
@@ -163,6 +163,8 @@ module mod_cu_tiedtke
     call getmem(pxlte,1,nipoi,1,kz,'mod_cu_tiedtke:pxlte')
     call getmem(pverv,1,nipoi,1,kz,'mod_cu_tiedtke:pverv')
     call getmem(pmfu,1,nipoi,1,kz,'mod_cu_tiedtke:pmfu')
+    call getmem(plu,1,nipoi,1,kz,'mod_cu_tiedtke:plu')
+    call getmem(pwu,1,nipoi,1,kz,'mod_cu_tiedtke:pwu')
     call getmem(xpg,1,nipoi,1,kz,'mod_cu_tiedtke:xpg')
     call getmem(xpgh,1,nipoi,1,kz+1,'mod_cu_tiedtke:xpgh')
     call getmem(pxtm1,1,nipoi,1,kz,1,ntr,'mod_cu_tiedtke:pxtm1')
@@ -192,6 +194,7 @@ module mod_cu_tiedtke
     call getmem(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
     call getmem(xpqfx,1,nipoi,'mod_cu_tiedtke:xpqfx')
     call getmem(xpzpbl,1,nipoi,'mod_cu_tiedtke:xpzpbl')
+    call getmem(xpust,1,nipoi,'mod_cu_tiedtke:xpust')
     call getmem(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
 
   end subroutine allocate_mod_cu_tiedtke
@@ -202,6 +205,24 @@ module mod_cu_tiedtke
     implicit none
     type(mod_2_cum), intent(in) :: m2c
     integer(ik4) :: i, j, k, n, ii
+    real(rkx) :: zmc, zx, zw, zc0, zc1, zc2
+    ! Xu and Krueger (1991), Table 5: convective cloud fraction of thin
+    ! (30 mb) layers at 0.8, 3.9 and 7.9 km, fit to the log of the grid
+    ! mean cumulus mass flux in mb/h (valid above 0.01 mb/h).
+    real(rkx), parameter :: xkz1 = 800.0_rkx
+    real(rkx), parameter :: xkz2 = 3900.0_rkx
+    real(rkx), parameter :: xkz3 = 7900.0_rkx
+    real(rkx), parameter :: xkc01 = 0.0116_rkx
+    real(rkx), parameter :: xkc11 = 0.0103_rkx
+    real(rkx), parameter :: xkc21 = 0.0025_rkx
+    real(rkx), parameter :: xkc02 = 0.0363_rkx
+    real(rkx), parameter :: xkc12 = 0.0226_rkx
+    real(rkx), parameter :: xkc22 = 0.0054_rkx
+    real(rkx), parameter :: xkc03 = 0.0131_rkx
+    real(rkx), parameter :: xkc13 = 0.0123_rkx
+    real(rkx), parameter :: xkc23 = 0.0030_rkx
+    ! kg m-2 s-1 to mb/h
+    real(rkx), parameter :: xkmbh = egrav*3600.0_rkx/100.0_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4), save :: idindx = 0
@@ -268,6 +289,7 @@ module mod_cu_tiedtke
       xpqfx(ii) = m2c%qfx(j,i)
       xphfx(ii) = m2c%hfx(j,i)
       xpzpbl(ii) = max(m2c%zpbl(j,i),minpbl)
+      xpust(ii) = m2c%ustar(j,i)
       ldland(ii) = (m2c%ldmsk(j,i) == 1)
     end do
 
@@ -349,8 +371,8 @@ module mod_cu_tiedtke
     call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
                 pxite,pverv,pxtec,pqtec,xphfx,xpqfx,papp1,paphp1,xpg, &
-                xpgh,prsfc,pssfc,pmflxr,pmfu,zlude,ktype,ldland,kctop,&
-                kcbot,ptopmax,pccn,zcvrout)
+                xpgh,prsfc,pssfc,pmflxr,pmfu,plu,zlude,ktype,ldland,  &
+                kctop,kcbot,ptopmax,pccn,zcvrout,pwu)
     !
     ! postprocess some fields including precipitation fluxes
     !
@@ -514,16 +536,50 @@ module mod_cu_tiedtke
         cu_kbot(j,i) = kcbot(ii)
         !$acc loop seq
         do k = kctop(ii), kcbot(ii)
-          if ( ktype(ii) == 1 ) then
+          if ( iconvcf == 1 ) then
+            ! Fit coefficients linear in height between the three
+            ! levels, constant outside. Below the minimum of the
+            ! quadratic (about 0.13 mb/h) the minimum value is used.
+            zmc = max(pmfu(ii,k),d_zero)*xkmbh
+            if ( zmc > 0.01_rkx ) then
+              if ( xpg(ii,k)*regrav < xkz2 ) then
+                zw = max(xpg(ii,k)*regrav-xkz1,d_zero)/(xkz2-xkz1)
+                zc0 = xkc01 + zw*(xkc02-xkc01)
+                zc1 = xkc11 + zw*(xkc12-xkc11)
+                zc2 = xkc21 + zw*(xkc22-xkc21)
+              else
+                zw = min((xpg(ii,k)*regrav-xkz2)/(xkz3-xkz2),d_one)
+                zc0 = xkc02 + zw*(xkc03-xkc02)
+                zc1 = xkc12 + zw*(xkc13-xkc12)
+                zc2 = xkc22 + zw*(xkc23-xkc22)
+              end if
+              zx = max(log(zmc),-zc1/(d_two*zc2))
+              cu_cldfrc(j,i,k) = zc0 + zc1*zx + zc2*zx*zx
+            else
+              cu_cldfrc(j,i,k) = d_zero
+            end if
+          else if ( ktype(ii) == 1 ) then
             cu_cldfrc(j,i,k) = kfac_deep*log(d_one+k2_const*pmfu(ii,k))
-            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.6_rkx)
           else if ( ktype(ii) == 2 ) then
             cu_cldfrc(j,i,k) = kfac_shal*log(d_one+k2_const*pmfu(ii,k))
-            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.2_rkx)
           else
             cu_cldfrc(j,i,k) = d_half*(kfac_deep+kfac_shal) * &
                            log(d_one+k2_const*pmfu(ii,k))
+          end if
+          if ( ktype(ii) == 1 ) then
+            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.6_rkx)
+          else if ( ktype(ii) == 2 ) then
+            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.2_rkx)
+          else
             cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.4_rkx)
+          end if
+          ! In cloud condensate for radiation [g/m3]: the updraft
+          ! condensate per unit volume of the grid box, rho*a*lu with the
+          ! updraft area a = mfu/(rho*wu), spread over the cloud fraction.
+          if ( cu_cldfrc(j,i,k) > d_zero ) then
+            cu_cldlwc(j,i,k) = d_1000 * max(pmfu(ii,k),d_zero) * &
+              max(plu(ii,k),d_zero) / (max(pwu(ii,k),d_one) *     &
+              cu_cldfrc(j,i,k))
           end if
         end do
       end if
@@ -574,8 +630,8 @@ module mod_cu_tiedtke
                     pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1, &
                     ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec, &
                     pqtec,pshfla,pqhfla,papp1,paphp1,pgeo,pgeoh, &
-                    prsfc,pssfc,pmflxr,pmfu,zlude,ktype,ldland,  &
-                    kctop,kcbot,ptopmax,pccn,zcvrout)
+                    prsfc,pssfc,pmflxr,pmfu,plu,zlude,ktype,     &
+                    ldland,kctop,kcbot,ptopmax,pccn,zcvrout,pwu)
     implicit none
     integer(ik4), intent(in) :: kbdim, klev, klevm1, klevp1, kproma, ktrac
     integer(ik4), dimension(kbdim,klev), intent(inout) :: ilab
@@ -587,7 +643,7 @@ module mod_cu_tiedtke
            pxlte, pmfu, pqte, pvom, pvol
     real(rkx), dimension(kbdim,klev), intent(in) :: papp1, pgeo,   &
            pqm1, pqtec, ptm1, pum1, pverv, pvm1, pxim1, pxlm1, pxtec, pccn
-    real(rkx), dimension(kbdim,klev), intent(out) :: zlude
+    real(rkx), dimension(kbdim,klev), intent(out) :: zlude, plu, pwu
     real(rkx), dimension(kbdim), intent(in) :: pqhfla, pshfla
     real(rkx), dimension(kbdim), intent(inout) :: prsfc, pssfc
     real(rkx), dimension(kbdim), intent(inout) :: ptopmax
@@ -597,7 +653,7 @@ module mod_cu_tiedtke
     integer(ik4), dimension(kbdim) :: itopec2
     integer(ik4) :: ilevmin, jk, jl, jt
     logical, dimension(kbdim) :: locum
-    real(rkx), dimension(kbdim,klev) :: zlu, zmfd, zqp1, zqu, &
+    real(rkx), dimension(kbdim,klev) :: zmfd, zqp1, zqu, &
       zqude, ztp1, ztu, zup1, zvp1, zxp1, zcvrout
     real(rkx), dimension(kbdim) :: zrain, ztopmax
     integer(ik4), dimension(kbdim) :: kbotsc
@@ -713,9 +769,9 @@ module mod_cu_tiedtke
                   zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxlte,pxite,    &
                   locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
-                  zlu,pmflxr,pmflxs,zrain,pmfu,zmfd,zlude,       &
+                  plu,pmflxr,pmflxs,zrain,pmfu,zmfd,zlude,       &
                   pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,     &
-                  pxtte,pccn,zcvrout)
+                  pxtte,pccn,zcvrout,pwu)
     !$acc kernels
     prsfc = pmflxr(:,klev+1)*1.e3_rkx
     pssfc = pmflxs(:,klev+1)*1.e3_rkx
@@ -780,7 +836,7 @@ module mod_cu_tiedtke
                       ldcum,ktype,kcbot,kctop,kbotsc,ldsc,          &
                       tu,qu,lu,mflxr,mflxs,rain,mfu,mfd,            &
                       lude,mfude_rate,mfdde_rate,cape,              &
-                      ntrac,qtrac,tenc,ccn,cvrainout)
+                      ntrac,qtrac,tenc,ccn,cvrainout,wu)
     implicit none
     integer(ik4), intent(in) :: np    ! number of points
     integer(ik4), intent(in) :: nk    ! number of levels
@@ -859,6 +915,8 @@ module mod_cu_tiedtke
     real(rkx), dimension(np,nk), intent(out) :: lu
     ! rainfall Production in updraft
     real(rkx), dimension(np,nk), intent(out) :: cvrainout
+    ! Updraft vertical velocity m/s
+    real(rkx), dimension(np,nk), intent(out) :: wu
     ! Rain Mass Flux kg/(m^2*s)
     real(rkx), dimension(np,nk+1), intent(out) :: mflxr
     ! Snow Mass Flux kg/(m^2*s)
@@ -1103,6 +1161,10 @@ module mod_cu_tiedtke
                    esdp, dqsdt, dtdp, dp, pdifftop, pdiffbot, &
                    sf, xqf, xaw, xbw
       real(rkx), dimension(np) :: tven1, tvu1
+      ! Temperature and humidity excess of the parcel from the lowest
+      ! level, also used for the parcel from the level above
+      real(rkx), dimension(np) :: stex, sqex
+      real(rkx) :: ust ! friction velocity (m/s)
       real(rkx) :: tven2, tvu2 ! pseudoadiabatic T_v
       real(rkx) :: work1, work2 ! work for T and w perturbations
       real(rkx) :: xtmp, entrpen, mymax
@@ -1138,6 +1200,10 @@ module mod_cu_tiedtke
         wu2h(n,k) = d_zero
         xqenh(n,k) = qf(n,k)
         xsenh(n,k) = cpd*tf(n,k) + geof(n,k)
+      end do
+      do concurrent ( n = n1:n2 )
+        stex(n) = d_zero
+        sqex(n) = d_zero
       end do
       do kk = nk, kt1, -1
         !
@@ -1180,18 +1246,30 @@ module mod_cu_tiedtke
               if ( llgo_on(n) ) then
                 rho = pf(n,kk+1)/(rgas*(t(n,kk) * (d_one+ep1*q(n,kk))))
                 khvfl = (ahfs(n,kk+1)*rcpd + ep1*t(n,kk)*qhfl(n,kk+1))/rho
-                ws = 0.001_rkx - 1.5_rkx*rkap*khvfl * &
+                ! Friction velocity, at least 0.1 m/s as in the IFS; the
+                ! upper bound guards against missing values (1e20) of the
+                ! coupled surface fields
+                ust = min(max(xpust(n),0.1_rkx),5.0_rkx)
+                ws = ust**3 - 1.5_rkx*rkap*khvfl * &
                          (geof(n,nk)-geof(n,nk+1))/t(n,nk)
+                stex(n) = d_zero
+                sqex(n) = d_zero
                 if ( khvfl < d_zero ) then
                   ws = 1.2_rkx*ws**.3333_rkx
                   iilab(n,kk) = 1
-                  texc = max(-1.5_rkx*ahfs(n,kk+1)/(rho*ws*cpd),d_zero)
-                  qexc = max(-1.5_rkx*qhfl(n,kk+1)/(rho*ws),d_zero)
+                  ! Excess as in the IFS cubasen: at least 0.2 K and
+                  ! 0.1 g/kg, at most 1 K and 0.5 g/kg
+                  texc = max(-1.5_rkx*ahfs(n,kk+1)/(rho*ws*cpd),0.2_rkx)
+                  qexc = max(-1.5_rkx*qhfl(n,kk+1)/(rho*ws),1.0e-4_rkx)
+                  texc = min(texc,d_one)
+                  qexc = min(qexc,5.0e-4_rkx)
+                  stex(n) = texc
+                  sqex(n) = qexc
                   xqu(n,kk) = xqenh(n,kk) + qexc
                   suh(n,kk) = xsenh(n,kk) + cpd*texc
                   xtu(n,kk) = (xsenh(n,kk)-geof(n,kk))*rcpd + texc
                   xlu(n,kk) = d_zero
-                  wu2h(n,kk) = ws**2
+                  wu2h(n,kk) = ws**2 + 0.1_rkx
                   !
                   ! Determine buoyancy at lowest half level
                   !
@@ -1211,6 +1289,12 @@ module mod_cu_tiedtke
                 iilab(n,kk) = 1
                 texc = 0.2_rkx
                 qexc = 1.e-4_rkx
+                ! The parcel from the level above the lowest keeps the
+                ! surface excess, as in the IFS cubasen
+                if ( kk == nk-1 ) then
+                  texc = min(max(texc,stex(n)),d_one)
+                  qexc = min(max(qexc,sqex(n)),5.0e-4_rkx)
+                end if
                 xqu(n,kk) = xqenh(n,kk) + qexc
                 suh(n,kk) = xsenh(n,kk) + cpd*texc
                 xtu(n,kk) = (xsenh(n,kk)-geof(n,kk))*rcpd + texc
@@ -3344,6 +3428,9 @@ module mod_cu_tiedtke
     do concurrent ( n = n1:n2 )
       mflxr(n,nk+1) = mflxr(n,nk+1)*1.e-3_rkx
       mflxs(n,nk+1) = mflxs(n,nk+1)*1.e-3_rkx
+    end do
+    do concurrent ( n = n1:n2, k = 1:nk )
+      wu(n,k) = sqrt(d_two*max(kineu(n,k),d_zero))
     end do
 
     contains

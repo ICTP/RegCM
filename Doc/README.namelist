@@ -561,6 +561,12 @@
                       ! Factor in above formula for cloud fraction
  kfac_deep = 0.14,    ! Factor cumulus mass flux - cloud fraction - deep
                       ! Factor in above formula for cloud fraction
+ iconvcf   = 0,       ! Convective cloud fraction formula (Tiedtke only)
+                      ! 0 : the kfac formula above
+                      ! 1 : Xu and Krueger (1991, MWR 119, 342) fit for
+                      !     thin layers, Cc = c0 + c1*x + c2*x**2 with
+                      !     x = ln(MassFlux in mb/h), coefficients
+                      !     linear in height between 0.8, 3.9, 7.9 km
  lsrfhack  = .false.  ! Surface radiation hack
                       ! Modifies also net shortwave to increase relevance
                       ! of cloud effects.

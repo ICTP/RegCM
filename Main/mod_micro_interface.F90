@@ -241,7 +241,7 @@ module mod_micro_interface
     implicit none
     real(rkx), pointer, contiguous, &
       dimension(:,:,:), intent(inout) :: cldlwc, cldfra
-    real(rkx) :: w1, w2, liq, ice, fcc_ls
+    real(rkx) :: w1, w2, liq, ice, fcc_ls, cwc
     integer(ik4) :: i, j, k
     integer(ik4) :: ichi
 
@@ -381,6 +381,11 @@ module mod_micro_interface
         do j = jci1, jci2
 #endif
           ! Cloud Water Volume
+          ! In cloud convective condensate: from the cumulus scheme if it
+          ! provides it (cucloud stores it in cldlwc), else a function of
+          ! the temperature.
+          cwc = cldlwc(j,i,k)
+          if ( cwc <= d_zero ) cwc = clwfromt(mo2mc%t(j,i,k))
           ! get overlap of clouds
           if ( cldfra(j,i,k) > lowcld ) then
             if ( mc2mo%fcc(j,i,k) > lowcld ) then
@@ -388,10 +393,9 @@ module mod_micro_interface
               cldfra(j,i,k) = max(fcc_ls, cldfra(j,i,k))
               w2 = fcc_ls / cldfra(j,i,k)
               w1 = 1.0_rkx - w2
-              cldlwc(j,i,k) = w2 * totc(j,i,k)/fcc_ls + &
-                              w1 * clwfromt(mo2mc%t(j,i,k))
+              cldlwc(j,i,k) = w2 * totc(j,i,k)/fcc_ls + w1 * cwc
             else
-              cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
+              cldlwc(j,i,k) = cwc
             end if
           else
             if ( mc2mo%fcc(j,i,k) > lowcld ) then

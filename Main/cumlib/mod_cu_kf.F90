@@ -1811,14 +1811,14 @@ module mod_cu_kf
         do nk = klcl-1, ltop1
           umf_new = umf(nk)/dxsq
           xcldfra = kfac_shal*log(d_one+k2_const*umf_new)
-          xcldfra = min(max(0.01_rkx,xcldfra),0.6_rkx)
+          xcldfra = min(max(0.01_rkx,xcldfra),0.2_rkx)
           cldfra_sh_kf(nk,np) = xcldfra
         end do
       else
         do nk = klcl-1, ltop1
           umf_new = umf(nk)/dxsq
           xcldfra = kfac_deep*log(d_one+k2_const*umf_new)
-          xcldfra = min(max(0.01_rkx,xcldfra),0.2_rkx)
+          xcldfra = min(max(0.01_rkx,xcldfra),0.6_rkx)
           cldfra_dp_kf(nk,np) = xcldfra
         end do
       end if

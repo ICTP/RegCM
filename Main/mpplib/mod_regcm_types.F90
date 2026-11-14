@@ -778,6 +778,8 @@ module mod_regcm_types
         qfx => null( )       ! sfs%qfx
     real(rkx), pointer, contiguous, dimension(:,:) :: &
         hfx => null( )       ! sfs%hfx
+    real(rkx), pointer, contiguous, dimension(:,:) :: &
+        ustar => null( )     ! sfs%ustar
     real(rkx), pointer, contiguous, dimension(:,:) :: zpbl => null( )    ! zpbl
     real(rkx), pointer, contiguous, dimension(:,:,:) :: &
         tten => null( )     ! aten%t

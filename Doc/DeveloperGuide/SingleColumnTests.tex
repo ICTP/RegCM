@@ -33,15 +33,22 @@ from the profiles and calls \code{tiedtkedrv} once. The input humidity is
 converted from specific humidity to mixing ratio, as the model stores it;
 the vertical velocity goes to \code{avg\_ww} and the domain mean pressure
 profile to \code{pmean}, as \code{cumulus} does in
-\verb=mod_cu_interface.F90=. The outputs are the \verb=cu_*= arrays of
+\verb=mod_cu_interface.F90=. The profiles have no friction velocity: the
+driver sets \code{ustar} from the wind $V_1$ at the lowest level, at height
+$z_1$, with the neutral logarithmic law
+\begin{equation}
+  u_* = \frac{k\,V_1}{\ln(z_1/z_0)} ,
+\end{equation}
+with $k = 0.4$ and a roughness length $z_0$ of 0.1~m over land and
+1~mm over the ocean. The outputs are the \verb=cu_*= arrays of
 \verb=mod_cu_common=, plus the cloud type \code{ktype} and the updraft
 mass flux \code{pmfu}, public in \verb=mod_cu_tiedtke= for this purpose.
 
 The namelist file (default \verb=scm_tiedtke.in=, or the first argument)
 has a \code{scmparam} group (\code{infile}, \code{outfile}, \code{dtcum},
 \code{dxkm}) and the model groups \code{tiedtkeparam}, complete, and
-\code{cldparam}, with only \code{kfac\_deep}, \code{kfac\_shal} and
-\code{k2\_const}. The defaults are the ones of \verb=mod_params.F90=: a
+\code{cldparam}, with only \code{kfac\_deep}, \code{kfac\_shal},
+\code{k2\_const} and \code{iconvcf}. The defaults are the ones of \verb=mod_params.F90=: a
 change of a default in the model must be repeated in the driver.
 
 The output is plain text: a header with the namelists used, then for each
@@ -49,8 +56,9 @@ column a \verb=COLUMN= line (land flag, cloud type, top and base level,
 rain and snow rate, column heating and moistening, the ERA5 CAPE and
 convective rain of the profile) and one line per level, top to bottom:
 height, pressure, updraft mass flux, tendencies of temperature, humidity,
-cloud liquid and ice and of the wind components, convective cloud fraction
-and detrained condensate.
+cloud liquid and ice and of the wind components, convective cloud fraction,
+detrained condensate and the in cloud convective condensate passed to the
+radiation (\code{cu\_cldlwc}).
 
 \section{Test columns}
 

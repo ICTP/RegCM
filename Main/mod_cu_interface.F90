@@ -32,7 +32,7 @@ module mod_cu_interface
       model_cumulus_cloud, init_mod_cumulus
   use mod_cu_common, only : cu_uten, cu_vten, cu_tten, cu_qten, &
       cu_prate, cu_ktop, cu_kbot, cu_cldfrc, cu_qdetr, cu_raincc, &
-      cu_convpr, cu_chiten, avg_ww, cu_srate
+      cu_convpr, cu_chiten, avg_ww, cu_srate, cu_cldlwc
   use mod_cu_tiedtke, only : allocate_mod_cu_tiedtke, tiedtkedrv, &
       pmean, nmctop
   use mod_cu_bm, only : allocate_mod_cu_bm, bmpara, cldefi
@@ -164,6 +164,7 @@ module mod_cu_interface
     call assignpnt(qdot,m2c%qdot)
     call assignpnt(sfs%qfx,m2c%qfx)
     call assignpnt(sfs%hfx,m2c%hfx)
+    call assignpnt(sfs%ustar,m2c%ustar)
     call assignpnt(zpbl,m2c%zpbl)
     call assignpnt(ktrop,m2c%ktrop)
     call assignpnt(ccn,m2c%ccn)
@@ -198,6 +199,7 @@ module mod_cu_interface
     call assignpnt(pptc,c2m%pcratec)
     call assignpnt(sptc,c2m%sratec)
     call assignpnt(cldfra,c2m%cldfrc)
+    call assignpnt(cldlwc,c2m%cldlwc)
     call assignpnt(icumtop,c2m%kcumtop)
     call assignpnt(icumbot,c2m%kcumbot)
     if ( ichem == 1 ) call assignpnt(convpr,c2m%convpr)
@@ -216,6 +218,7 @@ module mod_cu_interface
     end if
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       c2m%cldfrc(j,i,k) = min(cu_cldfrc(j,i,k),clfrcvmax)
+      c2m%cldlwc(j,i,k) = cu_cldlwc(j,i,k)
     end do
   end subroutine cucloud
 
@@ -286,6 +289,7 @@ module mod_cu_interface
         !$acc kernels
         cu_qten(:,:,:,:) = d_zero
         cu_cldfrc(:,:,:) = d_zero
+        cu_cldlwc(:,:,:) = d_zero
         !$acc end kernels
         if ( ichem == 1 ) then
           !$acc kernels
