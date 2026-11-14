@@ -404,7 +404,16 @@ module mod_lm_interface
     call vecocn(lm,lms)
     !@acc call nvtxEndRange
 
+    ! Fill land part of this output vars
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        lms%rhoa(n,j,i) = lms%sfcp(n,j,i)/(rgas*lms%t2m(n,j,i))
+      end if
+    end do
+
 #ifndef CLM45
+    ! Land friction velocity, with the air density of this call
     do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
       if ( lm%ldmsk1(n,j,i) == 1 ) then
         wspd = max(sqrt(lm%uatm(j,i)**2+lm%vatm(j,i)**2),0.01_rkx)
@@ -414,14 +423,6 @@ module mod_lm_interface
       end if
     end do
 #endif
-
-    ! Fill land part of this output vars
-    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-      lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
-      if ( lm%ldmsk1(n,j,i) == 1 ) then
-        lms%rhoa(n,j,i) = lms%sfcp(n,j,i)/(rgas*lms%t2m(n,j,i))
-      end if
-    end do
     !$acc kernels
     lm%hfx = sum(lms%sent,1)*rdnnsg
     lm%qfx = sum(lms%evpr,1)*rdnnsg

@@ -22,7 +22,7 @@ module mod_cu_bm
   use mod_memutil
   use mod_service
   use mod_cu_common
-  use mod_runparams, only : iqv, dt, dtsec, ichem
+  use mod_runparams, only : iqv, dt, dtsec, ichem, ifrest
   use mod_runparams, only : rhmin, rhmax
   use mod_regcm_types
 
@@ -215,12 +215,15 @@ module mod_cu_bm
         end if
       end do
     end do
+    ! Cold start value; on restart cldefi is read from the restart file.
     if ( .not. efinit ) then
-      do i = ici1, ici2
-        do j = jci1, jci2
-          cldefi(j,i) = avgefi*xsm(j,i) + stefi*(d_one-xsm(j,i))
+      if ( .not. ifrest ) then
+        do i = ici1, ici2
+          do j = jci1, jci2
+            cldefi(j,i) = avgefi*xsm(j,i) + stefi*(d_one-xsm(j,i))
+          end do
         end do
-      end do
+      end if
       efinit = .true.
     end if
     !

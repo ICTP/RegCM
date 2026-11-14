@@ -51,7 +51,7 @@ module mod_savefile
   public :: write_savefile
 
   integer(ik4), parameter :: maxdims = 19
-  integer(ik4), parameter :: maxvars = 128
+  integer(ik4), parameter :: maxvars = 192
   integer(ik4) :: ncstatus
 
 #ifdef PNETCDF
@@ -156,6 +156,8 @@ module mod_savefile
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sncv_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
       sfice_io => null( )
+  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
+      snwm_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: gwet_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: sw_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: tsoi_io => null( )
@@ -352,6 +354,9 @@ module mod_savefile
 #endif
       call getmem(sncv_io,1,nnsg,jci1,jci2,ici1,ici2,'sncv_io')
       call getmem(sfice_io,1,nnsg,jci1,jci2,ici1,ici2,'sfice_io')
+      if ( iseaice == 1 .or. lakemod == 1 ) then
+        call getmem(snwm_io,1,nnsg,jci1,jci2,ici1,ici2,'snwm_io')
+      end if
       call getmem(snag_io,1,nnsg,jci1,jci2,ici1,ici2,'snag_io')
       call getmem(sw_io,1,nnsg,jci1,jci2,ici1,ici2, &
                           1,num_soil_layers,'sw_io')
@@ -412,9 +417,7 @@ module mod_savefile
                       1,12,'qflux_restore_sst_io')
       end if
 
-      if ( iocnflx == 2 .or. ibltyp == 3 ) then
-        call getmem(zpbl_io,jci1,jci2,ici1,ici2,'zpbl_io')
-      end if
+      call getmem(zpbl_io,jci1,jci2,ici1,ici2,'zpbl_io')
       if ( any(icup == 3) ) then
         call getmem(cldefi_io,jci1,jci2,ici1,ici2,'cldefi_io')
       end if
@@ -527,6 +530,10 @@ module mod_savefile
         call getmem(sncv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv_io')
         call getmem(sfice_io,1,nnsg,jcross1,jcross2, &
                                       icross1,icross2,'sfice_io')
+        if ( iseaice == 1 .or. lakemod == 1 ) then
+          call getmem(snwm_io,1,nnsg,jcross1,jcross2, &
+                                        icross1,icross2,'snwm_io')
+        end if
         call getmem(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
         call getmem(sw_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
                             1,num_soil_layers,'sw_io')
@@ -599,9 +606,7 @@ module mod_savefile
                         icross1,icross2,1,12,'qflux_restore_sst_io')
         end if
 
-        if ( iocnflx == 2 .or. ibltyp == 3 ) then
-          call getmem(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
-        end if
+        call getmem(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
         if ( any(icup == 3) ) then
           call getmem(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
         end if
@@ -763,6 +768,9 @@ module mod_savefile
     end if
 #endif
     call mygetvar(ncid,'sfice',sfice_io)
+    if ( iseaice == 1 .or. lakemod == 1 ) then
+      call mygetvar(ncid,'snwm',snwm_io)
+    end if
     call mygetvar(ncid,'snag',snag_io)
     call mygetvar(ncid,'ldmsk1',ldmsk1_io)
     call mygetvar(ncid,'emiss',emisv_io)
@@ -780,9 +788,7 @@ module mod_savefile
     call mygetvar(ncid,'fsw',fsw_io)
     call mygetvar(ncid,'sinc',sinc_io)
     call mygetvar(ncid,'ldmsk',ldmsk_io)
-    if ( iocnflx == 2 .or. ibltyp == 3 ) then
-      call mygetvar(ncid,'zpbl',zpbl_io)
-    end if
+    call mygetvar(ncid,'zpbl',zpbl_io)
     if ( ichem == 1 .and. ichecold == 0 ) then
       if ( idynamic == 3 ) then
         call mygetvar(ncid,'trac',trac_io)
@@ -811,6 +817,21 @@ module mod_savefile
       call mygetvar(ncid,'sfracb2d',sfracb2d_io)
       call mygetvar(ncid,'sfracs2d',sfracs2d_io)
       call mygetvar(ncid,'sfracv2d',sfracv2d_io)
+      call mygetvar(ncid,'sxlai2d',sxlai2d_io)
+      call mygetvar(ncid,'cra',cra_io)
+      if ( iaerosol == 1 .and. iindirect == 2 ) then
+        call mygetvar(ncid,'ccn',ccn_io)
+      end if
+      if ( ichdrdepo == 2 ) then
+        call mygetvar(ncid,'drydepv',drydepv_io)
+        if ( ibltyp == 2 ) then
+          call mygetvar(ncid,'chifxuw',chifxuw_io)
+        end if
+      end if
+#ifdef CLM45
+      call mygetvar(ncid,'wetdepflx',wetdepflx_io)
+      call mygetvar(ncid,'drydepflx',drydepflx_io)
+#endif
     end if
     if ( idynamic == 1 ) then
       call mygetvar(ncid,'dstor',dstor_io)
@@ -1041,6 +1062,9 @@ module mod_savefile
     wrkdim(3) = dimids(idicross)
     wrkdim(4) = dimids(indep)
     call savedefvar(ncid,'sfice',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    if ( iseaice == 1 .or. lakemod == 1 ) then
+      call savedefvar(ncid,'snwm',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    end if
     call savedefvar(ncid,'snag',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'emiss',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -1070,9 +1094,7 @@ module mod_savefile
     call savedefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'sinc',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'ldmsk',nf90_int,wrkdim,1,2,varids,ivcc)
-    if ( iocnflx == 2 .or. ibltyp == 3 ) then
-      call savedefvar(ncid,'zpbl',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    end if
+    call savedefvar(ncid,'zpbl',regcm_vartype,wrkdim,1,2,varids,ivcc)
     if ( ichem == 1 ) then
       wrkdim(3) = dimids(idkh)
       wrkdim(4) = dimids(idntr)
@@ -1111,6 +1133,23 @@ module mod_savefile
       call savedefvar(ncid,'sfracb2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'sfracs2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'sfracv2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'sxlai2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'cra',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      if ( ichdrdepo == 2 ) then
+        call savedefvar(ncid,'drydepv',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        if ( ibltyp == 2 ) then
+          call savedefvar(ncid,'chifxuw',regcm_vartype, &
+                          wrkdim,1,3,varids,ivcc)
+        end if
+      end if
+#ifdef CLM45
+      call savedefvar(ncid,'wetdepflx',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'drydepflx',regcm_vartype,wrkdim,1,3,varids,ivcc)
+#endif
+      if ( iaerosol == 1 .and. iindirect == 2 ) then
+        wrkdim(3) = dimids(idkh)
+        call savedefvar(ncid,'ccn',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
     end if
     if ( idynamic == 1 ) then
       wrkdim(1) = dimids(idjdot)
@@ -1256,6 +1295,9 @@ module mod_savefile
     end if
 #endif
     call myputvar(ncid,'sfice',sfice_io,varids,ivcc)
+    if ( iseaice == 1 .or. lakemod == 1 ) then
+      call myputvar(ncid,'snwm',snwm_io,varids,ivcc)
+    end if
     call myputvar(ncid,'snag',snag_io,varids,ivcc)
     call myputvar(ncid,'ldmsk1',ldmsk1_io,varids,ivcc)
     call myputvar(ncid,'emiss',emisv_io,varids,ivcc)
@@ -1279,9 +1321,7 @@ module mod_savefile
     call myputvar(ncid,'fsw',fsw_io,varids,ivcc)
     call myputvar(ncid,'sinc',sinc_io,varids,ivcc)
     call myputvar(ncid,'ldmsk',ldmsk_io,varids,ivcc)
-    if ( iocnflx == 2 .or. ibltyp == 3 ) then
-      call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
-    end if
+    call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
     if ( ichem == 1 ) then
       if ( idynamic == 3 ) then
         call myputvar(ncid,'trac',trac_io,varids,ivcc)
@@ -1310,6 +1350,21 @@ module mod_savefile
       call myputvar(ncid,'sfracb2d',sfracb2d_io,varids,ivcc)
       call myputvar(ncid,'sfracs2d',sfracs2d_io,varids,ivcc)
       call myputvar(ncid,'sfracv2d',sfracv2d_io,varids,ivcc)
+      call myputvar(ncid,'sxlai2d',sxlai2d_io,varids,ivcc)
+      call myputvar(ncid,'cra',cra_io,varids,ivcc)
+      if ( iaerosol == 1 .and. iindirect == 2 ) then
+        call myputvar(ncid,'ccn',ccn_io,varids,ivcc)
+      end if
+      if ( ichdrdepo == 2 ) then
+        call myputvar(ncid,'drydepv',drydepv_io,varids,ivcc)
+        if ( ibltyp == 2 ) then
+          call myputvar(ncid,'chifxuw',chifxuw_io,varids,ivcc)
+        end if
+      end if
+#ifdef CLM45
+      call myputvar(ncid,'wetdepflx',wetdepflx_io,varids,ivcc)
+      call myputvar(ncid,'drydepflx',drydepflx_io,varids,ivcc)
+#endif
     end if
     if ( idynamic == 1 ) then
       call myputvar(ncid,'dstor',dstor_io,varids,ivcc)

@@ -70,6 +70,9 @@ module mod_che_interface
   public :: rainout, rainout_io, convpr_io
   public :: sdelq_io, sdelt_io, sfracb2d_io, sfracs2d_io, ssw2da_io
   public :: duflux_io, voflux_io, sfracv2d_io, svegfrac2d_io, taucldsp_io
+  public :: drydepv, chifxuw
+  public :: sxlai2d_io, cra_io, ccn_io, drydepv_io, chifxuw_io
+  public :: wetdepflx_io, drydepflx_io
 
   contains
 

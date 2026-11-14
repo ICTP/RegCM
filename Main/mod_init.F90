@@ -525,9 +525,7 @@ module mod_init
         cu_cldfrc = cldfra_io
         heatrt = heatrt_io
         o3prof = o3prof_io
-        if ( iocnflx == 2 ) then
-          zpbl = zpbl_io
-        end if
+        zpbl = zpbl_io
         if ( any(icup == 3) ) then
           cldefi = cldefi_io
         end if
@@ -564,6 +562,9 @@ module mod_init
         lms%tlef = tlef_io
         lms%sncv = sncv_io
         lms%sfice = sfice_io
+        if ( iseaice == 1 .or. lakemod == 1 ) then
+          lms%snwm = snwm_io
+        end if
         lms%snag = snag_io
         lms%emisv = emisv_io
         lms%um10 = um10_io
@@ -624,6 +625,21 @@ module mod_init
           sfracv2d = sfracv2d_io
           sfracb2d = sfracb2d_io
           sfracs2d = sfracs2d_io
+          sxlai2d = sxlai2d_io
+          cra = cra_io
+          if ( iaerosol == 1 .and. iindirect == 2 ) then
+            ccn = ccn_io
+          end if
+          if ( ichdrdepo == 2 ) then
+            drydepv = drydepv_io
+            if ( ibltyp == 2 ) then
+              chifxuw = chifxuw_io
+            end if
+          end if
+#ifdef CLM45
+          wetdepflx = wetdepflx_io
+          drydepflx = drydepflx_io
+#endif
         end if
         if ( islab_ocean == 1 .and. do_restore_sst ) then
           qflux_restore_sst = qflux_restore_sst_io
@@ -641,7 +657,7 @@ module mod_init
             call grid_distribute(atm_tke_io,mo_atm%tke, &
                                  jce1,jce2,ice1,ice2,1,kzp1)
           end if
-          if ( ichem == 1 ) then
+          if ( ichem == 1 .and. ichecold == 0 ) then
             call grid_distribute(trac_io,mo_atm%trac, &
                                  jce1,jce2,ice1,ice2,1,kz,1,ntr)
           end if
@@ -663,7 +679,7 @@ module mod_init
             call grid_distribute(atm2_tke_io,atm2%tke, &
                                  jce1,jce2,ice1,ice2,1,kzp1)
           end if
-          if ( ichem == 1 ) then
+          if ( ichem == 1 .and. ichecold == 0 ) then
             call grid_distribute(chia_io,atm1%chi, &
                                  jce1,jce2,ice1,ice2,1,kz,1,ntr)
             call grid_distribute(chib_io,atm2%chi, &
@@ -713,9 +729,7 @@ module mod_init
         call grid_distribute(cldfra_io,cu_cldfrc,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
-        if ( iocnflx == 2 .or. ibltyp == 3 ) then
-          call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
-        end if
+        call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
         if ( any(icup == 3) ) then
           call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
         end if
@@ -736,7 +750,7 @@ module mod_init
         call subgrid_distribute(sw_io,lms%sw,jci1,jci2, &
                                 ici1,ici2,1,num_soil_layers)
 #ifdef CLM45
-        if ( ichem == 1 ) then
+        if ( ichem == 1 .and. ichecold == 0 ) then
           call grid_distribute(tsoi_io,tsoi,jci1,jci2, &
                                ici1,ici2,1,num_soil_layers)
           call grid_distribute(swvol_io,sw_vol,jci1,jci2, &
@@ -760,6 +774,9 @@ module mod_init
         call subgrid_distribute(tlef_io,lms%tlef,jci1,jci2,ici1,ici2)
         call subgrid_distribute(sncv_io,lms%sncv,jci1,jci2,ici1,ici2)
         call subgrid_distribute(sfice_io,lms%sfice,jci1,jci2,ici1,ici2)
+        if ( iseaice == 1 .or. lakemod == 1 ) then
+          call subgrid_distribute(snwm_io,lms%snwm,jci1,jci2,ici1,ici2)
+        end if
         call subgrid_distribute(snag_io,lms%snag,jci1,jci2,ici1,ici2)
         call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
         call subgrid_distribute(um10_io,lms%um10,jci1,jci2,ici1,ici2)
@@ -798,7 +815,7 @@ module mod_init
           call grid_distribute(dstor_io,dstor,jde1,jde2,ide1,ide2,1,nsplit)
           call grid_distribute(hstor_io,hstor,jde1,jde2,ide1,ide2,1,nsplit)
         end if
-        if ( ichem == 1 ) then
+        if ( ichem == 1 .and. ichecold == 0 ) then
           call grid_distribute(convpr_io,convpr,jci1,jci2,ici1,ici2,1,kz)
           call grid_distribute(rainout_io,rainout, &
                                jci1,jci2,ici1,ici2,1,kz,1,ntr)
@@ -823,6 +840,25 @@ module mod_init
           call grid_distribute(sfracv2d_io,sfracv2d,jci1,jci2,ici1,ici2)
           call grid_distribute(sfracb2d_io,sfracb2d,jci1,jci2,ici1,ici2)
           call grid_distribute(sfracs2d_io,sfracs2d,jci1,jci2,ici1,ici2)
+          call grid_distribute(sxlai2d_io,sxlai2d,jci1,jci2,ici1,ici2)
+          call grid_distribute(cra_io,cra,jci1,jci2,ici1,ici2)
+          if ( iaerosol == 1 .and. iindirect == 2 ) then
+            call grid_distribute(ccn_io,ccn,jci1,jci2,ici1,ici2,1,kz)
+          end if
+          if ( ichdrdepo == 2 ) then
+            call grid_distribute(drydepv_io,drydepv, &
+                                 jci1,jci2,ici1,ici2,1,ntr)
+            if ( ibltyp == 2 ) then
+              call grid_distribute(chifxuw_io,chifxuw, &
+                                   jci1,jci2,ici1,ici2,1,ntr)
+            end if
+          end if
+#ifdef CLM45
+          call grid_distribute(wetdepflx_io,wetdepflx, &
+                               jci1,jci2,ici1,ici2,1,ntr)
+          call grid_distribute(drydepflx_io,drydepflx, &
+                               jci1,jci2,ici1,ici2,1,ntr)
+#endif
         end if
       end if
 

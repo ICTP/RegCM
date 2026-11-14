@@ -1871,9 +1871,7 @@ module mod_output
           cldfra_io = cu_cldfrc
           heatrt_io = heatrt
           o3prof_io = o3prof
-          if ( iocnflx == 2 ) then
-            zpbl_io = zpbl
-          end if
+          zpbl_io = zpbl
           if ( any(icup == 3) ) then
             cldefi_io = cldefi
           end if
@@ -1910,6 +1908,9 @@ module mod_output
           tlef_io = lms%tlef
           sncv_io = lms%sncv
           sfice_io = lms%sfice
+          if ( iseaice == 1 .or. lakemod == 1 ) then
+            snwm_io = lms%snwm
+          end if
           snag_io = lms%snag
           emisv_io = lms%emisv
           um10_io = lms%um10
@@ -1972,6 +1973,21 @@ module mod_output
             sfracv2d_io = sfracv2d
             sfracb2d_io = sfracb2d
             sfracs2d_io = sfracs2d
+            sxlai2d_io = sxlai2d
+            cra_io = cra
+            if ( iaerosol == 1 .and. iindirect == 2 ) then
+              ccn_io = ccn
+            end if
+            if ( ichdrdepo == 2 ) then
+              drydepv_io = drydepv
+              if ( ibltyp == 2 ) then
+                chifxuw_io = chifxuw
+              end if
+            end if
+#ifdef CLM45
+            wetdepflx_io = wetdepflx
+            drydepflx_io = drydepflx
+#endif
           end if
           if ( islab_ocean == 1 .and. do_restore_sst ) then
             qflux_restore_sst_io = qflux_restore_sst
@@ -2053,9 +2069,7 @@ module mod_output
           call grid_collect(cu_cldfrc,cldfra_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(heatrt,heatrt_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
-          if ( iocnflx == 2 ) then
-            call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
-          end if
+          call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
           if ( any(icup == 3) ) then
             call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
           end if
@@ -2099,6 +2113,9 @@ module mod_output
           call subgrid_collect(lms%tlef,tlef_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%sncv,sncv_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%sfice,sfice_io,jci1,jci2,ici1,ici2)
+          if ( iseaice == 1 .or. lakemod == 1 ) then
+            call subgrid_collect(lms%snwm,snwm_io,jci1,jci2,ici1,ici2)
+          end if
           call subgrid_collect(lms%snag,snag_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%emisv,emisv_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%um10,um10_io,jci1,jci2,ici1,ici2)
@@ -2159,6 +2176,25 @@ module mod_output
             call grid_collect(sfracv2d,sfracv2d_io,jci1,jci2,ici1,ici2)
             call grid_collect(sfracb2d,sfracb2d_io,jci1,jci2,ici1,ici2)
             call grid_collect(sfracs2d,sfracs2d_io,jci1,jci2,ici1,ici2)
+            call grid_collect(sxlai2d,sxlai2d_io,jci1,jci2,ici1,ici2)
+            call grid_collect(cra,cra_io,jci1,jci2,ici1,ici2)
+            if ( iaerosol == 1 .and. iindirect == 2 ) then
+              call grid_collect(ccn,ccn_io,jci1,jci2,ici1,ici2,1,kz)
+            end if
+            if ( ichdrdepo == 2 ) then
+              call grid_collect(drydepv,drydepv_io, &
+                                jci1,jci2,ici1,ici2,1,ntr)
+              if ( ibltyp == 2 ) then
+                call grid_collect(chifxuw,chifxuw_io, &
+                                  jci1,jci2,ici1,ici2,1,ntr)
+              end if
+            end if
+#ifdef CLM45
+            call grid_collect(wetdepflx,wetdepflx_io, &
+                              jci1,jci2,ici1,ici2,1,ntr)
+            call grid_collect(drydepflx,drydepflx_io, &
+                              jci1,jci2,ici1,ici2,1,ntr)
+#endif
           end if
           if ( islab_ocean == 1 .and. do_restore_sst ) then
             call grid_collect(qflux_restore_sst,qflux_restore_sst_io, &

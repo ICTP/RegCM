@@ -231,6 +231,19 @@ module mod_che_bdyco
           end do
         end if
       end do
+      ! The oxidant climatology of the boundary window is the one of its
+      ! end time, as set in chem_bdyin.
+      if ( ioxclim == 1 ) then
+        do n = 1, noxcl
+          do k = 1, kz
+            do i = ice1, ice2
+              do j = jce1, jce2
+                oxcl(j,i,k,n) = chebdy(j,i,k,after+n)
+              end do
+            end do
+          end do
+        end do
+      end if
 
       if ( myid == italk ) then
         write (stdout,*) 'READY  CHBC from     ', &

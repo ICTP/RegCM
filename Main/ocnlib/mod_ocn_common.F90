@@ -138,6 +138,10 @@ module mod_ocn_common
       call c2l_ss(ocncomm,lms%sfice,sfice)
       call c2l_ss(ocncomm,lms%sncv,sncv)
       call c2l_ss(ocncomm,lms%snag,snag)
+      ! Snow melt over ice, carried from one call to the next
+      if ( .not. rcmtimer%start( ) ) then
+        call c2l_ss(ocncomm,lms%snwm,sm)
+      end if
     end if
     if ( rcmtimer%start( ) ) then
       call c2l_gs(ocncomm,lm%tg,tgb)

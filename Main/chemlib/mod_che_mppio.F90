@@ -45,6 +45,11 @@ module mod_che_mppio
   real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: chia_io, chib_io
   real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: chemall_io
   real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: taucldsp_io
+  ! Fields read before they are recomputed in the time step
+  real(rkx), pointer, contiguous, public, dimension(:,:) :: &
+      sxlai2d_io, cra_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: &
+      ccn_io, drydepv_io, chifxuw_io, wetdepflx_io, drydepflx_io
 
   public :: allocate_mod_che_mppio
 
@@ -96,6 +101,27 @@ module mod_che_mppio
                         'che_mppio:sfracs2d_io')
           call getmem(sfracv2d_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:sfracv2d_io')
+          call getmem(sxlai2d_io,jci1,jci2,ici1,ici2, &
+                        'che_mppio:sxlai2d_io')
+          call getmem(cra_io,jci1,jci2,ici1,ici2,'che_mppio:cra_io')
+          if ( iaerosol == 1 .and. iindirect == 2 ) then
+            call getmem(ccn_io,jci1,jci2,ici1,ici2, &
+                          1,kz,'che_mppio:ccn_io')
+          end if
+          if ( ichdrdepo == 2 ) then
+            call getmem(drydepv_io,jci1,jci2,ici1,ici2, &
+                          1,ntr,'che_mppio:drydepv_io')
+            if ( ibltyp == 2 ) then
+              call getmem(chifxuw_io,jci1,jci2,ici1,ici2, &
+                            1,ntr,'che_mppio:chifxuw_io')
+            end if
+          end if
+#ifdef CLM45
+          call getmem(wetdepflx_io,jci1,jci2,ici1,ici2, &
+                        1,ntr,'che_mppio:wetdepflx_io')
+          call getmem(drydepflx_io,jci1,jci2,ici1,ici2, &
+                        1,ntr,'che_mppio:drydepflx_io')
+#endif
           if ( igaschem == 1 .and. ichsolver > 0 ) then
             call getmem(chemall_io,jci1,jci2,ici1,ici2, &
                           1,kz,1,totsp,'che_mppio:chemall_io')
@@ -138,6 +164,27 @@ module mod_che_mppio
                         'che_mppio:sfracs2d_io')
           call getmem(sfracv2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracv2d_io')
+          call getmem(sxlai2d_io,jcross1,jcross2,icross1,icross2, &
+                        'che_mppio:sxlai2d_io')
+          call getmem(cra_io,jcross1,jcross2,icross1,icross2,'che_mppio:cra_io')
+          if ( iaerosol == 1 .and. iindirect == 2 ) then
+            call getmem(ccn_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,'che_mppio:ccn_io')
+          end if
+          if ( ichdrdepo == 2 ) then
+            call getmem(drydepv_io,jcross1,jcross2,icross1,icross2, &
+                          1,ntr,'che_mppio:drydepv_io')
+            if ( ibltyp == 2 ) then
+              call getmem(chifxuw_io,jcross1,jcross2,icross1,icross2, &
+                            1,ntr,'che_mppio:chifxuw_io')
+            end if
+          end if
+#ifdef CLM45
+          call getmem(wetdepflx_io,jcross1,jcross2,icross1,icross2, &
+                        1,ntr,'che_mppio:wetdepflx_io')
+          call getmem(drydepflx_io,jcross1,jcross2,icross1,icross2, &
+                        1,ntr,'che_mppio:drydepflx_io')
+#endif
 
           if ( idynamic == 3 ) then
             call getmem(trac_io,jcross1,jcross2,icross1,icross2, &
