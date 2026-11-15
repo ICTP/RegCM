@@ -487,7 +487,6 @@ module mod_init
         end if
         if ( ibltyp == 4 ) then
           atms%tkepbl = tke_pbl_io
-          kpbl = kpbl_io
         end if
         if ( ibltyp == 5 ) then
           atms%tkepbl = tke_pbl_io
@@ -514,17 +513,14 @@ module mod_init
         sfs%rah1 = rah_io
         sfs%br = br_io
         sfs%q2m = q2m_io
-        sfs%t2m = t2m_io
         sfs%u10m = u10m_io
         sfs%v10m = v10m_io
         sfs%w10m = w10m_io
         sfs%ustar = ustar_io
-        if ( ipptls > 0 ) then
-          fcc = fcc_io
-        end if
-        cu_cldfrc = cldfra_io
         heatrt = heatrt_io
-        o3prof = o3prof_io
+        if ( iclimao3 == 0 ) then
+          o3prof = o3prof_io
+        end if
         zpbl = zpbl_io
         if ( any(icup == 3) ) then
           cldefi = cldefi_io
@@ -536,9 +532,7 @@ module mod_init
           avg_ww = cu_avg_ww_io
         end if
         if ( irrtm == 0 ) then
-          gasabsnxt = gasabsnxt_io
-          gasabstot = gasabstot_io
-          gasemstot = gasemstot_io
+          absemin = absemin_io
         end if
         lms%sw = sw_io
 #ifdef CLM45
@@ -568,8 +562,6 @@ module mod_init
         lms%snag = snag_io
         lms%emisv = emisv_io
         lms%um10 = um10_io
-        lms%swalb = swalb_io
-        lms%lwalb = lwalb_io
         lms%swdiralb = swdiralb_io
         lms%swdifalb = swdifalb_io
         lms%lwdiralb = lwdiralb_io
@@ -577,17 +569,16 @@ module mod_init
         do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
           mdsub%ldmsk(n,j,i) = ldmsk1_io(n,j,i)
         end do
-        solis = solis_io
-        solvs = solvs_io
-        solvsd = solvsd_io
-        solvl = solvl_io
-        solvld = solvld_io
-        sabveg = sabveg_io
-        totcf = totcf_io
-        flw = flw_io
-        flwd = flwd_io
-        fsw = fsw_io
-        sinc = sinc_io
+        if ( ioasiscpl == 1 ) then
+          solvs = solvs_io
+          solvsd = solvsd_io
+          solvl = solvl_io
+          solvld = solvld_io
+          flw = flw_io
+          flwd = flwd_io
+          fsw = fsw_io
+          sinc = sinc_io
+        end if
         mddom%ldmsk = ldmsk_io
         if ( lakemod == 1 ) then
           lms%eta = eta_io
@@ -595,7 +586,6 @@ module mod_init
           lms%tlake = tlak_io
         end if
         if ( idcsst == 1 ) then
-          lms%sst = sst_io
           lms%tskin = tskin_io
           lms%deltas = deltas_io
           lms%tdeltas = tdeltas_io
@@ -605,24 +595,16 @@ module mod_init
           hstor(jde1:jde2,ide1:ide2,:) = hstor_io(jde1:jde2,ide1:ide2,:)
         end if
         if ( ichem == 1 .and. ichecold == 0 ) then
-          convpr = convpr_io
           rainout = rainout_io
           washout = washout_io
           remdrd = remdrd_io
-          if ( igaschem == 1 .and. ichsolver > 0 ) then
-            chemall = chemall_io
-            taucldsp = taucldsp_io
-          end if
           ssw2da = ssw2da_io
 #if defined(CLM45) || defined(ECLM)
           dustflx_clm = duflux_io
           voc_em_clm = voflux_io
 #else
-          sdelt = sdelt_io
-          sdelq = sdelq_io
           svegfrac2d = svegfrac2d_io
 #endif
-          sfracv2d = sfracv2d_io
           sfracb2d = sfracb2d_io
           sfracs2d = sfracs2d_io
           sxlai2d = sxlai2d_io
@@ -694,7 +676,6 @@ module mod_init
         if ( ibltyp == 4 ) then
           call grid_distribute(tke_pbl_io,atms%tkepbl, &
                                jci1,jci2,ici1,ici2,1,kz)
-          call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
         end if
         if ( ibltyp == 5 ) then
           call grid_distribute(tke_pbl_io,atms%tkepbl, &
@@ -718,17 +699,14 @@ module mod_init
         call grid_distribute(rah_io,sfs%rah1,jci1,jci2,ici1,ici2)
         call grid_distribute(br_io,sfs%br,jci1,jci2,ici1,ici2)
         call grid_distribute(q2m_io,sfs%q2m,jci1,jci2,ici1,ici2)
-        call grid_distribute(t2m_io,sfs%t2m,jci1,jci2,ici1,ici2)
         call grid_distribute(u10m_io,sfs%u10m,jci1,jci2,ici1,ici2)
         call grid_distribute(v10m_io,sfs%v10m,jci1,jci2,ici1,ici2)
         call grid_distribute(w10m_io,sfs%w10m,jci1,jci2,ici1,ici2)
         call grid_distribute(ustar_io,sfs%ustar,jci1,jci2,ici1,ici2)
-        if ( ipptls > 0 ) then
-          call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
-        end if
-        call grid_distribute(cldfra_io,cu_cldfrc,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
-        call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
+        if ( iclimao3 == 0 ) then
+          call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
+        end if
         call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
         if ( any(icup == 3) ) then
           call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
@@ -740,12 +718,8 @@ module mod_init
           call grid_distribute(cu_avg_ww_io,avg_ww,jci1,jci2,ici1,ici2,1,kz)
         end if
         if ( irrtm == 0 ) then
-          call grid_distribute(gasabsnxt_io,gasabsnxt, &
-                               jci1,jci2,ici1,ici2,1,kz,1,4)
-          call grid_distribute(gasabstot_io,gasabstot, &
-                               jci1,jci2,ici1,ici2,1,kzp1,1,kzp1)
-          call grid_distribute(gasemstot_io,gasemstot, &
-                               jci1,jci2,ici1,ici2,1,kzp1)
+          call grid_distribute(absemin_io,absemin, &
+                               jci1,jci2,ici1,ici2,1,5*kz+8)
         end if
         call subgrid_distribute(sw_io,lms%sw,jci1,jci2, &
                                 ici1,ici2,1,num_soil_layers)
@@ -780,24 +754,21 @@ module mod_init
         call subgrid_distribute(snag_io,lms%snag,jci1,jci2,ici1,ici2)
         call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
         call subgrid_distribute(um10_io,lms%um10,jci1,jci2,ici1,ici2)
-        call subgrid_distribute(swalb_io,lms%swalb,jci1,jci2,ici1,ici2)
-        call subgrid_distribute(lwalb_io,lms%lwalb,jci1,jci2,ici1,ici2)
         call subgrid_distribute(swdiralb_io,lms%swdiralb,jci1,jci2,ici1,ici2)
         call subgrid_distribute(swdifalb_io,lms%swdifalb,jci1,jci2,ici1,ici2)
         call subgrid_distribute(lwdiralb_io,lms%lwdiralb,jci1,jci2,ici1,ici2)
         call subgrid_distribute(lwdifalb_io,lms%lwdifalb,jci1,jci2,ici1,ici2)
         call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
-        call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
-        call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
-        call grid_distribute(solvsd_io,solvsd,jci1,jci2,ici1,ici2)
-        call grid_distribute(solvl_io,solvl,jci1,jci2,ici1,ici2)
-        call grid_distribute(solvld_io,solvld,jci1,jci2,ici1,ici2)
-        call grid_distribute(sabveg_io,sabveg,jci1,jci2,ici1,ici2)
-        call grid_distribute(totcf_io,totcf,jci1,jci2,ici1,ici2)
-        call grid_distribute(flw_io,flw,jci1,jci2,ici1,ici2)
-        call grid_distribute(fsw_io,fsw,jci1,jci2,ici1,ici2)
-        call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
-        call grid_distribute(sinc_io,sinc,jci1,jci2,ici1,ici2)
+        if ( ioasiscpl == 1 ) then
+          call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
+          call grid_distribute(solvsd_io,solvsd,jci1,jci2,ici1,ici2)
+          call grid_distribute(solvl_io,solvl,jci1,jci2,ici1,ici2)
+          call grid_distribute(solvld_io,solvld,jci1,jci2,ici1,ici2)
+          call grid_distribute(flw_io,flw,jci1,jci2,ici1,ici2)
+          call grid_distribute(fsw_io,fsw,jci1,jci2,ici1,ici2)
+          call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
+          call grid_distribute(sinc_io,sinc,jci1,jci2,ici1,ici2)
+        end if
         call grid_distribute(ldmsk_io,mddom%ldmsk,jci1,jci2,ici1,ici2)
         if ( lakemod == 1 ) then
           call subgrid_distribute(eta_io,lms%eta,jci1,jci2,ici1,ici2)
@@ -806,7 +777,6 @@ module mod_init
                                   jci1,jci2,ici1,ici2,1,ndpmax)
         endif
         if ( idcsst == 1 ) then
-          call subgrid_distribute(sst_io,lms%sst,jci1,jci2,ici1,ici2)
           call subgrid_distribute(tskin_io,lms%tskin,jci1,jci2,ici1,ici2)
           call subgrid_distribute(deltas_io,lms%deltas,jci1,jci2,ici1,ici2)
           call subgrid_distribute(tdeltas_io,lms%tdeltas,jci1,jci2,ici1,ici2)
@@ -816,28 +786,18 @@ module mod_init
           call grid_distribute(hstor_io,hstor,jde1,jde2,ide1,ide2,1,nsplit)
         end if
         if ( ichem == 1 .and. ichecold == 0 ) then
-          call grid_distribute(convpr_io,convpr,jci1,jci2,ici1,ici2,1,kz)
           call grid_distribute(rainout_io,rainout, &
                                jci1,jci2,ici1,ici2,1,kz,1,ntr)
           call grid_distribute(washout_io,washout, &
                                jci1,jci2,ici1,ici2,1,kz,1,ntr)
           call grid_distribute(remdrd_io,remdrd,jci1,jci2,ici1,ici2,1,ntr)
-          if ( igaschem == 1 .and. ichsolver > 0 ) then
-            call grid_distribute(chemall_io,chemall, &
-                                  jci1,jci2,ici1,ici2,1,kz,1,totsp)
-            call grid_distribute(taucldsp_io,taucldsp, &
-                                 jci1,jci2,ici1,ici2,0,kz,1,nspi)
-          end if
           call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)
 #if defined(CLM45) || defined(ECLM)
           call grid_distribute(duflux_io,dustflx_clm,jci1,jci2,ici1,ici2,1,4)
           call grid_distribute(voflux_io,voc_em_clm,jci1,jci2,ici1,ici2,1,ntr)
 #else
-          call grid_distribute(sdelt_io,sdelt,jci1,jci2,ici1,ici2)
-          call grid_distribute(sdelq_io,sdelq,jci1,jci2,ici1,ici2)
           call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)
 #endif
-          call grid_distribute(sfracv2d_io,sfracv2d,jci1,jci2,ici1,ici2)
           call grid_distribute(sfracb2d_io,sfracb2d,jci1,jci2,ici1,ici2)
           call grid_distribute(sfracs2d_io,sfracs2d,jci1,jci2,ici1,ici2)
           call grid_distribute(sxlai2d_io,sxlai2d,jci1,jci2,ici1,ici2)
@@ -862,7 +822,12 @@ module mod_init
         end if
       end if
 
-      if ( myid == italk ) then
+      !
+      ! Absorptivity/emissivity tables of the last update
+      !
+      call rebuild_radiation_tables
+
+      if ( myid == italk .and. iclimao3 == 0 ) then
         ozprnt = real(o3prof(jci1,ici1,:),rkx)
         call vprntv(ozprnt,kzp1,'Ozone profiles restart')
       end if

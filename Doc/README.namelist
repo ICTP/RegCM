@@ -567,6 +567,10 @@
                       !     thin layers, Cc = c0 + c1*x + c2*x**2 with
                       !     x = ln(MassFlux in mb/h), coefficients
                       !     linear in height between 0.8, 3.9, 7.9 km
+                      ! 2 : as 1, converted from volume to the area
+                      !     fraction seen by the radiation, factor
+                      !     (1+0.0064*dz) for small fractions, dz layer
+                      !     depth in m (Neggers et al. 2011, JGR 116)
  lsrfhack  = .false.  ! Surface radiation hack
                       ! Modifies also net shortwave to increase relevance
                       ! of cloud effects.

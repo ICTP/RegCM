@@ -492,6 +492,8 @@ module mod_runparams
   integer(ik4), public :: iconvcf ! Convective cloud fraction formula:
                                   ! 0 kfac*log(1+k2_const*mfu)
                                   ! 1 Xu and Krueger (1991) thin layer fit
+                                  ! 2 as 1, area fraction for radiation
+                                  !   (Neggers et al. 2011)
 
   ! Large scale SUBEX parameters
 

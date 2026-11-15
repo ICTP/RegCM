@@ -29,6 +29,7 @@ module mod_rad_interface
   use mod_stdatm
   use mod_rad_common
   use mod_rad_colmod3, only : allocate_mod_rad_colmod3, colmod3
+  use mod_rad_colmod3, only : colmod3_tables
   use mod_rrtmg_driver, only : allocate_mod_rad_rrtmg, rrtmg_driver
   use mod_rad_o3blk, only : allocate_mod_rad_o3blk, o3data
   use mod_rad_o3blk, only : read_o3data, close_o3data
@@ -65,6 +66,8 @@ module mod_rad_interface
   public :: gasabsnxt
   public :: gasabstot
   public :: gasemstot
+  public :: absemin
+  public :: rebuild_radiation_tables
   public :: taucldsp
 
   type(mod_2_rad) :: m2r
@@ -126,6 +129,7 @@ module mod_rad_interface
       call getmem(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
       call getmem(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')
       call getmem(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'rad:gasemstot')
+      call getmem(absemin,jci1,jci2,ici1,ici2,1,5*kz+8,'rad:absemin')
     end if
     if ( ichem == 1 .or. iclimaaer == 1 ) then
       call getmem(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
@@ -195,6 +199,16 @@ module mod_rad_interface
     call assignpnt(totcf,r2m%totcf)
     call assignpnt(heatrt,r2m%heatrt)
   end subroutine init_radiation
+  !
+  ! On restart, rebuild the absorptivity/emissivity tables of the CCM
+  ! long wave from the inputs of their last update (absemin).
+  !
+  subroutine rebuild_radiation_tables
+    implicit none
+    if ( irrtm == 0 ) then
+      call colmod3_tables(m2r)
+    end if
+  end subroutine rebuild_radiation_tables
 
   subroutine radiation(iyear,imonth,iday,loutrad,labsem)
     implicit none

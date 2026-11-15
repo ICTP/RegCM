@@ -35,7 +35,7 @@ module mod_rad_radiation
 
   private
 
-  public :: radctl, radtype
+  public :: radctl, radtype, radtables
 
   type radtype
     integer(ik4) :: n1, n2
@@ -44,6 +44,8 @@ module mod_rad_radiation
     integer(ik4), dimension(:), pointer, contiguous :: ioro => null( )
     real(rk8), dimension(:), pointer, contiguous :: dlat => null( )
     real(rk8), dimension(:), pointer, contiguous :: xptrop => null( )
+    ! co2, ch4, n2o, cfc11, cfc12 before the stratospheric scaling
+    real(rk8), dimension(:,:), pointer, contiguous :: ghg => null( )
     real(rk8), dimension(:), pointer, contiguous :: ts => null( )
     real(rk8), dimension(:), pointer, contiguous :: ps => null( )
     real(rk8), dimension(:), pointer, contiguous :: fsns => null( )
@@ -2075,7 +2077,7 @@ module mod_rad_radiation
                     co2pth,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
                     plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
                     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
-                    uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
+                    uco222,uco223,uptype,absgasnxt,absgastot)
     implicit none
     integer(ik4), intent(in) :: n1, n2
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: tint, tlayr
@@ -2100,7 +2102,6 @@ module mod_rad_radiation
     real(rk8), dimension(kzp1,n1:n2), intent(in) :: uptype
     real(rk8), dimension(kzp1,kzp1,n1:n2), intent(out) :: absgastot
     real(rk8), dimension(kz,4,n1:n2), intent(out) :: absgasnxt
-    real(rk8), dimension(kz,4,n1:n2), intent(out) :: xuinpl
     !
     ! kn       - Nearest level index
     ! iband    - Band  index
@@ -2568,16 +2569,6 @@ module mod_rad_radiation
         pinpl(2) = (p2+pnm(k2,n))*0.5_rk8
         pinpl(3) = (p1+pnm(k2,n))*0.5_rk8
         pinpl(4) = (p2+pnm(k2+1,n))*0.5_rk8
-        ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        if ( linteract  ) then
-          do kn = 1, 4
-            xuinpl(k2,kn,n) = uinpl(kn)
-          end do
-        else
-          do kn = 1, 4
-            xuinpl(k2,kn,n) = 0.0_rk8
-          end do
-        end if
         ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
         do kn = 1, 4
           ux = abs(uinpl(kn)*(plh2o(k2,n)-plh2o(k2+1,n)))
@@ -4297,6 +4288,74 @@ module mod_rad_radiation
   !  cs is clearsky
   !  Aerosol longwave added
   !
+  !
+  ! Absorptivity and emissivity tables of the long wave computation, from
+  ! the column state. Also called at restart to rebuild the tables of the
+  ! last update from its saved inputs (radtables).
+  !
+  subroutine radabsems(n1,n2,ts,tnm,pnm,h2ommr,pmln,piln,plh2o,pbr,  &
+                       o3vmr,cfc11,cfc12,n2o,ch4,co2,co2pth,plco2,   &
+                       absgasnxt,absgastot,emsgastot)
+    implicit none
+    integer(ik4), intent(in) :: n1, n2
+    real(rk8), dimension(n1:n2), intent(in) :: ts
+    real(rk8), dimension(kz,n1:n2), intent(in) :: tnm, h2ommr, pmln, pbr
+    real(rk8), dimension(kz,n1:n2), intent(in) :: o3vmr
+    real(rk8), dimension(kz,n1:n2), intent(in) :: cfc11, cfc12, n2o, ch4, co2
+    real(rk8), dimension(kzp1,n1:n2), intent(in) :: pnm, piln, plh2o
+    real(rk8), dimension(kzp1,n1:n2), intent(in) :: co2pth, plco2
+    real(rk8), dimension(kz,4,n1:n2), intent(inout) :: absgasnxt
+    real(rk8), dimension(kzp1,kzp1,n1:n2), intent(inout) :: absgastot
+    real(rk8), dimension(kzp1,n1:n2), intent(inout) :: emsgastot
+    real(rk8), dimension(kzp1,n1:n2) :: bch4, bn2o0, bn2o1
+    real(rk8), dimension(nlwspi,n1:n2) :: emplnk
+    real(rk8), dimension(kzp1,n1:n2) :: co2em, co2eml, co2t, h2otr
+    real(rk8), dimension(kzp1,n1:n2) :: ucfc11, ucfc12, un2o0, un2o1, uch4
+    real(rk8), dimension(kzp1,n1:n2) :: uco211, uco212, uco213
+    real(rk8), dimension(kzp1,n1:n2) :: uco221, uco222, uco223
+    real(rk8), dimension(kzp1,n1:n2) :: uptype, plol, plos
+    real(rk8), dimension(kzp1,n1:n2) :: tplnka, s2c, s2t, wh2op
+    real(rk8), dimension(kzp1,n1:n2) :: tint, tint4, tlayr, tlayr4
+    real(rk8), dimension(n1:n2) :: tplnke
+    real(rk8), dimension(nlwspi,kzp1,n1:n2) :: abplnk1, abplnk2
+    !
+    ! Temperatures and h2o path lengths
+    !
+    call radtpl(n1,n2,ts,tnm,pnm,h2ommr,pmln,piln,plh2o, &
+                tint,tint4,tlayr,tlayr4,tplnka,s2t,s2c,wh2op,tplnke)
+    !
+    ! Compute ozone path lengths at frequency of a/e calculation.
+    !
+    call radoz2(n1,n2,o3vmr,pnm,plos,plol)
+    !
+    ! Compute trace gas path lengths
+    !
+    call trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2, &
+                ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,    &
+                uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,    &
+                uptype)
+    !
+    ! Calculate trace gas Planck functions
+    !
+    call trcplk(n1,n2,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
+    !
+    ! Compute total emissivity:
+    !
+    call radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2pth,plos,&
+                plol,plh2o,plco2,ucfc11,ucfc12,un2o0,un2o1,bn2o0,    &
+                bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,  &
+                uco223,uptype,wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,&
+                h2otr,emsgastot)
+    !
+    ! Compute total absorptivity:
+    !
+    call radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
+                co2pth,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
+                plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
+                bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
+                uco222,uco223,uptype,absgasnxt,absgastot)
+  end subroutine radabsems
+
   subroutine radclw(n1,n2,labsem,ts,emiss,tnm,h2ommr,co2,  &
                     o3vmr,pbr,pnm,pmln,piln,n2o,ch4,cfc11,cfc12,cld, &
                     plco2,co2pth,plh2o,tclrsf,flns,flnt,lwout,lwin,flnsc,   &
@@ -4318,53 +4377,17 @@ module mod_rad_radiation
     real(rk8), dimension(n1:n2), intent(out) :: flntc, flwds, fslwdcs
     real(rk8), dimension(n1:n2), intent(out) :: lwout, lwin
     real(rk8), dimension(n1:n2), intent(out) :: aerlwfo, aerlwfos
-    real(rk8), dimension(kz,4,n1:n2), intent(out) :: absgasnxt
-    real(rk8), dimension(kzp1,n1:n2), intent(out) :: emsgastot
-    real(rk8), dimension(kzp1,kzp1,n1:n2), intent(out) :: absgastot
+    real(rk8), dimension(kz,4,n1:n2), intent(inout) :: absgasnxt
+    real(rk8), dimension(kzp1,n1:n2), intent(inout) :: emsgastot
+    real(rk8), dimension(kzp1,kzp1,n1:n2), intent(inout) :: absgastot
     real(rk8), dimension(kz,n1:n2), intent(out) :: qrl
     !
     ! Local variables
     !
-    ! bch4     - pressure factor for ch4
-    real(rk8), dimension(kzp1,n1:n2) :: bch4
-    ! bn2o0    - pressure factor for n2o
-    ! bn2o1    - pressure factor for n2o
-    real(rk8), dimension(kzp1,n1:n2) :: bn2o0, bn2o1
-    ! emplnk  - emissivity Planck factor
-    real(rk8), dimension(nlwspi,n1:n2) :: emplnk
     real(rk8), dimension(kzp1,n1:n2) :: emstot
     real(rk8), dimension(kzp1,kzp1,n1:n2) :: abstot
     real(rk8), dimension(kz,4,n1:n2) :: absnxt
     real(rk8), dimension(kz,4,n1:n2) :: xuinpl
-    ! co2em   - Layer co2 normalized planck funct. derivative
-    real(rk8), dimension(kzp1,n1:n2) :: co2em
-    ! co2eml  - Interface co2 normalized planck funct. deriv.
-    real(rk8), dimension(kzp1,n1:n2) :: co2eml
-    ! co2t    - Prs wghted temperature path
-    real(rk8), dimension(kzp1,n1:n2) :: co2t
-    ! h2otr   - H2o trnmsn for o3 overlap
-    real(rk8), dimension(kzp1,n1:n2) :: h2otr
-    ! ucfc11  - CFC11 path length
-    ! ucfc12  - CFC12 path length
-    real(rk8), dimension(kzp1,n1:n2) :: ucfc11, ucfc12
-    ! un2o0   - N2O path length
-    ! un2o1   - N2O path length (hot band)
-    real(rk8), dimension(kzp1,n1:n2) :: un2o0, un2o1
-    ! uch4    - CH4 path length
-    real(rk8), dimension(kzp1,n1:n2) :: uch4
-    ! uco211  - CO2 9.4 micron band path length
-    ! uco212  - CO2 9.4 micron band path length
-    ! uco213  - CO2 9.4 micron band path length
-    ! uco221  - CO2 10.4 micron band path length
-    ! uco222  - CO2 10.4 micron band path length
-    ! uco223  - CO2 10.4 micron band path length
-    real(rk8), dimension(kzp1,n1:n2) :: uco211, uco212,  uco213
-    real(rk8), dimension(kzp1,n1:n2) :: uco221, uco222,  uco223
-    ! uptype   - continuum path length
-    real(rk8), dimension(kzp1,n1:n2) :: uptype
-    ! plol     - Ozone prs wghted path length
-    ! plos     - Ozone path length
-    real(rk8), dimension(kzp1,n1:n2) :: plol, plos
     ! tplnka   - Planck fnctn level temperature
     real(rk8), dimension(kzp1,n1:n2) :: tplnka
     ! tint    - Interface temperature
@@ -4396,7 +4419,6 @@ module mod_rad_radiation
     real(rk8), dimension(kz,n1:n2) :: fclb4, fclt4
     ! abplnk1 - non-nearest layer Plack factor
     ! abplnk2 - nearest layer factor
-    real(rk8), dimension(nlwspi,kzp1,n1:n2) :: abplnk1, abplnk2
     ! klov    - Cloud lowest level index
     ! khiv    - Cloud highest level index
     ! khivm   - khiv(n) - 1
@@ -4407,6 +4429,7 @@ module mod_rad_radiation
     integer(ik4) :: n, khighest, irad, nradaer
     integer(ik4) :: k, km, k1, k2, k3
     real(rk8) :: bk1, bk2, absbt, tmp, tmp1, delt, delt1
+    real(rk8) :: p1, p2, rdpnmsq
     integer(ik4) :: km1, km2, km3, km4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radclw'
@@ -4421,12 +4444,25 @@ module mod_rad_radiation
         fclt4(k,n) = 0.0_rk8
         tclrsf(k+1,n) = tclrsf(k,n)*(1.0_rk8-cld(k+1,n))
         rtclrsf(k+1,n) = 1.0_rk8/tclrsf(k+1,n)
-        xuinpl(k,1,n) = 0.0_rk8
-        xuinpl(k,2,n) = 0.0_rk8
-        xuinpl(k,3,n) = 0.0_rk8
-        xuinpl(k,4,n) = 0.0_rk8
       end do
     end do
+    !
+    ! Nearest layer subdivision factors (as uinpl in radabs) for the
+    ! aerosol long wave transmission, from the current pressures.
+    !
+    if ( linteract ) then
+      do concurrent ( n = n1:n2 )
+        do k = 1, kz
+          p1 = (pbr(k,n)+pnm(k+1,n))*0.5_rk8
+          p2 = (pbr(k,n)+pnm(k,n))*0.5_rk8
+          rdpnmsq = 1.0_rk8/(pnm(k+1,n)**2-pnm(k,n)**2)
+          xuinpl(k,1,n) = (pnm(k+1,n)**2-p1**2)*rdpnmsq
+          xuinpl(k,2,n) = -(pnm(k,n)**2-p2**2)*rdpnmsq
+          xuinpl(k,3,n) = -(pnm(k,n)**2-p1**2)*rdpnmsq
+          xuinpl(k,4,n) = (pnm(k+1,n)**2-p2**2)*rdpnmsq
+        end do
+      end do
+    end if
     !
     ! Calculate some temperatures needed to derive absorptivity and
     ! emissivity, as well as some h2o path lengths
@@ -4438,37 +4474,9 @@ module mod_rad_radiation
     ! only if abs/ems computation
     !
     if ( labsem ) then
-      !
-      ! Compute ozone path lengths at frequency of a/e calculation.
-      !
-      call radoz2(n1,n2,o3vmr,pnm,plos,plol)
-      !
-      ! Compute trace gas path lengths
-      !
-      call trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2, &
-                  ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,    &
-                  uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,    &
-                  uptype)
-      !
-      ! Calculate trace gas Planck functions
-      !
-      call trcplk(n1,n2,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
-      !
-      ! Compute total emissivity:
-      !
-      call radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2pth,plos,&
-                  plol,plh2o,plco2,ucfc11,ucfc12,un2o0,un2o1,bn2o0,    &
-                  bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,  &
-                  uco223,uptype,wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,&
-                  h2otr,emsgastot)
-      !
-      ! Compute total absorptivity:
-      !
-      call radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
-                  co2pth,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
-                  plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
-                  bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
-                  uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
+      call radabsems(n1,n2,ts,tnm,pnm,h2ommr,pmln,piln,plh2o,pbr,  &
+                     o3vmr,cfc11,cfc12,n2o,ch4,co2,co2pth,plco2,   &
+                     absgasnxt,absgastot,emsgastot)
     end if
     !
     ! Find the lowest and highest level cloud for each grid point
@@ -4841,6 +4849,105 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
+  !
+  ! Stratospheric scale height factor for the trace gases
+  !
+  subroutine gasscale(rt,co2,ch4,n2o,cfc11,cfc12)
+    implicit none
+    type(radtype), intent(in) :: rt
+    real(rk8), dimension(kz,rt%n1:rt%n2), intent(inout) :: co2, ch4, n2o
+    real(rk8), dimension(kz,rt%n1:rt%n2), intent(inout) :: cfc11, cfc12
+    integer(ik4) :: n, k
+#ifndef RCEMIP
+    real(rk8) :: alat
+#endif
+    real(rk8) :: pratio, xco2, xcfc11, xcfc12, xch4, xn2o
+#ifdef RCEMIP
+    xco2 = 0.0_rk8
+    xn2o = 0.3478_rk8
+    xch4 = 0.2353_rk8
+    xcfc11 = 0.7273_rk8
+    xcfc12 = 0.4000_rk8
+#endif
+    do concurrent ( n = rt%n1:rt%n2 )
+#ifndef RCEMIP
+      alat = abs(rt%dlat(n))
+      if ( alat <= 45.0_rk8 ) then
+        xco2 = 0.0_rk8
+        xn2o = 0.3478_rk8 + 0.00116_rk8*alat
+        xch4 = 0.2353_rk8
+        xcfc11 = 0.7273_rk8 + 0.00606_rk8*alat
+        xcfc12 = 0.4000_rk8 + 0.00222_rk8*alat
+      else
+        xco2 = 0.0_rk8
+        xn2o = 0.4000_rk8 + 0.013333_rk8*(alat-45.0_rk8)
+        xch4 = 0.2353_rk8 + 0.0225489_rk8*(alat-45.0_rk8)
+        xcfc11 = 1.00_rk8 + 0.013333_rk8*(alat-45.0_rk8)
+        xcfc12 = 0.50_rk8 + 0.024444_rk8*(alat-45.0_rk8)
+      end if
+#endif
+      do k = 1, kz
+        !  set stratospheric scale height factor for gases
+        if ( rt%pmid(k,n) < rt%xptrop(n) ) then
+          pratio = rt%pmid(k,n)/rt%xptrop(n)
+          co2(k,n) = co2(k,n)*(pratio**xco2)
+          ch4(k,n) = ch4(k,n)*(pratio**xch4)
+          n2o(k,n) = n2o(k,n)*(pratio**xn2o)
+          cfc11(k,n) = cfc11(k,n)*(pratio**xcfc11)
+          cfc12(k,n) = cfc12(k,n)*(pratio**xcfc12)
+        end if
+      end do
+    end do
+  end subroutine gasscale
+  !
+  ! Rebuild at restart the absorptivity/emissivity tables of the last
+  ! update from its column inputs (in rt), as radctl computed them.
+  !
+  subroutine radtables(rt)
+    implicit none
+    type(radtype), intent(inout) :: rt
+    integer(ik4) :: n, k, batch_first, batch_last
+    integer(ik4), parameter :: radclw_batch_columns = 16384
+    real(rk8), dimension(kz,rt%n1:rt%n2) :: cfc11, cfc12, ch4, n2o, co2
+    real(rk8), dimension(kz,rt%n1:rt%n2) :: o3mmr, pbr
+    real(rk8), dimension(kzp1,rt%n1:rt%n2) :: pnm, plco2, co2pth, plh2o
+    real(rk8), dimension(kzp1,rt%n1:rt%n2) :: tclrsf, cld
+    do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
+      co2(k,n) = rt%ghg(1,n)
+      ch4(k,n) = rt%ghg(2,n)
+      n2o(k,n) = rt%ghg(3,n)
+      cfc11(k,n) = rt%ghg(4,n)
+      cfc12(k,n) = rt%ghg(5,n)
+    end do
+    cld(:,:) = 0.0_rk8
+    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,co2,cld, &
+                rt%o3vmr,pbr,pnm,plco2,co2pth,plh2o,tclrsf,o3mmr)
+    call gasscale(rt,co2,ch4,n2o,cfc11,cfc12)
+    do batch_first = rt%n1, rt%n2, radclw_batch_columns
+      batch_last = min(batch_first+radclw_batch_columns-1, rt%n2)
+      call radabsems(batch_first,batch_last,                 &
+                     rt%ts(batch_first:batch_last),          &
+                     rt%t(:,batch_first:batch_last),         &
+                     pnm(:,batch_first:batch_last),          &
+                     rt%q(:,batch_first:batch_last),         &
+                     rt%pmln(:,batch_first:batch_last),      &
+                     rt%piln(:,batch_first:batch_last),      &
+                     plh2o(:,batch_first:batch_last),        &
+                     pbr(:,batch_first:batch_last),          &
+                     rt%o3vmr(:,batch_first:batch_last),     &
+                     cfc11(:,batch_first:batch_last),        &
+                     cfc12(:,batch_first:batch_last),        &
+                     n2o(:,batch_first:batch_last),          &
+                     ch4(:,batch_first:batch_last),          &
+                     co2(:,batch_first:batch_last),          &
+                     co2pth(:,batch_first:batch_last),       &
+                     plco2(:,batch_first:batch_last),        &
+                     rt%absgasnxt(:,:,batch_first:batch_last), &
+                     rt%absgastot(:,:,batch_first:batch_last), &
+                     rt%emsgastot(:,batch_first:batch_last))
+    end do
+  end subroutine radtables
+
   subroutine radctl(rt,iyear,imonth)
     implicit none
     !
@@ -4916,10 +5023,7 @@ module mod_rad_radiation
     ! fslwdcs  - Downward clear sky long wave flux at surface
     real(rk8), dimension(rt%n1:rt%n2) :: fslwdcs
 
-#ifndef RCEMIP
-    real(rk8) :: alat
-#endif
-    real(rk8) :: pratio, xco2, xcfc11, xcfc12, xch4, xn2o, betafac
+    real(rk8) :: betafac
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radctl'
@@ -4932,6 +5036,15 @@ module mod_rad_radiation
     !
     call radini(rt%n1,rt%n2,iyear,imonth,rt%dlat, &
                 co2,ch4,n2o,cfc11,cfc12)
+    if ( rt%labsem ) then
+      do concurrent ( n = rt%n1:rt%n2 )
+        rt%ghg(1,n) = co2(1,n)
+        rt%ghg(2,n) = ch4(1,n)
+        rt%ghg(3,n) = n2o(1,n)
+        rt%ghg(4,n) = cfc11(1,n)
+        rt%ghg(5,n) = cfc12(1,n)
+      end do
+    end if
     !
     ! Compute on interface levels and put in vertical profiles
     !
@@ -5017,42 +5130,7 @@ module mod_rad_radiation
       !
       ! Specify trace gas mixing ratios
       !
-#ifdef RCEMIP
-      xco2 = 0.0_rk8
-      xn2o = 0.3478_rk8
-      xch4 = 0.2353_rk8
-      xcfc11 = 0.7273_rk8
-      xcfc12 = 0.4000_rk8
-#endif
-      do concurrent ( n = rt%n1:rt%n2 )
-#ifndef RCEMIP
-        alat = abs(rt%dlat(n))
-        if ( alat <= 45.0_rk8 ) then
-          xco2 = 0.0_rk8
-          xn2o = 0.3478_rk8 + 0.00116_rk8*alat
-          xch4 = 0.2353_rk8
-          xcfc11 = 0.7273_rk8 + 0.00606_rk8*alat
-          xcfc12 = 0.4000_rk8 + 0.00222_rk8*alat
-        else
-          xco2 = 0.0_rk8
-          xn2o = 0.4000_rk8 + 0.013333_rk8*(alat-45.0_rk8)
-          xch4 = 0.2353_rk8 + 0.0225489_rk8*(alat-45.0_rk8)
-          xcfc11 = 1.00_rk8 + 0.013333_rk8*(alat-45.0_rk8)
-          xcfc12 = 0.50_rk8 + 0.024444_rk8*(alat-45.0_rk8)
-        end if
-#endif
-        do k = 1, kz
-          !  set stratospheric scale height factor for gases
-          if ( rt%pmid(k,n) < rt%xptrop(n) ) then
-            pratio = rt%pmid(k,n)/rt%xptrop(n)
-            co2(k,n) = co2(k,n)*(pratio**xco2)
-            ch4(k,n) = ch4(k,n)*(pratio**xch4)
-            n2o(k,n) = n2o(k,n)*(pratio**xn2o)
-            cfc11(k,n) = cfc11(k,n)*(pratio**xcfc11)
-            cfc12(k,n) = cfc12(k,n)*(pratio**xcfc12)
-          end if
-        end do
-      end do
+      call gasscale(rt,co2,ch4,n2o,cfc11,cfc12)
       ! Limit the three (kzp1,kzp1,ncol) scratch arrays in radclw.
       ! Retain global column indices for accesses to module arrays.
       do batch_first = rt%n1, rt%n2, radclw_batch_columns

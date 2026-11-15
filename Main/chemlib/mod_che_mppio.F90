@@ -32,19 +32,13 @@ module mod_che_mppio
 
   real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: &
       rainout_io, washout_io
-  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: &
-      remdrd_io, convpr_io
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: remdrd_io
   real(rkx), pointer, contiguous, public, dimension(:,:,:) :: &
       duflux_io, voflux_io
   real(rkx), pointer, contiguous, public, dimension(:,:) :: &
-      ssw2da_io, sdelt_io,   &
-                                         sdelq_io, sfracv2d_io, &
-                                         sfracb2d_io, sfracs2d_io, &
-                                         svegfrac2d_io
+      ssw2da_io, sfracb2d_io, sfracs2d_io, svegfrac2d_io
   real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: trac_io
   real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: chia_io, chib_io
-  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: chemall_io
-  real(rkx), pointer, contiguous, public, dimension(:,:,:,:) :: taucldsp_io
   ! Fields read before they are recomputed in the time step
   real(rkx), pointer, contiguous, public, dimension(:,:) :: &
       sxlai2d_io, cra_io
@@ -72,8 +66,6 @@ module mod_che_mppio
             call getmem(chib_io,jce1,jce2,ice1,ice2, &
                           1,kz,1,ntr,'che_mppio:chib_io')
           end if
-          call getmem(convpr_io,jci1,jci2,ici1,ici2, &
-                        1,kz,'che_mppio:convpr_io')
           call getmem(rainout_io,jci1,jci2,ici1,ici2, &
                         1,kz,1,ntr,'che_mppio:rainout_io')
           call getmem(washout_io,jci1,jci2,ici1,ici2, &
@@ -88,10 +80,6 @@ module mod_che_mppio
           call getmem(voflux_io,jci1,jci2,ici1,ici2, &
                         1,ntr,'che_mppio:voflux_io')
 #else
-          call getmem(sdelq_io,jci1,jci2,ici1,ici2, &
-                        'che_mppio:sdelq_io')
-          call getmem(sdelt_io,jci1,jci2,ici1,ici2, &
-                        'che_mppio:sdelt_io')
           call getmem(svegfrac2d_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:svegfrac2d_io')
 #endif
@@ -99,8 +87,6 @@ module mod_che_mppio
                         'che_mppio:sfracb2d_io')
           call getmem(sfracs2d_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:sfracs2d_io')
-          call getmem(sfracv2d_io,jci1,jci2,ici1,ici2, &
-                        'che_mppio:sfracv2d_io')
           call getmem(sxlai2d_io,jci1,jci2,ici1,ici2, &
                         'che_mppio:sxlai2d_io')
           call getmem(cra_io,jci1,jci2,ici1,ici2,'che_mppio:cra_io')
@@ -122,20 +108,12 @@ module mod_che_mppio
           call getmem(drydepflx_io,jci1,jci2,ici1,ici2, &
                         1,ntr,'che_mppio:drydepflx_io')
 #endif
-          if ( igaschem == 1 .and. ichsolver > 0 ) then
-            call getmem(chemall_io,jci1,jci2,ici1,ici2, &
-                          1,kz,1,totsp,'che_mppio:chemall_io')
-            call getmem(taucldsp_io,jci1,jci2,ici1,ici2, &
-                          0,kz,1,nspi,'che_mppio:taucldsp_io')
-          end if
 
           return
 
         end if
 
         if ( myid == iocpu ) then
-          call getmem(convpr_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,'che_mppio:convpr_io')
           call getmem(rainout_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:rainout_io')
           call getmem(washout_io,jcross1,jcross2,icross1,icross2, &
@@ -151,10 +129,6 @@ module mod_che_mppio
           call getmem(voflux_io,jcross1,jcross2,icross1,icross2, &
                         1,ntr,'che_mppio:voflux_io')
 #else
-          call getmem(sdelq_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:sdelq_io')
-          call getmem(sdelt_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:sdelt_io')
           call getmem(svegfrac2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:svegfrac2d_io')
 #endif
@@ -162,8 +136,6 @@ module mod_che_mppio
                         'che_mppio:sfracb2d_io')
           call getmem(sfracs2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracs2d_io')
-          call getmem(sfracv2d_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:sfracv2d_io')
           call getmem(sxlai2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sxlai2d_io')
           call getmem(cra_io,jcross1,jcross2,icross1,icross2,'che_mppio:cra_io')
@@ -194,12 +166,6 @@ module mod_che_mppio
                           1,kz,1,ntr,'che_mppio:chia_io')
             call getmem(chib_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,ntr,'che_mppio:chib_io')
-          end if
-          if ( igaschem == 1 .and. ichsolver > 0 ) then
-            call getmem(chemall_io,jcross1,jcross2,icross1,icross2, &
-                          1,kz,1,totsp,'che_mppio:chemall_io')
-            call getmem(taucldsp_io,jcross1,jcross2,icross1,icross2, &
-                          0,kz,1,nspi,'che_mppio:taucldsp_io')
           end if
         end if
       end if

@@ -69,10 +69,8 @@ module mod_savefile
   integer(ik4), parameter :: idnnsg = 8
   integer(ik4), parameter :: idmonth = 9
   integer(ik4), parameter :: idnqx = 10
-  integer(ik4), parameter :: idspi = 11
-  integer(ik4), parameter :: idspw = 12
+  integer(ik4), parameter :: idabsem = 12
   integer(ik4), parameter :: idntr = 13
-  integer(ik4), parameter :: idtotsp = 14
   integer(ik4), parameter :: iddpt = 15
   integer(ik4), parameter :: ikern = 16
   integer(ik4), parameter :: indep = 17
@@ -140,7 +138,6 @@ module mod_savefile
   real(rkx), public, pointer, contiguous, dimension(:,:) :: tgbb_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: uvdrag_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: q2m_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: t2m_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: u10m_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: v10m_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: w10m_io => null( )
@@ -179,16 +176,12 @@ module mod_savefile
   real(rkx), public, pointer, contiguous, dimension(:,:) :: flw_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: flwd_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: fsw_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: sabveg_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: totcf_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: sinc_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: solis_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: solvs_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: solvsd_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: solvl_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:) :: solvld_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: sst_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
       tskin_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
@@ -202,17 +195,10 @@ module mod_savefile
 
   real(rkx), public, pointer, contiguous, dimension(:,:) :: cbmf2d_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: fcc_io => null( )
 
-  real(rk8), public, pointer, contiguous, dimension(:,:,:,:) :: &
-      gasabsnxt_io => null( )
-  real(rk8), public, pointer, contiguous, dimension(:,:,:,:) :: &
-      gasabstot_io => null( )
   real(rk8), public, pointer, contiguous, dimension(:,:,:) :: &
-      gasemstot_io => null( )
+      absemin_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
-      cldfra_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
       heatrt_io => null( )
   real(rk8), public, pointer, contiguous, dimension(:,:,:) :: &
@@ -233,10 +219,6 @@ module mod_savefile
 
 
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
-      swalb_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
-      lwalb_io => null( )
-  real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
       swdiralb_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
       swdifalb_io => null( )
@@ -244,9 +226,6 @@ module mod_savefile
       lwdiralb_io => null( )
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
       lwdifalb_io => null( )
-
-  real(rkx), public, pointer, contiguous, dimension(:,:,:,:) :: &
-      tmp_io => null( )
 
   interface myputvar
     module procedure myputvar2dd
@@ -320,7 +299,6 @@ module mod_savefile
       call getmem(tgbb_io,jci1,jci2,ici1,ici2,'tgbb_io')
       call getmem(uvdrag_io,jci1,jci2,ici1,ici2,'uvdrag_io')
       call getmem(q2m_io,jci1,jci2,ici1,ici2,'q2m_io')
-      call getmem(t2m_io,jci1,jci2,ici1,ici2,'t2m_io')
       call getmem(u10m_io,jci1,jci2,ici1,ici2,'u10m_io')
       call getmem(v10m_io,jci1,jci2,ici1,ici2,'v10m_io')
       call getmem(w10m_io,jci1,jci2,ici1,ici2,'w10m_io')
@@ -367,33 +345,26 @@ module mod_savefile
       call getmem(um10_io,1,nnsg,jci1,jci2,ici1,ici2,'um10_io')
       call getmem(ldmsk1_io,1,nnsg,jci1,jci2,ici1,ici2,'ldmsk1')
       call getmem(ldmsk_io,jci1,jci2,ici1,ici2,'ldmsk_io')
-      call getmem(flw_io,jci1,jci2,ici1,ici2,'flw_io')
-      call getmem(flwd_io,jci1,jci2,ici1,ici2,'flwd_io')
-      call getmem(fsw_io,jci1,jci2,ici1,ici2,'fsw_io')
-      call getmem(sabveg_io,jci1,jci2,ici1,ici2,'sabveg_io')
-      call getmem(totcf_io,jci1,jci2,ici1,ici2,'totcf_io')
-      call getmem(sinc_io,jci1,jci2,ici1,ici2,'sinc_io')
-      call getmem(solis_io,jci1,jci2,ici1,ici2,'solis_io')
-      call getmem(solvs_io,jci1,jci2,ici1,ici2,'solvs_io')
-      call getmem(solvsd_io,jci1,jci2,ici1,ici2,'solvsd_io')
-      call getmem(solvl_io,jci1,jci2,ici1,ici2,'solvl_io')
-      call getmem(solvld_io,jci1,jci2,ici1,ici2,'solvld_io')
+      if ( ioasiscpl == 1 ) then
+        call getmem(flw_io,jci1,jci2,ici1,ici2,'flw_io')
+        call getmem(flwd_io,jci1,jci2,ici1,ici2,'flwd_io')
+        call getmem(fsw_io,jci1,jci2,ici1,ici2,'fsw_io')
+        call getmem(sinc_io,jci1,jci2,ici1,ici2,'sinc_io')
+        call getmem(solvs_io,jci1,jci2,ici1,ici2,'solvs_io')
+        call getmem(solvsd_io,jci1,jci2,ici1,ici2,'solvsd_io')
+        call getmem(solvl_io,jci1,jci2,ici1,ici2,'solvl_io')
+        call getmem(solvld_io,jci1,jci2,ici1,ici2,'solvld_io')
+      end if
       if ( ibltyp == 2 ) then
-        call getmem(kpbl_io,jci1,jci2,ici1,ici2,'kpbl_io')
-      else if ( ibltyp == 4 ) then
         call getmem(kpbl_io,jci1,jci2,ici1,ici2,'kpbl_io')
       end if
       if ( idcsst == 1 ) then
-        call getmem(sst_io,1,nnsg,jci1,jci2,ici1,ici2,'sst_io')
         call getmem(tskin_io,1,nnsg,jci1,jci2,ici1,ici2,'tskin_io')
         call getmem(deltas_io,1,nnsg,jci1,jci2,ici1,ici2,'deltas_io')
         call getmem(tdeltas_io,1,nnsg,jci1,jci2,ici1,ici2,'tdeltas_io')
       end if
       if ( any(icup == 4) ) then
         call getmem(cbmf2d_io,jci1,jci2,ici1,ici2,'cbmf2d_io')
-      end if
-      if ( ipptls > 0 ) then
-        call getmem(fcc_io,jci1,jci2,ici1,ici2,1,kz,'fcc_io')
       end if
 
       if ( idynamic == 1 ) then
@@ -402,15 +373,13 @@ module mod_savefile
       end if
 
       if ( irrtm == 0 ) then
-        call getmem(gasabsnxt_io,jci1,jci2,ici1,ici2,1,kz,1,4,'gasabsnxt_io')
-        call getmem(gasabstot_io,jci1,jci2,ici1,ici2, &
-                      1,kzp1,1,kzp1,'gasabstot_io')
-        call getmem(gasemstot_io,jci1,jci2,ici1,ici2,1,kzp1,'gasemstot_io')
+        call getmem(absemin_io,jci1,jci2,ici1,ici2,1,5*kz+8,'absemin_io')
       end if
 
-      call getmem(cldfra_io,jci1,jci2,ici1,ici2,1,kz,'cldfra_io')
       call getmem(heatrt_io,jci1,jci2,ici1,ici2,1,kz,'heatrt_io')
-      call getmem(o3prof_io,jci1,jci2,ici1,ici2,1,kzp1,'o3prof_io')
+      if ( iclimao3 == 0 ) then
+        call getmem(o3prof_io,jci1,jci2,ici1,ici2,1,kzp1,'o3prof_io')
+      end if
 
       if ( islab_ocean == 1 .and. do_restore_sst ) then
         call getmem(qflux_restore_sst_io,jci1,jci2,ici1,ici2, &
@@ -429,8 +398,6 @@ module mod_savefile
         call getmem(hi_io,1,nnsg,jci1,jci2,ici1,ici2,'hi_io')
         call getmem(tlak_io,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'tlak_io')
       end if
-      call getmem(swalb_io,1,nnsg,jci1,jci2,ici1,ici2,'swalb')
-      call getmem(lwalb_io,1,nnsg,jci1,jci2,ici1,ici2,'lwalb')
       call getmem(swdiralb_io,1,nnsg,jci1,jci2,ici1,ici2,'swdiralb')
       call getmem(swdifalb_io,1,nnsg,jci1,jci2,ici1,ici2,'swdifalb')
       call getmem(lwdiralb_io,1,nnsg,jci1,jci2,ici1,ici2,'lwdiralb')
@@ -495,7 +462,6 @@ module mod_savefile
         call getmem(tgbb_io,jcross1,jcross2,icross1,icross2,'tgbb_io')
         call getmem(uvdrag_io,jcross1,jcross2,icross1,icross2,'uvdrag_io')
         call getmem(q2m_io,jcross1,jcross2,icross1,icross2,'q2m_io')
-        call getmem(t2m_io,jcross1,jcross2,icross1,icross2,'t2m_io')
         call getmem(u10m_io,jcross1,jcross2,icross1,icross2,'u10m_io')
         call getmem(v10m_io,jcross1,jcross2,icross1,icross2,'v10m_io')
         call getmem(w10m_io,jcross1,jcross2,icross1,icross2,'w10m_io')
@@ -546,25 +512,20 @@ module mod_savefile
         call getmem(um10_io,1,nnsg,jcross1,jcross2,icross1,icross2,'um10_io')
         call getmem(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1')
         call getmem(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')
-        call getmem(flw_io,jcross1,jcross2,icross1,icross2,'flw_io')
-        call getmem(flwd_io,jcross1,jcross2,icross1,icross2,'flwd_io')
-        call getmem(fsw_io,jcross1,jcross2,icross1,icross2,'fsw_io')
-        call getmem(sabveg_io,jcross1,jcross2,icross1,icross2,'sabveg_io')
-        call getmem(totcf_io,jcross1,jcross2,icross1,icross2,'totcf_io')
-        call getmem(sinc_io,jcross1,jcross2,icross1,icross2,'sinc_io')
-        call getmem(solis_io,jcross1,jcross2,icross1,icross2,'solis_io')
-        call getmem(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
-        call getmem(solvsd_io,jcross1,jcross2,icross1,icross2,'solvsd_io')
-        call getmem(solvl_io,jcross1,jcross2,icross1,icross2,'solvl_io')
-        call getmem(solvld_io,jcross1,jcross2,icross1,icross2,'solvld_io')
+        if ( ioasiscpl == 1 ) then
+          call getmem(flw_io,jcross1,jcross2,icross1,icross2,'flw_io')
+          call getmem(flwd_io,jcross1,jcross2,icross1,icross2,'flwd_io')
+          call getmem(fsw_io,jcross1,jcross2,icross1,icross2,'fsw_io')
+          call getmem(sinc_io,jcross1,jcross2,icross1,icross2,'sinc_io')
+          call getmem(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
+          call getmem(solvsd_io,jcross1,jcross2,icross1,icross2,'solvsd_io')
+          call getmem(solvl_io,jcross1,jcross2,icross1,icross2,'solvl_io')
+          call getmem(solvld_io,jcross1,jcross2,icross1,icross2,'solvld_io')
+        end if
         if ( ibltyp == 2 ) then
-          call getmem(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
-        else if ( ibltyp == 4 ) then
           call getmem(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
         end if
         if ( idcsst == 1 ) then
-          call getmem(sst_io,1,nnsg,jcross1,jcross2, &
-                                      icross1,icross2,'sst_io')
           call getmem(tskin_io,1,nnsg,jcross1,jcross2, &
                                         icross1,icross2,'tskin_io')
           call getmem(deltas_io,1,nnsg,jcross1,jcross2, &
@@ -576,9 +537,6 @@ module mod_savefile
         if ( any(icup == 4) ) then
           call getmem(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
         end if
-        if ( ipptls > 0 ) then
-          call getmem(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
-        end if
 
         if ( idynamic == 1 ) then
           call getmem(dstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'dstor_io')
@@ -586,20 +544,16 @@ module mod_savefile
         end if
 
         if ( irrtm == 0 ) then
-          call getmem(gasabsnxt_io,jcross1,jcross2, &
-                        icross1,icross2,1,kz,1,4,'gasabsnxt_io')
-          call getmem(gasabstot_io,jcross1,jcross2, &
-                        icross1,icross2,1,kzp1,1,kzp1,'gasabstot_io')
-          call getmem(gasemstot_io,jcross1,jcross2, &
-                        icross1,icross2,1,kzp1,'gasemstot_io')
+          call getmem(absemin_io,jcross1,jcross2, &
+                        icross1,icross2,1,5*kz+8,'absemin_io')
         end if
 
-        call getmem(cldfra_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,'cldfra_io')
         call getmem(heatrt_io,jcross1,jcross2, &
                       icross1,icross2,1,kz,'heatrt_io')
-        call getmem(o3prof_io,jcross1,jcross2, &
-                      icross1,icross2,1,kzp1,'o3prof_io')
+        if ( iclimao3 == 0 ) then
+          call getmem(o3prof_io,jcross1,jcross2, &
+                        icross1,icross2,1,kzp1,'o3prof_io')
+        end if
 
         if ( islab_ocean == 1 .and. do_restore_sst ) then
           call getmem(qflux_restore_sst_io,jcross1,jcross2, &
@@ -620,8 +574,6 @@ module mod_savefile
           call getmem(tlak_io,1,nnsg,jcross1,jcross2, &
                                 icross1,icross2,1,ndpmax,'tlak_io')
         end if
-        call getmem(swalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'swalb')
-        call getmem(lwalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'lwalb')
         call getmem(swdiralb_io,1,nnsg,jcross1,jcross2, &
                                          icross1,icross2,'swdiralb')
         call getmem(swdifalb_io,1,nnsg,jcross1,jcross2, &
@@ -689,7 +641,6 @@ module mod_savefile
       call mygetvar(ncid,'kpbl',kpbl_io)
     else if ( ibltyp == 4 ) then
       call mygetvar(ncid,'tke_pbl',tke_pbl_io)
-      call mygetvar(ncid,'kpbl',kpbl_io)
     else if ( ibltyp == 5 ) then
       call mygetvar(ncid,'tke_pbl',tke_pbl_io)
     end if
@@ -704,7 +655,6 @@ module mod_savefile
     call mygetvar(ncid,'tgbb',tgbb_io)
     call mygetvar(ncid,'uvdrag',uvdrag_io)
     call mygetvar(ncid,'q2m',q2m_io)
-    call mygetvar(ncid,'t2m',t2m_io)
     call mygetvar(ncid,'u10m',u10m_io)
     call mygetvar(ncid,'v10m',v10m_io)
     call mygetvar(ncid,'w10m',w10m_io)
@@ -726,26 +676,19 @@ module mod_savefile
       call mygetvar(ncid,'cu_avg_ww',cu_avg_ww_io)
     end if
     if ( idcsst == 1 ) then
-      call mygetvar(ncid,'sst',sst_io)
       call mygetvar(ncid,'tskin',tskin_io)
       call mygetvar(ncid,'deltas',deltas_io)
       call mygetvar(ncid,'tdeltas',tdeltas_io)
     end if
     if ( irrtm == 0 ) then
-      call mygetvar(ncid,'gasabsnxt',gasabsnxt_io)
-      call mygetvar(ncid,'gasabstot',gasabstot_io)
-      call mygetvar(ncid,'gasemstot',gasemstot_io)
+      call mygetvar(ncid,'absemin',absemin_io)
     end if
-    if ( ipptls > 0 ) then
-      call mygetvar(ncid,'fcc',fcc_io)
+    if ( ioasiscpl == 1 ) then
+      call mygetvar(ncid,'solvs',solvs_io)
+      call mygetvar(ncid,'solvsd',solvsd_io)
+      call mygetvar(ncid,'solvl',solvl_io)
+      call mygetvar(ncid,'solvld',solvld_io)
     end if
-    call mygetvar(ncid,'solis',solis_io)
-    call mygetvar(ncid,'solvs',solvs_io)
-    call mygetvar(ncid,'solvsd',solvsd_io)
-    call mygetvar(ncid,'solvl',solvl_io)
-    call mygetvar(ncid,'solvld',solvld_io)
-    call mygetvar(ncid,'sabveg',sabveg_io)
-    call mygetvar(ncid,'totcf',totcf_io,.true.)
     call mygetvar(ncid,'sw',sw_io)
     call mygetvar(ncid,'tlef',tlef_io)
     call mygetvar(ncid,'tgrd',tgrd_io)
@@ -780,13 +723,16 @@ module mod_savefile
       call mygetvar(ncid,'hi',hi_io)
       call mygetvar(ncid,'tlak',tlak_io)
     end if
-    call mygetvar(ncid,'cldfra',cldfra_io)
     call mygetvar(ncid,'heatrt',heatrt_io)
-    call mygetvar(ncid,'o3prof',o3prof_io)
-    call mygetvar(ncid,'flw',flw_io)
-    call mygetvar(ncid,'flwd',flwd_io)
-    call mygetvar(ncid,'fsw',fsw_io)
-    call mygetvar(ncid,'sinc',sinc_io)
+    if ( iclimao3 == 0 ) then
+      call mygetvar(ncid,'o3prof',o3prof_io)
+    end if
+    if ( ioasiscpl == 1 ) then
+      call mygetvar(ncid,'flw',flw_io)
+      call mygetvar(ncid,'flwd',flwd_io)
+      call mygetvar(ncid,'fsw',fsw_io)
+      call mygetvar(ncid,'sinc',sinc_io)
+    end if
     call mygetvar(ncid,'ldmsk',ldmsk_io)
     call mygetvar(ncid,'zpbl',zpbl_io)
     if ( ichem == 1 .and. ichecold == 0 ) then
@@ -796,12 +742,6 @@ module mod_savefile
         call mygetvar(ncid,'chia',chia_io)
         call mygetvar(ncid,'chib',chib_io)
       end if
-      if ( igaschem == 1 .and. ichsolver > 0 ) then
-        call mygetvar(ncid,'chemall',chemall_io)
-        call remappnt4(taucldsp_io,tmp_io)
-        call mygetvar(ncid,'taucldsp',tmp_io)
-      end if
-      call mygetvar(ncid,'convpr',convpr_io)
       call mygetvar(ncid,'rainout',rainout_io)
       call mygetvar(ncid,'washout',washout_io)
       call mygetvar(ncid,'remdrd',remdrd_io)
@@ -810,13 +750,10 @@ module mod_savefile
       call mygetvar(ncid,'duflux',duflux_io)
       call mygetvar(ncid,'voflux',voflux_io)
 #else
-      call mygetvar(ncid,'sdelq',sdelq_io)
-      call mygetvar(ncid,'sdelt',sdelt_io)
       call mygetvar(ncid,'svegfrac2d',svegfrac2d_io)
 #endif
       call mygetvar(ncid,'sfracb2d',sfracb2d_io)
       call mygetvar(ncid,'sfracs2d',sfracs2d_io)
-      call mygetvar(ncid,'sfracv2d',sfracv2d_io)
       call mygetvar(ncid,'sxlai2d',sxlai2d_io)
       call mygetvar(ncid,'cra',cra_io)
       if ( iaerosol == 1 .and. iindirect == 2 ) then
@@ -841,8 +778,6 @@ module mod_savefile
       call mygetvar(ncid,'qflux_restore_sst',qflux_restore_sst_io)
       call mygetvar(ncid,'stepcount',stepcount,get_varid(ncid,'stepcount'))
     end if
-    call mygetvar(ncid,'swalb',swalb_io)
-    call mygetvar(ncid,'lwalb',lwalb_io)
     call mygetvar(ncid,'swdiralb',swdiralb_io)
     call mygetvar(ncid,'swdifalb',swdifalb_io)
     call mygetvar(ncid,'lwdiralb',lwdiralb_io)
@@ -887,14 +822,10 @@ module mod_savefile
     dimids(idmonth) = savedefdim(ncid,'month',12)
     dimids(idnqx) = savedefdim(ncid,'nqx',nqx)
     if ( irrtm == 0 ) then
-      dimids(idspw) = savedefdim(ncid,'spw',4)
+      dimids(idabsem) = savedefdim(ncid,'nabsem',5*kz+8)
     end if
     if ( ichem == 1 ) then
       dimids(idntr) = savedefdim(ncid,'ntr',ntr)
-      if ( igaschem == 1 .and. ichsolver > 0 ) then
-        dimids(idspi) = savedefdim(ncid,'nspi',nspi)
-        dimids(idtotsp) = savedefdim(ncid,'totsp',totsp)
-      end if
 #if defined(CLM45) || defined(ECLM)
       dimids(idndu) = savedefdim(ncid,'ndust',4)
 #endif
@@ -964,7 +895,6 @@ module mod_savefile
     else if ( ibltyp == 4 ) then
       wrkdim(3) = dimids(idkh)
       call savedefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call savedefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
     else if ( ibltyp == 5 ) then
       wrkdim(3) = dimids(idkh)
       call savedefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -982,7 +912,6 @@ module mod_savefile
     call savedefvar(ncid,'tgbb',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'uvdrag',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'q2m',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'t2m',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'u10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'v10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'w10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
@@ -1005,27 +934,20 @@ module mod_savefile
       call savedefvar(ncid,'cbmf2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
     end if
     if ( irrtm == 0 ) then
-      ! These radiation buffers are real(rk8) in every precision build.
-      ! Match their file types to avoid netCDF narrowing on restart writes.
-      wrkdim(3) = dimids(idkh)
-      wrkdim(4) = dimids(idspw)
-      call savedefvar(ncid,'gasabsnxt',nf90_double,wrkdim,1,4,varids,ivcc)
-      wrkdim(3) = dimids(idkf)
-      wrkdim(4) = dimids(idkf)
-      call savedefvar(ncid,'gasabstot',nf90_double,wrkdim,1,4,varids,ivcc)
-      call savedefvar(ncid,'gasemstot',nf90_double,wrkdim,1,3,varids,ivcc)
+      ! Inputs of the last absorptivity/emissivity update, real(rk8) in
+      ! every precision build: the tables are rebuilt from them.
+      wrkdim(3) = dimids(idabsem)
+      call savedefvar(ncid,'absemin',nf90_double,wrkdim,1,3,varids,ivcc)
     end if
     if ( ipptls > 0 ) then
       wrkdim(3) = dimids(idkh)
-      call savedefvar(ncid,'fcc',regcm_vartype,wrkdim,1,3,varids,ivcc)
     end if
-    call savedefvar(ncid,'solis',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'solvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'solvsd',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'solvl',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'solvld',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'sabveg',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'totcf',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    if ( ioasiscpl == 1 ) then
+      call savedefvar(ncid,'solvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'solvsd',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'solvl',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'solvld',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
     wrkdim(1) = dimids(idnnsg)
     wrkdim(2) = dimids(idjcross)
     wrkdim(3) = dimids(idicross)
@@ -1070,7 +992,6 @@ module mod_savefile
     call savedefvar(ncid,'emiss',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'um10',regcm_vartype,wrkdim,1,3,varids,ivcc)
     if ( idcsst == 1 ) then
-      call savedefvar(ncid,'sst',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'tskin',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'deltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'tdeltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -1084,15 +1005,18 @@ module mod_savefile
     wrkdim(1) = dimids(idjcross)
     wrkdim(2) = dimids(idicross)
     wrkdim(3) = dimids(idkh)
-    call savedefvar(ncid,'cldfra',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'heatrt',regcm_vartype,wrkdim,1,3,varids,ivcc)
     wrkdim(3) = dimids(idkf)
-    ! o3prof_io is also always real(rk8).
-    call savedefvar(ncid,'o3prof',nf90_double,wrkdim,1,3,varids,ivcc)
-    call savedefvar(ncid,'flw',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'flwd',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'sinc',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    if ( iclimao3 == 0 ) then
+      ! o3prof_io is also always real(rk8).
+      call savedefvar(ncid,'o3prof',nf90_double,wrkdim,1,3,varids,ivcc)
+    end if
+    if ( ioasiscpl == 1 ) then
+      call savedefvar(ncid,'flw',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'flwd',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'sinc',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
     call savedefvar(ncid,'ldmsk',nf90_int,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'zpbl',regcm_vartype,wrkdim,1,2,varids,ivcc)
     if ( ichem == 1 ) then
@@ -1104,17 +1028,8 @@ module mod_savefile
         call savedefvar(ncid,'chia',regcm_vartype,wrkdim,1,4,varids,ivcc)
         call savedefvar(ncid,'chib',regcm_vartype,wrkdim,1,4,varids,ivcc)
       end if
-      if ( igaschem == 1 .and. ichsolver > 0 ) then
-        wrkdim(3) = dimids(idkh)
-        wrkdim(4) = dimids(idtotsp)
-        call savedefvar(ncid,'chemall',regcm_vartype,wrkdim,1,4,varids,ivcc)
-        wrkdim(3) = dimids(idkf)
-        wrkdim(4) = dimids(idspi)
-        call savedefvar(ncid,'taucldsp',regcm_vartype,wrkdim,1,4,varids,ivcc)
-      end if
       wrkdim(3) = dimids(idkh)
       wrkdim(4) = dimids(idntr)
-      call savedefvar(ncid,'convpr',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'rainout',regcm_vartype,wrkdim,1,4,varids,ivcc)
       call savedefvar(ncid,'washout',regcm_vartype,wrkdim,1,4,varids,ivcc)
       wrkdim(3) = dimids(idntr)
@@ -1126,13 +1041,10 @@ module mod_savefile
       wrkdim(3) = dimids(idntr)
       call savedefvar(ncid,'voflux',regcm_vartype,wrkdim,1,3,varids,ivcc)
 #else
-      call savedefvar(ncid,'sdelq',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call savedefvar(ncid,'sdelt',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'svegfrac2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
 #endif
       call savedefvar(ncid,'sfracb2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'sfracs2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call savedefvar(ncid,'sfracv2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'sxlai2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'cra',regcm_vartype,wrkdim,1,2,varids,ivcc)
       if ( ichdrdepo == 2 ) then
@@ -1170,8 +1082,6 @@ module mod_savefile
     wrkdim(1) = dimids(idnnsg)
     wrkdim(2) = dimids(idjcross)
     wrkdim(3) = dimids(idicross)
-    call savedefvar(ncid,'swalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
-    call savedefvar(ncid,'lwalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'swdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'swdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'lwdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -1222,7 +1132,6 @@ module mod_savefile
       call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
     else if ( ibltyp == 4 ) then
       call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
-      call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
     else if ( ibltyp == 5 ) then
       call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
     end if
@@ -1237,7 +1146,6 @@ module mod_savefile
     call myputvar(ncid,'tgbb',tgbb_io,varids,ivcc)
     call myputvar(ncid,'uvdrag',uvdrag_io,varids,ivcc)
     call myputvar(ncid,'q2m',q2m_io,varids,ivcc)
-    call myputvar(ncid,'t2m',t2m_io,varids,ivcc)
     call myputvar(ncid,'u10m',u10m_io,varids,ivcc)
     call myputvar(ncid,'v10m',v10m_io,varids,ivcc)
     call myputvar(ncid,'w10m',w10m_io,varids,ivcc)
@@ -1259,20 +1167,14 @@ module mod_savefile
       call myputvar(ncid,'cbmf2d',cbmf2d_io,varids,ivcc)
     end if
     if ( irrtm == 0 ) then
-      call myputvar(ncid,'gasabsnxt',gasabsnxt_io,varids,ivcc)
-      call myputvar(ncid,'gasabstot',gasabstot_io,varids,ivcc)
-      call myputvar(ncid,'gasemstot',gasemstot_io,varids,ivcc)
+      call myputvar(ncid,'absemin',absemin_io,varids,ivcc)
     end if
-    if ( ipptls > 0 ) then
-      call myputvar(ncid,'fcc',fcc_io,varids,ivcc)
+    if ( ioasiscpl == 1 ) then
+      call myputvar(ncid,'solvs',solvs_io,varids,ivcc)
+      call myputvar(ncid,'solvsd',solvsd_io,varids,ivcc)
+      call myputvar(ncid,'solvl',solvl_io,varids,ivcc)
+      call myputvar(ncid,'solvld',solvld_io,varids,ivcc)
     end if
-    call myputvar(ncid,'solis',solis_io,varids,ivcc)
-    call myputvar(ncid,'solvs',solvs_io,varids,ivcc)
-    call myputvar(ncid,'solvsd',solvsd_io,varids,ivcc)
-    call myputvar(ncid,'solvl',solvl_io,varids,ivcc)
-    call myputvar(ncid,'solvld',solvld_io,varids,ivcc)
-    call myputvar(ncid,'sabveg',sabveg_io,varids,ivcc)
-    call myputvar(ncid,'totcf',totcf_io,varids,ivcc)
     call myputvar(ncid,'sw',sw_io,varids,ivcc)
     call myputvar(ncid,'tlef',tlef_io,varids,ivcc)
     call myputvar(ncid,'tgrd',tgrd_io,varids,ivcc)
@@ -1303,7 +1205,6 @@ module mod_savefile
     call myputvar(ncid,'emiss',emisv_io,varids,ivcc)
     call myputvar(ncid,'um10',um10_io,varids,ivcc)
     if ( idcsst == 1 ) then
-      call myputvar(ncid,'sst',sst_io,varids,ivcc)
       call myputvar(ncid,'tskin',tskin_io,varids,ivcc)
       call myputvar(ncid,'deltas',deltas_io,varids,ivcc)
       call myputvar(ncid,'tdeltas',tdeltas_io,varids,ivcc)
@@ -1313,13 +1214,16 @@ module mod_savefile
       call myputvar(ncid,'hi',hi_io,varids,ivcc)
       call myputvar(ncid,'tlak',tlak_io,varids,ivcc)
     end if
-    call myputvar(ncid,'cldfra',cldfra_io,varids,ivcc)
     call myputvar(ncid,'heatrt',heatrt_io,varids,ivcc)
-    call myputvar(ncid,'o3prof',o3prof_io,varids,ivcc)
-    call myputvar(ncid,'flw',flw_io,varids,ivcc)
-    call myputvar(ncid,'flwd',flwd_io,varids,ivcc)
-    call myputvar(ncid,'fsw',fsw_io,varids,ivcc)
-    call myputvar(ncid,'sinc',sinc_io,varids,ivcc)
+    if ( iclimao3 == 0 ) then
+      call myputvar(ncid,'o3prof',o3prof_io,varids,ivcc)
+    end if
+    if ( ioasiscpl == 1 ) then
+      call myputvar(ncid,'flw',flw_io,varids,ivcc)
+      call myputvar(ncid,'flwd',flwd_io,varids,ivcc)
+      call myputvar(ncid,'fsw',fsw_io,varids,ivcc)
+      call myputvar(ncid,'sinc',sinc_io,varids,ivcc)
+    end if
     call myputvar(ncid,'ldmsk',ldmsk_io,varids,ivcc)
     call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
     if ( ichem == 1 ) then
@@ -1329,12 +1233,6 @@ module mod_savefile
         call myputvar(ncid,'chia',chia_io,varids,ivcc)
         call myputvar(ncid,'chib',chib_io,varids,ivcc)
       end if
-      if ( igaschem == 1 .and. ichsolver > 0 ) then
-        call myputvar(ncid,'chemall',chemall_io,varids,ivcc)
-        call remappnt4(taucldsp_io,tmp_io)
-        call myputvar(ncid,'taucldsp',tmp_io,varids,ivcc)
-      end if
-      call myputvar(ncid,'convpr',convpr_io,varids,ivcc)
       call myputvar(ncid,'rainout',rainout_io,varids,ivcc)
       call myputvar(ncid,'washout',washout_io,varids,ivcc)
       call myputvar(ncid,'remdrd',remdrd_io,varids,ivcc)
@@ -1343,13 +1241,10 @@ module mod_savefile
       call myputvar(ncid,'duflux',duflux_io,varids,ivcc)
       call myputvar(ncid,'voflux',voflux_io,varids,ivcc)
 #else
-      call myputvar(ncid,'sdelq',sdelq_io,varids,ivcc)
-      call myputvar(ncid,'sdelt',sdelt_io,varids,ivcc)
       call myputvar(ncid,'svegfrac2d',svegfrac2d_io,varids,ivcc)
 #endif
       call myputvar(ncid,'sfracb2d',sfracb2d_io,varids,ivcc)
       call myputvar(ncid,'sfracs2d',sfracs2d_io,varids,ivcc)
-      call myputvar(ncid,'sfracv2d',sfracv2d_io,varids,ivcc)
       call myputvar(ncid,'sxlai2d',sxlai2d_io,varids,ivcc)
       call myputvar(ncid,'cra',cra_io,varids,ivcc)
       if ( iaerosol == 1 .and. iindirect == 2 ) then
@@ -1374,8 +1269,6 @@ module mod_savefile
       call myputvar(ncid,'qflux_restore_sst',qflux_restore_sst_io,varids,ivcc)
       call myputvar(ncid,'stepcount',stepcount,size(stepcount),varids,ivcc)
     end if
-    call myputvar(ncid,'swalb',swalb_io,varids,ivcc)
-    call myputvar(ncid,'lwalb',lwalb_io,varids,ivcc)
     call myputvar(ncid,'swdiralb',swdiralb_io,varids,ivcc)
     call myputvar(ncid,'swdifalb',swdifalb_io,varids,ivcc)
     call myputvar(ncid,'lwdiralb',lwdiralb_io,varids,ivcc)

@@ -205,7 +205,7 @@ module mod_cu_tiedtke
     implicit none
     type(mod_2_cum), intent(in) :: m2c
     integer(ik4) :: i, j, k, n, ii
-    real(rkx) :: zmc, zx, zw, zc0, zc1, zc2
+    real(rkx) :: zmc, zx, zw, zc0, zc1, zc2, zcov
     ! Xu and Krueger (1991), Table 5: convective cloud fraction of thin
     ! (30 mb) layers at 0.8, 3.9 and 7.9 km, fit to the log of the grid
     ! mean cumulus mass flux in mb/h (valid above 0.01 mb/h).
@@ -223,6 +223,10 @@ module mod_cu_tiedtke
     real(rkx), parameter :: xkc23 = 0.0030_rkx
     ! kg m-2 s-1 to mb/h
     real(rkx), parameter :: xkmbh = egrav*3600.0_rkx/100.0_rkx
+    ! Neggers et al. (2011), JGR 116, D21202: the cover projected by a
+    ! cumulus layer of depth dz is (1 + b dz) times its volume fraction
+    ! (BOMEX value of b, m-1).
+    real(rkx), parameter :: cuovlb = 0.0064_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4), save :: idindx = 0
@@ -536,7 +540,7 @@ module mod_cu_tiedtke
         cu_kbot(j,i) = kcbot(ii)
         !$acc loop seq
         do k = kctop(ii), kcbot(ii)
-          if ( iconvcf == 1 ) then
+          if ( iconvcf == 1 .or. iconvcf == 2 ) then
             ! Fit coefficients linear in height between the three
             ! levels, constant outside. Below the minimum of the
             ! quadratic (about 0.13 mb/h) the minimum value is used.
@@ -555,6 +559,14 @@ module mod_cu_tiedtke
               end if
               zx = max(log(zmc),-zc1/(d_two*zc2))
               cu_cldfrc(j,i,k) = zc0 + zc1*zx + zc2*zx*zx
+              if ( iconvcf == 2 ) then
+                ! Volume fraction to the area fraction seen by the
+                ! radiation, in the symmetric form of Brooks et al.
+                ! (2005), JAS 62, 2248, which tends to 1 for full cover.
+                zcov = d_one + cuovlb*(xpgh(ii,k)-xpgh(ii,k+1))*regrav
+                cu_cldfrc(j,i,k) = d_one / (d_one + &
+                  (d_one/max(cu_cldfrc(j,i,k),1.0e-6_rkx)-d_one)/zcov)
+              end if
             else
               cu_cldfrc(j,i,k) = d_zero
             end if

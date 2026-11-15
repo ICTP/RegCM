@@ -64,12 +64,12 @@ module mod_che_interface
   public :: convcldfra, cadvhdiag, cadvvdiag, cbdydiag, cconvdiag
   public :: cdifhdiag, ctbldiag
   public :: chem_bdyin, chem_bdyval
-  public :: chemall, chemall_io
+  public :: chemall
   public :: washout, washout_io
   public :: remdrd, remdrd_io
-  public :: rainout, rainout_io, convpr_io
-  public :: sdelq_io, sdelt_io, sfracb2d_io, sfracs2d_io, ssw2da_io
-  public :: duflux_io, voflux_io, sfracv2d_io, svegfrac2d_io, taucldsp_io
+  public :: rainout, rainout_io
+  public :: sfracb2d_io, sfracs2d_io, ssw2da_io
+  public :: duflux_io, voflux_io, svegfrac2d_io
   public :: drydepv, chifxuw
   public :: sxlai2d_io, cra_io, ccn_io, drydepv_io, chifxuw_io
   public :: wetdepflx_io, drydepflx_io

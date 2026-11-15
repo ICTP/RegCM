@@ -24,8 +24,8 @@ module mod_rad_colmod3
   use mod_runparams, only : ipptls, eccf, ichem, iindirect
   use mod_runparams, only : iqv, iqc, iqi, ncld, chtrname
   use mod_runparams, only : iclimaaer
-  use mod_rad_radiation, only : radctl, radtype
-  use mod_rad_common, only : gasabsnxt, gasabstot, gasemstot
+  use mod_rad_radiation, only : radctl, radtype, radtables
+  use mod_rad_common, only : gasabsnxt, gasabstot, gasemstot, absemin
   use mod_rad_common, only : o3prof, taucldsp, dosw, dolw, doabsems
   use mod_rad_outrad, only : radout
   use mod_rad_aerosol, only : aermmr, tauxar3d, tauasc3d, gtota3d
@@ -38,7 +38,7 @@ module mod_rad_colmod3
 
   private
 
-  public :: allocate_mod_rad_colmod3, colmod3
+  public :: allocate_mod_rad_colmod3, colmod3, colmod3_tables
 
   real(rk8), pointer, contiguous, dimension(:,:) :: temp
 
@@ -55,6 +55,7 @@ module mod_rad_colmod3
     call getmem(rt%ioro,1,npr,'colmod3:ioro')
     call getmem(rt%dlat,1,npr,'rad:dlat')
     call getmem(rt%xptrop,1,npr,'rad:xptrop')
+    call getmem(rt%ghg,1,5,1,npr,'rad:ghg')
     call getmem(rt%ts,1,npr,'colmod3:ts')
     call getmem(rt%ps,1,npr,'colmod3:ps')
     call getmem(rt%fsns,1,npr,'colmod3:fsns')
@@ -667,17 +668,24 @@ module mod_rad_colmod3
     ! Save gas emission/absorbtion
     !
     if ( labsem ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, m = 1:4 )
+      call tables_to_grid
+      ! Inputs of this update, to rebuild the tables at restart
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         n = (j-jci1)+(i-ici1)*nj+1
-        gasabsnxt(j,i,k,m) = rt%absgasnxt(k,m,n)
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k2 = 1:kzp1, k = 1:kzp1 )
-        n = (j-jci1)+(i-ici1)*nj+1
-        gasabstot(j,i,k2,k) = rt%absgastot(k2,k,n)
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-        n = (j-jci1)+(i-ici1)*nj+1
-        gasemstot(j,i,k) = rt%emsgastot(k,n)
+        absemin(j,i,1) = rt%ts(n)
+        absemin(j,i,2) = rt%xptrop(n)
+        do m = 1, 5
+          absemin(j,i,2+m) = rt%ghg(m,n)
+        end do
+        do k = 1, kz
+          absemin(j,i,7+k) = rt%t(k,n)
+          absemin(j,i,7+kz+k) = rt%q(k,n)
+          absemin(j,i,7+2*kz+k) = rt%pmid(k,n)
+          absemin(j,i,7+3*kz+k) = rt%o3vmr(k,n)
+        end do
+        do k = 1, kzp1
+          absemin(j,i,7+4*kz+k) = rt%pint(k,n)
+        end do
       end do
     end if
     if ( ichem == 1 .or. iclimaaer == 1 ) then
@@ -704,6 +712,58 @@ module mod_rad_colmod3
 
   !@acc call nvtxEndRange
   end subroutine colmod3
+
+  !
+  ! Rebuild at restart the absorptivity/emissivity tables of the last
+  ! update from its inputs saved in the restart file (absemin).
+  !
+  subroutine colmod3_tables(m2r)
+    implicit none
+    type(mod_2_rad), intent(in) :: m2r
+    integer(ik4) :: n, m, i, j, k, nj
+    nj = 1+(jci2-jci1)
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      n = (j-jci1)+(i-ici1)*nj+1
+      rt%dlat(n) = m2r%xlat(j,i)
+      rt%ts(n) = absemin(j,i,1)
+      rt%xptrop(n) = absemin(j,i,2)
+      do m = 1, 5
+        rt%ghg(m,n) = absemin(j,i,2+m)
+      end do
+      do k = 1, kz
+        rt%t(k,n) = absemin(j,i,7+k)
+        rt%q(k,n) = absemin(j,i,7+kz+k)
+        rt%pmid(k,n) = absemin(j,i,7+2*kz+k)
+        rt%o3vmr(k,n) = absemin(j,i,7+3*kz+k)
+        ! As in colmod3, the log of the model (rkx) pressure
+        rt%pmln(k,n) = log(real(rt%pmid(k,n),rkx))
+      end do
+      do k = 1, kzp1
+        rt%pint(k,n) = absemin(j,i,7+4*kz+k)
+        rt%piln(k,n) = log(real(rt%pint(k,n),rkx))
+      end do
+    end do
+    call radtables(rt)
+    call tables_to_grid
+  end subroutine colmod3_tables
+
+  subroutine tables_to_grid
+    implicit none
+    integer(ik4) :: n, m, i, j, k, k2, nj
+    nj = 1+(jci2-jci1)
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, m = 1:4 )
+      n = (j-jci1)+(i-ici1)*nj+1
+      gasabsnxt(j,i,k,m) = rt%absgasnxt(k,m,n)
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k2 = 1:kzp1, k = 1:kzp1 )
+      n = (j-jci1)+(i-ici1)*nj+1
+      gasabstot(j,i,k2,k) = rt%absgastot(k2,k,n)
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+      n = (j-jci1)+(i-ici1)*nj+1
+      gasemstot(j,i,k) = rt%emsgastot(k,n)
+    end do
+  end subroutine tables_to_grid
 
 end module mod_rad_colmod3
 

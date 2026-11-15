@@ -1833,7 +1833,6 @@ module mod_output
           end if
           if ( ibltyp == 4 ) then
             tke_pbl_io = atms%tkepbl
-            kpbl_io = kpbl
           end if
           if ( ibltyp == 5 ) then
             tke_pbl_io = atms%tkepbl
@@ -1860,17 +1859,14 @@ module mod_output
           rah_io = sfs%rah1
           br_io = sfs%br
           q2m_io = sfs%q2m
-          t2m_io = sfs%t2m
           u10m_io = sfs%u10m
           v10m_io = sfs%v10m
           w10m_io = sfs%w10m
           ustar_io = sfs%ustar
-          if ( ipptls > 0 ) then
-            fcc_io = fcc
-          end if
-          cldfra_io = cu_cldfrc
           heatrt_io = heatrt
-          o3prof_io = o3prof
+          if ( iclimao3 == 0 ) then
+            o3prof_io = o3prof
+          end if
           zpbl_io = zpbl
           if ( any(icup == 3) ) then
             cldefi_io = cldefi
@@ -1882,9 +1878,7 @@ module mod_output
             cu_avg_ww_io = avg_ww
           end if
           if ( irrtm == 0 ) then
-            gasabsnxt_io = gasabsnxt
-            gasabstot_io = gasabstot
-            gasemstot_io = gasemstot
+            absemin_io = absemin
           end if
           sw_io = lms%sw
 #ifdef CLM45
@@ -1914,8 +1908,6 @@ module mod_output
           snag_io = lms%snag
           emisv_io = lms%emisv
           um10_io = lms%um10
-          swalb_io = lms%swalb
-          lwalb_io = lms%lwalb
           swdiralb_io = lms%swdiralb
           swdifalb_io = lms%swdifalb
           lwdiralb_io = lms%lwdiralb
@@ -1923,17 +1915,16 @@ module mod_output
           do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
             ldmsk1_io(n,j,i) = mdsub%ldmsk(n,j,i)
           end do
-          solis_io = solis
-          solvs_io = solvs
-          solvsd_io = solvsd
-          solvl_io = solvl
-          solvld_io = solvld
-          sabveg_io = sabveg
-          totcf_io = totcf
-          flw_io = flw
-          flwd_io = flwd
-          fsw_io = fsw
-          sinc_io = sinc
+          if ( ioasiscpl == 1 ) then
+            solvs_io = solvs
+            solvsd_io = solvsd
+            solvl_io = solvl
+            solvld_io = solvld
+            flw_io = flw
+            flwd_io = flwd
+            fsw_io = fsw
+            sinc_io = sinc
+          end if
           ldmsk_io = mddom%ldmsk
           if ( lakemod == 1 ) then
             eta_io = lms%eta
@@ -1941,7 +1932,6 @@ module mod_output
             tlak_io = lms%tlake
           end if
           if ( idcsst == 1 ) then
-            sst_io = lms%sst
             tskin_io = lms%tskin
             deltas_io = lms%deltas
             tdeltas_io = lms%tdeltas
@@ -1953,24 +1943,16 @@ module mod_output
             end do
           end if
           if ( ichem == 1 ) then
-            convpr_io = convpr
             rainout_io = rainout
             washout_io = washout
             remdrd_io = remdrd
-            if ( igaschem == 1 .and. ichsolver > 0 ) then
-              chemall_io = chemall
-              taucldsp_io = taucldsp
-            end if
             ssw2da_io = ssw2da
 #if defined(CLM45) || defined(ECLM)
             duflux_io = dustflx_clm
             voflux_io = voc_em_clm
 #else
-            sdelt_io = sdelt
-            sdelq_io = sdelq
             svegfrac2d_io = svegfrac2d
 #endif
-            sfracv2d_io = sfracv2d
             sfracb2d_io = sfracb2d
             sfracs2d_io = sfracs2d
             sxlai2d_io = sxlai2d
@@ -2035,7 +2017,6 @@ module mod_output
           end if
           if ( ibltyp == 4 ) then
             call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)
-            call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
           end if
           if ( ibltyp == 5 ) then
             call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)
@@ -2058,17 +2039,14 @@ module mod_output
           call grid_collect(sfs%rah1,rah_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%br,br_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%q2m,q2m_io,jci1,jci2,ici1,ici2)
-          call grid_collect(sfs%t2m,t2m_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%u10m,u10m_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%v10m,v10m_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%w10m,w10m_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%ustar,ustar_io,jci1,jci2,ici1,ici2)
-          if ( ipptls > 0 ) then
-            call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
-          end if
-          call grid_collect(cu_cldfrc,cldfra_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(heatrt,heatrt_io,jci1,jci2,ici1,ici2,1,kz)
-          call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
+          if ( iclimao3 == 0 ) then
+            call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
+          end if
           call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
           if ( any(icup == 3) ) then
             call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
@@ -2080,11 +2058,8 @@ module mod_output
             call grid_collect(avg_ww,cu_avg_ww_io,jci1,jci2,ici1,ici2,1,kz)
           end if
           if ( irrtm == 0 ) then
-            call grid_collect(gasabsnxt,gasabsnxt_io, &
-                              jci1,jci2,ici1,ici2,1,kz,1,4)
-            call grid_collect(gasabstot,gasabstot_io, &
-                              jci1,jci2,ici1,ici2,1,kzp1,1,kzp1)
-            call grid_collect(gasemstot,gasemstot_io,jci1,jci2,ici1,ici2,1,kzp1)
+            call grid_collect(absemin,absemin_io, &
+                              jci1,jci2,ici1,ici2,1,5*kz+8)
           end if
           call subgrid_collect(lms%sw,sw_io,jci1,jci2,ici1,ici2, &
                                1,num_soil_layers)
@@ -2119,24 +2094,21 @@ module mod_output
           call subgrid_collect(lms%snag,snag_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%emisv,emisv_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%um10,um10_io,jci1,jci2,ici1,ici2)
-          call subgrid_collect(lms%swalb,swalb_io,jci1,jci2,ici1,ici2)
-          call subgrid_collect(lms%lwalb,lwalb_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%swdiralb,swdiralb_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%swdifalb,swdifalb_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%lwdiralb,lwdiralb_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%lwdifalb,lwdifalb_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(mdsub%ldmsk,ldmsk1_io,jci1,jci2,ici1,ici2)
-          call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
-          call grid_collect(solvs,solvs_io,jci1,jci2,ici1,ici2)
-          call grid_collect(solvsd,solvsd_io,jci1,jci2,ici1,ici2)
-          call grid_collect(solvl,solvl_io,jci1,jci2,ici1,ici2)
-          call grid_collect(solvld,solvld_io,jci1,jci2,ici1,ici2)
-          call grid_collect(sabveg,sabveg_io,jci1,jci2,ici1,ici2)
-          call grid_collect(totcf,totcf_io,jci1,jci2,ici1,ici2)
-          call grid_collect(flw,flw_io,jci1,jci2,ici1,ici2)
-          call grid_collect(flwd,flwd_io,jci1,jci2,ici1,ici2)
-          call grid_collect(fsw,fsw_io,jci1,jci2,ici1,ici2)
-          call grid_collect(sinc,sinc_io,jci1,jci2,ici1,ici2)
+          if ( ioasiscpl == 1 ) then
+            call grid_collect(solvs,solvs_io,jci1,jci2,ici1,ici2)
+            call grid_collect(solvsd,solvsd_io,jci1,jci2,ici1,ici2)
+            call grid_collect(solvl,solvl_io,jci1,jci2,ici1,ici2)
+            call grid_collect(solvld,solvld_io,jci1,jci2,ici1,ici2)
+            call grid_collect(flw,flw_io,jci1,jci2,ici1,ici2)
+            call grid_collect(flwd,flwd_io,jci1,jci2,ici1,ici2)
+            call grid_collect(fsw,fsw_io,jci1,jci2,ici1,ici2)
+            call grid_collect(sinc,sinc_io,jci1,jci2,ici1,ici2)
+          end if
           call grid_collect(mddom%ldmsk,ldmsk_io,jci1,jci2,ici1,ici2)
           if ( lakemod == 1 ) then
             call subgrid_collect(lms%eta,eta_io,jci1,jci2,ici1,ici2)
@@ -2144,7 +2116,6 @@ module mod_output
             call subgrid_collect(lms%tlake,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
           end if
           if ( idcsst == 1 ) then
-            call subgrid_collect(lms%sst,sst_io,jci1,jci2,ici1,ici2)
             call subgrid_collect(lms%tskin,tskin_io,jci1,jci2,ici1,ici2)
             call subgrid_collect(lms%deltas,deltas_io,jci1,jci2,ici1,ici2)
             call subgrid_collect(lms%tdeltas,tdeltas_io,jci1,jci2,ici1,ici2)
@@ -2154,26 +2125,16 @@ module mod_output
             call grid_collect(hstor,hstor_io,jde1,jde2,ide1,ide2,1,nsplit)
           end if
           if ( ichem == 1 ) then
-            call grid_collect(convpr,convpr_io,jci1,jci2,ici1,ici2,1,kz)
             call grid_collect(rainout,rainout_io,jci1,jci2,ici1,ici2,1,kz,1,ntr)
             call grid_collect(washout,washout_io,jci1,jci2,ici1,ici2,1,kz,1,ntr)
             call grid_collect(remdrd,remdrd_io,jci1,jci2,ici1,ici2,1,ntr)
-            if ( igaschem == 1 .and. ichsolver > 0 ) then
-              call grid_collect(chemall,chemall_io,jci1,jci2,ici1,ici2, &
-                                1,kz,1,totsp)
-              call grid_collect(taucldsp,taucldsp_io,jci1,jci2,ici1,ici2, &
-                                0,kz,1,nspi)
-            end if
             call grid_collect(ssw2da,ssw2da_io,jci1,jci2,ici1,ici2)
 #if defined(CLM45) || defined(ECLM)
             call grid_collect(dustflx_clm,duflux_io,jci1,jci2,ici1,ici2,1,4)
             call grid_collect(voc_em_clm,voflux_io,jci1,jci2,ici1,ici2,1,ntr)
 #else
-            call grid_collect(sdelt,sdelt_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sdelq,sdelq_io,jci1,jci2,ici1,ici2)
             call grid_collect(svegfrac2d,svegfrac2d_io,jci1,jci2,ici1,ici2)
 #endif
-            call grid_collect(sfracv2d,sfracv2d_io,jci1,jci2,ici1,ici2)
             call grid_collect(sfracb2d,sfracb2d_io,jci1,jci2,ici1,ici2)
             call grid_collect(sfracs2d,sfracs2d_io,jci1,jci2,ici1,ici2)
             call grid_collect(sxlai2d,sxlai2d_io,jci1,jci2,ici1,ici2)

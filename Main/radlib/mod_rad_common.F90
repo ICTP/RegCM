@@ -32,6 +32,14 @@ module mod_rad_common
   real(rk8), pointer, contiguous, dimension(:,:,:,:)  :: gasabsnxt => null( )
   real(rk8), pointer, contiguous, dimension(:,:,:,:)  :: gasabstot => null( )
   real(rk8), pointer, contiguous, dimension(:,:,:) :: gasemstot => null( )
+  ! Column inputs of the last absorptivity/emissivity update, saved in
+  ! the restart file instead of the tables, which are rebuilt from them
+  ! (5*kz+8 values per column, against (kz+1)**2+5*kz+1 for the tables).
+  ! Layout of the last index: surface temperature, tropopause pressure,
+  ! co2, ch4, n2o, cfc11, cfc12 before the stratospheric scaling, then
+  ! temperature, water vapour, mid level pressure and ozone (kz values
+  ! each) and interface pressure (kz+1 values).
+  real(rk8), pointer, contiguous, dimension(:,:,:) :: absemin => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: taucldsp => null( )
   logical, save :: doabsems, dolw, dosw
   integer(ik4), save :: ichso4, ichbc, ichoc
