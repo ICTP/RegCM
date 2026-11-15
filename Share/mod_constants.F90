@@ -398,11 +398,6 @@ module mod_constants
   real(rkx), parameter :: ocn_sfcemiss = emsw
   real(rkx), parameter :: ice_sfcemiss = 0.982_rkx
 
-  real(rkx), parameter :: aice = 613.20_rkx
-  real(rkx), parameter :: bice = 22.452_rkx
-  real(rkx), parameter :: cice = 6133.0_rkx
-  real(rkx), parameter :: dice = 0.61_rkx
-
   ! Pressure gradient force calculations (Why not standard atmosphere?)
   real(rkx), parameter :: t00pg = 287.0_rkx       ! stdt ?
   real(rkx), parameter :: p00pg = 101.325_rkx     ! stdpcb ?
