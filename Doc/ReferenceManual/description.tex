@@ -2027,9 +2027,9 @@ M_b = \frac{\displaystyle\int_{p_{bot}}^{p_{top}}
 \end{eqnarray}
 
 where $q_{cb}$ and $q^*_{cb}$ are the specific humidity and its saturation
-value at cloud base. For shallow convection, the cloud-base mass flux is set
-proportional to the turbulent moisture flux at the surface, coupling the
-parameterization to the planetary boundary layer. The updraft and downdraft
+value at cloud base. For shallow convection, the cloud-base mass flux follows
+from a balance of moist static energy in the sub-cloud layer (see below),
+coupling the parameterization to the planetary boundary layer. The updraft and downdraft
 properties are computed from the entraining-plume equations:
 
 \begin{eqnarray}
@@ -2059,17 +2059,56 @@ M_b &=& \frac{CAPE}{\tau_c\,\partial CAPE / \partial M_b}
 \end{eqnarray}
 
 The parcel for convection starting at the lowest model level gets a
-temperature and moisture excess from the surface fluxes,
+temperature and moisture excess from the surface fluxes, as in the IFS
+cloud base routine,
 
 \begin{eqnarray}
-\Delta T = -1.5\,\frac{F_H}{\rho\,w_s\,c_p}, \qquad
-\Delta q = -1.5\,\frac{F_q}{\rho\,w_s}
+\Delta T = \min\left[1\,\mathrm{K},\max\left(0.2\,\mathrm{K},
+  -1.5\,\frac{F_H}{\rho\,w_s\,c_p}\right)\right], \qquad
+\Delta q = \min\left[5\times10^{-4},\max\left(10^{-4},
+  -1.5\,\frac{F_q}{\rho\,w_s}\right)\right]
 \label{eqn_model:TIEDexcess}
 \end{eqnarray}
 
 where $F_H$ and $F_q$ are the surface sensible heat and moisture fluxes
-(positive downward) and $w_s$ is a convective velocity scale of the lowest
-layer, computed only when the surface virtual heat flux is upward.
+(positive downward) and $w_s$ is the convective velocity scale of the lowest
+layer of depth $z_1$,
+
+\begin{eqnarray}
+w_s = 1.2\left(u_*^3 - 1.5\,\kappa\,\frac{g\,z_1}{T_1}\,
+      \overline{w'\theta_v'}_s\right)^{1/3}
+\label{eqn_model:TIEDws}
+\end{eqnarray}
+
+with $\kappa$ the von K\'arm\'an constant, the friction velocity $u_*$ from
+the surface scheme (bounded below by 0.1~m\,s$^{-1}$) and
+$\overline{w'\theta_v'}_s$ the kinematic surface virtual heat flux. The
+lowest level is a departure level only when this flux is upward. The
+parcel starts with the vertical velocity $w_u^2 = w_s^2 + 0.1$
+m$^2$\,s$^{-2}$. Parcels from higher departure levels get the minimum
+excess (0.2~K and $10^{-4}$), except the one from the second level, which
+keeps the excess of the lowest level, and those departing within the lowest
+60~hPa are mixed over a 50~hPa layer.
+
+The shallow cloud-base mass flux closes the moist static energy budget of
+the sub-cloud layer,
+
+\begin{eqnarray}
+M_b = \frac{\displaystyle\int_{p_b}^{p_s}
+      \left(c_p\frac{\partial T}{\partial t}+
+      L_v\frac{\partial q}{\partial t}\right)\frac{dp}{g}}
+      {\left(c_p\,\Delta T_u + L_v\,\Delta q_u\right)_{b}}
+\label{eqn_model:TIEDshallow}
+\end{eqnarray}
+
+where the numerator is the convergence of moist static energy below cloud
+base $p_b$ and the denominator the excess of the updraft over the
+environment at cloud base. In the IFS the tendencies include those of the
+vertical diffusion, while RegCM calls the cumulus scheme before the PBL
+scheme. The convergence of the turbulent fluxes of
+Eq.~\ref{eqn_model:TIEDfluxprof} between the surface and cloud base is
+therefore added to the numerator. Where the numerator is not positive the
+column does not convect as shallow.
 
 Inside the planetary boundary layer of height $h$, given by the PBL scheme,
 the turbulent fluxes have a linear profile in height $z$: the moisture flux
@@ -2106,7 +2145,28 @@ the day.
 
 The scheme produces temperature and moisture tendencies from the vertical
 divergence of the mass-flux profiles, and generates separate liquid and ice
-precipitation fluxes that are passed to the microphysics.\\
+precipitation fluxes that are passed to the microphysics.
+
+The convective cloud fraction $FC_{CU}$ passed to radiation is derived from
+the updraft mass flux $M_u$ between cloud base and top. With
+\texttt{iconvcf}=0 (default)
+$FC_{CU} = k_f\ln(1+k_2 M_u)$, with $k_f$ = \texttt{kfac\_deep} or
+\texttt{kfac\_shal} by convection type and $k_2$ = \texttt{k2\_const}. With
+\texttt{iconvcf}=1 it is the fit of \citet{Xu_91} to cumulus ensemble
+simulations,
+$FC_{CU} = c_0 + c_1 x + c_2 x^2$, $x=\ln M_u$ ($M_u$ in mb\,h$^{-1}$,
+bounded below by the minimum of the quadratic), with the coefficients of
+the 0.8, 3.9 and 7.9~km fits interpolated linearly in height and kept
+constant outside. This is a volume fraction; with \texttt{iconvcf}=2 it is
+converted to the area fraction seen by radiation for a layer of depth
+$\Delta z$ in the symmetric form of \citet{Brooks_05},
+$1/FC_{CU} - 1 \rightarrow (1/FC_{CU} - 1)/(1+b\,\Delta z)$, with
+$b=0.0064$~m$^{-1}$ from the shallow cumulus simulations of
+\citet{Neggers_11}. The fraction is capped at 0.6 for deep, 0.2 for shallow
+and 0.4 for mid-level convection. The in-cloud condensate for radiation is
+the updraft condensate $l_u$ spread over the cloud fraction,
+$LWC_{CU} = M_u\,l_u/(w_u\,FC_{CU})$, with the updraft vertical velocity
+$w_u$ bounded below by 1~m\,s$^{-1}$.\\
 
 \item {\bf Kain-Fritsch Scheme:} The Kain-Fritsch scheme
 \citep{Kain_93,Kain_04} is a mass-flux scheme derived from the AS74
@@ -2194,8 +2254,9 @@ fraction follows a maximum-overlap assumption,
   FC = \max\!\left(FC_\mathrm{LS},\; FC_\mathrm{CU}\right),
 \end{equation}
 and the corresponding in-cloud liquid water content (LWC) is a weighted blend
-of the large-scale condensate and a temperature-based estimate for the
-convective part. With \texttt{iconvlwp}=1 the temperature-based estimate is
+of the large-scale condensate and the convective in-cloud condensate. This is
+provided by the cumulus scheme where it computes it (Tiedtke), otherwise it is
+a temperature-based estimate. With \texttt{iconvlwp}=1 the temperature-based estimate is
 used for all clouds instead, and the radiation does not see the condensate of
 the microphysics; the default is \texttt{iconvlwp}=0. The scheme-weighted LWC is optionally scaled following the
 observational constraint of \citet{Liang_05} to account for the systematic

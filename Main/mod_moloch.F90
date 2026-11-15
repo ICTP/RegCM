@@ -1182,17 +1182,6 @@ module mod_moloch
         !@acc call nvtxStartRange("cumulus")
         call cumulus
         !@acc call nvtxEndRange
-        if ( ichem == 1 ) then
-          if ( ichcumtra == 1 ) then
-            if ( debug_level > 3 .and. myid == italk ) then
-              write(stdout,*) 'Calling cumulus transport at ', &
-                         trim(rcmtimer%str())
-            end if
-            !@acc call nvtxStartRange("cumtran")
-            call cumtran(trac)
-            !@acc call nvtxEndRange
-          end if
-        end if
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             tdiag%con(j,i,k) = tten(j,i,k) - ten0(j,i,k)
@@ -1244,6 +1233,19 @@ module mod_moloch
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             convcldfra(j,i,k) = cldfra(j,i,k)
           end do
+          ! Tracer transport by the cumulus of this step, as in the
+          ! other cores after the cumulus cloud fraction is known
+          if ( ichcumtra == 1 .and. any(icup > 0) ) then
+            if ( rcmtimer%integrating( ) .and. syncro_cum%act( ) ) then
+              if ( debug_level > 3 .and. myid == italk ) then
+                write(stdout,*) 'Calling cumulus transport at ', &
+                           trim(rcmtimer%str())
+              end if
+              !@acc call nvtxStartRange("cumtran")
+              call cumtran(trac)
+              !@acc call nvtxEndRange
+            end if
+          end if
         end if
         ! Clouds and large scale precipitation
         !@acc call nvtxStartRange("cldfrac")

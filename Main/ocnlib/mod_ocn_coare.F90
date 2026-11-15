@@ -49,7 +49,7 @@ module mod_ocn_coare
       real(rkx) :: l, Bf, tkt, qout, qcol, alq, xlamx
       real(rkx) :: le, visa, Rns, Rnl
       real(rkx) :: hsb, hlb, tau, uv10, facttq
-      real(rkx) :: charnock
+      real(rkx) :: charnock, wt1, wt2
       integer(ik4) :: i, k, niter
       logical :: iflag
 
@@ -60,6 +60,9 @@ module mod_ocn_coare
       real(rkx), parameter :: rhow = 1022.0     ! water density
       real(rkx), parameter :: be   = 0.026_rkx  ! sal. expans. coef. of water
       real(rkx), parameter :: cpw  = 4.0e3_rkx  ! spec. heat of water
+
+      wt1 = (threedays-dtocn)/threedays
+      wt2 = 1.0_rkx-wt1
 
       do i = iocnbeg, iocnend
         if ( mask(i) /= 1 ) cycle
@@ -361,6 +364,8 @@ module mod_ocn_coare
         ! wind components
         u10m(i) = usw(i)*uv10/uv995
         v10m(i) = vsw(i)*uv10/uv995
+        ! three day running mean 10 m wind (ocean albedo, emissivity)
+        um10(i) = um10(i)*wt1 + uv10*wt2
 
         ! surface atmospheric variables
         t2m(i) = t995+tzero-dt*facttq

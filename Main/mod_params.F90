@@ -3219,9 +3219,9 @@ module mod_params
     if ( ibltyp == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         if ( isocean(mddom%lndcat(j,i)) ) then
-          ricr(j,i) = ricr_lnd
-        else
           ricr(j,i) = ricr_ocn
+        else
+          ricr(j,i) = ricr_lnd
         end if
       end do
     end if
