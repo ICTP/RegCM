@@ -2945,6 +2945,72 @@ split advection scheme.
 
 \subsection{Aerosols and Dust (Chemistry Model)}
 
+With \texttt{ichem}=1 the model carries a set of tracers, selected by
+\texttt{chemsimtype}, whose mixing ratios $\chi$ evolve as
+\begin{equation}
+  \frac{\partial \chi}{\partial t} = A + D_{pbl} + C + E + R_{wet} + R_{dry}
+  + S_{chem}
+\end{equation}
+with resolved advection $A$, turbulent mixing in the boundary layer $D_{pbl}$,
+convective transport $C$, emissions $E$, wet and dry removal and the chemical
+or aerosol sources and sinks $S_{chem}$.
+
+\paragraph{Emissions.}
+Surface emission fluxes $F$ (kg~m$^{-2}$~s$^{-1}$) enter the lowest model
+layer as $F/(\rho\,\Delta z)$; with the UW boundary layer scheme they are
+passed to the turbulent flux instead. The anthropogenic fluxes are read from
+the monthly (or daily) inventory interpolated on the model grid, and with
+\texttt{ismoke}=1 the biomass burning fluxes, read at their own frequency, are
+added to them at every update of the emissions. With CLM4.5 the biogenic
+isoprene of MEGAN replaces the inventory isoprene, and the CLM methane flux is
+added to the anthropogenic methane at every chemistry step. Without MEGAN, the
+inventory isoprene is given a diurnal cycle following the solar elevation.
+
+\paragraph{Convective transport.}
+For the cumulus schemes that do not transport tracers internally (all but
+Emanuel and Tiedtke), the tracers in a convective column are mixed between
+the cloud top and the surface: in each layer a fraction equal to the
+convective cloud fraction $f_{cu}$ is replaced by the column mean
+$\bar{\chi}$ (weighted by the layer thickness),
+$\chi \leftarrow (1-f_{cu})\,\chi + f_{cu}\,\bar{\chi}$, at every call of the
+cumulus scheme, after the convective cloud fraction of the step is known.
+
+\paragraph{Wet removal.}
+Two processes are distinguished, both provided by the microphysics scheme
+in use:
+\begin{itemize}
+  \item \emph{In-cloud removal (rainout)}: soluble tracers, aerosols acting
+    as cloud condensation nuclei, are removed with the cloud water converted
+    to precipitation. The microphysics provides the removal rate
+    $r = P/q_c$ (s$^{-1}$), the rain production over the cloud water, and in
+    the large scale cloud fraction $f_{ls}$
+    \begin{equation}
+      \Delta\chi = f_{ls}\,s\,\chi\left[\exp(-r\,\Delta t/f_{ls})-1\right]
+    \end{equation}
+    with $s$ the solubility of the tracer. In convective clouds a constant
+    rate of $10^{-3}$~s$^{-1}$ is applied over the convective cloud fraction.
+  \item \emph{Below-cloud removal (washout)}: the falling precipitation
+    collects aerosol particles and dissolves gases. The microphysics provides
+    the precipitation flux at the bottom of each layer, in mm~h$^{-1}$: the
+    liquid precipitation flux for NoTo, the rain sedimentation flux for the
+    WSM and WDM schemes, and for SUBEX the precipitation accumulated from the
+    layers above, net of evaporation. For aerosols the
+    scavenging coefficient is $\Lambda = b\,P\,E/R_d$, with $P$ the
+    precipitation rate, $E$ the collision efficiency of the particle size bin
+    and $R_d = 0.35\,P^{1/4}$~mm the drop radius (for snow and graupel a
+    characteristic length of the crystal is used); for SO$_2$ the rate is
+    $6.5\times10^{-5}\,P^{0.68}$~s$^{-1}$, with $P$ in mm~h$^{-1}$.
+\end{itemize}
+The removed mass is summed over the column to give the wet deposition flux
+passed to the land surface model.
+
+\paragraph{Dry deposition.}
+Aerosols are removed by gravitational settling and turbulent deposition at
+the surface. For the gas phase species the dry deposition velocity follows
+the resistance approach of \citet{Zhang_03}: the canopy is treated as wet,
+with a partial stomatal blocking under strong solar radiation, when
+precipitation larger than 0.1~mm~h$^{-1}$ or dew occurs.
+
 The representation of dust
 emission processes is a key element in a dust model and depends on the wind
 conditions, the soil characteristics and the particle size. Following

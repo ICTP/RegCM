@@ -859,17 +859,17 @@
                  !     deposition velocity is simply prescribed further.
  ichebdy = 1,    ! Enable boundary conditions read
  ichcumtra = 1,  ! 1 = enable tracer convective transport and mixing.
- ichremlsc = 1,  ! 1 = wet removal of chemical species (washout and rainout
-                 !     by total rain) is enabled
- ichremcvc = 1,  ! 1 = wet removal of chemical species (washout and rainout
-                 !     by convective rain) is enabled
+ ichremlsc = 1,  ! 1 = wet removal of chemical species by large scale
+                 !     clouds and precipitation (rainout and washout)
+ ichremcvc = 1,  ! 1 = wet removal of chemical species by convective
+                 !     clouds and precipitation (rainout and washout)
  ichdustemd = 1, ! Choice for parametrisation of dust emission size distribution
                  ! 1 = use the standard scheme (Alfaro et al., Zakey et al.)
                  ! 2 = use the the revised soil granulometry + Kok et al., 2011
                  ! 3 = use the the CLM4.5 dust emission module.
  ichdustparam = 0! read dust emission scheme surface parameters
  ichdiag = 0,    ! 1 = enable writing of additional diagnostics in the output
- ismoke = 0,     ! Consider emissions from fires (smoke tracer)
+ ismoke = 0,     ! Consider emissions from fires (needs *_CHEMISS_BB.nc)
  idirect   = 0,  ! Choice to enable or not aerosol feedbacks on radiation and
                  ! dynamics (aerosol direct and semi direct effcts):
                  ! 0 = no coupling to dynamic and thermodynamic.
