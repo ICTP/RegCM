@@ -58,7 +58,7 @@ module mod_micro_nogtom
   use mod_service
   use mod_regcm_types
   use mod_constants, only : d_zero, d_one, d_half, d_two, d_1000
-  use mod_constants, only : dlowval, mathpi, ep2
+  use mod_constants, only : dlowval, mathpi, ep2, secph
   use mod_constants, only : tzero, rtice, rtwat_rtice_r
   use mod_constants, only : rhoh2o, rovcp
   use mod_constants, only : wlhfocp, wlhsocp, wlhvocp
@@ -1964,8 +1964,8 @@ module mod_micro_nogtom
     if ( ichem == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         mc2mo%rainls(j,i,k) = pfplsl(k+1,j,i)
-        ! save the 3D precip for chemical washout
-        mc2mo%rembc(j,i,k) =  mc2mo%rainls(j,i,k)
+        ! save the 3D precip for chemical washout [mm/hr]
+        mc2mo%rembc(j,i,k) =  mc2mo%rainls(j,i,k)*secph
         mc2mo%remrat(j,i,k) = remrat(k,j,i)
       end do
     end if

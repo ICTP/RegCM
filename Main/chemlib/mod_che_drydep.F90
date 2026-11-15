@@ -61,7 +61,7 @@ module mod_che_drydep
   !
   ! threshold of rainfall intensity to activate water covered canopy option
   !
-  real(rkx), parameter :: rainthr = 0.1_rkx
+  real(rkx), parameter :: rainthr = 0.1_rkx ! mm/hr
   !
   ! DATA section for the Zhang drydep scheme
   !
@@ -1275,8 +1275,8 @@ module mod_che_drydep
           usmin = 1.5_rkx/dq*coedew
 !         print *, 'prec===== ', prec(j)
 !         print *, 'usmin   ===  ', usmin
-!         what is the unit of precipitation threshold
-          if ( ts(j) > tzero .and. prec(j) > rainthr ) then
+          ! prec is a rain flux in mm/s, the threshold is in mm/hr
+          if ( ts(j) > tzero .and. prec(j)*3600.0_rkx > rainthr ) then
             is_rain = .true.
 !           print *, 'rain==='
           else if (ts(j) > tzero .and. ustar(j) < usmin) then

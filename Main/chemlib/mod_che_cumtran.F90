@@ -100,13 +100,13 @@ module mod_che_cumtran
         end do
       end do
     end do
-    ! here calculate a pseudo tendency.
-    ! factor 2 is added since we are out of leap frog
+    ! here calculate a pseudo tendency (MOLOCH, no leap frog: dt is the
+    ! model time step)
     if ( ichdiag > 0 ) then
       do j = jci1, jci2
         do i = ici1, ici2
           cconvdiag(j,i,:,:) = cconvdiag(j,i,:,:) + &
-            (mxc(j,i,:,:) - chiten0(j,i,:,:))/dt * d_two * cfdout
+            (mxc(j,i,:,:) - chiten0(j,i,:,:))/dt * cfdout
        end do
       end do
     end if

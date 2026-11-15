@@ -55,6 +55,7 @@ module mod_che_emission
     integer(ik4), save :: currmbb = -1
     integer(ik4), save :: currdbb = -1
     integer(ik4), save :: ifreqbb = -1
+    logical :: lreadbb
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_emission'
@@ -114,42 +115,37 @@ module mod_che_emission
     chemsrc(:,:,:) = chemsrcan(:,:,:)
 
     if ( ismoke == 1 ) then
+      ! Read the biomass burning emissions when a new period starts.
+      ! They are added to chemsrc at every call, as chemsrc is reset
+      ! to the anthropogenic emissions above.
       if ( ifreqbb == ifrqmon ) then
-        if ( currybb == lyear .and. currmbb == lmonth ) then
-          if ( myid == italk ) then
-            write(stdout,*) &
-              'BB EMISSION for  ',lyear*1000000+lmonth*10000+100*lday,&
-              ' ready from ',currybb*1000000+currmbb*10000+100*currdbb
-          end if
-#ifdef DEBUG
-          call time_end(subroutine_name,idindx)
-#endif
-          return
-        end if
+        lreadbb = ( currybb /= lyear .or. currmbb /= lmonth )
       else if ( ifreqbb == ifrqday ) then
-        if ( currybb == lyear .and. &
-             currmbb == lmonth .and. &
-             currdbb == lday ) then
-#ifdef DEBUG
-          call time_end(subroutine_name,idindx)
-#endif
-          return
+        lreadbb = ( currybb /= lyear .or. currmbb /= lmonth .or. &
+                    currdbb /= lday )
+      else
+        lreadbb = .true.
+      end if
+      if ( lreadbb ) then
+        currybb = lyear
+        currmbb = lmonth
+        currdbb = lday
+        if ( myid == italk ) then
+          write(stdout,*) 'READ CHEM BIO. BURN. EMISSION for ', &
+                   lyear*1000000+lmonth*10000+lday
         end if
-      end if
-      currybb = lyear
-      currmbb = lmonth
-      currdbb = lday
-      if ( myid == italk ) then
-        write(stdout,*) 'READ CHEM BIO. BURN. EMISSION for ', &
-                 lyear*1000000+lmonth*10000+lday
-      end if
-      call read_bioburn_emission(ifreqbb,lyear,lmonth,lday,lhour,chemsrcbb)
-      ! define the smoke tracer emission
-      if ( ism1 > 0 ) then
-        chemsrcbb(:,:,ism1) = chemsrcbb(:,:,ibchb) + &
-                              rocemfac * chemsrcbb(:,:,iochb)
-        chemsrcbb(:,:,iochb) = d_zero
-        chemsrcbb(:,:,ibchb) = d_zero
+        call read_bioburn_emission(ifreqbb,lyear,lmonth,lday,lhour,chemsrcbb)
+        ! define the smoke tracer emission
+        if ( ism1 > 0 ) then
+          chemsrcbb(:,:,ism1) = chemsrcbb(:,:,ibchb) + &
+                                rocemfac * chemsrcbb(:,:,iochb)
+          chemsrcbb(:,:,iochb) = d_zero
+          chemsrcbb(:,:,ibchb) = d_zero
+        end if
+      else if ( myid == italk ) then
+        write(stdout,*) &
+          'BB EMISSION for  ',lyear*1000000+lmonth*10000+100*lday,&
+          ' ready from ',currybb*1000000+currmbb*10000+100*currdbb
       end if
       ! finally add biomass burning emissions to anthropogenic emissions
       chemsrc(:,:,:) = chemsrc(:,:,:) + chemsrcbb(:,:,:)
@@ -215,7 +211,10 @@ module mod_che_emission
     ! nb the CN/LCH4 CLM flag have to be activated
 #if defined(LCH4) || defined(ECLM)
     if ( ich4 > 0 ) then
+      ! the anthropogenic part is restored at the end, as chemsrc is
+      ! reset only when the emissions are read
       do j = jci1, jci2
+        tmpsrc(j,i,ich4)  = chemsrc(j,i,ich4)
         chemsrc(j,i,ich4) = chemsrc(j,i,ich4) + cvoc_em_clm(j,i,ich4)
       end do
     end if
@@ -328,6 +327,11 @@ module mod_che_emission
         chemsrc(:,i,iisop) = tmpsrc(:,i,iisop)
       end if
     end if
+#if defined(LCH4) || defined(ECLM)
+    if ( ich4 > 0 ) then
+      chemsrc(jci1:jci2,i,ich4) = tmpsrc(jci1:jci2,i,ich4)
+    end if
+#endif
 #endif
 
 #ifdef DEBUG

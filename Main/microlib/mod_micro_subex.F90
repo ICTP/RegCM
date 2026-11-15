@@ -97,7 +97,7 @@ module mod_micro_subex
     implicit none
     type(mod_2_micro), intent(in) :: mo2mc
     type(micro_2_mod), intent(inout) :: mc2mo
-    integer(ik4) :: i, j, k, kk
+    integer(ik4) :: i, j, k
     logical :: lsecind
     real(rkx) :: afc1, qcw1, qcincl1, qcth1, prainx, tcel1
     real(rkx) :: pptnew, pptmax, afc, qcw, qcleft
@@ -227,6 +227,9 @@ module mod_micro_subex
           end if
         end if
       end if
+      ! Precipitation flux at the bottom of the layer for the below
+      ! cloud scavenging in chemistry [mm/hr]
+      if ( ichem == 1 ) mc2mo%rembc(j,i,1) = pptsum(j,i)*secph
     end do
 
     ! LAYER TWO TO KZ
@@ -337,34 +340,11 @@ module mod_micro_subex
             end if
           end if
         end if
+        ! Precipitation flux at the bottom of the layer for the below
+        ! cloud scavenging in chemistry [mm/hr]
+        if ( ichem == 1 ) mc2mo%rembc(j,i,k) = pptsum(j,i)*secph
       end do
     end do
-    !
-    !--------------------------------------------------------------------
-    ! 2. Perform aerosol removal computations
-    !  - swith do i,k loop, add chrmbc (the below cloud scavenging rate, s^-1)
-    !  - Levin & Schwatz
-    !--------------------------------------------------------------------
-    !
-    if ( ichem == 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        mc2mo%rembc(j,i,1) = d_zero
-      end do
-      do k = 2, kz
-        do i = ici1, ici2
-          do j = jci1, jci2
-            mc2mo%rembc(j,i,k) = d_zero
-            if ( mc2mo%remrat(j,i,k) > d_zero ) then
-              do kk = 1, k - 1
-                mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
-                  mc2mo%remrat(j,i,kk) * mo2mc%qcn(j,i,kk) * &
-                  (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
-              end do
-            end if
-          end do
-        end do
-      end do
-    end if
     !
     !--------------------------------------------------------------------
     ! 3. Convert the accumlated precipitation to appropriate units for

@@ -410,20 +410,12 @@ module mod_micro_wsm7
           mc2mo%remrat(j,i,k) = pccw(n,kk)*rdt/qcw
         end if
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        mc2mo%rembc(j,i,1) = d_zero
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-        mc2mo%rembc(j,i,k) = d_zero
-        if ( mc2mo%remrat(j,i,k) > d_zero ) then
-          !$acc loop seq
-          do kk = 1, k - 1
-            qcw = mo2mc%qcn(j,i,kk)
-            mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
-            mc2mo%remrat(j,i,kk) * qcw * &
-                  (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
-          end do
-        end if
+      ! Rain flux at the bottom of the layer for the below cloud
+      ! scavenging in chemistry [mm/hr], as in nogtom.
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        kk = kzp1-k
+        n = (i-ici1)*(jci2-jci1+1)+(j-jci1+1)
+        mc2mo%rembc(j,i,k) = fall(n,kk,1)*delz(n,kk)*secph
       end do
     end if
 

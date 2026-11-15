@@ -698,8 +698,8 @@ module mod_clm_regcm
         if ( size(lm%idust) == 4 ) then
           ! wet dep dust 1
           !$acc kernels
-          temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) + &
-                lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1))) * syncro_srf%rw
+          temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) * &
+                       syncro_srf%rw
           !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
           !$acc kernels
@@ -713,8 +713,8 @@ module mod_clm_regcm
           clm_a2l%forc_aer(:,8) = clm_a2l%notused
 
           ! wet dep dust 2
-          temps(:,:) =(lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) + &
-                 lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2))) * syncro_srf%rw
+          temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) * &
+                       syncro_srf%rw
           !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
           !$acc kernels
@@ -728,8 +728,8 @@ module mod_clm_regcm
           clm_a2l%forc_aer(:,10) = clm_a2l%notused
 
           ! wet dep dust 3
-          temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) + &
-                 lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3))) * syncro_srf%rw
+          temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) * &
+                       syncro_srf%rw
           !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
           !$acc kernels
@@ -743,8 +743,8 @@ module mod_clm_regcm
           clm_a2l%forc_aer(:,12) = clm_a2l%notused
 
           ! wet dep dust 4
-          temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) + &
-                  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4))) * syncro_srf%rw
+          temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) * &
+                       syncro_srf%rw
           !$acc end kernels
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
           !$acc kernels
