@@ -60,11 +60,10 @@ module mod_micro_nogtom
   use mod_constants, only : d_zero, d_one, d_half, d_two, d_1000
   use mod_constants, only : dlowval, mathpi, ep2
   use mod_constants, only : tzero, rtice, rtwat_rtice_r
-  use mod_constants, only : c5alvcp, c5alscp, rhoh2o, rovcp
+  use mod_constants, only : rhoh2o, rovcp
   use mod_constants, only : wlhfocp, wlhsocp, wlhvocp
-  use mod_constants, only : rwat, wlhs, ep1
-  use mod_constants, only : c5les, c5ies, c4les, c4ies
-  use mod_constants, only : egrav, regrav, ep1
+  use mod_constants, only : rwat, wlhs, rep2
+  use mod_constants, only : egrav, regrav
   use mod_runparams, only : nqx
   use mod_runparams, only : iqqv => iqv !vapor
   use mod_runparams, only : iqql => iqc !liquid
@@ -151,7 +150,8 @@ module mod_micro_nogtom
   ! fluxes convergence of species
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qliq
 
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: eew
+  ! ice saturation vapour pressure over pressure (eps*e/p)
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: eeicet
   ! ice water saturation
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qsice
   ! diagnostic mixed phase RH
@@ -245,7 +245,7 @@ module mod_micro_nogtom
     call getmem(eewmt,1,kz,jci1,jci2,ici1,ici2,'cmicro:eewmt')
     call getmem(qsmix,1,kz,jci1,jci2,ici1,ici2,'cmicro:qsmix')
     call getmem(ttendc,1,kz,jci1,jci2,ici1,ici2,'cmicro:ttendc')
-    call getmem(eew,1,kz,jci1,jci2,ici1,ici2,'cmicro:eew')
+    call getmem(eeicet,1,kz,jci1,jci2,ici1,ici2,'cmicro:eeicet')
     call getmem(qsice,1,kz,jci1,jci2,ici1,ici2,'cmicro:qsice')
     call getmem(qx,1,nqx,1,kz,jci1,jci2,ici1,ici2,'cmicro:qx')
     call getmem(tx,1,kz,jci1,jci2,ici1,ici2,'cmicro:tx')
@@ -351,7 +351,7 @@ module mod_micro_nogtom
 
     integer(ik4) :: i, j, k, n, m, jn, jo
     real(rkx) :: tnew, dp, qe, tmpl, tmpi
-    real(rkx) :: qprev, hprev, zdelta, prainx, psnowx
+    real(rkx) :: qprev, hprev, prainx, psnowx
     real(rkx) :: availq, sinksum, sinkrat
     ! for sedimentation source/sink terms
     real(rkx), dimension(mxqx) :: fallsrce, fallsink
@@ -539,37 +539,28 @@ module mod_micro_nogtom
     ! Define saturation values
     !---------------------------
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
-      ! zdelta = 1 if t > tzero
-      ! zdelta = 0 if t < tzero
-      zdelta = max(d_zero,sign(d_one,tx(k,j,i)-tzero))
       !---------------------------------------------
       ! mixed phase saturation
       !--------------------------------------------
       phases = qliq(k,j,i)
       eewmt(k,j,i) = eeliq(k,j,i)*phases + eeice(k,j,i)*(d_one-phases)
       eewmt(k,j,i) = min(eewmt(k,j,i)/ph(k,j,i),maxsat)
-      qsmix(k,j,i) = eewmt(k,j,i)
-      ! ep1 = rwat/rgas - d_one
-      qsmix(k,j,i) = qsmix(k,j,i)/(d_one-ep1*qsmix(k,j,i))
+      ! saturation mixing ratio eps*e/(p-e), with eewmt = eps*e/p
+      qsmix(k,j,i) = eewmt(k,j,i)/(d_one-rep2*eewmt(k,j,i))
       !--------------------------------------------
       ! ice saturation T < 273K
       ! liquid water saturation for T > 273K
       !--------------------------------------------
-      eew(k,j,i) = (zdelta*eeliq(k,j,i) + &
-           (d_one-zdelta)*eeice(k,j,i))/ph(k,j,i)
-      eew(k,j,i) = min(eew(k,j,i),maxsat)
       !ice water saturation
-      qsice(k,j,i) = min(eeice(k,j,i)/ph(k,j,i),maxsat)
-      qsice(k,j,i) = qsice(k,j,i)/(d_one-ep1*qsice(k,j,i))
+      eeicet(k,j,i) = min(eeice(k,j,i)/ph(k,j,i),maxsat)
+      qsice(k,j,i) = eeicet(k,j,i)/(d_one-rep2*eeicet(k,j,i))
       !----------------------------------
       ! liquid water saturation
       !----------------------------------
-      !eeliq is the saturation vapor pressure es(T)
-      !the saturation mixing ratio is ws = es(T)/p *0.622
-      !ws = ws/(-(d_one/eps - d_one)*ws)
+      ! eeliq is eps*es(T): the saturation mixing ratio is
+      ! ws = eps*es/(p-es) = eeliqt/(1-eeliqt/eps), eeliqt = eps*es/p
       eeliqt(k,j,i) = min(eeliq(k,j,i)/ph(k,j,i),maxsat)
-      qsliq(k,j,i) = eeliqt(k,j,i)
-      qsliq(k,j,i) = qsliq(k,j,i)/(d_one-ep1*qsliq(k,j,i))
+      qsliq(k,j,i) = eeliqt(k,j,i)/(d_one-rep2*eeliqt(k,j,i))
     end do
 
     !--------------------------------ADEED BY RITA
@@ -766,20 +757,21 @@ module mod_micro_nogtom
         !------------------------------------
         ! calculate dqs/dT
         !------------------------------------
+        ! dws/dT = ws * dln(es)/dT * p/(p-es)
         ! liquid
-        facw     = c5les/((tk - c4les)**2)
-        corr     = d_one/(d_one - ep1*eeliqt(k,j,i))
+        facw     = dlnesliqdt(tk)
+        corr     = d_one/(d_one - rep2*eeliqt(k,j,i))
         dqsliqdt = facw*corr*qsliq(k,j,i)
         corqsliq = d_one + wlhvocp*dqsliqdt
         ! ice
-        faci     = c5ies/((tk - c4ies)**2)
-        corr     = d_one/(d_one - ep1*eew(k,j,i))
+        faci     = dlnesicedt(tk)
+        corr     = d_one/(d_one - rep2*eeicet(k,j,i))
         dqsicedt = faci*corr*qsice(k,j,i)
         corqsice = d_one + wlhsocp*dqsicedt
         ! diagnostic mixed
         alfaw    = qliq(k,j,i)
         facl     = alfaw*facw + (d_one - alfaw)*faci
-        corr     = d_one/(d_one - ep1*eewmt(k,j,i))
+        corr     = d_one/(d_one - rep2*eewmt(k,j,i))
         dqsmixdt = facl*corr*qsmixv
         corqsmix = d_one/(d_one + eldcpm(tk)*dqsmixdt)
         !--------------------------------
@@ -879,7 +871,9 @@ module mod_micro_nogtom
             vqx(iqqi) = ice_fallspeed(tk,lat)
           end if
           if ( vfqr_rd ) then
-            precip = max(rainp*3600.0_rkx*tmpa,1.0_rkx)
+            ! Rain rate (mm/h) inside the precipitation cover of the
+            ! level above, where the rain comes from
+            precip = max(rainp,d_zero)*3600.0_rkx/max(covptot,rcovpmin)
             vqx(iqqr) = rain_fallspeed(dens,dens0,precip)
           end if
           !$acc loop seq
@@ -1077,19 +1071,19 @@ module mod_micro_nogtom
                      tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
           ! saturation mixing ratio ws
           qsat = eewm(tcond,phases) * qp
-          qsat = min(qsat,maxsat)          ! ws < 0.5        WHY?
-          corr  = d_one/(d_one-ep1*qsat)
+          qsat = min(qsat,maxsat)
+          corr  = d_one/(d_one-rep2*qsat)
           qsat = qsat*corr
-          cond = (qsmixv-qsat)/(d_one + qsat*edem(tcond,phases))
+          cond = (qsmixv-qsat)/(d_one + qsat*corr*edem(tcond,phases))
           tcond = tcond + eldcpm(tcond)*cond
           phases = max(min(d_one,((max(rtice,min(tzero, &
                      tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
           qsmixv = qsmixv - cond
           qsat = eewm(tcond,phases) * qp
           qsat = min(qsat,maxsat)
-          corr = d_one/(d_one-ep1*qsat)
+          corr = d_one/(d_one-rep2*qsat)
           qsat = qsat*corr
-          cond1 = (qsmixv-qsat)/(d_one + qsat*edem(tcond,phases))
+          cond1 = (qsmixv-qsat)/(d_one + qsat*corr*edem(tcond,phases))
           tcond = tcond + eldcpm(tcond)*cond1
           qsmixv = qsmixv - cond1
           dqs = qsmixv - qold
@@ -1131,7 +1125,7 @@ module mod_micro_nogtom
               ! old limiter
               !  (significantly improves upper tropospheric humidity rms)
               if ( locast ) then
-                corr = d_one/(d_one-ep1*qsmixv)
+                corr = d_one/(d_one-rep2*eewmt(k,j,i))
                 cdmax = (qxfg(iqqv)-qsmixv)/(d_one+corr*qsmixv*edem(tk,alfaw))
               else
                 cdmax = (qxfg(iqqv)-ccover*qsmixv)/ccover
@@ -1264,7 +1258,7 @@ module mod_micro_nogtom
           ! By considering sedimentation first and including the
           ! implicit loss term in the first guess of ice.
           !--------------------------------------------------------------
-          lactiv = qx0(iqql) > activqx .and. ltklt0
+          lactiv = qxfg(iqql) > activqx .and. ltklt0
           if ( lactiv ) then
             vpice = eeice(k,j,i)/ep2 !saturation vapor pressure wrt ice
             vpliq = eeliq(k,j,i)/ep2 !saturation vapor pressure wrt liq
@@ -1541,7 +1535,7 @@ module mod_micro_nogtom
           ! calculate sublimation latent heat
 
           chngmax = max((tzero-tk)*rldcp,d_zero)
-          if ( chngmax > d_zero .and. qx0(iqqr) > activqx ) then
+          if ( chngmax > d_zero .and. qxfg(iqqr) > activqx ) then
             chng = min(qxfg(iqqr),chngmax)
             chng = max(chng,d_zero)
             qsexp(iqqs,iqqr) = qsexp(iqqs,iqqr) + chng
@@ -1560,7 +1554,7 @@ module mod_micro_nogtom
           !-------------------
 
           chngmax = max((thomo-tk)*rldcp,d_zero)
-          if ( chngmax > d_zero .and. qx0(iqql) > activqx ) then
+          if ( chngmax > d_zero .and. qxfg(iqql) > activqx ) then
             chng = min(qxfg(iqql),chngmax)
             chng = max(chng,d_zero)
             qsexp(iqqi,iqql) = qsexp(iqqi,iqql) + chng
@@ -1605,7 +1599,7 @@ module mod_micro_nogtom
           lactiv = covpclr > d_zero .and. &
                    covptot > d_zero .and. &
                    qpretot > d_zero .and.      &
-                   qx0(iqqr) > activqx .and.   &
+                   qxfg(iqqr) > activqx .and.  &
                    qe < zrh*qsliq(k,j,i)
           if ( lactiv ) then
             ! note: units of preclr and qpretot differ
@@ -1662,7 +1656,7 @@ module mod_micro_nogtom
           lactiv = covpclr > d_zero .and. &
                    covptot > d_zero .and. &
                    qpretot > d_zero .and.      &
-                   qx0(iqqs) > activqx .and.   &
+                   qxfg(iqqs) > activqx .and.  &
                    qe < zrh*qsice(k,j,i)
           if ( lactiv ) then
             ! note: units of preclr and qpretot differ
@@ -2004,9 +1998,27 @@ module mod_micro_nogtom
     !$acc routine seq
     implicit none
     real(rkx), intent(in):: t, phase
-    edem = phase * c5alvcp * (d_one/(t-c4les)**2) + &
-               (d_one - phase) * c5alscp * (d_one/(t-c4ies)**2)
+    edem = phase * wlhvocp * dlnesliqdt(t) + &
+               (d_one - phase) * wlhsocp * dlnesicedt(t)
   end function edem
+  !
+  ! dln(es)/dT of esatliq and esatice (Share/esat*.inc): with the
+  ! latent heat linear in T the heat capacity terms cancel and
+  ! dln(es)/dT = L(T)/(Rv T^2).
+  !
+  pure real(rkx) function dlnesliqdt(t)
+    !$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: t
+    dlnesliqdt = (2.501e6_rkx-2320.0_rkx*(t-273.16_rkx))/(rwat*t*t)
+  end function dlnesliqdt
+
+  pure real(rkx) function dlnesicedt(t)
+    !$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: t
+    dlnesicedt = (2.835e6_rkx-220.0_rkx*(t-273.16_rkx))/(rwat*t*t)
+  end function dlnesicedt
 
   pure real(rkx) function eldcpm(t)
     !$acc routine seq
@@ -2054,17 +2066,26 @@ module mod_micro_nogtom
     ice_fallspeed = w1*fsp2 + (1.0_rkx-w1)*fsp1
   end function ice_fallspeed
   !
-  ! Rain fall speed function of air density
+  ! Mass weighted rain fall speed (m/s) for the rain rate r (mm/h) and
+  ! the air density d (kg/m3), d0 the reference surface density.
+  ! Marshall-Palmer exponential distribution, slope
+  !   lambda = 4.1 r**(-0.21) mm-1 (Marshall and Palmer, 1948,
+  !   J. Meteor. 5, 165), and terminal velocity of a drop of diameter
+  !   D (mm) v(D) = 9.65 - 10.3 exp(-0.6 D) (Atlas, Srivastava and
+  !   Sekhon, 1973, Rev. Geophys. 11, 1): the D**3 weighted mean is
+  !   9.65 - 10.3 (lambda/(lambda+0.6))**4.
+  ! Density correction (d0/d)**0.4 of Foote and du Toit (1969),
+  ! J. Appl. Meteor. 8, 249. The rate is bounded below at 0.01 mm/h
+  ! (about 1.3 m/s), as the velocity fit fails for very small drops.
   !
   pure real(rkx) function rain_fallspeed(d,d0,r)
     !$acc routine seq
     implicit none
     real(rkx), intent(in) :: d, d0, r
-    real(rkx) :: diam, v0, dens_min
-    diam = max(1.238_rkx * r**0.128_rkx,0.6_rkx)
-    v0 = 9.65_rkx-10.3_rkx*exp(-0.6_rkx*diam)
-    dens_min = max(0.35_rkx,d)
-    rain_fallspeed = v0 * (dens_min/d0)**(-0.5_rkx)
+    real(rkx) :: rlam, v0
+    rlam = 4.1_rkx * max(r,0.01_rkx)**(-0.21_rkx)
+    v0 = 9.65_rkx - 10.3_rkx*(rlam/(rlam+0.6_rkx))**4
+    rain_fallspeed = v0 * (d0/max(0.35_rkx,d))**0.4_rkx
   end function rain_fallspeed
 
  ! subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)

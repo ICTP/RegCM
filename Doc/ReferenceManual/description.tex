@@ -2489,10 +2489,21 @@ for each species $x$ is:
 
 where $S_x$ collects all microphysical source and sink terms and the second
 term is sedimentation at the species-dependent terminal fall speed $V_x$.
-Fall speeds are fixed parameters: $V_{q_l} = 0$~m~s$^{-1}$ (cloud liquid is
-non-sedimenting), $V_{q_i} = 0.13$~m~s$^{-1}$ (diagnosed as a function of
-temperature and latitude), $V_{q_r} = 4.0$~m~s$^{-1}$, and
-$V_{q_s} = 1.0$~m~s$^{-1}$.  Because rain and snow fall with finite terminal
+Cloud liquid does not sediment and snow falls at the fixed
+$V_{q_s} = 1.0$~m~s$^{-1}$. The ice fall speed is a function of the particle
+size, which is diagnosed from temperature and latitude. The rain fall speed
+is the mass weighted mean of the terminal velocity
+$v(D) = 9.65 - 10.3\,e^{-0.6D}$~m~s$^{-1}$ ($D$ in mm) of
+\citet{Atlas_73} over the exponential drop size distribution of
+\citet{Marshall_48}, of slope $\Lambda = 4.1\,R^{-0.21}$~mm$^{-1}$:
+\begin{equation}
+  V_{q_r} = \left[9.65 - 10.3\left(\frac{\Lambda}{\Lambda+0.6}
+            \right)^{4}\right]\left(\frac{\rho_0}{\rho}\right)^{0.4},
+\end{equation}
+with the density correction of \citet{Foote_69} and
+$\rho_0 = 1.225$~kg~m$^{-3}$. The rain rate $R$ (mm~h$^{-1}$, at least
+0.01) is the rain flux entering the layer divided by the precipitation cover
+of the level above. Because rain and snow fall with finite terminal
 velocities they can be advected by the three-dimensional wind between physics
 calls.
 

@@ -1008,6 +1008,8 @@ module mod_cu_tiedtke
     integer(ik4), dimension(np) :: idpl
     real(rkx), dimension(np) :: xcape, rheat
     logical, dimension(np) :: lddraf, llddraf3, lldcum, llo2
+    ! Shallow columns switched off by the closure
+    logical, dimension(np) :: lshoff
     logical :: llo1
     integer(ik4) :: ikb, itopm2, k, ik, n
     real(rkx) :: cons2, cons, dh, dqmin, dz, eps, fac, &
@@ -1634,6 +1636,7 @@ module mod_cu_tiedtke
       dqcv(n) = d_zero
       dhpbl(n) = d_zero
       idtop(n) = 0
+      lshoff(n) = .false.
     end do
     do concurrent ( n = n1:n2 )
       !$acc loop seq
@@ -2514,7 +2517,12 @@ module mod_cu_tiedtke
           if ( dhpbl(n) > d_zero ) then
             mfub1(n) = dhpbl(n)/dh
           else
+            ! No sub-cloud moist static energy convergence: as for the
+            ! first guess shallow columns, no shallow convection. This
+            ! catches the first guess deep columns that ended shallow,
+            ! which kept the deep first guess mass flux 0.1*mfmax.
             mfub1(n) = mfub(n)
+            if ( .not. lmfwstar ) lshoff(n) = .true.
           end if
           mfub1(n) = min(mfub1(n),mfmax)
           if ( lmfwstar ) mfub1(n) = mf_shal(n)
@@ -2576,11 +2584,12 @@ module mod_cu_tiedtke
     ! 6.2 In case that either deep or shallow is switched off
     !      reset ldcum to false-> fluxes set to zero
     ! -------------------------------------------------------
-    ! exclude pathological ktype=2 kcbot=kctop=nk-1
+    ! exclude pathological ktype=2 kcbot=kctop=nk-1 and shallow columns
+    ! without sub-cloud forcing
     do concurrent ( n = n1:n2 )
       if ( ktype(n) == 2 .and.        &
-           kcbot(n) == kctop(n) .and. &
-           kcbot(n) >= nk-1 ) then
+           ((kcbot(n) == kctop(n) .and. kcbot(n) >= nk-1) .or. &
+            lshoff(n)) ) then
         ldcum(n) = .false.
         ktype(n) = 0
       end if
