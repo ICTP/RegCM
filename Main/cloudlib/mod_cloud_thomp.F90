@@ -110,20 +110,7 @@ module mod_cloud_thomp
 !$acc routine seq
        implicit none
        real(rkx), intent(in) :: p, t
-       real(rkx) :: esl, x
-       real(rkx), parameter :: c0 =  0.611583699e03_rkx
-       real(rkx), parameter :: c1 =  0.444606896e02_rkx
-       real(rkx), parameter :: c2 =  0.143177157e01_rkx
-       real(rkx), parameter :: c3 =  0.264224321e-1_rkx
-       real(rkx), parameter :: c4 =  0.299291081e-3_rkx
-       real(rkx), parameter :: c5 =  0.203154182e-5_rkx
-       real(rkx), parameter :: c6 =  0.702620698e-8_rkx
-       real(rkx), parameter :: c7 =  0.379534310e-11_rkx
-       real(rkx), parameter :: c8 = -0.321582393e-13_rkx
-       x = max(-80.0_rkx,t-tzero)
-       esl = c0+x*(c1+x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*c8)))))))
-       esl = min(esl,0.15_rkx*p)
-       rslf = ep2 * esl/(p-esl)
+       rslf = pfwsatl(t,p)
      end function rslf
      !
      ! This function calculates the ice saturation vapor mixing ratio as a
@@ -133,23 +120,14 @@ module mod_cloud_thomp
 !$acc routine seq
        implicit none
        real(rkx), intent(in) :: p, t
-       real(rkx) :: esi, x
-       real(rkx), parameter :: c0 = 0.609868993e03_rkx
-       real(rkx), parameter :: c1 = 0.499320233e02_rkx
-       real(rkx), parameter :: c2 = 0.184672631e01_rkx
-       real(rkx), parameter :: c3 = 0.402737184e-1_rkx
-       real(rkx), parameter :: c4 = 0.565392987e-3_rkx
-       real(rkx), parameter :: c5 = 0.521693933e-5_rkx
-       real(rkx), parameter :: c6 = 0.307839583e-7_rkx
-       real(rkx), parameter :: c7 = 0.105785160e-9_rkx
-       real(rkx), parameter :: c8 = 0.161444444e-12_rkx
-       x = max(-80.0_rkx,t-tzero)
-       esi = c0+x*(c1+x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*c8)))))))
-       esi = min(esi,0.15_rkx*p)
+       real(rkx) :: esi
+       esi = min(esatice(t),0.15_rkx*p)
        rsif = ep2 * esi/(p-esi)
      end function rsif
 
   end subroutine thomp_cldfrac
+
+#include <saturation.inc>
 
 end module mod_cloud_thomp
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

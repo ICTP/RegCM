@@ -58,7 +58,7 @@ module mod_capecin
 
   contains
 
-#include <pfesat.inc>
+#include <saturation.inc>
 
   !
   !
@@ -361,13 +361,9 @@ module mod_capecin
   pure real(rkx) function getdewp(tc,rh)
     !$acc routine seq
     implicit none
-    real(rkx), intent(in) :: tc, rh
-    real(rkx), parameter :: b = 18.678_rkx
-    real(rkx), parameter :: c = 257.14_rkx ! [C]
-    real(rkx), parameter :: d = 234.50_rkx ! [C]
-    real(rkx) :: gm
-    gm = log(rh * exp((b - tc/d)*(tc/(c+tc))))
-    getdewp = tzero + c * gm/(b-gm)
+    real(rkx), intent(in) :: tc, rh   ! temperature (C), relative humidity
+    ! dew point (K) over liquid water (Share/saturation.inc)
+    getdewp = tdewliq(rh*esatliq(tc+tzero))
   end function getdewp
 
   pure real(rkx) function getqvs(p,t)
@@ -375,7 +371,7 @@ module mod_capecin
     implicit none
     real(rkx), intent(in) :: p, t
     real(rkx) :: es
-    es = 611.2_rkx*exp(17.67_rkx*(t-273.15_rkx)/(t-29.65_rkx))
+    es = esatliq(t)
     getqvs = ep2*es/(p-es)
   end function getqvs
 
@@ -384,7 +380,7 @@ module mod_capecin
     implicit none
     real(rkx), intent(in) :: p, t
     real(rkx) :: es
-    es = 611.2_rkx*exp(21.8745584_rkx*(t-273.15_rkx)/(t-7.66_rkx))
+    es = esatice(t)
     getqvi = ep2*es/(p-es)
   end function getqvi
 
@@ -579,9 +575,6 @@ module mod_capecin
         ! ****************************************************************
         real(rkx), parameter :: thh = 365.0_rkx
         real(rkx), parameter :: ph = 105000.0_rkx
-        real(rkx), parameter :: pq0 = 379.90516_rkx
-        real(rkx), parameter :: a2 = 17.2693882_rkx
-        real(rkx), parameter :: a3 = 273.16_rkx
         real(rkx), parameter :: a4 = 35.86_rkx
         real(rkx), parameter :: eliwv = 2.683e+6_rkx
         real(rkx), parameter :: eps = 1.E-9_rkx
@@ -617,11 +610,10 @@ module mod_capecin
               ape = (100000.0_rkx/p)**rovcp
               denom = th - a4*ape
               if ( denom > eps ) then
-                qsold(kp) = pq0 / p*exp(a2*(th-a3*ape)/denom)
+                qsold(kp) = ep2*esatliq(th/ape)/p
               else
                 qsold(kp) = 0.0_rkx
               end if
-              ! qsold(kp) = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
               pold(kp) = p
             end if
           end do
@@ -666,11 +658,10 @@ module mod_capecin
               ape   = (100000.0_rkx/p)**rovcp
               denom = th - a4*ape
               if ( denom > eps ) then
-                qs = pq0/p*exp(a2*(th-a3*ape)/denom)
+                qs = ep2*esatliq(th/ape)/p
               else
                 qs = 0.0_rkx
               end if
-              ! qs = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
               told(kth) = th / ape
               theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
             end if

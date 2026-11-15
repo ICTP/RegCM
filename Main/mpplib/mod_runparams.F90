@@ -535,8 +535,6 @@ module mod_runparams
   ! Choose the autoconversion paramaterization
   integer(ik4), public :: iautoconv
   ! Fall speed values
-  real(rkx), public :: vfqr
-  real(rkx), public :: vfqi
   real(rkx), public :: vfqs
   ! autoconversion values
   real(rkx), public :: auto_rate_khair

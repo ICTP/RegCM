@@ -391,7 +391,7 @@ module mod_slice
 
     contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 
   end subroutine mkslice
 

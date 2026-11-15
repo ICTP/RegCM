@@ -125,7 +125,7 @@ module mod_ocn_zeng
       tha = tatm(i)*(p00/patm(i))**rovcp
       dth = tha - th
       ! the saturation vapor pressure for salty water is on average 2% lower
-      es = pfesat(tsurf,sfps(i))*0.98_rkx
+      es = pfesatl(tsurf,sfps(i))*0.98_rkx
       ws = ep2*(es/(sfps(i)-es))
       qs = ws/(d_one+ws)
       ! virtual potential T
@@ -478,7 +478,7 @@ module mod_ocn_zeng
 
   end subroutine zengocndrv
 
-#include <pfesat.inc>
+#include <saturation.inc>
 #include <wlh.inc>
   !
   ! stability function for rb < 0

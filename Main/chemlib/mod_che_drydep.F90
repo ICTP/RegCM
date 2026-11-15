@@ -987,8 +987,7 @@ module mod_che_drydep
               ! * wvpm- water vapour mixing ratio at  z2
               ! * vptemp- virtual potential temperature at z2
               ! **************************************************************
-              es = 6.108_rkx * &
-                exp(17.27_rkx*(temp2(j,i)-tzero)/(temp2(j,i)-35.86_rkx))
+              es = esatliq(temp2(j,i))*0.01_rkx
               vp = rh10(j,i)*es
               wvpm = ep2*vp/(stdpmb-vp)
               vptemp = ptemp2*(1.0_rkx+0.61_rkx*wvpm)
@@ -1000,7 +999,7 @@ module mod_che_drydep
               ! *   tsv - virtual potential temperature at surface (deg. k)
               ! **************************************************************
               tsw = sutemp(j,i)
-              vp = 6.108_rkx*exp(17.27_rkx*(tsw-tzero)/(tsw-35.86_rkx))
+              vp = esatliq(tsw)*0.01_rkx
               qs = ep2*vp/(stdpmb-vp)
               tsv = tsw*(1.0_rkx+0.61_rkx*qs)
               z0water = 1.0e-4_rkx
@@ -1245,7 +1244,7 @@ module mod_che_drydep
             !================================================================
             ! function for vapor pressure deficit
             !================================================================
-            es = 6.108_rkx*exp(17.27_rkx*(ts(j)-tzero)/(ts(j)-35.86_rkx))
+            es = esatliq(ts(j))*0.01_rkx
             d0 = es*(d_one-rh(j))/10.0_rkx ! kPa
             gd = 1.0_rkx - bvpd(lcov) * d0
 !           print *, 'gd===',gd
@@ -1269,7 +1268,7 @@ module mod_che_drydep
 !           print *, 'rst===',rst
           end if
           coedew = 0.1_rkx  ! for clear cloud
-          es = 6.108_rkx*exp(17.27_rkx*(ts(j)-tzero)/(ts(j)-35.86_rkx))
+          es = esatliq(ts(j))*0.01_rkx
           dq = 0.622_rkx/1000.0_rkx*es*(1.0_rkx-rh(j))*1000.0_rkx ! unit g/kg
           dq = max(0.0001_rkx,dq)
           usmin = 1.5_rkx/dq*coedew
@@ -1458,6 +1457,8 @@ module mod_che_drydep
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine stomtresis
+
+#include <saturation.inc>
 
 end module mod_che_drydep
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

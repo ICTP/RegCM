@@ -1142,7 +1142,7 @@ module mod_cu_grell
     end do
     contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 
      subroutine minimi1(array,ks,ke,kt)
        implicit none

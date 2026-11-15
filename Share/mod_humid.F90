@@ -46,7 +46,7 @@ module mod_humid
 
   contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 
   subroutine sph2mxr_double(q,ni,nj,nk)
     implicit none

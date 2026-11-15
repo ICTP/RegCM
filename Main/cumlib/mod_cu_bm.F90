@@ -176,7 +176,6 @@ module mod_cu_bm
     real(rkx), parameter :: slop0s = (dsp0fs-dsp0ss)/(d_one-efimn)
     real(rkx), parameter :: slopts = (dsptfs-dsptss)/(d_one-efimn)
     real(rkx), parameter :: slope = (d_one-efmnt)/(d_one-efimn)
-    real(rkx), parameter :: a23m4l = c3les*(tzero-c4les)*wlhv
     real(rkx), parameter :: cprlg = cpd/(rhoh2o*egrav*wlhv)
     logical, save :: efinit = .false.
 
@@ -331,7 +330,7 @@ module mod_cu_bm
       ! find environmental saturation equiv pot temp...
       do i = ici1, ici2
         do j = jci1, jci2
-          es = aliq*exp((bliq*t(j,i,l)-cliq)/(t(j,i,l)-dliq))
+          es = esatliq(t(j,i,l))
           qs = 0.622_rkx * es/(m2c%pas(j,i,l)-es)
           ths(j,i) = t(j,i,l)*ape(j,i,l)*exp(wlhvocp*qs/t(j,i,l))
         end do
@@ -492,8 +491,8 @@ module mod_cu_bm
           psk(l) = pk(l) + dsp
           apesk(l) = d_one/(psk(l)/p00)**rovcp
           thsk(l) = trefk(l)*apek(l)
-          qrefk(l) = pq0/psk(l)*exp(c3les*(thsk(l)-tzero*apesk(l)) / &
-                     (thsk(l)-c4les*apesk(l)))
+          ! saturation at the saturation point temperature
+          qrefk(l) = ep2*esatliq(thsk(l)/apesk(l))/psk(l)
         else
           qrefk(l) = q(j,i,l)
         end if
@@ -532,11 +531,10 @@ module mod_cu_bm
         !
         do l = lcor, lb
           tskl = trefk(l)*apek(l)/apesk(l)
-          dhdt = qrefk(l)*a23m4l/(tskl-c4les)**2 + cpd
+          dhdt = qrefk(l)*wlhv*dlnesliq(tskl) + cpd
           trefk(l) = hcorr/dhdt + trefk(l)
           thskl = trefk(l)*apek(l)
-          qrefk(l) = pq0/psk(l) * exp(c3les*(thskl-tzero*apesk(l)) / &
-                     (thskl-c4les*apesk(l)))
+          qrefk(l) = ep2*esatliq(thskl/apesk(l))/psk(l)
         end do
       end do
       do l = 1, kz
@@ -698,7 +696,7 @@ module mod_cu_bm
       end if
       ltp1 = ltpk + 1
       do l = ltpk, lbtk
-        es = aliq*exp((bliq*tk(l)-cliq)/(tk(l)-dliq))
+        es = esatliq(tk(l))
         qsatk(l) = 0.622_rkx * es/(pk(l)-es)
       end do
       do l = ltp1, lbm1
@@ -916,6 +914,8 @@ module mod_cu_bm
       end function tpfc
 
   end subroutine bmpara
+
+#include <saturation.inc>
 
 end module mod_cu_bm
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

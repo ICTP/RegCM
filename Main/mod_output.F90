@@ -489,13 +489,13 @@ module mod_output
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_rh_out(j,i,k) = d_100 * &
                     min(rhmax,max(rhmin,(mo_atm%qx(j,i,k,iqv) / &
-                           pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
+                           pfwsats(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
             end do
           else
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               atm_rh_out(j,i,k) = d_100 * min(rhmax,max(rhmin, &
                      (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
-                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+                     pfwsats(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
             end do
           end if
         end if
@@ -2196,7 +2196,7 @@ module mod_output
 
     contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 
   end subroutine output
 

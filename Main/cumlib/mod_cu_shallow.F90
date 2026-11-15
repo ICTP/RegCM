@@ -142,23 +142,15 @@ module mod_cu_shallow
       real(rkx), dimension(kz) :: xmflux, het
       real(rkx) :: ax, xax, dh, dq, e, entnet, hkb
       real(rkx) :: mbdt, xhkb, xqkb
-      real(rkx) :: toshall
       real(rkx) :: psurf, pbcdif, qkb
-      integer(ik4) :: k, lloop, iph
+      integer(ik4) :: k, lloop
       integer(ik4) :: kbhe, k22, kb, kbcon, kbxx
       logical :: lfindbase, lkbloop
 
-      real(rkx), parameter :: ht1 = wlhv/cpd
-      real(rkx), parameter :: ht2 = wlhs/cpd
-      real(rkx), parameter, dimension(2) :: be = &
-                      [ ep2*ht1/c287, ep2*ht2/c287 ]
-      real(rkx), parameter, dimension(2) :: ae = &
-                      [ be(1)/tzero+log(c1es), be(2)/tzero+log(c1es) ]
 
       rad = rads
       xx = 0.2_rkx/rad
 
-      toshall = 50.0_rkx
       lloop = 0
       ier = 0
       mbdt = dtime*5.0e-3_rkx
@@ -214,9 +206,7 @@ module mod_cu_shallow
         ! Calculate environmental conditions
         !
         do k = 1, kz
-          iph = 1
-          if ( t(k) <= toshall ) iph = 2
-          e = exp(ae(iph)-be(iph)/t(k))
+          e = esatmix(t(k))
           qes(k) = ep2 * e/(d_100*p(k)-(d_one-ep2)*e)
           if ( qes(k) <= minqq ) qes(k) = minqq
           if ( qe(k) > qes(k) )qe(k) = qes(k)
@@ -377,9 +367,7 @@ module mod_cu_shallow
           !
           do k = 1, kz
             if ( xqe(k) < minqq ) xqe(k) = minqq
-            iph = 1
-            if ( xt(k) <= toshall ) iph = 2
-            e = exp(ae(iph)-be(iph)/xt(k))
+            e = esatmix(xt(k))
             xqes(k) = ep2*e/(d_100*p(k)-(d_one-ep2)*e)
             if ( xqes(k) < minqq ) xqes(k) = minqq
             if ( xqe(k) > xqes(k) ) xqe(k) = xqes(k)
@@ -860,5 +848,7 @@ module mod_cu_shallow
     end subroutine precip
 
   end subroutine shallow
+
+#include <saturation.inc>
 
 end module mod_cu_shallow

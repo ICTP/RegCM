@@ -368,14 +368,16 @@ module mod_bats_internal
     call getmem(cpr0,1,nlandp,'bats_internal:cpr0')
   end subroutine allocate_mod_bats_internal
 
+  ! Saturation over liquid water above 0 C and over ice below
+  ! (Share/saturation.inc)
   subroutine bats_psat(t,e)
     implicit none
     real(rkx), intent(in) :: t
     real(rkx), intent(out) :: e
     if ( t < tzero ) then
-      e = c1es * exp(c3ies*(t-tzero)/(t-c4ies))
+      e = esatice(t)
     else
-      e = c1es * exp(c3les*(t-tzero)/(t-c4les))
+      e = esatliq(t)
     end if
   end subroutine bats_psat
 
@@ -384,20 +386,22 @@ module mod_bats_internal
     real(rkx), intent(in) :: t, p
     real(rkx), intent(out) :: e, qs
     call bats_psat(t,e)
-    qs = ep2 * e/(p-0.378_rkx*e)
+    qs = ep2 * e/(p-(d_one-ep2)*e)
   end subroutine bats_satur
 
   subroutine bats_qsdt(t,qs,qsdt)
     implicit none
     real(rkx), intent(in) :: t, qs
     real(rkx), intent(out) :: qsdt
-    ! Eqn. 83 from BATS manual
+    ! Eqn. 83 from BATS manual, dqs/dT = qs dln(es)/dT
     if ( t < tzero ) then
-      qsdt = qs * (c3ies * (tzero-c4ies) * (d_one/(t-c4ies))**d_two)
+      qsdt = qs * dlnesice(t)
     else
-      qsdt = qs * (c3les * (tzero-c4les) * (d_one/(t-c4les))**d_two)
+      qsdt = qs * dlnesliq(t)
     end if
   end subroutine bats_qsdt
+
+#include <saturation.inc>
 
 end module mod_bats_internal
 

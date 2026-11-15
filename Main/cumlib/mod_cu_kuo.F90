@@ -54,9 +54,6 @@ module mod_cu_kuo
   integer(ik4), public :: k700
 
   real(rkx), parameter :: svpt0 = tzero
-  real(rkx), parameter :: svp1 = 0.6112_rkx
-  real(rkx), parameter :: svp3 = 29.65_rkx
-  real(rkx), parameter :: svp2 = 17.67_rkx
   real(rkx), parameter :: tauht = 7200.0_rkx
 
   contains
@@ -123,7 +120,7 @@ module mod_cu_kuo
             q = qux(k) + perq
             t1 = ttp*(d_100/psg)**rovcp
             ee = psg * q/(0.622_rkx+q)
-            tdpt = min((d_one/(d_one/svpt0-rwat/wlhv*log(ee/0.611_rkx))),ttp)
+            tdpt = min(tdewliq(ee*d_1000),ttp) ! ee in kPa
             tlcl = tdpt - (0.212_rkx + 1.571e-3_rkx*(tdpt-svpt0) - &
                            4.36e-4_rkx*(ttp-svpt0)) * (ttp-tdpt)
             eqt = t1 * exp(wlhvocp*q/tlcl)
@@ -138,7 +135,7 @@ module mod_cu_kuo
           ! 2) compute lcl, get the sigma and p of lcl
           !
           emax = qmax*pmax/(ep2+qmax)
-          tdmax = (svp3*log(emax/svp1)-svp2*svpt0)/(log(emax/svp1)-svp2)
+          tdmax = tdewliq(emax*d_1000) ! emax in kPa
           dalr = egrav*rcpd
           dplr = (egrav*tdmax*tdmax)/(ep2*wlhv*tmax)
           zlcl = (tmax-tdmax)/(dalr-dplr)
@@ -163,7 +160,7 @@ module mod_cu_kuo
             ttp = tux(k)
             psg = pux(k)
             t1 = ttp*(d_100/psg)**rovcp
-            ee = svp1*exp(svp2*(ttp-svpt0)/(ttp-svp3))
+            ee = esatliq(ttp)*d_r1000 ! kPa
             qs = ep2*ee/(psg-ee)
             seqt(k) = t1*exp(wlhvocp*qs/ttp)
           end do
@@ -217,7 +214,7 @@ module mod_cu_kuo
               do k = ktop, kbase
                 psg = pux(k)
                 ttp = tux(k)
-                ee = svp1*exp(svp2*(tux(k)-svpt0)/(tux(k)-svp3))
+                ee = esatliq(tux(k))*d_r1000 ! kPa
                 qs = ep2*ee/(pux(k)-ee)
                 rh = qux(k)/qs
                 rh = max(min(rh,d_one),d_zero)
@@ -284,6 +281,8 @@ module mod_cu_kuo
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine cupara
+
+#include <saturation.inc>
 
 end module mod_cu_kuo
 

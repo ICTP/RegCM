@@ -302,7 +302,7 @@ module mod_pbl_holtbl
         if ( m2p%ldmsk(j,i) == 1 ) then
           sh10(j,i) = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
         else
-          sh10(j,i) = pfqsat(m2p%tg(j,i),m2p%patmf(j,i,kzp1))
+          sh10(j,i) = pfqsats(m2p%tg(j,i),m2p%patmf(j,i,kzp1))
         end if
       end do
       if ( ifaholtth10 == 1 ) then
@@ -1127,8 +1127,7 @@ module mod_pbl_holtbl
     !@acc call nvtxEndRange
   end subroutine holtbl
 
-#include <pfqsat.inc>
-#include <pfqsdt.inc>
+#include <saturation.inc>
 
   !
   ! Moist Brunt-Vaisala frequency across the interface between an upper

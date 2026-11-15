@@ -107,7 +107,6 @@
  /
 
  !&microparam
- !vfqi = 0.15,               !-- Ice fall speed (default is 0.15 m/s)
  !/
 
  &tiedtkeparam

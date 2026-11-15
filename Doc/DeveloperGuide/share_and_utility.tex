@@ -235,7 +235,7 @@ function argument in the \code{Share/*.inc} include files is typed
 \end{itemize}
 
 Internal computations inside the thermodynamic kernels
-(e.g.\ the Flatau polynomial evaluations in \code{pfesat.inc}) promote
+(e.g.\ the saturation vapour pressure in \code{saturation.inc}) promote
 intermediate values to \code{rk8} regardless of \code{rkx}, then cast the
 result back. This guards against rounding error in the polynomial evaluation
 when the model is built in single precision.
@@ -678,50 +678,6 @@ the idealised diatomic derivation $c_p = \frac{7}{2}R$, $c_v = \frac{5}{2}R$.
   \code{rtwat\_rtice\_r} & $1/(T_w-T_i)$& K$^{-1}$ & Reciprocal of liquid--ice temperature range \\
 \end{longtable}
 
-\subsubsection{Tetens Formula Coefficients}
-
-Used by \code{tetens\_pfesat.inc} and \code{tetens\_pfesdt.inc}.
-The formula is $e_s = c_{1es}\exp\!\bigl(c_{3x}(T-T_w)/(T-c_{4x})\bigr)$.
-
-\begin{longtable}{L{3cm} L{3cm} L{8cm}}
-  \toprule
-  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
-  \midrule
-  \endhead
-  \bottomrule
-  \endfoot
-  \code{c1es}    & 610.78          & Reference saturation pressure at \code{wattp} [Pa] \\
-  \code{c3les}   & 17.2693882      & Exponent numerator coefficient -- liquid \\
-  \code{c3ies}   & 21.875          & Exponent numerator coefficient -- ice \\
-  \code{c4les}   & 35.86\,K        & Exponent denominator offset -- liquid \\
-  \code{c4ies}   & 7.66\,K         & Exponent denominator offset -- ice \\
-  \code{c5les}   & $c_{3l}(T_0-c_{4l})$ & Precomputed product -- liquid \\
-  \code{c5ies}   & $c_{3i}(T_0-c_{4i})$ & Precomputed product -- ice \\
-  \code{c5alvcp} & $c_{5l}\,L_v/c_p$    & Compound for equivalent potential temperature -- liquid \\
-  \code{c5alscp} & $c_{5i}\,L_s/c_p$    & Compound for equivalent potential temperature -- ice \\
-\end{longtable}
-
-\subsubsection{Kain-Fritsch / WSM5 Saturation Constants}
-
-Alternative exponential fits used in convective and microphysics schemes.
-
-\begin{longtable}{L{3cm} L{3cm} L{8cm}}
-  \toprule
-  \textbf{Name} & \textbf{Value} & \textbf{Description} \\
-  \midrule
-  \endhead
-  \bottomrule
-  \endfoot
-  \code{aliq} & 613.3   & Reference pressure -- liquid [Pa] \\
-  \code{bliq} & 17.502  & Exponent numerator -- liquid \\
-  \code{cliq} & 4780.8  & Exponent denominator offset -- liquid [K] \\
-  \code{dliq} & 32.19   & Exponent denominator shift -- liquid [K] \\
-  \code{aice} & 613.20  & Reference pressure -- ice [Pa] \\
-  \code{bice} & 22.452  & Exponent numerator -- ice \\
-  \code{cice} & 6133.0  & Exponent denominator offset -- ice [K] \\
-  \code{dice} & 0.61    & Exponent denominator shift -- ice [K] \\
-\end{longtable}
-
 %----------------------------------------------------------------------
 \subsection{Group 8 --- Standard Atmosphere (ICAO 1993)}
 
@@ -923,14 +879,14 @@ thermodynamic kernels live in the include files or in other modules, keeping
 
 \subsection{Overview}
 
-The \code{Share/} directory contains 20 small, self-contained Fortran functions
-that are \emph{textually included} (via \code{include} statements) into multiple
+The \code{Share/} directory contains 8 files of small, self-contained Fortran
+functions that are \emph{textually included} (via \code{include} statements) into multiple
 modules across the RegCM codebase. This design allows the same thermodynamic
 kernel to be compiled with different precision kinds (\code{rkx}) without code
 duplication, and enables aggressive inlining by the compiler
 (\code{!DIR\$ ATTRIBUTES FORCEINLINE}).
 
-The files fall into four thematic groups:
+The files fall into three thematic groups:
 
 \begin{longtable}{L{5cm} L{9cm}}
   \toprule
@@ -939,12 +895,8 @@ The files fall into four thematic groups:
   \endhead
   \bottomrule
   \endfoot
-  Saturation vapour pressure (\code{pfesat}) &
-    \code{pfesat.inc}, \code{flatau\_pfesat.inc}, \code{tetens\_pfesat.inc},
-    \code{vaisala\_pfesat.inc}, \code{esatliq.inc}, \code{esatice.inc} \\
-  Saturation derivatives and specific humidity &
-    \code{pfesdt.inc}, \code{flatau\_pfesdt.inc}, \code{tetens\_pfesdt.inc},
-    \code{pfqsat.inc}, \code{pfqsdt.inc}, \code{pfwsat.inc}, \code{pfmxsat.inc} \\
+  Saturation of water vapour (the only formulation of the model physics) &
+    \code{saturation.inc} \\
   Latent heat and thermodynamic scalars &
     \code{wlh.inc}, \code{cpmf.inc}, \code{clwfromt.inc}, \code{moistlr.inc} \\
   Vertical and surface diagnostics &
@@ -972,210 +924,87 @@ non-elemental variants), making them safe for OpenACC GPU kernels
 \end{longtable}
 
 %----------------------------------------------------------------------
-\subsection{Saturation Vapour Pressure Functions}
+\subsection{Saturation --- \texttt{saturation.inc}}
 
-\subsubsection{\texttt{pfesat.inc} --- Flatau 1992 (default, with pressure cap)}
+All the model physics computes the saturation of water vapour with the
+functions of \code{saturation.inc}; a scheme includes the file (in the
+\code{contains} part of its module) and does not write its own formula. The
+CLM land model and the ISORROPIA aerosol thermodynamics keep their own.
 
-\textbf{Function:} \code{pfesat(t, p) $\to$ es}
+\paragraph{Vapour pressure.}
+Over a flat surface of liquid water and of ice the vapour pressure is the
+integral of the Clausius-Clapeyron equation from the triple point
+($e_{s0} = 611.655$~Pa, $T_0 = 273.16$~K) with a latent heat linear in
+temperature, $L(T) = L_0 - \Delta c\,(T-T_0)$ \citep[as in][]{ambaum2020},
+with $L_0 = 2.501\times10^6$, $\Delta c = 2320$~J~kg$^{-1}$~K$^{-1}$ over
+liquid and $L_0 = 2.835\times10^6$, $\Delta c = 220$~J~kg$^{-1}$~K$^{-1}$
+over ice. It is written as
+\begin{equation}
+  \ln e_s = c_0 - a \ln T - \frac{c_1}{T}, \qquad a = \frac{\Delta c}{R_v},
+  \quad c_1 = \frac{L_0 + \Delta c\, T_0}{R_v}, \quad
+  c_0 = \ln e_{s0} + a \ln T_0 + \frac{L_0}{R_v T_0} + a,
+\end{equation}
+one exponential and one logarithm per call, which costs as much as the
+polynomial fits it replaced. Against \citet{murphy2005} the error is below
+0.25\,\% over liquid between $-20$ and $40$~\textdegree C (0.5\,\% at
+$-40$~\textdegree C), below 0.7\,\% over ice down to 220~K and 3\,\% at
+190~K. The derivatives are exact,
+$\mathrm{d}\ln e_s/\mathrm{d}T = L(T)/(R_v T^2)$.
 
-\textbf{Purpose:} Computes saturation vapour pressure using 8th-order Flatau
-polynomial fits, capped at $0.15\,p$.
+\paragraph{Phase.}
+Three variants cover the uses of the model:
+\begin{itemize}
+  \item mixed phase, the default of the atmospheric physics: between
+    $T_i = $ \code{rtice} ($-23$~\textdegree C) and $T_w = $ \code{rtwat}
+    (0~\textdegree C) $e_s = w\,e_{s,l} + (1-w)\,e_{s,i}$ with the liquid
+    fraction $w = ((T-T_i)/(T_w-T_i))^2$ used by the microphysics and the
+    convection (\code{satliqfrac}); the derivative of the blend is taken at
+    fixed $w$;
+  \item suffix \code{s}: over liquid water above 0~\textdegree C and over ice
+    below, for the surfaces, whose phase follows their temperature, and for
+    the relative humidity diagnostics (CMIP convention);
+  \item suffix \code{l}: over liquid water at every temperature (sea water,
+    FAO evapotranspiration, wet bulb temperature, heat index, the schemes
+    designed with liquid saturation such as Kain-Fritsch and Betts-Miller).
+\end{itemize}
 
-\textbf{Arguments:}
-\begin{longtable}{L{2cm} L{2cm} L{3.5cm} L{2cm} L{4.5cm}}
+\paragraph{Functions.}
+All are \code{pure elemental} with \code{!\$acc routine seq}; the vapour
+pressure used in the humidities is capped at $0.15\,p$.
+
+\begin{longtable}{L{5.2cm} L{8.8cm}}
   \toprule
-  \textbf{Name} & \textbf{Intent} & \textbf{Type} & \textbf{Units} & \textbf{Description} \\
+  \textbf{Function} & \textbf{Result} \\
   \midrule
   \endhead
   \bottomrule
   \endfoot
-  \code{t} & \code{in} & \code{real(rkx)} & K  & Temperature \\
-  \code{p} & \code{in} & \code{real(rkx)} & Pa & Total pressure \\
+  \code{esatliq(t)}, \code{esatice(t)} & $e_s$ over liquid, over ice (Pa) \\
+  \code{esatmix(t)}, \code{satliqfrac(t)} & mixed phase $e_s$ (Pa), liquid
+    fraction $w$ \\
+  \code{dlnesliq(t)}, \code{dlnesice(t)}, \code{dlnesmix(t)} &
+    $\mathrm{d}\ln e_s/\mathrm{d}T$ (K$^{-1}$) \\
+  \code{pfesat(t,p)}, \code{pfesdt(t)} & mixed phase $e_s$ (Pa) and
+    $\mathrm{d}e_s/\mathrm{d}T$ (Pa~K$^{-1}$) \\
+  \code{pfwsat(t,p)}, \code{pfqsat(t,p)} & mixed phase saturation mixing ratio
+    $\epsilon e_s/(p-e_s)$ and specific humidity
+    $\epsilon e_s/(p-(1-\epsilon)e_s)$ (kg~kg$^{-1}$) \\
+  \code{pfqsdt(t,p)} & $\mathrm{d}q_s/\mathrm{d}T$ (K$^{-1}$) \\
+  \code{pfmxsat(t,p,ws,leff)} & mixed phase $w_s$ and latent heat
+    $w L_v + (1-w) L_s$ \\
+  \code{pfesatl}, \code{pfwsatl}, \code{pfqsatl}, \code{pfesdtl},
+    \code{pfqsdtl} & the same over liquid water \\
+  \code{pfesats}, \code{pfwsats}, \code{pfqsats}, \code{pfesdts},
+    \code{pfqsdts} & the same, liquid above 0~\textdegree C and ice below \\
+  \code{tdewliq(e)} & dew point over liquid water (K) for the vapour
+    pressure $e$ (Pa), the inverse of \code{esatliq} by Newton iterations from
+    the \citet{bolton1980} inverse \\
 \end{longtable}
 
-\textbf{Algorithm:} Converts $T$ to Celsius offset
-$t_d = \text{clamp}(T - 273.15,\,-75,\,100)$. For $t_d \geq 0$ (liquid),
-evaluates the 9-coefficient polynomial $a_0 + t_d(a_1 + t_d(\cdots))$ in Pa.
-For $t_d < 0$ (ice), uses the ice-phase polynomial ($c$ coefficients).
-Result is capped at $0.15\,p$.
-
-\textbf{Reference:} Flatau, P.J., Walko, R.L., Cotton, W.R. (1992),
-\textit{J.\ Appl.\ Meteor.}, 31, 1507--1513.
-
-%----
-\subsubsection{\texttt{flatau\_pfesat.inc} --- Flatau 1992 (hPa-based, no pressure cap)}
-
-\textbf{Function:} \code{pfesat(t) $\to$ es}
-
-Same polynomial structure as \code{pfesat.inc} but polynomial constants stored
-in hPa; result multiplied by 100 to return Pa. Does not accept a pressure
-argument; no $0.15p$ cap applied.
-
-%----
-\subsubsection{\texttt{tetens\_pfesat.inc} --- Tetens (1930)}
-
-\textbf{Function:} \code{pfesat(t) $\to$ es}
-
-Classic Tetens exponential formula. Less expensive than the Flatau polynomials.
-
-\[
-  e_s =
-  \begin{cases}
-    c_{1es}\exp\!\left(\dfrac{c_{3les}(T - T_w)}{T - c_{4les}}\right) & T > T_w \\[8pt]
-    c_{1es}\exp\!\left(\dfrac{c_{3ies}(T - T_w)}{T - c_{4ies}}\right) & T \leq T_w
-  \end{cases}
-\]
-
-Constants $c_{1es}$, $c_{3les}$, $c_{4les}$, $c_{3ies}$, $c_{4ies}$ and
-$T_w$ (\code{wattp}) are taken from \code{mod\_constants}.
-
-\textbf{Reference:} Tetens, O. (1930), \textit{Zeitschrift f\"ur Geophysik}, 6, 297.
-
-%----
-\subsubsection{\texttt{vaisala\_pfesat.inc} --- Wagner \& Pru\ss{} (2002) / IAPWS-95}
-
-\textbf{Function:} \code{pfesat(t) $\to$ es}
-
-High-accuracy formulation valid from $-100$\,°C to $373$\,°C.
-
-\begin{itemize}
-  \item For $T > 273.15$\,K (liquid): 6-term reduced-temperature series with
-        $T_c = 647.096$\,K, $p_c = 220640$\,hPa.
-  \item For $T \leq 273.15$\,K (ice): 2-term series relative to triple point
-        $T_n = 273.16$\,K, $p_n = 6.11657$\,hPa.
-\end{itemize}
-
-\textbf{Reference:} Wagner, W. \& Pru\ss, A. (2002),
-\textit{J.\ Phys.\ Chem.\ Ref.\ Data}, 31, 387--535.
-
-%----
-\subsubsection{\texttt{esatliq.inc} --- Ambaum (2020), liquid water}
-
-\textbf{Function:} \code{esatliq(t) $\to$ es}
-
-Exact analytic saturation pressure over liquid water from the Clausius-Clapeyron
-equation with temperature-dependent latent heat:
-\[
-  e_s = e_{s0}\left(\frac{T_0}{T}\right)^{(c_{pl}-c_{pv})/R_v}
-        \exp\!\left(\frac{L_{v0}}{R_v T_0} - \frac{L_v(T)}{R_v T}\right)
-\]
-Parameters: $e_{s0} = 611.655$\,Pa, $T_0 = 273.16$\,K,
-$L_{v0} = 2.501\times10^6$\,J\,kg$^{-1}$,
-$c_{pl} - c_{pv} = 2320$\,J\,kg$^{-1}$\,K$^{-1}$.
-
-\textbf{Reference:} Ambaum, M.H.P. (2020), \textit{QJRMS},
-\href{https://doi.org/10.1002/qj.3899}{doi:10.1002/qj.3899}.
-
-%----
-\subsubsection{\texttt{esatice.inc} --- Ambaum (2020), ice}
-
-\textbf{Function:} \code{esatice(t) $\to$ es}
-
-Same Clausius-Clapeyron structure as \code{esatliq.inc} but uses sublimation
-latent heat $L_{i0} = 2.835\times10^6$\,J\,kg$^{-1}$ and
-$c_{pi} - c_{pv} = 220$\,J\,kg$^{-1}$\,K$^{-1}$.
-
-%----------------------------------------------------------------------
-\subsection{Saturation Pressure Derivatives and Specific Humidity}
-
-\subsubsection{\texttt{pfesdt.inc} --- Derivative of $e_s$ w.r.t.\ $T$ (default)}
-
-\textbf{Function:} \code{pfesdt(t) $\to$ esdt}
-
-Returns $\mathrm{d}e_s/\mathrm{d}T$ [Pa\,K$^{-1}$] using Flatau polynomial
-fits for the derivative; coefficients in Pa\,K$^{-1}$ ($b$ for liquid,
-$d$ for ice).
-
-\subsubsection{\texttt{flatau\_pfesdt.inc} --- Flatau derivative + \texttt{pfqsdt}}
-
-Contains two functions:
-\begin{itemize}
-  \item \code{pfesdt(t) $\to$ esdt}: derivative of $e_s$ (hPa-based
-        coefficients, converted to Pa\,K$^{-1}$).
-  \item \code{pfqsdt(t, p[, e][, dedt]) $\to$ qsdt}: derivative of saturation
-        specific humidity [K$^{-1}$]:
-        \[
-          \frac{\mathrm{d}q_s}{\mathrm{d}T}
-          = \frac{\mathrm{d}e_s}{\mathrm{d}T}
-            \cdot \frac{\varepsilon_2\,p}{(p - 0.378\,e_s)^2}
-        \]
-        Pre-computed $e_s$ and $\mathrm{d}e_s/\mathrm{d}T$ may be passed
-        as optional arguments.
-\end{itemize}
-
-\subsubsection{\texttt{tetens\_pfesdt.inc} --- Tetens derivative + \texttt{pfqsdt}}
-
-\begin{itemize}
-  \item \code{pfesdt(t) $\to$ esdt}: analytic Tetens derivative,
-        $\mathrm{d}e_s/\mathrm{d}T = e_s \cdot c_{3x}(T_0 - c_{4x})/(T-c_{4x})^2$.
-  \item \code{pfqsdt(t, p) $\to$ qsdt}: uses internal \code{pfesat} call.
-\end{itemize}
-
-\subsubsection{\texttt{pfqsat.inc} --- Saturation specific humidity}
-
-\textbf{Function:} \code{pfqsat(t, p) $\to$ qs}
-
-Saturation specific humidity [kg\,kg$^{-1}$] via embedded Flatau polynomials:
-\[
-  w_s = \frac{\varepsilon_2\,e_s}{p - e_s}, \quad
-  q_s = \frac{w_s}{1 + w_s}
-\]
-
-\subsubsection{\texttt{pfqsdt.inc} --- Derivative of $q_s$ (self-contained)}
-
-\textbf{Function:} \code{pfqsdt(t, p) $\to$ qsdt}
-
-Most self-contained variant: embeds all four Flatau polynomial sets (liquid
-$e_s$, liquid $\mathrm{d}e_s/\mathrm{d}T$, ice $e_s$, ice
-$\mathrm{d}e_s/\mathrm{d}T$) so it has no external dependency on
-\code{pfesdt}.
-
-\subsubsection{\texttt{pfwsat.inc} --- Saturation mixing ratio}
-
-\textbf{Function:} \code{pfwsat(t, p) $\to$ ws}
-
-Returns $w_s = \varepsilon_2\,e_s/(p - e_s)$ [kg\,kg$^{-1}$] without the
-specific-humidity conversion applied in \code{pfqsat}.
-
-\subsubsection{\texttt{pfmxsat.inc} --- Mixed-phase saturation (subroutine)}
-
-\textbf{Subroutine:} \code{pfmxsat(t, p, ws, Leff)}
-
-Computes saturation mixing ratio and effective latent heat for a mixed
-liquid/ice condensate.
-
-\textbf{Arguments:}
-\begin{longtable}{L{2cm} L{2cm} L{3.5cm} L{2cm} L{4.5cm}}
-  \toprule
-  \textbf{Name} & \textbf{Intent} & \textbf{Type} & \textbf{Units} & \textbf{Description} \\
-  \midrule
-  \endhead
-  \bottomrule
-  \endfoot
-  \code{t}    & \code{in}  & \code{real(rkx)} & K         & Temperature \\
-  \code{p}    & \code{in}  & \code{real(rkx)} & Pa        & Pressure \\
-  \code{ws}   & \code{out} & \code{real(rkx)} & kg kg$^{-1}$ & Saturation mixing ratio \\
-  \code{Leff} & \code{out} & \code{real(rkx)} & J kg$^{-1}$ & Effective latent heat \\
-\end{longtable}
-
-\textbf{Phase blending} (Chaboureau \& Bechtold 2002):
-\[
-  \alpha(T) =
-  \begin{cases}
-    1 & T \geq T_\text{liq} = 273.15\,\text{K} \\
-    \left(\dfrac{T - T_\text{ice}}{T_\text{liq} - T_\text{ice}}\right)^2
-      & T_\text{ice} \leq T < T_\text{liq} \\
-    0 & T \leq T_\text{ice} = 233.15\,\text{K}
-  \end{cases}
-\]
-\[
-  e_{s,\text{eff}} = \alpha\,e_{s,l} + (1-\alpha)\,e_{s,i}, \quad
-  L_\text{eff} = \alpha\,L_v^0 + (1-\alpha)\,L_s^0
-\]
-
-\textbf{References:} Flatau et al.\ (1992); Chaboureau \& Bechtold (2002),
-\textit{J.\ Atmos.\ Sci.}, 59, 2362; Bretherton et al.\ (2004),
-\textit{Mon.\ Wea.\ Rev.}, 132.
+The test \code{Testing/share/test\_saturation} checks the values against
+\citet{murphy2005}, the mixed phase blend, the derivatives against finite
+differences, the humidities, the switch at 0~\textdegree C and the dew point
+inverse.
 
 %----------------------------------------------------------------------
 \subsection{Latent Heat and Thermodynamic Scalars}
@@ -7200,9 +7029,11 @@ checks the missing directory.
 (CAPE), the convective inhibition (CIN) and the lifted index of every
 column, for the \code{cape}, \code{cin} and \code{li} fields of the surface
 output (\code{mod\_output}, for all the dynamical cores). The CAPE and CIN
-come from the \code{getcape} code of G.~H.~Bryan, with the constants of
-\citet{bolton1980} and the ice of \citet{bryan2004}; the lifted index from
-the \code{OTLIFT} routine of the NCEP Eta model post-processor.
+come from the \code{getcape} code of G.~H.~Bryan, with the equivalent
+potential temperature of \citet{bolton1980} and the ice treatment of
+\citet{bryan2004}; the lifted index from the \code{OTLIFT} routine of the
+NCEP Eta model post-processor. The saturation vapour pressures and the dew
+point are those of \code{saturation.inc}.
 
 \subsection{Dependencies}
 

@@ -18,7 +18,7 @@ module mod_cu_kf
   use mod_realkinds
   use mod_intkinds
   use mod_constants, only : egrav, regrav, rdry, gdry, tzero
-  use mod_constants, only : aliq, bliq, cliq, dliq, ep1
+  use mod_constants, only : ep1
   use mod_constants, only : cpd, rcpd, wlhv, wlhf, p00, cpw, cpv
   use mod_constants, only : d_zero, d_one, d_half, d_two
   use mod_constants, only : d_10, d_100, d_1000, dlowval
@@ -69,10 +69,8 @@ module mod_cu_kf
   !
   integer(ik4), parameter :: kfnt = 250
   integer(ik4), parameter :: kfnp = 220
-  integer(ik4), parameter :: kfna = 200
   real(rkx), dimension(kfnt,kfnp), private, save :: ttab, qstab
   real(rkx), dimension(kfnp), private, save :: the0k
-  real(rkx), dimension(kfna), private, save :: alu
   real(rkx), private, save :: rdpr, rdthk, plutop
 
   integer(ik4) :: nipoi
@@ -93,8 +91,6 @@ module mod_cu_kf
   ! IPPTLS == 2
   real(rkx), dimension(:,:), pointer, contiguous :: dqidt, dqrdt, dqsdt
 
-  real(rkx), parameter :: astrt = 1.0e-3_rkx
-  real(rkx), parameter :: aincb = 0.0750_rkx
   real(rkx), parameter :: atoler = 0.001_rkx
 
   real(rkx), parameter :: c1 = 3374.6525_rkx
@@ -215,7 +211,7 @@ module mod_cu_kf
         ! Saturation vapor pressure (ES) is calculated following Buck (1981)
         ! If q0 is above saturation value, reduce it to saturation level.
         !
-        es = aliq * exp((bliq*t0(k,np)-cliq)/(t0(k,np)-dliq))
+        es = esatliq(t0(k,np))
         qes(k,np) = 0.622_rkx * es/(p0(k,np)-es)
         q0(k,np) = min(qes(k,np),q0(k,np))
         q0(k,np) = max(1.0e-6_rkx,q0(k,np))
@@ -375,7 +371,7 @@ module mod_cu_kf
             tgu, qgu, thteeg
 
     real(rkx) :: fbfrc, p300, dpthmx, qmix, zmix, pmix, tmix, emix, &
-            tlog, tdpt, tlcl, tvlcl, plcl, es, dlp, tenv, qenv,     &
+            tdpt, tlcl, tvlcl, plcl, es, dlp, tenv, qenv,     &
             tven, zlcl, wkl, trppt, dtlcl, gdt, wlcl, wtw,          &
             rholcl, au0, vmflcl, upold, upnew, abe, wklcl, ttemp,   &
             frc1, qnewic, rl, be, boterm, enterm, dzz, rei, ee2,    &
@@ -389,9 +385,9 @@ module mod_cu_kf
             frc2, dr, udfrc, tuc, qgs, rh0, rhg, qinit, qfnl, err2, &
             relerr, fabeold, aincold, uefrc, ddfrc, tdc, defrc,     &
             rhbar, dmffrc, dilbe
-    real(rkx) :: tp, avalue, aintrp, qfrz, qss, pptmlt, dtmelt, &
-            rhh, evac, binc
-    integer(ik4) :: indlu, nu, nuchm, nnn, klfs
+    real(rkx) :: tp, qfrz, qss, pptmlt, dtmelt, &
+            rhh, evac
+    integer(ik4) :: nu, nuchm, nnn, klfs
     real(rkx) :: chmin, pm15, chmax, dtrh, rad, dppp
     real(rkx) :: tvdiff, dttot, absomg, absomgtc, frdp
     real(rkx) :: xcldfra, umf_new
@@ -561,14 +557,7 @@ module mod_cu_kf
         ! Find the temperature of the mixture at its lcl.
         ! Calculate dewpoint using lookup table.
         !
-        ainc = aincb
-        a1 = emix/aliq
-        tp = (a1-astrt)/ainc
-        indlu = inrange(int(tp)+1,1,kfna-1)
-        avalue = real(indlu-1,rkx)*ainc + astrt
-        aintrp = (a1-avalue)/ainc
-        tlog = aintrp*alu(indlu+1) + (d_one-aintrp)*alu(indlu)
-        tdpt = (cliq-dliq*tlog) / (bliq-tlog)
+        tdpt = tdewliq(emix)
         tlcl = tdpt - (0.212_rkx + 1.571e-3_rkx*(tdpt-tzero) - &
                        4.36e-4_rkx*(tmix-tzero))*(tmix-tdpt)
         tlcl = min(tlcl,tmix)
@@ -630,7 +619,7 @@ module mod_cu_kf
           ! !!!!!! for MM5, SET DTRH = 0.0 !!!!!!!!
           qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
           rhlcl = max(min(qenv/qslcl,d_one),d_zero)
-          dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
+          dqssdt = qmix*dlnesliq(tlcl)
           if ( rhlcl >= u00 .and. rhlcl <= u01 ) then
             dtrh = (d_one-u00)*(rhlcl-u00)*qmix/dqssdt
           else if ( rhlcl > u01 ) then
@@ -1327,7 +1316,7 @@ module mod_cu_kf
           ldt = min(lfs-1,kstart-1)
           call tpmix2dd(p0(kstart,np),theted(kstart),tz(kstart),qss)
           tz(kstart) = tz(kstart) - dtmelt
-          es = aliq*exp((bliq*tz(kstart)-cliq)/(tz(kstart)-dliq))
+          es = esatliq(tz(kstart))
           qss = 0.622_rkx*es/(p0(kstart,np)-es)
           theted(kstart) = tz(kstart) * &
                (p00/p0(kstart,np))**(0.2854_rkx*(d_one-0.28_rkx*qss))*    &
@@ -1351,11 +1340,11 @@ module mod_cu_kf
             ! Adjust downdraft TEMP, Q to specified RH:
             !
             if ( rhh < d_one ) then
-              dssdt = (cliq-bliq*dliq)/((tz(nd)-dliq)*(tz(nd)-dliq))
+              dssdt = dlnesliq(tz(nd))
               rl = wlhv - lv1 * tz(nd)
               dtmp = rl*qss*(d_one-rhh)/(cpd+rl*rhh*qss*dssdt)
               t1rh = tz(nd) + dtmp
-              es = rhh*aliq*exp((bliq*t1rh-cliq)/(t1rh-dliq))
+              es = rhh*esatliq(t1rh)
               qsrh = 0.622_rkx*es/(p0(nd,np)-es)
               !
               ! Check to see if mixing ratio at specified rh is less than actual
@@ -1642,7 +1631,7 @@ module mod_cu_kf
         end do
         tmix = tmix/dpthmx
         qmix = qmix/dpthmx
-        es = aliq*exp((tmix*bliq-cliq)/(tmix-dliq))
+        es = esatliq(tmix)
         qss = 0.622_rkx*es/(pmix-es)
         !
         ! Remove supersaturation for diagnostic purposes, if necessary
@@ -1650,7 +1639,7 @@ module mod_cu_kf
         if ( qmix > qss ) then
           rl = wlhv - lv1*tmix
           cpm = cpd*(d_one+0.887_rkx*qmix)
-          dssdt = qss*(cliq-bliq*dliq)/((tmix-dliq)*(tmix-dliq))
+          dssdt = qss*dlnesliq(tmix)
           dq = (qmix-qss)/(d_one+rl*dssdt/cpm)
           tmix = tmix + rl*rcpd*dq
           qmix = qmix - dq
@@ -1658,14 +1647,7 @@ module mod_cu_kf
         else
           qmix = max(qmix,d_zero)
           emix = qmix*pmix/(0.622_rkx+qmix)
-          binc = aincb
-          a1 = emix/aliq
-          tp = (a1-astrt)/binc
-          indlu = inrange(int(tp)+1,1,kfna-1)
-          avalue = real(indlu-1,rkx)*binc + astrt
-          aintrp = (a1-avalue)/binc
-          tlog = aintrp*alu(indlu+1)+(d_one-aintrp)*alu(indlu)
-          tdpt = (cliq-dliq*tlog)/(bliq-tlog)
+          tdpt = tdewliq(emix)
           tlcl = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
                          4.36e-4_rkx*(tmix-tzero))*(tmix-tdpt)
           tlcl = min(tlcl,tmix)
@@ -1953,9 +1935,9 @@ module mod_cu_kf
           tdc = tz(k)-tzero
           if ( (k < ldb .or. k > ldt) .and. k /= lfs ) tdc = d_zero
           if ( t0(k,np) < tzero ) then
-            es = aliq*exp((bliq*tg(k)-cliq)/(tg(k)-dliq))
+            es = esatliq(tg(k))
           else
-            es = aliq*exp((bliq*tg(k)-cliq)/(tg(k)-dliq))
+            es = esatliq(tg(k))
           end if
           qgs = es*0.622_rkx/(p0(k,np)-es)
           rh0 = min(q0(k,np)/qes(k,np),d_one)
@@ -2229,11 +2211,11 @@ module mod_cu_kf
       ! a = d(es)/dt is that calculated from Buck (1981) emperical formulas
       ! for saturation vapor pressure
       !
-      a = (cliq-bliq*dliq)/((tu-dliq)*(tu-dliq))
+      a = dlnesliq(tu)
       dtfrz = rlf*qfrz/(cpp+rls*qu*a)
       tu = tu + dtfrz
 
-      es = aliq*exp((bliq*tu-cliq)/(tu-dliq))
+      es = esatliq(tu)
       qs = es*0.622_rkx/(p-es)
       !
       ! Freezing warms the air and it becomes unsaturated
@@ -2418,9 +2400,8 @@ module mod_cu_kf
     pure real(rkx) function envirtht(p1,t1,q1) result(tht1)
       implicit none
       real(rkx), intent(in) :: p1, t1, q1
-      real(rkx) :: ee, tlog, a1, tp, avalue, aintrp
+      real(rkx) :: ee
       real(rkx) :: tdpt, tsat, tht
-      integer(ik4) :: indlu
       !
       !  Calculate environmental equivalent potential temperature
       !
@@ -2428,16 +2409,7 @@ module mod_cu_kf
       !        For example, KF90 Eq. 10 no longer used
       !
       ee = q1*p1 / (0.622_rkx+q1)
-      !
-      ! Calculate log term using lookup table.
-      !
-      a1 = ee/aliq
-      tp = (a1-astrt)/aincb
-      indlu = inrange(int(tp)+1,1,kfna-1)
-      avalue = real(indlu-1,rkx)*aincb + astrt
-      aintrp = (a1-avalue)/aincb
-      tlog = aintrp*alu(indlu+1) + (d_one-aintrp)*alu(indlu)
-      tdpt = (cliq-dliq*tlog)/(bliq-tlog)
+      tdpt = tdewliq(ee)
       tsat = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
                      4.36e-4_rkx*(t1-tzero))*(t1-tdpt)
       tht = t1*(p00/p1)**(0.2854_rkx*(d_one-0.28_rkx*q1))
@@ -2452,9 +2424,9 @@ module mod_cu_kf
   !
   subroutine kf_lutab
     implicit none
-    integer(ik4) :: kp, it, itcnt, i
+    integer(ik4) :: kp, it, itcnt
     real(rkx) :: dpr, temp, p, es, qs, pi, thes, tgues, &
-            thgues, f0, t1, t0, f1, dtx, a1, thtgs
+            thgues, f0, t1, t0, f1, dtx, thtgs
 
     ! minimum starting temp
     real(rkx), parameter :: tmin = 150.0_rkx
@@ -2482,7 +2454,7 @@ module mod_cu_kf
     p = plutop - dpr
     do kp = 1, kfnp
       p = p + dpr
-      es = aliq*exp((bliq*temp-cliq)/(temp-dliq))
+      es = esatliq(temp)
       qs = 0.622_rkx*es/(p-es)
       pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
       the0k(kp) = temp * pi * exp((c1/temp-c2)*qs*(d_one+c3*qs))
@@ -2504,7 +2476,7 @@ module mod_cu_kf
         else
           tgues = ttab(it-1,kp)
         end if
-        es = aliq*exp((bliq*tgues-cliq)/(tgues-dliq))
+        es = esatliq(tgues)
         qs = 0.622_rkx*es/(p-es)
         pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
         thgues = tgues * pi * exp((c1/tgues-c2)*qs*(d_one+c3*qs))
@@ -2513,7 +2485,7 @@ module mod_cu_kf
         t0 = tgues
         iter1: &
         do itcnt = 1, maxiter
-          es = aliq * exp((bliq*t1-cliq)/(t1-dliq))
+          es = esatliq(t1)
           qs = 0.622_rkx*es/(p-es)
           pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
           thtgs = t1 * pi * exp((c1/t1-c2)*qs*(d_one+c3*qs))
@@ -2535,17 +2507,9 @@ module mod_cu_kf
         qstab(it,kp) = qs
       end do
     end do
-    !
-    ! lookup table for tlog(emix/aliq)
-    !
-    ! set up intial values for lookup tables
-    !
-    a1 = astrt - aincb
-    do i = 1, kfna
-      a1 = a1 + aincb
-      alu(i) = log(a1)
-    end do
   end subroutine kf_lutab
+
+#include <saturation.inc>
 
 end module mod_cu_kf
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

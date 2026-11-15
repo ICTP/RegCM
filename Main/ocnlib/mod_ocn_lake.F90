@@ -255,7 +255,7 @@ module mod_ocn_lake
       tgrd(i)  = tgl
       tgbrd(i) = tgl
       sfice(i) = hi(lp)
-      qgrd = pfqsat(tgrd(i),sfps(i))
+      qgrd = pfqsats(tgrd(i),sfps(i))
       delt = tatm(i) - tgrd(i)
       qgrd = qgrd/(d_one+qgrd)
       delq = (qs - qgrd)
@@ -367,7 +367,7 @@ module mod_ocn_lake
 
     contains
 
-#include <pfqsat.inc>
+#include <saturation.inc>
     !
     ! our formulation for zo
     !

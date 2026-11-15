@@ -45,5 +45,5 @@ mod_cloud_texeira.o : mod_cloud_texeira.F90 mod_intkinds.o mod_realkinds.o mod_c
 mod_cloud_tompkins.o : mod_cloud_tompkins.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o
 mod_cloud_echam5.o : mod_cloud_echam5.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o
 mod_cloud_xuran.o : mod_cloud_xuran.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o
-mod_cloud_thomp.o : mod_cloud_thomp.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o
+mod_cloud_thomp.o : mod_cloud_thomp.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o saturation.inc
 mod_cloud_guli2007.o : mod_cloud_guli2007.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o

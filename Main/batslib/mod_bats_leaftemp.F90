@@ -163,7 +163,7 @@ module mod_bats_leaftemp
           ! 2.3  recalculate saturation vapor pressure
           !
           eg1 = eg(i)
-          eg(i) = pfesat(tlef(i),sfcp(i))
+          eg(i) = pfesats(tlef(i),sfcp(i))
           ! call bats_psat(tlef(i),eg(i))
           qsatl(i) = qsatl(i)*eg(i)/eg1
         end if
@@ -271,7 +271,7 @@ module mod_bats_leaftemp
                    wtlq0(i))*qgrd(i)-wtaq0(i)*qs(i) -    &
                    wtlq0(i)*qsatl(i))+qbare)
         !  5.3  deriv of soil energy flux with respect to soil temp
-        qsatdg = pfqsdt(tgrd(i),sfcp(i))
+        qsatdg = pfqsdts(tgrd(i),sfcp(i))
         qsatdg = qsatdg * rgr(i)
         ! call bats_qsdt(tgrd(i),qgrd(i),qsatdg)
         ! qsatdg = qsatdg * rgr(i)
@@ -523,8 +523,8 @@ module mod_bats_leaftemp
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg, ilndend
-      eg(i) = pfesat(t(i),p(i))
-      qsat(i) = pfqsat(t(i),p(i))
+      eg(i) = pfesats(t(i),p(i))
+      qsat(i) = pfqsats(t(i),p(i))
       ! call bats_satur(t(i),p(i),eg(i),qsat(i))
     end do
 #ifdef DEBUG
@@ -712,7 +712,7 @@ module mod_bats_leaftemp
 
     do i = ilndbeg, ilndend
       if ( sigf(i) > minsigf ) then
-        qsatld = pfqsdt(tlef(i),sfcp(i))
+        qsatld = pfqsdts(tlef(i),sfcp(i))
         ! call bats_qsdt(tlef(i),qsatl(i),qsatld)
         xkb = cdrd(i)/cdr(i)
         hfl = df(i)*(wtga(i)*tlef(i) - wtg0(i)*tgrd(i) - wta0(i)*sts(i))
@@ -763,9 +763,6 @@ module mod_bats_leaftemp
 #endif
   end subroutine fseas
 
-#include <pfesat.inc>
-#include <pfqsat.inc>
-#include <pfqsdt.inc>
 
 end module mod_bats_leaftemp
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

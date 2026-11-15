@@ -534,7 +534,7 @@ module mod_clm_regcm
 
     do concurrent ( i = begg:endg )
       clm_a2l%forc_rho(i) = clm_a2l%forc_pbot(i)/(rgas*clm_a2l%forc_t(i))
-      satq = pfwsat(real(clm_a2l%forc_t(i),rkx), &
+      satq = pfwsats(real(clm_a2l%forc_t(i),rkx), &
                     real(clm_a2l%forc_pbot(i),rkx))
       clm_a2l%forc_rh(i) = clm_a2l%forc_q(i)/satq
       clm_a2l%forc_rh(i) = min(real(rhmax,rk8), clm_a2l%forc_rh(i))
@@ -789,7 +789,7 @@ module mod_clm_regcm
 
     contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 
   end subroutine atmosphere_to_land
 

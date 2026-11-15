@@ -78,7 +78,7 @@ module mod_micro_nogtom
   use mod_runparams, only : auto_rate_khair, auto_rate_kessl, &
                              auto_rate_klepi, rcldiff
   use mod_runparams, only : rkconv, skconv, rcovpmin, rpecons
-  use mod_runparams, only : vfqr, vfqi, vfqs
+  use mod_runparams, only : vfqs
 
 #ifdef DEBUG
   use mod_runparams, only : stats
@@ -230,14 +230,11 @@ module mod_micro_nogtom
   real(rkx), parameter :: activcf = 2.0_rkx*zerocf
   real(rkx), parameter :: maxsat  = 0.5_rkx
 
-  logical, parameter :: vfqi_tlat = .true.
-  logical, parameter :: vfqr_rd = .true.
   real(rkx), parameter :: dens0 = 1.225_rkx ! kg m-3
 
   contains
 
-#include <esatliq.inc>
-#include <esatice.inc>
+#include <saturation.inc>
 
   subroutine allocate_mod_nogtom
     implicit none
@@ -311,18 +308,16 @@ module mod_micro_nogtom
     ! Set the fall velocities
     vqx(iqqv) = d_zero ! * sqrt(QX(JL,JK,IQV))
     vqx(iqql) = d_zero ! * sqrt(QX(JL,JK,IQL))
-    vqx(iqqi) = vfqi   !0.15_rkx * sqrt(QX(JL,JK,IQI))
-    vqx(iqqr) = vfqr   !4.0_rkx  * sqrt(QX(JL,JK,IQR))
-    vqx(iqqs) = vfqs   !1.0_rkx  * sqrt(QX(JL,JK,IQS))
+    ! ice and rain: computed at every level (ice_fallspeed, rain_fallspeed)
+    vqx(iqqi) = d_zero
+    vqx(iqqr) = d_zero
+    vqx(iqqs) = vfqs
 
-    ! Set lfall
-    do n = 1, nqx
-      if ( vqx(n) > d_zero ) then
-        lfall(n) = .true. !falling species
-      else
-        lfall(n) = .false.
-      end if
-    end do
+    ! Set lfall: ice, rain and snow fall
+    lfall(:) = .false.
+    lfall(iqqi) = .true.
+    lfall(iqqr) = .true.
+    lfall(iqqs) = .true.
 
     ! modify autoconversion threshold dependent on:
     ! land (polluted, high ccn, smaller droplets, higher threshold)
@@ -629,8 +624,8 @@ module mod_micro_nogtom
       ! explicitly because PRIVATE does not inherit the module initialization.
       vqx(iqqv) = d_zero
       vqx(iqql) = d_zero
-      vqx(iqqi) = vfqi
-      vqx(iqqr) = vfqr
+      vqx(iqqi) = d_zero
+      vqx(iqqr) = d_zero
       vqx(iqqs) = vfqs
       pbot = pf(kzp1,j,i)
       covptot = d_zero
@@ -759,12 +754,12 @@ module mod_micro_nogtom
         !------------------------------------
         ! dws/dT = ws * dln(es)/dT * p/(p-es)
         ! liquid
-        facw     = dlnesliqdt(tk)
+        facw     = dlnesliq(tk)
         corr     = d_one/(d_one - rep2*eeliqt(k,j,i))
         dqsliqdt = facw*corr*qsliq(k,j,i)
         corqsliq = d_one + wlhvocp*dqsliqdt
         ! ice
-        faci     = dlnesicedt(tk)
+        faci     = dlnesice(tk)
         corr     = d_one/(d_one - rep2*eeicet(k,j,i))
         dqsicedt = faci*corr*qsice(k,j,i)
         corqsice = d_one + wlhsocp*dqsicedt
@@ -866,16 +861,12 @@ module mod_micro_nogtom
           !     supercooled water enhancement at cloud top
           !
           !------------------------------------------------------------------
-          if ( vfqi_tlat ) then
-            lat = mo2mc%xlat(j,i)
-            vqx(iqqi) = ice_fallspeed(tk,lat)
-          end if
-          if ( vfqr_rd ) then
-            ! Rain rate (mm/h) inside the precipitation cover of the
-            ! level above, where the rain comes from
-            precip = max(rainp,d_zero)*3600.0_rkx/max(covptot,rcovpmin)
-            vqx(iqqr) = rain_fallspeed(dens,dens0,precip)
-          end if
+          lat = mo2mc%xlat(j,i)
+          vqx(iqqi) = ice_fallspeed(tk,lat)
+          ! Rain rate (mm/h) inside the precipitation cover of the
+          ! level above, where the rain comes from
+          precip = max(rainp,d_zero)*3600.0_rkx/max(covptot,rcovpmin)
+          vqx(iqqr) = rain_fallspeed(dens,dens0,precip)
           !$acc loop seq
           do n = 1, nqx
             if ( lfall(n) ) then
@@ -1998,27 +1989,9 @@ module mod_micro_nogtom
     !$acc routine seq
     implicit none
     real(rkx), intent(in):: t, phase
-    edem = phase * wlhvocp * dlnesliqdt(t) + &
-               (d_one - phase) * wlhsocp * dlnesicedt(t)
+    edem = phase * wlhvocp * dlnesliq(t) + &
+               (d_one - phase) * wlhsocp * dlnesice(t)
   end function edem
-  !
-  ! dln(es)/dT of esatliq and esatice (Share/esat*.inc): with the
-  ! latent heat linear in T the heat capacity terms cancel and
-  ! dln(es)/dT = L(T)/(Rv T^2).
-  !
-  pure real(rkx) function dlnesliqdt(t)
-    !$acc routine seq
-    implicit none
-    real(rkx), intent(in) :: t
-    dlnesliqdt = (2.501e6_rkx-2320.0_rkx*(t-273.16_rkx))/(rwat*t*t)
-  end function dlnesliqdt
-
-  pure real(rkx) function dlnesicedt(t)
-    !$acc routine seq
-    implicit none
-    real(rkx), intent(in) :: t
-    dlnesicedt = (2.835e6_rkx-220.0_rkx*(t-273.16_rkx))/(rwat*t*t)
-  end function dlnesicedt
 
   pure real(rkx) function eldcpm(t)
     !$acc routine seq

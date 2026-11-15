@@ -133,7 +133,7 @@ module mod_params
       cevaplnd, cevapoce, caccrlnd, caccroce, conf
 
     namelist /microparam/ stats, budget_compute, nssopt, &
-      iautoconv, vfqr, vfqi, vfqs, auto_rate_khair,      &
+      iautoconv, vfqs, auto_rate_khair,                  &
       auto_rate_kessl, auto_rate_klepi, rkconv, skconv,  &
       rcovpmin, rpecons, rcldiff
 
@@ -411,8 +411,6 @@ module mod_params
                   ! => 2 Khairoutdinov and Kogan (2000)
                   ! => 3 Kessler (1969)
                   ! => 4 Sundqvist
-    vfqr = 4.0_rkx
-    vfqi = 0.13_rkx
     vfqs = 1.0_rkx
     auto_rate_khair = 0.355_rkx
     auto_rate_kessl = 1.e-3_rkx
@@ -1689,8 +1687,6 @@ module mod_params
       call bcast(budget_compute)
       call bcast(nssopt)
       call bcast(iautoconv)
-      call bcast(vfqr)
-      call bcast(vfqi)
       call bcast(vfqs)
       call bcast(auto_rate_khair)
       call bcast(auto_rate_kessl)
@@ -2852,8 +2848,6 @@ module mod_params
         write(stdout,'(a,i11)') '  Saturation option (nssopt)        : ', nssopt
         write(stdout,'(a,i11)') &
           '  Autoconversion scheme             : ', iautoconv
-        write(stdout,'(a,f11.6)') '  Rain fall speed                   : ', vfqr
-        write(stdout,'(a,f11.6)') '  Ice fall speed                    : ', vfqi
         write(stdout,'(a,f11.6)') '  Snow fall speed                   : ', vfqs
         write(stdout,'(a,f11.6)') &
           '  Autoconversion rate Khairoutdinov : ', auto_rate_khair

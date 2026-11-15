@@ -367,7 +367,7 @@ module mod_micro_subex
   contains
 
 #include <wlh.inc>
-#include <pfwsat.inc>
+#include <saturation.inc>
 !#include <clwfromt.inc>
 
     pure real(rkx) function season_factor(lat,day,dpy) result(sf)

@@ -568,7 +568,7 @@ module mod_micro_interface
 
     contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 #include <wlh.inc>
 
   end subroutine condtq

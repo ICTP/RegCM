@@ -355,44 +355,6 @@ module mod_pbl_thetal
 
   end function solve_for_t
 
-  ! returns the saturation vapor pressure over water in units (cb)
-  ! given the input pressure in cb and temperature in k
-  ! modified from buck (1981), j. app. met. v 20
-  function esatw(p,t)
-    implicit none
-    real(rkx), intent(in) :: p, t
-    real(rkx) :: esatw
-    real(rkx) :: dum, arg, tdum
-    ! Limit t to reasonable values.  I believe that this is necessary because
-    ! in the iterative calculation of t and qv from the liquid water
-    ! temperature, the temperature can take on some crazy values before it
-    ! converges. --TAO 01/05/2011
-    tdum = max(100.0_rkx,min(399.99_rkx,t))
-    dum = 1.0007 + 3.46e-5_rkx*p
-    !arg = 17.502*(t-273.15)/(t-32.18)
-    arg = 17.502_rkx*(tdum-tzero)/(tdum-32.18_rkx)
-    esatw = dum*0.61121_rkx*exp(arg)
-  end function esatw
-
-  ! returns the saturation vapor pressure over ice in units (cb)
-  ! given the input pressure in cb and temperature in k
-  ! modified from buck (1981), j. app. met. v 20
-  function esati(p,t)
-    implicit none
-    real(rkx), intent(in) :: p, t
-    real(rkx) :: esati
-    real(rkx) :: dum, arg, tdum
-    ! Limit t to reasonable values.  I believe that this is necessary because
-    ! in the iterative calculation of t and qv from the liquid water
-    ! temperature, the temperature can take on some crazy values before it
-    ! converges. --TAO 01/05/2011
-    tdum = max(100.0_rkx,min(399.99_rkx,t))
-    dum = 1.0003_rkx + 4.18e-5_rkx*p
-    !arg = 22.452*(t-273.15)/(t-0.6)
-    arg = 22.452_rkx*(tdum-tzero)/(tdum-0.6_rkx)
-    esati = dum*0.61115_rkx*exp(arg)
-  end function esati
-
   subroutine swap(a,b)
     implicit none
     real(rkx), intent(inout) :: a, b
@@ -417,8 +379,7 @@ module mod_pbl_thetal
 
   end subroutine getqvqc
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
+#include <saturation.inc>
 #include <wlh.inc>
 
 end module mod_pbl_thetal

@@ -243,16 +243,6 @@ module mod_constants
   real(rkx), parameter :: rtzero = d_one/tzero
   real(rkx), parameter :: wattp = 273.16_rkx
   real(rkx), parameter :: tboil = 373.1339_rkx
-  real(rkx), parameter :: c1es = 610.78_rkx
-  real(rkx), parameter :: c2es = c1es*amw/amd
-  real(rkx), parameter :: c3les = 17.2693882_rkx
-  real(rkx), parameter :: c3ies = 21.875_rkx
-  real(rkx), parameter :: c4les = 35.86_rkx
-  real(rkx), parameter :: c4ies = 7.66_rkx
-  real(rkx), parameter :: c5les = c3les*(tzero-c4les)
-  real(rkx), parameter :: c5ies = c3ies*(tzero-c4ies)
-  real(rkx), parameter :: c5alvcp = c5les*wlhv*rcpd
-  real(rkx), parameter :: c5alscp = c5ies*wlhs*rcpd
   real(rkx), parameter :: wlhvocp = wlhv*rcpd
   real(rkx), parameter :: wlhsocp = wlhs*rcpd
   real(rkx), parameter :: wlhfocp = wlhf*rcpd
@@ -264,7 +254,6 @@ module mod_constants
   real(rkx), parameter :: rtwat = tzero
   real(rkx), parameter :: mpcrt = rtice+(rtwat-rtice)/sqrt(2.0_rkx)
   real(rkx), parameter :: rtwat_rtice_r = 1.0_rkx/(rtwat-rtice)
-  real(rkx), parameter :: pq0 = 379.90516_rkx
   ! value used for the latent heat term in the exponent for
   ! calculating equivalent potential temperature
   real(rkx), parameter :: eliwv = 2.72e6_rkx
@@ -409,11 +398,6 @@ module mod_constants
   real(rkx), parameter :: ocn_sfcemiss = emsw
   real(rkx), parameter :: ice_sfcemiss = 0.982_rkx
 
-  ! Constants used in Kain-Fritsch and WSM5
-  real(rkx), parameter :: aliq = 613.3_rkx
-  real(rkx), parameter :: bliq = 17.502_rkx
-  real(rkx), parameter :: cliq = 4780.8_rkx
-  real(rkx), parameter :: dliq = 32.19_rkx
   real(rkx), parameter :: aice = 613.20_rkx
   real(rkx), parameter :: bice = 22.452_rkx
   real(rkx), parameter :: cice = 6133.0_rkx

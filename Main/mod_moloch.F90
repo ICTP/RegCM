@@ -170,7 +170,7 @@ module mod_moloch
 
   contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 
   subroutine allocate_moloch
     implicit none

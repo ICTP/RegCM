@@ -66,7 +66,7 @@ module mod_init
 
   contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

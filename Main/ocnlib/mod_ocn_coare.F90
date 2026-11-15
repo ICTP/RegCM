@@ -136,10 +136,10 @@ module mod_ocn_coare
         !--------------------------------
         !
         ! the saturation vapor pressure for salty water is on average 2% lower
-        es = pfesat(tgrd(i),sfps(i))*0.98_rkx
+        es = pfesatl(tgrd(i),sfps(i))*0.98_rkx
         ws = ep2*(es/(sfps(i)-es))
         qs = ws/(d_one+ws)
-        wetc = pfqsdt(tgrd(i),sfps(i))
+        wetc = pfqsdtl(tgrd(i),sfps(i))
 
         ! Deltas
         dt = ts - t995
@@ -374,8 +374,7 @@ module mod_ocn_coare
 
       contains
 
-#include <pfesat.inc>
-#include <pfqsdt.inc>
+#include <saturation.inc>
 #include <wlh.inc>
 #include <cpmf.inc>
 

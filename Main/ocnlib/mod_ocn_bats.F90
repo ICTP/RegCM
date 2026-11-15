@@ -51,7 +51,7 @@ module mod_ocn_bats
 
       ! Compute delt and delq
       qs = qv(i)/(d_one+qv(i))
-      qgrd = pfqsat(tgrd(i),sfps(i))
+      qgrd = pfqsats(tgrd(i),sfps(i))
       delt = sfta(i) - tgrd(i)
       ! Specific humidities
       delq = qs - qgrd
@@ -214,7 +214,7 @@ module mod_ocn_bats
       end if
       ! set sea ice parameter for melting if seaice less than 2 cm
       if ( sfice(i) <= iceminh ) then
-        qgrd = pfqsat(271.36_rkx,sfps(i))
+        qgrd = pfqsats(271.36_rkx,sfps(i))
         sncv(i) = d_zero
         snag(i) = d_zero
         if ( icpl(i) == 0 ) then
@@ -230,8 +230,8 @@ module mod_ocn_bats
         ! assume lead ocean temp is -2
         ! flux of heat and moisture through leads
         fact = -drag(i)
-        qgrd = pfqsat(tgrd(i),sfps(i))
-        qice = pfqsat(tgbrd(i),sfps(i))
+        qgrd = pfqsats(tgrd(i),sfps(i))
+        qice = pfqsats(tgbrd(i),sfps(i))
         !
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
         tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*tgbrd(i))/cdrx
@@ -301,7 +301,7 @@ module mod_ocn_bats
 
   end subroutine seaice
 
-#include <pfqsat.inc>
+#include <saturation.inc>
 
 end module mod_ocn_bats
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -27,7 +27,6 @@ module mod_micro_wsm5
 
   private
 
-  real(rkx), parameter :: psat = 610.78_rkx
 
   ! maximum time step for minor loops
   real(rkx), parameter :: dtcldcr = 120.0_rkx
@@ -80,14 +79,6 @@ module mod_micro_wsm5
   real(rkx), parameter :: minni = 1.0e3_rkx
   real(rkx), parameter :: maxni = 1.0e6_rkx
 
-  real(rkx), parameter :: dldt  = cpv-cpw
-  real(rkx), parameter :: dldti = cpv-cpi
-  real(rkx), parameter :: xa = -dldt/rwat
-  real(rkx), parameter :: xb = xa + wlhv/(rwat*wattp)
-  real(rkx), parameter :: xai = -dldti/rwat
-  real(rkx), parameter :: xbi = xai + wlhs/(rwat*wattp)
-  real(rkx), parameter :: ep0 = psat * exp(log(wattp/tzero)*xa) * &
-                                        exp(xb*(1.0_rkx-wattp/tzero))
   real(rkx), parameter :: lv1 = cpw-cpv
 
   real(rkx), save :: qc0l, qc0s, qck1l, qck1s, bvtr2, bvtr3,  &
@@ -403,7 +394,7 @@ module mod_micro_wsm5
     real(rkx), dimension(ims:ime,kz) :: pigen, pidep, psdep, praut
     real(rkx), dimension(ims:ime,kz) :: psaut, prevp, psevp, pracw
     real(rkx), dimension(ims:ime,kz) :: psacw, psaci, pcond, psmlt
-    real(rkx) :: supcol, supcolt, coeres, supsat, dtcld, xmi, tr, &
+    real(rkx) :: supcol, supcolt, coeres, supsat, dtcld, xmi, &
       eacrs, satdt, vt2i, vt2s, acrfac, qimax, diameter, xni0,   &
       roqi0, fallsum, fallsum_qsi, xlwork2, factor, source, qval, &
       xlf, pfrzdtc, pfrzdtr, supice, temp, rdtcld, n0sfac
@@ -440,14 +431,13 @@ module mod_micro_wsm5
     bigloop: &
     do loop = 1, loops
       do concurrent ( i = ims:ime, k = 1:kz )
-        tr = wattp/t(i,k)
-        qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+        qs(i,k,1) = esatliq(t(i,k))
         qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
         qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
         qs(i,k,1) = max(qs(i,k,1),qmin)
         rh(i,k,1) = max(qv(i,k) / qs(i,k,1),qmin)
         if ( t(i,k) < wattp ) then
-          qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
+          qs(i,k,2) = esatice(t(i,k))
           qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
           qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
           qs(i,k,2) = max(qs(i,k,2),qmin)
@@ -927,8 +917,7 @@ module mod_micro_wsm5
         end if
       end do
       do concurrent ( i = ims:ime, k = 1:kz )
-        tr = wattp/t(i,k)
-        qs(i,k,1) = psat * exp(log(tr)*xa + xb*(d_one-tr))
+        qs(i,k,1) = esatliq(t(i,k))
         qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
         qs(i,k,1) = ep2 * qs(i,k,1)/(p(i,k)-qs(i,k,1))
         qs(i,k,1) = max(qs(i,k,1),qmin)
@@ -1475,6 +1464,8 @@ module mod_micro_wsm5
 !      end do
 !    end if
 !  end subroutine effectrad_wsm5
+
+#include <saturation.inc>
 
 end module mod_micro_wsm5
 

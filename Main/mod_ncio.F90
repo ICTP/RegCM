@@ -144,7 +144,7 @@ module mod_ncio
 
   contains
 
-#include <pfesat.inc>
+#include <saturation.inc>
 
   subroutine fixqcqi( )
     implicit none

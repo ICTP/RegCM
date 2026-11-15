@@ -28,7 +28,6 @@ module mod_micro_wsm7
 
   private
 
-  real(rkx), parameter :: psat = 610.78_rkx
 
   ! maximum time step for minor loops
   real(rkx), parameter :: dtcldcr = 120.0_rkx
@@ -115,14 +114,6 @@ module mod_micro_wsm7
   real(rkx), parameter :: t01  = 273.16_rkx
   ! drag coefficient for hailsone
   real(rkx), parameter :: cd = 0.6_rkx
-  real(rkx), parameter :: dldt  = cpv-cpw
-  real(rkx), parameter :: dldti = cpv-cpi
-  real(rkx), parameter :: xa = -dldt/rwat
-  real(rkx), parameter :: xb = xa + wlhv/(rwat*wattp)
-  real(rkx), parameter :: xai = -dldti/rwat
-  real(rkx), parameter :: xbi = xai + wlhs/(rwat*wattp)
-  real(rkx), parameter :: ep0 = psat * exp(log(wattp/tzero)*xa) * &
-                                        exp(xb*(1.0_rkx-wattp/tzero))
   real(rkx), parameter :: lv1 = cpw-cpv
 
   real(rkx), save :: qc0l, qc0s, qck1l, qck1s, bvtr2, bvtr3, bvtr4, pvth,  &
@@ -509,7 +500,7 @@ module mod_micro_wsm7
       pgeml, pheml
     real(rkx), dimension(ims:ime,kz) :: pgaci_w, phaci_w, qsum,   &
                                          denqrs3, denqrs4
-    real(rkx) :: supcol, supcolt, coeres, rdtcld, vt2ave, rs0, tr, &
+    real(rkx) :: supcol, supcolt, coeres, rdtcld, vt2ave, rs0, &
       supsat, dtcld, xmi, eacrs, satdt, vt2i, vt2r, vt2s, vt2g,  &
       vt2h, acrfac, egi, ehi, qimax, diameter, xni0, roqi0,       &
       fallsum, fallsum_qsi, fallsum_qg, fallsum_qh, xlwork2, factor ,&
@@ -550,14 +541,13 @@ module mod_micro_wsm7
     bigloop: &
     do loop = 1, loops
       do concurrent ( i = ims:ime, k = 1:kz )
-        tr = wattp/t(i,k)
-        qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+        qs(i,k,1) = esatliq(t(i,k))
         qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
         qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
         qs(i,k,1) = max(qs(i,k,1),qmin)
         rh(i,k,1) = max(qv(i,k) / qs(i,k,1),qmin)
         if ( t(i,k) < wattp ) then
-          qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
+          qs(i,k,2) = esatice(t(i,k))
           qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
           qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
           qs(i,k,2) = max(qs(i,k,2),qmin)
@@ -1112,7 +1102,7 @@ module mod_micro_wsm7
         ! pgwet: wet growth of graupel [LFO 43]
         !
         !
-        rs0 = min(ep0,0.99_rkx*p(i,k))
+        rs0 = min(esatliq(tzero),0.99_rkx*p(i,k))
         rs0 = ep2*rs0/(p(i,k)-rs0)
         rs0 = max(rs0,qmin)
         ghw1 = den(i,k)*wlhv*diffus(t(i,k),p(i,k))*(rs0-qv(i,k)) - &
@@ -1600,14 +1590,13 @@ module mod_micro_wsm7
         end if
       end do
       do concurrent ( i = ims:ime, k = 1:kz )
-        tr = wattp/t(i,k)
-        qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+        qs(i,k,1) = esatliq(t(i,k))
         qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
         qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
         qs(i,k,1) = max(qs(i,k,1),qmin)
         rh(i,k,1) = max(qv(i,k)/qs(i,k,1),qmin)
         if ( t(i,k) < wattp ) then
-          qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
+          qs(i,k,2) = esatice(t(i,k))
           qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
           qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
           qs(i,k,2) = max(qs(i,k,2),qmin)
@@ -2506,6 +2495,8 @@ module mod_micro_wsm7
 !      end do
 !    end if
 !  end subroutine effectrad_wsm7
+
+#include <saturation.inc>
 
 end module mod_micro_wsm7
 

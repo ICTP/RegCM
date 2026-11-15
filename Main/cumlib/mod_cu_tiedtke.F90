@@ -75,7 +75,7 @@ module mod_cu_tiedtke
   real(rkx), parameter :: ruvper = 0.3_rkx
 
   ! Maximum allowed cloud thickness for shallow cloud (Pa)
-  real(rkx), parameter :: rdepths = 4.0e4_rkx
+  real(rkx), parameter :: rdepths = 2.0e4_rkx
 
   ! Fractional massflux for downdrafts at lfs
   real(rkx), parameter :: rmfdeps = 0.3_rkx
@@ -1460,8 +1460,8 @@ module mod_cu_tiedtke
                 qsu = qsu*cor
                 dq = min(d_zero,xqu(n,ik)-qsu)
                 alfaw = xalpha(xtu(n,ik))
-                facw = c5les/((xtu(n,ik)-c4les)**2)
-                faci = c5ies/((xtu(n,ik)-c4ies)**2)
+                facw = dlnesliq(xtu(n,ik))
+                faci = dlnesice(xtu(n,ik))
                 fac = alfaw*facw + (d_one-alfaw)*faci
                 esdp = fesat(xtu(n,ik))/pf(n,ik)
                 cor = d_one/(d_one-ep1*esdp)
@@ -3528,7 +3528,7 @@ module mod_cu_tiedtke
       integer(ik4), intent(in) :: jcall ! Calling method
       integer(ik4) :: jl
       real(rkx) :: cond, cond1, cor, qs, rp
-      real(rkx) :: zl, zi, zf, za
+      real(rkx) :: zf
       !---------------------------------------------------------
       ! 1. Calculate condensation and adjust t and q accordingly
       ! --------------------------------------------------------
@@ -3536,28 +3536,18 @@ module mod_cu_tiedtke
         do concurrent ( jl = n1:n2 )
           if ( ldflag(jl) ) then
             rp = d_one/sp(jl)
-            zl = d_one/(t(jl,kk)-c4les)
-            zi = d_one/(t(jl,kk)-c4ies)
-            za = xalpha(t(jl,kk))
-            qs = c2es*(za*exp(c3les*(t(jl,kk)-tzero)*zl) + &
-                  (d_one-za)*exp(c3ies*(t(jl,kk)-tzero)*zi))
-            qs = qs*rp
+            qs = fesat(t(jl,kk))*rp
             qs = min(qsmax,qs)
             cor = d_one - ep1*qs
-            zf = za*c5alvcp*zl**2 + (d_one-za)*c5alscp*zi**2
+            zf = fdqsat(t(jl,kk))
             cond = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
             if ( cond > d_zero ) then
               t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
               q(jl,kk) = q(jl,kk) - cond
-              zl = d_one/(t(jl,kk)-c4les)
-              zi = d_one/(t(jl,kk)-c4ies)
-              za = xalpha(t(jl,kk))
-              qs = c2es*(za*exp(c3les*(t(jl,kk)-tzero)*zl) + &
-                    (d_one-za)*exp(c3ies*(t(jl,kk)-tzero)*zi))
-              qs = qs*rp
+              qs = fesat(t(jl,kk))*rp
               qs = xmin(qsmax,qs)
               cor = d_one - ep1*qs
-              zf = za*c5alvcp*zl**2 + (d_one-za)*c5alscp*zi**2
+              zf = fdqsat(t(jl,kk))
               cond1 = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
               if ( abs(cond) < almostzero ) cond1 = d_zero
               t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
@@ -4146,27 +4136,25 @@ module mod_cu_tiedtke
   pure real(rkx) function xalpha(t)
     implicit none
     real(rkx), intent(in) :: t
-    xalpha = min(d_one,((max(rtice,min(rtwat,t))-rtice)*rtwat_rtice_r)**2)
+    xalpha = satliqfrac(t)
   end function xalpha
   !
-  ! Magnus Tetens formula
+  ! eps * saturation vapour pressure (Pa), mixed phase (Share/saturation.inc)
   !
   pure real(rkx) function fesat(t)
     implicit none
     real(rkx), intent(in) :: t
-    real(rkx) :: xa
-    xa = xalpha(t)
-    fesat = c2es*(xa*exp((c3les*((t-tzero)/(t-c4les)))) + &
-          (d_one-xa)*exp((c3ies*((t-tzero)/(t-c4ies)))))
+    fesat = ep2*esatmix(t)
   end function fesat
-
+  !
+  ! L/cp dln(es)/dT for the mixed phase (Share/saturation.inc)
+  !
   pure real(rkx) function fdqsat(t)
     implicit none
     real(rkx), intent(in) :: t
     real(rkx) :: xa
     xa = xalpha(t)
-    fdqsat = xa*c5alvcp*(d_one/(t-c4les)**2) + &
-          (d_one-xa)*c5alscp*(d_one/(t-c4ies)**2)
+    fdqsat = xa*wlhvocp*dlnesliq(t) + (d_one-xa)*wlhsocp*dlnesice(t)
   end function fdqsat
 
   pure real(rkx) function mlwocp(t)
@@ -4177,18 +4165,6 @@ module mod_cu_tiedtke
     mlwocp = xa*wlhvocp+(d_one-xa)*wlhsocp
   end function mlwocp
 
-  pure real(rkx) function esw(t)
-    implicit none
-    real(rkx), intent(in) :: t
-    esw = c3les*(t-tzero)/(t-c4les)
-  end function esw
-
-  pure real(rkx) function esi(t)
-    implicit none
-    real(rkx), intent(in) :: t
-    esi = c3ies*(t-tzero)/(t-c4ies)
-  end function esi
-
   pure real(rkx) function mlwt(t)
     implicit none
     real(rkx), intent(in) :: t
@@ -4196,6 +4172,8 @@ module mod_cu_tiedtke
     xa = xalpha(t)
     mlwt = xa*wlhv+(d_one-xa)*wlhs
   end function mlwt
+
+#include <saturation.inc>
 
 end module mod_cu_tiedtke
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

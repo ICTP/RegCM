@@ -28,7 +28,6 @@ module mod_micro_wdm7
 
   private
 
-  real(rkx), parameter :: psat = 610.78_rkx
 
   ! maximum time step for minor loops
   real(rkx), parameter :: dtcldcr = 120.0_rkx
@@ -146,14 +145,6 @@ module mod_micro_wdm7
   real(rkx), parameter :: di82    = 82.e-6_rkx
   ! auto conversion takes place beyond this diameter
   real(rkx), parameter :: di15    = 15.e-6_rkx
-  real(rkx), parameter :: dldt  = cpv-cpw
-  real(rkx), parameter :: dldti = cpv-cpi
-  real(rkx), parameter :: xa = -dldt/rwat
-  real(rkx), parameter :: xb = xa + wlhv/(rwat*wattp)
-  real(rkx), parameter :: xai = -dldti/rwat
-  real(rkx), parameter :: xbi = xai + wlhs/(rwat*wattp)
-  real(rkx), parameter :: ep0 = psat * exp(log(wattp/tzero)*xa) * &
-                                       exp(xb*(1.0_rkx-wattp/tzero))
   real(rkx), parameter :: lv1 = cpw-cpv
   real(rkx), parameter :: diafac = 24.0_rkx**onet
 
@@ -548,7 +539,7 @@ module mod_micro_wdm7
       fallsum, fallsum_qsi, fallsum_qg, fallsum_qh, xlwork2,      &
       factor, source, qval, xlf, pfrzdtc, pfrzdtr, supice, gfac,  &
       alpha2, delta2, delta3, lencon, lenconcr, nfrzdtc, nfrzdtr, &
-      coecol, vt2ave, rs0, ghw1, ghw2, ghw3, ghw4, tr, temp,      &
+      coecol, vt2ave, rs0, ghw1, ghw2, ghw3, ghw4, temp,      &
       rceff, lamdax
     integer(ik4) :: mstepmax, i, k, loop, loops, ifsat, n, numdt
     !
@@ -586,14 +577,13 @@ module mod_micro_wdm7
     do loop = 1, loops
       ! WRF code has formula for water and ice.
       do concurrent ( i = ims:ime, k = 1:kz )
-        tr = wattp/t(i,k)
-        qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+        qs(i,k,1) = esatliq(t(i,k))
         qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
         qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
         qs(i,k,1) = max(qs(i,k,1),qmin)
         rh(i,k,1) = max(qv(i,k) / qs(i,k,1),qmin)
         if ( t(i,k) < wattp ) then
-          qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
+          qs(i,k,2) = esatice(t(i,k))
           qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
           qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
           qs(i,k,2) = max(qs(i,k,2),qmin)
@@ -1492,7 +1482,7 @@ module mod_micro_wdm7
         !
         ! pgwet: wet growth of graupel [LFO 43]
         !
-        rs0 = min(ep0,0.99_rkx*p(i,k))
+        rs0 = min(esatliq(tzero),0.99_rkx*p(i,k))
         rs0 = ep2*rs0/(p(i,k)-rs0)
         rs0 = max(rs0,qmin)
         ghw1 = den(i,k)*wlhv*diffus(t(i,k),p(i,k))*(rs0-qv(i,k)) - &
@@ -2065,8 +2055,7 @@ module mod_micro_wdm7
       end do
 
       do concurrent ( i = ims:ime, k = 1:kz )
-        tr = wattp/t(i,k)
-        qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+        qs(i,k,1) = esatliq(t(i,k))
         qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
         qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
         qs(i,k,1) = max(qs(i,k,1),qmin)
@@ -2128,8 +2117,7 @@ module mod_micro_wdm7
         !     evaporation of cloud water is not enough to remove subsaturation
         !  (QV->QC or QC->QV)
         !
-        tr = wattp/t(i,k)
-        qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+        qs(i,k,1) = esatliq(t(i,k))
         qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
         qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
         qs(i,k,1) = max(qs(i,k,1),qmin)
@@ -3110,6 +3098,8 @@ module mod_micro_wdm7
 !      end do
 !    end if
 !  end subroutine effectrad_wdm7
+
+#include <saturation.inc>
 
 end module mod_micro_wdm7
 

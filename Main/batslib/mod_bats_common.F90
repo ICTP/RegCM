@@ -388,12 +388,12 @@ module mod_bats_common
       call depth
 
       do i = ilndbeg, ilndend
-        xqs0 = pfwsat(ts0(i),p0(i))
+        xqs0 = pfwsats(ts0(i),p0(i))
         rh0 = min(max(qs0(i)/xqs0,rhmin),rhmax)
         solvt = swd0(i) + swf0(i)
         sts(i) = ts0(i)-lrate*regrav*dzh(i)
         sfcp(i) = p0(i)*(sts(i)/ts0(i))
-        xqs0 = pfwsat(sts(i),sfcp(i))
+        xqs0 = pfwsats(sts(i),sfcp(i))
         qs(i) = max(rh0*xqs0,d_zero)
         ! Move to specific humidity
         qs(i) = qs(i)/(d_one+qs(i))
@@ -531,7 +531,7 @@ module mod_bats_common
 
     contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 
   end subroutine interf
 

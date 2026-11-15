@@ -1081,12 +1081,12 @@ module mod_lm_interface
               end do
               tas = tas*rdnnsg
               ps = ps*rdnnsg
-              es = pfesat(tas,ps)
-              qs = pfqsat(tas,ps)
+              es = pfesatl(tas,ps)
+              qs = pfqsatl(tas,ps)
               qas = lm_q2m(j,i)
               uas = lm_w10m(j,i)
               rh = min(max((qas/qs),d_zero),d_one)
-              desdt = pfesdt(tas)
+              desdt = pfesdtl(tas)
               sws = lm_rswf(j,i)
               lws = lm_rlwf(j,i)
               srf_evpot_out(j,i) = srf_evpot_out(j,i) + &
@@ -1147,10 +1147,12 @@ module mod_lm_interface
             end do
             tas = tas*rdnnsg
             ps = ps*rdnnsg
-            qs = pfqsat(tas,ps)
+            qs = pfqsatl(tas,ps)
             qas = lm_q2m(j,i)
             rh = min(max((qas/qs),d_zero),d_one)*100.0_rkx
-            shf_twetb_out(j,i) = max(shf_twetb_out(j,i), &
+            ! Stull (2011) wet bulb temperature: T in Celsius
+            tas = tas - tzero
+            shf_twetb_out(j,i) = max(shf_twetb_out(j,i), tzero + &
               tas * atan(0.151977_rkx * sqrt(rh + 8.313659_rkx)) + &
                     atan(tas + rh) - atan(rh - 1.676331_rkx) + &
                     0.00391838_rkx * rh**(3.0_rkx/2.0_rkx) * &
@@ -1190,10 +1192,12 @@ module mod_lm_interface
               end do
               tas = tas*rdnnsg
               ps = ps*rdnnsg
-              qs = pfqsat(tas,ps)
+              qs = pfqsatl(tas,ps)
               qas = lm_q2m(j,i)
               rh = min(max((qas/qs),d_zero),d_one)*100.0_rkx
-              srf_twetb_out(j,i) = max(srf_twetb_out(j,i), &
+              ! Stull (2011) wet bulb temperature: T in Celsius
+              tas = tas - tzero
+              srf_twetb_out(j,i) = max(srf_twetb_out(j,i), tzero + &
                 tas * atan(0.151977_rkx * sqrt(rh + 8.313659_rkx)) + &
                       atan(tas + rh) - atan(rh - 1.676331_rkx) + &
                       0.00391838_rkx * rh**(3.0_rkx/2.0_rkx) * &
@@ -1574,7 +1578,7 @@ module mod_lm_interface
               qas = lms_q2m(n,j,i)
               tas = lms_t2m(n,j,i)
               ps = lms_sfcp(n,j,i)
-              qs = pfqsat(tas,ps)
+              qs = pfqsats(tas,ps)
               srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1) + &
                             min(max((qas/qs),rhmin),rhmax)*d_100
             end do
@@ -1625,7 +1629,7 @@ module mod_lm_interface
             end do
             tas = tas*rdnnsg
             ps = ps*rdnnsg
-            qs = pfqsat(tas,ps)
+            qs = pfqsatl(tas,ps)
             qas = lm_q2m(j,i)
             rh = min(max((qas/qs),d_zero),d_one)
             srf_htindx_out(j,i) = heatindex(tas,rh)
@@ -1916,9 +1920,7 @@ module mod_lm_interface
     end do
   end subroutine compute_maxgust
 
-#include <pfesat.inc>
-#include <pfqsat.inc>
-#include <pfesdt.inc>
+#include <saturation.inc>
 #include <evpt.inc>
 #include <wlh.inc>
 

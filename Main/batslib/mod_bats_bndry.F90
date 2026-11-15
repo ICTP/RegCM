@@ -194,7 +194,7 @@ module mod_bats_bndry
     !
     do i = ilndbeg, ilndend
       if ( sigf(i) <= minsigf ) then
-        qsatd = pfqsdt(tgrd(i),sfcp(i))
+        qsatd = pfqsdts(tgrd(i),sfcp(i))
         qsatd = qsatd * gwet(i)
         ! call bats_qsdt(tgrd(i),qgrd(i),qsatd)
         ! qsatd = qsatd * gwet(i)
@@ -272,7 +272,6 @@ module mod_bats_bndry
     contains
 
 #include <wlh.inc>
-#include <pfqsdt.inc>
 
   end subroutine bndry
   !

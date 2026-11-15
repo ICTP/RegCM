@@ -1007,8 +1007,7 @@ module mod_pbl_uwtcm
     end do
     nsquar(1) = nsquar(2)
   end subroutine n2sg
-#include <pfwsat.inc>
-#include <pfmxsat.inc>
+#include <saturation.inc>
 
   pure subroutine solve_tridiag(a,b,c,v,x,n)
 !$acc routine seq

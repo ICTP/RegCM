@@ -65,7 +65,7 @@ module mod_write
 
   contains
 
-#include <pfwsat.inc>
+#include <saturation.inc>
 
   subroutine init_outpgw(plevs)
     implicit none
