@@ -721,6 +721,10 @@
  lmfcapebl = .true.,    ! Subtract the boundary layer CAPE production
                       ! from CAPE in the deep convection closure
                       ! (Bechtold et al. 2014)
+ lmfcapeforc = .false., ! Deep closure from the CAPE production by the
+                      ! large scale vertical advection, plus a slow
+                      ! relaxation of CAPE (replaces lmfcapebl)
+ rtaucape = 43200.0,  ! CAPE relaxation time scale (s) with lmfcapeforc
  /
 !
 ! Kain Fritsch cumulus parameters

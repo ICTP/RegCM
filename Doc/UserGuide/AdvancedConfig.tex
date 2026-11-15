@@ -1156,6 +1156,10 @@ selected number is $2, 4, 5$.
  lmfcapebl = .true.,  ! Subtract the boundary layer CAPE production
                      ! from CAPE in the deep convection closure
                      ! (Bechtold et al. 2014)
+ lmfcapeforc = .false., ! Deep closure from the CAPE production by the
+                     ! large scale vertical advection, plus a slow
+                     ! relaxation of CAPE (replaces lmfcapebl)
+ rtaucape = 43200.0, ! CAPE relaxation time scale (s) with lmfcapeforc
  /
 
  &kfparam
@@ -1187,6 +1191,14 @@ ECMWF IFS \citep{Bechtold_14}. It acts only on convection starting in the
 lowest 50 hPa and is meant to delay the peak of convection over land toward
 the late afternoon. It works with any PBL scheme: the boundary layer heating
 comes from the surface fluxes and the PBL height.
+\item With \verb=lmfcapeforc = .true.= the Tiedtke deep closure removes the
+CAPE produced by the large scale vertical motion, computed in the scheme
+from the vertical velocity, plus the CAPE relaxed over the time scale
+\verb=rtaucape= (12 hours by default), instead of relaxing all of CAPE
+over the convective time scale. Convection then follows the large scale
+forcing more closely; \verb=lmfcapebl= is not used in this case. It is an
+experimental option, tested in the single column GATE test
+(\verb=Testing/scm=).
 \item Again, read carefully the Reference Manual before attempting any tuning,
 and report in any work modification of this parameters.
 \end{enumerate}

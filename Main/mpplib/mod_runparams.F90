@@ -346,6 +346,10 @@ module mod_runparams
   logical, public :: lmfwstar  = .false. ! Grant w* closure for shallow conv
   ! Subtract the boundary layer CAPE production in the deep closure
   logical, public :: lmfcapebl = .true.
+  ! Deep closure from the CAPE production by the large scale vertical
+  ! advection plus a slow relaxation of CAPE (time scale rtaucape, s)
+  logical, public :: lmfcapeforc = .false.
+  real(rkx), public :: rtaucape = 43200.0_rkx
 
   real(rkx), public :: entrdd  ! entrainment rate for cumulus downdrafts
 

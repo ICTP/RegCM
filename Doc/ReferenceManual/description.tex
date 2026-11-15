@@ -2107,8 +2107,11 @@ environment at cloud base. In the IFS the tendencies include those of the
 vertical diffusion, while RegCM calls the cumulus scheme before the PBL
 scheme. The convergence of the turbulent fluxes of
 Eq.~\ref{eqn_model:TIEDfluxprof} between the surface and cloud base is
-therefore added to the numerator. Where the numerator is not positive the
-column does not convect as shallow.
+therefore added to the numerator. For a parcel departing more than 60~hPa
+above the surface (a first guess deep cloud that ends shallow) the
+sub-cloud layer is its source layer, between the departure level and cloud
+base, which receives no surface flux. Where the numerator is not positive
+the column does not convect as shallow.
 
 Inside the planetary boundary layer of height $h$, given by the PBL scheme,
 the turbulent fluxes have a linear profile in height $z$: the moisture flux
@@ -2142,6 +2145,31 @@ the mean of the wind speed at cloud base and at the lowest model level.
 Convection then remains close to equilibrium with the boundary layer forcing,
 which shifts the diurnal cycle of convective precipitation over land later in
 the day.
+
+With \verb=lmfcapeforc= the deep closure is a CAPE budget instead: convection
+removes the CAPE produced by the large scale vertical motion plus the CAPE
+relaxed over the time scale $\tau_{r}$ (\verb=rtaucape=, 12~h by default),
+\begin{eqnarray}
+M_b &=& M_b^{0}\,\frac{\max(0,\dot{C}_{ls}) + CAPE/\tau_{r}}
+        {\partial CAPE/\partial t|_{cu}}
+\label{eqn_model:TIEDcapeforc}
+\end{eqnarray}
+where $\partial CAPE/\partial t|_{cu}$ is the CAPE consumption of the first
+guess mass flux $M_b^0$. The production
+\begin{eqnarray}
+\dot{C}_{ls} = \int_{z_b}^{z_t}\left[\frac{\dot{h}_s}{c_p(1+\gamma)\,T}
+  - \left(\frac{\dot{T}_{ls}}{T} + \epsilon\,\dot{q}_{ls}\right)\right]
+  g\,dz
+\end{eqnarray}
+has an environment term, from the tendencies of the vertical advection
+$\dot{T}_{ls} = -\omega(\partial T/\partial p - RT/(c_pp))$,
+$\dot{q}_{ls} = -\omega\,\partial q/\partial p$, computed in the scheme from
+the vertical velocity of the model, and a parcel term, from the rate of
+change $\dot{h}_s$ of the moist static energy of the source layer by the
+vertical advection and the surface fluxes, with
+$\gamma = (L/c_p)\,\partial q_s/\partial T$. The boundary layer CAPE
+correction of Eq.~\ref{eqn_model:TIEDcapebl} is not applied in this case, as
+the source layer term already contains the boundary layer production.
 
 The scheme produces temperature and moisture tendencies from the vertical
 divergence of the mass-flux profiles, and generates separate liquid and ice

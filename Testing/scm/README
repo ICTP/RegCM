@@ -5,13 +5,17 @@ The programs here call one physics scheme through its model entry point
 on a set of atmospheric columns, without the dynamical core. They are
 regression tests ("make check") and a quick way to look at the response
 of a scheme to its parameters. For now: the Tiedtke cumulus scheme
-(icup = 5).
+(icup = 5) and the Holtslag boundary layer scheme (ibltyp = 1).
 
 Files
 -----
   scm_tiedtke.F90     driver of mod_cu_tiedtke (tiedtkedrv), MOLOCH setup
                       (idynamic = 3, NoTo microphysics, no chemistry)
   scm_tiedtke.py      Python wrapper: run, summary, sweep, plot, compare
+  scm_holtslag.F90    driver of mod_pbl_holtbl (holtbl), MOLOCH setup;
+                      one call, or nsteps time steps with fixed surface
+                      fluxes and the initial wind as geostrophic wind
+  scm_holtslag.py     Python wrapper, as scm_tiedtke.py
   scm_profiles.txt    the twelve test columns (from ERA5, see below)
   make_profiles.py    builds scm_profiles.txt from ERA5
   run_scm_tests.sh    the "make check" test
@@ -34,6 +38,57 @@ wind of the lowest level (neutral log law, z0 0.1 m on land, 1 mm on the
 ocean). The input tendencies are zero, as in the model where
 the cumulus scheme is the first physics call. ERA5 CAPE and convective
 rain rate are listed as a reference, not as a target.
+
+GATE test (Tiedtke)
+-------------------
+testgate holds the 161 three-hourly GATE Phase III soundings (30 August
+to 19 September 1974, A/B array near 8.5N 23.5W) on 41 pressure levels,
+with the observed apparent heat source Q1, moisture sink Q2, radiative
+heating QR and the horizontal advection of T and q (ADVT, ADVQ: the
+vertical advection is not included and is computed from omega).
+make_gate_profiles.py turns them into a profile file for the drivers
+and a file with the observed Q1, Q2, QR:
+
+  ./make_gate_profiles.py -o scm_gate.txt     forcing advrad (default)
+  ./make_gate_profiles.py --forcing none -o scm_gate_none.txt
+
+The input tendencies are the large scale forcing: horizontal plus
+vertical advection (adv), plus QR (advrad), or zero (none, as in RegCM
+where cumulus is the first physics call). The soundings have no surface
+fluxes (constant --shf 10, --lhf 125 W/m2, assumed) and no PBL height
+(bulk Richardson diagnosis). One call on each sounding is a
+semi-prognostic test: the wrapper compares the scheme heating and drying
+with Q1-QR and Q2 (detrained condensate counted as evaporated, as in the
+observed budget) and the rain with the budget precipitation
+E + cp/L int Q2 dp/g:
+
+  ./scm_tiedtke.py --profiles scm_gate.txt --gate scm_gate_obs.txt
+
+"make check" runs the 8 soundings of scm_gate_check.txt (numbers 1, 21,
+..., 141, advrad forcing) against reference/scm_tiedtke_gate.out.
+
+Holtslag test
+-------------
+Same columns. The driver computes from the profiles what the model
+derives from its state: potential temperature, surface air density, the
+Coriolis parameter, the surface drag rho u*^2/V1 (u* as above) and a
+ground temperature with the potential temperature of the lowest level
+(used only with ifaholtth10 /= 2). ricr and kmxpbl are set as in the
+model. The namelist has &scmparam (infile, outfile, dtpbl, nsteps) and
+&holtslagparam. "make check" uses one call (nsteps = 1); with nsteps > 1
+the columns evolve with the PBL tendencies only, no radiation, advection
+or subsidence, so the boundary layer deepens under the surface fluxes:
+
+  ./scm_holtslag.py                           one call, summary table
+  ./scm_holtslag.py --set nsteps=90           6 hours at dtpbl = 240 s
+  ./scm_holtslag.py --sweep ricr_ocn=0.25,0.275,0.3
+  ./scm_holtslag.py --set nsteps=90 --plot holtslag.png
+
+The summary lists the PBL height against the ERA5 diagnosis of the
+profile file, and the column heating and moistening of the first call,
+which equal the surface sensible and latent heat fluxes. Output per
+level: tendencies of the first call (T, q, qc, u, v) and the changes of
+T, q, u, v after nsteps. The comparison is exact for the PBL top level.
 
 Running
 -------

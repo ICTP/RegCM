@@ -152,6 +152,7 @@ Testing/mpplib/*.o
 Testing/scm/Makefile
 Testing/scm/Makefile.in
 Testing/scm/scm_tiedtke
+Testing/scm/scm_holtslag
 Testing/scm/scm_output
 Testing/scm/*.log
 Testing/scm/*.trs

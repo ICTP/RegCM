@@ -156,7 +156,8 @@ module mod_params
       detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
       rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
       revap_lnd, revap_ocn, lmfpen, lmfmid, lmfdd, lepcld, lmfdudv,   &
-      lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl
+      lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
+      lmfcapeforc, rtaucape
 
     namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
       kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate,        &
@@ -503,6 +504,8 @@ module mod_params
     lmfsmooth = .false. ! smoot of mass fluxes for tracers
     lmfwstar  = .false. ! Grant w* closure for shallow conv
     lmfcapebl = .true.  ! Boundary layer CAPE in deep closure
+    lmfcapeforc = .false. ! Deep closure from large scale CAPE production
+    rtaucape = 43200.0_rkx ! CAPE relaxation time scale with lmfcapeforc (s)
     !
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
@@ -1823,6 +1826,8 @@ module mod_params
       call bcast(lmfsmooth)
       call bcast(lmfwstar)
       call bcast(lmfcapebl)
+      call bcast(lmfcapeforc)
+      call bcast(rtaucape)
     end if
 
     if ( any(icup == 6) ) then
@@ -3135,6 +3140,12 @@ module mod_params
           '  Grant w* shallow closure          : ', lmfwstar
         write(stdout,'(a,l11)') &
           '  PBL CAPE in deep closure          : ', lmfcapebl
+        write(stdout,'(a,l11)') &
+          '  Large scale CAPE deep closure     : ', lmfcapeforc
+        if ( lmfcapeforc ) then
+          write(stdout,'(a,f11.1)') &
+            '  CAPE relaxation time scale (s)    : ', rtaucape
+        end if
       end if
     end if
     if ( any(icup == 6)  ) then

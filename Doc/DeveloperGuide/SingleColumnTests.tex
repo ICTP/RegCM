@@ -4,23 +4,29 @@ The directory \verb=Testing/scm= holds single column tests of the physics
 schemes: a program calls one scheme through its model entry point on a set
 of atmospheric columns, without the dynamical core. They serve as
 regression tests, run by \code{make check}, and as a quick way to look at
-the response of a scheme to its parameters. The Tiedtke cumulus scheme
-(\code{icup}~=~5) is the first one covered.
+the response of a scheme to its parameters. Two schemes are covered: the
+Tiedtke cumulus scheme (\code{icup}~=~5) and the Holtslag boundary layer
+scheme (\code{ibltyp}~=~1).
 
 \section{Files}
 
 \begin{itemize}
-  \item \verb=scm_tiedtke.F90=: the driver of the Tiedtke scheme;
-  \item \verb=scm_tiedtke.py=: the Python wrapper (run, summary, parameter
-        sweep, plot, comparison with a reference);
+  \item \verb=scm_tiedtke.F90=, \verb=scm_holtslag.F90=: the drivers of
+        the Tiedtke and Holtslag schemes;
+  \item \verb=scm_tiedtke.py=, \verb=scm_holtslag.py=: the Python wrappers
+        (run, summary, parameter sweep, plot, comparison with a reference);
   \item \verb=scm_profiles.txt=: the test columns;
   \item \verb=make_profiles.py=: builds \verb=scm_profiles.txt= from ERA5;
+  \item \verb=testgate=, \verb=make_gate_profiles.py=: the GATE soundings
+        and the program that turns them into profile files;
+        \verb=scm_gate_check.txt=, \verb=scm_gate_check_obs.txt=: the
+        GATE subset of the regression test;
   \item \verb=run_scm_tests.sh=: the test run by \code{make check};
   \item \verb=reference/=: the reference outputs;
   \item \verb=README=: usage notes.
 \end{itemize}
 
-\section{The driver}
+\section{The Tiedtke driver}
 
 The columns are laid out as a $1 \times n$ grid: \code{set\_grid} sets all
 the index ranges of the domain (\code{jci1:jci2}, \code{jce1ga:jce2ga},
@@ -60,6 +66,52 @@ cloud liquid and ice and of the wind components, convective cloud fraction,
 detrained condensate and the in cloud convective condensate passed to the
 radiation (\code{cu\_cldlwc}).
 
+\section{The Holtslag driver}
+
+\verb=scm_holtslag.F90= uses the same grid layout and profiles. It sets the
+MOLOCH configuration (\code{idynamic}~=~3, \code{ibltyp}~=~1,
+\code{ipptls}~=~2, no chemistry), allocates \code{ricr} and \code{kmxpbl}
+of \verb=mod_pbl_common= and the scheme arrays
+(\code{allocate\_mod\_pbl\_holtbl}), fills a \code{mod\_2\_pbl}
+structure and calls \code{holtbl}. As in the model, \code{ricr} is
+\code{ricr\_lnd} or \code{ricr\_ocn} from the land flag, and
+\code{kmxpbl} is the highest level below 5500~m (\verb=mod_slice.F90=).
+The fields the model derives from its state are computed by the driver
+before every call: potential temperature, surface air density from the
+surface pressure and the virtual temperature of the lowest level, the
+Coriolis parameter from the latitude, and the surface drag
+\code{uvdrag}~$= \rho\,u_*^2/V_1$, with the neutral log law friction
+velocity of the Tiedtke driver. The ground temperature has the potential
+temperature of the lowest level; it is used only by the options
+\code{ifaholtth10} other than the default 2.
+
+With \code{nsteps}~=~1 (the default, used by \code{make check}) the
+scheme is called once. With \code{nsteps}~$>$~1 the columns are
+integrated in time with the time step \code{dtpbl}: temperature,
+humidity and wind are advanced with the boundary layer tendencies alone,
+the surface fluxes are kept at their profile values, and the wind gets
+the Coriolis force with the initial wind as the geostrophic wind,
+\begin{equation}
+  \frac{\partial u}{\partial t} = \left(\frac{\partial u}{\partial t}
+  \right)_{pbl} + f\,(v - v_0), \qquad
+  \frac{\partial v}{\partial t} = \left(\frac{\partial v}{\partial t}
+  \right)_{pbl} - f\,(u - u_0) .
+\end{equation}
+There is no radiation, advection or subsidence, so the boundary layer
+deepens under the surface fluxes.
+
+The namelist has a \code{scmparam} group (\code{infile}, \code{outfile},
+\code{dtpbl}, \code{nsteps}) and the model group \code{holtslagparam},
+complete, with the defaults of \verb=mod_params.F90=. Per column the
+output has a \verb=COLUMN= line (land flag, PBL top level and height,
+friction velocity, column heating and moistening of the first call, the
+surface fluxes and the ERA5 PBL height of the profile) and one line per
+level: height, pressure, tendencies of the first call of temperature,
+humidity, cloud liquid and wind components, and the changes of
+temperature, humidity and wind after \code{nsteps}. The column heating
+and moistening of a call equal the surface sensible and latent heat
+fluxes, a check of the conservation of the scheme.
+
 \section{Test columns}
 
 \verb=scm_profiles.txt= has twelve columns, six per hemisphere, land and
@@ -93,9 +145,55 @@ temperature, specific humidity, wind, vertical velocity, input tendencies
 of temperature and humidity) and one per half level (height, pressure).
 The ERA5 CAPE and rain rate are a reference for the reader, not a target.
 
-\section{The Python wrapper}
+\section{GATE semi-prognostic test}
 
-\verb=scm_tiedtke.py= writes the namelist, runs the program in a temporary
+\verb=testgate= holds the 161 three-hourly soundings of GATE Phase III
+(30 August to 19 September 1974, A/B scale array near 8.5\textdegree N,
+23.5\textdegree W) on 41 pressure levels from 1012 to 70~hPa: height,
+temperature, humidity, wind, $\omega$, the observed apparent heat source
+$Q_1$ and moisture sink $Q_2$, the radiative heating $Q_R$ and the
+horizontal advection of temperature and humidity. The advection terms
+do not include the vertical advection: $Q_1$ and $Q_2$ are reproduced
+from the budget (correlation about 0.85) only when it is computed from
+$\omega$.
+
+\verb=make_gate_profiles.py= writes a profile file in the format of
+\verb=scm_profiles.txt= and a file with the observed $Q_1$, $Q_2$, $Q_R$
+on the same levels. The 40 levels above the surface are the model levels,
+the half levels the log pressure middle points, the lowest at the surface.
+The input tendencies are the large scale forcing (option
+\code{--forcing}): horizontal plus vertical advection,
+$-\omega\,(\partial T/\partial p - R\,T/(c_p\,p))$ and
+$-\omega\,\partial q/\partial p$ (\code{adv}), plus $Q_R$
+(\code{advrad}, the default), or zero (\code{none}, as in RegCM, where
+cumulus is the first physics call). The soundings have no surface fluxes
+and no boundary layer height: the fluxes are constant (10 and
+125~W~m$^{-2}$ by default, \code{--shf}, \code{--lhf}), the PBL height is
+diagnosed from the bulk Richardson number as in \verb=make_profiles.py=.
+
+One call of the scheme on every sounding is a semi-prognostic test. With
+\code{--gate} the Tiedtke wrapper compares the heating and drying of the
+scheme with $Q_1-Q_R$ and $Q_2$, taking the detrained condensate as
+evaporated, as it is in the observed budget,
+\begin{equation}
+  H = \frac{\partial T}{\partial t} - \frac{L}{c_p}
+      \left(\frac{\partial q_c}{\partial t} +
+      \frac{\partial q_i}{\partial t}\right), \qquad
+  D = -\frac{L}{c_p}\left(\frac{\partial q}{\partial t} +
+      \frac{\partial q_c}{\partial t} +
+      \frac{\partial q_i}{\partial t}\right),
+\end{equation}
+and the rain with the budget precipitation
+$E + (c_p/L)\int Q_2\,dp/g$, with the assumed evaporation $E$. It
+prints the mean, standard deviation and correlation over the soundings of
+the rain, the correlation and root mean square difference of $H$ and $D$
+over all soundings and levels, and the mean profiles. \code{make check}
+runs the soundings 1, 21, \ldots, 141 with the \code{advrad} forcing.
+
+\section{The Python wrappers}
+
+\verb=scm_tiedtke.py= (and in the same way \verb=scm_holtslag.py=, with
+\code{SCM\_HOLTSLAG}) writes the namelist, runs the program in a temporary
 directory and reads the output. It needs only the Python standard library,
 except for the plot (matplotlib). The program is looked for in the
 \code{--exe} option, the \code{SCM\_TIEDTKE} environment variable, the
@@ -110,12 +208,16 @@ current directory and the directory of the script.
   scm_tiedtke.py --check a.out b.out        compare two outputs
 \end{verbatim}
 The parameter names are the ones of the RegCM namelist; the wrapper knows
-the group of each one. The summary table lists, per column, the cloud type,
-base and top height, maximum mass flux, rain rate, column heating and
-moistening.
+the group of each one. The Tiedtke summary table lists, per column, the
+cloud type, base and top height, maximum mass flux, rain rate, column
+heating and moistening; the Holtslag one the PBL top level and height
+against the ERA5 diagnosis, the friction velocity and the column heating
+and moistening against the surface fluxes. The Holtslag plot shows the
+tendencies of the first call, or the changes over the run when
+\code{nsteps}~$>$~1.
 
-The comparison of two outputs requires the same cloud type, base and top in
-every column, and the real values to agree within a relative tolerance
+The comparison of two outputs requires the same cloud type, base and top
+(Tiedtke) or PBL top level (Holtslag) in every column, and the real values to agree within a relative tolerance
 (\code{--rtol} or \code{SCM\_RTOL}, default $10^{-4}$) plus an absolute one
 (\code{--atol} or \code{SCM\_ATOL}, default $10^{-5}$ times the largest
 magnitude of the field in the column), to allow for compiler and flag
@@ -126,7 +228,8 @@ and returns a non zero exit status if any is found.
 
 \code{make check} in \verb=Testing/scm= (or in \verb=Testing=, or at the
 top level) builds the drivers, linking the model libraries
-\verb=Main/cumlib/libcum.a= and \verb=Main/mpplib/libmpp.a= with the
+\verb=Main/cumlib/libcum.a=, \verb=Main/pbllib/libpbl.a= and
+\verb=Main/mpplib/libmpp.a= with the
 \verb=Share= library, and runs \verb=run_scm_tests.sh=. For each scheme the
 script writes a namelist with the default settings, runs the program in
 \verb=scm_output/<scheme>= (or \code{SCM\_OUTDIR}) and, if \code{python3}
@@ -152,8 +255,9 @@ A test of another scheme needs:
         \verb=Testing/scm/Makefile.am=, with the model library of the
         scheme in its \code{LDADD} and module path in \code{CPPFLAGS};
   \item the scheme in the loop of \verb=run_scm_tests.sh=;
-  \item a wrapper, or an extension of \verb=scm_tiedtke.py=, and the
-        reference output in \verb=reference/=;
+  \item a wrapper (the existing ones differ only in the parameter list,
+        the output fields, the summary and the plot) and the reference
+        output in \verb=reference/=;
   \item the new files in \code{EXTRA\_DIST} and the program in
         \verb=.gitignore=.
 \end{enumerate}

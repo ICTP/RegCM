@@ -26,6 +26,8 @@
 #   scm_tiedtke.py --plot tiedtke.png           profiles (needs matplotlib)
 #   scm_tiedtke.py --save run.out --compare reference/scm_tiedtke.out
 #   scm_tiedtke.py --check test.out reference/scm_tiedtke.out
+#   scm_tiedtke.py --profiles scm_gate.txt --gate scm_gate_obs.txt
+#                                               GATE semi-prognostic test
 #
 # The program is looked for in --exe, $SCM_TIEDTKE, the current directory
 # and the directory of this script. Only the standard library is needed,
@@ -49,7 +51,7 @@ GROUPS = {
                      'rprc_ocn', 'rprc_lnd', 'revap_lnd', 'revap_ocn',
                      'lmfpen', 'lmfmid', 'lmfdd', 'lepcld', 'lmfdudv',
                      'lmfscv', 'lmfuvdis', 'lmftrac', 'lmfsmooth',
-                     'lmfwstar', 'lmfcapebl'],
+                     'lmfwstar', 'lmfcapebl', 'lmfcapeforc', 'rtaucape'],
     'cldparam': ['kfac_deep', 'kfac_shal', 'k2_const', 'iconvcf'],
 }
 GROUP_OF = {v: g for g, vs in GROUPS.items() for v in vs}
@@ -123,7 +125,7 @@ def parse_output(path):
 
 
 def run(exe, settings, profiles, keep=None):
-    work = keep or tempfile.mkdtemp(prefix='scm_tiedtke_')
+    work = os.path.abspath(keep or tempfile.mkdtemp(prefix='scm_tiedtke_'))
     os.makedirs(work, exist_ok=True)
     out = os.path.join(work, 'scm_tiedtke.out')
     nml = os.path.join(work, 'scm_tiedtke.in')
@@ -186,6 +188,79 @@ def compare(test, ref, rtol, atol_frac):
     return fails
 
 
+def read_gate_obs(path):
+    """observed Q1, Q2, QR (K/day) and budget precipitation per column"""
+    with open(path) as f:
+        lines = [x for x in f.read().splitlines() if not x.startswith('#')]
+    ncol, nk = map(int, lines[0].split())
+    i, obs = 1, []
+    for _ in range(ncol):
+        w = lines[i].split(); i += 1
+        c = {'name': w[0], 'prec': float(w[2]),
+             'p': [], 'Q1': [], 'Q2': [], 'QR': []}
+        for _ in range(nk):
+            for n, x in zip(('p', 'Q1', 'Q2', 'QR'), lines[i].split()):
+                c[n].append(float(x))
+            i += 1
+        obs.append(c)
+    return obs
+
+
+def corr(a, b):
+    n = len(a)
+    ma, mb = sum(a) / n, sum(b) / n
+    sab = sum((x - ma) * (y - mb) for x, y in zip(a, b))
+    saa = sum((x - ma) ** 2 for x in a)
+    sbb = sum((y - mb) ** 2 for y in b)
+    return sab / (saa * sbb) ** 0.5 if saa > 0 and sbb > 0 else 0.0
+
+
+def gate_compare(cols, obsfile):
+    """scheme heating and drying against the observed apparent heat source
+    minus radiation (Q1-QR) and moisture sink (Q2). The detrained
+    condensate is taken as evaporated, as it is in the observed budget:
+    heating dT - L/cp (dqc+dqi), drying -L/cp (dq+dqc+dqi)."""
+    obs = read_gate_obs(obsfile)
+    if [c['name'] for c in cols] != [c['name'] for c in obs]:
+        sys.exit('the columns of %s do not match the run' % obsfile)
+    lc = 2.501e6 / 1004.64 * 1.0e-3      # g/kg/day to K/day
+    nk = len(obs[0]['p'])
+    heat, dry, q1r, q2 = [], [], [], []
+    for c, o in zip(cols, obs):
+        lv = c['levels']
+        heat.append([lv['dT'][k] - lc * (lv['dqc'][k] + lv['dqi'][k])
+                     for k in range(nk)])
+        dry.append([-lc * (lv['dq'][k] + lv['dqc'][k] + lv['dqi'][k])
+                    for k in range(nk)])
+        q1r.append([o['Q1'][k] - o['QR'][k] for k in range(nk)])
+        q2.append(o['Q2'])
+    flat = lambda x: [v for row in x for v in row]
+    rms = lambda a, b: (sum((x - y) ** 2 for x, y in
+                            zip(flat(a), flat(b))) / len(flat(a))) ** 0.5
+    rain = [c['rain'] + c['snow'] for c in cols]
+    prec = [o['prec'] for o in obs]
+    n = len(cols)
+    mean = lambda x: sum(x) / len(x)
+    std = lambda x: (sum((v - mean(x)) ** 2 for v in x) / len(x)) ** 0.5
+    print('GATE: %d soundings' % n)
+    print('  rain (mm/day)   scheme mean %6.2f std %6.2f   budget mean '
+          '%6.2f std %6.2f   corr %5.2f' % (mean(rain), std(rain),
+                                            mean(prec), std(prec),
+                                            corr(rain, prec)))
+    print('  heating vs Q1-QR  corr %5.2f  rms %6.2f K/day' %
+          (corr(flat(heat), flat(q1r)), rms(heat, q1r)))
+    print('  drying  vs Q2     corr %5.2f  rms %6.2f K/day' %
+          (corr(flat(dry), flat(q2)), rms(dry, q2)))
+    print('  mean profiles (K/day)')
+    print('  %7s %8s %8s %8s %8s' % ('p(hPa)', 'heating', 'Q1-QR',
+                                     'drying', 'Q2'))
+    for k in range(nk):
+        print('  %7.0f %8.2f %8.2f %8.2f %8.2f' % (
+            obs[0]['p'][k], mean([h[k] for h in heat]),
+            mean([x[k] for x in q1r]), mean([d[k] for d in dry]),
+            mean([x[k] for x in q2])))
+
+
 def plot(cols, png):
     import matplotlib
     matplotlib.use('Agg')
@@ -238,6 +313,9 @@ def main():
     ap.add_argument('--keep', metavar='DIR', help='working directory')
     ap.add_argument('--compare', metavar='REF',
                     help='compare the run with a reference output')
+    ap.add_argument('--gate', metavar='OBS',
+                    help='compare with the observed GATE Q1, Q2 file '
+                         '(with --profiles from make_gate_profiles.py)')
     ap.add_argument('--check', nargs=2, metavar=('TEST', 'REF'),
                     help='only compare two output files')
     ap.add_argument('--rtol', type=float,
@@ -268,6 +346,8 @@ def main():
     (header, cols), out, work = run(exe, settings, a.profiles, a.keep)
     if a.list:
         print('\n'.join(header))
+    elif a.gate:
+        gate_compare(cols, a.gate)
     else:
         summary(cols)
     if a.plot:

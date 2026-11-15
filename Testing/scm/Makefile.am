@@ -20,19 +20,25 @@ include $(REGCM_ROOT)/makeinc
 
 MPPLIBPTH = $(REGCM_ROOT)/Main/mpplib
 CUMLIBPTH = $(REGCM_ROOT)/Main/cumlib
+PBLLIBPTH = $(REGCM_ROOT)/Main/pbllib
 
-CPPFLAGS += -I$(MPPLIBPTH) -I$(CUMLIBPTH)
+CPPFLAGS += -I$(MPPLIBPTH) -I$(CUMLIBPTH) -I$(PBLLIBPTH)
 
-check_PROGRAMS = scm_tiedtke
+check_PROGRAMS = scm_tiedtke scm_holtslag
 scm_tiedtke_SOURCES = scm_tiedtke.F90
 scm_tiedtke_LDADD = $(CUMLIBPTH)/libcum.a $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)
+scm_holtslag_SOURCES = scm_holtslag.F90
+scm_holtslag_LDADD = $(PBLLIBPTH)/libpbl.a $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)
 
 FCLD = $(MPIFC)
 
 TESTS = run_scm_tests.sh
 
-EXTRA_DIST = README make_profiles.py scm_tiedtke.py run_scm_tests.sh \
-             scm_profiles.txt reference/scm_tiedtke.out
+EXTRA_DIST = README make_profiles.py scm_tiedtke.py scm_holtslag.py \
+             run_scm_tests.sh scm_profiles.txt reference/scm_tiedtke.out \
+             reference/scm_holtslag.out testgate make_gate_profiles.py \
+             scm_gate_check.txt scm_gate_check_obs.txt \
+             reference/scm_tiedtke_gate.out
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<

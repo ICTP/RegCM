@@ -23,36 +23,46 @@ here=$(cd $(dirname $0) && pwd)
 outdir=${SCM_OUTDIR:-$PWD/scm_output}
 status=0
 
-for scheme in tiedtke; do
+# Test cases, scheme:profile file:name. The output reference/<name>.out
+# is the reference of the case.
+cases="tiedtke:scm_profiles.txt:scm_tiedtke
+       holtslag:scm_profiles.txt:scm_holtslag
+       tiedtke:scm_gate_check.txt:scm_tiedtke_gate"
+
+for case in $cases; do
+  scheme=${case%%:*}
+  rest=${case#*:}
+  profiles=${rest%%:*}
+  name=${rest#*:}
   prog=$PWD/scm_$scheme
   [ -x $prog ] || prog=$here/scm_$scheme
-  d=$outdir/$scheme
+  d=$outdir/$name
   rm -rf $d
   mkdir -p $d
-  cat > $d/scm_$scheme.in << EOF
+  cat > $d/$name.in << EOF
  &scmparam
-  infile = '$here/scm_profiles.txt',
-  outfile = '$d/scm_$scheme.out',
+  infile = '$here/$profiles',
+  outfile = '$d/$name.out',
  /
 EOF
-  if (cd $d && $prog scm_$scheme.in > log 2>&1) && \
+  if (cd $d && $prog $name.in > log 2>&1) && \
      grep -q "columns written" $d/log; then
-    echo "PASS: scm_$scheme run"
+    echo "PASS: $name run"
   else
-    echo "FAIL: scm_$scheme run, see $d/log"
+    echo "FAIL: $name run, see $d/log"
     status=1
     continue
   fi
-  ref=$here/reference/scm_$scheme.out
+  ref=$here/reference/$name.out
   if command -v python3 > /dev/null 2>&1; then
-    if python3 $here/scm_$scheme.py --check $d/scm_$scheme.out $ref; then
-      echo "PASS: scm_$scheme reference"
+    if python3 $here/scm_$scheme.py --check $d/$name.out $ref; then
+      echo "PASS: $name reference"
     else
-      echo "FAIL: scm_$scheme reference"
+      echo "FAIL: $name reference"
       status=1
     fi
   else
-    echo "SKIP: scm_$scheme reference (no python3)"
+    echo "SKIP: $name reference (no python3)"
   fi
 done
 exit $status
