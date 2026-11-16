@@ -106,7 +106,7 @@ module mod_params
 
     namelist /physicsparam/ ibltyp, iboudy, isladvec, iqmsl,       &
       icup_lnd, icup_ocn, ipgf, iemiss, lakemod, ipptls, idiffu,   &
-      iocnflx, iocncpl, iwavcpl, icopcpl, iocnrough, iocnzoq,      &
+      iocnflux, iocncpl, iwavcpl, icopcpl, izengrough,             &
       ichem, scenario, idcsst, iwhitecap, iseaice, iconvlwp,       &
       icldmstrat, icldfrac, irrtm, iclimao3, iclimaaer, isolconst, &
       icumcloud, islab_ocean, itweak, temp_tend_maxval,            &
@@ -297,9 +297,8 @@ module mod_params
     idiffu = 1
     ipgf = 0
     iemiss = 0
-    iocnflx = 2
-    iocnrough = 1
-    iocnzoq = 1
+    iocnflux = 1
+    izengrough = 1
     iocncpl = 0
     iwavcpl = 0
     icopcpl = 0
@@ -766,9 +765,11 @@ module mod_params
       len_path = len(trim(dirout))
       if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
       rewind(ipunit)
-      read (ipunit, nml=physicsparam, iostat=iretval, err=103)
+      read (ipunit, nml=physicsparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error reading physicsparam namelist'
+        write(stderr,*) 'Note: iocnflx, iocnrough and iocnzoq are '// &
+          'replaced by iocnflux (1 Zeng, 2 COARE 3.5) and izengrough'
         call fatal(__FILE__,__LINE__, &
                    'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
@@ -984,9 +985,13 @@ module mod_params
           end if
         end if
       end if
-      if ( iocnflx < 0 .or. iocnflx > 3 ) then
+      if ( iocnflux < 0 .or. iocnflux > 2 ) then
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED OCEAN FLUX SCHEME.')
+      end if
+      if ( izengrough < 1 .or. izengrough > 3 ) then
+        call fatal(__FILE__,__LINE__, &
+                   'UNSUPPORTED ZENG OCEAN ROUGHNESS (izengrough).')
       end if
       if ( any(icup < -1) .or. any(icup > 6) ) then
         call fatal(__FILE__,__LINE__, &
@@ -1361,12 +1366,11 @@ module mod_params
     call bcast(icup)
     call bcast(ipptls)
     call bcast(idiffu)
-    call bcast(iocnflx)
+    call bcast(iocnflux)
     call bcast(iocncpl)
     call bcast(iwavcpl)
     call bcast(icopcpl)
-    call bcast(iocnrough)
-    call bcast(iocnzoq)
+    call bcast(izengrough)
     call bcast(ipgf)
     call bcast(iemiss)
     call bcast(lakemod)
@@ -1633,7 +1637,7 @@ module mod_params
     call bcast(icumcloud)
     call bcast(islab_ocean)
     call bcast(itweak)
-    if ( idcsst == 1 .and. iocnflx /= 2 ) then
+    if ( idcsst == 1 .and. iocnflux /= 1 ) then
       if ( myid == italk ) then
         write(stderr,*) &
           'Cannot enable diurnal cycle sst without Zheng ocean flux'
@@ -2315,10 +2319,9 @@ module mod_params
         write(stdout,'(a,i2)') '  Ocean cumulus conv. scheme  : ', icup_ocn
       end if
       write(stdout,'(a,i2)') '  Moisture schem              : ', ipptls
-      write(stdout,'(a,i2)') '  Ocean Flux scheme           : ', iocnflx
-      if ( iocnflx == 2 ) then
-        write(stdout,'(a,i2)') '  Zeng roughness formula      : ', iocnrough
-        write(stdout,'(a,i2)') '  Zeng roughness method       : ', iocnzoq
+      write(stdout,'(a,i2)') '  Ocean Flux scheme           : ', iocnflux
+      if ( iocnflux == 1 ) then
+        write(stdout,'(a,i2)') '  Zeng roughness formula      : ', izengrough
       end if
       write(stdout,'(a,i2)') '  Coupling with ocean         : ', iocncpl
       write(stdout,'(a,i2)') '  Coupling with wave          : ', iwavcpl
@@ -3569,7 +3572,6 @@ module mod_params
 100 call fatal(__FILE__,__LINE__, 'Error reading RESTARTPARAM')
 101 call fatal(__FILE__,__LINE__, 'Error reading TIMEPARAM')
 102 call fatal(__FILE__,__LINE__, 'Error reading OUTPARAM')
-103 call fatal(__FILE__,__LINE__, 'Error reading PHYSICSPARAM')
 104 call fatal(__FILE__,__LINE__, 'Error reading DYNPARAM')
 105 call fatal(__FILE__,__LINE__, 'Error reading NONHYDROPARAM')
 106 call fatal(__FILE__,__LINE__, 'Error reading HYDROPARAM')

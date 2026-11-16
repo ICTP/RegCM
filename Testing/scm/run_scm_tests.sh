@@ -24,10 +24,12 @@ outdir=${SCM_OUTDIR:-$PWD/scm_output}
 status=0
 
 # Test cases, scheme:profile file:name. The output reference/<name>.out
-# is the reference of the case.
+# is the reference of the case. The coupled case runs one day, with the
+# relaxation targets of the Amazon case.
 cases="tiedtke:scm_profiles.txt:scm_tiedtke
        holtslag:scm_profiles.txt:scm_holtslag
-       tiedtke:scm_gate_check.txt:scm_tiedtke_gate"
+       tiedtke:scm_gate_check.txt:scm_tiedtke_gate
+       coupled:scm_amazon.txt:scm_coupled_amazon"
 
 for case in $cases; do
   scheme=${case%%:*}
@@ -39,10 +41,15 @@ for case in $cases; do
   d=$outdir/$name
   rm -rf $d
   mkdir -p $d
+  extra=
+  if [ $scheme = coupled ]; then
+    extra="tgtfile = '$here/scm_amazon_target.txt', ndays = 1.0,"
+  fi
   cat > $d/$name.in << EOF
  &scmparam
   infile = '$here/$profiles',
   outfile = '$d/$name.out',
+  $extra
  /
 EOF
   if (cd $d && $prog $name.in > log 2>&1) && \

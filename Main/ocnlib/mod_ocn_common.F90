@@ -51,21 +51,17 @@ module mod_ocn_common
     !@acc call nvtxStartRange("ocn_interf")
     call ocn_interf(lm,lms,1)
     !@acc call nvtxEndRange
-    select case ( iocnflx )
+    select case ( iocnflux )
       case (0)
         !@acc call nvtxStartRange("ocn_interf2")
         call ocn_interf(lm,lms,2)
         !@acc call nvtxEndRange
         return
       case (1)
-        !@acc call nvtxStartRange("ocnbats")
-        call ocnbats
-        !@acc call nvtxEndRange
-      case (2)
         !@acc call nvtxStartRange("zengocndrv")
         call zengocndrv
         !@acc call nvtxEndRange
-      case (3)
+      case (2)
         !@acc call nvtxStartRange("coare3_drv")
         call coare3_drv
         !@acc call nvtxEndRange

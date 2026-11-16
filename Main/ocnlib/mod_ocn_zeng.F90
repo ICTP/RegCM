@@ -23,7 +23,7 @@ module mod_ocn_zeng
   use mod_constants
   use mod_service
   use mod_ocn_internal
-  use mod_runparams, only : iocnrough, iocnzoq, syncro_cpl
+  use mod_runparams, only : izengrough, syncro_cpl
   use mod_runparams, only : iwavcpl
   use mod_runparams, only : zomax, ustarmax
 
@@ -61,7 +61,6 @@ module mod_ocn_zeng
   real(rkx), parameter :: missing_r8 = 1.0e20_rkx
   real(rkx), parameter :: tol = missing_r8/2.0_rkx
   logical :: flag1, flag2
-  logical, parameter :: ecmwf_ocnrough = .true.
 
   contains
   !
@@ -79,7 +78,7 @@ module mod_ocn_zeng
           es, ws, um, visa, zot, wc, zeta, zoq, cpm,   &
           rlv, rs, rd, td, tdelta, delta, q, fd, fs,   &
           ustarw, l, phidl, aa, bb, lamb, dtstend,     &
-          dts, tskin_new, fua, tha
+          dts, tskin_new, tha
 !     real(rkx) :: lwds, lwus
     integer(ik4) :: nconv
     logical :: act_coupler
@@ -133,15 +132,6 @@ module mod_ocn_zeng
       ! The deltas between surface and atmosphere
       dqh = q995 - qs
       dthv = dth*(d_one+ep1*q995) + ep1*th*dqh
-      if ( iocnzoq == 4 ) then
-        ! BCC_AGCM2.0.1 influence of the wind speed on waves and sea spray
-        ! in the computation of surface fluxes
-        if ( uv995 > 10.0_rkx ) then
-          fua = exp((uv995-10.0_rkx)/100.0_rkx)
-          dqh = dqh * fua
-          dthv = dthv * fua
-        end if
-      end if
       ! J/kg
       ! Kinematic viscosity of dry air (m2/s)
       !   Andreas (1989) CRREL Rep. 89-11
@@ -185,7 +175,11 @@ module mod_ocn_zeng
       !
       ! loop to obtain initial and good ustar and zo
       !
-      if ( ecmwf_ocnrough ) then
+      ! izengrough = 1: roughness and drag of Hersbach (2010, ECMWF),
+      ! stability from the bulk Richardson number, no iteration and no
+      ! gustiness. Otherwise the iterative Zeng et al. (1998) algorithm
+      ! with gustiness and the roughness formula izengrough.
+      if ( izengrough == 1 ) then
         if ( flag1 ) then  ! We don't have zo from the wave model
           ! Compute z0 and cd
           call zocd(visa,um,zu,zo,cd)
@@ -217,7 +211,7 @@ module mod_ocn_zeng
                     (5.0_rkx*log(zeta)+zeta-1.0_rkx))
         end if
         ustar = vonkar*um/ram1(i)
-        call roughness(zo,ustar,visa,zot,zoq,iocnzoq)
+        call roughness(zo,ustar,visa,zot,zoq)
         !
         ! temperature
         !
@@ -257,7 +251,7 @@ module mod_ocn_zeng
             call zocd(visa,um,zu,zo,cd)
             ustar = vonkar*um/log(1.0_rkx+zu/zo)
           else
-            zo = ocnrough(ustar,um10(i),wc,visa,iocnrough)
+            zo = ocnrough(ustar,um10(i),visa,izengrough)
           end if
         else
           if ( flag2 ) then  ! We don't have ustar from the wave model
@@ -277,7 +271,7 @@ module mod_ocn_zeng
         ! main iterations (2-10 iterations would be fine)
         !
         do nconv = 1, 5
-          call roughness(zo,ustar,visa,zot,zoq,iocnzoq)
+          call roughness(zo,ustar,visa,zot,zoq)
           !
           ! wind
           !
@@ -337,7 +331,7 @@ module mod_ocn_zeng
           if ( .not. flag2 ) exit
           ! Recompute ustar, zo
           ustar = vonkar*um/ram1(i)
-          zo = ocnrough(ustar,um10(i),wc,visa,iocnrough)
+          zo = ocnrough(ustar,um10(i),visa,izengrough)
         end do
         br(i) = egrav*zu*dthv/(thv*um*um)
         if ( br(i) >= d_zero ) then       ! neutral or stable
@@ -499,107 +493,46 @@ module mod_ocn_zeng
     end if
   end function psi
   !
-  ! our formulation for zo,zot,zoq
+  ! Roughness lengths of heat and moisture of COARE 3.5 (Edson et al.,
+  ! 2013), function of the roughness Reynolds number
   !
-  pure subroutine roughness(zo,ustar,visa,zot,zoq,izoq)
+  pure subroutine roughness(zo,ustar,visa,zot,zoq)
     !$acc routine seq
     implicit none
     real(rkx), intent (in) :: zo, ustar, visa
-    integer(ik4), intent(in) :: izoq
     real(rkx), intent (out) :: zoq, zot
-    real(rkx) :: re, xtq, rt, rq
+    real(rkx) :: re
     re = (ustar*zo)/visa
-    if ( izoq == 2 ) then
-      zoq = min(4.0e-4_rkx, 2.0e-4_rkx*re**(-3.3_rkx))
-      zot = zoq
-    else if ( izoq == 3 ) then
-      if ( re <= 0.11_rkx ) then
-        rt = 0.177_rkx
-        rq = 0.292_rkx
-      else if ( re <= 0.8_rkx ) then
-        rt = 1.376_rkx*re**0.929_rkx
-        rq = 1.808_rkx*re**0.826_rkx
-      else if ( re <= 3.0_rkx ) then
-        rt = 1.026_rkx*re**(-0.599_rkx)
-        rq = 1.393_rkx*re**(-0.528_rkx)
-      else if ( re <= 10.0_rkx ) then
-        rt = 1.625_rkx*re**(-1.018_rkx)
-        rq = 1.956_rkx*re**(-0.870_rkx)
-      else if ( re <= 30.0_rkx ) then
-        rt = 4.661_rkx*re**(-1.475_rkx)
-        rq = 4.994_rkx*re**(-1.297_rkx)
-      else if (re <= 100.0_rkx) then
-        rt = 34.904_rkx*re**(-2.067_rkx)
-        rq = 30.709_rkx*re**(-1.845_rkx)
-      else if ( re <= 300.0_rkx ) then
-        rt = 1667.19_rkx*re**(-2.907_rkx)
-        rq = 1448.68_rkx*re**(-2.682_rkx)
-      else if ( re <= 1000.0_rkx ) then
-        rt = 5.88e5_rkx*re**(-3.935_rkx)
-        rq = 2.98e5_rkx*re**(-3.616_rkx)
-      else
-        rt = 1e-10_rkx
-        rq = 1e-10_rkx
-      end if
-      zot = rt*visa/ustar
-      zoq = rq*visa/ustar
-    else if ( izoq == 4 ) then
-      zoq = min(5.0e-5_rkx, 2.0e-4_rkx*re**(-3.3_rkx))
-      zot = zoq
-    else if ( izoq == 5 ) then
-      zoq = min(1.6e-4_rkx,5.8e-5_rkx*re**(-0.72_rkx))
-      zot = zoq
-    else
-      xtq = 2.67_rkx*(re**0.25_rkx) - 2.57_rkx
-      zoq = zo/exp(xtq)
-      zot = zoq
-    end if
+    zoq = min(1.6e-4_rkx,5.8e-5_rkx*re**(-0.72_rkx))
+    zot = zoq
   end subroutine roughness
-
-  pure real(rkx) function ocnrough(ustar,u3d,wc,visa,irough) result(zo)
+  !
+  ! Momentum roughness length of the iterative algorithm:
+  !   2 => Charnock 0.018 plus smooth flow (Smith, 1988)
+  !   3 => Charnock growing with the 3-day mean 10 m wind u3d from 0.011
+  !        to 0.018 (COARE 3.0), decreasing above 25 m/s
+  !
+  pure real(rkx) function ocnrough(ustar,u3d,visa,irough) result(zo)
     !$acc routine seq
     implicit none
-    real(rkx), intent (in) :: u3d, wc, visa, ustar
+    real(rkx), intent (in) :: u3d, visa, ustar
     integer(ik4), intent(in) :: irough
-    real(rkx) :: wage, charnockog, alph
-    if ( irough == 0 ) then
-      zo = szo(visa,ustar)
-    else if ( irough == 1 ) then
-      zo = 0.0065_rkx*regrav*ustar*ustar
-    else if ( irough == 2 ) then
-      zo = 0.013_rkx*regrav*ustar*ustar + 0.11_rkx*visa/ustar
-    else if ( irough == 3 ) then
-      zo = 0.017_rkx*regrav*ustar*ustar
-    else
-      ! Wave age. The wind here is the mean last 3 days wind
-      wage = 1.2_rkx*u3d
-      ! Smith et al. (1992), Carlsson et al. (2009)
-      ! Charnock parameter as power function of the wave age
-      ! We consider here dominant wind sea waves
-      ! Swell dominated sea would require a wave model...
-      charnockog = regrav*0.063_rkx*(wage/ustar)**(-0.4_rkx)
-      if ( irough == 4 ) then
-        ! C.H. Huang, 2012
-        ! Modification of the Charnock Wind Stress Formula
-        ! to Include the Effects of Free Convection and Swell
-        ! Advanced Methods for Practical Applications in Fluid Mechanics
-        zo = charnockog*(ustar*ustar*ustar+0.11_rkx*wc*wc*wc)**twot
-      else if ( irough == 5 ) then
-        if ( u3d < 10.0_rkx ) then
-          alph = 0.011_rkx
-        else if ( u3d > 10.0_rkx .and. u3d < 18.0_rkx ) then
-          alph = 0.011_rkx + 0.000875*(u3d-10.0_rkx)
-        else if ( u3d > 18.0_rkx .and. u3d < 25.0_rkx ) then
-          alph = 0.018_rkx
-        else
-          alph = max(2.e-3_rkx,0.018_rkx / &
-               (d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
-                0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
-        end if
-        zo = alph*regrav*ustar*ustar + 0.11_rkx*visa/ustar
+    real(rkx) :: alph
+    if ( irough == 3 ) then
+      if ( u3d < 10.0_rkx ) then
+        alph = 0.011_rkx
+      else if ( u3d < 18.0_rkx ) then
+        alph = 0.011_rkx + 0.000875_rkx*(u3d-10.0_rkx)
+      else if ( u3d < 25.0_rkx ) then
+        alph = 0.018_rkx
       else
-        zo = charnockog*ustar*ustar
+        alph = max(2.e-3_rkx,0.018_rkx / &
+             (d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
+              0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
       end if
+      zo = alph*regrav*ustar*ustar + 0.11_rkx*visa/ustar
+    else
+      zo = szo(visa,ustar)
     end if
   end function ocnrough
 

@@ -2696,18 +2696,12 @@ aerosol environment (via $N_{CCN}$) and the local drop size spectrum.
 
 \subsection{Ocean flux Parameterization}
 
-\ac{BATS} uses standard Monin-Obukhov similarity relations to compute the
-fluxes with no
-special treatment of convective and very stable conditions.  In addition, the
-roughness length is set to a constant, i.e. it is not a function of wind and
-stability.  
+Two bulk schemes compute the fluxes over open water, chosen with
+\texttt{iocnflux}: the scheme of \cite{Zeng_98} (1, the default) and
+COARE~3.5 (2). Sensible heat (${\rm SH}$), latent heat (${\rm LH}$), and
+momentum ($\tau$) fluxes between the sea surface and lower atmosphere are
+calculated with the bulk aerodynamic algorithms,
 
-The Zeng scheme describes all stability conditions and
-includes a gustiness velocity to account for the additional flux induced by
-boundary layer scale variability. Sensible heat (${\rm SH}$), latent heat (${\rm
-LH}$), and momentum ($\tau$) fluxes between the sea surface and lower atmosphere
-are calculated using the following bulk aerodynamic algorithms,
-    
 \begin{eqnarray}
 \tau = \rho_a {u_{\ast}}^2 ({u_{x}}^2 + {u_{y}}^2)^{1/2} / u \\ \nonumber \\
 {\rm SH} = -\rho_a C_{pa} u_{\ast} \theta_{\ast} \hspace{.6cm} \\ \nonumber \\
@@ -2718,9 +2712,35 @@ where $u_x$ and $u_y$ are mean wind components, $u_{\ast}$ is the
 frictional wind velocity, $\theta_{\ast}$ is the temperature scaling parameter,
 $q_{\ast}$ is the specific humidity scaling parameter,  $\rho_a$ is air density,
 $C_{pa}$ is specific heat of air, and $L_{e}$ is the latent heat of
-vaporization.  For further details on the calculation of these parameters refer
-to \cite{Zeng_98}.
- 
+vaporization. The scaling parameters follow from Monin-Obukhov similarity
+between the lowest model level and the surface, with the air temperature
+of the level brought dry adiabatically to the surface pressure and the
+saturation humidity of sea water (2\% below the one of pure water) at the
+SST. In both schemes the roughness lengths of heat and moisture are the
+ones of COARE~3.5,
+$z_{0q} = z_{0t} = \min(1.6\times10^{-4},\,5.8\times10^{-5}\,R_r^{-0.72})$,
+with the roughness Reynolds number $R_r = u_\ast z_0/\nu$.
+
+The Zeng scheme describes all stability conditions. The momentum roughness
+length is chosen with \texttt{izengrough}. With the default (1) the
+roughness length and the drag coefficient are the fit of
+\cite{Hersbach_10} to the neutral wind, and the stability is computed once
+from the bulk Richardson number, without iteration and without gustiness.
+With 2 and 3 the algorithm of \cite{Zeng_98} iterates the Monin-Obukhov
+scales and includes a gustiness velocity, to account for the additional
+flux induced by boundary layer scale variability; the roughness length is
+of Charnock type, $z_0 = \alpha\,u_\ast^2/g + 0.11\,\nu/u_\ast$, with
+$\alpha = 0.018$ (2) or $\alpha$ growing from 0.011 at 10~m~s$^{-1}$ to
+0.018 at 18~m~s$^{-1}$ of the 3-day mean 10~m wind and decreasing above
+25~m~s$^{-1}$ (3, as in COARE~3.0).
+
+The COARE scheme is the COARE~3.5 algorithm \citep{Fairall_03,Edson_13}:
+the stability functions of COARE, a Charnock parameter growing linearly
+with the 10~m neutral wind up to 19~m~s$^{-1}$, gustiness and the cool skin
+of \cite{Fairall_96}.
+
+Over sea ice the fluxes are those of the \ac{BATS} sea ice model.
+
 \subsection{Prognostic Sea Surface Skin Temperature Scheme}
 
 By default in \ac{RegCM}, sea surface temperatures (SST) are prescribed every

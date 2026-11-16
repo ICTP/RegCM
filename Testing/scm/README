@@ -5,7 +5,8 @@ The programs here call one physics scheme through its model entry point
 on a set of atmospheric columns, without the dynamical core. They are
 regression tests ("make check") and a quick way to look at the response
 of a scheme to its parameters. For now: the Tiedtke cumulus scheme
-(icup = 5) and the Holtslag boundary layer scheme (ibltyp = 1).
+(icup = 5) and the Holtslag boundary layer scheme (ibltyp = 1), alone
+and together in a time integration (scm_coupled).
 
 Files
 -----
@@ -16,6 +17,16 @@ Files
                       one call, or nsteps time steps with fixed surface
                       fluxes and the initial wind as geostrophic wind
   scm_holtslag.py     Python wrapper, as scm_tiedtke.py
+  scm_coupled.F90     Holtslag + Tiedtke integrated together in time with
+                      prescribed large scale forcing
+  scm_coupled.py      its Python wrapper: run, summary, sweep, compare
+  scm_amazon.txt      Amazon case of scm_coupled: initial profiles,
+  scm_amazon_target.txt   relaxation targets (0, 6, 12, 18 UTC),
+  scm_amazon_era5.txt     ERA5 rain by local hour
+  make_amazon_case.py builds the three Amazon files from ERA5
+  scm_ocean.F90       ocean surface flux schemes on samples of the
+                      lowest level and the surface
+  scm_ocean.py        evaluation of all the schemes and options
   scm_profiles.txt    the twelve test columns (from ERA5, see below)
   make_profiles.py    builds scm_profiles.txt from ERA5
   run_scm_tests.sh    the "make check" test
@@ -89,6 +100,56 @@ profile file, and the column heating and moistening of the first call,
 which equal the surface sensible and latent heat fluxes. Output per
 level: tendencies of the first call (T, q, qc, u, v) and the changes of
 T, q, u, v after nsteps. The comparison is exact for the PBL top level.
+
+Coupled test
+------------
+scm_coupled calls holtbl and tiedtkedrv every dtstep (300 s) on the same
+state, as the MOLOCH core does, and advances the state with their
+tendencies plus the large scale forcing: the input tendencies of the
+profile file (here a radiative cooling of 1.5 K/day), the vertical
+advection by its omega (ERA5 monthly mean), and a relaxation of T and q
+with time scale taurelax (1 day) to the ERA5 monthly mean profiles at
+0, 6, 12, 18 UTC (tgtfile), standing for the horizontal advection. Land
+surface fluxes follow a half sine in local time with the ERA5 daily
+means (small night values). No microphysics: detrained condensate
+evaporates, supersaturation rains out (large scale rain).
+
+The Amazon case (make_amazon_case.py) has two boxes, NW Amazon (5S-5N,
+75-60W) and S Amazon (12-5S, 65-50W), September 2023. Rain is
+intermittent, so the wrapper averages from the second day on; over 30
+days (its default) the mean daily rain is stable to about 0.1 mm/day:
+
+  ./scm_coupled.py                            30 days, rain and diurnal
+                                              cycle against ERA5
+  ./scm_coupled.py --set lmfcapebl=.false.
+  ./scm_coupled.py --sweep zhnew_fac=0.0,0.25,0.5
+
+"make check" runs one day against reference/scm_coupled_amazon.out. The
+small differences of another compiler or other flags grow into different
+rain events: the reference holds only for the build it was made with.
+To update it, copy scm_output/scm_coupled_amazon/scm_coupled_amazon.out
+of a "make check" run and set its "# profiles:" and "# targets:" lines
+to scm_amazon.txt and scm_amazon_target.txt.
+
+Ocean flux test
+---------------
+scm_ocean calls one ocean surface flux scheme (Zeng iocnflux 1 with
+izengrough, COARE 3.5 iocnflux 2) through its model entry point on a
+list of samples of the lowest model level and the surface (height, wind,
+T, mixing ratio, pressure, surface pressure, bulk SST, PBL height, net
+radiation), on open water. scm_ocean.py runs every scheme and option on
+the same samples and compares them with the NOAA COARE 3.5 algorithm
+(--coare: the Python/COARE3.5 directory of
+https://github.com/NOAA-PSL/COARE-algorithm), or with the default Zeng
+configuration without it:
+
+  ./scm_ocean.py curves --coare DIR     transfer coefficients against
+                                        the wind, fluxes against the
+                                        air-sea temperature difference
+  ./scm_ocean.py era5 --coare DIR       ERA5 September 2023 states (1000
+                                        hPa level, daily SST) over the
+                                        South America ocean, box means
+                                        against the ERA5 monthly fluxes
 
 Running
 -------

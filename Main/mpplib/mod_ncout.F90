@@ -3599,12 +3599,10 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('moisture_scheme',ipptls))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('ocean_flux_scheme',iocnflx))
-        if ( iocnflx == 2 ) then
+          ncattribute_integer('ocean_flux_scheme',iocnflux))
+        if ( iocnflux == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('zeng_ocean_roughness_formula',iocnrough))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('zeng_ocean_roughness_method',iocnzoq))
+            ncattribute_integer('zeng_ocean_roughness_formula',izengrough))
         end if
         if ( iocncpl == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

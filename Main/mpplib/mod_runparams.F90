@@ -144,7 +144,7 @@ module mod_runparams
   integer(ik4), public :: iseaice
   real(rkx), public :: icetriggert
   ! Ocean model switch indexes
-  integer(ik4), public :: iocnrough, iocnflx, iocncpl, iocnzoq
+  integer(ik4), public :: izengrough, iocnflux, iocncpl
   ! Wave model switch indexes
   integer(ik4), public :: iwavcpl
   ! COP switch indexes

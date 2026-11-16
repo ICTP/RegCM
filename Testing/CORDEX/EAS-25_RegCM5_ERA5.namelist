@@ -80,9 +80,8 @@
  icup_lnd =          5, ! Cumulus convection scheme Over Land
  icup_ocn =          5, ! Cumulus convection scheme Over Ocean
  ipptls  =          2,  ! Moisture scheme
- iocnflx =          2,  ! Ocean Flux scheme
-   iocnrough =      1,  ! Zeng Ocean model roughness formula to use.
-   iocnzoq =        1,  ! Zeng Ocean model factors for t,q roughness
+ iocnflux =        1,  ! Ocean flux scheme (1 Zeng, 2 COARE 3.5)
+   izengrough =     1,  ! Zeng ocean roughness (1 ECMWF)
  scenario =   'SSP585', ! IPCC Scenario to use in A1B,A2,B1,B2
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          1, ! Model seaice effects

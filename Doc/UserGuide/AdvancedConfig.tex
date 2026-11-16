@@ -714,20 +714,20 @@ sensitivity experiments to select the best scheme for your application.
                         !   1 => Coupling activated
  icopcpl =          0,  ! Export data for COP component (RegESM)
                         !   1 => Coupling activated
- iocnflx =          2,  ! Ocean Flux scheme
-                        !   1 => Use BATS1e Monin-Obukhov
-                        !   2 => Zeng et al (1998)
-                        !   3 => Coare bulk flux algorithm
-   iocnrough =      1,  ! Zeng Ocean model roughness formula to use.
-                        !   1 => (0.0065*ustar*ustar)/egrav
-                        !   2 => (0.013*ustar*ustar)/egrav + 0.11*visa/ustar
-                        !   3 => (0.017*ustar*ustar)/egrav
-                        !   4 => Huang 2012 free convection and swell effects
-                        !   5 => four regime formulation
-   iocnzoq =        1,  ! Zeng Ocean model factors for t,q roughness
-                        !   1 => 2.67*(re**d_rfour) - 2.57
-                        !   2 => min(4.0e-4, 2.0e-4*re**(-3.3))
-                        !   3 => COARE formulation as in bulk flux above
+ iocnflux =         1,  ! Ocean flux scheme
+                        !   0 => None (fluxes from a coupled model)
+                        !   1 => Zeng et al. (1998)
+                        !   2 => COARE 3.5 (Fairall et al. 2003,
+                        !        Edson et al. 2013)
+   izengrough =     1,  ! Zeng momentum roughness length
+                        !   1 => Hersbach (2010, ECMWF), no iteration,
+                        !        no gustiness
+                        !   2 => Charnock 0.018 + smooth flow (Smith 1988),
+                        !        iterative with gustiness
+                        !   3 => Charnock from 0.011 to 0.018 with the
+                        !        wind (COARE 3.0), iterative with gustiness
+                        ! The heat and moisture roughness lengths are the
+                        ! COARE 3.5 ones for both schemes.
  ipgf    =          0,  ! Pressure gradient force scheme
                         !   0 => Use full fields
                         !   1 => Hydrostatic deduction with pert. temperature

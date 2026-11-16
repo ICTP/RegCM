@@ -72,7 +72,7 @@
  icup_lnd =         4,
  icup_ocn =         4,
  ipptls  =          1,
- iocnflx =          2,
+ iocnflux =        1,
  ipgf    =          0,
  iemiss  =          0,
  lakemod =          1,

@@ -6,7 +6,8 @@ of atmospheric columns, without the dynamical core. They serve as
 regression tests, run by \code{make check}, and as a quick way to look at
 the response of a scheme to its parameters. Two schemes are covered: the
 Tiedtke cumulus scheme (\code{icup}~=~5) and the Holtslag boundary layer
-scheme (\code{ibltyp}~=~1).
+scheme (\code{ibltyp}~=~1), each alone and both together in a time
+integration with prescribed large scale forcing.
 
 \section{Files}
 
@@ -21,6 +22,15 @@ scheme (\code{ibltyp}~=~1).
         and the program that turns them into profile files;
         \verb=scm_gate_check.txt=, \verb=scm_gate_check_obs.txt=: the
         GATE subset of the regression test;
+  \item \verb=scm_coupled.F90=, \verb=scm_coupled.py=: the driver of the
+        two schemes integrated together, and its wrapper;
+        \verb=scm_amazon.txt=, \verb=scm_amazon_target.txt=,
+        \verb=scm_amazon_era5.txt=: the Amazon case (initial profiles,
+        relaxation targets, ERA5 rain by local hour), built by
+        \verb=make_amazon_case.py=;
+  \item \verb=scm_ocean.F90=, \verb=scm_ocean.py=: the ocean surface flux
+        schemes on samples of the lowest level and the surface, and their
+        evaluation;
   \item \verb=run_scm_tests.sh=: the test run by \code{make check};
   \item \verb=reference/=: the reference outputs;
   \item \verb=README=: usage notes.
@@ -190,6 +200,130 @@ the rain, the correlation and root mean square difference of $H$ and $D$
 over all soundings and levels, and the mean profiles. \code{make check}
 runs the soundings 1, 21, \ldots, 141 with the \code{advrad} forcing.
 
+\section{The coupled driver}
+
+\verb=scm_coupled.F90= integrates the Holtslag and Tiedtke schemes
+together in time, with the grid layout, configuration and allocations of
+the two single scheme drivers. Every time step \code{dtstep} (default
+300~s) both schemes are called through \code{holtbl} and
+\code{tiedtkedrv} on the same state, as the MOLOCH core calls them: the
+cumulus scheme gets zero input tendencies, the PBL height of the previous
+call of the boundary layer scheme and the friction velocity of the neutral
+log law. The state is advanced with the sum of the tendencies of the two
+schemes and of the large scale forcing:
+\begin{itemize}
+  \item the input tendencies of the profile file (radiative heating,
+        horizontal advection), held fixed;
+  \item the vertical advection by the $\omega$ of the profile file,
+        $-\omega\,(\partial T/\partial p - R\,T/(c_p\,p))$ and
+        $-\omega\,\partial q/\partial p$, with centred differences on the
+        current state; the same $\omega$ is the \code{avg\_ww} of the
+        cumulus scheme;
+  \item a relaxation of temperature and humidity,
+        $-(X - X_r)/\tau$, with $\tau$ = \code{taurelax} (default one day),
+        at all levels or above \code{zrelax} (linear ramp from
+        \code{zrelax}/2). The target $X_r$ is the initial profile or,
+        with \code{tgtfile} (default \verb=scm_amazon_target.txt=), the
+        profiles of that file at 0, 6, 12 and 18~UTC, linearly
+        interpolated in time and repeated every day. The relaxation stands
+        for the horizontal advection that keeps the column near the
+        observed state, so that the schemes are tested on that state.
+\end{itemize}
+Over land the surface fluxes follow a half sine in local solar time,
+from 6 to 18, keeping the daily means $\overline{H}$ and
+$\overline{LE}$ of the profile file: at night the sensible heat flux is
+$-0.25\,\overline{H}$ and the latent heat flux $0.1\,\overline{LE}$,
+in daytime the peaks are $1.125\,\pi\,\overline{H}$ and
+$0.95\,\pi\,\overline{LE}$. Over the ocean the fluxes are constant.
+There is no microphysics: the condensate detrained by the cumulus scheme
+evaporates in the layer where it is detrained (heating
+$\partial T/\partial t - (L_v\,\partial q_c/\partial t +
+L_s\,\partial q_i/\partial t)/c_p$), and supersaturation is removed by a
+saturation adjustment with the functions of \verb=saturation.inc=, the
+condensate falling out as large scale rain. The pressure of the levels
+is held fixed; the wind gets the Coriolis term of the Holtslag driver.
+
+The namelist has a \code{scmparam} group (\code{infile},
+\code{outfile}, \code{tgtfile}, \code{dtstep}, \code{ndays},
+\code{nout}, \code{dxkm}, \code{taurelax}, \code{zrelax}) and the model
+groups of the two drivers. Every \code{nout} steps (default one hour)
+the output has per column a \verb=STEP= line (time, local hour, surface
+fluxes, PBL height and top level, the moisture factor of the eddy
+diffusivity \code{hqfac} computed as in \code{holtbl}, cloud type, top
+and base level, convective and large scale rain rate and their
+accumulations) and one line per level: height, pressure, temperature,
+specific humidity, updraft mass flux and the temperature and humidity
+tendencies of the two schemes.
+
+\section{Amazon case}
+
+\verb=make_amazon_case.py= builds the case of the coupled driver from the
+ERA5 September 2023 monthly means over the land points of two boxes, NW
+Amazon (5\textdegree S--5\textdegree N, 75--60\textdegree W) and S
+Amazon (12--5\textdegree S, 65--50\textdegree W). The vertical grid and
+the interpolation are the ones of \verb=make_profiles.py=, on the box mean
+orography. The initial profiles are the monthly means at 12~UTC (about
+7:30 local time), the relaxation targets the means at 0, 6, 12 and
+18~UTC. The forcing is the ERA5 monthly mean $\omega$ and a radiative
+cooling of 1.5~K~day$^{-1}$ (option \code{--qr}) up to 200~hPa, going to
+zero at 100~hPa; the surface fluxes are the ERA5 monthly means of the box.
+\verb=scm_amazon_era5.txt= has the ERA5 hourly total and convective rain
+and CAPE of the boxes averaged by local hour, the reference of the diurnal
+cycle.
+
+Convection switches on and off along the integration, so the rain of a
+single day depends on small differences. The wrapper averages from the
+second day on: over 30 days the mean daily rain is stable to about
+0.1~mm~day$^{-1}$, enough to separate the effect of a parameter. It
+prints, per column, the mean daily rain and its day to day spread, the
+large scale part, the frequency of the cloud types, the largest mean PBL
+height over the day and the mean diurnal cycle of the rain against ERA5:
+\begin{verbatim}
+  scm_coupled.py                               30 days, defaults
+  scm_coupled.py --set lmfcapebl=.false.
+  scm_coupled.py --sweep zhnew_fac=0.0,0.25,0.5
+\end{verbatim}
+\code{make check} runs one day and compares it with
+\verb=reference/scm_coupled_amazon.out=. For the same reason as above
+the comparison holds only for the build the reference was made with;
+another compiler or other optimisation flags give different rain events.
+
+\section{Ocean surface flux test}
+
+\verb=scm_ocean.F90= calls one ocean surface flux scheme through its
+model entry point (\code{zengocndrv} or \code{coare3\_drv}, chosen with
+\code{iocnflux}, with \code{izengrough} for Zeng) on a list of samples,
+over open water (no sea
+ice, lake, diurnal SST scheme or wave model). Each sample has what the
+model passes from its lowest level and from the surface
+(\verb=mod_ocn_common.F90=): height of the level, wind, temperature and
+mixing ratio at the level, pressure at the level and at the surface, bulk
+SST, PBL height and the net shortwave and longwave radiation. As in
+\verb=mod_slice.F90=, the driver derives the air temperature brought dry
+adiabatically to the surface pressure (\code{sfta}) and the air density.
+The output has per sample the sensible and latent heat flux (the
+evaporation times the constant latent heat of vaporization, the same for
+every scheme), the stress, the friction velocity, the 10~m wind, the 2~m
+temperature and humidity and the drag.
+
+\verb=scm_ocean.py= runs Zeng (\code{izengrough} 1, 2 and 3) and COARE on
+the same samples, and the NOAA COARE~3.5 Python code (Edson et al.,
+2013) as the reference, the bulk
+algorithm fitted to direct covariance flux measurements (option
+\code{--coare}, the \verb=Python/COARE3.5= directory of
+\verb=https://github.com/NOAA-PSL/COARE-algorithm=; without it the
+reference is the default Zeng configuration). Two modes:
+\begin{itemize}
+  \item \code{curves}: the drag and moisture transfer coefficients at
+        10~m against the wind, with no air-sea temperature difference
+        and 80\% relative humidity, and the fluxes at 40~m against the
+        air-sea potential temperature difference at 3, 7 and 12~m/s;
+  \item \code{era5}: the ERA5 states of September 2023 over the South
+        America ocean (6-hourly 1000~hPa level, daily SST, hourly
+        surface pressure and radiation), box means of the fluxes of every
+        scheme against the reference and the ERA5 monthly fluxes.
+\end{itemize}
+
 \section{The Python wrappers}
 
 \verb=scm_tiedtke.py= (and in the same way \verb=scm_holtslag.py=, with
@@ -217,7 +351,9 @@ tendencies of the first call, or the changes over the run when
 \code{nsteps}~$>$~1.
 
 The comparison of two outputs requires the same cloud type, base and top
-(Tiedtke) or PBL top level (Holtslag) in every column, and the real values to agree within a relative tolerance
+(Tiedtke) or PBL top level (Holtslag, and both in every output step of
+the coupled driver) in every column, and the real values to agree within
+a relative tolerance
 (\code{--rtol} or \code{SCM\_RTOL}, default $10^{-4}$) plus an absolute one
 (\code{--atol} or \code{SCM\_ATOL}, default $10^{-5}$ times the largest
 magnitude of the field in the column), to allow for compiler and flag
@@ -242,7 +378,11 @@ updated with
   scm_tiedtke.py --save reference/scm_tiedtke.out
 \end{verbatim}
 and its \verb=# profiles:= header line set to \verb=scm_profiles.txt=, so
-that the reference does not hold a local path.
+that the reference does not hold a local path. The coupled reference is
+the output of the one day run of \verb=run_scm_tests.sh= (in
+\verb=scm_output/scm_coupled_amazon=), with the \verb=# profiles:= and
+\verb=# targets:= lines set to \verb=scm_amazon.txt= and
+\verb=scm_amazon_target.txt=.
 
 \section{Adding a scheme}
 

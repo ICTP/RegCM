@@ -20,7 +20,7 @@ module mod_ocn_lake
   use mod_constants
   use mod_dynparam
   use mod_service
-  use mod_runparams, only : rcmtimer, iocnrough
+  use mod_runparams, only : rcmtimer
   use mod_ocn_internal
 
   implicit none
@@ -207,7 +207,7 @@ module mod_ocn_lake
     real(rkx) :: cdrx, clead, dela, dela0, delq, dels, delt
     real(rkx) :: fact, factuv, qgrd, qgrnd, qice
     real(rkx) :: ribd, ribl, ribn
-    real(rkx) :: sold, vspda, u1, tc, visa, rho
+    real(rkx) :: sold, vspda, u1, rho
     real(rkx) :: wt1, wt2
     real(rkx), dimension(ndpmax) :: tp
 
@@ -231,7 +231,6 @@ module mod_ocn_lake
     do lp = 1, nlakep
       i = ilp(lp)
       tl = tatm(i)
-      tc = tl - tzero
       sold = sncv(i)
       vl = max(sqrt(usw(i)**2+vsw(i)**2),0.5_rkx)
       zl = ht(i)
@@ -243,9 +242,6 @@ module mod_ocn_lake
       xl = lat(i)
       tp = tlak(lp,:)
       rho = rhox(i)
-      visa = 1.326e-5_rkx*(d_one + 6.542e-3_rkx * tc +     &
-                                   8.301e-6_rkx * tc*tc -  &
-                                   4.840e-9_rkx * tc*tc*tc)
 
       call lake( dtlake,tl,vl,zl,qs,fswx,flwx,hsen,xl, &
                  tgl,prec,idep(lp),eta(lp),hi(lp),sfice(i), &
@@ -354,7 +350,8 @@ module mod_ocn_lake
       ustr(i) = max(ustr(i),1.0e-5_rkx)
       ram1(i) = vonkar*sqrt(vspda/cdrx)
       rah1(i) = ram1(i)
-      call ocnrough(zoo(i),ustr(i),um10(i),vl,visa)
+      ! roughness length (diagnostic): Charnock 0.0065
+      zoo(i) = max(0.0065_rkx*regrav*ustr(i)*ustr(i),1.0e-8_rkx)
       taux(i) = drag(i) * usw(i)
       tauy(i) = drag(i) * vsw(i)
       t2m(i) = tatm(i) - delt*fact
@@ -368,52 +365,6 @@ module mod_ocn_lake
     contains
 
 #include <saturation.inc>
-    !
-    ! our formulation for zo
-    !
-    subroutine ocnrough(zo,ustar,um10,wc,visa)
-      implicit none
-      real(rkx), intent (in) :: ustar, um10, wc, visa
-      real(rkx), intent (out) :: zo
-      real(rkx) :: cp, charnockog, alph
-      ! if surface roughness not provided by wave model
-      ! Wave age. The wind here is the mean last N days wind
-      cp = 1.2_rkx*um10
-      ! Smith et al. (1992), Carlsson et al. (2009)
-      ! Charnock parameter as power function of the wave age
-      ! We consider here dominant wind sea waves
-      ! Swell dominated sea would require a wave model...
-      charnockog = regrav*0.063_rkx*(cp/ustar)**(-0.4_rkx)
-      if ( iocnrough == 1 ) then
-        zo = 0.0065_rkx*regrav*ustar*ustar
-      else if ( iocnrough == 2 ) then
-        zo = 0.013_rkx*regrav*ustar*ustar + 0.11_rkx*visa/ustar
-      else if ( iocnrough == 3 ) then
-        zo = 0.017_rkx*regrav*ustar*ustar
-      else if ( iocnrough == 4 ) then
-        ! C.H. Huang, 2012
-        ! Modification of the Charnock Wind Stress Formula
-        ! to Include the Effects of Free Convection and Swell
-        ! Advanced Methods for Practical Applications in Fluid Mechanics
-        zo = charnockog*(ustar*ustar*ustar+0.11_rkx*wc*wc*wc)**twot
-      else if ( iocnrough == 5 ) then
-        if ( um10 < 10.0_rkx ) then
-          alph = 0.011_rkx
-        else if ( um10 > 10.0_rkx .and. um10 < 18.0_rkx ) then
-          alph = 0.011_rkx + 0.000875*(um10-10.0_rkx)
-        else if ( um10 > 18.0_rkx .and. um10 < 25.0_rkx ) then
-          alph = 0.018_rkx
-        else
-          alph = max(2.e-3_rkx,0.018_rkx / &
-               (d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
-                0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
-        end if
-        zo = alph*regrav*ustar*ustar + 0.11_rkx*visa/ustar
-      else
-        zo = charnockog*ustar*ustar
-      end if
-      zo = max(zo,1.0e-8_rkx)
-     end subroutine ocnrough
 
   end subroutine lakedrv
 

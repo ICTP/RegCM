@@ -27,70 +27,9 @@ module mod_ocn_bats
 
   private
 
-  public :: ocnbats, seaice
+  public :: seaice
 
   contains
-
-  subroutine ocnbats
-    implicit none
-    real(rkx) :: ribd, cdrn, qgrd
-    real(rkx) :: qs, delq, delt, fact, factuv
-    real(rkx) :: cdrmin, cdrx, ribn, vspda
-    integer(ik4) :: i
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'ocnbats'
-    integer(ik4), save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
-
-    do i = iocnbeg, iocnend
-      if ( mask(i) /= 1 ) cycle
-
-      ! Update surface temperature from the input SST
-      tgrd(i) = tgb(i)
-
-      ! Compute delt and delq
-      qs = qv(i)/(d_one+qv(i))
-      qgrd = pfqsats(tgrd(i),sfps(i))
-      delt = sfta(i) - tgrd(i)
-      ! Specific humidities
-      delq = qs - qgrd
-      ! Comnpute drag coefficient over ocean
-      ribd = usw(i)**2 + vsw(i)**2 + wtur**2
-      vspda = sqrt(ribd)
-      cdrn = (vonkar/log(ht(i)/zoce))**2
-      ribn = ht(i)*egrav*(d_one - tgrd(i)/tatm(i))
-      br(i) = ribn/ribd
-      if ( br(i) < d_zero ) then
-        cdrx = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*br(i)))
-      else
-        cdrx = cdrn/(d_one+11.5_rkx*br(i))
-      end if
-      cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
-      if ( cdrx < cdrmin ) cdrx = cdrmin
-      ram1(i) = vonkar * sqrt(vspda/cdrx)
-      rah1(i) = ram1(i)
-      drag(i) = cdrx*sqrt(ribd)*rhox(i)
-      ustr(i) = sqrt((vspda*drag(i))/rhox(i))
-      zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)
-
-      ! Update output variables
-      evpr(i) = max(-drag(i)*delq,d_zero)
-      sent(i) = -drag(i)*cpd*delt
-      if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
-      if ( evpr(i) < dlowval ) evpr(i) = d_zero
-      fact = log(ht(i)*d_half)/log(ht(i)/zoce)
-      factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
-      u10m(i) = usw(i)*(d_one-factuv)
-      v10m(i) = vsw(i)*(d_one-factuv)
-      t2m(i) = tatm(i) - delt*fact
-      q2m(i) = qs - delq*fact
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-
-  end subroutine ocnbats
 
   subroutine seaice
     implicit none

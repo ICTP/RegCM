@@ -34,8 +34,11 @@ module mod_ocn_coare
     ! This routine computes the bulk parameterization of surface
     ! atmospheric variables, wind stress and surface net heat fluxes
     !
-    ! Adapted from COARE version 3.0 code for snow and ice which is
-    ! written originally by C. Fairall (04/2005)
+    ! COARE 3.5 (Fairall et al., 2003, J. Climate 16, 571; Edson et al.,
+    ! 2013, J. Phys. Oceanogr. 43, 1589) over open water, following the
+    ! NOAA PSL coare35vn code: Charnock parameter linear in the 10 m
+    ! neutral wind, scalar roughness lengths of COARE 3.5, cool skin.
+    ! Over snow and ice the roughness lengths of Andreas (1987).
     !-----------------------------------------------------------------------
     !
     subroutine coare3_drv()
@@ -49,12 +52,12 @@ module mod_ocn_coare
       real(rkx) :: l, Bf, tkt, qout, qcol, alq, xlamx
       real(rkx) :: le, visa, Rns, Rnl
       real(rkx) :: hsb, hlb, tau, uv10, facttq
-      real(rkx) :: charnock, wt1, wt2
+      real(rkx) :: charnock, u10n, wt1, wt2
       integer(ik4) :: i, k, niter
       logical :: iflag
 
-      real(rkx), parameter :: beta = 1.25_rkx   ! gustiness coeff.
-      real(rkx), parameter :: fdg  = 1.0_rkx    ! ratio of thermal to wind VonKarman
+      real(rkx), parameter :: beta = 1.2_rkx    ! gustiness coeff.
+      real(rkx), parameter :: fdg  = 1.0_rkx    ! thermal / wind von Karman
       real(rkx), parameter :: visw = 1.0e-6_rkx ! water kinematic viscosity
       real(rkx), parameter :: tcw  = 0.6_rkx    ! water thermal diffusivity
       real(rkx), parameter :: rhow = 1022.0     ! water density
@@ -114,15 +117,6 @@ module mod_ocn_coare
           Al = 2.4253e-05_rkx
         end if
 
-        ! speed-dependent Charnock parameter
-        if (uv995 < 10_rkx) then
-          charnock = 0.011_rkx
-        else if (uv995 > 18_rkx) then
-          charnock = 0.018_rkx
-        else
-          charnock = 0.011_rkx + &
-            (0.018_rkx - 0.011_rkx)*(uv995 - 10_rkx)/(18_rkx - 10_rkx)
-        end if
         !
         !-----------------------------------------------------
         ! Compute net longwave and shortwave radiation (W/m2)
@@ -139,10 +133,11 @@ module mod_ocn_coare
         es = pfesatl(tgrd(i),sfps(i))*0.98_rkx
         ws = ep2*(es/(sfps(i)-es))
         qs = ws/(d_one+ws)
-        wetc = pfqsdtl(tgrd(i),sfps(i))
+        wetc = 0.98_rkx*pfqsdtl(tgrd(i),sfps(i))
 
-        ! Deltas
-        dt = ts - t995
+        ! Deltas: the air temperature brought dry adiabatically to the
+        ! surface pressure (sfta), as ts - t - 0.0098 z in COARE 3.5
+        dt = ts - (ta - tzero)
         dq = qs - q995
         du = uv995 - us
 
@@ -171,11 +166,15 @@ module mod_ocn_coare
         cdhg = vonkar/log(10.0_rkx/zogs)
         usr = cdhg*u10
 
+        ! COARE 3.5 Charnock parameter, linear in the 10 m neutral wind
+        ! up to 19 m/s
+        charnock = 0.0017_rkx*min(u10,19.0_rkx) - 0.005_rkx
+
         ! initial guess for the friction velocity
         if ( iflag ) then
           zo10 = zogs
         else
-          zo10 = charnock*usr*usr*regrav+0.11_rkx*visa/usr
+          zo10 = 0.011_rkx*usr*usr*regrav+0.11_rkx*visa/usr
         end if
 
         ! initial guess for drag coefficents
@@ -198,7 +197,7 @@ module mod_ocn_coare
         ribcu = -zu/zi/0.004_rkx/beta**3
         br(i) = -egrav*zu/ta*((dt-dter)+ep1*ta*dq)/ut**2
 
-        niter = 3
+        niter = 6
         if ( br(i) < 0.0_rkx ) then
           zetu = cc*br(i)/(1.0_rkx+br(i)/ribcu) ! unstable
         else
@@ -239,48 +238,24 @@ module mod_ocn_coare
               rt = rr*exp(0.149_rkx-0.550_rkx*log(rr))
               rq = rr*exp(0.351_rkx-0.628_rkx*log(rr))
             else if ( rr <= 1000_rkx ) then
-              rt = rr*exp(0.317_rkx-0.565_rkx*log(rr)-0.183_rkx*log(rr)*log(rr))
-              rq = rr*exp(0.396_rkx-0.512_rkx*log(rr)-0.180_rkx*log(rr)*log(rr))
+              rt = rr*exp(0.317_rkx-0.565_rkx*log(rr) - &
+                          0.183_rkx*log(rr)*log(rr))
+              rq = rr*exp(0.396_rkx-0.512_rkx*log(rr) - &
+                          0.180_rkx*log(rr)*log(rr))
             else
               rt = 1e-10_rkx
               rq = 1e-10_rkx
             end if
-            ! for ocean, Lui et al., 1979
+            zot = rt*visa/usr
+            zoq = rq*visa/usr
           else
-            if ( rr <= 0.11_rkx ) then
-              rt = 0.177_rkx
-              rq = 0.292_rkx
-            else if ( rr <= 0.8_rkx ) then
-              rt = 1.376_rkx*rr**0.929_rkx
-              rq = 1.808_rkx*rr**0.826_rkx
-            else if ( rr <= 3.0_rkx ) then
-              rt = 1.026_rkx*rr**(-0.599_rkx)
-              rq = 1.393_rkx*rr**(-0.528_rkx)
-            else if ( rr <= 10.0_rkx ) then
-              rt = 1.625_rkx*rr**(-1.018_rkx)
-              rq = 1.956_rkx*rr**(-0.870_rkx)
-            else if ( rr <= 30.0_rkx ) then
-              rt = 4.661_rkx*rr**(-1.475_rkx)
-              rq = 4.994_rkx*rr**(-1.297_rkx)
-            else if (rr <= 100.0_rkx) then
-              rt = 34.904_rkx*rr**(-2.067_rkx)
-              rq = 30.709_rkx*rr**(-1.845_rkx)
-            else if ( rr <= 300.0_rkx ) then
-              rt = 1667.19_rkx*rr**(-2.907_rkx)
-              rq = 1448.68_rkx*rr**(-2.682_rkx)
-            else if ( rr <= 1000.0_rkx ) then
-              rt = 5.88e5_rkx*rr**(-3.935_rkx)
-              rq = 2.98e5_rkx*rr**(-3.616_rkx)
-            else
-              rt = 1e-10_rkx
-              rq = 1e-10_rkx
-            end if
+            ! ocean, COARE 3.5
+            zoq = min(1.6e-4_rkx,5.8e-5_rkx*rr**(-0.72_rkx))
+            zot = zoq
           end if
 
           ! compute Monin-Obukhov stability parameter, Z/L
           L = zu/zet
-          zot = rt*visa/usr
-          zoq = rq*visa/usr
 
           ! update scaling params
           ram1(i) = (log(zu/zo)-psiuo(zu/L))
@@ -304,7 +279,7 @@ module mod_ocn_coare
 
           ! total cooling at the interface
           qout = Rnl+hsb+hlb
-          dels = Rns*(0.137_rkx+11.0_rkx*tkt-6.6e-5_rkx / &
+          dels = Rns*(0.065_rkx+11.0_rkx*tkt-6.6e-5_rkx / &
                    tkt*(1.0_rkx-exp(-tkt/8.0e-4_rkx)))
           qcol = qout-dels
 
@@ -317,7 +292,7 @@ module mod_ocn_coare
             else
               xlamx = 6.0_rkx/(1.0_rkx+(bigc*alq/usr**4)**0.75_rkx)**0.333_rkx
               ! sub. thk, Eq. 11
-              tkt = xlamx*visw/(sqrt(rhox(i)/rhow)*usr)
+              tkt = min(0.01_rkx,xlamx*visw/(sqrt(rhox(i)/rhow)*usr))
               ! cool skin, Eq. 12
               dter = qcol*tkt/tcw
             end if
@@ -330,15 +305,15 @@ module mod_ocn_coare
           end if
 
           dqer = wetc*dter
+
+          ! Charnock parameter from the 10 m neutral wind
+          u10n = usr/vonkar*(du/ut)*log(10.0_rkx/zo)
+          charnock = 0.0017_rkx*min(u10n,19.0_rkx) - 0.005_rkx
         end do
         !
-        if ( zetu < d_zero ) then
-          uv10 = uv995+(usr/vonkar)*(log(10.0_rkx/zu)- &
-                       (psiuo(zetu)-psiuo(zu/l10)))
-        else
-          uv10 = uv995+(usr/vonkar)*(log(10.0_rkx/zu)+ &
-                       d_five*zetu-d_five*zu/l10)
-        end if
+        ! 10 m wind with the stability of the last iteration
+        uv10 = max(uv995+(usr/vonkar)*(log(10.0_rkx/zu) - &
+                   psiuo(10.0_rkx/L)+psiuo(zu/L)),d_zero)
         !
         !-------------------------------------
         ! Compute atmosphere/ocean/ice fluxes
@@ -367,9 +342,10 @@ module mod_ocn_coare
         ! three day running mean 10 m wind (ocean albedo, emissivity)
         um10(i) = um10(i)*wt1 + uv10*wt2
 
-        ! surface atmospheric variables
-        t2m(i) = t995+tzero-dt*facttq
-        q2m(i) = q995-dq*facttq
+        ! surface atmospheric variables: between the level (the air
+        ! temperature brought to the surface pressure) and the surface
+        t2m(i) = ta+dt*facttq
+        q2m(i) = q995+dq*facttq
       end do
 
       contains

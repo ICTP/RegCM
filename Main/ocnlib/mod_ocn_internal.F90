@@ -19,7 +19,7 @@ module mod_ocn_internal
   use mod_realkinds
   use mod_memutil
   use mod_dynparam
-  use mod_runparams, only : idcsst, lakemod, iseaice, dtsrf, iocnflx
+  use mod_runparams, only : idcsst, lakemod, iseaice, dtsrf, iocnflux
   use mod_regcm_types
 
   implicit none
