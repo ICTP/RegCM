@@ -351,7 +351,7 @@ module mod_runparams
   logical, public :: lmfcapeforc = .false.
   real(rkx), public :: rtaucape = 43200.0_rkx
   ! Factor multiplying the convective time scale of the deep CAPE closure
-  real(rkx), public :: rtaufac = 1.0_rkx
+  real(rkx), public :: rtaufac = 4.0_rkx
 
   real(rkx), public :: entrdd  ! entrainment rate for cumulus downdrafts
 

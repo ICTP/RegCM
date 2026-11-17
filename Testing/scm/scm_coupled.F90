@@ -230,7 +230,7 @@ program scm_coupled
   lmfcapebl = .true.
   lmfcapeforc = .false.
   rtaucape = 43200.0_rkx
-  rtaufac = 1.0_rkx
+  rtaufac = 4.0_rkx
   k2_const = 500.0_rkx
   kfac_shal = 0.07_rkx
   kfac_deep = 0.14_rkx
@@ -267,7 +267,7 @@ program scm_coupled
   holtth10iter = 1
   lmoistn2 = .false.
   maxprandtl = 1.0_rkx
-  lsctop = .false.
+  lsctop = .true.
 
   nmlfile = 'scm_coupled.in'
   if ( command_argument_count( ) > 0 ) call get_command_argument(1,nmlfile)

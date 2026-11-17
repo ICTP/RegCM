@@ -1453,7 +1453,7 @@ diffusivity in stable layers is the heat diffusivity multiplied by the Prandtl
 number $\mathrm{Pr} = \min(1+\mathrm{Ri},\mathrm{Pr}_{max})$, so that momentum
 is mixed more than heat; \cite{Lenderink_04} use $\mathrm{Pr}_{max}=2$.
 
-With \verb=lsctop= (off by default) the turbulence driven by the longwave
+With \verb=lsctop= (on by default) the turbulence driven by the longwave
 cooling at the top of boundary layer clouds \citep{Lock_00} is added, with
 the formulation of the GFS scheme below.  In the lowest cloud layer below
 2500~m (condensate at least $3.5\times10^{-5}$~kg~kg$^{-1}$) the level of
@@ -2084,7 +2084,7 @@ M_b &=& \frac{CAPE}{f_\tau\,\tau_c\,\partial CAPE / \partial M_b}
 The convective timescale is the cloud depth divided by an updraft velocity
 scale, $\tau_c = r_\tau\,(z_t-z_b)/(2+\min(15,\bar{w}))$ with the resolution
 factor $r_\tau=\min(3,1+264/N)$, $N = 17747.5\,\mathrm{km}/\Delta x$, bounded
-between 720~s and 3~h. The factor $f_\tau$ (\verb=rtaufac=, 1 by default)
+between 720~s and 3~h. The factor $f_\tau$ (\verb=rtaufac=, 4 by default)
 lengthens the removal time of CAPE. A weakly entraining updraft
 (\verb=entrpen=) finds a larger CAPE, and a larger $f_\tau$ keeps the
 convective heating rate unchanged for the same state.

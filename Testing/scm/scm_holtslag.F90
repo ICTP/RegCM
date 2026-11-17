@@ -74,7 +74,7 @@ program scm_holtslag
   holtth10iter = 1
   lmoistn2 = .false.
   maxprandtl = 1.0_rkx
-  lsctop = .false.
+  lsctop = .true.
 
   nmlfile = 'scm_holtslag.in'
   if ( command_argument_count( ) > 0 ) call get_command_argument(1,nmlfile)

@@ -95,7 +95,7 @@ program scm_tiedtke
   lmfcapebl = .true.
   lmfcapeforc = .false.
   rtaucape = 43200.0_rkx
-  rtaufac = 1.0_rkx
+  rtaufac = 4.0_rkx
   k2_const = 500.0_rkx
   kfac_shal = 0.07_rkx
   kfac_deep = 0.14_rkx

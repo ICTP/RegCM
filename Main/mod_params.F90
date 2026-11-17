@@ -503,7 +503,7 @@ module mod_params
     lmfcapebl = .true.  ! Boundary layer CAPE in deep closure
     lmfcapeforc = .false. ! Deep closure from large scale CAPE production
     rtaucape = 43200.0_rkx ! CAPE relaxation time scale with lmfcapeforc (s)
-    rtaufac = 1.0_rkx      ! Factor on the deep CAPE closure time scale
+    rtaufac = 4.0_rkx      ! Factor on the deep CAPE closure time scale
     !
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
@@ -541,7 +541,7 @@ module mod_params
     holtth10iter = 1
     lmoistn2 = .false.
     maxprandtl = 1.0_rkx
-    lsctop = .false.
+    lsctop = .true.
     !
     ! slabocparam ;
     !

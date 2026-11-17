@@ -722,7 +722,7 @@
                       ! large scale vertical advection, plus a slow
                       ! relaxation of CAPE (replaces lmfcapebl)
  rtaucape = 43200.0,  ! CAPE relaxation time scale (s) with lmfcapeforc
- rtaufac = 1.0,       ! Factor on the convective time scale of the deep
+ rtaufac = 4.0,       ! Factor on the convective time scale of the deep
                       ! CAPE closure (without lmfcapeforc)
  /
 !
@@ -766,7 +766,7 @@
                    ! Km/Kh = 1 + Ri used for the free atmosphere
                    ! momentum diffusivity. 1.0 => Km = Kh,
                    ! 2.0 => Lenderink and Holtslag (2004)
- lsctop = .false., ! Add the mixing driven by the radiative cooling
+ lsctop = .true.,  ! Add the mixing driven by the radiative cooling
                    ! at the top of boundary layer clouds (Lock et al.,
                    ! 2000, as in the GFS PBL)
  /
