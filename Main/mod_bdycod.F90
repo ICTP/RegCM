@@ -470,7 +470,7 @@ module mod_bdycod
   subroutine setup_bdycon
     implicit none
     real(rkx), dimension(kz) :: anudge
-    real(rkx) :: xfun, cflmin, cflmax
+    real(rkx) :: xfun, cflmin, cflmax, ztopn
     real(rk8) :: np
     real(rk8), dimension(kz) :: zsum
     integer(ik4) :: i, j, k, n
@@ -540,9 +540,18 @@ module mod_bdycod
         call lowpass_init( )
       end if
       if ( mo_top_nudge ) then
+        !
+        ! The uncapped coordinate has no top height: the damping reaches
+        ! one at the mean height of the top model level
+        !
+        if ( mo_lcap ) then
+          ztopn = mo_h
+        else
+          ztopn = gmeanz(1)
+        end if
         do k = 1, kz
           if ( gmeanz(k) > zztop ) then
-            tnudge(k) = sin(d_half*mathpi*(gmeanz(k)-zztop)/(mo_h-zztop))**2
+            tnudge(k) = sin(d_half*mathpi*(gmeanz(k)-zztop)/(ztopn-zztop))**2
           else
             tnudge(k) = 0.0_rkx
           end if

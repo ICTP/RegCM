@@ -155,7 +155,7 @@ module mod_params
     namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
       detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
       rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
-      revap_lnd, revap_ocn, lmfpen, lmfmid, lmfdd, lepcld, lmfdudv,   &
+      lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
       lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
       lmfcapeforc, rtaucape, rtaufac
 
@@ -488,8 +488,6 @@ module mod_params
                             ! cloud at which evaporation starts for ocean
     rprc_lnd = 1.4e-3_rkx   ! coefficient for conversion from cloud water
     rprc_ocn = 1.4e-3_rkx   ! coefficient for conversion from cloud water
-    revap_lnd = 1.0e-5_rkx  ! coefficient for evaporation over land
-    revap_ocn = 1.0e-5_rkx  ! coefficient for evaporation over ocean
     lmfpen    = .true.  ! penetrative conv is switched on
     lmfmid    = .true.  ! midlevel conv is switched on
     lmfdd     = .true.  ! cumulus downdraft is switched on
@@ -1815,8 +1813,6 @@ module mod_params
       call bcast(rhebc_ocn)
       call bcast(rprc_lnd)
       call bcast(rprc_ocn)
-      call bcast(revap_lnd)
-      call bcast(revap_ocn)
       call bcast(lmfpen)
       call bcast(lmfmid)
       call bcast(lmfdd)
@@ -3121,10 +3117,6 @@ module mod_params
           '  Cloud water to rain land          : ', rprc_lnd
         write(stdout,'(a,es11.4)') &
           '  Cloud water to rain ocean         : ', rprc_ocn
-        write(stdout,'(a,es11.4)') &
-          '  Evaporation coefficient land      : ', revap_lnd
-        write(stdout,'(a,es11.4)') &
-          '  Evaporation coefficient ocean     : ', revap_ocn
         write(stdout,'(a,l11)') '  Penetrative convection            : ', lmfpen
         write(stdout,'(a,l11)') '  Midlevel convection               : ', lmfmid
         write(stdout,'(a,l11)') '  Shallow convection                : ', lmfscv

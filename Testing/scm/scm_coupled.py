@@ -58,7 +58,7 @@ GROUPS = {
         'entrdd', 'entrpen_lnd', 'entrpen_ocn', 'detrpen_lnd',
         'detrpen_ocn', 'entshalp', 'rcuc_lnd', 'rcuc_ocn', 'rcpec_lnd',
         'rcpec_ocn', 'rhebc_lnd', 'rhebc_ocn', 'rprc_ocn', 'rprc_lnd',
-        'revap_lnd', 'revap_ocn', 'lmfpen', 'lmfmid', 'lmfdd', 'lepcld',
+        'lmfpen', 'lmfmid', 'lmfdd', 'lepcld',
         'lmfdudv', 'lmfscv', 'lmfuvdis', 'lmftrac', 'lmfsmooth', 'lmfwstar',
         'lmfcapebl', 'lmfcapeforc', 'rtaucape',
         'rtaufac'],

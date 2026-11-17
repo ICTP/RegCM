@@ -56,7 +56,7 @@ program scm_tiedtke
   namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
     detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
-    revap_lnd, revap_ocn, lmfpen, lmfmid, lmfdd, lepcld, lmfdudv,   &
+    lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
     lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
     lmfcapeforc, rtaucape, rtaufac
   namelist /cldparam/ kfac_deep, kfac_shal, k2_const, iconvcf
@@ -80,8 +80,6 @@ program scm_tiedtke
   rhebc_ocn = 0.8_rkx
   rprc_lnd = 1.4e-3_rkx
   rprc_ocn = 1.4e-3_rkx
-  revap_lnd = 1.0e-5_rkx
-  revap_ocn = 1.0e-5_rkx
   lmfpen = .true.
   lmfmid = .true.
   lmfdd = .true.

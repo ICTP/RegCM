@@ -145,7 +145,7 @@ Options of &scmparam beyond the forcing above:
   tauwind, windfac   winds relax to windfac times the target winds in
                      tauwind (0, default: Coriolis around the initial
                      winds times windfac)
-  tauwtg, zwtg       weak temperature gradient: above zwtg (1000 m) and
+  tauwtg, zwtg       weak temperature gradient: above zwtg (2000 m) and
                      below 100 hPa the large scale omega is the one that
                      brings T back to the target in tauwtg, (Tr - T) /
                      (tauwtg S) with S the static stability of the

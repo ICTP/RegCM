@@ -30,7 +30,7 @@ module mod_cu_tiedtke
   use mod_runparams, only : rcrit
   use mod_runparams, only : entrdd, entshalp, entrpen_lnd, entrpen_ocn
   use mod_runparams, only : detrpen_lnd, detrpen_ocn
-  use mod_runparams, only : rprc_ocn, rprc_lnd, revap_lnd, revap_ocn
+  use mod_runparams, only : rprc_ocn, rprc_lnd
   use mod_runparams, only : rhebc_ocn, rhebc_lnd, rcuc_lnd, rcuc_ocn
   use mod_runparams, only : rcpec_ocn, rcpec_lnd
   use mod_runparams, only : lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &

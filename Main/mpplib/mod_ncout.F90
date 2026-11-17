@@ -3928,10 +3928,6 @@ module mod_ncout
             ncattribute_real8('tiedtke_cloud_water_conv_over_land',rprc_lnd))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_cloud_water_conv_over_ocean',rprc_ocn))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('tiedtke_evap_coeff_over_land',revap_lnd))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('tiedtke_evap_coeff_over_ocean',revap_ocn))
         end if
         if ( any(icup == 6) ) then
           call outstream_addatt(outstream(i)%ncout(j), &

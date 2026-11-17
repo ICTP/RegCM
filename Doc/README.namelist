@@ -703,8 +703,6 @@
  rhebc_ocn = 0.8,       ! Critical rh below cloud for evaporation
  rprc_lnd = 1.4e-3,     ! conversion coefficient from cloud water
  rprc_ocn = 1.4e-3,     ! conversion coefficient from cloud water
- revap_lnd = 1.0e-5,    ! Raindrop evap rate coef land
- revap_ocn = 1.0e-5,    ! Raindrop evap rate coef ocean
  lmfpen    = .true.,    ! penetrative conv is switched on
  lmfmid    = .true.,    ! midlevel conv is switched on
  lmfdd     = .true.,    ! cumulus downdraft is switched on

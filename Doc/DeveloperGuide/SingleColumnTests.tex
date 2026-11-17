@@ -239,7 +239,8 @@ schemes and of the large scale forcing:
 \end{itemize}
 With the weak temperature gradient approximation (\code{tauwtg} $> 0$)
 the large scale $\omega$ is diagnosed every step instead: above
-\code{zwtg} (default 1000~m) it is the one whose vertical advection
+\code{zwtg} (default 2000~m, above the boundary layer also over land)
+it is the one whose vertical advection
 brings the temperature back to the target $T_r$ in \code{tauwtg},
 \begin{equation}
   \omega = \frac{T_r - T}{\tau_{wtg}\,S}, \qquad

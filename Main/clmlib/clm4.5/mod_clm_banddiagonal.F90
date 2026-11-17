@@ -315,7 +315,7 @@ subroutine BandDiagonal_gpu(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
     !allocate (sizes(numf))
     !allocate (locind(numf))
 
-    !$acc parallel loop copyout(cnt)
+    !$acc parallel loop copy(cnt)
     do fc = 1, numf
       ci = filter(fc)
       n = jbot(ci)-jtop(ci)+1
