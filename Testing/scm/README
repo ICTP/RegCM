@@ -17,8 +17,8 @@ Files
                       one call, or nsteps time steps with fixed surface
                       fluxes and the initial wind as geostrophic wind
   scm_holtslag.py     Python wrapper, as scm_tiedtke.py
-  scm_coupled.F90     Holtslag + Tiedtke integrated together in time with
-                      prescribed large scale forcing
+  scm_coupled.F90     Holtslag + Tiedtke + NoTo integrated together in
+                      time with prescribed large scale forcing
   scm_coupled.py      its Python wrapper: run, summary, sweep, compare
   scm_amazon.txt      Amazon case of scm_coupled: initial profiles,
   scm_amazon_target.txt   relaxation targets (0, 6, 12, 18 UTC),
@@ -107,8 +107,9 @@ T, q, u, v after nsteps. The comparison is exact for the PBL top level.
 
 Coupled test
 ------------
-scm_coupled calls holtbl and tiedtkedrv every dtstep (300 s) on the same
-state, as the MOLOCH core does, and advances the state with their
+scm_coupled calls tiedtkedrv, the SUBEX cloud fraction and nogtom (NoTo),
+and holtbl every dtstep (300 s) on the same state, as the MOLOCH core
+does, and advances the state with their
 tendencies plus the large scale forcing: the input tendencies of the
 profile file (here a radiative cooling of 1.5 K/day), the vertical
 advection by its omega (ERA5 monthly mean), and a relaxation of T and q
@@ -118,9 +119,15 @@ surface fluxes follow a half sine in local time with the ERA5 daily
 means (small night values). Ocean columns (an SST in the profile file)
 get the fluxes, drag and friction velocity from the ocean scheme of the
 model (iocnflux 1 Zeng with izengrough, 2 COARE 3.5; 0 the prescribed
-ERA5 means) on the lowest level and the SST, every step. No
-microphysics: detrained condensate evaporates, supersaturation rains
-out (large scale rain).
+ERA5 means) on the lowest level and the SST, every step. NoTo gets the
+cumulus tendencies and detrained condensate, the large scale omega and
+the input T tendency as radiative heating, carries cloud water, ice,
+rain and snow (not advected) and gives the large scale rain; its
+parameters are in &microparam and &cldparam (rh0oce, rh0land, ...).
+With lnoto = .false. there is no microphysics: detrained condensate
+evaporates, supersaturation rains out (large scale rain). The output
+levels also have the NoTo tendencies, cloud water + ice and the cloud
+fraction.
 
 Options of &scmparam beyond the forcing above:
   tauwind, windfac   winds relax to windfac times the target winds in

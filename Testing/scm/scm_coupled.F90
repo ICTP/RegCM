@@ -13,16 +13,18 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-! Single column test of the Holtslag boundary layer (ibltyp = 1) and the
-! Tiedtke cumulus (icup = 5) schemes integrated together in time.
+! Single column test of the Holtslag boundary layer (ibltyp = 1), the
+! Tiedtke cumulus (icup = 5) and the NoTo microphysics (ipptls = 2)
+! schemes integrated together in time.
 !
 ! Usage: scm_coupled [namelist file]       (default: scm_coupled.in)
 !
 ! The columns of the profile file are laid out as a 1 x ncol grid. Every
-! time step both schemes are called through their model entry points,
-! holtbl and tiedtkedrv, on the same state, as the MOLOCH core does
-! (idynamic = 3, no chemistry), and the state is advanced with the sum of
-! their tendencies and of the large scale forcing:
+! time step the schemes are called through their model entry points,
+! tiedtkedrv, subex_cldfrac (icldfrac = 0) and nogtom, holtbl, on the
+! same state, as the MOLOCH core does (idynamic = 3, no chemistry), and
+! the state is advanced with the sum of their tendencies and of the
+! large scale forcing:
 !   - the input tendencies of the profile file (tten, qten: radiative
 !     heating and horizontal advection), held fixed;
 !   - the vertical advection by the omega of the profile file, computed
@@ -56,15 +58,20 @@
 ! the drag and the friction velocity come from the ocean scheme of the
 ! model on the SST of the profile file, every step, with a net
 ! shortwave radiation at the surface of daily mean ocnsw in a half sine
-! and a net longwave ocnlw (used by the COARE cool skin). There
-! is no microphysics: the condensate detrained by the cumulus scheme
-! evaporates in the layer where it is detrained, and supersaturation is
-! removed by a saturation adjustment that rains out (large scale rain).
-! The pressure of the levels is held fixed.
+! and a net longwave ocnlw (used by the COARE cool skin).
+! Microphysics (lnoto = .true., default): NoTo gets the cumulus
+! tendencies, the condensate detrained by the cumulus scheme (qdetr),
+! the large scale omega and the input temperature tendency as radiative
+! heating; it carries cloud water, ice, rain and snow (not advected by
+! the large scale flow) and gives the large scale rain. With lnoto =
+! .false. the detrained condensate evaporates in the layer where it is
+! detrained and supersaturation is removed by a saturation adjustment
+! that rains out. The pressure of the levels is held fixed.
 !
 ! The namelist has a &scmparam group and the model groups &tiedtkeparam,
-! &cldparam (kfac_deep, kfac_shal, k2_const, iconvcf) and &holtslagparam,
-! with the RegCM defaults. The output file is plain text, read by
+! &cldparam (kfac_deep, kfac_shal, k2_const, iconvcf, rh0oce, rh0land,
+! tc0, rhmin, rhmax, larcticcorr), &holtslagparam and &microparam, with
+! the RegCM defaults. The output file is plain text, read by
 ! scm_coupled.py: a header with the settings used, then every nout
 ! steps per column a STEP line with the scalars and one line per level,
 ! top to bottom.
@@ -89,6 +96,8 @@ program scm_coupled
     rah1, br, sfice
   use mod_ocn_zeng, only : zengocndrv
   use mod_ocn_coare, only : coare3_drv
+  use mod_micro_nogtom, only : allocate_mod_nogtom, init_nogtom, nogtom
+  use mod_cloud_subex, only : subex_cldfrac
   implicit none
 
   character(len=256) :: nmlfile, infile, outfile, tgtfile
@@ -107,6 +116,13 @@ program scm_coupled
     ften, fqen, za, zf, pa, pf, t, q, u, v, mfu, ctt, cqt, ptt, pqt, &
     wrelax, omls, ttg, qtg
   real(rkx), allocatable, dimension(:,:,:) :: ttgt, qtgt, utgt, vtgt
+  real(rkx), allocatable, dimension(:,:) :: mtt, mqt, cfr
+  real(rkx), allocatable, dimension(:,:,:) :: qcnd
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qvp, rhcp
+  real(rkx), pointer, contiguous, dimension(:,:) :: rh0p
+  logical :: lnoto
+  type(mod_2_micro) :: mo2mc
+  type(micro_2_mod) :: mc2mo
   type(mod_2_cum) :: m2c
   type(mod_2_pbl) :: m2p
   type(pbl_2_mod) :: p2m
@@ -118,14 +134,18 @@ program scm_coupled
 
   namelist /scmparam/ infile, outfile, dtstep, ndays, nout, dxkm, &
     taurelax, zrelax, tgtfile, tauwtg, zwtg, tauwind, windfac,    &
-    iocnflux, izengrough, ocnsw, ocnlw
+    iocnflux, izengrough, ocnsw, ocnlw, lnoto
   namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
     detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
     revap_lnd, revap_ocn, lmfpen, lmfmid, lmfdd, lepcld, lmfdudv,   &
     lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
     lmfcapeforc, rtaucape
-  namelist /cldparam/ kfac_deep, kfac_shal, k2_const, iconvcf
+  namelist /cldparam/ kfac_deep, kfac_shal, k2_const, iconvcf, &
+    rh0oce, rh0land, tc0, rhmin, rhmax, larcticcorr
+  namelist /microparam/ nssopt, iautoconv, vfqs, auto_rate_khair, &
+    auto_rate_kessl, auto_rate_klepi, rkconv, skconv, rcovpmin,   &
+    rpecons, rcldiff
   namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
     ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl
 
@@ -180,6 +200,25 @@ program scm_coupled
   kfac_shal = 0.07_rkx
   kfac_deep = 0.14_rkx
   iconvcf = 0
+  lnoto = .true.
+  rhmax = 1.00_rkx
+  rhmin = 0.01_rkx
+  rh0land = 0.85_rkx
+  rh0oce = 0.85_rkx
+  tc0 = 238.0_rkx
+  larcticcorr = .true.
+  nssopt = 1
+  iautoconv = 4
+  vfqs = 1.0_rkx
+  auto_rate_khair = 0.355_rkx
+  auto_rate_kessl = 1.e-3_rkx
+  auto_rate_klepi = 0.5e-3_rkx
+  rkconv = 1.666e-4_rkx
+  skconv = 1.0e-3_rkx
+  rcldiff = 1.0e-6_rkx
+  rcovpmin = 0.1_rkx
+  rpecons = 5.547e-5_rkx
+  budget_compute = .false.
   ricr_ocn = 0.275_rkx
   ricr_lnd = 0.250_rkx
   zhnew_fac = 0.25_rkx
@@ -204,6 +243,9 @@ program scm_coupled
     rewind(iu)
     read(iu,nml=holtslagparam,iostat=ios)
     if ( ios > 0 ) call scm_error('reading holtslagparam in '//trim(nmlfile))
+    rewind(iu)
+    read(iu,nml=microparam,iostat=ios)
+    if ( ios > 0 ) call scm_error('reading microparam in '//trim(nmlfile))
     close(iu)
   else if ( command_argument_count( ) > 0 ) then
     call scm_error('cannot open '//trim(nmlfile))
@@ -320,6 +362,12 @@ program scm_coupled
   end do
   if ( len_trim(tgtfile) > 0 ) call read_targets
   if ( any(col_ocn) ) call init_ocean
+  allocate(mtt(ncol,nk), mqt(ncol,nk), cfr(ncol,nk), qcnd(ncol,nk,iqc:iqs))
+  cfr = d_zero
+  mtt = d_zero
+  mqt = d_zero
+  qcnd = d_zero
+  if ( lnoto ) call init_micro
   do k = 1, nk
     pmean(k) = sum(pa(:,k))/real(ncol,rkx)
   end do
@@ -350,11 +398,14 @@ program scm_coupled
   write(io,nml=tiedtkeparam)
   write(io,nml=cldparam)
   write(io,nml=holtslagparam)
+  write(io,'(a,l2)') '# lnoto ', lnoto
+  if ( lnoto ) write(io,nml=microparam)
   write(io,'(a)') '# STEP name time(h) local_hour shf lhf(W/m2) '// &
     'zpbl(m) kpbl hqfac ktype kctop kcbot rainc rainl(mm/day) '// &
     'rainc_acc rainl_acc(mm) wspd(m/s, lowest level)'
   write(io,'(a)') '# z(m) p(hPa) T(K) q(g/kg) mfu(kg/m2/s) '// &
-    'dTcu dTpbl(K/day) dqcu dqpbl(g/kg/day) omega(Pa/s)'
+    'dTcu dTpbl(K/day) dqcu dqpbl(g/kg/day) omega(Pa/s) '// &
+    'dTmic(K/day) dqmic(g/kg/day) qc+qi(g/kg) cldfrac'
   write(io,'(a,3i6)') 'NCOL ', ncol, nk, nsteps/nout
 
   do istep = 1, nsteps
@@ -421,6 +472,10 @@ program scm_coupled
     total_precip_points = 0
     call tiedtkedrv(m2c)
 
+    ! Cloud fraction and microphysics, on the same state, with the
+    ! cumulus tendencies as input (detrained condensate in qdetr)
+    if ( lnoto ) call micro_step
+
     ! Boundary layer, on the same state
     p2m%tten(:,:,:) = d_zero
     p2m%uten(:,:,:) = d_zero
@@ -435,11 +490,16 @@ program scm_coupled
       n = min(int(utc/6.0_rkx),3)
       wt = (utc - 6.0_rkx*real(n,rkx))/6.0_rkx
       do k = 1, nk
-        ! detrained condensate evaporates in the layer
-        ctt(j,k) = cu_tten(j,1,k) - &
-          (wlhv*cu_qten(j,1,k,iqc) + wlhs*cu_qten(j,1,k,iqi))*rcpd
-        cqt(j,k) = cu_qten(j,1,k,iqv) + cu_qten(j,1,k,iqc) + &
-          cu_qten(j,1,k,iqi)
+        if ( lnoto ) then
+          ctt(j,k) = cu_tten(j,1,k)
+          cqt(j,k) = cu_qten(j,1,k,iqv)
+        else
+          ! detrained condensate evaporates in the layer
+          ctt(j,k) = cu_tten(j,1,k) - &
+            (wlhv*cu_qten(j,1,k,iqc) + wlhs*cu_qten(j,1,k,iqi))*rcpd
+          cqt(j,k) = cu_qten(j,1,k,iqv) + cu_qten(j,1,k,iqc) + &
+            cu_qten(j,1,k,iqi)
+        end if
         ptt(j,k) = p2m%tten(j,1,k)
         pqt(j,k) = p2m%qxten(j,1,k,iqv)
         mfu(j,k) = pmfu(j,k)
@@ -472,10 +532,12 @@ program scm_coupled
           end if
           dwdp = max(dwdp,d_zero)
         end if
-        t(j,k) = t(j,k) + dt*(ctt(j,k) + ptt(j,k) + ften(j,k) - &
+        t(j,k) = t(j,k) + dt*(ctt(j,k) + mtt(j,k) + ptt(j,k) + &
+          ften(j,k) - &
           omls(j,k)*(dtdp - rovcp*t(j,k)/pa(j,k)) - &
           wr*(t(j,k)-tg))
-        q(j,k) = max(q(j,k) + dt*(cqt(j,k) + pqt(j,k) + fqen(j,k) - &
+        q(j,k) = max(q(j,k) + dt*(cqt(j,k) + mqt(j,k) + pqt(j,k) + &
+          fqen(j,k) - &
           omls(j,k)*dqdp - wrelax(j,k)*(q(j,k)-qg) + &
           dwdp*(qg-q(j,k))),1.0e-8_rkx)
         if ( tauwind > d_zero ) then
@@ -492,19 +554,31 @@ program scm_coupled
             m2p%coriol(j,1)*(u(j,k)-u0(j,k)))
         end if
       end do
-      ! saturation adjustment, the condensate rains out
-      rainl(j) = d_zero
-      do k = 1, nk
-        qs = pfwsat(t(j,k),pa(j,k))
-        if ( q(j,k) > qs ) then
-          dqs = pfqsdt(t(j,k),pa(j,k))
-          cond = (q(j,k)-qs)/(d_one + wlhv*rcpd*dqs)
-          q(j,k) = q(j,k) - cond
-          t(j,k) = t(j,k) + wlhv*rcpd*cond
-          rainl(j) = rainl(j) + cond*(pf(j,k+1)-pf(j,k))*regrav
-        end if
-      end do
-      rainl(j) = rainl(j)/dt
+      if ( lnoto ) then
+        ! condensate of the microphysics, no large scale advection
+        do n = iqc, iqs
+          do k = 1, nk
+            ! as status_update of the MOLOCH core
+            qcnd(j,k,n) = qcnd(j,k,n) + dt*mc2mo%qxten(j,1,k,n)
+            if ( qcnd(j,k,n) < qxcheckval(n) ) qcnd(j,k,n) = qxzeroval(n)
+          end do
+        end do
+        rainl(j) = mc2mo%trrate(j,1)
+      else
+        ! saturation adjustment, the condensate rains out
+        rainl(j) = d_zero
+        do k = 1, nk
+          qs = pfwsat(t(j,k),pa(j,k))
+          if ( q(j,k) > qs ) then
+            dqs = pfqsdt(t(j,k),pa(j,k))
+            cond = (q(j,k)-qs)/(d_one + wlhv*rcpd*dqs)
+            q(j,k) = q(j,k) - cond
+            t(j,k) = t(j,k) + wlhv*rcpd*cond
+            rainl(j) = rainl(j) + cond*(pf(j,k+1)-pf(j,k))*regrav
+          end if
+        end do
+        rainl(j) = rainl(j)/dt
+      end if
       rainc(j) = cu_prate(j,1)
       rainc_acc(j) = rainc_acc(j) + rainc(j)*dt
       rainl_acc(j) = rainl_acc(j) + rainl(j)*dt
@@ -529,10 +603,12 @@ program scm_coupled
           ktype(j), cu_ktop(j,1), cu_kbot(j,1), rainc(j)*86400.0_rkx, &
           rainl(j)*86400.0_rkx, rainc_acc(j), rainl_acc(j), wspd
         do k = 1, nk
-          write(io,'(f10.2,f10.3,f9.3,8es13.5)') za(j,k), &
+          write(io,'(f10.2,f10.3,f9.3,12es13.5)') za(j,k), &
             pa(j,k)*0.01_rkx, t(j,k), q(j,k)/(d_one+q(j,k))*1.0e3_rkx, &
             mfu(j,k), ctt(j,k)*86400.0_rkx, ptt(j,k)*86400.0_rkx, &
-            cqt(j,k)*8.64e7_rkx, pqt(j,k)*8.64e7_rkx, omls(j,k)
+            cqt(j,k)*8.64e7_rkx, pqt(j,k)*8.64e7_rkx, omls(j,k), &
+            mtt(j,k)*86400.0_rkx, mqt(j,k)*8.64e7_rkx, &
+            (qcnd(j,k,iqc)+qcnd(j,k,iqi))*1.0e3_rkx, cfr(j,k)
         end do
       end do
     end if
@@ -707,6 +783,101 @@ program scm_coupled
     icpl(:) = 0
     sfice(:) = d_zero
   end subroutine init_ocean
+
+  ! NoTo (ipptls = 2) with the SUBEX cloud fraction (icldfrac = 0), as
+  ! the MOLOCH core calls them after the cumulus scheme
+  subroutine init_micro
+    implicit none
+    dtsec = dt
+    allocate(rcmtimer)
+    rcmtimer%lcount = 0
+    call allocate_mod_nogtom
+    call getmem(mo2mc%xlat,1,ncol,1,1,'scm:mxlat')
+    call getmem(mo2mc%psb,1,ncol,1,1,'scm:mpsb')
+    call getmem(mo2mc%ldmsk,1,ncol,1,1,'scm:mldmsk')
+    call getmem(mo2mc%phs,1,ncol,1,1,1,nk,'scm:mphs')
+    call getmem(mo2mc%pfs,1,ncol,1,1,1,nk+1,'scm:mpfs')
+    call getmem(mo2mc%delz,1,ncol,1,1,1,nk,'scm:mdelz')
+    call getmem(mo2mc%t,1,ncol,1,1,1,nk,'scm:mt')
+    call getmem(mo2mc%rho,1,ncol,1,1,1,nk,'scm:mrho')
+    call getmem(mo2mc%pverv,1,ncol,1,1,1,nk,'scm:mpverv')
+    call getmem(mo2mc%heatrt,1,ncol,1,1,1,nk,'scm:mheatrt')
+    call getmem(mo2mc%qdetr,1,ncol,1,1,1,nk,'scm:mqdetr')
+    call getmem(mo2mc%qs,1,ncol,1,1,1,nk,'scm:mqs')
+    call getmem(mo2mc%rh,1,ncol,1,1,1,nk,'scm:mrh')
+    call getmem(mo2mc%cldf,1,ncol,1,1,1,nk,'scm:mcldf')
+    call getmem(mo2mc%qxx,1,ncol,1,1,1,nk,1,nqx,'scm:mqxx')
+    call getmem(qvp,1,ncol,1,1,1,nk,'scm:qvp')
+    call getmem(rhcp,1,ncol,1,1,1,nk,'scm:rhcp')
+    call getmem(rh0p,1,ncol,1,1,'scm:rh0p')
+    call getmem(mc2mo%tten,1,ncol,1,1,1,nk,'scm:ctten')
+    call getmem(mc2mo%qxten,1,ncol,1,1,1,nk,1,nqx,'scm:cqxten')
+    call getmem(mc2mo%rainnc,1,ncol,1,1,'scm:crainnc')
+    call getmem(mc2mo%lsmrnc,1,ncol,1,1,'scm:clsmrnc')
+    call getmem(mc2mo%snownc,1,ncol,1,1,'scm:csnownc')
+    call getmem(mc2mo%trrate,1,ncol,1,1,'scm:ctrrate')
+    call getmem(mc2mo%rainls,1,ncol,1,1,1,nk,'scm:crainls')
+    call getmem(mc2mo%remrat,1,ncol,1,1,1,nk,'scm:cremrat')
+    call getmem(mc2mo%rembc,1,ncol,1,1,1,nk,'scm:crembc')
+    do j = 1, ncol
+      mo2mc%xlat(j,1) = col_lat(j)
+      mo2mc%psb(j,1) = col_ps(j)
+      mo2mc%ldmsk(j,1) = col_land(j)
+      rh0p(j,1) = merge(rh0land,rh0oce,col_land(j) == 1)
+      do k = 1, nk
+        mo2mc%phs(j,1,k) = pa(j,k)
+        mo2mc%delz(j,1,k) = zf(j,k) - zf(j,k+1)
+      end do
+      do k = 1, nk + 1
+        mo2mc%pfs(j,1,k) = pf(j,k)
+      end do
+    end do
+    call init_nogtom(mo2mc%ldmsk)
+  end subroutine init_micro
+
+  subroutine micro_step
+    implicit none
+    rcmtimer%lcount = int(istep,ik8)
+    do j = 1, ncol
+      do k = 1, nk
+        mo2mc%t(j,1,k) = t(j,k)
+        mo2mc%rho(j,1,k) = pa(j,k)/(rgas*t(j,k))
+        mo2mc%pverv(j,1,k) = omls(j,k)
+        mo2mc%heatrt(j,1,k) = ften(j,k)
+        mo2mc%qdetr(j,1,k) = cu_qdetr(j,1,k)*dt
+        mo2mc%qxx(j,1,k,iqv) = q(j,k)
+        do n = iqc, iqs
+          mo2mc%qxx(j,1,k,n) = qcnd(j,k,n)
+        end do
+        mo2mc%qs(j,1,k) = pfwsat(t(j,k),pa(j,k))
+        mo2mc%rh(j,1,k) = min(max(q(j,k)/mo2mc%qs(j,1,k),d_zero),d_one)
+        qvp(j,1,k) = q(j,k)
+        ! the detrained condensate goes to the microphysics
+        cu_qten(j,1,k,iqc) = d_zero
+        cu_qten(j,1,k,iqi) = d_zero
+        mc2mo%tten(j,1,k) = cu_tten(j,1,k)
+        do n = 1, nqx
+          mc2mo%qxten(j,1,k,n) = cu_qten(j,1,k,n)
+        end do
+      end do
+      mc2mo%rainnc(j,1) = d_zero
+      mc2mo%lsmrnc(j,1) = d_zero
+      mc2mo%snownc(j,1) = d_zero
+      mc2mo%trrate(j,1) = d_zero
+    end do
+    call subex_cldfrac(mo2mc%t,mo2mc%phs,qvp,mo2mc%rh,tc0,rh0p,rhcp, &
+      mo2mc%cldf)
+    call nogtom(mo2mc,mc2mo)
+    do j = 1, ncol
+      do k = 1, nk
+        cfr(j,k) = mo2mc%cldf(j,1,k)
+        mtt(j,k) = mc2mo%tten(j,1,k) - cu_tten(j,1,k)
+        mqt(j,k) = mc2mo%qxten(j,1,k,iqv) - cu_qten(j,1,k,iqv)
+        ! the cumulus condensate tendencies are zero: what is left is
+        ! the microphysics one
+      end do
+    end do
+  end subroutine micro_step
 
   ! A 1 x n grid: every index range of the model domain is 1:n x 1:1
   subroutine set_grid(n)

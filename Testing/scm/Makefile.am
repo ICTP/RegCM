@@ -22,8 +22,11 @@ MPPLIBPTH = $(REGCM_ROOT)/Main/mpplib
 CUMLIBPTH = $(REGCM_ROOT)/Main/cumlib
 PBLLIBPTH = $(REGCM_ROOT)/Main/pbllib
 OCNLIBPTH = $(REGCM_ROOT)/Main/ocnlib
+MICLIBPTH = $(REGCM_ROOT)/Main/microlib
+CLDLIBPTH = $(REGCM_ROOT)/Main/cloudlib
 
-CPPFLAGS += -I$(MPPLIBPTH) -I$(CUMLIBPTH) -I$(PBLLIBPTH) -I$(OCNLIBPTH)
+CPPFLAGS += -I$(MPPLIBPTH) -I$(CUMLIBPTH) -I$(PBLLIBPTH) -I$(OCNLIBPTH) \
+            -I$(MICLIBPTH) -I$(CLDLIBPTH)
 
 check_PROGRAMS = scm_tiedtke scm_holtslag scm_coupled scm_ocean
 scm_tiedtke_SOURCES = scm_tiedtke.F90
@@ -32,7 +35,8 @@ scm_holtslag_SOURCES = scm_holtslag.F90
 scm_holtslag_LDADD = $(PBLLIBPTH)/libpbl.a $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)
 scm_coupled_SOURCES = scm_coupled.F90
 scm_coupled_LDADD = $(CUMLIBPTH)/libcum.a $(PBLLIBPTH)/libpbl.a \
-                    $(OCNLIBPTH)/libocn.a \
+                    $(OCNLIBPTH)/libocn.a $(MICLIBPTH)/libmicro.a \
+                    $(CLDLIBPTH)/libcloud.a \
                     $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)
 scm_ocean_SOURCES = scm_ocean.F90
 scm_ocean_LDADD = $(OCNLIBPTH)/libocn.a $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)

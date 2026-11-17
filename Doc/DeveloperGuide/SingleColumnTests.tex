@@ -23,7 +23,8 @@ integration with prescribed large scale forcing.
         \verb=scm_gate_check.txt=, \verb=scm_gate_check_obs.txt=: the
         GATE subset of the regression test;
   \item \verb=scm_coupled.F90=, \verb=scm_coupled.py=: the driver of the
-        two schemes integrated together, and its wrapper;
+        Tiedtke, Holtslag and NoTo schemes integrated together, and its
+        wrapper;
         \verb=scm_amazon.txt=, \verb=scm_amazon_target.txt=,
         \verb=scm_amazon_era5.txt=: the Amazon case (initial profiles,
         relaxation targets, ERA5 rain and wind by local hour);
@@ -204,11 +205,12 @@ runs the soundings 1, 21, \ldots, 141 with the \code{advrad} forcing.
 
 \section{The coupled driver}
 
-\verb=scm_coupled.F90= integrates the Holtslag and Tiedtke schemes
+\verb=scm_coupled.F90= integrates the Tiedtke, NoTo and Holtslag schemes
 together in time, with the grid layout, configuration and allocations of
-the two single scheme drivers. Every time step \code{dtstep} (default
-300~s) both schemes are called through \code{holtbl} and
-\code{tiedtkedrv} on the same state, as the MOLOCH core calls them: the
+the single scheme drivers. Every time step \code{dtstep} (default
+300~s) the schemes are called through \code{tiedtkedrv},
+\code{subex\_cldfrac} and \code{nogtom}, and \code{holtbl}, on the same
+state and in this order, as the MOLOCH core calls them: the
 cumulus scheme gets zero input tendencies, the PBL height of the previous
 call of the boundary layer scheme and the friction velocity of the
 surface (neutral log law over land, ocean scheme over the ocean). The state is advanced with the sum of the tendencies of the two
@@ -270,8 +272,24 @@ daily mean \code{ocnsw} (200~W~m$^{-2}$) in a half sine and a net
 longwave \code{ocnlw} (50~W~m$^{-2}$), used by the COARE cool skin;
 with \code{iocnflux} = 0 the ocean fluxes are the constant daily means
 of the profile file.
-There is no microphysics: the condensate detrained by the cumulus scheme
-evaporates in the layer where it is detrained (heating
+The microphysics (\code{lnoto}, default true) is NoTo with the SUBEX
+cloud fraction (\code{icldfrac} = 0), as in the model with
+\code{ipptls} = 2. As in \verb=mod_cu_interface=, the condensate
+detrained by the cumulus scheme is passed as \code{qdetr}
+(\code{cu\_qdetr} times the time step) and the cumulus tendencies of
+cloud water and ice are set to zero; NoTo gets the cumulus tendencies as
+input tendencies, the large scale $\omega$ as \code{pverv} and the input
+temperature tendency of the profile file as radiative heating. Cloud
+water, ice, rain and snow are carried by the driver (not advected by the
+large scale flow) and clipped as in the \code{status\_update} of the
+MOLOCH core; the rain and snow reaching the ground are the large scale
+rain. The random critical relative humidity of the cloud fraction uses
+the step count, set in a minimal \code{rcmtimer}. The parameters are
+read from \code{microparam} and from \code{cldparam} (\code{rh0oce},
+\code{rh0land}, \code{tc0}, \code{rhmin}, \code{rhmax},
+\code{larcticcorr}). With \code{lnoto} false there is no microphysics:
+the condensate detrained by the cumulus scheme evaporates in the layer
+where it is detrained (heating
 $\partial T/\partial t - (L_v\,\partial q_c/\partial t +
 L_s\,\partial q_i/\partial t)/c_p$), and supersaturation is removed by a
 saturation adjustment with the functions of \verb=saturation.inc=, the
@@ -282,16 +300,18 @@ The namelist has a \code{scmparam} group (\code{infile},
 \code{outfile}, \code{tgtfile}, \code{dtstep}, \code{ndays},
 \code{nout}, \code{dxkm}, \code{taurelax}, \code{zrelax},
 \code{tauwtg}, \code{zwtg}, \code{tauwind}, \code{windfac},
-\code{iocnflux}, \code{izengrough}, \code{ocnsw}, \code{ocnlw}) and
-the model groups of the two drivers. Every \code{nout} steps (default one hour)
+\code{iocnflux}, \code{izengrough}, \code{ocnsw}, \code{ocnlw},
+\code{lnoto}) and the model groups \code{tiedtkeparam},
+\code{cldparam}, \code{holtslagparam} and \code{microparam}. Every \code{nout} steps (default one hour)
 the output has per column a \verb=STEP= line (time, local hour, surface
 fluxes, PBL height and top level, the moisture factor of the eddy
 diffusivity \code{hqfac} computed as in \code{holtbl}, cloud type, top
 and base level, convective and large scale rain rate and their
 accumulations, wind speed of the lowest level) and one line per level:
 height, pressure, temperature, specific humidity, updraft mass flux, the
-temperature and humidity tendencies of the two schemes and the large
-scale $\omega$.
+temperature and humidity tendencies of the cumulus and boundary layer
+schemes, the large scale $\omega$, the temperature and humidity
+tendencies of NoTo, cloud water plus ice and the cloud fraction.
 
 \section{Amazon and ITCZ cases}
 
@@ -417,7 +437,8 @@ and returns a non zero exit status if any is found.
 \code{make check} in \verb=Testing/scm= (or in \verb=Testing=, or at the
 top level) builds the drivers, linking the model libraries
 \verb=Main/cumlib/libcum.a=, \verb=Main/pbllib/libpbl.a=,
-\verb=Main/ocnlib/libocn.a= and \verb=Main/mpplib/libmpp.a= with the
+\verb=Main/ocnlib/libocn.a=, \verb=Main/microlib/libmicro.a=,
+\verb=Main/cloudlib/libcloud.a= and \verb=Main/mpplib/libmpp.a= with the
 \verb=Share= library, and runs \verb=run_scm_tests.sh=. For each scheme the
 script writes a namelist with the default settings, runs the program in
 \verb=scm_output/<scheme>= (or \code{SCM\_OUTDIR}) and, if \code{python3}

@@ -52,7 +52,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 GROUPS = {
     'scmparam': ['dtstep', 'ndays', 'nout', 'dxkm', 'taurelax', 'zrelax',
                  'tgtfile', 'tauwtg', 'zwtg', 'tauwind', 'windfac',
-                 'iocnflux', 'izengrough', 'ocnsw', 'ocnlw'],
+                 'iocnflux', 'izengrough', 'ocnsw', 'ocnlw', 'lnoto'],
     'tiedtkeparam': [
         'entrdd', 'entrpen_lnd', 'entrpen_ocn', 'detrpen_lnd',
         'detrpen_ocn', 'entshalp', 'rcuc_lnd', 'rcuc_ocn', 'rcpec_lnd',
@@ -60,7 +60,12 @@ GROUPS = {
         'revap_lnd', 'revap_ocn', 'lmfpen', 'lmfmid', 'lmfdd', 'lepcld',
         'lmfdudv', 'lmfscv', 'lmfuvdis', 'lmftrac', 'lmfsmooth', 'lmfwstar',
         'lmfcapebl', 'lmfcapeforc', 'rtaucape'],
-    'cldparam': ['kfac_deep', 'kfac_shal', 'k2_const', 'iconvcf'],
+    'cldparam': ['kfac_deep', 'kfac_shal', 'k2_const', 'iconvcf',
+                 'rh0oce', 'rh0land', 'tc0', 'rhmin', 'rhmax',
+                 'larcticcorr'],
+    'microparam': ['nssopt', 'iautoconv', 'vfqs', 'auto_rate_khair',
+                   'auto_rate_kessl', 'auto_rate_klepi', 'rkconv',
+                   'skconv', 'rcovpmin', 'rpecons', 'rcldiff'],
     'holtslagparam': ['ricr_ocn', 'ricr_lnd', 'zhnew_fac', 'ifaholtth10',
                       'ifaholt', 'holtth10iter', 'lmoistn2', 'maxprandtl'],
 }
@@ -71,7 +76,7 @@ STEP_FIELDS = ['time', 'hour', 'shf', 'lhf', 'zpbl', 'kpbl', 'hqfac',
                'rainl_acc', 'wspd']
 INT_FIELDS = ('kpbl', 'ktype', 'kctop', 'kcbot')
 LEVEL_FIELDS = ['z', 'p', 'T', 'q', 'mfu', 'dTcu', 'dTpbl', 'dqcu',
-                'dqpbl', 'omega']
+                'dqpbl', 'omega', 'dTmic', 'dqmic', 'qcond', 'cldf']
 
 
 def find_exe(exe):
