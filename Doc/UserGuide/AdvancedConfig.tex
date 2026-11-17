@@ -1159,6 +1159,8 @@ selected number is $2, 4, 5$.
                      ! large scale vertical advection, plus a slow
                      ! relaxation of CAPE (replaces lmfcapebl)
  rtaucape = 43200.0, ! CAPE relaxation time scale (s) with lmfcapeforc
+ rtaufac = 1.0,      ! Factor on the convective time scale of the deep
+                     ! CAPE closure (without lmfcapeforc)
  /
 
  &kfparam
@@ -1198,6 +1200,11 @@ over the convective time scale. Convection then follows the large scale
 forcing more closely; \verb=lmfcapebl= is not used in this case. It is an
 experimental option, tested in the single column GATE test
 (\verb=Testing/scm=).
+\item The deep closure removes CAPE over the convective time scale times
+\verb=rtaufac=. A weaker deep entrainment (\verb=entrpen_lnd=,
+\verb=entrpen_ocn=) gives a larger CAPE for the same sounding; increase
+\verb=rtaufac= with it to keep the convective heating rate realistic (see
+the GATE semi-prognostic test in \verb=Testing/scm=).
 \item Again, read carefully the Reference Manual before attempting any tuning,
 and report in any work modification of this parameters.
 \end{enumerate}

@@ -157,7 +157,7 @@ module mod_params
       rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
       revap_lnd, revap_ocn, lmfpen, lmfmid, lmfdd, lepcld, lmfdudv,   &
       lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
-      lmfcapeforc, rtaucape
+      lmfcapeforc, rtaucape, rtaufac
 
     namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
       kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate,        &
@@ -503,6 +503,7 @@ module mod_params
     lmfcapebl = .true.  ! Boundary layer CAPE in deep closure
     lmfcapeforc = .false. ! Deep closure from large scale CAPE production
     rtaucape = 43200.0_rkx ! CAPE relaxation time scale with lmfcapeforc (s)
+    rtaufac = 1.0_rkx      ! Factor on the deep CAPE closure time scale
     !
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
@@ -1829,6 +1830,7 @@ module mod_params
       call bcast(lmfcapebl)
       call bcast(lmfcapeforc)
       call bcast(rtaucape)
+      call bcast(rtaufac)
     end if
 
     if ( any(icup == 6) ) then
@@ -3145,6 +3147,9 @@ module mod_params
         if ( lmfcapeforc ) then
           write(stdout,'(a,f11.1)') &
             '  CAPE relaxation time scale (s)    : ', rtaucape
+        else
+          write(stdout,'(a,f11.2)') &
+            '  CAPE closure time scale factor    : ', rtaufac
         end if
       end if
     end if

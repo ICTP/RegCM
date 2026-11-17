@@ -58,7 +58,7 @@ program scm_tiedtke
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
     revap_lnd, revap_ocn, lmfpen, lmfmid, lmfdd, lepcld, lmfdudv,   &
     lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
-    lmfcapeforc, rtaucape
+    lmfcapeforc, rtaucape, rtaufac
   namelist /cldparam/ kfac_deep, kfac_shal, k2_const, iconvcf
 
   ! Defaults: as in Main/mod_params.F90
@@ -95,6 +95,7 @@ program scm_tiedtke
   lmfcapebl = .true.
   lmfcapeforc = .false.
   rtaucape = 43200.0_rkx
+  rtaufac = 1.0_rkx
   k2_const = 500.0_rkx
   kfac_shal = 0.07_rkx
   kfac_deep = 0.14_rkx

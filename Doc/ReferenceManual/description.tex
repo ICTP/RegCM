@@ -2077,9 +2077,17 @@ convection is determined by relaxing the convective available potential energy
 (CAPE) toward zero over the convective timescale $\tau_c$:
 
 \begin{eqnarray}
-M_b &=& \frac{CAPE}{\tau_c\,\partial CAPE / \partial M_b}
+M_b &=& \frac{CAPE}{f_\tau\,\tau_c\,\partial CAPE / \partial M_b}
 \label{eqn_model:TIEDcape}
 \end{eqnarray}
+
+The convective timescale is the cloud depth divided by an updraft velocity
+scale, $\tau_c = r_\tau\,(z_t-z_b)/(2+\min(15,\bar{w}))$ with the resolution
+factor $r_\tau=\min(3,1+264/N)$, $N = 17747.5\,\mathrm{km}/\Delta x$, bounded
+between 720~s and 3~h. The factor $f_\tau$ (\verb=rtaufac=, 1 by default)
+lengthens the removal time of CAPE. A weakly entraining updraft
+(\verb=entrpen=) finds a larger CAPE, and a larger $f_\tau$ keeps the
+convective heating rate unchanged for the same state.
 
 The parcel for convection starting at the lowest model level gets a
 temperature and moisture excess from the surface fluxes, as in the IFS

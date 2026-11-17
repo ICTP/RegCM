@@ -35,7 +35,7 @@ module mod_cu_tiedtke
   use mod_runparams, only : rcpec_ocn, rcpec_lnd
   use mod_runparams, only : lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
           lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
-          lmfcapeforc, rtaucape
+          lmfcapeforc, rtaucape, rtaufac
   use mod_regcm_types
 
   implicit none
@@ -2488,6 +2488,10 @@ module mod_cu_tiedtke
         tau(n) = max(dtc,min(10800.0_rkx,tau(n)))
         tau(n) = max(720.0_rkx,tau(n))
         !
+        ! The adjustment time scale of the boundary layer CAPE below uses
+        ! the convective time scale before the closure factor rtaufac.
+        !
+        !
         ! Bechtold et al. (2014), as RCAPDCYCL = 2 in the IFS: for surface
         ! based convection subtract the CAPE produced by the boundary
         ! layer over the time scale taubl. The boundary layer warming is
@@ -2549,7 +2553,11 @@ module mod_cu_tiedtke
           mfub1(n) = mfub(n)*(max(dcape,d_zero)+xcape(n)/rtaucape) / &
                      rheat(n)
         else
-          mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n))
+          !
+          ! CAPE is removed over the convective time scale times the
+          ! factor rtaufac
+          !
+          mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n)*rtaufac)
         end if
         mfub1(n) = max(mfub1(n),0.001_rkx)
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia

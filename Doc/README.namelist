@@ -722,6 +722,8 @@
                       ! large scale vertical advection, plus a slow
                       ! relaxation of CAPE (replaces lmfcapebl)
  rtaucape = 43200.0,  ! CAPE relaxation time scale (s) with lmfcapeforc
+ rtaufac = 1.0,       ! Factor on the convective time scale of the deep
+                      ! CAPE closure (without lmfcapeforc)
  /
 !
 ! Kain Fritsch cumulus parameters
