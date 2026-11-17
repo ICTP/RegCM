@@ -57,6 +57,11 @@ module mod_pbl_holtbl
   real(rkx), pointer, contiguous, dimension(:,:,:) :: dza, thvx
   real(rkx), pointer, contiguous, dimension(:,:,:) :: akzz1, akzz2
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rhohf
+  ! Cloud top mixing (lsctop): cloud water and ice, liquid water virtual
+  ! potential temperature, equivalent potential temperature, interface
+  ! height above each level (zero below the lowest)
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: sccw, scthl, scthe
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: sczi
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ri
 
@@ -136,6 +141,12 @@ module mod_pbl_holtbl
     end if
     if ( ichem == 1 ) then
       call getmem(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')
+    end if
+    if ( lsctop ) then
+      call getmem(sccw,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:sccw')
+      call getmem(scthl,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:scthl')
+      call getmem(scthe,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:scthe')
+      call getmem(sczi,jci1,jci2,ici1,ici2,1,kzp1,'mod_holtbl:sczi')
     end if
   end subroutine allocate_mod_pbl_holtbl
 
@@ -1162,12 +1173,63 @@ module mod_pbl_holtbl
     real(rkx), parameter :: dkmax = 1000.0_rkx
     integer(ik4) :: i, j, k, kcld, krad, kbot
     real(rkx) :: radx, radmin, dz, hrad, zd, zdd, thl1, vrad
-    real(rkx) :: zb, ptem, tem2, kh, bf, rent, dthe, dqt
+    real(rkx) :: zb, ptem, tem2, kh, bf, rent, dthe, dqt, ql
+    !
+    ! Column quantities used below
+    !
+#ifdef STDPAR_FIXED
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+#else
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
+      ql = max(m2p%qxatm(j,i,k,iqc),d_zero)
+      if ( ipptls > 1 ) ql = ql + max(m2p%qxatm(j,i,k,iqi),d_zero)
+      sccw(j,i,k) = ql
+      scthl(j,i,k) = (m2p%thatm(j,i,k) - m2p%thatm(j,i,k) / &
+                      m2p%tatm(j,i,k)*wlhvocp*ql) * &
+                     (d_one+ep1*(m2p%qxatm(j,i,k,iqv)+ql))
+      scthe(j,i,k) = m2p%thatm(j,i,k) * (d_one + wlhvocp * &
+                     max(m2p%qxatm(j,i,k,iqv),d_zero)/m2p%tatm(j,i,k))
+      if ( k == 1 ) then
+        sczi(j,i,k) = m2p%za(j,i,1) + d_half*dza(j,i,1)
+      else
+        sczi(j,i,k) = d_half*(m2p%za(j,i,k-1)+m2p%za(j,i,k))
+      end if
+#ifndef STDPAR_FIXED
+    end do
+    end do
+#endif
+    end do
+#ifdef STDPAR_FIXED
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+    !$acc parallel loop collapse(2) gang vector
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
+      sczi(j,i,kzp1) = d_zero
+#ifndef STDPAR_FIXED
+    end do
+#endif
+    end do
+    !
+    ! Cloud top driven mixing, one column at a time
+    !
+#ifdef STDPAR_FIXED
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#else
+    !$acc parallel loop collapse(2) gang vector
+    do i = ici1, ici2
+    do j = jci1, jci2
+#endif
       kcld = 0
+      !$acc loop seq
       do k = kmxpbl(j,i), kz
         if ( m2p%za(j,i,k) > zstblmax ) cycle
-        if ( cldw(j,i,k) >= qlcr ) then
+        if ( sccw(j,i,k) >= qlcr ) then
           kcld = k
           exit
         end if
@@ -1176,10 +1238,11 @@ module mod_pbl_holtbl
       radmin = d_zero
       krad = 0
       kbot = kcld
+      !$acc loop seq
       do k = kcld, kz-1
-        if ( cldw(j,i,k) < qlcr ) exit
+        if ( sccw(j,i,k) < qlcr ) exit
         kbot = k
-        dz = zint(j,i,k) - zint(j,i,k+1)
+        dz = sczi(j,i,k) - sczi(j,i,k+1)
         radx = dz * m2p%heatrt(j,i,k) * m2p%thatm(j,i,k)/m2p%tatm(j,i,k)
         if ( radx < radmin ) then
           radmin = radx
@@ -1187,23 +1250,25 @@ module mod_pbl_holtbl
         end if
       end do
       if ( krad < 2 .or. radmin >= d_zero ) cycle
-      hrad = zint(j,i,krad)
-      dz = zint(j,i,krad) - zint(j,i,krad+1)
-      thl1 = thlv(j,i,krad) + cldtime*radmin/dz
+      hrad = sczi(j,i,krad)
+      dz = sczi(j,i,krad) - sczi(j,i,krad+1)
+      thl1 = scthl(j,i,krad) + cldtime*radmin/dz
       zd = d_zero
+      !$acc loop seq
       do k = krad, kz
-        if ( thl1 <= thlv(j,i,k) ) then
-          zd = zd + zint(j,i,k) - zint(j,i,k+1)
+        if ( thl1 <= scthl(j,i,k) ) then
+          zd = zd + sczi(j,i,k) - sczi(j,i,k+1)
         else
           exit
         end if
       end do
-      zdd = hrad - zint(j,i,kbot+1)
+      zdd = hrad - sczi(j,i,kbot+1)
       zd = min(max(zd,zdd),hrad)
       vrad = (egrav/thvx(j,i,kz) * zd * (-radmin))**onet
       zb = hrad - zd
+      !$acc loop seq
       do k = krad+1, kz
-        tem2 = zint(j,i,k) - zb
+        tem2 = sczi(j,i,k) - zb
         if ( tem2 > d_zero ) then
           ptem = min(tem2/zd,d_one)
           kh = radfac*vonkar*vrad*tem2*ptem*sqrt(d_one-ptem)
@@ -1213,9 +1278,9 @@ module mod_pbl_holtbl
         end if
       end do
       rent = rentf1
-      dthe = thee(j,i,krad) - thee(j,i,krad-1)
-      dqt = (m2p%qxatm(j,i,krad,iqv) + cldw(j,i,krad)) - &
-            (m2p%qxatm(j,i,krad-1,iqv) + cldw(j,i,krad-1))
+      dthe = scthe(j,i,krad) - scthe(j,i,krad-1)
+      dqt = (m2p%qxatm(j,i,krad,iqv) + sccw(j,i,krad)) - &
+            (m2p%qxatm(j,i,krad-1,iqv) + sccw(j,i,krad-1))
       if ( dthe > d_zero .and. dqt > d_zero ) then
         if ( cpd*dthe/(wlhv*dqt) > actei ) rent = rentf2
       end if
@@ -1224,49 +1289,10 @@ module mod_pbl_holtbl
       kvh(j,i,krad) = min(kvh(j,i,krad)+kh,dkmax)
       kvq(j,i,krad) = min(kvq(j,i,krad)+kh,dkmax)
       kvm(j,i,krad) = min(kvm(j,i,krad)+kh,dkmax)
+#ifndef STDPAR_FIXED
     end do
-
-    contains
-
-      ! Cloud water and ice
-      pure real(rkx) function cldw(j,i,k)
-        implicit none
-        integer(ik4), intent(in) :: j, i, k
-        cldw = max(m2p%qxatm(j,i,k,iqc),d_zero)
-        if ( ipptls > 1 ) cldw = cldw + max(m2p%qxatm(j,i,k,iqi),d_zero)
-      end function cldw
-
-      ! Height of the interface above level k (zero below the lowest)
-      pure real(rkx) function zint(j,i,k)
-        implicit none
-        integer(ik4), intent(in) :: j, i, k
-        if ( k > kz ) then
-          zint = d_zero
-        else if ( k == 1 ) then
-          zint = m2p%za(j,i,1) + d_half*dza(j,i,1)
-        else
-          zint = d_half*(m2p%za(j,i,k-1)+m2p%za(j,i,k))
-        end if
-      end function zint
-
-      ! Liquid water virtual potential temperature
-      pure real(rkx) function thlv(j,i,k)
-        implicit none
-        integer(ik4), intent(in) :: j, i, k
-        real(rkx) :: ql
-        ql = cldw(j,i,k)
-        thlv = (m2p%thatm(j,i,k) - m2p%thatm(j,i,k)/m2p%tatm(j,i,k) * &
-                wlhvocp*ql) * (d_one+ep1*(m2p%qxatm(j,i,k,iqv)+ql))
-      end function thlv
-
-      ! Equivalent potential temperature (first order)
-      pure real(rkx) function thee(j,i,k)
-        implicit none
-        integer(ik4), intent(in) :: j, i, k
-        thee = m2p%thatm(j,i,k) * (d_one + wlhvocp * &
-               max(m2p%qxatm(j,i,k,iqv),d_zero)/m2p%tatm(j,i,k))
-      end function thee
-
+#endif
+    end do
   end subroutine sctop_mixing
 
 #include <saturation.inc>
