@@ -3978,6 +3978,8 @@ module mod_ncout
             ncattribute_logical('holtslag_moist_n2',lmoistn2))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('holtslag_max_prandtl',maxprandtl))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('holtslag_cloud_top_mixing',lsctop))
         end if
         if ( ibltyp == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

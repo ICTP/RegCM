@@ -444,6 +444,7 @@ module mod_runparams
   integer(ik4), public :: holtth10iter
   logical, public :: lmoistn2
   real(rkx), public :: maxprandtl
+  logical, public :: lsctop
 
   ! Chemistry nameliste option
 

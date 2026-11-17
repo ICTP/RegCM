@@ -174,7 +174,7 @@ module mod_params
     namelist /uwparam/ iuwvadv, atwo, rstbl, czero, nuk
 
     namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-      ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl
+      ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop
 
     namelist /cplparam/ cpldt, zomax, ustarmax
 
@@ -472,8 +472,8 @@ module mod_params
     ! tiedtkeparam ;
     ! Taken from MPI Echam settings
     !
-    entrpen_lnd  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
-    entrpen_ocn  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
+    entrpen_lnd  = 0.5e-3_rkx   ! Entrainment rate for penetrative convection
+    entrpen_ocn  = 0.5e-3_rkx   ! Entrainment rate for penetrative convection
     detrpen_lnd = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
     detrpen_ocn = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
     entrdd  = 3.0e-4_rkx   ! Entrainment rate for cumulus downdrafts
@@ -540,6 +540,7 @@ module mod_params
     holtth10iter = 1
     lmoistn2 = .false.
     maxprandtl = 1.0_rkx
+    lsctop = .false.
     !
     ! slabocparam ;
     !
@@ -1857,6 +1858,7 @@ module mod_params
       call bcast(holtth10iter)
       call bcast(lmoistn2)
       call bcast(maxprandtl)
+      call bcast(lsctop)
     end if
     if ( ibltyp == 2 ) then
       call bcast(iuwvadv)
@@ -2752,6 +2754,7 @@ module mod_params
         write(stdout,'(a,i4)') '  holtth10iter = ', holtth10iter
         write(stdout,'(a,l11)') '  lmoistn2     = ', lmoistn2
         write(stdout,'(a,f11.6)') '  maxprandtl   = ', maxprandtl
+        write(stdout,'(a,l11)') '  lsctop       = ', lsctop
       else if ( ibltyp == 2 ) then
         write(stdout,*) 'UW TCM Parameters'
         write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl

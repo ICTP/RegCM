@@ -24,7 +24,7 @@ module mod_pbl_holtbl
   use mod_constants
   use mod_runparams, only : iqv, dt, rdt, ichem, zhnew_fac, &
        ifaholtth10, ifaholt, holtth10iter, ipptls, iqc, iqi, &
-       lmoistn2, maxprandtl
+       lmoistn2, maxprandtl, lsctop
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -516,11 +516,16 @@ module mod_pbl_holtbl
         kvh(j,i,k) = max(pblk/pr,kvf(j,i,k))
         kvq(j,i,k) = kvh(j,i,k)*hqfac
       else
-        kvm(j,i,k) = 0.0_rkx
-        kvh(j,i,k) = 0.0_rkx
-        kvq(j,i,k) = 0.0_rkx
+        ! above the boundary layer the free atmosphere diffusivities
+        kvm(j,i,k) = kvfm(j,i,k)
+        kvh(j,i,k) = kvf(j,i,k)
+        kvq(j,i,k) = kvf(j,i,k)
       end if
     end do
+
+    ! Mixing driven by the radiative cooling at the top of boundary
+    ! layer clouds
+    if ( lsctop ) call sctop_mixing(m2p)
 
     if ( ichem == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -1126,6 +1131,143 @@ module mod_pbl_holtbl
 #endif
     !@acc call nvtxEndRange
   end subroutine holtbl
+  !
+  ! Turbulence driven by the longwave cooling at the top of a boundary
+  ! layer cloud (Lock et al., 2000, MWR), as in the GFS boundary layer
+  ! (mod_pbl_gfs): in the lowest cloud layer below zstblmax (condensate
+  ! at least qlcr) the level of strongest radiative cooling of
+  ! potential temperature, radmin (K m/s, the heating times the layer
+  ! depth), is the cloud top. A parcel cooled for cldtime there sinks
+  ! through the depth zd where it is colder (liquid water virtual
+  ! potential temperature) than the environment, at least down to the
+  ! cloud base; the velocity scale is vrad = (g/thv zd (-radmin))**1/3.
+  ! Below the cloud top the diffusivity for heat and moisture
+  ! radfac k vrad (z-zb)**2/zd (1-(z-zb)/zd)**1/2, zb = top - zd, is
+  ! added (0.75 of it for momentum); at the cloud top interface the
+  ! entrainment diffusivity -rent radmin / (dthv/dz), with rent = rentf1,
+  ! rentf2 if the cloud top entrainment instability parameter
+  ! cp dthe/(L dqt) exceeds actei.
+  !
+  subroutine sctop_mixing(m2p)
+    implicit none
+    type(mod_2_pbl), intent(in) :: m2p
+    real(rkx), parameter :: qlcr = 3.5e-5_rkx
+    real(rkx), parameter :: zstblmax = 2500.0_rkx
+    real(rkx), parameter :: cldtime = 500.0_rkx
+    real(rkx), parameter :: radfac = 0.85_rkx
+    real(rkx), parameter :: rentf1 = 0.2_rkx
+    real(rkx), parameter :: rentf2 = 1.0_rkx
+    real(rkx), parameter :: actei = 0.7_rkx
+    real(rkx), parameter :: tdzmin = 1.0e-3_rkx
+    real(rkx), parameter :: dkmax = 1000.0_rkx
+    integer(ik4) :: i, j, k, kcld, krad, kbot
+    real(rkx) :: radx, radmin, dz, hrad, zd, zdd, thl1, vrad
+    real(rkx) :: zb, ptem, tem2, kh, bf, rent, dthe, dqt
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      kcld = 0
+      do k = kmxpbl(j,i), kz
+        if ( m2p%za(j,i,k) > zstblmax ) cycle
+        if ( cldw(j,i,k) >= qlcr ) then
+          kcld = k
+          exit
+        end if
+      end do
+      if ( kcld < 2 .or. kcld >= kz ) cycle
+      radmin = d_zero
+      krad = 0
+      kbot = kcld
+      do k = kcld, kz-1
+        if ( cldw(j,i,k) < qlcr ) exit
+        kbot = k
+        dz = zint(j,i,k) - zint(j,i,k+1)
+        radx = dz * m2p%heatrt(j,i,k) * m2p%thatm(j,i,k)/m2p%tatm(j,i,k)
+        if ( radx < radmin ) then
+          radmin = radx
+          krad = k
+        end if
+      end do
+      if ( krad < 2 .or. radmin >= d_zero ) cycle
+      hrad = zint(j,i,krad)
+      dz = zint(j,i,krad) - zint(j,i,krad+1)
+      thl1 = thlv(j,i,krad) + cldtime*radmin/dz
+      zd = d_zero
+      do k = krad, kz
+        if ( thl1 <= thlv(j,i,k) ) then
+          zd = zd + zint(j,i,k) - zint(j,i,k+1)
+        else
+          exit
+        end if
+      end do
+      zdd = hrad - zint(j,i,kbot+1)
+      zd = min(max(zd,zdd),hrad)
+      vrad = (egrav/thvx(j,i,kz) * zd * (-radmin))**onet
+      zb = hrad - zd
+      do k = krad+1, kz
+        tem2 = zint(j,i,k) - zb
+        if ( tem2 > d_zero ) then
+          ptem = min(tem2/zd,d_one)
+          kh = radfac*vonkar*vrad*tem2*ptem*sqrt(d_one-ptem)
+          kvh(j,i,k) = min(kvh(j,i,k)+kh,dkmax)
+          kvq(j,i,k) = min(kvq(j,i,k)+kh,dkmax)
+          kvm(j,i,k) = min(kvm(j,i,k)+0.75_rkx*kh,dkmax)
+        end if
+      end do
+      rent = rentf1
+      dthe = thee(j,i,krad) - thee(j,i,krad-1)
+      dqt = (m2p%qxatm(j,i,krad,iqv) + cldw(j,i,krad)) - &
+            (m2p%qxatm(j,i,krad-1,iqv) + cldw(j,i,krad-1))
+      if ( dthe > d_zero .and. dqt > d_zero ) then
+        if ( cpd*dthe/(wlhv*dqt) > actei ) rent = rentf2
+      end if
+      bf = (thvx(j,i,krad-1)-thvx(j,i,krad))/dza(j,i,krad-1)
+      kh = -rent*radmin/max(bf,tdzmin)
+      kvh(j,i,krad) = min(kvh(j,i,krad)+kh,dkmax)
+      kvq(j,i,krad) = min(kvq(j,i,krad)+kh,dkmax)
+      kvm(j,i,krad) = min(kvm(j,i,krad)+kh,dkmax)
+    end do
+
+    contains
+
+      ! Cloud water and ice
+      pure real(rkx) function cldw(j,i,k)
+        implicit none
+        integer(ik4), intent(in) :: j, i, k
+        cldw = max(m2p%qxatm(j,i,k,iqc),d_zero)
+        if ( ipptls > 1 ) cldw = cldw + max(m2p%qxatm(j,i,k,iqi),d_zero)
+      end function cldw
+
+      ! Height of the interface above level k (zero below the lowest)
+      pure real(rkx) function zint(j,i,k)
+        implicit none
+        integer(ik4), intent(in) :: j, i, k
+        if ( k > kz ) then
+          zint = d_zero
+        else if ( k == 1 ) then
+          zint = m2p%za(j,i,1) + d_half*dza(j,i,1)
+        else
+          zint = d_half*(m2p%za(j,i,k-1)+m2p%za(j,i,k))
+        end if
+      end function zint
+
+      ! Liquid water virtual potential temperature
+      pure real(rkx) function thlv(j,i,k)
+        implicit none
+        integer(ik4), intent(in) :: j, i, k
+        real(rkx) :: ql
+        ql = cldw(j,i,k)
+        thlv = (m2p%thatm(j,i,k) - m2p%thatm(j,i,k)/m2p%tatm(j,i,k) * &
+                wlhvocp*ql) * (d_one+ep1*(m2p%qxatm(j,i,k,iqv)+ql))
+      end function thlv
+
+      ! Equivalent potential temperature (first order)
+      pure real(rkx) function thee(j,i,k)
+        implicit none
+        integer(ik4), intent(in) :: j, i, k
+        thee = m2p%thatm(j,i,k) * (d_one + wlhvocp * &
+               max(m2p%qxatm(j,i,k,iqv),d_zero)/m2p%tatm(j,i,k))
+      end function thee
+
+  end subroutine sctop_mixing
 
 #include <saturation.inc>
 
