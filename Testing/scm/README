@@ -22,8 +22,12 @@ Files
   scm_coupled.py      its Python wrapper: run, summary, sweep, compare
   scm_amazon.txt      Amazon case of scm_coupled: initial profiles,
   scm_amazon_target.txt   relaxation targets (0, 6, 12, 18 UTC),
-  scm_amazon_era5.txt     ERA5 rain by local hour
-  make_amazon_case.py builds the three Amazon files from ERA5
+  scm_amazon_era5.txt     ERA5 rain and 10 m wind by local hour
+  scm_itcz.txt, scm_itcz_target.txt, scm_itcz_era5.txt
+                      ocean case of scm_coupled (Atlantic ITCZ, South
+                      Atlantic trades), same layout
+  make_amazon_case.py builds the files of a case from ERA5
+                      (--case amazon or itcz)
   scm_ocean.F90       ocean surface flux schemes on samples of the
                       lowest level and the surface
   scm_ocean.py        evaluation of all the schemes and options
@@ -111,8 +115,31 @@ advection by its omega (ERA5 monthly mean), and a relaxation of T and q
 with time scale taurelax (1 day) to the ERA5 monthly mean profiles at
 0, 6, 12, 18 UTC (tgtfile), standing for the horizontal advection. Land
 surface fluxes follow a half sine in local time with the ERA5 daily
-means (small night values). No microphysics: detrained condensate
-evaporates, supersaturation rains out (large scale rain).
+means (small night values). Ocean columns (an SST in the profile file)
+get the fluxes, drag and friction velocity from the ocean scheme of the
+model (iocnflux 1 Zeng with izengrough, 2 COARE 3.5; 0 the prescribed
+ERA5 means) on the lowest level and the SST, every step. No
+microphysics: detrained condensate evaporates, supersaturation rains
+out (large scale rain).
+
+Options of &scmparam beyond the forcing above:
+  tauwind, windfac   winds relax to windfac times the target winds in
+                     tauwind (0, default: Coriolis around the initial
+                     winds times windfac)
+  tauwtg, zwtg       weak temperature gradient: above zwtg (1000 m) and
+                     below 100 hPa the large scale omega is the one that
+                     brings T back to the target in tauwtg, (Tr - T) /
+                     (tauwtg S) with S the static stability of the
+                     target; linear in height below zwtg; there T is not
+                     relaxed; converging flow brings in air with the
+                     target humidity. 0 (default): the omega of the
+                     profile file
+  ocnsw, ocnlw       net shortwave (daily mean of a half sine) and
+                     longwave radiation at the sea surface (COARE cool
+                     skin)
+With WTG the column makes its own ascent or subsidence: a test of
+whether the convective heating of the schemes can hold the observed
+temperature profile against the radiative cooling.
 
 The Amazon case (make_amazon_case.py) has two boxes, NW Amazon (5S-5N,
 75-60W) and S Amazon (12-5S, 65-50W), September 2023. Rain is
@@ -123,13 +150,23 @@ days (its default) the mean daily rain is stable to about 0.1 mm/day:
                                               cycle against ERA5
   ./scm_coupled.py --set lmfcapebl=.false.
   ./scm_coupled.py --sweep zhnew_fac=0.0,0.25,0.5
+  ./scm_coupled.py --profiles scm_itcz.txt --set tauwind=10800 \
+                   --sweep tauwtg=0,10800
 
-"make check" runs one day against reference/scm_coupled_amazon.out. The
-small differences of another compiler or other flags grow into different
-rain events: the reference holds only for the build it was made with.
-To update it, copy scm_output/scm_coupled_amazon/scm_coupled_amazon.out
-of a "make check" run and set its "# profiles:" and "# targets:" lines
-to scm_amazon.txt and scm_amazon_target.txt.
+The ITCZ case (--case itcz) has the ocean points of the Atlantic ITCZ
+(2-10N, 45-25W) and of the South Atlantic trades (25-5S, 30-10W), with
+the monthly mean SST. For ocean columns the summary also gives the mean
+surface fluxes and lowest level wind against ERA5, and the mean omega
+at 850, 700, 500, 300 hPa against the input one.
+
+"make check" runs one day of each case against
+reference/scm_coupled_amazon.out and scm_coupled_itcz.out (the ITCZ one
+with WTG and wind relaxation). The small differences of another
+compiler or other flags grow into different rain events: the reference
+holds only for the build it was made with. To update one, copy
+scm_output/scm_coupled_<case>/scm_coupled_<case>.out of a "make check"
+run and set its "# profiles:" and "# targets:" lines to the file names
+without the directory.
 
 Ocean flux test
 ---------------

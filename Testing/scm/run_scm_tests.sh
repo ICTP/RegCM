@@ -29,7 +29,8 @@ status=0
 cases="tiedtke:scm_profiles.txt:scm_tiedtke
        holtslag:scm_profiles.txt:scm_holtslag
        tiedtke:scm_gate_check.txt:scm_tiedtke_gate
-       coupled:scm_amazon.txt:scm_coupled_amazon"
+       coupled:scm_amazon.txt:scm_coupled_amazon
+       coupled:scm_itcz.txt:scm_coupled_itcz"
 
 for case in $cases; do
   scheme=${case%%:*}
@@ -43,7 +44,11 @@ for case in $cases; do
   mkdir -p $d
   extra=
   if [ $scheme = coupled ]; then
-    extra="tgtfile = '$here/scm_amazon_target.txt', ndays = 1.0,"
+    extra="tgtfile = '$here/${profiles%.txt}_target.txt', ndays = 1.0,"
+    # the ITCZ case also runs the WTG omega and the wind relaxation
+    if [ $name = scm_coupled_itcz ]; then
+      extra="$extra tauwtg = 10800.0, tauwind = 10800.0,"
+    fi
   fi
   cat > $d/$name.in << EOF
  &scmparam

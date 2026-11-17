@@ -32,6 +32,7 @@ scm_holtslag_SOURCES = scm_holtslag.F90
 scm_holtslag_LDADD = $(PBLLIBPTH)/libpbl.a $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)
 scm_coupled_SOURCES = scm_coupled.F90
 scm_coupled_LDADD = $(CUMLIBPTH)/libcum.a $(PBLLIBPTH)/libpbl.a \
+                    $(OCNLIBPTH)/libocn.a \
                     $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)
 scm_ocean_SOURCES = scm_ocean.F90
 scm_ocean_LDADD = $(OCNLIBPTH)/libocn.a $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)
@@ -47,6 +48,8 @@ EXTRA_DIST = README make_profiles.py scm_tiedtke.py scm_holtslag.py \
              reference/scm_tiedtke_gate.out scm_coupled.py \
              make_amazon_case.py scm_amazon.txt scm_amazon_target.txt \
              scm_amazon_era5.txt reference/scm_coupled_amazon.out \
+             scm_itcz.txt scm_itcz_target.txt scm_itcz_era5.txt \
+             reference/scm_coupled_itcz.out \
              scm_ocean.py
 
 %.o: %.F90

@@ -279,8 +279,8 @@ module mod_cu_interface
           if ( any(icup == 5) ) then
             if ( idynamic /= 3 ) then
               do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
-                utend(j,i,k) = aten%u(j,i,k,pc_physic)
-                vtend(j,i,k) = aten%v(j,i,k,pc_physic)
+                utend(j,i,k) = aten%u(j,i,k,pc_physic)/m2c%psdotb(j,i)
+                vtend(j,i,k) = aten%v(j,i,k,pc_physic)/m2c%psdotb(j,i)
               end do
               call uvdot2cross(utend,vtend,utenx,vtenx)
             end if

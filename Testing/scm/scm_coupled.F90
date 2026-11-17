@@ -35,10 +35,28 @@
 !     profiles of that file (same format, for each column four profiles
 !     at 0, 6, 12 and 18 UTC, linearly interpolated in time, repeated
 !     every day).
-! The surface fluxes follow a half sine diurnal cycle in local solar time
-! (daylight from 6 to 18), with the daily means of the profile file:
-! at night the sensible heat flux is -0.25 and the latent heat flux 0.1
-! times the daily mean, the daytime half sine keeps the mean. There
+! With tauwtg > 0 the weak temperature gradient approximation replaces
+! the omega of the profile file: above zwtg and below 100 hPa the
+! large scale omega is the one whose vertical advection brings the
+! temperature back to the target in tauwtg, omega = (Ttarget - T) /
+! (tauwtg S), with S = R T / (cp p) - dT/dp the static stability of the
+! target profile (at least 1e-4 K/Pa),
+! linear in height from zero at the ground to its value at zwtg; there
+! the temperature is not relaxed. The convergence of the large scale
+! flow (d omega / dp > 0) brings in air with the target humidity.
+! The winds relax to the target winds (or the initial ones), times
+! windfac, with time scale tauwind; with tauwind = 0 (default) the
+! Coriolis force turns them around the initial winds times windfac.
+! Land columns (and ocean columns with iocnflux = 0): the surface fluxes
+! follow a half sine diurnal cycle in local solar time (daylight from 6
+! to 18), with the daily means of the profile file: at night the
+! sensible heat flux is -0.25 and the latent heat flux 0.1 times the
+! daily mean, the daytime half sine keeps the mean. Ocean columns with
+! iocnflux = 1 (Zeng, with izengrough) or 2 (COARE 3.5): the fluxes,
+! the drag and the friction velocity come from the ocean scheme of the
+! model on the SST of the profile file, every step, with a net
+! shortwave radiation at the surface of daily mean ocnsw in a half sine
+! and a net longwave ocnlw (used by the COARE cool skin). There
 ! is no microphysics: the condensate detrained by the cumulus scheme
 ! evaporates in the layer where it is detrained, and supersaturation is
 ! removed by a saturation adjustment that rains out (large scale rain).
@@ -64,31 +82,43 @@ program scm_coupled
                              pmean, ktype, pmfu
   use mod_pbl_common, only : ricr, kmxpbl
   use mod_pbl_holtbl, only : allocate_mod_pbl_holtbl, holtbl
+  use mod_ocn_internal, only : nocnp, iocnbeg, iocnend, dtocn, llake, &
+    ldcsst, lseaice, mask, icpl, ht, usw, vsw, tatm, qv, patm, sfps,  &
+    sfta, tgb, tgrd, tgbrd, hpbl, rswf, rlwf, rhox, um10, sent, evpr, &
+    drag, ustr, zoo, taux, tauy, u10m, v10m, t2m, q2m, rhoa, ram1,    &
+    rah1, br, sfice
+  use mod_ocn_zeng, only : zengocndrv
+  use mod_ocn_coare, only : coare3_drv
   implicit none
 
   character(len=256) :: nmlfile, infile, outfile, tgtfile
-  real(rkx) :: dxkm, dtstep, ndays, taurelax, zrelax
+  real(rkx) :: dxkm, dtstep, ndays, taurelax, zrelax, tauwtg, zwtg, &
+    tauwind, windfac, ocnsw, ocnlw
   integer(ik4) :: nout
   integer(ik4) :: ncol, nk, j, k, n, iu, io, ios, istep, nsteps
   character(len=32), allocatable, dimension(:) :: col_name
   character(len=10), allocatable, dimension(:) :: col_date
   real(rkx), allocatable, dimension(:) :: col_lat, col_lon, col_ps, &
     col_shf, col_lhf, col_zpbl, col_cape, col_crr, col_topo, col_z0,  &
-    col_hour, rainc, rainl, rainc_acc, rainl_acc, ustar
+    col_hour, rainc, rainl, rainc_acc, rainl_acc, ustar, col_sst
   integer(ik4), allocatable, dimension(:) :: col_land
+  logical, allocatable, dimension(:) :: col_ocn
   real(rkx), allocatable, dimension(:,:) :: t0, q0, u0, v0, omega, &
     ften, fqen, za, zf, pa, pf, t, q, u, v, mfu, ctt, cqt, ptt, pqt, &
-    wrelax
-  real(rkx), allocatable, dimension(:,:,:) :: ttgt, qtgt
+    wrelax, omls, ttg, qtg
+  real(rkx), allocatable, dimension(:,:,:) :: ttgt, qtgt, utgt, vtgt
   type(mod_2_cum) :: m2c
   type(mod_2_pbl) :: m2p
   type(pbl_2_mod) :: p2m
   real(rkx) :: dp, hour, utc, wt, tg, qg, sfac, rho, kbfs, hqfac, &
-    zpblj, qs, dqs, cond, ws, zl, dtdp, dqdp, time
+    zpblj, qs, dqs, cond, ws, zl, dtdp, dqdp, time, ug, vg, stab, &
+    dwdp, wspd, wr
+  integer(ik4) :: kw
   character(len=512) :: line
 
   namelist /scmparam/ infile, outfile, dtstep, ndays, nout, dxkm, &
-    taurelax, zrelax, tgtfile
+    taurelax, zrelax, tgtfile, tauwtg, zwtg, tauwind, windfac,    &
+    iocnflux, izengrough, ocnsw, ocnlw
   namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
     detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
@@ -109,6 +139,14 @@ program scm_coupled
   dxkm = 12.0_rkx
   taurelax = 86400.0_rkx
   zrelax = 0.0_rkx
+  tauwtg = 0.0_rkx
+  zwtg = 1000.0_rkx
+  tauwind = 0.0_rkx
+  windfac = 1.0_rkx
+  iocnflux = 1
+  izengrough = 1
+  ocnsw = 200.0_rkx
+  ocnlw = 50.0_rkx
   entrpen_lnd = 1.75e-3_rkx
   entrpen_ocn = 1.75e-3_rkx
   detrpen_lnd = 0.75e-4_rkx
@@ -208,12 +246,14 @@ program scm_coupled
     col_ps(ncol), col_shf(ncol), col_lhf(ncol), col_zpbl(ncol),           &
     col_cape(ncol), col_crr(ncol), col_topo(ncol), col_land(ncol),        &
     col_z0(ncol), col_hour(ncol), rainc(ncol), rainl(ncol),               &
-    rainc_acc(ncol), rainl_acc(ncol), ustar(ncol))
+    rainc_acc(ncol), rainl_acc(ncol), ustar(ncol), col_sst(ncol),         &
+    col_ocn(ncol))
   allocate(t0(ncol,nk), q0(ncol,nk), u0(ncol,nk), v0(ncol,nk),       &
     omega(ncol,nk), ften(ncol,nk), fqen(ncol,nk), za(ncol,nk),       &
     zf(ncol,nk+1), pa(ncol,nk), pf(ncol,nk+1), t(ncol,nk),           &
     q(ncol,nk), u(ncol,nk), v(ncol,nk), mfu(ncol,nk), ctt(ncol,nk),  &
-    cqt(ncol,nk), ptt(ncol,nk), pqt(ncol,nk), wrelax(ncol,nk))
+    cqt(ncol,nk), ptt(ncol,nk), pqt(ncol,nk), wrelax(ncol,nk),       &
+    omls(ncol,nk), ttg(ncol,nk), qtg(ncol,nk))
   call getmem(cuscheme,jci1,jci2,ici1,ici2,'scm:cuscheme')
   cuscheme(:,:) = 5
   call init_mod_cumulus
@@ -225,7 +265,9 @@ program scm_coupled
   do j = 1, ncol
     read(iu,*) col_name(j), col_lat(j), col_lon(j), col_land(j), &
       col_date(j), col_ps(j), col_shf(j), col_lhf(j), col_zpbl(j), &
-      col_cape(j), col_crr(j), col_topo(j)
+      col_cape(j), col_crr(j), col_topo(j), col_sst(j)
+    col_ocn(j) = col_land(j) /= 1 .and. col_sst(j) > d_zero .and. &
+      iocnflux > 0
     do k = 1, nk
       read(iu,*) za(j,k), pa(j,k), t(j,k), q(j,k), u(j,k), v(j,k), &
         omega(j,k), ften(j,k), fqen(j,k)
@@ -264,14 +306,20 @@ program scm_coupled
   close(iu)
   t0 = t
   q0 = q
-  allocate(ttgt(ncol,nk,0:4), qtgt(ncol,nk,0:4))
+  u = windfac*u
+  v = windfac*v
+  u0 = u
+  v0 = v
+  allocate(ttgt(ncol,nk,0:4), qtgt(ncol,nk,0:4), utgt(ncol,nk,0:4), &
+    vtgt(ncol,nk,0:4))
   do n = 0, 4
     ttgt(:,:,n) = t0
     qtgt(:,:,n) = q0
+    utgt(:,:,n) = u0
+    vtgt(:,:,n) = v0
   end do
   if ( len_trim(tgtfile) > 0 ) call read_targets
-  u0 = u
-  v0 = v
+  if ( any(col_ocn) ) call init_ocean
   do k = 1, nk
     pmean(k) = sum(pa(:,k))/real(ncol,rkx)
   end do
@@ -295,14 +343,18 @@ program scm_coupled
   write(io,'(a,f8.2,a,f8.3,a,f10.1,a,f8.1,a,f8.3)') '# dt (s) ', dt, &
     '  ndays ', ndays, '  taurelax (s) ', taurelax, '  zrelax (m) ', &
     zrelax, '  dx (km) ', dxkm
+  write(io,'(a,f10.1,a,f8.1,a,f10.1,a,f6.3)') '# tauwtg (s) ', tauwtg, &
+    '  zwtg (m) ', zwtg, '  tauwind (s) ', tauwind, '  windfac ', windfac
+  write(io,'(a,2i3,a,2f8.1)') '# iocnflux izengrough ', iocnflux, &
+    izengrough, '  ocnsw ocnlw (W/m2) ', ocnsw, ocnlw
   write(io,nml=tiedtkeparam)
   write(io,nml=cldparam)
   write(io,nml=holtslagparam)
   write(io,'(a)') '# STEP name time(h) local_hour shf lhf(W/m2) '// &
     'zpbl(m) kpbl hqfac ktype kctop kcbot rainc rainl(mm/day) '// &
-    'rainc_acc rainl_acc(mm)'
+    'rainc_acc rainl_acc(mm) wspd(m/s, lowest level)'
   write(io,'(a)') '# z(m) p(hPa) T(K) q(g/kg) mfu(kg/m2/s) '// &
-    'dTcu dTpbl(K/day) dqcu dqpbl(g/kg/day)'
+    'dTcu dTpbl(K/day) dqcu dqpbl(g/kg/day) omega(Pa/s)'
   write(io,'(a,3i6)') 'NCOL ', ncol, nk, nsteps/nout
 
   do istep = 1, nsteps
@@ -323,6 +375,22 @@ program scm_coupled
       end if
     end do
     call update_derived
+    if ( any(col_ocn) ) call ocean_fluxes
+
+    ! Targets at this time, large scale omega
+    do j = 1, ncol
+      utc = modulo(col_hour(j) - col_lon(j)/15.0_rkx + &
+        time/3600.0_rkx,24.0_rkx)
+      n = min(int(utc/6.0_rkx),3)
+      wt = (utc - 6.0_rkx*real(n,rkx))/6.0_rkx
+      ttg(j,:) = (d_one-wt)*ttgt(j,:,n) + wt*ttgt(j,:,n+1)
+      qtg(j,:) = (d_one-wt)*qtgt(j,:,n) + wt*qtgt(j,:,n+1)
+    end do
+    if ( tauwtg > d_zero ) then
+      call wtg_omega
+    else
+      omls = omega
+    end if
 
     ! Cumulus, on the state at the start of the step
     do j = 1, ncol
@@ -337,7 +405,7 @@ program scm_coupled
     end do
     m2c%tten(:,:,:) = d_zero
     m2c%qxten(:,:,:,:) = d_zero
-    avg_ww(:,1,:) = omega
+    avg_ww(:,1,:) = omls
     cu_prate(:,:) = d_zero
     cu_srate(:,:) = d_zero
     cu_ktop(:,:) = 0
@@ -388,17 +456,41 @@ program scm_coupled
           dtdp = (t(j,k+1)-t(j,k-1))/(pa(j,k+1)-pa(j,k-1))
           dqdp = (q(j,k+1)-q(j,k-1))/(pa(j,k+1)-pa(j,k-1))
         end if
-        tg = (d_one-wt)*ttgt(j,k,n) + wt*ttgt(j,k,n+1)
-        qg = (d_one-wt)*qtgt(j,k,n) + wt*qtgt(j,k,n+1)
+        tg = ttg(j,k)
+        qg = qtg(j,k)
+        ! temperature relaxation, not where the WTG omega acts
+        wr = wrelax(j,k)
+        if ( tauwtg > d_zero .and. za(j,k) >= zwtg .and. &
+             pa(j,k) > 1.0e4_rkx ) wr = d_zero
+        ! inflow of target air where the large scale flow converges
+        dwdp = d_zero
+        if ( tauwtg > d_zero ) then
+          if ( k == nk ) then
+            dwdp = (d_zero-omls(j,k))/(pf(j,nk+1)-pa(j,k))
+          else
+            dwdp = (omls(j,k+1)-omls(j,k))/(pa(j,k+1)-pa(j,k))
+          end if
+          dwdp = max(dwdp,d_zero)
+        end if
         t(j,k) = t(j,k) + dt*(ctt(j,k) + ptt(j,k) + ften(j,k) - &
-          omega(j,k)*(dtdp - rovcp*t(j,k)/pa(j,k)) - &
-          wrelax(j,k)*(t(j,k)-tg))
+          omls(j,k)*(dtdp - rovcp*t(j,k)/pa(j,k)) - &
+          wr*(t(j,k)-tg))
         q(j,k) = max(q(j,k) + dt*(cqt(j,k) + pqt(j,k) + fqen(j,k) - &
-          omega(j,k)*dqdp - wrelax(j,k)*(q(j,k)-qg)),1.0e-8_rkx)
-        u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) + &
-          m2p%coriol(j,1)*(v(j,k)-v0(j,k)))
-        v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
-          m2p%coriol(j,1)*(u(j,k)-u0(j,k)))
+          omls(j,k)*dqdp - wrelax(j,k)*(q(j,k)-qg) + &
+          dwdp*(qg-q(j,k))),1.0e-8_rkx)
+        if ( tauwind > d_zero ) then
+          ug = windfac*((d_one-wt)*utgt(j,k,n) + wt*utgt(j,k,n+1))
+          vg = windfac*((d_one-wt)*vtgt(j,k,n) + wt*vtgt(j,k,n+1))
+          u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) - &
+            (u(j,k)-ug)/tauwind)
+          v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
+            (v(j,k)-vg)/tauwind)
+        else
+          u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) + &
+            m2p%coriol(j,1)*(v(j,k)-v0(j,k)))
+          v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
+            m2p%coriol(j,1)*(u(j,k)-u0(j,k)))
+        end if
       end do
       ! saturation adjustment, the condensate rains out
       rainl(j) = d_zero
@@ -430,16 +522,17 @@ program scm_coupled
         else
           hqfac = 0.8_rkx
         end if
-        write(io,'(a,1x,a,2f9.3,2f9.2,f9.1,i4,f7.3,3i4,4es13.5)') 'STEP', &
-          trim(col_name(j)), time/3600.0_rkx, hour, m2p%hfx(j,1), &
-          m2p%qfx(j,1)*wlhv, zpblj, p2m%kpbl(j,1), hqfac, ktype(j), &
-          cu_ktop(j,1), cu_kbot(j,1), rainc(j)*86400.0_rkx, &
-          rainl(j)*86400.0_rkx, rainc_acc(j), rainl_acc(j)
+        wspd = sqrt(u(j,nk)**2+v(j,nk)**2)
+        write(io,'(a,1x,a,2f9.3,2f9.2,f9.1,i4,f7.3,3i4,4es13.5,f8.3)') &
+          'STEP', trim(col_name(j)), time/3600.0_rkx, hour, &
+          m2p%hfx(j,1), m2p%qfx(j,1)*wlhv, zpblj, p2m%kpbl(j,1), hqfac, &
+          ktype(j), cu_ktop(j,1), cu_kbot(j,1), rainc(j)*86400.0_rkx, &
+          rainl(j)*86400.0_rkx, rainc_acc(j), rainl_acc(j), wspd
         do k = 1, nk
-          write(io,'(f10.2,f10.3,f9.3,7es13.5)') za(j,k), &
+          write(io,'(f10.2,f10.3,f9.3,8es13.5)') za(j,k), &
             pa(j,k)*0.01_rkx, t(j,k), q(j,k)/(d_one+q(j,k))*1.0e3_rkx, &
             mfu(j,k), ctt(j,k)*86400.0_rkx, ptt(j,k)*86400.0_rkx, &
-            cqt(j,k)*8.64e7_rkx, pqt(j,k)*8.64e7_rkx
+            cqt(j,k)*8.64e7_rkx, pqt(j,k)*8.64e7_rkx, omls(j,k)
         end do
       end do
     end if
@@ -461,7 +554,7 @@ program scm_coupled
   subroutine read_targets
     implicit none
     integer(ik4) :: iut, nc, nkt, m, kk
-    real(rkx) :: x1, x2, x3, x4
+    real(rkx) :: x1, x2
     character(len=32) :: cname
     open(newunit=iut,file=tgtfile,status='old',action='read',iostat=ios)
     if ( ios /= 0 ) call scm_error('cannot open '//trim(tgtfile))
@@ -476,7 +569,8 @@ program scm_coupled
       do m = 0, 3
         read(iut,*) cname
         do kk = 1, nk
-          read(iut,*) x1, x2, ttgt(j,kk,m), qtgt(j,kk,m), x3, x4
+          read(iut,*) x1, x2, ttgt(j,kk,m), qtgt(j,kk,m), &
+            utgt(j,kk,m), vtgt(j,kk,m)
           qtgt(j,kk,m) = qtgt(j,kk,m)/(d_one-qtgt(j,kk,m))
         end do
         do kk = 1, nk + 1
@@ -485,9 +579,134 @@ program scm_coupled
       end do
       ttgt(j,:,4) = ttgt(j,:,0)
       qtgt(j,:,4) = qtgt(j,:,0)
+      utgt(j,:,4) = utgt(j,:,0)
+      vtgt(j,:,4) = vtgt(j,:,0)
     end do
     close(iut)
   end subroutine read_targets
+
+  ! Weak temperature gradient omega: above zwtg (ramped to zero between
+  ! 150 and 100 hPa) the omega whose vertical advection relaxes the
+  ! temperature to the target in tauwtg, with the static stability of
+  ! the target; below zwtg linear in height.
+  subroutine wtg_omega
+    implicit none
+    real(rkx) :: ramp
+    do j = 1, ncol
+      omls(j,:) = d_zero
+      kw = 0
+      do k = 1, nk
+        if ( za(j,k) < zwtg .or. pa(j,k) <= 1.0e4_rkx ) cycle
+        if ( k == 1 ) then
+          dtdp = (ttg(j,2)-ttg(j,1))/(pa(j,2)-pa(j,1))
+        else if ( k == nk ) then
+          dtdp = (ttg(j,nk)-ttg(j,nk-1))/(pa(j,nk)-pa(j,nk-1))
+        else
+          dtdp = (ttg(j,k+1)-ttg(j,k-1))/(pa(j,k+1)-pa(j,k-1))
+        end if
+        stab = max(rovcp*ttg(j,k)/pa(j,k) - dtdp,1.0e-4_rkx)
+        ramp = min((pa(j,k)-1.0e4_rkx)/5.0e3_rkx,d_one)
+        omls(j,k) = ramp*(ttg(j,k)-t(j,k))/(tauwtg*stab)
+        kw = k
+      end do
+      if ( kw > 0 ) then
+        do k = kw + 1, nk
+          omls(j,k) = omls(j,kw)*za(j,k)/za(j,kw)
+        end do
+      end if
+    end do
+  end subroutine wtg_omega
+
+  ! Ocean scheme of the model, on the lowest level and the SST
+  subroutine ocean_fluxes
+    implicit none
+    real(rkx) :: shour
+    do j = 1, ncol
+      ht(j) = za(j,nk)
+      usw(j) = sign(d_one,u(j,nk))*max(abs(u(j,nk)),0.001_rkx)
+      vsw(j) = sign(d_one,v(j,nk))*max(abs(v(j,nk)),0.001_rkx)
+      tatm(j) = t(j,nk)
+      qv(j) = q(j,nk)
+      patm(j) = pa(j,nk)
+      sfps(j) = pf(j,nk+1)
+      sfta(j) = tatm(j)*(sfps(j)/patm(j))**rovcp
+      rhox(j) = m2p%rhox2d(j,1)
+      tgb(j) = merge(col_sst(j),sfta(j),col_ocn(j))
+      tgrd(j) = tgb(j)
+      tgbrd(j) = tgb(j)
+      hpbl(j) = p2m%zpbl(j,1)
+      shour = modulo(col_hour(j) + time/3600.0_rkx,24.0_rkx)
+      rswf(j) = ocnsw*mathpi* &
+        max(sin(mathpi*(shour-6.0_rkx)/12.0_rkx),d_zero)
+      rlwf(j) = ocnlw
+      um10(j) = sqrt(usw(j)**2+vsw(j)**2)
+    end do
+    select case ( iocnflux )
+      case (1)
+        call zengocndrv
+      case (2)
+        call coare3_drv
+      case default
+        call scm_error('iocnflux must be 0, 1 or 2')
+    end select
+    do j = 1, ncol
+      if ( .not. col_ocn(j) ) cycle
+      m2p%hfx(j,1) = sent(j)
+      m2p%qfx(j,1) = evpr(j)
+      m2p%uvdrag(j,1) = drag(j)
+      m2p%tg(j,1) = tgb(j)
+      ustar(j) = ustr(j)
+    end do
+  end subroutine ocean_fluxes
+
+  subroutine init_ocean
+    implicit none
+    nocnp = ncol
+    iocnbeg = 1
+    iocnend = ncol
+    iwavcpl = 0
+    dtocn = dt
+    ldcsst = .false.
+    llake = .false.
+    lseaice = .false.
+    call getmem(mask,1,ncol,'scm:mask')
+    call getmem(icpl,1,ncol,'scm:icpl')
+    call getmem(ht,1,ncol,'scm:ht')
+    call getmem(usw,1,ncol,'scm:usw')
+    call getmem(vsw,1,ncol,'scm:vsw')
+    call getmem(tatm,1,ncol,'scm:tatm')
+    call getmem(qv,1,ncol,'scm:qv')
+    call getmem(patm,1,ncol,'scm:patm')
+    call getmem(sfps,1,ncol,'scm:sfps')
+    call getmem(sfta,1,ncol,'scm:sfta')
+    call getmem(tgb,1,ncol,'scm:tgb')
+    call getmem(tgrd,1,ncol,'scm:tgrd')
+    call getmem(tgbrd,1,ncol,'scm:tgbrd')
+    call getmem(hpbl,1,ncol,'scm:hpbl')
+    call getmem(rswf,1,ncol,'scm:rswf')
+    call getmem(rlwf,1,ncol,'scm:rlwf')
+    call getmem(rhox,1,ncol,'scm:rhox')
+    call getmem(um10,1,ncol,'scm:um10')
+    call getmem(sent,1,ncol,'scm:sent')
+    call getmem(evpr,1,ncol,'scm:evpr')
+    call getmem(drag,1,ncol,'scm:drag')
+    call getmem(ustr,1,ncol,'scm:ustr')
+    call getmem(zoo,1,ncol,'scm:zoo')
+    call getmem(taux,1,ncol,'scm:taux')
+    call getmem(tauy,1,ncol,'scm:tauy')
+    call getmem(u10m,1,ncol,'scm:u10m')
+    call getmem(v10m,1,ncol,'scm:v10m')
+    call getmem(t2m,1,ncol,'scm:t2m')
+    call getmem(q2m,1,ncol,'scm:q2m')
+    call getmem(rhoa,1,ncol,'scm:rhoa')
+    call getmem(ram1,1,ncol,'scm:ram1')
+    call getmem(rah1,1,ncol,'scm:rah1')
+    call getmem(br,1,ncol,'scm:br')
+    call getmem(sfice,1,ncol,'scm:sfice')
+    mask(:) = 1
+    icpl(:) = 0
+    sfice(:) = d_zero
+  end subroutine init_ocean
 
   ! A 1 x n grid: every index range of the model domain is 1:n x 1:1
   subroutine set_grid(n)

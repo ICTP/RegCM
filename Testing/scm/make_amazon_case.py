@@ -12,13 +12,18 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # Build the initial profiles and forcing of the coupled single column
-# test (scm_coupled) for land boxes: the monthly mean ERA5 state at one
-# 6-hourly time, averaged over the land points of a box.
+# test (scm_coupled): the monthly mean ERA5 state at one 6-hourly time,
+# averaged over the land points (--case amazon) or the ocean points
+# (--case itcz) of a box.
 #
-# Usage: make_amazon_case.py [--era5 DIR] [--month YYYY-MM] [--hour H]
-#                            [--qr K/day] [-o FILE]
+# Usage: make_amazon_case.py [--case amazon|itcz] [--era5 DIR]
+#                            [--month YYYY-MM] [--hour H] [--qr K/day]
+#                            [-o FILE]
 #
-# Columns: NW Amazon (5S-5N, 75-60W) and S Amazon (12-5S, 65-50W).
+# Columns, amazon: NW Amazon (5S-5N, 75-60W) and S Amazon (12-5S,
+# 65-50W); itcz: Atlantic ITCZ (2-10N, 45-25W) and South Atlantic
+# trades (25-5S, 30-10W). Ocean columns carry the monthly mean SST
+# (ERA5 daily SST), used by the ocean scheme in scm_coupled.
 # Vertical grid: the 32 MOLOCH levels of the RegCM South America test, on
 # the box mean orography; T, q, u, v interpolated in height from the
 # ERA5 pressure levels, below the lowest one above the ground a well
@@ -29,11 +34,11 @@
 #           200 hPa, going to zero at 100 hPa
 #   qten    zero
 # Surface fluxes: ERA5 monthly means over the box (scm_coupled applies a
-# half sine diurnal cycle). The ERA5 hourly total and convective rain,
-# and CAPE, of the box by local hour are written to FILE_era5.txt for
-# scm_coupled.py. The box mean profiles at 0, 6, 12 and 18 UTC, the
-# relaxation targets of scm_coupled (tgtfile), are written to
-# FILE_target.txt.
+# half sine diurnal cycle on land). The ERA5 hourly total and
+# convective rain, CAPE and 10 m wind speed of the box by local hour are
+# written to FILE_era5.txt for scm_coupled.py. The box mean profiles
+# at 0, 6, 12 and 18 UTC, the relaxation targets of scm_coupled
+# (tgtfile), are written to FILE_target.txt.
 
 import argparse
 import datetime as dt
@@ -42,8 +47,12 @@ import numpy as np
 import netCDF4 as nc
 from make_profiles import A, B, RD, CP, G, EPS
 
-BOXES = [('NW_Amazon', -5.0, 5.0, -75.0, -60.0),
-         ('S_Amazon', -12.0, -5.0, -65.0, -50.0)]
+CASES = {
+    'amazon': [('NW_Amazon', -5.0, 5.0, -75.0, -60.0, 1),
+               ('S_Amazon', -12.0, -5.0, -65.0, -50.0, 1)],
+    'itcz': [('Atl_ITCZ', 2.0, 10.0, -45.0, -25.0, 0),
+             ('S_Atl_trades', -25.0, -5.0, -30.0, -10.0, 0)],
+}
 
 
 def boxsel(ds, la0, la1, lo0, lo1):
@@ -59,7 +68,7 @@ def f8(x):
     return np.asarray(np.ma.filled(x, np.nan), float)
 
 
-def column(era, month, hour, qr, name, la0, la1, lo0, lo1):
+def column(era, month, hour, qr, name, la0, la1, lo0, lo1, island):
     ym = month.strftime('%Y_%m')
     d6 = lambda v: nc.Dataset('%s/%04d/%s_%s.nc' % (era, month.year, v, ym))
     dm = lambda v: nc.Dataset('%s/monthly/%04d/%s_%s.nc' %
@@ -68,6 +77,8 @@ def column(era, month, hour, qr, name, la0, la1, lo0, lo1):
     lsm = nc.Dataset('%s/fixed/landmask.nc' % era)
     js, is_ = boxsel(lsm, la0, la1, lo0, lo1)
     land = f8(lsm['lsm'][..., js, is_]).squeeze() > 0.5
+    if not island:
+        land = ~land
     oro = f8(nc.Dataset('%s/fixed/orography_m.nc' % era)['z'][..., js, is_]
              ).squeeze()
 
@@ -94,6 +105,10 @@ def column(era, month, hour, qr, name, la0, la1, lo0, lo1):
     lh = -float(bmean(f8(dm('lflx')['slhf'][..., js, is_]).squeeze())) \
         / 86400.0
     sh = -float(bmean(f8(dm('sflx')['ishf'][..., js, is_]).squeeze()))
+    sst = 0.0
+    if not island:
+        ds = nc.Dataset('%s/SSTD/sst_%s.nc' % (era, ym))
+        sst = float(np.nanmean(bmean(f8(ds['sst'][:, js, is_]))))
     # ERA5 hourly rain and CAPE by local hour (box centre longitude)
     lon = 0.5 * (lo0 + lo1)
     ref = {}
@@ -107,6 +122,12 @@ def column(era, month, hour, qr, name, la0, la1, lo0, lo1):
         if vn == 'pr':
             lst = (lst - 0.5) % 24.0
         ref[vn] = np.array([np.nanmean(x[np.floor(lst) == h] * fac)
+                           for h in range(24)])
+    du, dv = dh('u10'), dh('v10')
+    x = bmean(np.hypot(f8(du['u10'][:, js, is_]), f8(dv['v10'][:, js, is_])))
+    tt = nc.num2date(du['valid_time'][:], du['valid_time'].units)
+    lst = np.array([(y.hour + lon / 15.0) % 24.0 for y in tt])
+    ref['u10'] = np.array([np.nanmean(x[np.floor(lst) == h])
                            for h in range(24)])
     # model levels above the ground, top first; well mixed layer below
     # the lowest ERA5 level above the ground
@@ -138,7 +159,8 @@ def column(era, month, hour, qr, name, la0, la1, lo0, lo1):
     tten = np.where(pf >= 2.0e4, qr,
                     qr * np.clip((pf - 1.0e4) / 1.0e4, 0.0, 1.0)) / 86400.0
     when = dt.datetime(month.year, month.month, 1, hour)
-    return dict(name=name, lat=0.5 * (la0 + la1), lon=lon, land=1,
+    return dict(name=name, lat=0.5 * (la0 + la1), lon=lon, land=island,
+                sst=sst,
                 when=when.strftime('%Y%m%d%H'), ps=ps, sh=sh, lh=lh,
                 topo=topo, zf=zf, pf=pf, T=Tm, q=qm, u=um, v=vm, om=omm,
                 tten=tten, zh=zh, ph=ph, ref=ref)
@@ -147,14 +169,18 @@ def column(era, month, hour, qr, name, la0, la1, lo0, lo1):
 def main():
     ap = argparse.ArgumentParser(
         description='Coupled single column test case from ERA5 box means')
+    ap.add_argument('--case', choices=sorted(CASES), default='amazon')
     ap.add_argument('--era5', default='/home/clima-archive5/ERA5')
     ap.add_argument('--month', default='2023-09')
     ap.add_argument('--hour', type=int, default=12,
                     help='UTC hour of the initial state (default 12)')
     ap.add_argument('--qr', type=float, default=-1.5,
                     help='radiative heating, K/day (default -1.5)')
-    ap.add_argument('-o', '--output', default='scm_amazon.txt')
+    ap.add_argument('-o', '--output', help='default scm_CASE.txt')
     a = ap.parse_args()
+    BOXES = CASES[a.case]
+    if not a.output:
+        a.output = 'scm_%s.txt' % a.case
     month = dt.datetime.strptime(a.month, '%Y-%m')
     cols = [column(a.era5, month, a.hour, a.qr, *b) for b in BOXES]
     write(a.output, cols, 'ERA5 %s box means at %02d UTC' %
@@ -167,18 +193,19 @@ def main():
     ref = os.path.splitext(a.output)[0] + '_era5.txt'
     with open(ref, 'w') as f:
         f.write('# ERA5 %s box means by local hour: total rain, '
-                'convective rain (mm/day), CAPE (J/kg)\n' % a.month)
+                'convective rain (mm/day), CAPE (J/kg), 10 m wind speed '
+                '(m/s)\n' % a.month)
         for c in cols:
             for h in range(24):
-                f.write('%s %2d %8.3f %8.3f %8.1f\n' % (
+                f.write('%s %2d %8.3f %8.3f %8.1f %6.2f\n' % (
                     c['name'], h, c['ref']['pr'][h], c['ref']['prc'][h],
-                    c['ref']['cape'][h]))
+                    c['ref']['cape'][h], c['ref']['u10'][h]))
     for c in cols:
-        print('%-10s ps %7.1f topo %5.0f SH %6.1f LH %6.1f ERA5 rain '
-              '%5.2f conv %5.2f mm/day CAPE max %5.0f' % (
-                  c['name'], c['ps'] / 100, c['topo'], c['sh'], c['lh'],
-                  c['ref']['pr'].mean(), c['ref']['prc'].mean(),
-                  c['ref']['cape'].max()))
+        print('%-12s ps %7.1f topo %5.0f SST %6.2f SH %6.1f LH %6.1f ERA5 '
+              'rain %5.2f conv %5.2f mm/day CAPE max %5.0f U10 %5.2f' % (
+                  c['name'], c['ps'] / 100, c['topo'], c['sst'], c['sh'],
+                  c['lh'], c['ref']['pr'].mean(), c['ref']['prc'].mean(),
+                  c['ref']['cape'].max(), c['ref']['u10'].mean()))
 
 
 def write(fname, cols, title):
@@ -188,16 +215,17 @@ def write(fname, cols, title):
                 'make_amazon_case.py\n' % title)
         f.write('# per column: name lat lon land date ps(Pa) shf lhf '
                 '(W/m2, daily mean) zpbl cape conv_rain (unused) '
-                'orography(m)\n')
+                'orography(m) sst(K, 0 for land)\n')
         f.write('# then kz lines top to bottom: z(m above ground) p(Pa) '
                 'T(K) q(kg/kg) u v(m/s) omega(Pa/s) tten(K/s) '
                 'qten(kg/kg/s)\n')
         f.write('# then kz+1 half levels: z(m above ground) p(Pa)\n')
         f.write('%d %d\n' % (len(cols), kz))
         for c in cols:
-            f.write('%s %.2f %.2f %d %s %.2f %.3f %.3f %.1f %.1f %.3f %.1f\n'
-                    % (c['name'], c['lat'], c['lon'], c['land'], c['when'],
-                       c['ps'], c['sh'], c['lh'], 0.0, 0.0, 0.0, c['topo']))
+            f.write('%s %.2f %.2f %d %s %.2f %.3f %.3f %.1f %.1f %.3f %.1f '
+                    '%.2f\n' % (c['name'], c['lat'], c['lon'], c['land'],
+                               c['when'], c['ps'], c['sh'], c['lh'], 0.0,
+                               0.0, 0.0, c['topo'], c['sst']))
             for k in range(kz):
                 f.write('%10.2f %10.2f %8.3f %12.5e %8.3f %8.3f %12.5e '
                         '%12.5e 0.0\n' % (

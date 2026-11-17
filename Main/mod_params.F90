@@ -1064,11 +1064,11 @@ module mod_params
       end if
 
       if ( ichem == 1 ) then
-        !if ( iclimaaer == 1 ) then
-        !  write(stderr,*) 'Cannot define both ichem and iclimaaer'
-        !  call fatal(__FILE__,__LINE__, &
-        !             'INPUT NAMELIST INCONSISTENT AEROSOLS')
-        !end if
+        if ( iclimaaer > 0 ) then
+          write(stderr,*) 'Cannot define both ichem and iclimaaer'
+          call fatal(__FILE__,__LINE__, &
+                     'INPUT NAMELIST INCONSISTENT AEROSOLS')
+        end if
         rewind(ipunit)
         read (ipunit, chemparam, iostat=iretval, err=118)
         if ( iretval /= 0 ) then

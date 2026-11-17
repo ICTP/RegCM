@@ -1,9 +1,9 @@
 # RegCM coupled single column test case, ERA5 2023-09 box means at 12 UTC, built by make_amazon_case.py
-# per column: name lat lon land date ps(Pa) shf lhf (W/m2, daily mean) zpbl cape conv_rain (unused) orography(m)
+# per column: name lat lon land date ps(Pa) shf lhf (W/m2, daily mean) zpbl cape conv_rain (unused) orography(m) sst(K, 0 for land)
 # then kz lines top to bottom: z(m above ground) p(Pa) T(K) q(kg/kg) u v(m/s) omega(Pa/s) tten(K/s) qten(kg/kg/s)
 # then kz+1 half levels: z(m above ground) p(Pa)
 2 32
-NW_Amazon 0.00 -67.50 1 2023090112 98845.35 38.400 119.669 0.0 0.0 0.000 214.8
+NW_Amazon 0.00 -67.50 1 2023090112 98845.35 38.400 119.669 0.0 0.0 0.000 214.8 0.00
   28036.89    1523.78  223.632  2.88906e-06  -33.509    0.776 -1.77718e-04 -0.00000e+00 0.0
   24834.10    2471.08  216.091  2.76963e-06  -25.199    0.315 -1.90275e-04 -0.00000e+00 0.0
   21986.76    3904.55  209.941  2.71946e-06   -5.675   -0.058  7.10465e-06 -0.00000e+00 0.0
@@ -69,7 +69,7 @@ NW_Amazon 0.00 -67.50 1 2023090112 98845.35 38.400 119.669 0.0 0.0 0.000 214.8
     189.85   96744.54
      90.46   97839.91
       0.00   98845.35
-S_Amazon -8.50 -57.50 1 2023090112 98778.18 54.382 93.584 0.0 0.0 0.000 221.5
+S_Amazon -8.50 -57.50 1 2023090112 98778.18 54.382 93.584 0.0 0.0 0.000 221.5 0.00
   28030.22    1529.92  223.331  2.89049e-06  -27.206    0.294 -1.56710e-04 -0.00000e+00 0.0
   24827.48    2480.14  216.815  2.79209e-06  -21.419    0.422 -2.25679e-04 -0.00000e+00 0.0
   21980.21    3910.01  211.445  2.72207e-06   -5.414   -0.422 -1.72547e-04 -0.00000e+00 0.0

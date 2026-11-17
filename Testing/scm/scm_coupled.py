@@ -51,7 +51,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # namelist group of every parameter the program reads
 GROUPS = {
     'scmparam': ['dtstep', 'ndays', 'nout', 'dxkm', 'taurelax', 'zrelax',
-                 'tgtfile'],
+                 'tgtfile', 'tauwtg', 'zwtg', 'tauwind', 'windfac',
+                 'iocnflux', 'izengrough', 'ocnsw', 'ocnlw'],
     'tiedtkeparam': [
         'entrdd', 'entrpen_lnd', 'entrpen_ocn', 'detrpen_lnd',
         'detrpen_ocn', 'entshalp', 'rcuc_lnd', 'rcuc_ocn', 'rcpec_lnd',
@@ -67,10 +68,10 @@ GROUP_OF = {v: g for g, vs in GROUPS.items() for v in vs}
 
 STEP_FIELDS = ['time', 'hour', 'shf', 'lhf', 'zpbl', 'kpbl', 'hqfac',
                'ktype', 'kctop', 'kcbot', 'rainc', 'rainl', 'rainc_acc',
-               'rainl_acc']
+               'rainl_acc', 'wspd']
 INT_FIELDS = ('kpbl', 'ktype', 'kctop', 'kcbot')
 LEVEL_FIELDS = ['z', 'p', 'T', 'q', 'mfu', 'dTcu', 'dTpbl', 'dqcu',
-                'dqpbl']
+                'dqpbl', 'omega']
 
 
 def find_exe(exe):
@@ -98,8 +99,8 @@ def write_namelist(path, settings, infile, outfile):
     groups = {g: {} for g in GROUPS}
     groups['scmparam']['infile'] = "'%s'" % infile
     groups['scmparam']['outfile'] = "'%s'" % outfile
-    groups['scmparam']['tgtfile'] = "'%s'" % os.path.join(
-        os.path.dirname(infile), 'scm_amazon_target.txt')
+    groups['scmparam']['tgtfile'] = "'%s'" % (
+        os.path.splitext(infile)[0] + '_target.txt')
     groups['scmparam']['ndays'] = '30.0'
     for k, v in settings.items():
         if k not in GROUP_OF:
@@ -137,6 +138,7 @@ def parse_output(path):
 
 
 def read_era5(path):
+    """column name -> {'pr': rain by local hour, 'u10': 10 m wind}"""
     ref = {}
     if not os.path.isfile(path):
         return ref
@@ -145,8 +147,34 @@ def read_era5(path):
             if line.startswith('#'):
                 continue
             w = line.split()
-            ref.setdefault(w[0], [0.0] * 24)[int(w[1])] = float(w[2])
+            r = ref.setdefault(w[0], {'pr': [0.0] * 24, 'u10': None})
+            r['pr'][int(w[1])] = float(w[2])
+            if len(w) > 5:
+                if r['u10'] is None:
+                    r['u10'] = [0.0] * 24
+                r['u10'][int(w[1])] = float(w[5])
     return ref
+
+
+def read_profiles(path):
+    """column name -> daily mean fluxes, SST, input omega profile"""
+    cols = {}
+    with open(path) as f:
+        lines = [x for x in f.read().splitlines() if not x.startswith('#')]
+    ncol, nk = (int(x) for x in lines[0].split()[:2])
+    i = 1
+    for _ in range(ncol):
+        w = lines[i].split()
+        c = {'shf': float(w[6]), 'lhf': float(w[7]),
+             'sst': float(w[12]) if len(w) > 12 else 0.0,
+             'p': [], 'omega': []}
+        for k in range(nk):
+            v = lines[i + 1 + k].split()
+            c['p'].append(float(v[1]) / 100.0)
+            c['omega'].append(float(v[6]))
+        cols[w[0]] = c
+        i += 2 * nk + 2
+    return cols
 
 
 def run(exe, settings, profiles, keep=None):
@@ -165,7 +193,7 @@ def mean(x):
     return sum(x) / len(x) if x else float('nan')
 
 
-def summary(cols, era5, title=None):
+def summary(cols, era5, prof=None, title=None):
     if title:
         print(title)
     for name, steps in cols.items():
@@ -191,15 +219,39 @@ def summary(cols, era5, title=None):
               'ERA5 %s; deep %2.0f%% shallow %2.0f%% mid %2.0f%%; max '
               'mean zpbl %4.0f m' % (
                   name, rain, sd, mean([s['rainl'] for s in sel]),
-                  '%4.2f' % mean(era5[name]) if name in era5 else '-',
+                  '%4.2f' % mean(era5[name]['pr']) if name in era5 else '-',
                   freq[0], freq[1], freq[2], zpbl))
         print('  local hour ' + ' '.join('%5d' % h for h in range(0, 24, 2)))
         print('  SCM        ' + ' '.join(
             '%5.1f' % mean(diur[h] + diur[h + 1]) for h in range(0, 24, 2)))
         if name in era5:
             print('  ERA5       ' + ' '.join(
-                '%5.1f' % mean(era5[name][h:h + 2])
+                '%5.1f' % mean(era5[name]['pr'][h:h + 2])
                 for h in range(0, 24, 2)))
+        pc = (prof or {}).get(name)
+        if 'wspd' in sel[0]:
+            u10 = era5.get(name, {}).get('u10')
+            print('  surface    SH %5.1f LH %6.1f W/m2, lowest level wind '
+                  '%5.2f m/s; ERA5 SH %s LH %s U10 %s' % (
+                      mean([s['shf'] for s in sel]),
+                      mean([s['lhf'] for s in sel]),
+                      mean([s['wspd'] for s in sel]),
+                      '%5.1f' % pc['shf'] if pc else '-',
+                      '%6.1f' % pc['lhf'] if pc else '-',
+                      '%5.2f' % mean(u10) if u10 else '-'))
+        if 'omega' in sel[0]['levels'] and sel[0]['levels']['omega']:
+            p = sel[0]['levels']['p']
+            out = []
+            for pl in (850.0, 700.0, 500.0, 300.0):
+                k = min(range(len(p)), key=lambda i: abs(p[i] - pl))
+                w = mean([s['levels']['omega'][k] for s in sel])
+                ref = '-'
+                if pc:
+                    kk = min(range(len(pc['p'])),
+                             key=lambda i: abs(pc['p'][i] - pl))
+                    ref = '%6.3f' % pc['omega'][kk]
+                out.append('%3.0f: %6.3f (%s)' % (pl, w, ref))
+            print('  omega Pa/s (input) ' + '  '.join(out))
 
 
 def compare(test, ref, rtol, atol_frac):
@@ -215,6 +267,8 @@ def compare(test, ref, rtol, atol_frac):
         for sa, sb in zip(a[name], b[name]):
             where = '%s %.2f h' % (name, sb['time'])
             for n in STEP_FIELDS:
+                if n not in sa or n not in sb:
+                    continue
                 u, v = sa[n], sb[n]
                 if n in INT_FIELDS:
                     if u != v:
@@ -224,6 +278,8 @@ def compare(test, ref, rtol, atol_frac):
                     fails.append('%s %s %g != %g' % (where, n, u, v))
             for n in LEVEL_FIELDS:
                 xa, xb = sa['levels'][n], sb['levels'][n]
+                if not xa or not xb:
+                    continue
                 scale = max(abs(x) for x in xb)
                 for k, (u, v) in enumerate(zip(xa, xb)):
                     if abs(u - v) > rtol * abs(v) + atol_frac * scale + \
@@ -275,20 +331,21 @@ def main():
     exe = find_exe(a.exe)
     era5 = read_era5(a.era5 or os.path.splitext(a.profiles)[0] +
                      '_era5.txt')
+    prof = read_profiles(a.profiles)
     settings = dict(s.split('=', 1) for s in a.set)
     if a.sweep:
         name, values = a.sweep.split('=', 1)
         for v in values.split(','):
             s = dict(settings); s[name] = v
             (_, cols), _, work = run(exe, s, a.profiles)
-            summary(cols, era5, '\n== %s = %s' % (name, v))
+            summary(cols, era5, prof, '\n== %s = %s' % (name, v))
             shutil.rmtree(work, ignore_errors=True)
         return
     (header, cols), out, work = run(exe, settings, a.profiles, a.keep)
     if a.list:
         print('\n'.join(header))
     else:
-        summary(cols, era5)
+        summary(cols, era5, prof)
     status = 0
     if a.compare:
         fails = compare(out, a.compare, a.rtol, a.atol)
