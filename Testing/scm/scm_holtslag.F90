@@ -59,7 +59,7 @@ program scm_holtslag
 
   namelist /scmparam/ infile, outfile, dtpbl, nsteps
   namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl
+    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop
 
   ! Defaults: as in Main/mod_params.F90
   infile = 'scm_profiles.txt'
@@ -74,6 +74,7 @@ program scm_holtslag
   holtth10iter = 1
   lmoistn2 = .false.
   maxprandtl = 1.0_rkx
+  lsctop = .false.
 
   nmlfile = 'scm_holtslag.in'
   if ( command_argument_count( ) > 0 ) call get_command_argument(1,nmlfile)
@@ -281,6 +282,8 @@ program scm_holtslag
   subroutine allocate_m2p
     implicit none
     call getmem(m2p%za,1,ncol,1,1,1,nk,'scm:za')
+    call getmem(m2p%heatrt,1,ncol,1,1,1,nk,'scm:pheatrt')
+    m2p%heatrt(:,:,:) = d_zero
     call getmem(m2p%patm,1,ncol,1,1,1,nk,'scm:patm')
     call getmem(m2p%patmf,1,ncol,1,1,1,nk+1,'scm:patmf')
     call getmem(m2p%tatm,1,ncol,1,1,1,nk,'scm:tatm')

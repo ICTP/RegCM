@@ -23,8 +23,8 @@ integration with prescribed large scale forcing.
         \verb=scm_gate_check.txt=, \verb=scm_gate_check_obs.txt=: the
         GATE subset of the regression test;
   \item \verb=scm_coupled.F90=, \verb=scm_coupled.py=: the driver of the
-        Tiedtke, Holtslag and NoTo schemes integrated together, and its
-        wrapper;
+        Tiedtke, Holtslag, NoTo and CCM radiation schemes integrated
+        together, and its wrapper;
         \verb=scm_amazon.txt=, \verb=scm_amazon_target.txt=,
         \verb=scm_amazon_era5.txt=: the Amazon case (initial profiles,
         relaxation targets, ERA5 rain and wind by local hour);
@@ -205,11 +205,12 @@ runs the soundings 1, 21, \ldots, 141 with the \code{advrad} forcing.
 
 \section{The coupled driver}
 
-\verb=scm_coupled.F90= integrates the Tiedtke, NoTo and Holtslag schemes
-together in time, with the grid layout, configuration and allocations of
-the single scheme drivers. Every time step \code{dtstep} (default
-300~s) the schemes are called through \code{tiedtkedrv},
-\code{subex\_cldfrac} and \code{nogtom}, and \code{holtbl}, on the same
+\verb=scm_coupled.F90= integrates the Tiedtke, NoTo, radiation and
+Holtslag schemes together in time, with the grid layout, configuration
+and allocations of the single scheme drivers. Every time step
+\code{dtstep} (default 300~s) the schemes are called through
+\code{tiedtkedrv}, \code{subex\_cldfrac} and \code{nogtom},
+\code{colmod3} (every \code{dtrad}) and \code{holtbl}, on the same
 state and in this order, as the MOLOCH core calls them: the
 cumulus scheme gets zero input tendencies, the PBL height of the previous
 call of the boundary layer scheme and the friction velocity of the
@@ -217,7 +218,9 @@ surface (neutral log law over land, ocean scheme over the ocean). The state is a
 schemes and of the large scale forcing:
 \begin{itemize}
   \item the input tendencies of the profile file (radiative heating,
-        horizontal advection), held fixed;
+        horizontal advection), held fixed; with the model radiation
+        (\code{irad} = 1, default) the temperature tendency is replaced
+        by its heating rate;
   \item the vertical advection by the large scale $\omega$,
         $-\omega\,(\partial T/\partial p - R\,T/(c_p\,p))$ and
         $-\omega\,\partial q/\partial p$, with centred differences on the
@@ -293,15 +296,41 @@ where it is detrained (heating
 $\partial T/\partial t - (L_v\,\partial q_c/\partial t +
 L_s\,\partial q_i/\partial t)/c_p$), and supersaturation is removed by a
 saturation adjustment with the functions of \verb=saturation.inc=, the
-condensate falling out as large scale rain. The pressure of the levels
-is held fixed.
+condensate falling out as large scale rain. The cloud water and ice of
+NoTo are also the condensate seen by the cumulus and boundary layer
+schemes, and the vertical diffusion of the latter is applied to them.
+
+The radiation (\code{irad} = 1) is the CCM scheme of the model
+(\code{irrtm} = 0) called through \code{colmod3} every \code{dtrad}
+(1800~s), the absorptivities and emissivities being computed every
+\code{dtabem} (64800~s); the heating rate is held between calls. The
+allocations are the ones of \code{allocate\_radiation}. The sun position
+is the one of the time of the step, with the orbit (\code{orb\_params},
+\code{orb\_decl}, \code{orb\_cosz}) of the year of the case and a solar
+constant of 1368.22~W~m$^{-2}$ (\code{isolconst} = 1); the greenhouse
+gases are those of the built in table of \code{scenario} (default
+RCP4.5, no data file), the ozone the built in profile of \code{o3data}
+(\code{iclimao3} = 0), there are no aerosols. The clouds are those of
+\code{cucloud} and \code{cldfrac} of the model with a cumulus scheme
+(\code{iconvlwp} = 0): the convective cloud of Tiedtke, at most
+\code{clfrcvmax}, overlapped with the NoTo cloud, with the in cloud water
+of both and the scaling of Liang (2005). The surface albedo over the
+ocean is the one of the model with \code{iwhitecap} = 0,
+$0.05/(\cos\zeta+0.15)$ for the direct and 0.08 for the diffuse
+radiation, over land \code{albland} (0.13); the emissivity is 0.98 over
+the ocean and 0.96 over land, the ground temperature the SST or the one
+of the boundary layer input. The heating rate is also the radiative
+heating of NoTo, and the net surface radiation replaces \code{ocnsw} and
+\code{ocnlw} for the ocean scheme. The pressure of the levels is held
+fixed.
 
 The namelist has a \code{scmparam} group (\code{infile},
 \code{outfile}, \code{tgtfile}, \code{dtstep}, \code{ndays},
 \code{nout}, \code{dxkm}, \code{taurelax}, \code{zrelax},
 \code{tauwtg}, \code{zwtg}, \code{tauwind}, \code{windfac},
 \code{iocnflux}, \code{izengrough}, \code{ocnsw}, \code{ocnlw},
-\code{lnoto}) and the model groups \code{tiedtkeparam},
+\code{lnoto}, \code{irad}, \code{dtrad}, \code{dtabem},
+\code{albland}, \code{scenario}) and the model groups \code{tiedtkeparam},
 \code{cldparam}, \code{holtslagparam} and \code{microparam}. Every \code{nout} steps (default one hour)
 the output has per column a \verb=STEP= line (time, local hour, surface
 fluxes, PBL height and top level, the moisture factor of the eddy
@@ -311,7 +340,8 @@ accumulations, wind speed of the lowest level) and one line per level:
 height, pressure, temperature, specific humidity, updraft mass flux, the
 temperature and humidity tendencies of the cumulus and boundary layer
 schemes, the large scale $\omega$, the temperature and humidity
-tendencies of NoTo, cloud water plus ice and the cloud fraction.
+tendencies of NoTo, cloud water plus ice, the cloud fraction seen by the
+radiation and the radiative heating rate.
 
 \section{Amazon and ITCZ cases}
 
@@ -438,7 +468,9 @@ and returns a non zero exit status if any is found.
 top level) builds the drivers, linking the model libraries
 \verb=Main/cumlib/libcum.a=, \verb=Main/pbllib/libpbl.a=,
 \verb=Main/ocnlib/libocn.a=, \verb=Main/microlib/libmicro.a=,
-\verb=Main/cloudlib/libcloud.a= and \verb=Main/mpplib/libmpp.a= with the
+\verb=Main/cloudlib/libcloud.a=, \verb=Main/radlib/librad.a= with
+\verb=Main/radlib/RRTMG/librrtmg.a= and \verb=external/libaerosol.a=,
+and \verb=Main/mpplib/libmpp.a= with the
 \verb=Share= library, and runs \verb=run_scm_tests.sh=. For each scheme the
 script writes a namelist with the default settings, runs the program in
 \verb=scm_output/<scheme>= (or \code{SCM\_OUTDIR}) and, if \code{python3}

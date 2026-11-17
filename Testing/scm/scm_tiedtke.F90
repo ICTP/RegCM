@@ -66,8 +66,8 @@ program scm_tiedtke
   outfile = 'scm_tiedtke.out'
   dtcum = 300.0_rkx
   dxkm = 25.0_rkx
-  entrpen_lnd = 1.75e-3_rkx
-  entrpen_ocn = 1.75e-3_rkx
+  entrpen_lnd = 0.5e-3_rkx
+  entrpen_ocn = 0.5e-3_rkx
   detrpen_lnd = 0.75e-4_rkx
   detrpen_ocn = 0.75e-4_rkx
   entrdd = 3.0e-4_rkx

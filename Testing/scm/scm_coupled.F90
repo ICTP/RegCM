@@ -14,19 +14,20 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ! Single column test of the Holtslag boundary layer (ibltyp = 1), the
-! Tiedtke cumulus (icup = 5) and the NoTo microphysics (ipptls = 2)
-! schemes integrated together in time.
+! Tiedtke cumulus (icup = 5), the NoTo microphysics (ipptls = 2) and the
+! CCM radiation (irrtm = 0) schemes integrated together in time.
 !
 ! Usage: scm_coupled [namelist file]       (default: scm_coupled.in)
 !
 ! The columns of the profile file are laid out as a 1 x ncol grid. Every
 ! time step the schemes are called through their model entry points,
-! tiedtkedrv, subex_cldfrac (icldfrac = 0) and nogtom, holtbl, on the
-! same state, as the MOLOCH core does (idynamic = 3, no chemistry), and
-! the state is advanced with the sum of their tendencies and of the
-! large scale forcing:
+! tiedtkedrv, subex_cldfrac (icldfrac = 0) and nogtom, colmod3 (every
+! dtrad), holtbl, on the same state, as the MOLOCH core does (idynamic
+! = 3, no chemistry), and the state is advanced with the sum of their
+! tendencies and of the large scale forcing:
 !   - the input tendencies of the profile file (tten, qten: radiative
-!     heating and horizontal advection), held fixed;
+!     heating and horizontal advection), held fixed; with the model
+!     radiation (irad = 1, default) tten is replaced by its heating;
 !   - the vertical advection by the omega of the profile file, computed
 !     on the current state, which is also the omega seen by the cumulus
 !     scheme;
@@ -46,6 +47,8 @@
 ! linear in height from zero at the ground to its value at zwtg; there
 ! the temperature is not relaxed. The convergence of the large scale
 ! flow (d omega / dp > 0) brings in air with the target humidity.
+! The omega of the profile file is multiplied by omfac (default 1; 0
+! for radiative convective equilibrium, with taurelax very large).
 ! The winds relax to the target winds (or the initial ones), times
 ! windfac, with time scale tauwind; with tauwind = 0 (default) the
 ! Coriolis force turns them around the initial winds times windfac.
@@ -66,7 +69,20 @@
 ! the large scale flow) and gives the large scale rain. With lnoto =
 ! .false. the detrained condensate evaporates in the layer where it is
 ! detrained and supersaturation is removed by a saturation adjustment
-! that rains out. The pressure of the levels is held fixed.
+! that rains out. The cloud water and ice of NoTo are also seen by the
+! cumulus and boundary layer schemes, and diffused by the latter.
+! Radiation (irad = 1): the CCM scheme of the model through colmod3,
+! every dtrad (1800 s), with absorptivities and emissivities every
+! dtabem (64800 s); sun position of the time of the step for the orbit
+! of the year of the case; GHG of the built in table of scenario
+! (RCP4.5); built in ozone profile; no aerosol; clouds as cucloud and
+! cldfrac of the model (convective cloud at most clfrcvmax overlapped
+! with the NoTo cloud); surface albedo of the model ocean (iwhitecap =
+! 0) or albland on land, emissivity 0.98 (ocean) or 0.96 (land), ground
+! temperature the SST or the one of the boundary layer input. Its net
+! surface radiation replaces ocnsw and ocnlw for the ocean scheme, and
+! its heating is the radiative heating of NoTo.
+! The pressure of the levels is held fixed.
 !
 ! The namelist has a &scmparam group and the model groups &tiedtkeparam,
 ! &cldparam (kfac_deep, kfac_shal, k2_const, iconvcf, rh0oce, rh0land,
@@ -98,11 +114,19 @@ program scm_coupled
   use mod_ocn_coare, only : coare3_drv
   use mod_micro_nogtom, only : allocate_mod_nogtom, init_nogtom, nogtom
   use mod_cloud_subex, only : subex_cldfrac
+  use mod_rad_common, only : o3prof, gasabsnxt, gasabstot, gasemstot, &
+    absemin, kth, ktf
+  use mod_rad_aerosol, only : allocate_mod_rad_aerosol
+  use mod_rad_o3blk, only : allocate_mod_rad_o3blk, o3data
+  use mod_rad_outrad, only : allocate_mod_rad_outrad
+  use mod_rad_colmod3, only : allocate_mod_rad_colmod3, colmod3
+  use mod_ipcc_scenario, only : set_scenario
+  use mod_sunorbit, only : orb_params, orb_decl, orb_cosz
   implicit none
 
   character(len=256) :: nmlfile, infile, outfile, tgtfile
   real(rkx) :: dxkm, dtstep, ndays, taurelax, zrelax, tauwtg, zwtg, &
-    tauwind, windfac, ocnsw, ocnlw
+    tauwind, windfac, ocnsw, ocnlw, omfac
   integer(ik4) :: nout
   integer(ik4) :: ncol, nk, j, k, n, iu, io, ios, istep, nsteps
   character(len=32), allocatable, dimension(:) :: col_name
@@ -116,7 +140,14 @@ program scm_coupled
     ften, fqen, za, zf, pa, pf, t, q, u, v, mfu, ctt, cqt, ptt, pqt, &
     wrelax, omls, ttg, qtg
   real(rkx), allocatable, dimension(:,:,:) :: ttgt, qtgt, utgt, vtgt
-  real(rkx), allocatable, dimension(:,:) :: mtt, mqt, cfr
+  real(rkx), allocatable, dimension(:,:) :: mtt, mqt, cfr, hrad, &
+    cfrad, lwcrad
+  integer(ik4) :: irad, iyear, imonth, nrad, nabs
+  real(rkx), allocatable, dimension(:) :: ocnsw_now, ocnlw_now
+  real(rkx) :: albland
+  real(rk8) :: cday0
+  type(mod_2_rad) :: m2r
+  type(rad_2_mod) :: r2m
   real(rkx), allocatable, dimension(:,:,:) :: qcnd
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qvp, rhcp
   real(rkx), pointer, contiguous, dimension(:,:) :: rh0p
@@ -134,7 +165,9 @@ program scm_coupled
 
   namelist /scmparam/ infile, outfile, dtstep, ndays, nout, dxkm, &
     taurelax, zrelax, tgtfile, tauwtg, zwtg, tauwind, windfac,    &
-    iocnflux, izengrough, ocnsw, ocnlw, lnoto
+    omfac, &
+    iocnflux, izengrough, ocnsw, ocnlw, lnoto, irad, dtrad, dtabem, &
+    albland, scenario
   namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
     detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
@@ -147,7 +180,7 @@ program scm_coupled
     auto_rate_kessl, auto_rate_klepi, rkconv, skconv, rcovpmin,   &
     rpecons, rcldiff
   namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl
+    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop
 
   ! Defaults: as in Main/mod_params.F90
   infile = 'scm_amazon.txt'
@@ -162,13 +195,14 @@ program scm_coupled
   tauwtg = 0.0_rkx
   zwtg = 1000.0_rkx
   tauwind = 0.0_rkx
+  omfac = 1.0_rkx
   windfac = 1.0_rkx
   iocnflux = 1
   izengrough = 1
   ocnsw = 200.0_rkx
   ocnlw = 50.0_rkx
-  entrpen_lnd = 1.75e-3_rkx
-  entrpen_ocn = 1.75e-3_rkx
+  entrpen_lnd = 0.5e-3_rkx
+  entrpen_ocn = 0.5e-3_rkx
   detrpen_lnd = 0.75e-4_rkx
   detrpen_ocn = 0.75e-4_rkx
   entrdd = 3.0e-4_rkx
@@ -201,6 +235,11 @@ program scm_coupled
   kfac_deep = 0.14_rkx
   iconvcf = 0
   lnoto = .true.
+  irad = 1
+  dtrad = 1800.0_rkx
+  dtabem = 64800.0_rkx
+  albland = 0.13_rkx
+  scenario = 'RCP4.5'
   rhmax = 1.00_rkx
   rhmin = 0.01_rkx
   rh0land = 0.85_rkx
@@ -227,6 +266,7 @@ program scm_coupled
   holtth10iter = 1
   lmoistn2 = .false.
   maxprandtl = 1.0_rkx
+  lsctop = .false.
 
   nmlfile = 'scm_coupled.in'
   if ( command_argument_count( ) > 0 ) call get_command_argument(1,nmlfile)
@@ -282,6 +322,10 @@ program scm_coupled
   kz = nk
   kzp1 = nk + 1
   kzm1 = nk - 1
+  kzm2 = nk - 2
+  kzp2 = nk + 2
+  kzp3 = nk + 3
+  kzp4 = nk + 4
   call set_grid(ncol)
   call memory_init
   allocate(col_name(ncol), col_date(ncol), col_lat(ncol), col_lon(ncol), &
@@ -313,6 +357,7 @@ program scm_coupled
     do k = 1, nk
       read(iu,*) za(j,k), pa(j,k), t(j,k), q(j,k), u(j,k), v(j,k), &
         omega(j,k), ften(j,k), fqen(j,k)
+      omega(j,k) = omfac*omega(j,k)
     end do
     do k = 1, nk + 1
       read(iu,*) zf(j,k), pf(j,k)
@@ -363,7 +408,19 @@ program scm_coupled
   if ( len_trim(tgtfile) > 0 ) call read_targets
   if ( any(col_ocn) ) call init_ocean
   allocate(mtt(ncol,nk), mqt(ncol,nk), cfr(ncol,nk), qcnd(ncol,nk,iqc:iqs))
+  allocate(hrad(ncol,nk), cfrad(ncol,nk), lwcrad(ncol,nk))
+  allocate(ocnsw_now(ncol), ocnlw_now(ncol))
+  ocnsw_now = -d_one
+  ocnlw_now = ocnlw
+  clfrcvmax = 0.60_rkx
+  cftotmax = 1.00_rkx
   cfr = d_zero
+  cfrad = d_zero
+  lwcrad = d_zero
+  hrad = ften
+  allocate(rcmtimer)
+  rcmtimer%lcount = 0
+  if ( irad == 1 ) call init_rad
   mtt = d_zero
   mqt = d_zero
   qcnd = d_zero
@@ -399,17 +456,22 @@ program scm_coupled
   write(io,nml=cldparam)
   write(io,nml=holtslagparam)
   write(io,'(a,l2)') '# lnoto ', lnoto
+  write(io,'(a,i2,a,2f10.1,a,f6.3,a,a)') '# irad ', irad, &
+    '  dtrad dtabem (s) ', dtrad, dtabem, '  albland ', albland, &
+    '  scenario ', scenario
   if ( lnoto ) write(io,nml=microparam)
   write(io,'(a)') '# STEP name time(h) local_hour shf lhf(W/m2) '// &
     'zpbl(m) kpbl hqfac ktype kctop kcbot rainc rainl(mm/day) '// &
     'rainc_acc rainl_acc(mm) wspd(m/s, lowest level)'
   write(io,'(a)') '# z(m) p(hPa) T(K) q(g/kg) mfu(kg/m2/s) '// &
     'dTcu dTpbl(K/day) dqcu dqpbl(g/kg/day) omega(Pa/s) '// &
-    'dTmic(K/day) dqmic(g/kg/day) qc+qi(g/kg) cldfrac'
+    'dTmic(K/day) dqmic(g/kg/day) qc+qi(g/kg) cldfrac(radiation) '// &
+    'dTrad(K/day)'
   write(io,'(a,3i6)') 'NCOL ', ncol, nk, nsteps/nout
 
   do istep = 1, nsteps
     time = real(istep-1,rkx)*dt
+    rcmtimer%lcount = int(istep,ik8)
     ! Surface fluxes
     do j = 1, ncol
       hour = modulo(col_hour(j) + time/3600.0_rkx,24.0_rkx)
@@ -447,6 +509,8 @@ program scm_coupled
     do j = 1, ncol
       m2c%tas(j,1,:) = t(j,:)
       m2c%qxas(j,1,:,iqv) = q(j,:)
+      m2c%qxas(j,1,:,iqc) = qcnd(j,:,iqc)
+      m2c%qxas(j,1,:,iqi) = qcnd(j,:,iqi)
       m2c%uas(j,1,:) = u(j,:)
       m2c%vas(j,1,:) = v(j,:)
       m2c%hfx(j,1) = m2p%hfx(j,1)
@@ -475,6 +539,11 @@ program scm_coupled
     ! Cloud fraction and microphysics, on the same state, with the
     ! cumulus tendencies as input (detrained condensate in qdetr)
     if ( lnoto ) call micro_step
+    call rad_clouds
+
+    ! Radiation, every dtrad, on the same state; the heating rate is
+    ! held between calls
+    if ( irad == 1 .and. mod(istep-1,nrad) == 0 ) call rad_step
 
     ! Boundary layer, on the same state
     p2m%tten(:,:,:) = d_zero
@@ -533,7 +602,7 @@ program scm_coupled
           dwdp = max(dwdp,d_zero)
         end if
         t(j,k) = t(j,k) + dt*(ctt(j,k) + mtt(j,k) + ptt(j,k) + &
-          ften(j,k) - &
+          hrad(j,k) - &
           omls(j,k)*(dtdp - rovcp*t(j,k)/pa(j,k)) - &
           wr*(t(j,k)-tg))
         q(j,k) = max(q(j,k) + dt*(cqt(j,k) + mqt(j,k) + pqt(j,k) + &
@@ -558,8 +627,10 @@ program scm_coupled
         ! condensate of the microphysics, no large scale advection
         do n = iqc, iqs
           do k = 1, nk
-            ! as status_update of the MOLOCH core
-            qcnd(j,k,n) = qcnd(j,k,n) + dt*mc2mo%qxten(j,1,k,n)
+            ! as status_update of the MOLOCH core, with the vertical
+            ! diffusion of cloud water and ice of the boundary layer
+            qcnd(j,k,n) = qcnd(j,k,n) + dt*(mc2mo%qxten(j,1,k,n) + &
+              p2m%qxten(j,1,k,n))
             if ( qcnd(j,k,n) < qxcheckval(n) ) qcnd(j,k,n) = qxzeroval(n)
           end do
         end do
@@ -603,12 +674,13 @@ program scm_coupled
           ktype(j), cu_ktop(j,1), cu_kbot(j,1), rainc(j)*86400.0_rkx, &
           rainl(j)*86400.0_rkx, rainc_acc(j), rainl_acc(j), wspd
         do k = 1, nk
-          write(io,'(f10.2,f10.3,f9.3,12es13.5)') za(j,k), &
+          write(io,'(f10.2,f10.3,f9.3,13es13.5)') za(j,k), &
             pa(j,k)*0.01_rkx, t(j,k), q(j,k)/(d_one+q(j,k))*1.0e3_rkx, &
             mfu(j,k), ctt(j,k)*86400.0_rkx, ptt(j,k)*86400.0_rkx, &
             cqt(j,k)*8.64e7_rkx, pqt(j,k)*8.64e7_rkx, omls(j,k), &
             mtt(j,k)*86400.0_rkx, mqt(j,k)*8.64e7_rkx, &
-            (qcnd(j,k,iqc)+qcnd(j,k,iqi))*1.0e3_rkx, cfr(j,k)
+            (qcnd(j,k,iqc)+qcnd(j,k,iqi))*1.0e3_rkx, cfrad(j,k), &
+            hrad(j,k)*86400.0_rkx
         end do
       end do
     end if
@@ -712,9 +784,15 @@ program scm_coupled
       tgbrd(j) = tgb(j)
       hpbl(j) = p2m%zpbl(j,1)
       shour = modulo(col_hour(j) + time/3600.0_rkx,24.0_rkx)
-      rswf(j) = ocnsw*mathpi* &
-        max(sin(mathpi*(shour-6.0_rkx)/12.0_rkx),d_zero)
-      rlwf(j) = ocnlw
+      if ( ocnsw_now(j) >= d_zero ) then
+        ! net radiation of the last call of the radiation
+        rswf(j) = ocnsw_now(j)
+        rlwf(j) = ocnlw_now(j)
+      else
+        rswf(j) = ocnsw*mathpi* &
+          max(sin(mathpi*(shour-6.0_rkx)/12.0_rkx),d_zero)
+        rlwf(j) = ocnlw
+      end if
       um10(j) = sqrt(usw(j)**2+vsw(j)**2)
     end do
     select case ( iocnflux )
@@ -789,8 +867,6 @@ program scm_coupled
   subroutine init_micro
     implicit none
     dtsec = dt
-    allocate(rcmtimer)
-    rcmtimer%lcount = 0
     call allocate_mod_nogtom
     call getmem(mo2mc%xlat,1,ncol,1,1,'scm:mxlat')
     call getmem(mo2mc%psb,1,ncol,1,1,'scm:mpsb')
@@ -837,13 +913,12 @@ program scm_coupled
 
   subroutine micro_step
     implicit none
-    rcmtimer%lcount = int(istep,ik8)
     do j = 1, ncol
       do k = 1, nk
         mo2mc%t(j,1,k) = t(j,k)
         mo2mc%rho(j,1,k) = pa(j,k)/(rgas*t(j,k))
         mo2mc%pverv(j,1,k) = omls(j,k)
-        mo2mc%heatrt(j,1,k) = ften(j,k)
+        mo2mc%heatrt(j,1,k) = hrad(j,k)
         mo2mc%qdetr(j,1,k) = cu_qdetr(j,1,k)*dt
         mo2mc%qxx(j,1,k,iqv) = q(j,k)
         do n = iqc, iqs
@@ -900,7 +975,10 @@ program scm_coupled
     real(rkx) :: ps, tv, wspd
     do j = 1, ncol
       m2p%tatm(j,1,:) = t(j,:)
+      m2p%heatrt(j,1,:) = hrad(j,:)
       m2p%qxatm(j,1,:,iqv) = q(j,:)
+      m2p%qxatm(j,1,:,iqc) = qcnd(j,:,iqc)
+      m2p%qxatm(j,1,:,iqi) = qcnd(j,:,iqi)
       m2p%uxatm(j,1,:) = u(j,:)
       m2p%vxatm(j,1,:) = v(j,:)
       do k = 1, nk
@@ -942,6 +1020,8 @@ program scm_coupled
     m2c%uten(:,:,:) = d_zero
     m2c%vten(:,:,:) = d_zero
     call getmem(m2p%za,1,ncol,1,1,1,nk,'scm:za')
+    call getmem(m2p%heatrt,1,ncol,1,1,1,nk,'scm:pheatrt')
+    m2p%heatrt(:,:,:) = d_zero
     call getmem(m2p%patm,1,ncol,1,1,1,nk,'scm:patm')
     call getmem(m2p%patmf,1,ncol,1,1,1,nk+1,'scm:patmf')
     call getmem(m2p%tatm,1,ncol,1,1,1,nk,'scm:tatm')
@@ -964,6 +1044,205 @@ program scm_coupled
     call getmem(p2m%kpbl,1,ncol,1,1,'scm:kpbl')
     m2p%qxatm(:,:,:,:) = d_zero
   end subroutine allocate_fields
+
+  ! Radiation of the model (irrtm = 0, the CCM scheme of colmod3) on the
+  ! columns: allocations as allocate_radiation of mod_rad_interface, no
+  ! aerosol, the built in ozone profile (iclimao3 = 0), the GHG of the
+  ! scenario table for the year of the case, the orbit of that year.
+  subroutine init_rad
+    implicit none
+    integer(ik4) :: iday, ihour
+    integer(ik4), dimension(12), parameter :: mlen = &
+      [31,28,31,30,31,30,31,31,30,31,30,31]
+    irrtm = 0
+    kth = kz
+    ktf = kzp1
+    iclimao3 = 0
+    iclimaaer = 0
+    idirect = 0
+    itweak = 0
+    lsrfhack = .false.
+    ifrad = .false.
+    ifopt = .false.
+    ncld = 1
+    solcon = 1.36822e+03_rk8
+    scon = solcon*1000.0_rk8
+    nrad = max(nint(dtrad/dt),1)
+    nabs = max(nint(dtabem/dt),1)
+    read(col_date(1),'(i4,3i2)') iyear, imonth, iday, ihour
+    cday0 = real(sum(mlen(1:imonth-1)) + iday,rk8)
+    if ( imonth > 2 .and. mod(iyear,4) == 0 .and. &
+         (mod(iyear,100) /= 0 .or. mod(iyear,400) == 0) ) then
+      cday0 = cday0 + 1.0_rk8
+    end if
+    cday0 = cday0 + real(ihour,rk8)/24.0_rk8
+    call orb_params(iyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
+    call set_scenario(scenario,iyear,imonth)
+    call getmem(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'scm:o3prof')
+    call allocate_mod_rad_aerosol
+    call allocate_mod_rad_o3blk
+    call allocate_mod_rad_outrad
+    call allocate_mod_rad_colmod3
+    call getmem(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'scm:gasabsnxt')
+    call getmem(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'scm:gasabstot')
+    call getmem(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'scm:gasemstot')
+    call getmem(absemin,jci1,jci2,ici1,ici2,1,5*kz+8,'scm:absemin')
+    call getmem(m2r%tatms,1,ncol,1,1,1,nk,'scm:rt')
+    call getmem(m2r%qxatms,1,ncol,1,1,1,nk,1,nqx,'scm:rqx')
+    call getmem(m2r%rhatms,1,ncol,1,1,1,nk,'scm:rrh')
+    call getmem(m2r%rhoatms,1,ncol,1,1,1,nk,'scm:rrho')
+    call getmem(m2r%phatms,1,ncol,1,1,1,nk,'scm:rph')
+    call getmem(m2r%pfatms,1,ncol,1,1,1,nk+1,'scm:rpf')
+    call getmem(m2r%deltaz,1,ncol,1,1,1,nk,'scm:rdz')
+    call getmem(m2r%cldfrc,1,ncol,1,1,1,nk,'scm:rcld')
+    call getmem(m2r%cldlwc,1,ncol,1,1,1,nk,'scm:rlwc')
+    call getmem(m2r%psatms,1,ncol,1,1,'scm:rps')
+    call getmem(m2r%tg,1,ncol,1,1,'scm:rtg')
+    call getmem(m2r%xlat,1,ncol,1,1,'scm:rlat')
+    call getmem(m2r%xlon,1,ncol,1,1,'scm:rlon')
+    call getmem(m2r%ptrop,1,ncol,1,1,'scm:rptrop')
+    call getmem(m2r%coszrs,1,ncol,1,1,'scm:rcosz')
+    call getmem(m2r%albvs,1,ncol,1,1,'scm:ralbvs')
+    call getmem(m2r%albvl,1,ncol,1,1,'scm:ralbvl')
+    call getmem(m2r%aldirs,1,ncol,1,1,'scm:raldirs')
+    call getmem(m2r%aldifs,1,ncol,1,1,'scm:raldifs')
+    call getmem(m2r%aldirl,1,ncol,1,1,'scm:raldirl')
+    call getmem(m2r%aldifl,1,ncol,1,1,'scm:raldifl')
+    call getmem(m2r%emiss,1,ncol,1,1,'scm:remiss')
+    call getmem(m2r%ldmsk,1,ncol,1,1,'scm:rldmsk')
+    call getmem(r2m%heatrt,1,ncol,1,1,1,nk,'scm:rheat')
+    call getmem(r2m%totcf,1,ncol,1,1,'scm:rtotcf')
+    call getmem(r2m%solis,1,ncol,1,1,'scm:rsolis')
+    call getmem(r2m%fsw,1,ncol,1,1,'scm:rfsw')
+    call getmem(r2m%flw,1,ncol,1,1,'scm:rflw')
+    call getmem(r2m%flwd,1,ncol,1,1,'scm:rflwd')
+    call getmem(r2m%sabveg,1,ncol,1,1,'scm:rsabveg')
+    call getmem(r2m%solvs,1,ncol,1,1,'scm:rsolvs')
+    call getmem(r2m%solvsd,1,ncol,1,1,'scm:rsolvsd')
+    call getmem(r2m%solvl,1,ncol,1,1,'scm:rsolvl')
+    call getmem(r2m%solvld,1,ncol,1,1,'scm:rsolvld')
+    call getmem(r2m%sinc,1,ncol,1,1,'scm:rsinc')
+    do j = 1, ncol
+      m2r%xlat(j,1) = col_lat(j)
+      m2r%xlon(j,1) = col_lon(j)
+      m2r%ldmsk(j,1) = col_land(j)
+      m2r%ptrop(j,1) = 10000.0_rkx
+      m2r%psatms(j,1) = pf(j,nk+1)
+      do k = 1, nk
+        m2r%phatms(j,1,k) = pa(j,k)
+        m2r%deltaz(j,1,k) = zf(j,k) - zf(j,k+1)
+      end do
+      do k = 1, nk + 1
+        m2r%pfatms(j,1,k) = pf(j,k)
+      end do
+    end do
+    m2r%qxatms(:,:,:,:) = d_zero
+    call o3data(m2r)
+  end subroutine init_rad
+
+  ! Cloud fraction and in cloud water for the radiation, as cucloud and
+  ! cldfrac of the model (icup > 1, iconvlwp = 0): the convective cloud
+  ! of the cumulus scheme (at most clfrcvmax) overlapped with the large
+  ! scale cloud of the microphysics, with the Liang (2005) scaling.
+  subroutine rad_clouds
+    implicit none
+    real(rkx) :: cuf, cwc, fls, totc, w2, cfq
+    do j = 1, ncol
+      do k = 1, nk
+        cuf = min(cu_cldfrc(j,1,k),clfrcvmax)
+        cwc = cu_cldlwc(j,1,k)
+        if ( cwc <= d_zero ) cwc = clwfromt(t(j,k))
+        fls = d_zero
+        totc = d_zero
+        if ( lnoto ) then
+          fls = min(max(mo2mc%cldf(j,1,k),d_zero),cftotmax)
+          totc = merge(qcnd(j,k,iqc),d_zero,qcnd(j,k,iqc) >= 2.0e-7_rkx) + &
+                 merge(qcnd(j,k,iqi),d_zero,qcnd(j,k,iqi) >= 2.0e-7_rkx)
+          totc = totc*1000.0_rkx*pa(j,k)/(rgas*t(j,k))
+        end if
+        if ( cuf > lowcld ) then
+          if ( fls > lowcld ) then
+            cfrad(j,k) = max(fls,cuf)
+            w2 = fls/cfrad(j,k)
+            lwcrad(j,k) = w2*totc/fls + (d_one-w2)*cwc
+          else
+            cfrad(j,k) = cuf
+            lwcrad(j,k) = cwc
+          end if
+        else if ( fls > lowcld ) then
+          cfrad(j,k) = fls
+          lwcrad(j,k) = totc/fls
+        else
+          cfrad(j,k) = d_zero
+          lwcrad(j,k) = d_zero
+        end if
+        if ( lwcrad(j,k) > d_zero ) then
+          cfq = real(int(cfrad(j,k)*255.0_rkx),rkx)/255.0_rkx
+          lwcrad(j,k) = lwcrad(j,k) * &
+            (0.97_rkx*exp(-((cfq-0.098_rkx)**2)/0.0365_rkx)+0.255_rkx)
+        end if
+      end do
+    end do
+  end subroutine rad_clouds
+
+  ! One call of the radiation on the current state: sun position for
+  ! the time of the step, surface albedo (ocean: the model formula with
+  ! iwhitecap = 0; land: albland) and emissivity, ground temperature of
+  ! the surface (SST over the ocean).
+  subroutine rad_step
+    implicit none
+    real(rk8) :: cday
+    real(rkx) :: cz, alb
+    logical :: labsem
+    cday = cday0 + real(time,rk8)/86400.0_rk8
+    call orb_decl(real(int(cday),rk8),eccen,mvelpp,lambm0,obliqr, &
+      declin,eccf)
+    do j = 1, ncol
+      cz = real(orb_cosz(cday,real(col_lat(j),rk8),real(col_lon(j),rk8), &
+        declin),rkx)
+      cz = min(max(cz,d_zero),d_one)
+      m2r%coszrs(j,1) = cz
+      if ( col_land(j) == 1 ) then
+        m2r%aldirs(j,1) = albland
+        m2r%aldifs(j,1) = albland
+        m2r%emiss(j,1) = 0.96_rkx
+      else
+        alb = 0.05_rkx/(cz+0.15_rkx)
+        m2r%aldirs(j,1) = alb
+        m2r%aldifs(j,1) = 0.08_rkx
+        m2r%emiss(j,1) = 0.98_rkx
+      end if
+      m2r%aldirl(j,1) = m2r%aldirs(j,1)
+      m2r%aldifl(j,1) = m2r%aldifs(j,1)
+      m2r%albvs(j,1) = m2r%aldirs(j,1)
+      m2r%albvl(j,1) = m2r%aldirl(j,1)
+      m2r%tg(j,1) = m2p%tg(j,1)
+      do k = 1, nk
+        m2r%tatms(j,1,k) = t(j,k)
+        m2r%qxatms(j,1,k,iqv) = q(j,k)
+        m2r%qxatms(j,1,k,iqc) = qcnd(j,k,iqc)
+        m2r%qxatms(j,1,k,iqi) = qcnd(j,k,iqi)
+        m2r%rhatms(j,1,k) = min(max(q(j,k)/pfwsat(t(j,k),pa(j,k)), &
+          d_zero),d_one)
+        m2r%rhoatms(j,1,k) = pa(j,k)/(rgas*t(j,k))
+        m2r%cldfrc(j,1,k) = cfrad(j,k)
+        m2r%cldlwc(j,1,k) = lwcrad(j,k)
+      end do
+    end do
+    labsem = mod(istep-1,nabs) == 0
+    call colmod3(iyear,imonth,.false.,labsem,m2r,r2m)
+    do j = 1, ncol
+      do k = 1, nk
+        hrad(j,k) = r2m%heatrt(j,1,k)
+      end do
+      if ( col_ocn(j) ) then
+        ocnsw_now(j) = r2m%fsw(j,1)
+        ocnlw_now(j) = r2m%flw(j,1)
+      end if
+    end do
+  end subroutine rad_step
+
+#include <clwfromt.inc>
 
 #include <saturation.inc>
 

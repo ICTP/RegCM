@@ -1453,6 +1453,29 @@ diffusivity in stable layers is the heat diffusivity multiplied by the Prandtl
 number $\mathrm{Pr} = \min(1+\mathrm{Ri},\mathrm{Pr}_{max})$, so that momentum
 is mixed more than heat; \cite{Lenderink_04} use $\mathrm{Pr}_{max}=2$.
 
+With \verb=lsctop= (off by default) the turbulence driven by the longwave
+cooling at the top of boundary layer clouds \citep{Lock_00} is added, with
+the formulation of the GFS scheme below.  In the lowest cloud layer below
+2500~m (condensate at least $3.5\times10^{-5}$~kg~kg$^{-1}$) the level of
+strongest radiative cooling is the cloud top, at height $z_i$, with
+$R = \Delta z\,\partial\theta/\partial t|_{rad} < 0$.  A parcel cooled
+there for 500~s sinks through the depth $z_d$ where its liquid water virtual
+potential temperature is lower than the environment one, at least down to the
+cloud base.  With the velocity scale $V = (g\,z_d\,(-R)/\theta_v)^{1/3}$ the
+diffusivity for heat and moisture
+
+\begin{eqnarray}
+K_{sc} = 0.85\,\kappa\,V\,{(z-z_b)^2 \over z_d}
+         \left(1-{z-z_b \over z_d}\right)^{1/2}, \qquad z_b = z_i - z_d
+\end{eqnarray}
+
+is added below the cloud top ($0.75\,K_{sc}$ for momentum), and at the cloud
+top interface the entrainment diffusivity $K_e = -A\,R/(\partial\theta_v/\partial z)$,
+with $A = 0.2$, or $A = 1$ when the cloud top entrainment instability
+parameter $c_p\Delta\theta_e/(L_v\Delta q_t)$ exceeds 0.7.  The cloud top
+cooling is then balanced by the entrainment of warm and dry air from above
+instead of by condensation in the cloud layer.
+
 Compared to other schemes this formulation tends to produce relatively strong,
 and often excessive, turbulent vertical transfer, particularly in deep convection.
 
@@ -1679,7 +1702,7 @@ the NCEP operational GFS model by \cite{Han_11}.  It was adapted from the
 NCEP GFS code and coupled to RegCM.  Like the Holtslag scheme it represents
 turbulent fluxes as the sum of a diffusive term and a non-local
 counter-gradient term, but it includes explicit treatment of stratocumulus
-cloud-top driven mixing that is absent from the Holtslag formulation.
+cloud-top driven mixing, optional in the Holtslag formulation.
 
 \paragraph{PBL height.}
 The boundary layer height $h$ is found by searching upward from the surface for

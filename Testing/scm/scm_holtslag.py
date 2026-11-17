@@ -45,7 +45,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 GROUPS = {
     'scmparam': ['dtpbl', 'nsteps'],
     'holtslagparam': ['ricr_ocn', 'ricr_lnd', 'zhnew_fac', 'ifaholtth10',
-                      'ifaholt', 'holtth10iter', 'lmoistn2', 'maxprandtl'],
+                      'ifaholt', 'holtth10iter', 'lmoistn2', 'maxprandtl',
+                      'lsctop'],
 }
 GROUP_OF = {v: g for g, vs in GROUPS.items() for v in vs}
 

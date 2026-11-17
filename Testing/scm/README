@@ -17,8 +17,9 @@ Files
                       one call, or nsteps time steps with fixed surface
                       fluxes and the initial wind as geostrophic wind
   scm_holtslag.py     Python wrapper, as scm_tiedtke.py
-  scm_coupled.F90     Holtslag + Tiedtke + NoTo integrated together in
-                      time with prescribed large scale forcing
+  scm_coupled.F90     Holtslag + Tiedtke + NoTo + CCM radiation
+                      integrated together in time with prescribed large
+                      scale forcing
   scm_coupled.py      its Python wrapper: run, summary, sweep, compare
   scm_amazon.txt      Amazon case of scm_coupled: initial profiles,
   scm_amazon_target.txt   relaxation targets (0, 6, 12, 18 UTC),
@@ -125,9 +126,20 @@ the input T tendency as radiative heating, carries cloud water, ice,
 rain and snow (not advected) and gives the large scale rain; its
 parameters are in &microparam and &cldparam (rh0oce, rh0land, ...).
 With lnoto = .false. there is no microphysics: detrained condensate
-evaporates, supersaturation rains out (large scale rain). The output
-levels also have the NoTo tendencies, cloud water + ice and the cloud
-fraction.
+evaporates, supersaturation rains out (large scale rain). Cloud water
+and ice are also passed to Tiedtke and Holtslag (which diffuses them).
+
+Radiation (irad = 1, default; 0 keeps the input T tendency of the
+profile file as radiative heating): the CCM scheme of the model
+(colmod3) every dtrad (1800 s), absorptivities every dtabem (64800 s),
+sun of the time of the step, GHG of the built in table of scenario
+(RCP4.5), built in ozone, no aerosol, clouds as in the model (Tiedtke
+convective cloud overlapped with the NoTo cloud), ocean albedo of the
+model or albland (0.13) on land. Its heating replaces the input T
+tendency, its net surface radiation drives the COARE cool skin.
+
+The output levels also have the NoTo tendencies, cloud water + ice, the
+cloud fraction seen by the radiation and the radiative heating.
 
 Options of &scmparam beyond the forcing above:
   tauwind, windfac   winds relax to windfac times the target winds in

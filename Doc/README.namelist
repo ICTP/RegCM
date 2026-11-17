@@ -691,8 +691,8 @@
  &tiedtkeparam
  entrdd  = 3.0e-4,      ! Entrainment rate for cumulus downdrafts
  entshalp = 2.0,        ! shallow entrainment factor for entrorg
- entrpen_lnd = 1.75e-3, ! Entrainment rate for penetrative convection
- entrpen_ocn = 1.75e-3, ! Entrainment rate for penetrative convection
+ entrpen_lnd = 0.5e-3,  ! Entrainment rate for penetrative convection
+ entrpen_ocn = 0.5e-3,  ! Entrainment rate for penetrative convection
  detrpen_lnd = 0.75e-4, ! Detrainment rate for penetrative convection
  detrpen_ocn = 0.75e-4, ! Detrainment rate for penetrative convection
  rcuc_lnd = 0.05,       ! Convective cloud cover for rain evporation
@@ -764,6 +764,9 @@
                    ! Km/Kh = 1 + Ri used for the free atmosphere
                    ! momentum diffusivity. 1.0 => Km = Kh,
                    ! 2.0 => Lenderink and Holtslag (2004)
+ lsctop = .false., ! Add the mixing driven by the radiative cooling
+                   ! at the top of boundary layer clouds (Lock et al.,
+                   ! 2000, as in the GFS PBL)
  /
 !
 ! UW PBL scheme control

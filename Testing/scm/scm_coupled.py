@@ -51,8 +51,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # namelist group of every parameter the program reads
 GROUPS = {
     'scmparam': ['dtstep', 'ndays', 'nout', 'dxkm', 'taurelax', 'zrelax',
-                 'tgtfile', 'tauwtg', 'zwtg', 'tauwind', 'windfac',
-                 'iocnflux', 'izengrough', 'ocnsw', 'ocnlw', 'lnoto'],
+                 'tgtfile', 'tauwtg', 'zwtg', 'tauwind', 'windfac', 'omfac',
+                 'iocnflux', 'izengrough', 'ocnsw', 'ocnlw', 'lnoto',
+                 'irad', 'dtrad', 'dtabem', 'albland', 'scenario'],
     'tiedtkeparam': [
         'entrdd', 'entrpen_lnd', 'entrpen_ocn', 'detrpen_lnd',
         'detrpen_ocn', 'entshalp', 'rcuc_lnd', 'rcuc_ocn', 'rcpec_lnd',
@@ -67,7 +68,8 @@ GROUPS = {
                    'auto_rate_kessl', 'auto_rate_klepi', 'rkconv',
                    'skconv', 'rcovpmin', 'rpecons', 'rcldiff'],
     'holtslagparam': ['ricr_ocn', 'ricr_lnd', 'zhnew_fac', 'ifaholtth10',
-                      'ifaholt', 'holtth10iter', 'lmoistn2', 'maxprandtl'],
+                      'ifaholt', 'holtth10iter', 'lmoistn2', 'maxprandtl',
+                      'lsctop'],
 }
 GROUP_OF = {v: g for g, vs in GROUPS.items() for v in vs}
 
@@ -76,7 +78,8 @@ STEP_FIELDS = ['time', 'hour', 'shf', 'lhf', 'zpbl', 'kpbl', 'hqfac',
                'rainl_acc', 'wspd']
 INT_FIELDS = ('kpbl', 'ktype', 'kctop', 'kcbot')
 LEVEL_FIELDS = ['z', 'p', 'T', 'q', 'mfu', 'dTcu', 'dTpbl', 'dqcu',
-                'dqpbl', 'omega', 'dTmic', 'dqmic', 'qcond', 'cldf']
+                'dqpbl', 'omega', 'dTmic', 'dqmic', 'qcond', 'cldf',
+                'dTrad']
 
 
 def find_exe(exe):
