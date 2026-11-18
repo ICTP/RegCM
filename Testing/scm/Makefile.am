@@ -57,7 +57,8 @@ EXTRA_DIST = README make_profiles.py scm_tiedtke.py scm_holtslag.py \
              scm_amazon_era5.txt reference/scm_coupled_amazon.out \
              scm_itcz.txt scm_itcz_target.txt scm_itcz_era5.txt \
              reference/scm_coupled_itcz.out \
-             scm_ocean.py
+             reference/scm_coupled_kf_amazon.out \
+             reference/scm_coupled_kf_itcz.out scm_ocean.py
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<

@@ -17,7 +17,8 @@ Files
                       one call, or nsteps time steps with fixed surface
                       fluxes and the initial wind as geostrophic wind
   scm_holtslag.py     Python wrapper, as scm_tiedtke.py
-  scm_coupled.F90     Holtslag + Tiedtke + NoTo + CCM radiation
+  scm_coupled.F90     Holtslag + Tiedtke (or Kain-Fritsch) + NoTo + CCM
+                      radiation
                       integrated together in time with prescribed large
                       scale forcing
   scm_coupled.py      its Python wrapper: run, summary, sweep, compare
@@ -108,7 +109,8 @@ T, q, u, v after nsteps. The comparison is exact for the PBL top level.
 
 Coupled test
 ------------
-scm_coupled calls tiedtkedrv, the SUBEX cloud fraction and nogtom (NoTo),
+scm_coupled calls tiedtkedrv (or kfdrv with icumulus = 6), the SUBEX
+cloud fraction and nogtom (NoTo),
 and holtbl every dtstep (300 s) on the same state, as the MOLOCH core
 does, and advances the state with their
 tendencies plus the large scale forcing: the input tendencies of the
@@ -168,6 +170,7 @@ days (its default) the mean daily rain is stable to about 0.1 mm/day:
   ./scm_coupled.py                            30 days, rain and diurnal
                                               cycle against ERA5
   ./scm_coupled.py --set lmfcapebl=.false.
+  ./scm_coupled.py --set icumulus=6           Kain-Fritsch
   ./scm_coupled.py --sweep zhnew_fac=0.0,0.25,0.5
   ./scm_coupled.py --profiles scm_itcz.txt --set tauwind=10800 \
                    --sweep tauwtg=0,10800
@@ -180,7 +183,18 @@ at 850, 700, 500, 300 hPa against the input one.
 
 "make check" runs one day of each case against
 reference/scm_coupled_amazon.out and scm_coupled_itcz.out (the ITCZ one
-with WTG and wind relaxation). The small differences of another
+with WTG and wind relaxation), and the same two cases with the
+Kain-Fritsch cumulus against reference/scm_coupled_kf_amazon.out and
+scm_coupled_kf_itcz.out.
+
+Kain-Fritsch (icumulus = 6, parameters in &kfparam) gets as vertical
+velocity of its trigger the one of the large scale omega, -omega/(rho
+g): a smooth few mm/s, while in the 3D model it is the resolved,
+noisier, vertical velocity, so in the column KF triggers less often
+than in the model at the same grid spacing (dxkm). Its condensate
+tendencies (cloud water, ice, rain, snow) go to NoTo as tendencies, as
+in the model; the mfu and cloud type columns of the output are zero
+(ktype 1 when it rains). The small differences of another
 compiler or other flags grow into different rain events: the reference
 holds only for the build it was made with. To update one, copy
 scm_output/scm_coupled_<case>/scm_coupled_<case>.out of a "make check"

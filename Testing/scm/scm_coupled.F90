@@ -14,15 +14,16 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ! Single column test of the Holtslag boundary layer (ibltyp = 1), the
-! Tiedtke cumulus (icup = 5), the NoTo microphysics (ipptls = 2) and the
-! CCM radiation (irrtm = 0) schemes integrated together in time.
+! Tiedtke (icup = 5, default) or Kain-Fritsch (icup = 6, icumulus = 6)
+! cumulus, the NoTo microphysics (ipptls = 2) and the CCM radiation
+! (irrtm = 0) schemes integrated together in time.
 !
 ! Usage: scm_coupled [namelist file]       (default: scm_coupled.in)
 !
 ! The columns of the profile file are laid out as a 1 x ncol grid. Every
 ! time step the schemes are called through their model entry points,
-! tiedtkedrv, subex_cldfrac (icldfrac = 0) and nogtom, colmod3 (every
-! dtrad), holtbl, on the same state, as the MOLOCH core does (idynamic
+! tiedtkedrv or kfdrv, subex_cldfrac (icldfrac = 0) and nogtom, colmod3
+! (every dtrad), holtbl, on the same state, as the MOLOCH core does (idynamic
 ! = 3, no chemistry), and the state is advanced with the sum of their
 ! tendencies and of the large scale forcing:
 !   - the input tendencies of the profile file (tten, qten: radiative
@@ -62,6 +63,12 @@
 ! model on the SST of the profile file, every step, with a net
 ! shortwave radiation at the surface of daily mean ocnsw in a half sine
 ! and a net longwave ocnlw (used by the COARE cool skin).
+! Kain-Fritsch (icumulus = 6, with &kfparam): the vertical velocity of
+! its trigger is the one of the large scale omega (-omega/(rho g)), and
+! its tendencies of cloud water, ice, rain and snow go to the
+! microphysics with the other cumulus tendencies, as in the model (no
+! qdetr); the grid spacing is dxkm. The output columns of the Tiedtke
+! mass flux and cloud type are zero (ktype: 1 when it rains).
 ! Microphysics (lnoto = .true., default): NoTo gets the cumulus
 ! tendencies, the condensate detrained by the cumulus scheme (qdetr),
 ! the large scale omega and the input temperature tendency as radiative
@@ -85,6 +92,7 @@
 ! The pressure of the levels is held fixed.
 !
 ! The namelist has a &scmparam group and the model groups &tiedtkeparam,
+! &kfparam,
 ! &cldparam (kfac_deep, kfac_shal, k2_const, iconvcf, rh0oce, rh0land,
 ! tc0, rhmin, rhmax, larcticcorr), &holtslagparam and &microparam, with
 ! the RegCM defaults. The output file is plain text, read by
@@ -103,6 +111,7 @@ program scm_coupled
   use mod_cu_common
   use mod_cu_tiedtke, only : allocate_mod_cu_tiedtke, tiedtkedrv, &
                              pmean, ktype, pmfu
+  use mod_cu_kf, only : allocate_mod_cu_kf, kfdrv, kf_lutab
   use mod_pbl_common, only : ricr, kmxpbl
   use mod_pbl_holtbl, only : allocate_mod_pbl_holtbl, holtbl
   use mod_ocn_internal, only : nocnp, iocnbeg, iocnend, dtocn, llake, &
@@ -142,7 +151,7 @@ program scm_coupled
   real(rkx), allocatable, dimension(:,:,:) :: ttgt, qtgt, utgt, vtgt
   real(rkx), allocatable, dimension(:,:) :: mtt, mqt, cfr, hrad, &
     cfrad, lwcrad
-  integer(ik4) :: irad, iyear, imonth, nrad, nabs
+  integer(ik4) :: irad, iyear, imonth, nrad, nabs, icumulus, kty
   real(rkx), allocatable, dimension(:) :: ocnsw_now, ocnlw_now
   ! TOA reflected short wave, outgoing long wave, all sky and clear sky
   ! (W/m2) of the last radiation call
@@ -170,13 +179,15 @@ program scm_coupled
     taurelax, zrelax, tgtfile, tauwtg, zwtg, tauwind, windfac,    &
     omfac, &
     iocnflux, izengrough, ocnsw, ocnlw, lnoto, irad, dtrad, dtabem, &
-    albland, scenario
+    albland, scenario, icumulus
   namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
     detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
     lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
     lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
     lmfcapeforc, rtaucape, rtaufac
+  namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
+    kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate, kf_wthreshold
   namelist /cldparam/ kfac_deep, kfac_shal, k2_const, iconvcf, &
     rh0oce, rh0land, tc0, rhmin, rhmax, larcticcorr
   namelist /microparam/ nssopt, iautoconv, vfqs, auto_rate_khair, &
@@ -269,6 +280,17 @@ program scm_coupled
   lmoistn2 = .false.
   maxprandtl = 1.0_rkx
   lsctop = .true.
+  icumulus = 5
+  kf_wthreshold = 0.02_rkx
+  kf_entrate = 0.03_rkx
+  kf_convrate = 0.03_rkx
+  kf_min_pef = 0.2_rkx
+  kf_max_pef = 0.9_rkx
+  kf_dpp = 150.0_rkx
+  kf_tkemax = 5.0_rkx
+  kf_min_dtcape = 1800.0_rkx
+  kf_max_dtcape = 3600.0_rkx
+  istochastic = 0
 
   nmlfile = 'scm_coupled.in'
   if ( command_argument_count( ) > 0 ) call get_command_argument(1,nmlfile)
@@ -288,17 +310,22 @@ program scm_coupled
     rewind(iu)
     read(iu,nml=microparam,iostat=ios)
     if ( ios > 0 ) call scm_error('reading microparam in '//trim(nmlfile))
+    rewind(iu)
+    read(iu,nml=kfparam,iostat=ios)
+    if ( ios > 0 ) call scm_error('reading kfparam in '//trim(nmlfile))
     close(iu)
   else if ( command_argument_count( ) > 0 ) then
     call scm_error('cannot open '//trim(nmlfile))
   end if
   nout = max(nout,1)
+  if ( icumulus /= 5 .and. icumulus /= 6 ) &
+    call scm_error('icumulus must be 5 (Tiedtke) or 6 (Kain-Fritsch)')
 
   ! Model configuration seen by the schemes
   idynamic = 3
-  icup_lnd = 5
-  icup_ocn = 5
-  icup(:) = 5
+  icup_lnd = icumulus
+  icup_ocn = icumulus
+  icup(:) = icumulus
   ibltyp = 1
   ipptls = 2
   nqx = 5
@@ -308,6 +335,7 @@ program scm_coupled
   icumcloud = 1
   ntr = 0
   dx = dxkm * 1000.0_rkx
+  dxsq = dx * dx
   clfrcv = cu_cfmax(dxkm)
   dt = dtstep
   rdt = d_one/dt
@@ -344,9 +372,20 @@ program scm_coupled
     cqt(ncol,nk), ptt(ncol,nk), pqt(ncol,nk), wrelax(ncol,nk),       &
     omls(ncol,nk), ttg(ncol,nk), qtg(ncol,nk))
   call getmem(cuscheme,jci1,jci2,ici1,ici2,'scm:cuscheme')
-  cuscheme(:,:) = 5
+  cuscheme(:,:) = icumulus
   call init_mod_cumulus
-  call allocate_mod_cu_tiedtke
+  if ( icumulus == 5 ) then
+    call allocate_mod_cu_tiedtke
+  else
+    call allocate_mod_cu_kf
+    call kf_lutab
+    ! arrays of Tiedtke the column code uses: they stay zero
+    call getmem(cu_srate,jci1,jci2,ici1,ici2,'scm:srate')
+    call getmem(cu_uten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'scm:uten')
+    call getmem(cu_vten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'scm:vten')
+    call getmem(cu_qdetr,jdi1,jdi2,idi1,idi2,1,kz,'scm:qdetr')
+    call getmem(cu_raincc,jdi1,jdi2,idi1,idi2,1,kz,'scm:raincc')
+  end if
   call getmem(ricr,jci1,jci2,ici1,ici2,'scm:ricr')
   call getmem(kmxpbl,jci1,jci2,ici1,ici2,'scm:kmxpbl')
   call allocate_mod_pbl_holtbl
@@ -431,12 +470,17 @@ program scm_coupled
   mqt = d_zero
   qcnd = d_zero
   if ( lnoto ) call init_micro
-  do k = 1, nk
-    pmean(k) = sum(pa(:,k))/real(ncol,rkx)
-  end do
+  if ( icumulus == 5 ) then
+    do k = 1, nk
+      pmean(k) = sum(pa(:,k))/real(ncol,rkx)
+    end do
+  end if
   do j = 1, ncol
     m2c%zas(j,1,:) = za(j,:)
     m2c%zfs(j,1,:) = zf(j,:)
+    do k = 1, nk
+      m2c%dzq(j,1,k) = zf(j,k) - zf(j,k+1)
+    end do
     m2c%pas(j,1,:) = pa(j,:)
     m2c%pasf(j,1,:) = pf(j,:)
     m2p%za(j,1,:) = za(j,:)
@@ -448,7 +492,12 @@ program scm_coupled
   rainl_acc = d_zero
 
   open(newunit=io,file=outfile,status='replace',action='write')
-  write(io,'(a)') '# RegCM Holtslag + Tiedtke coupled single column test'
+  if ( icumulus == 5 ) then
+    write(io,'(a)') '# RegCM Holtslag + Tiedtke coupled single column test'
+  else
+    write(io,'(a)') '# RegCM Holtslag + Kain-Fritsch coupled single '// &
+      'column test'
+  end if
   write(io,'(a,a)') '# profiles: ', trim(infile)
   write(io,'(a,a)') '# targets: ', trim(tgtfile)
   write(io,'(a,f8.2,a,f8.3,a,f10.1,a,f8.1,a,f8.3)') '# dt (s) ', dt, &
@@ -458,7 +507,11 @@ program scm_coupled
     '  zwtg (m) ', zwtg, '  tauwind (s) ', tauwind, '  windfac ', windfac
   write(io,'(a,2i3,a,2f8.1)') '# iocnflux izengrough ', iocnflux, &
     izengrough, '  ocnsw ocnlw (W/m2) ', ocnsw, ocnlw
-  write(io,nml=tiedtkeparam)
+  if ( icumulus == 5 ) then
+    write(io,nml=tiedtkeparam)
+  else
+    write(io,nml=kfparam)
+  end if
   write(io,nml=cldparam)
   write(io,nml=holtslagparam)
   write(io,'(a,l2)') '# lnoto ', lnoto
@@ -518,6 +571,12 @@ program scm_coupled
       m2c%qxas(j,1,:,iqv) = q(j,:)
       m2c%qxas(j,1,:,iqc) = qcnd(j,:,iqc)
       m2c%qxas(j,1,:,iqi) = qcnd(j,:,iqi)
+      m2c%qxas(j,1,:,iqr) = qcnd(j,:,iqr)
+      m2c%qxas(j,1,:,iqs) = qcnd(j,:,iqs)
+      do k = 1, nk
+        m2c%rhoas(j,1,k) = pa(j,k)/(rgas*t(j,k)* &
+          (d_one+ep1*q(j,k)/(d_one+q(j,k))))
+      end do
       m2c%uas(j,1,:) = u(j,:)
       m2c%vas(j,1,:) = v(j,:)
       m2c%hfx(j,1) = m2p%hfx(j,1)
@@ -527,7 +586,13 @@ program scm_coupled
     end do
     m2c%tten(:,:,:) = d_zero
     m2c%qxten(:,:,:,:) = d_zero
-    avg_ww(:,1,:) = omls
+    if ( icumulus == 5 ) then
+      ! Tiedtke: the large scale omega (Pa/s)
+      avg_ww(:,1,:) = omls
+    else
+      ! Kain-Fritsch: the large scale vertical velocity (m/s)
+      avg_ww(:,1,:) = -omls/(m2c%rhoas(:,1,:)*egrav)
+    end if
     cu_prate(:,:) = d_zero
     cu_srate(:,:) = d_zero
     cu_ktop(:,:) = 0
@@ -541,7 +606,11 @@ program scm_coupled
     cu_qdetr(:,:,:) = d_zero
     cu_raincc(:,:,:) = d_zero
     total_precip_points = 0
-    call tiedtkedrv(m2c)
+    if ( icumulus == 5 ) then
+      call tiedtkedrv(m2c)
+    else
+      call kfdrv(m2c)
+    end if
 
     ! Cloud fraction and microphysics, on the same state, with the
     ! cumulus tendencies as input (detrained condensate in qdetr)
@@ -572,13 +641,18 @@ program scm_coupled
         else
           ! detrained condensate evaporates in the layer
           ctt(j,k) = cu_tten(j,1,k) - &
-            (wlhv*cu_qten(j,1,k,iqc) + wlhs*cu_qten(j,1,k,iqi))*rcpd
+            (wlhv*(cu_qten(j,1,k,iqc) + cu_qten(j,1,k,iqr)) + &
+             wlhs*(cu_qten(j,1,k,iqi) + cu_qten(j,1,k,iqs)))*rcpd
           cqt(j,k) = cu_qten(j,1,k,iqv) + cu_qten(j,1,k,iqc) + &
-            cu_qten(j,1,k,iqi)
+            cu_qten(j,1,k,iqi) + cu_qten(j,1,k,iqr) + cu_qten(j,1,k,iqs)
         end if
         ptt(j,k) = p2m%tten(j,1,k)
         pqt(j,k) = p2m%qxten(j,1,k,iqv)
-        mfu(j,k) = pmfu(j,k)
+        if ( icumulus == 5 ) then
+          mfu(j,k) = pmfu(j,k)
+        else
+          mfu(j,k) = d_zero
+        end if
       end do
       do k = 1, nk
         ! vertical advection by omega, centred differences
@@ -675,10 +749,15 @@ program scm_coupled
           hqfac = 0.8_rkx
         end if
         wspd = sqrt(u(j,nk)**2+v(j,nk)**2)
+        if ( icumulus == 5 ) then
+          kty = ktype(j)
+        else
+          kty = merge(1,0,cu_ktop(j,1) > 0)
+        end if
         write(io,'(a,1x,a,2f9.3,2f9.2,f9.1,i4,f7.3,3i4,4es13.5,f8.3,4f8.2)') &
           'STEP', trim(col_name(j)), time/3600.0_rkx, hour, &
           m2p%hfx(j,1), m2p%qfx(j,1)*wlhv, zpblj, p2m%kpbl(j,1), hqfac, &
-          ktype(j), cu_ktop(j,1), cu_kbot(j,1), rainc(j)*86400.0_rkx, &
+          kty, cu_ktop(j,1), cu_kbot(j,1), rainc(j)*86400.0_rkx, &
           rainl(j)*86400.0_rkx, rainc_acc(j), rainl_acc(j), wspd, &
           rsut(j), rlut(j), rsutcs(j), rlutcs(j)
         do k = 1, nk
@@ -935,9 +1014,12 @@ program scm_coupled
         mo2mc%qs(j,1,k) = pfwsat(t(j,k),pa(j,k))
         mo2mc%rh(j,1,k) = min(max(q(j,k)/mo2mc%qs(j,1,k),d_zero),d_one)
         qvp(j,1,k) = q(j,k)
-        ! the detrained condensate goes to the microphysics
-        cu_qten(j,1,k,iqc) = d_zero
-        cu_qten(j,1,k,iqi) = d_zero
+        ! Tiedtke: the detrained condensate goes to the microphysics
+        ! through qdetr; Kain-Fritsch: as tendencies
+        if ( icumulus == 5 ) then
+          cu_qten(j,1,k,iqc) = d_zero
+          cu_qten(j,1,k,iqi) = d_zero
+        end if
         mc2mo%tten(j,1,k) = cu_tten(j,1,k)
         do n = 1, nqx
           mc2mo%qxten(j,1,k,n) = cu_qten(j,1,k,n)
@@ -956,8 +1038,8 @@ program scm_coupled
         cfr(j,k) = mo2mc%cldf(j,1,k)
         mtt(j,k) = mc2mo%tten(j,1,k) - cu_tten(j,1,k)
         mqt(j,k) = mc2mo%qxten(j,1,k,iqv) - cu_qten(j,1,k,iqv)
-        ! the cumulus condensate tendencies are zero: what is left is
-        ! the microphysics one
+        ! the condensate tendencies of the cumulus are in those of the
+        ! microphysics (mc2mo%qxten), which advance qcnd
       end do
     end do
   end subroutine micro_step
@@ -1011,6 +1093,8 @@ program scm_coupled
     call getmem(m2c%pasf,1,ncol,1,1,1,nk+1,'scm:pasf')
     call getmem(m2c%zas,1,ncol,1,1,1,nk,'scm:zas')
     call getmem(m2c%zfs,1,ncol,1,1,1,nk+1,'scm:zfs')
+    call getmem(m2c%dzq,1,ncol,1,1,1,nk,'scm:dzq')
+    call getmem(m2c%rhoas,1,ncol,1,1,1,nk,'scm:rhoas')
     call getmem(m2c%tas,1,ncol,1,1,1,nk,'scm:tas')
     call getmem(m2c%uas,1,ncol,1,1,1,nk,'scm:uas')
     call getmem(m2c%vas,1,ncol,1,1,1,nk,'scm:vas')

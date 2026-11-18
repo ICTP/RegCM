@@ -23,7 +23,8 @@ integration with prescribed large scale forcing.
         \verb=scm_gate_check.txt=, \verb=scm_gate_check_obs.txt=: the
         GATE subset of the regression test;
   \item \verb=scm_coupled.F90=, \verb=scm_coupled.py=: the driver of the
-        Tiedtke, Holtslag, NoTo and CCM radiation schemes integrated
+        Tiedtke (or Kain-Fritsch), Holtslag, NoTo and CCM radiation
+        schemes integrated
         together, and its wrapper;
         \verb=scm_amazon.txt=, \verb=scm_amazon_target.txt=,
         \verb=scm_amazon_era5.txt=: the Amazon case (initial profiles,
@@ -209,8 +210,9 @@ runs the soundings 1, 21, \ldots, 141 with the \code{advrad} forcing.
 Holtslag schemes together in time, with the grid layout, configuration
 and allocations of the single scheme drivers. Every time step
 \code{dtstep} (default 300~s) the schemes are called through
-\code{tiedtkedrv}, \code{subex\_cldfrac} and \code{nogtom},
-\code{colmod3} (every \code{dtrad}) and \code{holtbl}, on the same
+\code{tiedtkedrv} (or \code{kfdrv}), \code{subex\_cldfrac} and
+\code{nogtom}, \code{colmod3} (every \code{dtrad}) and \code{holtbl},
+on the same
 state and in this order, as the MOLOCH core calls them: the
 cumulus scheme gets zero input tendencies, the PBL height of the previous
 call of the boundary layer scheme and the friction velocity of the
@@ -387,7 +389,24 @@ wind speed of ERA5 where the wind direction varies (the ITCZ).
 \code{make check} runs one day of each case and compares them with
 \verb=reference/scm_coupled_amazon.out= and
 \verb=reference/scm_coupled_itcz.out= (the ITCZ case with
-\code{tauwtg} = \code{tauwind} = 10800~s). For the same reason as above
+\code{tauwtg} = \code{tauwind} = 10800~s), and the same two cases with
+the Kain-Fritsch cumulus with \verb=reference/scm_coupled_kf_amazon.out=
+and \verb=reference/scm_coupled_kf_itcz.out=.
+
+\subsection{Kain-Fritsch cumulus}
+
+With \code{icumulus} = 6 in \code{\&scmparam} the cumulus scheme is
+Kain-Fritsch (\code{icup} = 6) instead of Tiedtke, with the parameters
+of \code{\&kfparam} and the model defaults. Its trigger gets as
+vertical velocity the one of the large scale omega, $-\omega/(\rho g)$,
+a smooth few mm/s, where the 3D model gives it the resolved, noisier,
+vertical velocity averaged in time: in the column KF triggers less
+often than in the model at the same grid spacing (\code{dxkm}). Its
+tendencies of cloud water, ice, rain and snow go to NoTo as tendencies,
+as in the model (Tiedtke gives the detrained condensate in
+\code{qdetr}). The momentum tendencies, the snow rate and the mass flux
+of Tiedtke are zero; the cloud type column of the output is 1 when KF
+rains, 0 otherwise. For the same reason as above
 the comparison holds only for the build the reference was made with;
 another compiler or other optimisation flags give different rain events.
 

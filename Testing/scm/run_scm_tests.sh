@@ -24,13 +24,16 @@ outdir=${SCM_OUTDIR:-$PWD/scm_output}
 status=0
 
 # Test cases, scheme:profile file:name. The output reference/<name>.out
-# is the reference of the case. The coupled case runs one day, with the
-# relaxation targets of the Amazon case.
+# is the reference of the case. The coupled cases run one day, with the
+# relaxation targets of their profiles; the _kf_ ones with the
+# Kain-Fritsch cumulus (icumulus = 6) instead of Tiedtke.
 cases="tiedtke:scm_profiles.txt:scm_tiedtke
        holtslag:scm_profiles.txt:scm_holtslag
        tiedtke:scm_gate_check.txt:scm_tiedtke_gate
        coupled:scm_amazon.txt:scm_coupled_amazon
-       coupled:scm_itcz.txt:scm_coupled_itcz"
+       coupled:scm_itcz.txt:scm_coupled_itcz
+       coupled:scm_amazon.txt:scm_coupled_kf_amazon
+       coupled:scm_itcz.txt:scm_coupled_kf_itcz"
 
 for case in $cases; do
   scheme=${case%%:*}
@@ -46,9 +49,12 @@ for case in $cases; do
   if [ $scheme = coupled ]; then
     extra="tgtfile = '$here/${profiles%.txt}_target.txt', ndays = 1.0,"
     # the ITCZ case also runs the WTG omega and the wind relaxation
-    if [ $name = scm_coupled_itcz ]; then
-      extra="$extra tauwtg = 10800.0, tauwind = 10800.0,"
-    fi
+    case $name in
+      *itcz) extra="$extra tauwtg = 10800.0, tauwind = 10800.0," ;;
+    esac
+    case $name in
+      *_kf_*) extra="$extra icumulus = 6," ;;
+    esac
   fi
   cat > $d/$name.in << EOF
  &scmparam

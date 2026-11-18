@@ -11,8 +11,8 @@
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# Python wrapper of the coupled Holtslag + Tiedtke single column test
-# (scm_coupled).
+# Python wrapper of the coupled Holtslag + Tiedtke (or Kain-Fritsch,
+# --set icumulus=6) single column test (scm_coupled).
 #
 # Runs the Fortran program on the Amazon case with namelist settings given
 # on the command line and prints per column the mean daily rain (from the
@@ -53,7 +53,11 @@ GROUPS = {
     'scmparam': ['dtstep', 'ndays', 'nout', 'dxkm', 'taurelax', 'zrelax',
                  'tgtfile', 'tauwtg', 'zwtg', 'tauwind', 'windfac', 'omfac',
                  'iocnflux', 'izengrough', 'ocnsw', 'ocnlw', 'lnoto',
-                 'irad', 'dtrad', 'dtabem', 'albland', 'scenario'],
+                 'irad', 'dtrad', 'dtabem', 'albland', 'scenario',
+                 'icumulus'],
+    'kfparam': ['kf_min_pef', 'kf_max_pef', 'kf_entrate', 'kf_dpp',
+                'kf_min_dtcape', 'kf_max_dtcape', 'kf_tkemax',
+                'kf_convrate', 'kf_wthreshold'],
     'tiedtkeparam': [
         'entrdd', 'entrpen_lnd', 'entrpen_ocn', 'detrpen_lnd',
         'detrpen_ocn', 'entshalp', 'rcuc_lnd', 'rcuc_ocn', 'rcpec_lnd',
