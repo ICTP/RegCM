@@ -2229,7 +2229,7 @@ module mod_rad_radiation
     ! dbvtit   - Intrfc drvtv plnck fnctn for o3
     ! dbvtly   - Level drvtv plnck fnctn for o3
     !
-    integer(ik4) :: n, l, k, k1, k2, iband, kn, wvl
+    integer(ik4) :: n, k1, k2, kn, wvl
     real(rk8) :: a, a11, a21, a22, a23, a31, a41, a51, a61,   &
       absbnd, alphat, beta, cf812, corfac, denom, dplco2,       &
       dplol, dplos, ds2c, dtym10, et, et2, et4, f1co2, g2,    &
@@ -2245,524 +2245,546 @@ module mod_rad_radiation
     real(rk8) :: duptyp, du1, du2, duch4, dbetac, du01, du11,   &
       dbeta01, dbeta11, duco11, duco12, duco13, duco21, duco22, &
       duco23, tpnm
-    real(rk8), dimension(6) :: abso
-    real(rk8), dimension(4) :: emm, o3emm, term1, term2, &
-                      term3, term4, term5, zinpl, temh2o
-    real(rk8), dimension(2) :: term7, term8, trline
-    real(rk8), dimension(4) :: tbar, pinpl, uinpl, winpl
-    real(rk8), dimension(maxvert) :: dbvtit
-    real(rk8), dimension(maxvert) :: term6
-    real(rk8), dimension(maxvert) :: term9
-    real(rk8), dimension(maxvert) :: pnmsq
-    real(rk8), dimension(maxvert) :: dbvtly
-    real(rk8), dimension(nlwspi,4) :: bplnk
-    real(rk8), dimension(nlwspi) :: xplnk
+    real(rk8), dimension(nlwspi) :: bplnk
+    real(rk8) :: abso1, abso2, abso3, abso4, abso5, abso6
+    real(rk8) :: emm, o3emm, term1, term2, term3, term4, term5
+    real(rk8) :: term6, term9, term7_1, term7_2, term8_1, term8_2
+    real(rk8) :: trline1, trline2, zinpl, temh2o, tbar, pinpl, uinpl, winpl
+    real(rk8) :: dbvtit, dbvtit_hi, dbvtly, pnmsq, pnmsq_hi, tbar1, tbar2
+    real(rk8) :: zinpl_scale, zinpl_upper, zinpl_lower
     !
     ! Initialize
     !
+    ! bndfct  = 2.0*22.18d0/(sqrt(196.d0)*300.)
+    !
+    ! Non-adjacent layer absorptivity:
+    !
+    ! abso1     0 -  800 cm-1   h2o rotation band
+    ! abso2  1200 - 2200 cm-1   h2o vibration-rotation band
+    ! abso3   800 - 1200 cm-1   h2o window
+    ! abso4   500 -  800 cm-1   h2o rotation band overlap with co2
+    ! abso5   o3  9.6 micrometer band (nu3 and nu1 bands)
+    ! abso6   co2 15  micrometer band system
+    !
+    ! Non-nearest layer level loops
+    !
 #ifdef STDPAR_FIXED
-    do concurrent ( n = n1:n2 ) local(abso,emm,o3emm,term1,term2,term3, &
-      term4,term5,term6,term7,term8,term9,zinpl,temh2o,trline,dbvtit,   &
-      pnmsq,dbvtly,tbar,pinpl,uinpl,winpl,bplnk,xplnk)
+    do concurrent ( k1 = 1:kzp1, k2 = 1:kzp1, n = n1:n2 )
 #else
-    !$acc parallel loop collapse(1) gang vector &
-    !$acc      private(abso,emm,o3emm,term1,term2,term3,term4,term5,  &
-    !$acc              term6,term7,term8,term9,zinpl,temh2o,trline,   &
-    !$acc              dbvtit,pnmsq,dbvtly,tbar,pinpl,uinpl,winpl,    &
-    !$acc              bplnk,xplnk)
+    !$acc parallel loop collapse(3) gang vector
     do n = n1, n2
+    do k2 = 1, kzp1
+    do k1 = 1, kzp1
 #endif
-      dbvtit(kzp1) = dbvt(tint(kzp1,n))
-      do k = 1, kz
-        dbvtly(k) = dbvt(tlayr(k+1,n))
-        dbvtit(k) = dbvt(tint(k,n))
-      end do
-      !
-      ! bndfct  = 2.0*22.18d0/(sqrt(196.d0)*300.)
-      !
-      ! Non-adjacent layer absorptivity:
-      !
-      ! abso(1)     0 -  800 cm-1   h2o rotation band
-      ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-      ! abso(3)   800 - 1200 cm-1   h2o window
-      ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-      ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-      ! abso(6)   co2 15  micrometer band system
-      !
-      do k = 1, kzp1
-        pnmsq(k) = pnm(k,n)**2
-        dtx = tplnka(k,n) - 250.0_rk8
-        term6(k) = coeff(1,2) + coeff(2,2)*dtx *    &
+      if ( k1 /= k2 ) then
+        dbvtit = dbvt(tint(k2,n))
+        dtx = tplnka(k2,n) - 250.0_rk8
+        term6 = coeff(1,2) + coeff(2,2)*dtx *    &
                    (1.0_rk8+c9*dtx*(1.0_rk8+c11*dtx *   &
                    (1.0_rk8+c13*dtx*(1.0_rk8+c15*dtx))))
-        term9(k) = coefi(1,2) + coefi(2,2)*dtx *       &
+        term9 = coefi(1,2) + coefi(2,2)*dtx *       &
                     (1.0_rk8+c19*dtx*(1.0_rk8+c21*dtx *    &
                     (1.0_rk8+c23*dtx*(1.0_rk8+c25*dtx))))
-      end do
-      !
-      ! Non-nearest layer level loops
-      !
-      do k1 = kzp1, 1, -1
-        do k2 = kzp1, 1, -1
-          if ( k1 /= k2 ) then
-            dplh2o = plh2o(k1,n) - plh2o(k2,n)
-            ux = abs(dplh2o)
-            sqrtu = sqrt(ux)
-            ds2c = abs(s2c(k1,n)-s2c(k2,n))
-            dw = abs(wh2op(k1,n)-wh2op(k2,n))
-            uc1 = (ds2c+1.7e-3_rk8*ux) * &
-                 (1.0_rk8+2.0_rk8*ds2c)/(1.0_rk8+15.0_rk8*ds2c)
-            uc = ds2c + 2.0e-3_rk8*ux
-            pnew = ux/dw
-            tpatha = (s2t(k1,n)-s2t(k2,n))/dplh2o
-            dtx = tplnka(k2,n) - 250.0_rk8
-            dty = tpatha - 250.0_rk8
-            dtyp15 = dty + 15.0_rk8
-            dtyp15sq = dtyp15**2
-            dtz = dtx - 50.0_rk8
-            dtp = dty - 50.0_rk8
-            do iband = 2, 4, 2
-              term1(iband) = coefe(1,iband) + &
-                         coefe(2,iband)*dtx*(1.0_rk8+c1(iband)*dtx)
-              term2(iband) = coefb(1,iband) + &
-                         coefb(2,iband)*dtx*(1.0_rk8+c2(iband)*dtx * &
-                         (1.0_rk8+c3(iband)*dtx))
-              term3(iband) = coefd(1,iband) + &
-                         coefd(2,iband)*dtx*(1.0_rk8+c4(iband)*dtx * &
-                         (1.0_rk8+c5(iband)*dtx))
-              term4(iband) = coefa(1,iband) + &
-                         coefa(2,iband)*dty*(1.0_rk8+c6(iband)*dty)
-              term5(iband) = coefc(1,iband) + &
-                         coefc(2,iband)*dty*(1.0_rk8+c7(iband)*dty)
-            end do
-            !
-            ! abso(1)     0 -  800 cm-1   h2o rotation band
-            !
-            a11 = 0.44_rk8 + 3.380e-4_rk8*dtz - 1.520e-6_rk8*dtz*dtz
-            a31 = 1.05_rk8 - 6.000e-3_rk8*dtp + 3.000e-6_rk8*dtp*dtp
-            a21 = 1.00_rk8 + 1.717e-3_rk8*dtz - 1.133e-5_rk8*dtz*dtz
-            a22 = 1.00_rk8 + 4.443e-3_rk8*dtp + 2.750e-5_rk8*dtp*dtp
-            a23 = 1.00_rk8 + 3.600_rk8*sqrtu
-            corfac = a31*(a11+((2.0_rk8*a21*a22)/a23))
-            t1t4 = term1(2)*term4(2)
-            t2t5 = term2(2)*term5(2)
-            a = t1t4 + t2t5/(1.0_rk8+t2t5*sqrtu*corfac)
-            fwk = fwcoef + fwc1/(1.0_rk8+fwc2*ux)
-            fwku = fwk*ux
-            rsum = exp(-a*(sqrtu+fwku))
-            abso(1) = (1.0_rk8-rsum)*term3(2)
-            ! trab1(n)  = rsum
-            !
-            ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-            !
-            a41 = 1.75_rk8 - 3.960e-3_rk8*dtz
-            a51 = 1.00_rk8 + 1.3_rk8*sqrtu
-            a61 = 1.00_rk8 + 1.250e-3_rk8*dtp + 6.250e-5_rk8*dtp*dtp
-            corfac = 0.29_rk8*(1.0_rk8+a41/a51)*a61
-            t1t4 = term1(4)*term4(4)
-            t2t5 = term2(4)*term5(4)
-            a = t1t4 + t2t5/(1.0_rk8+t2t5*sqrtu*corfac)
-            rsum = exp(-a*(sqrtu+fwku))
-            abso(2) = (1.0_rk8-rsum)*term3(4)
-            ! trab7(n)  = rsum
-            !
-            ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
-            !
-            do l = 1, 2
-              phi = exp(a1(l)*dtyp15+a2(l)*dtyp15sq)
-              psi = exp(b1(l)*dtyp15+b2(l)*dtyp15sq)
-              ubar = dw*phi*1.66_rk8*r80257
-              pbar = pnew*(psi/phi)
-              cf812 = cfa1 + (1.0_rk8-cfa1)/(1.0_rk8+ubar*pbar*10.0_rk8)
-              g2 = 1.0_rk8 + ubar*4.0_rk8*st(l)*cf812/pbar
-              g4 = realk(l)*pbar*r2st(l)*(sqrt(g2)-1.0_rk8)
-              trline(l) = exp(-g4)
-            end do
-            term7(1) = coefj(1,1)+coefj(2,1)*dty*(1.0_rk8+c16*dty)
-            term8(1) = coefk(1,1)+coefk(2,1)*dty*(1.0_rk8+c17*dty)
-            term7(2) = coefj(1,2)+coefj(2,2)*dty*(1.0_rk8+c26*dty)
-            term8(2) = coefk(1,2)+coefk(2,2)*dty*(1.0_rk8+c27*dty)
-            !
-            ! abso(3)   800 - 1200 cm-1   h2o window
-            ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-            k21 = term7(1) + term8(1)/(1.0_rk8+(c30+c31*(dty-10.0_rk8)* &
-                  (dty-10.0_rk8))*sqrtu)
-            k22 = term7(2) + term8(2)/(1.0_rk8+(c28+c29*(dty-10.0_rk8))*sqrtu)
-            tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
-            tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
-            tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx)*uc1))
-            tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx)*uc1))
-            tr9 = tr1*tr5
-            tr10 = tr2*tr6
-            th2o = tr10
-            trab2 = 0.65_rk8*tr9 + 0.35_rk8*tr10
-            trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx)*uc)
-            trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx)*uc)
-            abso(3) = term6(k2)*(1.0_rk8-trab4*0.5_rk8*trline(2)- &
-                      trab6*0.5_rk8*trline(1))
-            abso(4) = term9(k2)*0.5_rk8*(tr1-tr9+tr2-tr10)
-            if ( k2 < k1 ) then
-              to3h2o = h2otr(k1,n)/h2otr(k2,n)
-            else
-              to3h2o = h2otr(k2,n)/h2otr(k1,n)
-            end if
-            !
-            ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-            !
-            dpnm = pnm(k1,n) - pnm(k2,n)
-            to3co2 = (pnm(k1,n)*co2t(k1,n)-pnm(k2,n)*co2t(k2,n))/dpnm
-            te = (to3co2*r293)**0.7_rk8
-            dplos = plos(k1,n) - plos(k2,n)
-            dplol = plol(k1,n) - plol(k2,n)
-            u1 = 18.29_rk8*abs(dplos)/te
-            u2 = 0.5649_rk8*abs(dplos)/te
-            rphat = dplol/dplos
-            tlocal = tint(k2,n)
-            tcrfac = sqrt(tlocal*r250)*te
-            beta = r3205*(rphat+dpfo3*tcrfac)
-            realnu = te/beta
-            tmp1 = u1/sqrt(4.0_rk8+u1*(1.0_rk8+realnu))
-            tmp2 = u2/sqrt(4.0_rk8+u2*(1.0_rk8+realnu))
-            o3bndi = 74.0_rk8*te*log(1.0_rk8+tmp1+tmp2)
-            abso(5) = o3bndi*to3h2o*dbvtit(k2)
-            to3 = 1.0_rk8/(1.0_rk8+0.1_rk8*tmp1+0.1_rk8*tmp2)
-            ! trab5(n)  = 1.0_rk8-(o3bndi/(1060-980.))
-            !
-            ! abso(6)      co2 15  micrometer band system
-            !
-            sqwp = sqrt(abs(plco2(k1,n)-plco2(k2,n)))
-            et = exp(-480.0_rk8/to3co2)
-            sqti = sqrt(to3co2)
-            rsqti = 1.0_rk8/sqti
-            et2 = et*et
-            et4 = et2*et2
-            omet = 1.0_rk8 - 1.5_rk8*et2
-            f1co2 = 899.70_rk8*omet*rsqti* &
-              (1.0_rk8+1.94774_rk8*et+4.73486_rk8*et2)
-            f1sqwp = f1co2*sqwp
-            t1co2 = 1.0_rk8/(1.0_rk8+(245.18_rk8*omet*sqwp*rsqti))
-            oneme = 1.0_rk8 - et2
-            alphat = oneme**3*rsqti
-            pi = abs(co2pth(k1,n)-co2pth(k2,n))
-            wco2 = 2.5221_rk8*pi*regravgts
-            u7 = 4.9411e4_rk8*alphat*et2*wco2
-            u8 = 3.9744e4_rk8*alphat*et4*wco2
-            u9 = 1.0447e5_rk8*alphat*et4*et2*wco2
-            u13 = 2.8388e3_rk8*alphat*et4*wco2
-            tpath = to3co2
-            tlocal = tint(k2,n)
-            tcrfac = sqrt(tlocal*r250*tpath*r300)
-            posqt = ((pnm(k2,n)+pnm(k1,n))*r2sslp+dpfco2*tcrfac)*rsqti
-            rbeta7 = 1.0_rk8/(5.3228_rk8*posqt)
-            rbeta8 = 1.0_rk8/(10.6576_rk8*posqt)
-            rbeta9 = rbeta7
-            rbeta13 = rbeta9
-            f2co2 = (u7/sqrt(4.0_rk8+u7*(1.0_rk8+rbeta7))) + &
-                    (u8/sqrt(4.0_rk8+u8*(1.0_rk8+rbeta8))) + &
-                    (u9/sqrt(4.0_rk8+u9*(1.0_rk8+rbeta9)))
-            f3co2 = u13/sqrt(4.0_rk8+u13*(1.0_rk8+rbeta13))
-            if ( k2 >= k1 ) then
-              sqti = sqrt(tlayr(k2,n))
-            end if
+        dplh2o = plh2o(k1,n) - plh2o(k2,n)
+        ux = abs(dplh2o)
+        sqrtu = sqrt(ux)
+        ds2c = abs(s2c(k1,n)-s2c(k2,n))
+        dw = abs(wh2op(k1,n)-wh2op(k2,n))
+        uc1 = (ds2c+1.7e-3_rk8*ux) * &
+             (1.0_rk8+2.0_rk8*ds2c)/(1.0_rk8+15.0_rk8*ds2c)
+        uc = ds2c + 2.0e-3_rk8*ux
+        pnew = ux/dw
+        tpatha = (s2t(k1,n)-s2t(k2,n))/dplh2o
+        dty = tpatha - 250.0_rk8
+        dtyp15 = dty + 15.0_rk8
+        dtyp15sq = dtyp15**2
+        dtz = dtx - 50.0_rk8
+        dtp = dty - 50.0_rk8
+        !
+        ! abso1     0 -  800 cm-1   h2o rotation band
+        !
+        a11 = 0.44_rk8 + 3.380e-4_rk8*dtz - 1.520e-6_rk8*dtz*dtz
+        a31 = 1.05_rk8 - 6.000e-3_rk8*dtp + 3.000e-6_rk8*dtp*dtp
+        a21 = 1.00_rk8 + 1.717e-3_rk8*dtz - 1.133e-5_rk8*dtz*dtz
+        a22 = 1.00_rk8 + 4.443e-3_rk8*dtp + 2.750e-5_rk8*dtp*dtp
+        a23 = 1.00_rk8 + 3.600_rk8*sqrtu
+        corfac = a31*(a11+((2.0_rk8*a21*a22)/a23))
+        term1 = coefe(1,2) + &
+                   coefe(2,2)*dtx*(1.0_rk8+c1(2)*dtx)
+        term2 = coefb(1,2) + &
+                   coefb(2,2)*dtx*(1.0_rk8+c2(2)*dtx * &
+                   (1.0_rk8+c3(2)*dtx))
+        term3 = coefd(1,2) + &
+                   coefd(2,2)*dtx*(1.0_rk8+c4(2)*dtx * &
+                   (1.0_rk8+c5(2)*dtx))
+        term4 = coefa(1,2) + &
+                   coefa(2,2)*dty*(1.0_rk8+c6(2)*dty)
+        term5 = coefc(1,2) + &
+                   coefc(2,2)*dty*(1.0_rk8+c7(2)*dty)
+        t1t4 = term1*term4
+        t2t5 = term2*term5
+        a = t1t4 + t2t5/(1.0_rk8+t2t5*sqrtu*corfac)
+        fwk = fwcoef + fwc1/(1.0_rk8+fwc2*ux)
+        fwku = fwk*ux
+        rsum = exp(-a*(sqrtu+fwku))
+        abso1 = (1.0_rk8-rsum)*term3
+        ! trab1(n)  = rsum
+        !
+        ! abso2  1200 - 2200 cm-1   h2o vibration-rotation band
+        !
+        a41 = 1.75_rk8 - 3.960e-3_rk8*dtz
+        a51 = 1.00_rk8 + 1.3_rk8*sqrtu
+        a61 = 1.00_rk8 + 1.250e-3_rk8*dtp + 6.250e-5_rk8*dtp*dtp
+        corfac = 0.29_rk8*(1.0_rk8+a41/a51)*a61
+        term1 = coefe(1,4) + &
+                   coefe(2,4)*dtx*(1.0_rk8+c1(4)*dtx)
+        term2 = coefb(1,4) + &
+                   coefb(2,4)*dtx*(1.0_rk8+c2(4)*dtx * &
+                   (1.0_rk8+c3(4)*dtx))
+        term3 = coefd(1,4) + &
+                   coefd(2,4)*dtx*(1.0_rk8+c4(4)*dtx * &
+                   (1.0_rk8+c5(4)*dtx))
+        term4 = coefa(1,4) + &
+                   coefa(2,4)*dty*(1.0_rk8+c6(4)*dty)
+        term5 = coefc(1,4) + &
+                   coefc(2,4)*dty*(1.0_rk8+c7(4)*dty)
+        t1t4 = term1*term4
+        t2t5 = term2*term5
+        a = t1t4 + t2t5/(1.0_rk8+t2t5*sqrtu*corfac)
+        rsum = exp(-a*(sqrtu+fwku))
+        abso2 = (1.0_rk8-rsum)*term3
+        ! trab7(n)  = rsum
+        !
+        ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
+        !
+        phi = exp(a1(1)*dtyp15+a2(1)*dtyp15sq)
+        psi = exp(b1(1)*dtyp15+b2(1)*dtyp15sq)
+        ubar = dw*phi*1.66_rk8*r80257
+        pbar = pnew*(psi/phi)
+        cf812 = cfa1 + (1.0_rk8-cfa1)/(1.0_rk8+ubar*pbar*10.0_rk8)
+        g2 = 1.0_rk8 + ubar*4.0_rk8*st(1)*cf812/pbar
+        g4 = realk(1)*pbar*r2st(1)*(sqrt(g2)-1.0_rk8)
+        trline1 = exp(-g4)
+        phi = exp(a1(2)*dtyp15+a2(2)*dtyp15sq)
+        psi = exp(b1(2)*dtyp15+b2(2)*dtyp15sq)
+        ubar = dw*phi*1.66_rk8*r80257
+        pbar = pnew*(psi/phi)
+        cf812 = cfa1 + (1.0_rk8-cfa1)/(1.0_rk8+ubar*pbar*10.0_rk8)
+        g2 = 1.0_rk8 + ubar*4.0_rk8*st(2)*cf812/pbar
+        g4 = realk(2)*pbar*r2st(2)*(sqrt(g2)-1.0_rk8)
+        trline2 = exp(-g4)
+        term7_1 = coefj(1,1)+coefj(2,1)*dty*(1.0_rk8+c16*dty)
+        term8_1 = coefk(1,1)+coefk(2,1)*dty*(1.0_rk8+c17*dty)
+        term7_2 = coefj(1,2)+coefj(2,2)*dty*(1.0_rk8+c26*dty)
+        term8_2 = coefk(1,2)+coefk(2,2)*dty*(1.0_rk8+c27*dty)
+        !
+        ! abso3   800 - 1200 cm-1   h2o window
+        ! abso4   500 -  800 cm-1   h2o rotation band overlap with co2
+        k21 = term7_1 + term8_1/(1.0_rk8+(c30+c31*(dty-10.0_rk8)* &
+              (dty-10.0_rk8))*sqrtu)
+        k22 = term7_2 + term8_2/(1.0_rk8+(c28+c29*(dty-10.0_rk8))*sqrtu)
+        tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
+        tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
+        tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx)*uc1))
+        tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx)*uc1))
+        tr9 = tr1*tr5
+        tr10 = tr2*tr6
+        th2o = tr10
+        trab2 = 0.65_rk8*tr9 + 0.35_rk8*tr10
+        trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx)*uc)
+        trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx)*uc)
+        abso3 = term6*(1.0_rk8-trab4*0.5_rk8*trline2- &
+                  trab6*0.5_rk8*trline1)
+        abso4 = term9*0.5_rk8*(tr1-tr9+tr2-tr10)
+        if ( k2 < k1 ) then
+          to3h2o = h2otr(k1,n)/h2otr(k2,n)
+        else
+          to3h2o = h2otr(k2,n)/h2otr(k1,n)
+        end if
+        !
+        ! abso5   o3  9.6 micrometer band (nu3 and nu1 bands)
+        !
+        dpnm = pnm(k1,n) - pnm(k2,n)
+        to3co2 = (pnm(k1,n)*co2t(k1,n)-pnm(k2,n)*co2t(k2,n))/dpnm
+        te = (to3co2*r293)**0.7_rk8
+        dplos = plos(k1,n) - plos(k2,n)
+        dplol = plol(k1,n) - plol(k2,n)
+        u1 = 18.29_rk8*abs(dplos)/te
+        u2 = 0.5649_rk8*abs(dplos)/te
+        rphat = dplol/dplos
+        tlocal = tint(k2,n)
+        tcrfac = sqrt(tlocal*r250)*te
+        beta = r3205*(rphat+dpfo3*tcrfac)
+        realnu = te/beta
+        tmp1 = u1/sqrt(4.0_rk8+u1*(1.0_rk8+realnu))
+        tmp2 = u2/sqrt(4.0_rk8+u2*(1.0_rk8+realnu))
+        o3bndi = 74.0_rk8*te*log(1.0_rk8+tmp1+tmp2)
+        abso5 = o3bndi*to3h2o*dbvtit
+        to3 = 1.0_rk8/(1.0_rk8+0.1_rk8*tmp1+0.1_rk8*tmp2)
+        ! trab5(n)  = 1.0_rk8-(o3bndi/(1060-980.))
+        !
+        ! abso6      co2 15  micrometer band system
+        !
+        sqwp = sqrt(abs(plco2(k1,n)-plco2(k2,n)))
+        et = exp(-480.0_rk8/to3co2)
+        sqti = sqrt(to3co2)
+        rsqti = 1.0_rk8/sqti
+        et2 = et*et
+        et4 = et2*et2
+        omet = 1.0_rk8 - 1.5_rk8*et2
+        f1co2 = 899.70_rk8*omet*rsqti* &
+          (1.0_rk8+1.94774_rk8*et+4.73486_rk8*et2)
+        f1sqwp = f1co2*sqwp
+        t1co2 = 1.0_rk8/(1.0_rk8+(245.18_rk8*omet*sqwp*rsqti))
+        oneme = 1.0_rk8 - et2
+        alphat = oneme**3*rsqti
+        pi = abs(co2pth(k1,n)-co2pth(k2,n))
+        wco2 = 2.5221_rk8*pi*regravgts
+        u7 = 4.9411e4_rk8*alphat*et2*wco2
+        u8 = 3.9744e4_rk8*alphat*et4*wco2
+        u9 = 1.0447e5_rk8*alphat*et4*et2*wco2
+        u13 = 2.8388e3_rk8*alphat*et4*wco2
+        tpath = to3co2
+        tlocal = tint(k2,n)
+        tcrfac = sqrt(tlocal*r250*tpath*r300)
+        posqt = ((pnm(k2,n)+pnm(k1,n))*r2sslp+dpfco2*tcrfac)*rsqti
+        rbeta7 = 1.0_rk8/(5.3228_rk8*posqt)
+        rbeta8 = 1.0_rk8/(10.6576_rk8*posqt)
+        rbeta9 = rbeta7
+        rbeta13 = rbeta9
+        f2co2 = (u7/sqrt(4.0_rk8+u7*(1.0_rk8+rbeta7))) + &
+                (u8/sqrt(4.0_rk8+u8*(1.0_rk8+rbeta8))) + &
+                (u9/sqrt(4.0_rk8+u9*(1.0_rk8+rbeta9)))
+        f3co2 = u13/sqrt(4.0_rk8+u13*(1.0_rk8+rbeta13))
+        if ( k2 >= k1 ) then
+          sqti = sqrt(tlayr(k2,n))
+        end if
 
-            tmp1 = log(1.0_rk8+f1sqwp)
-            tmp2 = log(1.0_rk8+f2co2)
-            tmp3 = log(1.0_rk8+f3co2)
-            absbnd = (tmp1+2.0_rk8*t1co2*tmp2+2.0_rk8*tmp3)*sqti
-            abso(6) = trab2*co2em(k2,n)*absbnd
-            tco2 = 1.0_rk8/(1.0_rk8+10.0_rk8*(u7/sqrt(4.0_rk8 + &
-                                              u7*(1.0_rk8+rbeta7))))
-            ! trab3(n)  = 1. - bndfct*absbnd
-            !
-            ! Calculate absorptivity due to trace gases
-            !
-            tpnm    = abs(pnm(k1,n)+pnm(k2,n))
-            duptyp  = abs(uptype(k1,n)-uptype(k2,n))
-            du1     = abs(ucfc11(k1,n)-ucfc11(k2,n))
-            du2     = abs(ucfc12(k1,n)-ucfc12(k2,n))
-            duch4   = abs(uch4(k1,n)-uch4(k2,n))
-            dbetac  = abs(bch4(k1,n)-bch4(k2,n))/duch4
-            du01    = abs(un2o0(k1,n)-un2o0(k2,n))
-            du11    = abs(un2o1(k1,n)-un2o1(k2,n))
-            dbeta01 = abs(bn2o0(k1,n)-bn2o0(k2,n))/du01
-            dbeta11 = abs(bn2o1(k1,n)-bn2o1(k2,n))/du11
-            duco11  = abs(uco211(k1,n)-uco211(k2,n))
-            duco12  = abs(uco212(k1,n)-uco212(k2,n))
-            duco13  = abs(uco213(k1,n)-uco213(k2,n))
-            duco21  = abs(uco221(k1,n)-uco221(k2,n))
-            duco22  = abs(uco222(k1,n)-uco222(k2,n))
-            duco23  = abs(uco223(k1,n)-uco223(k2,n))
-            do wvl = 1, nlwspi
-              xplnk(wvl) = abplnk1(wvl,k2,n)
-            end do
-            abstrc = trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
-                           du01,du11,dbeta01,dbeta11,duco11,duco12, &
-                           duco13,duco21,duco22,duco23,dw,pnew,     &
-                           to3co2,ux,tco2,th2o,to3,xplnk)
-            !
-            ! Sum total absorptivity
-            !
-            absgastot(k1,k2,n) = abso(1) + abso(2) + abso(3) + &
-                                 abso(4) + abso(5) + abso(6) + abstrc
-          end if
-        end do
-      end do  ! End of non-nearest layer level loops
-      !
-      ! Non-adjacent layer absorptivity:
-      !
-      ! abso(1)     0 -  800 cm-1   h2o rotation band
-      ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-      ! abso(3)   800 - 1200 cm-1   h2o window
-      ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-      ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-      ! abso(6)   co2 15  micrometer band system
-      !
-      ! Nearest layer level loop
-      !
-      do k2 = kz, 1, -1
-        tbar(1) = (tint(k2+1,n)+tlayr(k2+1,n))*0.5_rk8
-        tbar(2) = (tlayr(k2+1,n)+tint(k2,n))*0.5_rk8
-        tbar(3) = (tbar(2)+tbar(1))*0.5_rk8
-        tbar(4) = tbar(3)
-        emm(1) = (co2em(k2+1,n)+co2eml(k2,n))*0.5_rk8
-        emm(2) = (co2em(k2,n)+co2eml(k2,n))*0.5_rk8
-        emm(3) = emm(1)
-        emm(4) = emm(2)
-        o3emm(1) = (dbvtit(k2+1)+dbvtly(k2))*0.5_rk8
-        o3emm(2) = (dbvtit(k2)+dbvtly(k2))*0.5_rk8
-        o3emm(3) = o3emm(1)
-        o3emm(4) = o3emm(2)
-        temh2o(1) = tbar(1)
-        temh2o(2) = tbar(2)
-        temh2o(3) = tbar(1)
-        temh2o(4) = tbar(2)
-        dpnm = pnm(k2+1,n) - pnm(k2,n)
+        tmp1 = log(1.0_rk8+f1sqwp)
+        tmp2 = log(1.0_rk8+f2co2)
+        tmp3 = log(1.0_rk8+f3co2)
+        absbnd = (tmp1+2.0_rk8*t1co2*tmp2+2.0_rk8*tmp3)*sqti
+        abso6 = trab2*co2em(k2,n)*absbnd
+        tco2 = 1.0_rk8/(1.0_rk8+10.0_rk8*(u7/sqrt(4.0_rk8 + &
+                                          u7*(1.0_rk8+rbeta7))))
+        ! trab3(n)  = 1. - bndfct*absbnd
         !
-        ! Weighted Planck functions for trace gases
+        ! Calculate absorptivity due to trace gases
         !
-        do wvl = 1, nlwspi
-          bplnk(wvl,1) = (abplnk1(wvl,k2+1,n)+abplnk2(wvl,k2,n))*0.5_rk8
-          bplnk(wvl,2) = (abplnk1(wvl,k2,  n)+abplnk2(wvl,k2,n))*0.5_rk8
-          bplnk(wvl,3) = bplnk(wvl,1)
-          bplnk(wvl,4) = bplnk(wvl,2)
-        end do
-        rdpnmsq = 1.0_rk8/(pnmsq(k2+1)-pnmsq(k2))
-        rdpnm = 1.0_rk8/dpnm
-        p1 = (pbr(k2,n)+pnm(k2+1,n))*0.5_rk8
-        p2 = (pbr(k2,n)+pnm(k2,n))*0.5_rk8
-        uinpl(1) = (pnmsq(k2+1)-p1**2)*rdpnmsq
-        uinpl(2) = -(pnmsq(k2)-p2**2)*rdpnmsq
-        uinpl(3) = -(pnmsq(k2)-p1**2)*rdpnmsq
-        uinpl(4) = (pnmsq(k2+1)-p2**2)*rdpnmsq
-        winpl(1) = ((pnm(k2+1,n)-pbr(k2,n))*0.5_rk8)*rdpnm
-        winpl(2) = ((-pnm(k2,n)+pbr(k2,n))*0.5_rk8)*rdpnm
-        winpl(3) = ((pnm(k2+1,n)+pbr(k2,n))*0.5_rk8-pnm(k2,n))*rdpnm
-        winpl(4) = ((-pnm(k2,n)-pbr(k2,n))*0.5_rk8+pnm(k2+1,n))*rdpnm
-        tmp1 = 1.0_rk8/(piln(k2+1,n)-piln(k2,n))
-        tmp2 = piln(k2+1,n) - pmln(k2,n)
-        tmp3 = piln(k2,n)   - pmln(k2,n)
-        zinpl(1) = (tmp2*0.5_rk8)*tmp1
-        zinpl(2) = (-tmp3*0.5_rk8)*tmp1
-        zinpl(3) = (tmp2*0.5_rk8-tmp3)*tmp1
-        zinpl(4) = (tmp2-tmp3*0.5_rk8)*tmp1
-        pinpl(1) = (p1+pnm(k2+1,n))*0.5_rk8
-        pinpl(2) = (p2+pnm(k2,n))*0.5_rk8
-        pinpl(3) = (p1+pnm(k2,n))*0.5_rk8
-        pinpl(4) = (p2+pnm(k2+1,n))*0.5_rk8
-        ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        do kn = 1, 4
-          ux = abs(uinpl(kn)*(plh2o(k2,n)-plh2o(k2+1,n)))
-          sqrtu = sqrt(ux)
-          dw = abs(wh2op(k2,n)-wh2op(k2+1,n))
-          pnew = ux/(winpl(kn)*dw)
-          ds2c = abs(s2c(k2,n)-s2c(k2+1,n))
-          uc1 = uinpl(kn)*ds2c
-          uc1 = (uc1+1.7e-3_rk8*ux)*(1.0_rk8+2.0_rk8*uc1)/&
-                (1.0_rk8+15.0_rk8*uc1)
-          uc = uinpl(kn)*ds2c + 2.0e-3_rk8*ux
-          dtx = temh2o(kn) - 250.0_rk8
-          dty = tbar(kn) - 250.0_rk8
-          dtyp15 = dty + 15.0_rk8
-          dtyp15sq = dtyp15**2
-          dtz = dtx - 50.0_rk8
-          dtp = dty - 50.0_rk8
-          do iband = 2, 4, 2
-            term1(iband) = coefe(1,iband) + coefe(2,iband)*dtx * &
-                           (1.0_rk8+c1(iband)*dtx)
-            term2(iband) = coefb(1,iband) + coefb(2,iband)*dtx * &
-                           (1.0_rk8+c2(iband)*dtx              * &
-                           (1.0_rk8+c3(iband)*dtx))
-            term3(iband) = coefd(1,iband) + coefd(2,iband)*dtx * &
-                           (1.0_rk8+c4(iband)*dtx              * &
-                           (1.0_rk8+c5(iband)*dtx))
-            term4(iband) = coefa(1,iband) + coefa(2,iband)*dty * &
-                           (1.0_rk8+c6(iband)*dty)
-            term5(iband) = coefc(1,iband) + coefc(2,iband)*dty * &
-                           (1.0_rk8+c7(iband)*dty)
-          end do
-          !
-          ! abso(1)     0 -  800 cm-1   h2o rotation band
-          !
-          a11 = 0.44_rk8 + 3.380e-4_rk8*dtz - 1.520e-6_rk8*dtz*dtz
-          a31 = 1.05_rk8 - 6.000e-3_rk8*dtp + 3.000e-6_rk8*dtp*dtp
-          a21 = 1.00_rk8 + 1.717e-3_rk8*dtz - 1.133e-5_rk8*dtz*dtz
-          a22 = 1.00_rk8 + 4.443e-3_rk8*dtp + 2.750e-5_rk8*dtp*dtp
-          a23 = 1.00_rk8 + 3.600_rk8*sqrtu
-          corfac = a31*(a11+((2.0_rk8*a21*a22)/a23))
-          t1t4 = term1(2)*term4(2)
-          t2t5 = term2(2)*term5(2)
-          a = t1t4 + t2t5/(1.0_rk8+t2t5*sqrtu*corfac)
-          fwk = fwcoef + fwc1/(1.0_rk8+fwc2*ux)
-          fwku = fwk*ux
-          rsum = exp(-a*(sqrtu+fwku))
-          abso(1) = (1.0_rk8-rsum)*term3(2)
-          ! trab1(n) = rsum
-          !
-          ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-          !
-          a41 = 1.75_rk8 - 3.960e-3_rk8*dtz
-          a51 = 1.00_rk8 + 1.3_rk8*sqrtu
-          a61 = 1.00_rk8 + 1.250e-3_rk8*dtp + 6.250e-5_rk8*dtp*dtp
-          corfac = 0.29_rk8*(1.0_rk8+a41/a51)*a61
-          t1t4 = term1(4)*term4(4)
-          t2t5 = term2(4)*term5(4)
-          a = t1t4 + t2t5/(1.0_rk8+t2t5*sqrtu*corfac)
-          rsum = exp(-a*(sqrtu+fwku))
-          abso(2) = (1.0_rk8-rsum)*term3(4)
-          ! trab7(n) = rsum
-          !
-          ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
-          !
-          do l = 1, 2
-            phi = exp(a1(l)*dtyp15+a2(l)*dtyp15sq)
-            psi = exp(b1(l)*dtyp15+b2(l)*dtyp15sq)
-            ubar = dw*phi*winpl(kn)*1.66_rk8*r80257
-            pbar = pnew*(psi/phi)
-            cf812 = cfa1 + (1.0_rk8-cfa1)/(1.0_rk8+ubar*pbar*10.0_rk8)
-            g2 = 1.0_rk8 + ubar*4.0_rk8*st(l)*cf812/pbar
-            g4 = realk(l)*pbar*r2st(l)*(sqrt(g2)-1.0_rk8)
-            trline(l) = exp(-g4)
-          end do
-          term7(1) = coefj(1,1)+coefj(2,1)*dty*(1.0_rk8+c16*dty)
-          term8(1) = coefk(1,1)+coefk(2,1)*dty*(1.0_rk8+c17*dty)
-          term7(2) = coefj(1,2)+coefj(2,2)*dty*(1.0_rk8+c26*dty)
-          term8(2) = coefk(1,2)+coefk(2,2)*dty*(1.0_rk8+c27*dty)
-          !
-          ! abso(3)   800 - 1200 cm-1   h2o window
-          ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-          !
-          dtym10 = dty - 10.0_rk8
-          denom = 1.0_rk8 + (c30+c31*dtym10*dtym10)*sqrtu
-          k21 = term7(1) + term8(1)/denom
-          denom = 1.0_rk8 + (c28+c29*dtym10)*sqrtu
-          k22 = term7(2) + term8(2)/denom
-          term9(2) = coefi(1,2) + coefi(2,2)*dtx *     &
-                     (1.0_rk8+c19*dtx*(1.0_rk8+c21*dtx *   &
-                     (1.0_rk8+c23*dtx*(1.0_rk8+c25*dtx))))
-          tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
-          tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
-          tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx)*uc1))
-          tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx)*uc1))
-          tr9 = tr1*tr5
-          tr10 = tr2*tr6
-          trab2 = 0.65_rk8*tr9 + 0.35_rk8*tr10
-          th2o = tr10
-          trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx)*uc)
-          trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx)*uc)
-          term6(2) = coeff(1,2) + coeff(2,2)*dtx *  &
-                       (1.0_rk8+c9*dtx*(1.0_rk8+c11*dtx * &
-                       (1.0_rk8+c13*dtx*(1.0_rk8+c15*dtx))))
-          abso(3) = term6(2)*(1.0_rk8-trab4*0.5_rk8*trline(2) - &
-                                    trab6*0.5_rk8*trline(1))
-          abso(4) = term9(2)*0.5_rk8*(tr1-tr9+tr2-tr10)
-          !
-          ! abso(5)  o3  9.6 micrometer (nu3 and nu1 bands)
-          !
-          te = (tbar(kn)*r293)**0.7_rk8
-          dplos = abs(plos(k2+1,n)-plos(k2,n))
-          u1 = zinpl(kn)*18.29_rk8*dplos/te
-          u2 = zinpl(kn)*0.5649_rk8*dplos/te
-          tlocal = tbar(kn)
-          tcrfac = sqrt(tlocal*r250)*te
-          beta = r3205*(pinpl(kn)*rsslp+dpfo3*tcrfac)
-          realnu = te/beta
-          tmp1 = u1/sqrt(4.0_rk8+u1*(1.0_rk8+realnu))
-          tmp2 = u2/sqrt(4.0_rk8+u2*(1.0_rk8+realnu))
-          o3bndi = 74.0_rk8*te*log(1.0_rk8+tmp1+tmp2)
-          abso(5) = o3bndi*o3emm(kn)*(h2otr(k2+1,n)/h2otr(k2,n))
-          to3 = 1.0_rk8/(1.0_rk8+0.1_rk8*tmp1+0.1_rk8*tmp2)
-          ! trab5(n) = 1.0_rk8-(o3bndi/(1060-980.))
-          !
-          ! abso(6)   co2 15  micrometer band system
-          !
-          dplco2 = plco2(k2+1,n) - plco2(k2,n)
-          sqwp = sqrt(uinpl(kn)*dplco2)
-          et = exp(-480.0_rk8/tbar(kn))
-          sqti = sqrt(tbar(kn))
-          rsqti = 1.0_rk8/sqti
-          et2 = et*et
-          et4 = et2*et2
-          omet = (1.0_rk8-1.5_rk8*et2)
-          f1co2 = 899.70_rk8*omet*rsqti*(1.0_rk8+1.94774_rk8*et+4.73486_rk8*et2)
-          f1sqwp = f1co2*sqwp
-          t1co2 = 1.0_rk8/(1.0_rk8+(245.18_rk8*omet*sqwp*rsqti))
-          oneme = 1.0_rk8 - et2
-          alphat = oneme**3*rsqti
-          pi = abs(co2pth(k2+1,n)-co2pth(k2,n))*winpl(kn)
-          wco2 = 2.5221_rk8*pi*regravgts
-          u7 = 4.9411e4_rk8*alphat*et2*wco2
-          u8 = 3.9744e4_rk8*alphat*et4*wco2
-          u9 = 1.0447e5_rk8*alphat*et4*et2*wco2
-          u13 = 2.8388e3_rk8*alphat*et4*wco2
-          tpath = tbar(kn)
-          tlocal = tbar(kn)
-          tcrfac = sqrt((tlocal*r250)*(tpath*r300))
-          posqt = (pinpl(kn)*rsslp+dpfco2*tcrfac)*rsqti
-          rbeta7 = 1.0_rk8/(5.3228_rk8*posqt)
-          rbeta8 = 1.0_rk8/(10.6576_rk8*posqt)
-          rbeta9 = rbeta7
-          rbeta13 = rbeta9
-          f2co2 = u7/sqrt(4.0_rk8+u7*(1.0_rk8+rbeta7)) + &
-                  u8/sqrt(4.0_rk8+u8*(1.0_rk8+rbeta8)) + &
-                  u9/sqrt(4.0_rk8+u9*(1.0_rk8+rbeta9))
-          f3co2 = u13/sqrt(4.0_rk8+u13*(1.0_rk8+rbeta13))
-          tmp1 = log(1.0_rk8+f1sqwp)
-          tmp2 = log(1.0_rk8+f2co2)
-          tmp3 = log(1.0_rk8+f3co2)
-          absbnd = (tmp1+2.0_rk8*t1co2*tmp2+2.0_rk8*tmp3)*sqti
-          abso(6) = trab2*emm(kn)*absbnd
-          tco2 = 1.0_rk8/(1.0_rk8+10.0_rk8*u7/sqrt(4.0_rk8+u7*(1.0_rk8+rbeta7)))
-          ! trab3(n) = 1. - bndfct*absbnd
-          !
-          ! Calculate trace gas absorptivity for nearest layer
-          !
-          ds2c   = abs(s2c(k2+1,n)-s2c(k2,n))*uinpl(kn)
-          duptyp = abs(uptype(k2+1,n)-uptype(k2,n))*uinpl(kn)
-          du1    = abs(ucfc11(k2+1,n)-ucfc11(k2,n))*winpl(kn)
-          du2    = abs(ucfc12(k2+1,n)-ucfc12(k2,n))*winpl(kn)
-          duch4  = abs(uch4(k2+1,n)-uch4(k2,n))*winpl(kn)
-          du01   = abs(un2o0(k2+1,n)-un2o0(k2,n))*winpl(kn)
-          du11   = abs(un2o1(k2+1,n)-un2o1(k2,n))*winpl(kn)
-          duco11 = abs(uco211(k2+1,n)-uco211(k2,n))*winpl(kn)
-          duco12 = abs(uco212(k2+1,n)-uco212(k2,n))*winpl(kn)
-          duco13 = abs(uco213(k2+1,n)-uco213(k2,n))*winpl(kn)
-          duco21 = abs(uco221(k2+1,n)-uco221(k2,n))*winpl(kn)
-          duco22 = abs(uco222(k2+1,n)-uco222(k2,n))*winpl(kn)
-          duco23 = abs(uco223(k2+1,n)-uco223(k2,n))*winpl(kn)
-          do wvl = 1, nlwspi
-            xplnk(wvl) = bplnk(wvl,kn)
-          end do
-          abstrc = trcabn(tbar(kn),dw,pnew,tco2,th2o,to3,ux,pinpl(kn),   &
-                          winpl(kn),ds2c,duptyp,du1,du2,duch4,du01,du11, &
-                          duco11,duco12,duco13,duco21,duco22,duco23,xplnk)
-          !
-          ! Total next layer absorptivity:
-          !
-          absgasnxt(k2,kn,n) = abso(1) + abso(2) + abso(3) + &
-                               abso(4) + abso(5) + abso(6) + abstrc
-        end do
-      end do  !  end of nearest layer level loop
+        tpnm    = abs(pnm(k1,n)+pnm(k2,n))
+        duptyp  = abs(uptype(k1,n)-uptype(k2,n))
+        du1     = abs(ucfc11(k1,n)-ucfc11(k2,n))
+        du2     = abs(ucfc12(k1,n)-ucfc12(k2,n))
+        duch4   = abs(uch4(k1,n)-uch4(k2,n))
+        dbetac  = abs(bch4(k1,n)-bch4(k2,n))/duch4
+        du01    = abs(un2o0(k1,n)-un2o0(k2,n))
+        du11    = abs(un2o1(k1,n)-un2o1(k2,n))
+        dbeta01 = abs(bn2o0(k1,n)-bn2o0(k2,n))/du01
+        dbeta11 = abs(bn2o1(k1,n)-bn2o1(k2,n))/du11
+        duco11  = abs(uco211(k1,n)-uco211(k2,n))
+        duco12  = abs(uco212(k1,n)-uco212(k2,n))
+        duco13  = abs(uco213(k1,n)-uco213(k2,n))
+        duco21  = abs(uco221(k1,n)-uco221(k2,n))
+        duco22  = abs(uco222(k1,n)-uco222(k2,n))
+        duco23  = abs(uco223(k1,n)-uco223(k2,n))
+        abstrc = trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
+                       du01,du11,dbeta01,dbeta11,duco11,duco12, &
+                       duco13,duco21,duco22,duco23,dw,pnew,     &
+                       to3co2,ux,tco2,th2o,to3,abplnk1(:,k2,n))
+        !
+        ! Sum total absorptivity
+        !
+        absgastot(k1,k2,n) = abso1 + abso2 + abso3 + &
+                             abso4 + abso5 + abso6 + abstrc
+      end if
+#ifndef STDPAR_FIXED
     end do
+    end do
+#endif
+    end do  ! End of non-nearest layer level loops
+    !
+    ! Non-adjacent layer absorptivity:
+    !
+    ! abso1     0 -  800 cm-1   h2o rotation band
+    ! abso2  1200 - 2200 cm-1   h2o vibration-rotation band
+    ! abso3   800 - 1200 cm-1   h2o window
+    ! abso4   500 -  800 cm-1   h2o rotation band overlap with co2
+    ! abso5   o3  9.6 micrometer band (nu3 and nu1 bands)
+    ! abso6   co2 15  micrometer band system
+    !
+    ! Nearest layer level loop
+    !
+#ifdef STDPAR_FIXED
+    do concurrent ( k2 = 1:kz, kn = 1:4, n = n1:n2 ) local(bplnk)
+#else
+    !$acc parallel loop collapse(3) gang vector private(bplnk)
+    do n = n1, n2
+    do kn = 1, 4
+    do k2 = 1, kz
+#endif
+      dbvtit_hi = dbvt(tint(k2+1,n))
+      pnmsq_hi = pnm(k2+1,n)**2
+      dbvtit = dbvt(tint(k2,n))
+      dbvtly = dbvt(tlayr(k2+1,n))
+      pnmsq = pnm(k2,n)**2
+      tbar1 = (tint(k2+1,n)+tlayr(k2+1,n))*0.5_rk8
+      tbar2 = (tlayr(k2+1,n)+tint(k2,n))*0.5_rk8
+      dpnm = pnm(k2+1,n) - pnm(k2,n)
+      rdpnmsq = 1.0_rk8/(pnmsq_hi-pnmsq)
+      rdpnm = 1.0_rk8/dpnm
+      p1 = (pbr(k2,n)+pnm(k2+1,n))*0.5_rk8
+      p2 = (pbr(k2,n)+pnm(k2,n))*0.5_rk8
+      zinpl_scale = 1.0_rk8/(piln(k2+1,n)-piln(k2,n))
+      zinpl_upper = piln(k2+1,n) - pmln(k2,n)
+      zinpl_lower = piln(k2,n)   - pmln(k2,n)
+      if ( kn == 1 .or. kn == 3 ) then
+        temh2o = tbar1
+        emm = (co2em(k2+1,n)+co2eml(k2,n))*0.5_rk8
+        o3emm = (dbvtit_hi+dbvtly)*0.5_rk8
+        do wvl = 1, nlwspi
+          bplnk(wvl) = (abplnk1(wvl,k2+1,n)+abplnk2(wvl,k2,n))*0.5_rk8
+        end do
+      else
+        temh2o = tbar2
+        emm = (co2em(k2,n)+co2eml(k2,n))*0.5_rk8
+        o3emm = (dbvtit+dbvtly)*0.5_rk8
+        do wvl = 1, nlwspi
+          bplnk(wvl) = (abplnk1(wvl,k2,n)+abplnk2(wvl,k2,n))*0.5_rk8
+        end do
+      end if
+      select case (kn)
+        case (1)
+          tbar = tbar1
+          uinpl = (pnmsq_hi-p1**2)*rdpnmsq
+          winpl = ((pnm(k2+1,n)-pbr(k2,n))*0.5_rk8)*rdpnm
+          zinpl = (zinpl_upper*0.5_rk8)*zinpl_scale
+          pinpl = (p1+pnm(k2+1,n))*0.5_rk8
+        case (2)
+          tbar = tbar2
+          uinpl = -(pnmsq-p2**2)*rdpnmsq
+          winpl = ((-pnm(k2,n)+pbr(k2,n))*0.5_rk8)*rdpnm
+          zinpl = (-zinpl_lower*0.5_rk8)*zinpl_scale
+          pinpl = (p2+pnm(k2,n))*0.5_rk8
+        case (3)
+          tbar = (tbar2+tbar1)*0.5_rk8
+          uinpl = -(pnmsq-p1**2)*rdpnmsq
+          winpl = ((pnm(k2+1,n)+pbr(k2,n))*0.5_rk8-pnm(k2,n))*rdpnm
+          zinpl = (zinpl_upper*0.5_rk8-zinpl_lower)*zinpl_scale
+          pinpl = (p1+pnm(k2,n))*0.5_rk8
+        case (4)
+          tbar = (tbar2+tbar1)*0.5_rk8
+          uinpl = (pnmsq_hi-p2**2)*rdpnmsq
+          winpl = ((-pnm(k2,n)-pbr(k2,n))*0.5_rk8+pnm(k2+1,n))*rdpnm
+          zinpl = (zinpl_upper-zinpl_lower*0.5_rk8)*zinpl_scale
+          pinpl = (p2+pnm(k2+1,n))*0.5_rk8
+      end select
+      ux = abs(uinpl*(plh2o(k2,n)-plh2o(k2+1,n)))
+      sqrtu = sqrt(ux)
+      dw = abs(wh2op(k2,n)-wh2op(k2+1,n))
+      pnew = ux/(winpl*dw)
+      ds2c = abs(s2c(k2,n)-s2c(k2+1,n))
+      uc1 = uinpl*ds2c
+      uc1 = (uc1+1.7e-3_rk8*ux)*(1.0_rk8+2.0_rk8*uc1)/&
+            (1.0_rk8+15.0_rk8*uc1)
+      uc = uinpl*ds2c + 2.0e-3_rk8*ux
+      dtx = temh2o - 250.0_rk8
+      dty = tbar - 250.0_rk8
+      dtyp15 = dty + 15.0_rk8
+      dtyp15sq = dtyp15**2
+      dtz = dtx - 50.0_rk8
+      dtp = dty - 50.0_rk8
+      !
+      ! abso1     0 -  800 cm-1   h2o rotation band
+      !
+      a11 = 0.44_rk8 + 3.380e-4_rk8*dtz - 1.520e-6_rk8*dtz*dtz
+      a31 = 1.05_rk8 - 6.000e-3_rk8*dtp + 3.000e-6_rk8*dtp*dtp
+      a21 = 1.00_rk8 + 1.717e-3_rk8*dtz - 1.133e-5_rk8*dtz*dtz
+      a22 = 1.00_rk8 + 4.443e-3_rk8*dtp + 2.750e-5_rk8*dtp*dtp
+      a23 = 1.00_rk8 + 3.600_rk8*sqrtu
+      corfac = a31*(a11+((2.0_rk8*a21*a22)/a23))
+      term1 = coefe(1,2) + coefe(2,2)*dtx * &
+                     (1.0_rk8+c1(2)*dtx)
+      term2 = coefb(1,2) + coefb(2,2)*dtx * &
+                     (1.0_rk8+c2(2)*dtx              * &
+                     (1.0_rk8+c3(2)*dtx))
+      term3 = coefd(1,2) + coefd(2,2)*dtx * &
+                     (1.0_rk8+c4(2)*dtx              * &
+                     (1.0_rk8+c5(2)*dtx))
+      term4 = coefa(1,2) + coefa(2,2)*dty * &
+                     (1.0_rk8+c6(2)*dty)
+      term5 = coefc(1,2) + coefc(2,2)*dty * &
+                     (1.0_rk8+c7(2)*dty)
+      t1t4 = term1*term4
+      t2t5 = term2*term5
+      a = t1t4 + t2t5/(1.0_rk8+t2t5*sqrtu*corfac)
+      fwk = fwcoef + fwc1/(1.0_rk8+fwc2*ux)
+      fwku = fwk*ux
+      rsum = exp(-a*(sqrtu+fwku))
+      abso1 = (1.0_rk8-rsum)*term3
+      ! trab1(n) = rsum
+      !
+      ! abso2  1200 - 2200 cm-1   h2o vibration-rotation band
+      !
+      a41 = 1.75_rk8 - 3.960e-3_rk8*dtz
+      a51 = 1.00_rk8 + 1.3_rk8*sqrtu
+      a61 = 1.00_rk8 + 1.250e-3_rk8*dtp + 6.250e-5_rk8*dtp*dtp
+      corfac = 0.29_rk8*(1.0_rk8+a41/a51)*a61
+      term1 = coefe(1,4) + coefe(2,4)*dtx * &
+                     (1.0_rk8+c1(4)*dtx)
+      term2 = coefb(1,4) + coefb(2,4)*dtx * &
+                     (1.0_rk8+c2(4)*dtx              * &
+                     (1.0_rk8+c3(4)*dtx))
+      term3 = coefd(1,4) + coefd(2,4)*dtx * &
+                     (1.0_rk8+c4(4)*dtx              * &
+                     (1.0_rk8+c5(4)*dtx))
+      term4 = coefa(1,4) + coefa(2,4)*dty * &
+                     (1.0_rk8+c6(4)*dty)
+      term5 = coefc(1,4) + coefc(2,4)*dty * &
+                     (1.0_rk8+c7(4)*dty)
+      t1t4 = term1*term4
+      t2t5 = term2*term5
+      a = t1t4 + t2t5/(1.0_rk8+t2t5*sqrtu*corfac)
+      rsum = exp(-a*(sqrtu+fwku))
+      abso2 = (1.0_rk8-rsum)*term3
+      ! trab7(n) = rsum
+      !
+      ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
+      !
+      phi = exp(a1(1)*dtyp15+a2(1)*dtyp15sq)
+      psi = exp(b1(1)*dtyp15+b2(1)*dtyp15sq)
+      ubar = dw*phi*winpl*1.66_rk8*r80257
+      pbar = pnew*(psi/phi)
+      cf812 = cfa1 + (1.0_rk8-cfa1)/(1.0_rk8+ubar*pbar*10.0_rk8)
+      g2 = 1.0_rk8 + ubar*4.0_rk8*st(1)*cf812/pbar
+      g4 = realk(1)*pbar*r2st(1)*(sqrt(g2)-1.0_rk8)
+      trline1 = exp(-g4)
+      phi = exp(a1(2)*dtyp15+a2(2)*dtyp15sq)
+      psi = exp(b1(2)*dtyp15+b2(2)*dtyp15sq)
+      ubar = dw*phi*winpl*1.66_rk8*r80257
+      pbar = pnew*(psi/phi)
+      cf812 = cfa1 + (1.0_rk8-cfa1)/(1.0_rk8+ubar*pbar*10.0_rk8)
+      g2 = 1.0_rk8 + ubar*4.0_rk8*st(2)*cf812/pbar
+      g4 = realk(2)*pbar*r2st(2)*(sqrt(g2)-1.0_rk8)
+      trline2 = exp(-g4)
+      term7_1 = coefj(1,1)+coefj(2,1)*dty*(1.0_rk8+c16*dty)
+      term8_1 = coefk(1,1)+coefk(2,1)*dty*(1.0_rk8+c17*dty)
+      term7_2 = coefj(1,2)+coefj(2,2)*dty*(1.0_rk8+c26*dty)
+      term8_2 = coefk(1,2)+coefk(2,2)*dty*(1.0_rk8+c27*dty)
+      !
+      ! abso3   800 - 1200 cm-1   h2o window
+      ! abso4   500 -  800 cm-1   h2o rotation band overlap with co2
+      !
+      dtym10 = dty - 10.0_rk8
+      denom = 1.0_rk8 + (c30+c31*dtym10*dtym10)*sqrtu
+      k21 = term7_1 + term8_1/denom
+      denom = 1.0_rk8 + (c28+c29*dtym10)*sqrtu
+      k22 = term7_2 + term8_2/denom
+      term9 = coefi(1,2) + coefi(2,2)*dtx *     &
+                 (1.0_rk8+c19*dtx*(1.0_rk8+c21*dtx *   &
+                 (1.0_rk8+c23*dtx*(1.0_rk8+c25*dtx))))
+      tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
+      tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
+      tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx)*uc1))
+      tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx)*uc1))
+      tr9 = tr1*tr5
+      tr10 = tr2*tr6
+      trab2 = 0.65_rk8*tr9 + 0.35_rk8*tr10
+      th2o = tr10
+      trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx)*uc)
+      trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx)*uc)
+      term6 = coeff(1,2) + coeff(2,2)*dtx *  &
+                   (1.0_rk8+c9*dtx*(1.0_rk8+c11*dtx * &
+                   (1.0_rk8+c13*dtx*(1.0_rk8+c15*dtx))))
+      abso3 = term6*(1.0_rk8-trab4*0.5_rk8*trline2 - &
+                                trab6*0.5_rk8*trline1)
+      abso4 = term9*0.5_rk8*(tr1-tr9+tr2-tr10)
+      !
+      ! abso5  o3  9.6 micrometer (nu3 and nu1 bands)
+      !
+      te = (tbar*r293)**0.7_rk8
+      dplos = abs(plos(k2+1,n)-plos(k2,n))
+      u1 = zinpl*18.29_rk8*dplos/te
+      u2 = zinpl*0.5649_rk8*dplos/te
+      tlocal = tbar
+      tcrfac = sqrt(tlocal*r250)*te
+      beta = r3205*(pinpl*rsslp+dpfo3*tcrfac)
+      realnu = te/beta
+      tmp1 = u1/sqrt(4.0_rk8+u1*(1.0_rk8+realnu))
+      tmp2 = u2/sqrt(4.0_rk8+u2*(1.0_rk8+realnu))
+      o3bndi = 74.0_rk8*te*log(1.0_rk8+tmp1+tmp2)
+      abso5 = o3bndi*o3emm*(h2otr(k2+1,n)/h2otr(k2,n))
+      to3 = 1.0_rk8/(1.0_rk8+0.1_rk8*tmp1+0.1_rk8*tmp2)
+      ! trab5(n) = 1.0_rk8-(o3bndi/(1060-980.))
+      !
+      ! abso6   co2 15  micrometer band system
+      !
+      dplco2 = plco2(k2+1,n) - plco2(k2,n)
+      sqwp = sqrt(uinpl*dplco2)
+      et = exp(-480.0_rk8/tbar)
+      sqti = sqrt(tbar)
+      rsqti = 1.0_rk8/sqti
+      et2 = et*et
+      et4 = et2*et2
+      omet = (1.0_rk8-1.5_rk8*et2)
+      f1co2 = 899.70_rk8*omet*rsqti*(1.0_rk8+1.94774_rk8*et+4.73486_rk8*et2)
+      f1sqwp = f1co2*sqwp
+      t1co2 = 1.0_rk8/(1.0_rk8+(245.18_rk8*omet*sqwp*rsqti))
+      oneme = 1.0_rk8 - et2
+      alphat = oneme**3*rsqti
+      pi = abs(co2pth(k2+1,n)-co2pth(k2,n))*winpl
+      wco2 = 2.5221_rk8*pi*regravgts
+      u7 = 4.9411e4_rk8*alphat*et2*wco2
+      u8 = 3.9744e4_rk8*alphat*et4*wco2
+      u9 = 1.0447e5_rk8*alphat*et4*et2*wco2
+      u13 = 2.8388e3_rk8*alphat*et4*wco2
+      tpath = tbar
+      tlocal = tbar
+      tcrfac = sqrt((tlocal*r250)*(tpath*r300))
+      posqt = (pinpl*rsslp+dpfco2*tcrfac)*rsqti
+      rbeta7 = 1.0_rk8/(5.3228_rk8*posqt)
+      rbeta8 = 1.0_rk8/(10.6576_rk8*posqt)
+      rbeta9 = rbeta7
+      rbeta13 = rbeta9
+      f2co2 = u7/sqrt(4.0_rk8+u7*(1.0_rk8+rbeta7)) + &
+              u8/sqrt(4.0_rk8+u8*(1.0_rk8+rbeta8)) + &
+              u9/sqrt(4.0_rk8+u9*(1.0_rk8+rbeta9))
+      f3co2 = u13/sqrt(4.0_rk8+u13*(1.0_rk8+rbeta13))
+      tmp1 = log(1.0_rk8+f1sqwp)
+      tmp2 = log(1.0_rk8+f2co2)
+      tmp3 = log(1.0_rk8+f3co2)
+      absbnd = (tmp1+2.0_rk8*t1co2*tmp2+2.0_rk8*tmp3)*sqti
+      abso6 = trab2*emm*absbnd
+      tco2 = 1.0_rk8/(1.0_rk8+10.0_rk8*u7/sqrt(4.0_rk8+u7*(1.0_rk8+rbeta7)))
+      ! trab3(n) = 1. - bndfct*absbnd
+      !
+      ! Calculate trace gas absorptivity for nearest layer
+      !
+      ds2c   = abs(s2c(k2+1,n)-s2c(k2,n))*uinpl
+      duptyp = abs(uptype(k2+1,n)-uptype(k2,n))*uinpl
+      du1    = abs(ucfc11(k2+1,n)-ucfc11(k2,n))*winpl
+      du2    = abs(ucfc12(k2+1,n)-ucfc12(k2,n))*winpl
+      duch4  = abs(uch4(k2+1,n)-uch4(k2,n))*winpl
+      du01   = abs(un2o0(k2+1,n)-un2o0(k2,n))*winpl
+      du11   = abs(un2o1(k2+1,n)-un2o1(k2,n))*winpl
+      duco11 = abs(uco211(k2+1,n)-uco211(k2,n))*winpl
+      duco12 = abs(uco212(k2+1,n)-uco212(k2,n))*winpl
+      duco13 = abs(uco213(k2+1,n)-uco213(k2,n))*winpl
+      duco21 = abs(uco221(k2+1,n)-uco221(k2,n))*winpl
+      duco22 = abs(uco222(k2+1,n)-uco222(k2,n))*winpl
+      duco23 = abs(uco223(k2+1,n)-uco223(k2,n))*winpl
+      abstrc = trcabn(tbar,dw,pnew,tco2,th2o,to3,ux,pinpl,   &
+                      winpl,ds2c,duptyp,du1,du2,duch4,du01,du11, &
+                      duco11,duco12,duco13,duco21,duco22,duco23,bplnk)
+      !
+      ! Total next layer absorptivity:
+      !
+      absgasnxt(k2,kn,n) = abso1 + abso2 + abso3 + &
+                           abso4 + abso5 + abso6 + abstrc
+#ifndef STDPAR_FIXED
+    end do
+    end do
+#endif
+    end do  !  end of nearest layer level loop
   end subroutine radabs
   !
   !-----------------------------------------------------------------------

@@ -67,7 +67,12 @@ module mod_ocn_coare
       wt1 = (threedays-dtocn)/threedays
       wt2 = 1.0_rkx-wt1
 
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+      !$acc parallel loop gang vector
       do i = iocnbeg, iocnend
+#else
+      do concurrent (i = iocnbeg:iocnend)
+#endif
         if ( mask(i) /= 1 ) cycle
 
         tgrd(i) = tgb(i)
@@ -355,6 +360,7 @@ module mod_ocn_coare
 #include <cpmf.inc>
 
       pure real(rkx) function psiuo(zet)
+        !$acc routine seq
         implicit none
         real(rkx), intent (in) :: zet
         real(rkx) :: x, psik, f, psic, c
@@ -376,6 +382,7 @@ module mod_ocn_coare
       end function psiuo
 
       pure real(rkx) function psit(zet)
+        !$acc routine seq
         implicit none
         real(rkx), intent (in) :: zet
         real(rkx) :: x, psik, f, psic, c
