@@ -541,11 +541,12 @@ module mod_bdycod
       end if
       if ( mo_top_nudge ) then
         !
-        ! The uncapped coordinate has no top height: the damping reaches
-        ! one at the mean height of the top model level
+        ! The damping goes from zero at zztop to one at the model top
+        ! (mo_ztop); the uncapped coordinate has no top height, there it
+        ! reaches one at the mean height of the top model level
         !
         if ( mo_lcap ) then
-          ztopn = mo_h
+          ztopn = mo_ztop
         else
           ztopn = gmeanz(1)
         end if

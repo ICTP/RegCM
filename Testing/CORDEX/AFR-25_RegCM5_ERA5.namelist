@@ -94,9 +94,6 @@
  /
 
  &cldparam
- ncld = 0,
- cftotmax = 1.0,
- clfrcvmax = 1.0,
  /
 
  &subexparam

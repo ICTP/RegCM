@@ -28,7 +28,7 @@ module mod_cu_em
     ichem, ichcumtra, icup, dt
   use mod_runparams, only : elcrit_ocn, elcrit_lnd, epmax_ocn, epmax_lnd
   use mod_runparams, only : sigs, sigd
-  use mod_runparams, only : k2_const, kfac_shal, kfac_deep
+  use mod_runparams, only : k2_const, kfac_shal, kfac_deep, iconvcf
   use mod_runparams, only : istochastic
   use mod_runparams, only : sigs_min, sigs_max
   use mod_runparams, only : sigd_min, sigd_max
@@ -462,7 +462,7 @@ module mod_cu_em
     real(rkx), dimension(nd+1) :: clw, cpn, ep, evap, gz, h, hm, &
                                    hp, lv, lvcp, m, mp, qp, sigp, &
                                    tp, tv, tvp, up, vp, water, wt
-    integer(ik4) :: n, nl, i, ihmin, icb, ict, ict1, j, jtt, k, nk
+    integer(ik4) :: n, nl, i, ihmin, icb, ict, ict1, j, jtt, k, nk, ctype
     integer(ik4), dimension(nd+1) :: nent
     real(rkx), dimension(nd+1,nd+1) :: elij, ment, qent, sij, uent, vent
     real(rkx), dimension(nd+1,nd+1,ntra) :: traent
@@ -1183,16 +1183,14 @@ module mod_cu_em
       ! Identify Deep concection if cloud depth is > 2000m
       !
       if ( zcup(n,ict) - zcup(n,icb) >= 2000.0_rkx ) then
-        do i = icb, ict
-          cldfra(n,i) = kfac_deep*log(d_one+(k2_const*d_half*(m(i)+m(i+1))))
-          cldfra(n,i) = min(max(0.01_rkx,cldfra(n,i)),0.6_rkx)
-        end do
+        ctype = 1
       else
-        do i = icb, ict
-          cldfra(n,i) = kfac_shal*log(d_one+(k2_const*d_half*(m(i)+m(i+1))))
-          cldfra(n,i) = min(max(0.01_rkx,cldfra(n,i)),0.2_rkx)
-        end do
+        ctype = 2
       end if
+      do i = icb, ict
+        cldfra(n,i) = cu_cloud_fraction(iconvcf,ctype,d_half*(m(i)+m(i+1)), &
+          zcup(n,i),abs(zcup(n,i+1)-zcup(n,i)),kfac_deep,kfac_shal,k2_const)
+      end do
       kcb(n) = icb
       kct(n) = ict
     end do pointloop

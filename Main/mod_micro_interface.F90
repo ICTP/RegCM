@@ -337,7 +337,7 @@ module mod_micro_interface
     end if
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      mc2mo%fcc(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),cftotmax)
+      mc2mo%fcc(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
     end do
 
     !-----------------------------------------------------------------

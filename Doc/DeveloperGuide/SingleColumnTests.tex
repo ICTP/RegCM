@@ -313,8 +313,8 @@ gases are those of the built in table of \code{scenario} (default
 RCP4.5, no data file), the ozone the built in profile of \code{o3data}
 (\code{iclimao3} = 0), there are no aerosols. The clouds are those of
 \code{cucloud} and \code{cldfrac} of the model with a cumulus scheme
-(\code{iconvlwp} = 0): the convective cloud of Tiedtke, at most
-\code{clfrcvmax}, overlapped with the NoTo cloud, with the in cloud water
+(\code{iconvlwp} = 0): the convective cloud of Tiedtke, at most the
+grid spacing dependent maximum of the model (\code{cu\_cfmax}), overlapped with the NoTo cloud, with the in cloud water
 of both and the scaling of Liang (2005). The surface albedo over the
 ocean is the one of the model with \code{iwhitecap} = 0,
 $0.05/(\cos\zeta+0.15)$ for the direct and 0.08 for the diffuse

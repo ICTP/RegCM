@@ -95,7 +95,6 @@
  qck1oce  =   .250E-03,
  cevaplnd =   .100E-02,
  caccrlnd =      3.000,
- cftotmax =      0.75,
  /
  &grellparam
  /

@@ -42,6 +42,8 @@ module mod_rad_outrad
   real(rk8), allocatable, dimension(:,:,:) :: cur3d
 
   public :: allocate_mod_rad_outrad, radout, accumulate_rad_fluxes
+  ! Fluxes of the last radiation call (read by the single column test)
+  public :: curflx
 
   integer(ik4) :: nj
 

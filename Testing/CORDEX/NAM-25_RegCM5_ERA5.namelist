@@ -84,9 +84,6 @@
  radclimpath = 'MERRA2/OPPMONTH',
  /
  &cldparam
- ncld = 3,
- cftotmax = 1.0,
- clfrcvmax = 1.0,
  /
  &subexparam
  /

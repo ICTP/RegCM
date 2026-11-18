@@ -3679,8 +3679,6 @@ module mod_ncout
             ncattribute_real8('fixed_solar_constant',fixedsolarval))
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('cloud_bottom_level_with_no_clouds',ncld))
-        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_rh_with_fcc_one',rhmax))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_rh_minimum',rhmin))
@@ -3691,11 +3689,9 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_rh1_limit_temperature',tc0))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('cloud_cloud_fraction_maximum',cftotmax))
-        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_condensation_threshold',conf))
         call outstream_addatt(outstream(i)%ncout(j), &
-        ncattribute_real8('cloud_cloud_fraction_max_for_convection',clfrcvmax))
+          ncattribute_real8('cloud_cloud_fraction_max_for_convection',clfrcv))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_cloud_liqwat_max_for_convection',cllwcv))
         call outstream_addatt(outstream(i)%ncout(j), &

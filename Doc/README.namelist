@@ -532,9 +532,6 @@
 ! Cloud fraction algorithms control
 !
  &cldparam
- ncld      = 1,       ! # of bottom model levels with no clouds
-                      ! The cloud fraction is set to zero for ncld layers
-                      ! from the surface up.
  rhmax     = 1.00,    ! Higher value limit for Relative Humidity
  rhmin     = 0.01,    ! Lower value limit for Relative Humidity
  rh0land   = 0.90,    ! Relative humidity threshold for land
@@ -548,10 +545,6 @@
  cllwcv    = 0.3e-3,  ! Cloud liquid water content for convective precip.
                       ! This is used only for Kuo and Grell convection scheme
                       ! for the empirical convective cloud LWC vertical profile.
- clfrcvmax = 0.60,    ! Max cloud fractional cover for convective precip.
-                      ! This limits is ONLY for convective clouds
- cftotmax  = 1.00,    ! Max total cover for TOTAL cloud fraction
-                      ! This forces a fraction of sky to be always clear
  k2_const  = 500.0,   ! K2 Factor cumulus mass flux - cloud fraction
                       ! Used in Emanuel, Kain-Fritsh and Tiedtke to compute
                       ! convective cloud fraction.
@@ -560,7 +553,8 @@
                       ! Factor in above formula for cloud fraction
  kfac_deep = 0.14,    ! Factor cumulus mass flux - cloud fraction - deep
                       ! Factor in above formula for cloud fraction
- iconvcf   = 0,       ! Convective cloud fraction formula (Tiedtke only)
+ iconvcf   = 1,       ! Convective cloud fraction formula (mass flux
+                      ! schemes: Tiedtke, Kain-Fritsch, Emanuel, Grell)
                       ! 0 : the kfac formula above
                       ! 1 : Xu and Krueger (1991, MWR 119, 342) fit for
                       !     thin layers, Cc = c0 + c1*x + c2*x**2 with

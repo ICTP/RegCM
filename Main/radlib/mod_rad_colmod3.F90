@@ -16,17 +16,19 @@
 module mod_rad_colmod3
   use mod_intkinds, only : ik4
   use mod_realkinds, only : rk8, rkx
-  use mod_constants, only : amd, amo3, mathpi, onet
-  use mod_constants, only : rgas, rhoh2o, tzero, lowcld
+  use mod_constants, only : amd, amo3
+  use mod_constants, only : rgas, lowcld
   use mod_dynparam, only : jci1, jci2, ici1, ici2, kz, kzp1
   use mod_dynparam, only : ntr, nspi
   use mod_memutil, only : getmem, getmem, getmem
   use mod_runparams, only : ipptls, eccf, ichem, iindirect
-  use mod_runparams, only : iqv, iqc, iqi, ncld, chtrname
+  use mod_runparams, only : iqv, iqc, iqi, chtrname
   use mod_runparams, only : iclimaaer
   use mod_rad_radiation, only : radctl, radtype, radtables
   use mod_rad_common, only : gasabsnxt, gasabstot, gasemstot, absemin
   use mod_rad_common, only : o3prof, taucldsp, dosw, dolw, doabsems
+  use mod_rad_common, only : cloud_fice, cloud_rel, cloud_rel_cam, cloud_rei
+  use mod_rad_common, only : cldwpmin
   use mod_rad_outrad, only : radout
   use mod_rad_aerosol, only : aermmr, tauxar3d, tauasc3d, gtota3d
   use mod_regcm_types, only : mod_2_rad, rad_2_mod
@@ -111,7 +113,7 @@ module mod_rad_colmod3
     call getmem(rt%ql,1,kz,1,npr,'colmod3:ql')
     call getmem(rt%qi,1,kz,1,npr,'colmod3:qi')
     call getmem(rt%dz,1,kz,1,npr,'colmod3:dz')
-    call getmem(rt%rh,1,kz,1,npr,'colmod3:rh')
+    call getmem(rt%rh,1,npr,1,kz,'colmod3:rh')
     call getmem(rt%rho,1,kz,1,npr,'colmod3:rho')
     call getmem(rt%cld,1,kzp1,1,npr,'colmod3:cld')
     call getmem(rt%effcld,1,kzp1,1,npr,'colmod3:effcld')
@@ -212,11 +214,10 @@ module mod_rad_colmod3
 
     integer(ik4) :: n, m, i, j, k, k2, itr
     integer(ik4) :: nj, npr
-    real(rk8) :: nc, aerc, lwc, kparam
+    real(rk8) :: nc, aerc, lwc
     real(rk8) :: kabs, kabsi, kabsl, cldemis, arg
-    real(rk8) :: iwc, tempc, tcels, fsr, aiwc, biwc, lwcic
+    real(rk8) :: iwc
     !real(rk8) :: tpara
-    real(rk8), parameter :: minus20 = 253.15_rk8
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'colmod3'
     integer(ik4) :: indx = 0
@@ -429,7 +430,7 @@ module mod_rad_colmod3
       rt%pmid(k,n) = m2r%phatms(j,i,k)
       rt%pmln(k,n) = log(m2r%phatms(j,i,k))
       rt%t(k,n)    = m2r%tatms(j,i,k)
-      rt%rh(k,n)   = m2r%rhatms(j,i,k)
+      rt%rh(n,k)   = m2r%rhatms(j,i,k)
       rt%q(k,n)    = m2r%qxatms(j,i,k,iqv)
       rt%ql(k,n)   = m2r%qxatms(j,i,k,iqc)
       rt%dz(k,n)   = m2r%deltaz(j,i,k)
@@ -450,40 +451,22 @@ module mod_rad_colmod3
         n = (j-jci1)+(i-ici1)*nj+1
         rt%qi(k,n) = m2r%qxatms(j,i,k,iqi)
       end do
+      ! Ice fraction of the cloud water seen by radiation: microphysics
+      ! ratio, temperature ramp in convective only cloud
       do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
-        if ( rt%qi(k,n) > 1.0e-11_rk8 ) then
-          if ( rt%ql(k,n) > 1.0e-11_rk8 ) then
-            rt%fice(k,n) = rt%qi(k,n) / (rt%ql(k,n)+rt%qi(k,n))
-          else
-            rt%fice(k,n) = 1.0_rk8
-          end if
-        else
-          rt%fice(k,n) = 0.0_rk8
-        end if
+        rt%fice(k,n) = cloud_fice(.true.,rt%ql(k,n),rt%qi(k,n),rt%t(k,n))
       end do
     else
       do concurrent ( k = 1:kz,  n = rt%n1:rt%n2 )
-        ! Define fractional amount of cloud that is ice
-        ! if warmer than -10 degrees C then water phase
-        if ( rt%t(k,n) >= tzero ) then
-          rt%fice(k,n) = 0.0_rk8
-        else if ( rt%t(k,n) <= minus20 ) then
-          !  if colder than -20 degrees C then ice phase
-           rt%fice(k,n) = 1.0_rk8
-        else
-          ! if colder than 0 degrees C but warmer than -20 C mixed phase
-          ! fice : fractional ice content within cloud
-          rt%fice(k,n) = (tzero-rt%t(k,n))/20.0_rk8
-        end if
+        ! Ice fraction from the mixed phase temperature ramp
+        rt%fice(k,n) = cloud_fice(.false.,rt%ql(k,n),0.0_rk8,rt%t(k,n))
         rt%qi(k,n) = rt%ql(k,n) * rt%fice(k,n)
         rt%ql(k,n) = rt%ql(k,n) - rt%qi(k,n)
       end do
     end if
     !
-    ! Fractional cloud cover (dependent on relative humidity)
-    ! Set cloud
-    !   - NOT on the topmost two layers
-    !   - Starting from ncld levels from the surface
+    ! Cloud fraction and in cloud water path of each layer, where the
+    ! water path is at least cldwpmin
     !
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
@@ -491,8 +474,7 @@ module mod_rad_colmod3
       rt%o3vmr(k,n) = 0.5_rk8*(o3prof(j,i,k+1)+o3prof(j,i,k))*(amd/amo3)
       ! Convert liquid water content into liquid water path
       rt%clwp(k,n) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
-      ! Set a minimum clwp in the cloud of of 0.01 mm
-      if ( rt%clwp(k,n) > 0.01_rk8 ) then
+      if ( rt%clwp(k,n) > cldwpmin ) then
         temp(k,n) = m2r%cldfrc(j,i,k)
       else
         rt%clwp(k,n) = 0.0_rk8
@@ -500,17 +482,12 @@ module mod_rad_colmod3
       end if
     end do
     do concurrent ( n = rt%n1:rt%n2 )
-      rt%cld(1,n) = 0.0_rk8
       rt%cld(kzp1,n) = 0.0_rk8
     end do
-    do concurrent( k = 2:kz, n = rt%n1:rt%n2 )
-      rt%cld(k,n) = max(temp(k-1,n),temp(k,n))
+    ! Cloud fraction of each layer (as the cloud water of the layer)
+    do concurrent( k = 1:kz, n = rt%n1:rt%n2 )
+      rt%cld(k,n) = temp(k,n)
     end do
-    if ( ncld > 0 ) then
-      do concurrent ( k = kz-ncld:kz,  n = rt%n1:rt%n2 )
-        rt%cld(k,n) = 0.0_rk8
-      end do
-    end if
     !
     ! only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
     !
@@ -560,31 +537,17 @@ module mod_rad_colmod3
       !   rt%rel(k,n) = 11.0_rk8
       ! end if
       !
-      ! (Martin et al., 1994)
+      ! In cloud ice water content (g/m3) seen by radiation, large scale
+      ! and convective, the same used for the optical depths: ice radius
+      ! Sun (2001) as in the ECMWF IFS. Liquid radius of the CAM3: the
+      ! Martin et al. (1994) radius (cloud_rel) from the in cloud liquid
+      ! of the diagnosed cloud fraction is too small for thin extended
+      ! cloud; it is used with the sulfate droplet number below.
       !
-      ! g/m3, already account for cum and ls clouds
       if ( temp(k,n) > lowcld ) then
-        ! In cloud liquid water content [kg/m3] seen by radiation, large
-        ! scale and convective
-        lwcic = rt%clwp(k,n)*(1.0_rk8-rt%fice(k,n))/rt%dz(k,n)*0.001_rk8
-        if ( rt%ioro(n) == 1 ) then
-          rt%rel(k,n) = max(4.0_rk8,min(20.0_rk8, &
-            (((3.0_rk8*max(lwcic,1.0e-10_rk8)) / &
-              (4.0_rk8*mathpi*rhoh2o*0.67_rk8*300.0e6_rk8))**onet)*1.0e6_rk8))
-        else
-          rt%rel(k,n) = max(4.0_rk8,min(20.0_rk8, &
-            (((3.0_rk8*max(lwcic,1.0e-10_rk8)) / &
-              (4.0_rk8*mathpi*rhoh2o*0.80_rk8*100.0e6_rk8))**onet)*1.0e6_rk8))
-        end if
-        !
-        ! Sun & Rikus, 1999
-        !
-        iwc = max((rt%qi(k,n)*rt%rho(k,n)*1000.0_rk8)/temp(k,n),1.0e-7_rk8)
-        aiwc = 45.8966_rk8 * iwc**0.2214_rk8
-        biwc = 0.7957_rk8 * iwc**0.2535_rk8
-        ! Temp Celsius in [-80,0] + 190.0
-        tempc = min(273.15_rk8,max(193.15_rk8,rt%t(k,n))) - 83.15_rk8
-        rt%rei(k,n) = max(10.0_rk8,min(100.0_rk8,0.5_rk8*(aiwc+biwc*tempc)))
+        iwc = rt%clwp(k,n)*rt%fice(k,n)/rt%dz(k,n)
+        rt%rel(k,n) = cloud_rel_cam(rt%t(k,n),rt%ioro(n) == 1)
+        rt%rei(k,n) = cloud_rei(iwc,rt%t(k,n),rt%dlat(n))
       else
         ! filler for no clouds
         rt%rel(k,n) = 8.5_rk8
@@ -603,26 +566,16 @@ module mod_rad_colmod3
       do itr = 1, ntr
         if ( chtrname(itr) /= 'SO4' ) cycle
         do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
-          aerc = rt%rho(k,n) * aermmr(k,n,itr) * 1.e9_rk8 !microg/m3
+          aerc = rt%rho(k,n) * aermmr(n,k,itr) * 1.e9_rk8 !microg/m3
           ! thershold of 0.1 microg/m3 for activation of indirect effect
           if ( aerc > 0.1_rk8 ) then
             ! ccn number concentration in cm-3
             nc = 90.7_rk8 * aerc**0.45_rk8 + 23.0_rk8
-            ! kg/m3, already account for cum and ls clouds
-            lwc = (rt%clwp(k,n) / rt%dz(k,n)) * 0.001_rk8
+            ! in cloud liquid water content, kg/m3
+            lwc = rt%clwp(k,n)*(1.0_rk8-rt%fice(k,n))/rt%dz(k,n)*0.001_rk8
             if ( lwc < 1.e-6_rk8 ) cycle
-            if ( rt%ioro(n) == 1 ) then
-              ! Martin et al.(1994) parameter over land
-              kparam = 0.67_rk8
-            else
-              ! Martin et al.(1994) parameter over ocean and sea ice
-              kparam = 0.80_rk8
-            end if
-            !finally modify effective radius
-            !(1.e6 to convert to rel to microm,
-            ! 1.e6 to convert nc in m-3)
-            rt%rel(k,n) = 1.e6_rk8 * ( 3.0_rk8*lwc / &
-              (4.0_rk8*mathpi*rhoh2o*kparam*nc*1.e6_rk8) )**(1.0_rk8/3.0_rk8)
+            ! Martin et al. (1994) with the droplet number nc
+            rt%rel(k,n) = cloud_rel(lwc,rt%ioro(n) == 1,nc)
           end if
         end do
       end do
@@ -642,17 +595,11 @@ module mod_rad_colmod3
       temp(k,n) = temp(k,n)*cldemis
     end do
     do concurrent ( n = rt%n1:rt%n2 )
-      rt%effcld(1,n) = 0.0_rk8
       rt%effcld(kzp1,n) = 0.0_rk8
     end do
-    do concurrent( k = 2:kz, n = rt%n1:rt%n2 )
-      rt%effcld(k,n) = max(temp(k-1,n),temp(k,n))
+    do concurrent( k = 1:kz, n = rt%n1:rt%n2 )
+      rt%effcld(k,n) = temp(k,n)
     end do
-    if ( ncld > 0 ) then
-      do concurrent ( k = kz-ncld:kz,  n = rt%n1:rt%n2 )
-        rt%effcld(k,n) = 0.0_rk8
-      end do
-    end if
     rt%eccf = real(eccf,rk8)
     rt%labsem = labsem
     !
@@ -701,7 +648,7 @@ module mod_rad_colmod3
     call radout(lout,rt%solin,rt%solout,rt%fsns,rt%fsntc,rt%fsnsc,    &
                 rt%qrs,rt%lwout,rt%flns,rt%flntc,rt%flnsc,rt%qrl,     &
                 rt%flwds,rt%sols,rt%soll,rt%solsd,rt%solld,rt%totcf,  &
-                temp,rt%clwp,rt%abv,                                  &
+                rt%cld,rt%clwp,rt%abv,                                &
                 rt%sol,rt%aeradfo,rt%aeradfos,rt%aerlwfo,rt%aerlwfos, &
                 tauxar3d,tauasc3d,gtota3d,rt%dz,rt%o3vmr,rt%outtaucl, &
                 rt%outtauci,rt%asaeradfo,rt%asaeradfos,rt%asaerlwfo,  &

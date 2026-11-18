@@ -217,7 +217,7 @@ module mod_cu_interface
       call model_cumulus_cloud(m2c)
     end if
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      c2m%cldfrc(j,i,k) = min(cu_cldfrc(j,i,k),clfrcvmax)
+      c2m%cldfrc(j,i,k) = min(cu_cldfrc(j,i,k),clfrcv)
       c2m%cldlwc(j,i,k) = cu_cldlwc(j,i,k)
     end do
   end subroutine cucloud

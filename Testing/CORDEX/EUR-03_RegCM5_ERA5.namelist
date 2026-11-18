@@ -29,7 +29,6 @@
  low_nudge =     2.0D0
  /
  &cldparam
- ncld      = 0,
  /
  &globdatparam
  ibdyfrq =     6,

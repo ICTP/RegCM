@@ -68,7 +68,7 @@ module mod_params
   !
   subroutine param
     implicit none
-    real(rkx) :: afracl, afracs, bb, cc, dlargc, dsmalc, dxtemc, &
+    real(rkx) :: bb, cc, &
                qk, qkp1, sig700, ssum, vqmax, wk, wkp1, xbot,   &
                xtop, xx, yy, mo_c1, mo_c2, dl, minfrq
     integer(ik4) :: kbmax
@@ -125,8 +125,8 @@ module mod_params
     namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw,    &
       iceflglw, liqflglw, icld, irng, imcica, nradfo, rrtm_extend
 
-    namelist /cldparam/ ncld, rhmax, rhmin, rh0oce, rh0land, tc0,  &
-      cllwcv, clfrcvmax, cftotmax, kfac_shal, kfac_deep, k2_const, &
+    namelist /cldparam/ rhmax, rhmin, rh0oce, rh0land, tc0,  &
+      cllwcv, kfac_shal, kfac_deep, k2_const, &
       iconvcf, lsrfhack, larcticcorr, rcrit, coef_ccn, abulk
 
     namelist /subexparam/ qck1land, qck1oce, gulland, guloce,  &
@@ -376,19 +376,16 @@ module mod_params
     !
     ! Cloud fraction control algorithm
     !
-    ncld      = 1          ! # of bottom model levels with no clouds (rad only)
     rhmax     = 1.00_rkx   ! RH at whicn FCC = 1.0
     rhmin     = 0.01_rkx   ! RH min value
     rh0land   = 0.85_rkx   ! Relative humidity threshold for land at surface
     rh0oce    = 0.85_rkx   ! Relative humidity threshold for ocean at surface
     tc0       = 238.0_rkx  ! Below this temp, rh0 begins to approach unity
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
-    clfrcvmax = 0.60_rkx   ! Max cloud fractional cover for convective precip.
-    cftotmax  = 1.00_rkx   ! Max total cover cloud fraction for radiation
     k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
-    iconvcf   = 0          ! Conv. cf formula: 0 log of mfu, 1 Xu-Krueger
+    iconvcf   = 1          ! Conv. cf formula: 0 log of mfu, 1 Xu-Krueger
     lsrfhack  = .false.    ! Surface radiation hack
     larcticcorr = .true.   ! Vavrus and Waliser Arctic cloud correction
     rcrit     = 13.5_rkx   ! Mean critical radius
@@ -871,12 +868,6 @@ module mod_params
         write(stdout,*) 'Read cldparam OK'
 #endif
       end if
-      if ( cftotmax <= 0.0 .or. cftotmax > 1.0_rkx ) then
-        write(stderr, *) 'Error in settings: cftotmax = ',cftotmax
-        call fatal(__FILE__,__LINE__, &
-                     'MAXIMUM CLOUD FRACTION ERROR')
-      end if
-
       if ( ipptls == 1 ) then
         rewind(ipunit)
         read (ipunit, nml=subexparam, iostat=iretval, err=108)
@@ -1657,14 +1648,11 @@ module mod_params
     !
     ! Cloud parameters
     !
-    call bcast(ncld)
     call bcast(rhmax)
     call bcast(rhmin)
     call bcast(rh0oce)
     call bcast(rh0land)
     call bcast(tc0)
-    call bcast(cftotmax)
-    call bcast(clfrcvmax)
     call bcast(cllwcv)
     call bcast(rcrit)
     call bcast(coef_ccn)
@@ -2771,7 +2759,6 @@ module mod_params
           'Model frictionless and insulated for the lower boundary.'
       end if
       write(stdout,*) 'Cloud fraction schemes parameters'
-      write(stdout,'(a,i2)' )   '  # of bottom no cloud model levels : ',ncld
       write(stdout,'(a,f11.6)') '  Maximum relative humidity         : ' ,rhmax
       write(stdout,'(a,f11.6)') '  Minimum relative humidity         : ' ,rhmin
       if ( icldfrac == 0 ) then
@@ -2781,13 +2768,9 @@ module mod_params
             ' Ocean = ',rh0oce
       end if
       write(stdout,'(a,f11.6)') &
-          '  Maximum total cloud cover for rad : ', cftotmax
-      write(stdout,'(a,f11.6)') &
           '  Conv. CF UMF factor deep cumulus  : ', kfac_deep
       write(stdout,'(a,f11.6)') &
           '  Conv. CF UMF factor shallow cumul.: ', kfac_shal
-      write(stdout,'(a,f11.6)') &
-          '  Max convective cloud cover        : ', clfrcvmax
       write(stdout,'(a,f11.6)') &
           '  CCN mean critical radius          : ', rcrit
       write(stdout,'(a,es11.4)') &
@@ -3183,14 +3166,7 @@ module mod_params
     !
     ! Convective Cloud Cover
     !
-    afracl = 0.25_rkx  ! frac. cover for conv. precip. when dx=dxlarg
-    afracs = clfrcvmax !   "     "    "    "      "     "   dx=dxsmal
-    dlargc = 100.0_rkx
-    dsmalc = 10.0_rkx
-    dxtemc = min(max(ds,dsmalc),dlargc)
-    clfrcv = afracl + (afracs-afracl)*((dlargc-dxtemc)/(dlargc-dsmalc))**2
-    clfrcv = min(clfrcv,afracs)
-    clfrcv = max(clfrcv,afracl)
+    clfrcv = cu_cfmax(ds)
     if ( myid == italk ) then
       write(stdout,*) &
         'Convective Cloud Cover parameters after resolution scaling'

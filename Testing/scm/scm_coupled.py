@@ -76,11 +76,11 @@ GROUP_OF = {v: g for g, vs in GROUPS.items() for v in vs}
 
 STEP_FIELDS = ['time', 'hour', 'shf', 'lhf', 'zpbl', 'kpbl', 'hqfac',
                'ktype', 'kctop', 'kcbot', 'rainc', 'rainl', 'rainc_acc',
-               'rainl_acc', 'wspd']
+               'rainl_acc', 'wspd', 'rsut', 'rlut', 'rsutcs', 'rlutcs']
 INT_FIELDS = ('kpbl', 'ktype', 'kctop', 'kcbot')
 LEVEL_FIELDS = ['z', 'p', 'T', 'q', 'mfu', 'dTcu', 'dTpbl', 'dqcu',
                 'dqpbl', 'omega', 'dTmic', 'dqmic', 'qcond', 'cldf',
-                'dTrad']
+                'dTrad', 'lwcr']
 
 
 def find_exe(exe):

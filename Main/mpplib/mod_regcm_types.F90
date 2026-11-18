@@ -900,6 +900,8 @@ module mod_regcm_types
         drydepv => null( ) ! drydepv
     real(rkx), pointer, contiguous, dimension(:,:,:) :: &
         heatrt => null( )  ! radiation
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        fcc => null( )     ! large scale cloud fraction (cldfrac)
   end type mod_2_pbl
 
   type pbl_2_mod

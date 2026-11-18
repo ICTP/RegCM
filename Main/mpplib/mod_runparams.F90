@@ -235,7 +235,9 @@ module mod_runparams
   real(rkx), pointer, contiguous, dimension(:), public :: ffilt, ak, bk
   real(rkx), pointer, contiguous, dimension(:,:), public :: twt
 
-  real(rkx), public :: clfrcv ! Cloud fractional cover for convective precip
+  ! Maximum convective cloud fraction, function of the grid spacing
+  ! (cu_cfmax)
+  real(rkx), public :: clfrcv
 
   ! Moisture from previous run
 
@@ -477,7 +479,6 @@ module mod_runparams
 
   ! Cloud control parameters
 
-  integer(ik4), public :: ncld   ! # of bottom model levels with no clouds
   logical, public :: lsrfhack    ! Surface radiation hack
   logical, public :: larcticcorr ! Vavrus and Valiser Arctic correction
   real(rkx), public :: rhmin     ! Minimum value for relative humidity
@@ -486,8 +487,6 @@ module mod_runparams
   real(rkx), public :: rh0oce    ! Trigger value for RH for ocean (SUBEX)
   real(rkx), public :: tc0       ! Temperature at which cloud are high (SUBEX)
   real(rkx), public :: cllwcv    ! Cloud liquid water content (Kuo, Grell)
-  real(rkx), public :: clfrcvmax ! Maximum non-scaled convetive cloud fraction
-  real(rk8), public :: cftotmax  ! Maximum total cloud fraction for radiation
   real(rkx), public :: kfac_shal ! Convective cloud fraction factor for
                                   ! empirical relationship with mass flux
   real(rkx), public :: kfac_deep ! Convective cloud fraction factor for
@@ -566,11 +565,23 @@ module mod_runparams
   public :: iswater, isocean, islake
   public :: exponential_nudging
   public :: relax_coefficients, newrelax
+  public :: cu_cfmax
   public :: outward_velocity
   public :: adaptive
   public :: invert_top_bottom
 
   contains
+  !
+  ! Maximum convective cloud fraction for the grid spacing dxkm (km): one
+  ! at 1 km (resolved convection can fill the grid box), decreasing with
+  ! the logarithm of the grid spacing to 0.25 at 100 km and beyond.
+  !
+  pure real(rkx) function cu_cfmax(dxkm) result(cfm)
+    implicit none
+    real(rkx), intent(in) :: dxkm
+    cfm = 1.0_rkx - 0.75_rkx * &
+          min(1.0_rkx,log(max(dxkm,1.0_rkx))/log(100.0_rkx))
+  end function cu_cfmax
 
   subroutine allocate_mod_runparams
     implicit none

@@ -237,7 +237,7 @@ module mod_pbl_holtbl
           n2 = moist_n2(n2,m2p%tatm(j,i,k-1),m2p%tatm(j,i,k), &
                  m2p%patm(j,i,k-1),m2p%patm(j,i,k),           &
                  m2p%qxatm(j,i,k-1,iqv),m2p%qxatm(j,i,k,iqv), &
-                 qlu,qll,dza(j,i,k-1))
+                 qlu,qll,m2p%fcc(j,i,k-1),m2p%fcc(j,i,k),dza(j,i,k-1))
         end if
         ! Compute the gradient Richardson number
         rin = max(minri,min(maxri,n2/ss))
@@ -1301,17 +1301,18 @@ module mod_pbl_holtbl
   ! Moist Brunt-Vaisala frequency across the interface between an upper
   ! (u) and a lower (l) full level, from the liquid water static energy
   ! and total water gradients (Cuijpers and Duynkerke, 1993; Stevens,
-  ! 2002) weighted with a diagnostic cloud fraction, as in the KNMI
-  ! RACMO dual mass flux TKE scheme (Lenderink and Holtslag, 2004).
-  ! Where there is no condensate the dry value n2dry is returned.
-  ! The q arguments are mixing ratios, ql is the total condensate.
+  ! 2002) weighted with the cloud fraction, as in the KNMI RACMO dual
+  ! mass flux TKE scheme (Lenderink and Holtslag, 2004). The cloud
+  ! fraction is the one of the model (cldfrac) at the two levels, cfu
+  ! and cfl. Where there is no condensate the dry value n2dry is
+  ! returned. The q arguments are mixing ratios, ql is the condensate.
   !
   pure real(rkx) function moist_n2(n2dry,tu,tl,pu,pl,qvu,qvl, &
-                                   qlu,qll,dz) result(n2)
+                                   qlu,qll,cfu,cfl,dz) result(n2)
 !$acc routine seq
     implicit none
     real(rkx), intent(in) :: n2dry, tu, tl, pu, pl
-    real(rkx), intent(in) :: qvu, qvl, qlu, qll, dz
+    real(rkx), intent(in) :: qvu, qvl, qlu, qll, cfu, cfl, dz
     real(rkx) :: qtu, qtl, lcu, lcl, cf, tm, pm, qtm, lcm
     real(rkx) :: qs, dqs, atm, aqm, dsl, dqt, tvm
     n2 = n2dry
@@ -1321,7 +1322,7 @@ module mod_pbl_holtbl
     qtl = (qvl+qll)/(d_one+qvl+qll)
     lcu = qlu/(d_one+qvu+qlu)
     lcl = qll/(d_one+qvl+qll)
-    cf = d_half*(diag_cf(qtu,lcu,tu,pu)+diag_cf(qtl,lcl,tl,pl))
+    cf = d_half*(min(max(cfu,d_zero),d_one)+min(max(cfl,d_zero),d_one))
     if ( cf <= d_zero ) return
     tm = d_half*(tu+tl)
     pm = d_half*(pu+pl)
@@ -1340,22 +1341,6 @@ module mod_pbl_holtbl
     n2 = (d_one-cf)*n2dry + &
          cf*egrav*(atm*rcpd*dsl + aqm*tm*dqt)/(dz*tvm)
   end function moist_n2
-  !
-  ! Diagnostic cloud fraction from the total water saturation deficit
-  ! (KNMI RACMO). Zero where there is no condensate.
-  !
-  pure real(rkx) function diag_cf(qt,ql,t,p) result(cf)
-!$acc routine seq
-    implicit none
-    real(rkx), intent(in) :: qt, ql, t, p
-    real(rkx) :: qs
-    cf = d_zero
-    if ( ql <= d_zero ) return
-    qs = pfqsat(t,p)
-    cf = d_half + 0.36_rkx * &
-         atan(1.55_rkx*(qt-qs)/max(0.04_rkx*qs,1.0e-8_rkx))
-    cf = min(max(cf,d_zero),d_one)
-  end function diag_cf
 
   pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)
 !$acc routine seq

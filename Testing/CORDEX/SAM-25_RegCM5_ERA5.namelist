@@ -95,10 +95,7 @@
  /
 
  &cldparam
- ncld      = 3,       ! # of bottom model levels with no clouds
 
- cftotmax = 1.0,
- clfrcvmax = 1.0,
  /
 
  &subexparam

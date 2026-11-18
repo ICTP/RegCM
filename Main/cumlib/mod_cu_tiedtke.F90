@@ -206,28 +206,6 @@ module mod_cu_tiedtke
     implicit none
     type(mod_2_cum), intent(in) :: m2c
     integer(ik4) :: i, j, k, n, ii
-    real(rkx) :: zmc, zx, zw, zc0, zc1, zc2, zcov
-    ! Xu and Krueger (1991), Table 5: convective cloud fraction of thin
-    ! (30 mb) layers at 0.8, 3.9 and 7.9 km, fit to the log of the grid
-    ! mean cumulus mass flux in mb/h (valid above 0.01 mb/h).
-    real(rkx), parameter :: xkz1 = 800.0_rkx
-    real(rkx), parameter :: xkz2 = 3900.0_rkx
-    real(rkx), parameter :: xkz3 = 7900.0_rkx
-    real(rkx), parameter :: xkc01 = 0.0116_rkx
-    real(rkx), parameter :: xkc11 = 0.0103_rkx
-    real(rkx), parameter :: xkc21 = 0.0025_rkx
-    real(rkx), parameter :: xkc02 = 0.0363_rkx
-    real(rkx), parameter :: xkc12 = 0.0226_rkx
-    real(rkx), parameter :: xkc22 = 0.0054_rkx
-    real(rkx), parameter :: xkc03 = 0.0131_rkx
-    real(rkx), parameter :: xkc13 = 0.0123_rkx
-    real(rkx), parameter :: xkc23 = 0.0030_rkx
-    ! kg m-2 s-1 to mb/h
-    real(rkx), parameter :: xkmbh = egrav*3600.0_rkx/100.0_rkx
-    ! Neggers et al. (2011), JGR 116, D21202: the cover projected by a
-    ! cumulus layer of depth dz is (1 + b dz) times its volume fraction
-    ! (BOMEX value of b, m-1).
-    real(rkx), parameter :: cuovlb = 0.0064_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4), save :: idindx = 0
@@ -541,51 +519,10 @@ module mod_cu_tiedtke
         cu_kbot(j,i) = kcbot(ii)
         !$acc loop seq
         do k = kctop(ii), kcbot(ii)
-          if ( iconvcf == 1 .or. iconvcf == 2 ) then
-            ! Fit coefficients linear in height between the three
-            ! levels, constant outside. Below the minimum of the
-            ! quadratic (about 0.13 mb/h) the minimum value is used.
-            zmc = max(pmfu(ii,k),d_zero)*xkmbh
-            if ( zmc > 0.01_rkx ) then
-              if ( xpg(ii,k)*regrav < xkz2 ) then
-                zw = max(xpg(ii,k)*regrav-xkz1,d_zero)/(xkz2-xkz1)
-                zc0 = xkc01 + zw*(xkc02-xkc01)
-                zc1 = xkc11 + zw*(xkc12-xkc11)
-                zc2 = xkc21 + zw*(xkc22-xkc21)
-              else
-                zw = min((xpg(ii,k)*regrav-xkz2)/(xkz3-xkz2),d_one)
-                zc0 = xkc02 + zw*(xkc03-xkc02)
-                zc1 = xkc12 + zw*(xkc13-xkc12)
-                zc2 = xkc22 + zw*(xkc23-xkc22)
-              end if
-              zx = max(log(zmc),-zc1/(d_two*zc2))
-              cu_cldfrc(j,i,k) = zc0 + zc1*zx + zc2*zx*zx
-              if ( iconvcf == 2 ) then
-                ! Volume fraction to the area fraction seen by the
-                ! radiation, in the symmetric form of Brooks et al.
-                ! (2005), JAS 62, 2248, which tends to 1 for full cover.
-                zcov = d_one + cuovlb*(xpgh(ii,k)-xpgh(ii,k+1))*regrav
-                cu_cldfrc(j,i,k) = d_one / (d_one + &
-                  (d_one/max(cu_cldfrc(j,i,k),1.0e-6_rkx)-d_one)/zcov)
-              end if
-            else
-              cu_cldfrc(j,i,k) = d_zero
-            end if
-          else if ( ktype(ii) == 1 ) then
-            cu_cldfrc(j,i,k) = kfac_deep*log(d_one+k2_const*pmfu(ii,k))
-          else if ( ktype(ii) == 2 ) then
-            cu_cldfrc(j,i,k) = kfac_shal*log(d_one+k2_const*pmfu(ii,k))
-          else
-            cu_cldfrc(j,i,k) = d_half*(kfac_deep+kfac_shal) * &
-                           log(d_one+k2_const*pmfu(ii,k))
-          end if
-          if ( ktype(ii) == 1 ) then
-            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.6_rkx)
-          else if ( ktype(ii) == 2 ) then
-            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.2_rkx)
-          else
-            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.4_rkx)
-          end if
+          ! Convective cloud fraction, common to the cumulus schemes
+          cu_cldfrc(j,i,k) = cu_cloud_fraction(iconvcf,ktype(ii), &
+            pmfu(ii,k),xpg(ii,k)*regrav,(xpgh(ii,k)-xpgh(ii,k+1))*regrav, &
+            kfac_deep,kfac_shal,k2_const)
           ! In cloud condensate for radiation [g/m3]: the updraft
           ! condensate per unit volume of the grid box, rho*a*lu with the
           ! updraft area a = mfu/(rho*wu), spread over the cloud fraction.

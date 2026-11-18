@@ -1443,10 +1443,9 @@ specific contents, and the saturated coefficients are \citep{Cuijpers_93}
 \alpha_q = { L_v \alpha_T \over c_p T } - 1
 \end{eqnarray}
 
-with $\epsilon = R_v/R_d - 1$.  The cloud fraction $c$ is diagnosed at each level
-from the saturation deficit as $c = 0.5 + 0.36 \arctan[1.55\,(q_t-q_s)/(0.04\,q_s)]$,
-limited to $[0,1]$ and set to zero without condensate, and averaged over the
-two levels bounding the interface.  A cloud layer following the moist adiabat
+with $\epsilon = R_v/R_d - 1$.  The cloud fraction $c$ is the large-scale cloud
+fraction of the model (\texttt{icldfrac}) averaged over the two levels bounding
+the interface, and the dry value is used without condensate.  A cloud layer following the moist adiabat
 is then neutral, whereas the dry formula treats it as stable and suppresses
 the mixing inside clouds.  With \verb=maxprandtl= $> 1$ the momentum
 diffusivity in stable layers is the heat diffusivity multiplied by the Prandtl
@@ -2208,10 +2207,10 @@ precipitation fluxes that are passed to the microphysics.
 
 The convective cloud fraction $FC_{CU}$ passed to radiation is derived from
 the updraft mass flux $M_u$ between cloud base and top. With
-\texttt{iconvcf}=0 (default)
+\texttt{iconvcf}=0
 $FC_{CU} = k_f\ln(1+k_2 M_u)$, with $k_f$ = \texttt{kfac\_deep} or
 \texttt{kfac\_shal} by convection type and $k_2$ = \texttt{k2\_const}. With
-\texttt{iconvcf}=1 it is the fit of \citet{Xu_91} to cumulus ensemble
+\texttt{iconvcf}=1 (default) it is the fit of \citet{Xu_91} to cumulus ensemble
 simulations,
 $FC_{CU} = c_0 + c_1 x + c_2 x^2$, $x=\ln M_u$ ($M_u$ in mb\,h$^{-1}$,
 bounded below by the minimum of the quadratic), with the coefficients of
@@ -2222,7 +2221,11 @@ $\Delta z$ in the symmetric form of \citet{Brooks_05},
 $1/FC_{CU} - 1 \rightarrow (1/FC_{CU} - 1)/(1+b\,\Delta z)$, with
 $b=0.0064$~m$^{-1}$ from the shallow cumulus simulations of
 \citet{Neggers_11}. The fraction is capped at 0.6 for deep, 0.2 for shallow
-and 0.4 for mid-level convection. The in-cloud condensate for radiation is
+and 0.4 for mid-level convection. For all the cumulus schemes the
+convective cloud fraction seen by radiation is at most
+$1-0.75\min\left(1,\ln(\Delta x/1\,\mathrm{km})/\ln 100\right)$, a function
+of the grid spacing $\Delta x$: one at 1~km, where convection is resolved
+and can fill the grid box, decreasing to 0.25 at 100~km and beyond. The in-cloud condensate for radiation is
 the updraft condensate $l_u$ spread over the cloud fraction,
 $LWC_{CU} = M_u\,l_u/(w_u\,FC_{CU})$, with the updraft vertical velocity
 $w_u$ bounded below by 1~m\,s$^{-1}$.\\
@@ -2307,7 +2310,18 @@ The cloud fraction $FC$ passed to the radiation schemes is computed by merging
 the large-scale (grid-resolved) and convective contributions. The large-scale
 fraction is provided by one of eight diagnostic or prognostic schemes selected
 by the user through the \texttt{icldfrac} namelist parameter; the convective
-fraction is supplied directly by the active cumulus parameterization. The merged
+fraction is computed from the updraft mass flux of the active cumulus
+parameterization with the single formula selected by \texttt{iconvcf} (the
+mass flux schemes Tiedtke, Kain-Fritsch, Emanuel and Grell; Kuo and
+Betts-Miller use an empirical profile), at most the grid spacing dependent
+maximum given in the Tiedtke section. These two fractions are the only
+providers: the microphysics, the chemistry, the radiation and the moist
+Brunt-V\"ais\"al\"a frequency of the Holtslag scheme (\verb=lmoistn2=) use
+them. Two schemes diagnose their own cloud as part of their formulation: the
+UW boundary layer, from the subgrid distribution of total water in its moist
+turbulence closure, and the SUBEX condensation, which obtains its relative
+humidity threshold by inverting the Sundqvist relation for the large-scale
+fraction (exact for \texttt{icldfrac}=0). The merged
 fraction follows a maximum-overlap assumption,
 \begin{equation}
   FC = \max\!\left(FC_\mathrm{LS},\; FC_\mathrm{CU}\right),
@@ -2317,7 +2331,10 @@ of the large-scale condensate and the convective in-cloud condensate. This is
 provided by the cumulus scheme where it computes it (Tiedtke), otherwise it is
 a temperature-based estimate. With \texttt{iconvlwp}=1 the temperature-based estimate is
 used for all clouds instead, and the radiation does not see the condensate of
-the microphysics; the default is \texttt{iconvlwp}=0. The scheme-weighted LWC is optionally scaled following the
+the microphysics; the default is \texttt{iconvlwp}=0. Both radiation schemes (CCM and RRTMG) see
+the merged cloud of each model layer, at full levels, where its in-cloud water
+path is at least 0.01~g\,m$^{-2}$, with the same ice fraction and effective
+radii. The scheme-weighted LWC is optionally scaled following the
 observational constraint of \citet{Liang_05} to account for the systematic
 relationship between cloud fraction and optical depth at the grid scale.
 The eight large-scale schemes, indexed by \texttt{icldfrac} from 0 to 7,
@@ -2956,16 +2973,17 @@ interior forcing mechanisms, controlled independently from \texttt{iboudy}:
 
 \paragraph{Model-top sponge (\texttt{mo\_top\_nudge}).}
 A Rayleigh-damping layer is applied to temperature, $u$, $v$ and $w$ in the
-uppermost model levels above a configurable height threshold \texttt{zztop}.
+uppermost model levels above the height $z_\mathrm{top}=18$~km.
 The damping coefficient follows a squared-sine profile:
 \begin{equation}
   \tau_\mathrm{top}(k) = \sin^2\!\left[
     \frac{\pi}{2}\frac{\bar{z}(k) - z_\mathrm{top}}{z_\mathrm{model} - z_\mathrm{top}}
   \right], \quad \bar{z}(k) > z_\mathrm{top},
 \end{equation}
-where $\bar{z}(k)$ is the domain-mean height of level $k$,
-$z_\mathrm{top} = \texttt{zztop}$, and $z_\mathrm{model} = \texttt{mo\_h}$
-is the model top height. This absorber prevents reflection of vertically
+where $\bar{z}(k)$ is the domain-mean height of level $k$ and
+$z_\mathrm{model}$ is the model top height \texttt{mo\_ztop}; with the
+uncapped coordinate (\texttt{mo\_lcap = .false.}), which has no top height,
+it is the domain-mean height of the top model level. This absorber prevents reflection of vertically
 propagating gravity waves from the rigid lid.
 
 \paragraph{Spectral nudging (\texttt{mo\_spectral\_nudge}).}

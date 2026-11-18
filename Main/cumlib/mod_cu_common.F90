@@ -59,6 +59,7 @@ module mod_cu_common
   logical, parameter :: addnoise = .false.
 
   public :: init_mod_cumulus, model_cumulus_cloud
+  public :: cu_cloud_fraction
 
   contains
 
@@ -158,6 +159,94 @@ module mod_cu_common
       end do
     end if
   end subroutine model_cumulus_cloud
+  !
+  ! Convective cloud fraction seen by radiation, the same for all the mass
+  ! flux cumulus schemes, selected by iconvcf (all arguments, no module
+  ! state, for the device):
+  !   icf    : 0 kfac*ln(1+k2*mfu), 1 Xu and Krueger (1991) fit, 2 as 1
+  !            converted to the area fraction of a layer of depth dz
+  !   ctype  : 1 deep, 2 shallow, 3 mid level convection
+  !   mfu    : grid mean updraft mass flux (kg m-2 s-1)
+  !   zag    : height of the level above the ground (m)
+  !   dz     : depth of the layer (m)
+  !   kdeep, kshal, k2 : kfac_deep, kfac_shal, k2_const (icf = 0)
+  ! The fraction is at most 0.6 for deep, 0.2 for shallow and 0.4 for mid
+  ! level convection; the grid spacing dependent maximum (clfrcv) is
+  ! applied by the cumulus interface.
+  !
+  pure real(rkx) function cu_cloud_fraction(icf,ctype,mfu,zag,dz, &
+                                            kdeep,kshal,k2) result(cf)
+!$acc routine seq
+    implicit none
+    integer(ik4), intent(in) :: icf, ctype
+    real(rkx), intent(in) :: mfu, zag, dz, kdeep, kshal, k2
+    ! Xu and Krueger (1991), Table 5: convective cloud fraction of thin
+    ! (30 mb) layers at 0.8, 3.9 and 7.9 km, fit to the log of the grid
+    ! mean cumulus mass flux in mb/h (valid above 0.01 mb/h).
+    real(rkx), parameter :: xkz1 = 800.0_rkx
+    real(rkx), parameter :: xkz2 = 3900.0_rkx
+    real(rkx), parameter :: xkz3 = 7900.0_rkx
+    real(rkx), parameter :: xkc01 = 0.0116_rkx
+    real(rkx), parameter :: xkc11 = 0.0103_rkx
+    real(rkx), parameter :: xkc21 = 0.0025_rkx
+    real(rkx), parameter :: xkc02 = 0.0363_rkx
+    real(rkx), parameter :: xkc12 = 0.0226_rkx
+    real(rkx), parameter :: xkc22 = 0.0054_rkx
+    real(rkx), parameter :: xkc03 = 0.0131_rkx
+    real(rkx), parameter :: xkc13 = 0.0123_rkx
+    real(rkx), parameter :: xkc23 = 0.0030_rkx
+    ! kg m-2 s-1 to mb/h
+    real(rkx), parameter :: xkmbh = egrav*3600.0_rkx/100.0_rkx
+    ! Neggers et al. (2011), JGR 116, D21202: the cover projected by a
+    ! cumulus layer of depth dz is (1 + b dz) times its volume fraction
+    ! (BOMEX value of b, m-1).
+    real(rkx), parameter :: cuovlb = 0.0064_rkx
+    real(rkx) :: zmc, zw, zc0, zc1, zc2, zx, zcov
+    cf = d_zero
+    if ( icf == 1 .or. icf == 2 ) then
+      ! Fit coefficients linear in height between the three levels,
+      ! constant outside. Below the minimum of the quadratic (about
+      ! 0.13 mb/h) the minimum value is used.
+      zmc = max(mfu,d_zero)*xkmbh
+      if ( zmc > 0.01_rkx ) then
+        if ( zag < xkz2 ) then
+          zw = max(zag-xkz1,d_zero)/(xkz2-xkz1)
+          zc0 = xkc01 + zw*(xkc02-xkc01)
+          zc1 = xkc11 + zw*(xkc12-xkc11)
+          zc2 = xkc21 + zw*(xkc22-xkc21)
+        else
+          zw = min((zag-xkz2)/(xkz3-xkz2),d_one)
+          zc0 = xkc02 + zw*(xkc03-xkc02)
+          zc1 = xkc12 + zw*(xkc13-xkc12)
+          zc2 = xkc22 + zw*(xkc23-xkc22)
+        end if
+        zx = max(log(zmc),-zc1/(d_two*zc2))
+        cf = zc0 + zc1*zx + zc2*zx*zx
+        if ( icf == 2 ) then
+          ! Volume fraction to the area fraction seen by the radiation,
+          ! in the symmetric form of Brooks et al. (2005), JAS 62, 2248,
+          ! which tends to 1 for full cover.
+          zcov = d_one + cuovlb*dz
+          cf = d_one/(d_one+(d_one/max(cf,1.0e-6_rkx)-d_one)/zcov)
+        end if
+      end if
+    else
+      if ( ctype == 1 ) then
+        cf = kdeep*log(d_one+k2*max(mfu,d_zero))
+      else if ( ctype == 2 ) then
+        cf = kshal*log(d_one+k2*max(mfu,d_zero))
+      else
+        cf = d_half*(kdeep+kshal)*log(d_one+k2*max(mfu,d_zero))
+      end if
+    end if
+    if ( ctype == 1 ) then
+      cf = min(max(d_zero,cf),0.6_rkx)
+    else if ( ctype == 2 ) then
+      cf = min(max(d_zero,cf),0.2_rkx)
+    else
+      cf = min(max(d_zero,cf),0.4_rkx)
+    end if
+  end function cu_cloud_fraction
 
 end module mod_cu_common
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

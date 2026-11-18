@@ -107,6 +107,11 @@ module mod_rrtmg_driver
   real(rk8), pointer, contiguous, dimension(:,:) :: ciwp => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: clwp => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: rei => null( )
+  ! Generalized effective ice size (Fu, 1996) for iceflag 3
+  real(rk8), pointer, contiguous, dimension(:,:) :: dge => null( )
+  ! Ice size passed to the short and long wave (radius or dge)
+  real(rk8), pointer, contiguous, dimension(:,:) :: reisw => null( )
+  real(rk8), pointer, contiguous, dimension(:,:) :: reilw => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: rel => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: cldf => null( )
   real(rk8), pointer, contiguous, dimension(:,:) :: lwhr => null( )
@@ -288,6 +293,7 @@ module mod_rrtmg_driver
     call getmem(ciwp,1,npr,1,kth,'rrtmg:ciwp')
     call getmem(clwp,1,npr,1,kth,'rrtmg:clwp')
     call getmem(rei,1,npr,1,kth,'rrtmg:rei')
+    call getmem(dge,1,npr,1,kth,'rrtmg:dge')
     call getmem(rel,1,npr,1,kth,'rrtmg:rel')
     call getmem(cldf,1,npr,1,kth,'rrtmg:cldf')
     call getmem(lwhr,1,npr,1,kth,'rrtmg:lwhr')
@@ -438,7 +444,7 @@ module mod_rrtmg_driver
         end do
         ! generates cloud properties:
         call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,    &
-                             cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc, &
+                             cldf,ciwp,clwp,reisw,rel,tauc,ssac,asmc, &
                              fsfc,alpha,cldfmcl,ciwpmcl,clwpmcl,    &
                              reicmcl,relqmcl,taucmcl,ssacmcl,       &
                              asmcmcl,fsfcmcl)
@@ -459,7 +465,7 @@ module mod_rrtmg_driver
                               asdif,aldir,aldif,czen,adjes,-1,          &
                               solcon,isolvar,inflgsw,iceflgsw,liqflgsw, &
                               cldf,tauc,ssac,asmc,fsfc,ciwp,clwp,       &
-                              rei,rel,tauaer,ssaaer,asmaer,ecaer,       &
+                              reisw,rel,tauaer,ssaaer,asmaer,ecaer,     &
                               swuflx,swdflx,swhr,swuflxc,swdflxc,       &
                               swhrc,swddiruviflx,swddifuviflx,          &
                               swddirpirflx,swddifpirflx,swdvisflx,      &
@@ -474,7 +480,7 @@ module mod_rrtmg_driver
         permuteseed = 2147483641+permuteseed
       end do
       call mcica_subcol_lw(npr,kth,icld,permuteseed,irng,play,   &
-                           cldf,ciwp,clwp,rei,rel,tauc_lw,alpha, &
+                           cldf,ciwp,clwp,reilw,rel,tauc_lw,alpha, &
                            cldfmcl_lw,ciwpmcl_lw,clwpmcl_lw,     &
                            reicmcl,relqmcl,taucmcl_lw)
       call rrtmg_lw(npr,kth,icld,idrv,lradfor,ldirect,play,plev,tlay,tlev, &
@@ -490,7 +496,7 @@ module mod_rrtmg_driver
                             tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,   &
                             n2ovmr,o2vmr,cfc11vmr,cfc12vmr,cfc22vmr,     &
                             ccl4vmr,emis_surf,inflglw,iceflglw,liqflglw, &
-                            cldf,tauc,ciwp,clwp,rei,rel,tauaer_lw,lwuflx,&
+                            cldf,tauc,ciwp,clwp,reilw,rel,tauaer_lw,lwuflx,&
                             lwdflx,lwhr,lwuflxc,lwdflxc,lwhrc,aerlwfo,   &
                             aerlwfos,asaerlwfo,asaerlwfos,duflx_dt,duflxc_dt)
     end if
@@ -557,14 +563,14 @@ module mod_rrtmg_driver
     end do
 
     do n = 1, npr
-      cld_int(n,1) = 0.0_rk8
       cld_int(n,kzp1) = 0.0_rk8
     end do
-    do k = 2, kz
+    do k = 1, kz
       do i = ici1, ici2
         do j = jci1, jci2
           n = (j-jci1+1)+(i-ici1)*npj
-          cld_int(n,k) = max(m2r%cldfrc(j,i,k-1),m2r%cldfrc(j,i,k))
+          ! cloud fraction of the layer, as seen by the radiation
+          cld_int(n,k) = m2r%cldfrc(j,i,k)
         end do
       end do
     end do
@@ -1025,7 +1031,7 @@ module mod_rrtmg_driver
           !
           n = (j-jci1+1)+(i-ici1)*npj
           clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
-          if ( clwp(n,k) > 0.001_rk8 ) then
+          if ( clwp(n,k) > cldwpmin ) then
             cldf(n,k) = m2r%cldfrc(j,i,kj)
           else
             clwp(n,k) = 0.0_rk8
@@ -1048,7 +1054,18 @@ module mod_rrtmg_driver
     !
     ! cloud effective radius
     !
-    call cldefr_rrtm(tlay,play,rel,rei,fice)
+    call cldefr_rrtm(tlay,rel,rei,dge,fice)
+    ! Ice optics of Fu (1996) (iceflag 3) take the generalized size
+    if ( iceflgsw == 3 ) then
+      reisw => dge
+    else
+      reisw => rei
+    end if
+    if ( iceflglw == 3 ) then
+      reilw => dge
+    else
+      reilw => rei
+    end if
     !
     ! partition of total water path betwwen liquide and ice.
     ! now clwp is liquide only !
@@ -1182,91 +1199,40 @@ module mod_rrtmg_driver
   !
   ! For now we use for RRTM the same param as in standard rad
   !
-  subroutine cldefr_rrtm(t,pmid,rel,rei,fice)
+  !
+  ! Cloud ice fraction and effective sizes, the same as the CCM scheme
+  ! (cloud_fice, cloud_rel_cam, cloud_rei in mod_rad_common), from the
+  ! in cloud water seen by radiation (clwp, cloud fraction > 0).
+  !
+  subroutine cldefr_rrtm(t,rel,rei,dge,fice)
     implicit none
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: pmid, t
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: fice, rei, rel
+    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: t
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: fice
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: rei
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: rel
+    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: dge
     integer(ik4) :: k, n
-    real(rk8) :: pnrml, weight
-    ! real(rk8) :: tpara
-    ! reimax - maximum ice effective radius
-    real(rk8), parameter :: reimax = 30.0_rk8
-    ! rirnge - range of ice radii (reimax - 10 microns)
-    real(rk8), parameter :: rirnge = 20.0_rk8
-    ! pirnge - nrmlzd pres range for ice particle changes
-    real(rk8), parameter :: pirnge = 0.4_rk8
-    ! picemn - normalized pressure below which rei=reimax
-    real(rk8), parameter :: picemn = 0.4_rk8
-    ! Temperatures in K (263.16, 243.16)
-    real(rk8), parameter :: minus10 = wattp-10.0_rk8
-    real(rk8), parameter :: minus30 = wattp-30.0_rk8
-
+    real(rk8) :: iwc
     do k = 1, kth
       do n = 1, npr
-        !
-        ! Define liquid drop size
-        ! rel : liquid effective drop size (microns)
-        !
-        ! Global distribution of Cloud Droplet Effective Radius from
-        ! POLDER polarization measurements
-        ! On average, droplets are 2 to 3 micron smaller overland than over
-        ! the ocean, but the smaller droplets are found over highly
-        ! polluted regions and in areas affected by smoke from biomass
-        ! burning activity. Largest droplets are found in remote tropical
-        ! oceans, away from polarized reflectance of liquid clouds.
-        ! Toward the poles, for colder temperature, large droplets freeze
-        ! and only the smaller ones are kept liquid.
-        !
-        ! tpara = min(1.0_rk8,max(0.0_rk8,(minus10-tm1(n,k))*0.05_rk8))
-        !
-        if ( ioro(n) == 1 ) then
-          ! Effective liquid radius over land
-          ! rel(n,k) = 6.0_rk8 + 5.0_rk8 * tpara
-          rel(n,k) = 8.50_rk8
+        if ( ipptls > 1 ) then
+          fice(n,k) = cloud_fice(.true.,ql1(n,k),qi1(n,k),t(n,k))
         else
-          ! Effective liquid radius over ocean and sea ice
-          ! rel(n,k) = 7.0_rk8 + 5.0_rk8 * tpara
-          rel(n,k) = 11.0_rk8
+          fice(n,k) = cloud_fice(.false.,0.0_rk8,0.0_rk8,t(n,k))
         end if
-        !
-        ! Determine rei as function of normalized pressure
-        !
-        pnrml = pmid(n,k)/psfc(n)
-        weight = max(min((pnrml-picemn)/pirnge,1.0_rk8),0.0_rk8)
-        rei(n,k) = reimax - rirnge*weight
-        !
-        ! Define fractional amount of cloud that is ice
-        !
+        if ( cldf(n,k) > 0.0_rk8 ) then
+          ! in cloud ice water content (g/m3)
+          iwc = clwp(n,k)*fice(n,k)/deltaz(n,k)
+          rel(n,k) = cloud_rel_cam(t(n,k),ioro(n) == 1)
+          rei(n,k) = cloud_rei(iwc,t(n,k),dlat(n))
+        else
+          rel(n,k) = 8.5_rk8
+          rei(n,k) = 20.0_rk8
+        end if
+        ! generalized effective size for Fu (1996), valid 5-140 micron
+        dge(n,k) = max(5.0_rk8,min(140.0_rk8,rei(n,k)/dge2rei))
       end do
     end do
-    if ( ipptls > 1 ) then
-      do k = 1, kth
-        do n = 1, npr
-          if ( qi1(n,k) > minqq ) then
-            fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
-          else
-            fice(n,k) = 0.0_rk8
-          end if
-        end do
-      end do
-    else
-      do k = 1, kth
-        do n = 1, npr
-          if ( t(n,k) > minus10 ) then
-            ! if warmer than -10 degrees C then water phase
-            fice(n,k) = 0.0_rk8
-          else if ( t(n,k) <= minus10 .and. t(n,k) >= minus30 ) then
-            ! if colder than -10 degrees C but warmer than -30 C mixed phase
-            fice(n,k) = (minus10-t(n,k))/20.0_rk8
-          else
-            ! if colder than -30 degrees C then ice phase
-            fice(n,k) = 1.0_rk8
-          end if
-          ! Turn off ice radiative properties by setting fice = 0.0
-          ! fice(n,k) = 0.0_rk8
-        end do
-      end do
-    end if
   end subroutine cldefr_rrtm
 
 end module mod_rrtmg_driver

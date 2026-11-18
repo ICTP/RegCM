@@ -97,7 +97,7 @@ program scm_tiedtke
   k2_const = 500.0_rkx
   kfac_shal = 0.07_rkx
   kfac_deep = 0.14_rkx
-  iconvcf = 0
+  iconvcf = 1
 
   nmlfile = 'scm_tiedtke.in'
   if ( command_argument_count( ) > 0 ) call get_command_argument(1,nmlfile)

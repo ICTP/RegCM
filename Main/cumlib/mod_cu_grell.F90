@@ -24,7 +24,7 @@ module mod_cu_grell
   use mod_constants
   use mod_mpmessage
   use mod_runparams, only : iqv, igcc, ichem
-  use mod_runparams, only : kfac_deep, kfac_shal, k2_const
+  use mod_runparams, only : kfac_deep, kfac_shal, k2_const, iconvcf
   use mod_regcm_types
 
   implicit none
@@ -444,7 +444,7 @@ module mod_cu_grell
                dz1, dz2, agamma, agamma0, agamma1, agamma2,  &
                agammo, agammo0, mbdt, outtes, pbcdif, qrch,  &
                qrcho, tvbar, tvbaro, xk, mflx, f !, dzo
-    integer(ik4) :: n, k, kbcono, kk
+    integer(ik4) :: n, k, kbcono, kk, ctype
     logical :: foundtop, lnext, lremlid, lcbase
 
     ! Variable names carry an "o"-ending (z becomes zo), if they are the
@@ -1129,12 +1129,13 @@ module mod_cu_grell
             if ( k >= kbcon(n) ) then
               mflx = max(d_100*(p(n,k)/(rgas*t(n,k)))*dellah(n,k)*xmb(n),d_zero)
               if ( z(n,ktop(n))-z(n,kbcon(n)) > 2000.0_rkx ) then
-                cldf(n,k) = kfac_deep*log(d_one+k2_const*mflx)
-                cldf(n,k) = max(0.01_rkx,min(0.6_rkx,cldf(n,k)))
+                ctype = 1
               else
-                cldf(n,k) = kfac_shal*log(d_one+k2_const*mflx)
-                cldf(n,k) = max(0.01_rkx,min(0.2_rkx,cldf(n,k)))
+                ctype = 2
               end if
+              cldf(n,k) = cu_cloud_fraction(iconvcf,ctype,mflx, &
+                z(n,k)-ter11(n),abs(z(n,min(k+1,kz))-z(n,k)), &
+                kfac_deep,kfac_shal,k2_const)
             end if
           end if
         end if

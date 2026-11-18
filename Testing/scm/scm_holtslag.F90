@@ -284,6 +284,9 @@ program scm_holtslag
     call getmem(m2p%za,1,ncol,1,1,1,nk,'scm:za')
     call getmem(m2p%heatrt,1,ncol,1,1,1,nk,'scm:pheatrt')
     m2p%heatrt(:,:,:) = d_zero
+    ! large scale cloud fraction of the model (cldfrac)
+    call getmem(m2p%fcc,1,ncol,1,1,1,nk,'scm:pfcc')
+    m2p%fcc(:,:,:) = d_zero
     call getmem(m2p%patm,1,ncol,1,1,1,nk,'scm:patm')
     call getmem(m2p%patmf,1,ncol,1,1,1,nk+1,'scm:patmf')
     call getmem(m2p%tatm,1,ncol,1,1,1,nk,'scm:tatm')
