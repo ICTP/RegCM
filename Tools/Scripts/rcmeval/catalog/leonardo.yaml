@@ -1,0 +1,214 @@
+# Catalog written by rcmeval.builder from /afs/ictp.it/home/g/ggiulian/leonardo_observations
+#
+# FOUND   CHIRPS      1981-2025              pr  [/leonardo_work/ICT26_ESP/OBS/CHIRPS]
+#                     check the units of: pr (layout not verified)
+# FOUND   CPC         1979-2024              pr  [/leonardo_work/ICT26_ESP/OBS/CPC/precip]
+# FOUND   CRU         single file            clt, pr, tas  [/leonardo_work/ICT26_ESP/OBS/CRU]
+# FOUND   EOBS        single file            pr, tas  [/leonardo_work/ICT26_ESP/OBS/EOBS/010]
+# FOUND   ERA5        1950-2023              clh, clivi, cll, clm, clt, clwvi, evspsbl, hfls, hfss, hur, hus, pr, psl, rlut, rsdt, ta, tas, ua, va, wap  [/leonardo_work/ICT26_ESP/OBS/ERA5/monthly]
+# FOUND   GPCP        1983-2022              pr  [/leonardo_work/ICT26_ESP/OBS/GPCP/monthly]
+# FOUND   MSWEP       1979-2025              pr  [/leonardo_work/ICT26_ESP/OBS/MSWEP/monthly]
+# FOUND   MSWEP_DAY   1979-2025              pr  [/leonardo_work/ICT26_ESP/OBS/MSWEP/daily]
+# ABSENT  CERES       CERES EBAF Ed4.2, TOA and surface radiation, cloud area, monthly 1 deg; global, 2000-03 to present
+#                     get it from: NASA LaRC https://ceres.larc.nasa.gov/data/ (EBAF ordering page, single netCDF file)
+# ABSENT  CHIRPS_DAY  CHIRPS v2.0 precipitation, daily, 0.05 deg, land 50S-50N; land 50S-50N, 1981-present
+#                     get it from: https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_daily/netcdf/p05/
+# ABSENT  OAFLUX      WHOI OAFlux ocean surface turbulent fluxes and wind, monthly, 1 deg; global ocean, 1958-2016 (2016rt)
+#                     get it from: https://oaflux.whoi.edu/data-access/
+# 
+# Directories not recognized (add them to the site catalog by hand, or to known.yaml):
+#         MSWX (5558 files)
+#         NAMEREXT (2304 files)
+#         CERRA (982 files)
+#         COMEPHORE (254 files)
+#         CN05.1 (125 files)
+#         COMPOSITE-ALP3 (108 files)
+#         CH_RdisaggH (94 files)
+#         GPCC (52 files)
+#         IMD (13 files)
+#         IT-DPC-SRI (4 files)
+#         RIVERS (4 files)
+#         GRIPHO (2 files)
+#         EURO4M-APGD (2 files)
+#         GRDC (1 files)
+#         RADKLIM (1 files)
+#         tmp (1 files)
+# 
+# References by variable (found / downloadable):
+#   pr       found: CHIRPS, CPC, CRU, EOBS, ERA5, GPCP, MSWEP, MSWEP_DAY downloadable: CHIRPS_DAY
+#   evspsbl  found: ERA5                           downloadable: -
+#   tas      found: CRU, EOBS, ERA5                downloadable: -
+#   clt      found: CRU, ERA5                      downloadable: CERES
+#   cll      found: ERA5                           downloadable: -
+#   clm      found: ERA5                           downloadable: -
+#   clh      found: ERA5                           downloadable: -
+#   hur      found: ERA5                           downloadable: -
+#   clwvi    found: ERA5                           downloadable: -
+#   clivi    found: ERA5                           downloadable: -
+#   hfls     found: ERA5                           downloadable: OAFLUX
+#   hfss     found: ERA5                           downloadable: OAFLUX
+#   rsut     found: -                              downloadable: CERES
+#   rlut     found: ERA5                           downloadable: CERES
+#   rsdt     found: ERA5                           downloadable: CERES
+#   rsds     found: -                              downloadable: CERES
+#   rlds     found: -                              downloadable: CERES
+#   rsutcs   found: -                              downloadable: CERES
+#   rlutcs   found: -                              downloadable: CERES
+#   sfcWind  found: -                              downloadable: OAFLUX
+#   ua       found: ERA5                           downloadable: -
+#   va       found: ERA5                           downloadable: -
+#   psl      found: ERA5                           downloadable: -
+#   ta       found: ERA5                           downloadable: -
+#   hus      found: ERA5                           downloadable: -
+#   wap      found: ERA5                           downloadable: -
+datasets:
+  CHIRPS:
+    root: /leonardo_work/ICT26_ESP/OBS/CHIRPS
+    frequency: mon
+    surface: land
+    variables:
+      pr:
+        file: chirps-v3.0.{year}.monthly.nc
+        name: precip
+        per_day: true
+  CPC:
+    root: /leonardo_work/ICT26_ESP/OBS/CPC/precip
+    frequency: day
+    surface: land
+    variables:
+      pr:
+        file: precip.{year}.nc
+        name: precip
+  CRU:
+    root: /leonardo_work/ICT26_ESP/OBS/CRU
+    frequency: mon
+    surface: land
+    variables:
+      pr:
+        file: pre.dat.nc
+        name: pre
+        per_day: true
+      tas:
+        file: tmp.dat.nc
+        name: tmp
+      clt:
+        file: cld.dat.nc
+        name: cld
+  EOBS:
+    root: /leonardo_work/ICT26_ESP/OBS/EOBS/010
+    frequency: day
+    surface: land
+    variables:
+      pr:
+        file: rr_ens_mean_0.1deg_reg_v32.0e.nc
+        name: rr
+      tas:
+        file: tg_ens_mean_0.1deg_reg_v32.0e.nc
+        name: tg
+  ERA5:
+    root: /leonardo_work/ICT26_ESP/OBS/ERA5/monthly
+    frequency: mon
+    variables:
+      pr:
+        file: '{year}/pr_{year}_{month:02d}.nc'
+        name: tp
+        factor: 1000.0
+      evspsbl:
+        file: '{year}/evp_{year}_{month:02d}.nc'
+        name: e
+        factor: -1000.0
+      tas:
+        file: '{year}/tas_{year}_{month:02d}.nc'
+        name: t2m
+        offset: -273.15
+      psl:
+        file: '{year}/psl_{year}_{month:02d}.nc'
+        name: msl
+        factor: 0.01
+      clt:
+        file: '{year}/clt_{year}_{month:02d}.nc'
+        name: tcc
+        factor: 100.0
+      cll:
+        file: '{year}/cll_{year}_{month:02d}.nc'
+        name: lcc
+        factor: 100.0
+      clm:
+        file: '{year}/clm_{year}_{month:02d}.nc'
+        name: mcc
+        factor: 100.0
+      clh:
+        file: '{year}/clh_{year}_{month:02d}.nc'
+        name: hcc
+        factor: 100.0
+      clwvi:
+        file: '{year}/clwvi_{year}_{month:02d}.nc'
+        name: tclw
+        factor: 1000.0
+      clivi:
+        file: '{year}/clivi_{year}_{month:02d}.nc'
+        name: tciw
+        factor: 1000.0
+      hfls:
+        file: '{year}/lflx_{year}_{month:02d}.nc'
+        name: slhf
+        factor: -1.1574074e-05
+      hfss:
+        file: '{year}/sflx_{year}_{month:02d}.nc'
+        name: ishf
+        factor: -1.0
+      rlut:
+        file: '{year}/toanetlw_{year}_{month:02d}.nc'
+        name: ttr
+        factor: -1.1574074e-05
+      rsdt:
+        file: '{year}/toainsw_{year}_{month:02d}.nc'
+        name: tisr
+        factor: 1.1574074e-05
+      ta:
+        file: '{year}/tatm_{year}_{month:02d}.nc'
+        name: t
+        levels: true
+      hus:
+        file: '{year}/qhum_{year}_{month:02d}.nc'
+        name: q
+        factor: 1000.0
+        levels: true
+      hur:
+        file: '{year}/rhum_{year}_{month:02d}.nc'
+        name: r
+        levels: true
+      ua:
+        file: '{year}/uwnd_{year}_{month:02d}.nc'
+        name: u
+        levels: true
+      va:
+        file: '{year}/vwnd_{year}_{month:02d}.nc'
+        name: v
+        levels: true
+      wap:
+        file: '{year}/wwnd_{year}_{month:02d}.nc'
+        name: w
+        levels: true
+  GPCP:
+    root: /leonardo_work/ICT26_ESP/OBS/GPCP/monthly
+    frequency: mon
+    variables:
+      pr:
+        file: GPCPMON_L3_{year}_V3.2.nc4
+        name: sat_gauge_precip
+  MSWEP:
+    root: /leonardo_work/ICT26_ESP/OBS/MSWEP/monthly
+    frequency: mon
+    variables:
+      pr:
+        file: '{year}{month:02d}.nc'
+        name: precipitation
+        per_day: true
+  MSWEP_DAY:
+    root: /leonardo_work/ICT26_ESP/OBS/MSWEP/daily
+    frequency: day
+    variables:
+      pr:
+        file: '{year}.nc'
+        name: precipitation

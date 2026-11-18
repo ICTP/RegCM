@@ -1,0 +1,269 @@
+# Knowledge base of the catalog builder (python -m rcmeval.builder):
+# datasets the builder recognizes, their file layouts (relative to the
+# dataset directory; {year}, {month:02d} and * are matched), the
+# conversion to the target units, and where to get them. Layouts marked
+# verified: false have units not checked on a real file yet. Directories
+# whose path contains the dataset name (or a word of dirs:) are preferred.
+datasets:
+  ERA5:
+    description: ECMWF ERA5 reanalysis, monthly means, 0.25 deg, single and pressure levels
+    coverage: global, 1940-present
+    group: reanalysis
+    access: 'Copernicus CDS https://cds.climate.copernicus.eu, datasets reanalysis-era5-single-levels-monthly-means
+      and reanalysis-era5-pressure-levels-monthly-means (layout: monthly/YEAR/VAR_YEAR_MM.nc as the ESP
+      download scripts)'
+    frequency: mon
+    layouts:
+    - pr:
+        file: '{year}/pr_{year}_{month:02d}.nc'
+        name: tp
+        factor: 1000.0
+      evspsbl:
+        file: '{year}/evp_{year}_{month:02d}.nc'
+        name: e
+        factor: -1000.0
+      tas:
+        file: '{year}/tas_{year}_{month:02d}.nc'
+        name: t2m
+        offset: -273.15
+      psl:
+        file: '{year}/psl_{year}_{month:02d}.nc'
+        name: msl
+        factor: 0.01
+      clt:
+        file: '{year}/clt_{year}_{month:02d}.nc'
+        name: tcc
+        factor: 100.0
+      cll:
+        file: '{year}/cll_{year}_{month:02d}.nc'
+        name: lcc
+        factor: 100.0
+      clm:
+        file: '{year}/clm_{year}_{month:02d}.nc'
+        name: mcc
+        factor: 100.0
+      clh:
+        file: '{year}/clh_{year}_{month:02d}.nc'
+        name: hcc
+        factor: 100.0
+      clwvi:
+        file: '{year}/clwvi_{year}_{month:02d}.nc'
+        name: tclw
+        factor: 1000.0
+      clivi:
+        file: '{year}/clivi_{year}_{month:02d}.nc'
+        name: tciw
+        factor: 1000.0
+      hfls:
+        file: '{year}/lflx_{year}_{month:02d}.nc'
+        name: slhf
+        factor: -1.1574074e-05
+      hfss:
+        file: '{year}/sflx_{year}_{month:02d}.nc'
+        name: ishf
+        factor: -1.0
+      rlut:
+        file: '{year}/toanetlw_{year}_{month:02d}.nc'
+        name: ttr
+        factor: -1.1574074e-05
+      rsdt:
+        file: '{year}/toainsw_{year}_{month:02d}.nc'
+        name: tisr
+        factor: 1.1574074e-05
+      ta:
+        file: '{year}/tatm_{year}_{month:02d}.nc'
+        name: t
+        levels: true
+      hus:
+        file: '{year}/qhum_{year}_{month:02d}.nc'
+        name: q
+        factor: 1000.0
+        levels: true
+      hur:
+        file: '{year}/rhum_{year}_{month:02d}.nc'
+        name: r
+        levels: true
+      ua:
+        file: '{year}/uwnd_{year}_{month:02d}.nc'
+        name: u
+        levels: true
+      va:
+        file: '{year}/vwnd_{year}_{month:02d}.nc'
+        name: v
+        levels: true
+      wap:
+        file: '{year}/wwnd_{year}_{month:02d}.nc'
+        name: w
+        levels: true
+  CERES:
+    description: CERES EBAF Ed4.2, TOA and surface radiation, cloud area, monthly 1 deg
+    coverage: global, 2000-03 to present
+    group: radiation
+    access: NASA LaRC https://ceres.larc.nasa.gov/data/ (EBAF ordering page, single netCDF file)
+    frequency: mon
+    layouts:
+    - rsut:
+        file: CERES_EBAF_Edition4.2_200003-202312.nc
+        name: toa_sw_all_mon
+      rlut:
+        file: CERES_EBAF_Edition4.2_200003-202312.nc
+        name: toa_lw_all_mon
+      rsutcs:
+        file: CERES_EBAF_Edition4.2_200003-202312.nc
+        name: toa_sw_clr_c_mon
+      rlutcs:
+        file: CERES_EBAF_Edition4.2_200003-202312.nc
+        name: toa_lw_clr_c_mon
+      rsdt:
+        file: CERES_EBAF_Edition4.2_200003-202312.nc
+        name: solar_mon
+      rsds:
+        file: CERES_EBAF_Edition4.2_200003-202312.nc
+        name: sfc_sw_down_all_mon
+      rlds:
+        file: CERES_EBAF_Edition4.2_200003-202312.nc
+        name: sfc_lw_down_all_mon
+      clt:
+        file: CERES_EBAF_Edition4.2_200003-202312.nc
+        name: cldarea_total_daynight_mon
+  CHIRPS:
+    description: CHIRPS v2.0 precipitation, monthly, 0.05 deg, land 50S-50N
+    coverage: land 50S-50N, 1981-present
+    group: precipitation
+    access: https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_monthly/netcdf/
+    frequency: mon
+    surface: land
+    layouts:
+    - pr:
+        file: chirps-v2.0.monthly.nc
+        name: precip
+        per_day: true
+    - pr:
+        file: chirps-v3.0.{year}.monthly.nc
+        name: precip
+        per_day: true
+        verified: false
+  CHIRPS_DAY:
+    description: CHIRPS v2.0 precipitation, daily, 0.05 deg, land 50S-50N
+    coverage: land 50S-50N, 1981-present
+    group: precipitation
+    access: https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_daily/netcdf/p05/
+    frequency: day
+    surface: land
+    layouts:
+    - pr:
+        file: chirps-v2.0.{year}.days_p05.nc
+        name: precip
+  GPCP:
+    description: GPCP v3.2 satellite-gauge precipitation, monthly, 0.5 deg
+    coverage: global, 1983-2022
+    group: precipitation
+    access: NASA GES DISC https://disc.gsfc.nasa.gov (GPCPMON_L3 3.2, Earthdata login)
+    frequency: mon
+    layouts:
+    - pr:
+        file: GPCPMON_L3_{year}_V3.2.nc4
+        name: sat_gauge_precip
+  MSWEP:
+    description: MSWEP v2.8 precipitation, monthly, 0.1 deg
+    coverage: global, 1979-present
+    group: precipitation
+    access: GloH2O https://www.gloh2o.org/mswep/ (free for research, on request)
+    frequency: mon
+    layouts:
+    - pr:
+        file: '{year}{month:02d}.nc'
+        name: precipitation
+        per_day: true
+  MSWEP_DAY:
+    description: MSWEP v2.8 precipitation, daily, 0.1 deg
+    coverage: global, 1979-present
+    group: precipitation
+    access: GloH2O https://www.gloh2o.org/mswep/ (free for research, on request)
+    frequency: day
+    layouts:
+    - pr:
+        file: '{year}.nc'
+        name: precipitation
+  CPC:
+    description: NOAA CPC unified gauge precipitation, daily, 0.5 deg, land
+    coverage: land, 1979-present
+    group: precipitation
+    access: NOAA PSL https://psl.noaa.gov/data/gridded/data.cpc.globalprecip.html
+    frequency: day
+    surface: land
+    layouts:
+    - pr:
+        file: cpc_global_precip/precip.{year}.nc
+        name: precip
+    - pr:
+        file: precip.{year}.nc
+        name: precip
+  CRU:
+    description: CRU TS 4 monthly land climate (pre, tmp, cld), 0.5 deg
+    coverage: land, 1901-2023
+    group: land climate
+    access: https://crudata.uea.ac.uk/cru/data/hrg/
+    frequency: mon
+    surface: land
+    layouts:
+    - pr:
+        file: cru_ts*.pre.dat.nc
+        name: pre
+        per_day: true
+      tas:
+        file: cru_ts*.tmp.dat.nc
+        name: tmp
+      clt:
+        file: cru_ts*.cld.dat.nc
+        name: cld
+    - pr:
+        file: pre.dat.nc
+        name: pre
+        per_day: true
+      tas:
+        file: tmp.dat.nc
+        name: tmp
+      clt:
+        file: cld.dat.nc
+        name: cld
+  EOBS:
+    description: E-OBS gridded daily station data (rr, tg), 0.1 deg, Europe
+    coverage: Europe land, 1950-present
+    group: land climate
+    access: Copernicus https://surfobs.climate.copernicus.eu/dataaccess/access_eobs.php
+    frequency: day
+    surface: land
+    layouts:
+    - pr:
+        file: rr_ens_mean_0.1deg_reg_v*.nc
+        name: rr
+      tas:
+        file: tg_ens_mean_0.1deg_reg_v*.nc
+        name: tg
+    - pr:
+        file: rr_ens_mean_0.1deg_reg_v*.nc
+        name: rr
+      tas:
+        file: tg_ens_mean_0.1deg_reg_v*.nc
+        name: tg
+  OAFLUX:
+    description: WHOI OAFlux ocean surface turbulent fluxes and wind, monthly, 1 deg
+    coverage: global ocean, 1958-2016 (2016rt)
+    group: ocean surface
+    access: https://oaflux.whoi.edu/data-access/
+    frequency: mon
+    surface: ocean
+    layouts:
+    - hfls:
+        file: lh_oaflux_{year}.nc
+        name: lhtfl
+        time: index
+      hfss:
+        file: sh_oaflux_{year}.nc
+        name: shtfl
+        time: index
+      sfcWind:
+        file: ws_oaflux_{year}.nc
+        name: wnd10
+        time: index

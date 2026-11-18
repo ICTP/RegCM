@@ -1,0 +1,37 @@
+# Example: one September month of the RegCM South America test domain
+# (MOLOCH, 55 km), two runs against reanalysis, satellite and gauge data.
+#   python -m rcmeval -c examples/sam_month.yaml
+catalog: ictp                 # catalog/ictp.yaml, or a path to a site catalog
+cache: ./rcmeval_cache        # intermediate results, invalidated automatically
+output: ./rcmeval_output      # figures, report.md, stats.csv
+years: 2023                   # 1990-1999, [1990, 1995] or 1990:1999:3
+seasons: [SEP]                # DJF, JJAS, ANN, month names ...
+runs:
+  base:
+    format: regcm             # RegCM output files, or cordex
+    path: /scratch/claude/base_011d50587/month_base/output
+    boundary: 15              # cells of the lateral boundary left out
+  best:
+    format: regcm
+    path: /scratch/claude/convmonth/best/output
+    boundary: 15
+regions:                      # box [lat0, lat1, lon0, lon1], surface all|land|ocean
+  NW_Amazon:    {box: [-5, 5, -75, -60], surface: land}
+  S_Amazon:     {box: [-12, -5, -65, -50], surface: land}
+  Atl_ITCZ:     {box: [2, 10, -45, -25], surface: ocean}
+  S_Atl_trades: {box: [-25, -5, -30, -10], surface: ocean}
+  SE_Pac_Sc:    {box: [-30, -10, -100, -80], surface: ocean}
+variables:                    # model variable: references (catalog names)
+  pr:   {refs: [ERA5, CHIRPS, MSWEP]}
+  tas:  {refs: [ERA5]}
+  hfls: {refs: [ERA5, {name: OAFLUX, years: 2006-2015}]}   # climatology
+  rsut: {refs: [CERES]}
+  rlut: {refs: [CERES, ERA5]}
+  clt:  {refs: [ERA5, CERES]}
+p99:                          # 99th percentile of daily values
+  pr: [CHIRPS_DAY]
+profiles:                     # region mean profiles on pressure levels
+  refs: [ERA5]
+  variables: [ta, hur, wap]
+  regions: [NW_Amazon, S_Amazon]
+  levels: [925, 850, 700, 600, 500, 400, 300, 250, 200]

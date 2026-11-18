@@ -1,0 +1,98 @@
+# Reference datasets at ICTP (ESP group machines).
+# See rcmeval/catalog.py for the format; the variables are the CMIP names
+# of the model, values are converted to the units in rcmeval/units.py.
+datasets:
+  ERA5:
+    root: /home/clima-archive5/ERA5/monthly
+    frequency: mon
+    variables:
+      pr:      {file: "{year}/pr_{year}_{month:02d}.nc", name: tp, factor: 1000.0}
+      evspsbl: {file: "{year}/evp_{year}_{month:02d}.nc", name: e, factor: -1000.0}
+      tas:     {file: "{year}/tas_{year}_{month:02d}.nc", name: t2m, offset: -273.15}
+      psl:     {file: "{year}/psl_{year}_{month:02d}.nc", name: msl, factor: 0.01}
+      clt:     {file: "{year}/clt_{year}_{month:02d}.nc", name: tcc, factor: 100.0}
+      cll:     {file: "{year}/cll_{year}_{month:02d}.nc", name: lcc, factor: 100.0}
+      clm:     {file: "{year}/clm_{year}_{month:02d}.nc", name: mcc, factor: 100.0}
+      clh:     {file: "{year}/clh_{year}_{month:02d}.nc", name: hcc, factor: 100.0}
+      clwvi:   {file: "{year}/clwvi_{year}_{month:02d}.nc", name: tclw, factor: 1000.0}
+      clivi:   {file: "{year}/clivi_{year}_{month:02d}.nc", name: tciw, factor: 1000.0}
+      # accumulations of one day (J m-2) to W m-2, upward positive
+      hfls:    {file: "{year}/lflx_{year}_{month:02d}.nc", name: slhf, factor: -1.1574074e-05}
+      hfss:    {file: "{year}/sflx_{year}_{month:02d}.nc", name: ishf, factor: -1.0}
+      rlut:    {file: "{year}/toanetlw_{year}_{month:02d}.nc", name: ttr, factor: -1.1574074e-05}
+      rsdt:    {file: "{year}/toainsw_{year}_{month:02d}.nc", name: tisr, factor: 1.1574074e-05}
+      # pressure levels
+      ta:      {file: "{year}/tatm_{year}_{month:02d}.nc", name: t, levels: true}
+      hus:     {file: "{year}/qhum_{year}_{month:02d}.nc", name: q, factor: 1000.0, levels: true}
+      hur:     {file: "{year}/rhum_{year}_{month:02d}.nc", name: r, levels: true}
+      ua:      {file: "{year}/uwnd_{year}_{month:02d}.nc", name: u, levels: true}
+      va:      {file: "{year}/vwnd_{year}_{month:02d}.nc", name: v, levels: true}
+      wap:     {file: "{year}/wwnd_{year}_{month:02d}.nc", name: w, levels: true}
+  CERES:
+    root: /home/esp-shared-a/Observations/CERES/EBAF
+    frequency: mon
+    variables:
+      rsut:   {file: CERES_EBAF_Edition4.2_200003-202312.nc, name: toa_sw_all_mon}
+      rlut:   {file: CERES_EBAF_Edition4.2_200003-202312.nc, name: toa_lw_all_mon}
+      rsutcs: {file: CERES_EBAF_Edition4.2_200003-202312.nc, name: toa_sw_clr_c_mon}
+      rlutcs: {file: CERES_EBAF_Edition4.2_200003-202312.nc, name: toa_lw_clr_c_mon}
+      rsdt:   {file: CERES_EBAF_Edition4.2_200003-202312.nc, name: solar_mon}
+      rsds:   {file: CERES_EBAF_Edition4.2_200003-202312.nc, name: sfc_sw_down_all_mon}
+      rlds:   {file: CERES_EBAF_Edition4.2_200003-202312.nc, name: sfc_lw_down_all_mon}
+      clt:    {file: CERES_EBAF_Edition4.2_200003-202312.nc, name: cldarea_total_daynight_mon}
+  CHIRPS:
+    root: /home/esp-shared-a/Observations/CHIRPS/v2.0/Global
+    frequency: mon
+    surface: land
+    variables:
+      pr: {file: chirps-v2.0.monthly.nc, name: precip, per_day: true}
+  CHIRPS_DAY:
+    root: /home/esp-shared-a/Observations/CHIRPS/v2.0/Global
+    frequency: day
+    surface: land
+    variables:
+      pr: {file: "chirps-v2.0.{year}.days_p05.nc", name: precip}
+  GPCP:
+    root: /home/esp-shared-a/Observations/GPCP_latest/monthly
+    frequency: mon
+    variables:
+      pr: {file: "GPCPMON_L3_{year}_V3.2.nc4", name: sat_gauge_precip}
+  MSWEP:
+    root: /home/esp-shared-a/Observations/MSWEP/V280/monthly
+    frequency: mon
+    variables:
+      pr: {file: "{year}{month:02d}.nc", name: precipitation, per_day: true}
+  MSWEP_DAY:
+    root: /home/esp-shared-a/Observations/MSWEP/V280/daily
+    frequency: day
+    variables:
+      pr: {file: "{year}.nc", name: precipitation}
+  CPC:
+    root: /home/esp-shared-a/Observations/CPC_GLOBAL
+    frequency: day
+    surface: land
+    variables:
+      pr: {file: "cpc_global_precip/precip.{year}.nc", name: precip}
+  CRU:
+    root: /home/esp-shared-a/Observations/CRU/CRU_TS4.08
+    frequency: mon
+    surface: land
+    variables:
+      pr:  {file: cru_ts4.08.1901.2023.pre.dat.nc, name: pre, per_day: true}
+      tas: {file: cru_ts4.08.1901.2023.tmp.dat.nc, name: tmp}
+      clt: {file: cru_ts4.08.1901.2023.cld.dat.nc, name: cld}
+  EOBS:
+    root: /home/esp-shared-a/Observations/E_OBS/v30.0e/010
+    frequency: day
+    surface: land
+    variables:
+      pr:  {file: rr_ens_mean_0.1deg_reg_v30.0e.nc, name: rr}
+      tas: {file: tg_ens_mean_0.1deg_reg_v30.0e.nc, name: tg}
+  OAFLUX:
+    root: /home/esp-shared-a/Observations/OAflux/turbulence
+    frequency: mon
+    surface: ocean
+    variables:
+      hfls:    {file: "lh_oaflux_{year}.nc", name: lhtfl, time: index}
+      hfss:    {file: "sh_oaflux_{year}.nc", name: shtfl, time: index}
+      sfcWind: {file: "ws_oaflux_{year}.nc", name: wnd10, time: index}
