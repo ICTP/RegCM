@@ -15,9 +15,9 @@
 
 module mod_wavelet
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
+  use mod_realkinds, only : rkx
+  use mod_intkinds, only : ik4
+  use mod_constants, only : rsqrt2
 
   implicit none
 

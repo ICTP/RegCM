@@ -19,8 +19,8 @@ subroutine myabort
 end subroutine myabort
 
 module mod_remap
-  use mod_realkinds
-  use mod_intkinds
+  use mod_realkinds, only : rk4, rk8
+  use mod_intkinds, only : ik4
 
   implicit none
 
@@ -366,12 +366,12 @@ module mod_remap
 end module mod_remap
 
 program clm45_1dto2d
-  use mod_realkinds
-  use mod_intkinds
-  use mod_stdio
-  use mod_nchelper
+  use mod_realkinds, only : rk4, rk8
+  use mod_intkinds, only : ik4
+  use mod_stdio, only : stderr, stdout
+  use mod_nchelper, only : checkncerr
   use mod_dynparam, only : iomode
-  use mod_remap
+  use mod_remap, only : remap
   use netcdf
 
   implicit none

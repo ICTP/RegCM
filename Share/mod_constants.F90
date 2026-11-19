@@ -15,7 +15,8 @@
 
 module mod_constants
 
-  use mod_realkinds
+  use mod_realkinds, only : inf, is_inf, is_nan, real32, real64, rk16, rk4, &
+    rk8, rkx
 
   implicit none
 

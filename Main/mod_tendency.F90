@@ -14,35 +14,55 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_tendency
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_runparams
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_stdio
-  use mod_service
-  use mod_memutil
-  use mod_atm_interface
-  use mod_che_interface
-  use mod_cu_interface
-  use mod_lm_interface
-  use mod_rad_interface
-  use mod_pbl_interface
-  use mod_micro_interface
-  use mod_bdycod
-  use mod_slice
-  use mod_sun
-  use mod_advection
-  use mod_diffusion
-  use mod_domain
-  use mod_sladvection
-  use mod_slabocean
-  use mod_sound
-  use mod_split
-  use mod_timefilter
-  use mod_massck
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : is_nan, rkx
+  use mod_dynparam, only : debug_level, i_crm, ice1, ice1ga, ice2, ice2ga, &
+    ici1, ici2, icross1, icross2, ide1, ide1ga, ide1gb, ide2, ide2ga, ide2gb, &
+    idi1, idi2, idynamic, iout1, iout2, jce1, jce1ga, jce2, jce2ga, jci1, &
+    jci2, jcross1, jcross2, jde1, jde1ga, jde1gb, jde2, jde2ga, jde2gb, jdi1, &
+    jdi2, jout1, jout2, kz, kzm1, kzp1, myid, ntr, ptop
+  use mod_constants, only : alpha_hyd, beta_hyd, cpd, d_1000, d_half, d_one, &
+    d_r100, d_rfour, d_two, d_zero, egrav, ep1, minqq, p00, p00pg, pgfaa1, &
+    rearthrad, rgas, rovcp, t00pg
+  use mod_runparams, only : alarm_out_atm, alarm_out_rad, declin, dsigma, dt, &
+    dt2, dtcb, dtrad, dtsec, dtsq, dtsrf, dx, dx2, dx8, gnu1, gnu2, hsigma, &
+    ibltyp, iboudy, ichcumtra, ichdiag, ichem, icldfrac, iclimaaer, iclimao3, &
+    icup, idiag, idif, ifrayd, ipgf, ipptls, iqc, iqfrst, iqi, iqlst, iqv, &
+    islab_ocean, isladvec, iuwvadv, nqx, nuk, pc_dynamic, pc_physic, &
+    pc_total, rcmtimer, rdt, scenario, sigma, syncro_cum, syncro_emi, &
+    syncro_rad, syncro_rep, syncro_srf, temp_tend_maxval, twt, &
+    wind_tend_maxval, xslabtime
+  use mod_mppparam, only : exchange, exchange_lb, italk, ma, psc2psd, sumall
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr, stdout
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_memutil, only : assignpnt, getmem
+  use mod_atm_interface, only : aten, atm0, atm1, atm2, atmc, atms, atmx, &
+    cldfra, cldlwc, coszrs, dpsdxm, dpsdym, dub, dvb, heatrt, mddom, mdv, &
+    omega, qdiag, qdot, sfs, tdiag, xib, xlb, xppb, xpsb, xqb, xtb, xwwb
+  use mod_che_interface, only : cadvhdiag, cadvvdiag, cbdydiag, cconvdiag, &
+    cdifhdiag, convcldfra, ctbldiag, cumtran, nudge_chiten, tractend2
+  use mod_cu_interface, only : cucloud, cumulus, shallow_convection, &
+    total_precip_points
+  use mod_lm_interface, only : dtbat, surface_albedo, surface_model
+  use mod_rad_interface, only : radiation, updateaeropp, updateaeropp_cmip6, &
+    updateaerosol, updateo3
+  use mod_pbl_interface, only : pblscheme, tkemin
+  use mod_micro_interface, only : cldfrac, condtq, microscheme
+  use mod_bdycod, only : eue, eui, eve, evi, is_present_qc, is_present_qi, &
+    nudge, nue, nui, nve, nvi, raydamp, sponge, sue, sui, sve, svi, wue, wui, &
+    wve, wvi
+  use mod_slice, only : mkslice
+  use mod_sun, only : zenitm
+  use mod_advection, only : hadv, start_advect, vadv
+  use mod_diffusion, only : calc_coeff, diffu_d, diffu_x
+  use mod_sladvection, only : hdvg_x, slhadv_x, trajcalc_x
+  use mod_sound, only : sound
+  use mod_split, only : splitf
+  use mod_timefilter, only : timefilter_apply
+  use mod_massck, only : massck
 
   implicit none
 

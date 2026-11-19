@@ -19,10 +19,10 @@
 ! on the order of the vertices.
 
 program test_spbarcoord
-  use mod_intkinds
-  use mod_realkinds
-  use mod_spbarcoord
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_spbarcoord, only : spherical_barycentric
+  use share_test_utils, only : check, fixed_seed, test_end
   implicit none
   integer(ik4), parameter :: ntest = 20000
   real(rk8), parameter :: d2r = acos(-1.0_rk8)/180.0_rk8

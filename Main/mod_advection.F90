@@ -17,13 +17,18 @@ module mod_advection
   !
   ! Horizontal and vertical advection.
   !
-  use mod_regcm_types
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_mpmessage
-  use mod_constants
-  use mod_service
+  use mod_regcm_types, only : ik4, rkx
+  use mod_dynparam, only : ici1, ici2, idi1, idi2, idynamic, jci1, jci2, &
+    jdi1, jdi2, kz, kzp1, ntr
+  use mod_runparams, only : dsigma, dt, dx, hsigma, q_rel_extrema, qcon, &
+    sigma, stability_enhance, t_extrema, twt, uoffc, upstream_mode
+  use mod_memutil, only : assignpnt, getmem
+  use mod_mpmessage, only : fatal
+  use mod_constants, only : c287, d_half, d_one, d_rfour, d_two, d_zero, &
+    dlowval, minqq, mintr
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
 
   implicit none
 

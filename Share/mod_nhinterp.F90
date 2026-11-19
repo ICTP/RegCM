@@ -16,11 +16,12 @@
 module mod_nhinterp
 
   use mod_dynparam, only : maxvert
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
-  use mod_stdio
-  use mod_stdatm
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_constants, only : d_1000, d_four, d_half, d_one, d_r100, d_two, &
+    d_zero, dlowval, egrav, govr, minqq, mintr, regrav, rgas, rovg, tiso
+  use mod_stdio, only : stderr, stdout
+  use mod_stdatm, only : istdatm_tempk, stdatm_val
 
   implicit none
 

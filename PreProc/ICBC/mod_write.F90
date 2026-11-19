@@ -15,19 +15,32 @@
 
 module mod_write
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_grid
-  use mod_memutil
-  use mod_message
-  use mod_ncstream_types
-  use mod_ncstream
-  use mod_nhinterp
-  use mod_vectutil
-  use mod_stdio
-  use mod_zita
-  use mod_wavelet
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : cmip6_experiment, cmip6_grid, cmip6_model, &
+    cmip6_variant, dattyp, dirglob, domname, ds, i_band, i_crm, idynamic, iy, &
+    jx, kz, kzm1, pmip4_experiment, pmip4_grid, pmip4_model, pmip4_variant, &
+    pthsep, ptop
+  use mod_grid, only : dlat, dlat_bnds, dlon, dlon_bnds, dsigma, mask, msfd, &
+    msfx, pr0, ps0, sigmaf, sigmah, t0, topogm, ulat, ulat_bnds, ulon, &
+    ulon_bnds, vlat, vlat_bnds, vlon, vlon_bnds, xlat, xlat_bnds, xlon, &
+    xlon_bnds, z0
+  use mod_memutil, only : getmem
+  use mod_message, only : die
+  use mod_ncstream_types, only : cpd, cpovr, d_10, d_1000, d_four, d_one, &
+    d_r100, d_two, egrav, ep1, ep2, govcp, govr, lrate, nc_output_stream, &
+    ncattribute_string, ncoutstream_params, ncvariable2d_mixed, &
+    ncvariable3d_mixed, p00, rcm_time_and_date, rgas, rovcp, rtice, rtwat, &
+    rtwat_rtice_r, rwat, tochar10, tzero, wlhs, wlhv, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_ncstream, only : outstream_addatt, outstream_addrec, &
+    outstream_addvar, outstream_addvaratt, outstream_dispose, &
+    outstream_enable, outstream_setup, outstream_writevar
+  use mod_nhinterp, only : nhinterp, nhpp, nhw
+  use mod_vectutil, only : crs2dot, meandiv
+  use mod_stdio, only : stderr
+  use mod_wavelet, only : wavelet_denoise
   implicit none
 
   private

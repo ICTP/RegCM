@@ -5,9 +5,9 @@ module mod_clm_biogeophysics1
   ! temperatures and updates the surface fluxes for the new ground
   ! temperature.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_clm_type, only : clm3, pftcon
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_varcon, only : denh2o, denice, roverg, hvap, hsub,  &
                        istice, istwet, istsoil, isturb, istdlak,  &

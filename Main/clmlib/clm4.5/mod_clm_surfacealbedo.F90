@@ -2,12 +2,11 @@ module mod_clm_surfacealbedo
   !
   ! Performs surface albedo calculations
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_sunorbit
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
+  use mod_sunorbit, only : orb_cosz
   use mod_clm_varcon, only : istsoil
   use mod_clm_varpar, only : numrad, nlevcan
   use mod_clm_varcon, only : istcrop
@@ -68,7 +67,7 @@ module mod_clm_surfacealbedo
                            num_nourbanc, filter_nourbanc, &
                            num_nourbanp, filter_nourbanp, &
                            nextsw_cday, declinp1)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, pftcon
     use mod_clm_varctl, only : subgridflag
     implicit none
     integer(ik4), intent(in) :: lbg, ubg  ! gridcell bounds
@@ -1018,7 +1017,7 @@ module mod_clm_surfacealbedo
   ! Determine ground surface albedo, accounting for snow
   !
   subroutine SoilAlbedo (lbc, ubc, num_nourbanc, filter_nourbanc, coszen)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar, only : numrad
     use mod_clm_varcon, only : albsat, albdry, tfrz, istice
     use mod_clm_varcon, only : istdlak
@@ -1189,7 +1188,7 @@ module mod_clm_surfacealbedo
   !
   subroutine TwoStream (lbp, ubp, filter_vegsol, &
                   num_vegsol, coszen, rho, tau)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, pftcon
     use mod_clm_varpar, only : numrad, nlevcan
     use mod_clm_varcon, only : omegas, tfrz, betads, betais
     implicit none

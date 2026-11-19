@@ -5,12 +5,12 @@ module mod_clm_cnallocation
   ! Module holding routines used in allocation model for coupled carbon
   ! nitrogen code.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : nan, rk8
   use mod_runparams, only : dtsrf
   use mod_clm_varcon, only : dzsoi_decomp
-  use mod_stdio
-  use mod_mpmessage
+  use mod_stdio, only : stderr
+  use mod_mpmessage, only : fatal
   use mod_clm_varctl, only : use_c13, use_c14
 
   implicit none
@@ -92,7 +92,7 @@ module mod_clm_cnallocation
 
   subroutine CNAllocation (lbp, ubp, lbc, ubc, &
        num_soilc, filter_soilc, num_soilp, filter_soilp )
-    use mod_clm_type
+    use mod_clm_type, only : clm3, pftcon
     use mod_clm_subgridave, only : p2c
     use mod_clm_varpar, only : nlevsoi, nlevdecomp
 #ifdef NITRIF_DENITRIF

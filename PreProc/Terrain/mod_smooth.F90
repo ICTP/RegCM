@@ -15,9 +15,9 @@
 
 module mod_smooth
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_one, d_rfour, d_two, d_zero
   implicit none
 
   private

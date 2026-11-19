@@ -19,8 +19,8 @@
 ! associated for a directory that does not exist.
 
 program test_posix
-  use mod_posix
-  use share_test_utils
+  use mod_posix, only : direntry, dirlist, hostname
+  use share_test_utils, only : check, test_end
   implicit none
   character(len=64) :: hname, sysname
   type(direntry), pointer, dimension(:) :: de => null()

@@ -21,12 +21,21 @@
 
 program test_ncstream
   use netcdf
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_dynparam
-  use mod_ncstream
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_date, only : gregorian, hourdiff, rcm_time_and_date, &
+    rcm_time_interval, uhrs, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_dynparam, only : calendar, clat, clon, cntri, cntrj, domname, ds, &
+    ical, idynamic, iproj, iy, jx, kz, nsg, ptop, truelath, truelatl, xcone
+  use mod_ncstream, only : nc_output_stream, ncattribute_integer, &
+    ncattribute_logical, ncattribute_string, ncoutstream_params, &
+    ncvariable2d_integer, ncvariable2d_mixed, ncvariable3d_mixed, &
+    outstream_addatt, outstream_addrec, outstream_addvar, &
+    outstream_addvaratt, outstream_async_finalize, outstream_dispose, &
+    outstream_enable, outstream_setup, outstream_writevar
+  use share_test_utils, only : check, test_end
   implicit none
   character(len=*), parameter :: fname = 'test_ncstream.nc'
   character(len=*), parameter :: fname1 = 'test_ncstream1.nc'

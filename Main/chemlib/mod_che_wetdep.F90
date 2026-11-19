@@ -17,13 +17,21 @@ module mod_che_wetdep
 
   ! This module contains routines for wet scavenging of gas and aerosols
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_che_common
-  use mod_che_indices
-  use mod_che_drydep
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : amd, boltzk, d_1000, d_four, d_half, d_one, &
+    d_three, d_two, d_zero, dlowval, mathpi, navgdr, regrav, tzero
+  use mod_dynparam, only : idynamic, jci1, jci2, kz, ntr
+  use mod_che_common, only : cconvpr, cdzq, cfdout, chemt, chib, chiten, &
+    chtrsol, convcldfra, cpsb, cqxb3d, cremrat, crhob3d, ctb3d, cwetdepflx, &
+    cza, czq, dt, ichremcvc, ichremlsc, iqc, kcumtop, rainout, washout, &
+    wdrout, wdwout
+  use mod_che_indices, only : iald2, ialkooh, ic2h5ooh, ic3h7ooh, ich3cocho, &
+    ich3cooh, ich3coooh, ich3oh, ich3ooh, ieoh, iglyald, ih2o2, ihcho, ihno3, &
+    ihno4, ihyac, ihydrald, iisopno3, iisopooh, imacr, imacrooh, imekooh, &
+    imvk, inh3, inh4, inh4no3, ionit, ionitr, ipb, ipooh, irooh, iso2, isoa, &
+    iterpooh, itolooh, ixooh
+  use mod_che_drydep, only : a1, a2, a3, aa1, aa2, aa3, c1, c2, c3, c4
 
   implicit none
 

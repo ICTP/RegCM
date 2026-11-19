@@ -2,8 +2,8 @@ module mod_clm_varcon
   !
   ! Module containing various model constants
   !
-  use mod_realkinds
-  use mod_intkinds
+  use mod_realkinds, only : rk4, rk8
+  use mod_intkinds, only : ik4
   use mod_constants, only : cpd, pdbratio, secpd, earthrad, tzero, &
     rgasmol, rhoice, rhoh2o, wlhf, wlhs, wlhv, spcpice, spcpfw,  &
     egrav, rwat, vonkar, sigm, mathpi_r8, regrav, rdry

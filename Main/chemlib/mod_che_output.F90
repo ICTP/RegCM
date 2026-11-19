@@ -15,16 +15,23 @@
 
 module mod_che_output
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_runparams
-  use mod_dynparam
-  use mod_che_param
-  use mod_che_common
-  use mod_che_indices
-  use mod_che_carbonaer
-  use mod_outvars
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_zero
+  use mod_runparams, only : ichdiag
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz
+  use mod_che_common, only : cadvhdiag, cadvvdiag, cbdydiag, cconvdiag, &
+    cdifhdiag, cemisdiag, cemtrac, cfdout, chemdiag, chemt, chia, chifxuw, &
+    cpsb, crhob3d, cseddpdiag, ctbldiag, ddv_out, dtrace, rainout, remdrd, &
+    washout, wdrout, wdwout
+  use mod_che_carbonaer, only : ncon, save_chagct, save_ncon, surf
+  use mod_outvars, only : che_advhten_out, che_advvten_out, che_airden_out, &
+    che_bdyten_out, che_burden_out, che_cheten_out, che_chgact_out, &
+    che_cuten_out, che_ddflx_out, che_ddvel_out, che_difhten_out, &
+    che_emflx_out, che_emten_out, che_mixrat_out, che_ncon_out, &
+    che_pblten_out, che_raiten_out, che_sedten_out, che_tuten_out, &
+    che_wasten_out, che_wdcflx_out, che_wdrflx_out, opt_ncon_out, &
+    opt_surf_out
 
   implicit none
 

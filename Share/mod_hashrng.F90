@@ -33,8 +33,8 @@
 
 module mod_hashrng
 
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk8, rkx
 
   implicit none
 

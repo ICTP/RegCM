@@ -17,39 +17,80 @@ module mod_init
   !
   ! RegCM Init module
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_date
-  use mod_runparams
-  use mod_memutil
-  use mod_mppparam
-  use mod_lm_interface
-  use mod_atm_interface
-  use mod_che_interface
-  use mod_cu_interface
-  use mod_pbl_interface
-  use mod_rad_interface
-  use mod_slabocean
-  use rrtmg_sw_init
-  use rrtmg_lw_init
-  use mod_pbl_interface
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : debug_level, ice1, ice1ga, ice2, ice2ga, ici1, &
+    ici2, icross1, icross2, ide1, ide1gb, ide2, ide2gb, idi1, idi2, idynamic, &
+    inpglob, jce1, jce1ga, jce2, jce2ga, jci1, jci2, jcross1, jcross2, jde1, &
+    jde1gb, jde2, jde2gb, jdi1, jdi2, kz, kzp1, mo_a0, mo_h, mo_lcap, &
+    mo_ztop, myid, ndpmax, nicross, njcross, nnsg, ntr, num_soil_layers, &
+    pthsep, ptop
+  use mod_stdio, only : stdout
+  use mod_date, only : season_index, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_runparams, only : cqc, cqn, cqr, declin, do_parallel_save, &
+    do_restore_sst, dt, dt2, dtcb, dtsq, dtsrf, ffilt, hsigma, iaerosol, &
+    ibltyp, ichdrdepo, ichecold, ichem, iclimao3, icup, idcsst, idif, ifrest, &
+    ifupr, iindirect, ioasiscpl, iocncpl, ipptls, iqc, iqi, iqr, iqs, iqv, &
+    irceideal, irrtm, iseaice, islab_ocean, iwavcpl, lakemod, mo_dzita, nqx, &
+    nsplit, rayzd, rcmtimer, rdt, scenario, solcon, stepcount
+  use mod_memutil, only : assignpnt
+  use mod_mppparam, only : bcast, exchange, grid_collect, grid_distribute, &
+    iocpu, italk, ma, psc2psd, reproducible_sumall, subgrid_distribute
+  use mod_lm_interface, only : dtbat, initialize_surface_model, lms
+  use mod_atm_interface, only : albvl, albvs, aldifl, aldifs, aldirl, aldirs, &
+    atm0, atm1, atm2, atms, ccn, coszrs, drydepflx, dstor, dub, dvb, flw, &
+    flwd, fsw, heatrt, hstor, kpbl, mddom, mdsub, mo_atm, ptrop, sfracb2d, &
+    sfracs2d, sfracv2d, sfs, sinc, solvl, solvld, solvs, solvsd, ssw2da, &
+    svegfrac2d, sxlai2d, tmask, wetdepflx, xib, xlb, xpaib, xppb, xpsb, xqb, &
+    xtb, xtsb, xwwb, zpbl
+#if defined(CLM45) || defined(ECLM)
+  use mod_atm_interface, only : dustflx_clm, sw_vol, tsoi, voc_em_clm
+#endif
+  use mod_che_interface, only : ccn_io, chia_io, chib_io, chifxuw, &
+    chifxuw_io, cra, cra_io, drydepflx_io, drydepv, drydepv_io, duflux_io, &
+    rainout, rainout_io, remdrd, remdrd_io, sfracb2d_io, sfracs2d_io, &
+    ssw2da_io, start_chem, svegfrac2d_io, sxlai2d_io, trac_io, voflux_io, &
+    washout, washout_io, wetdepflx_io
+  use mod_cu_interface, only : avg_ww, cbmf2d, cldefi, cuscheme
+  use mod_pbl_interface, only : tkemin
+  use mod_rad_interface, only : absemin, inito3, o3prof, &
+    rebuild_radiation_tables, updateo3
+  use mod_slabocean, only : qflux_restore_sst
+  use rrtmg_sw_init, only : rrtmg_sw_ini
+  use rrtmg_lw_init, only : rrtmg_lw_ini
   use mod_diffusion, only : initialize_diffusion
-  use mod_micro_interface
-  use mod_bdycod
-  use mod_mpmessage
-  use mod_sun
-  use mod_ncio
-  use mod_savefile
-  use mod_slice
-  use mod_constants
-  use mod_outvars
-  use mod_service
-  use mod_massck
-  use mod_kdinterp
-  use mod_vertint
-  use mod_zita
+  use mod_bdycod, only : init_bdy, initideal, is_present_qc, is_present_qi
+  use mod_mpmessage, only : vprntv
+  use mod_sun, only : zenitm
+  use mod_ncio, only : read_ccn, tccn_data
+  use mod_savefile, only : absemin_io, atm1_pp_io, atm1_qx_io, atm1_t_io, &
+    atm1_tke_io, atm1_u_io, atm1_v_io, atm1_w_io, atm2_pp_io, atm2_qx_io, &
+    atm2_t_io, atm2_tke_io, atm2_u_io, atm2_v_io, atm2_w_io, atm_pai_io, &
+    atm_qx_io, atm_t_io, atm_tke_io, atm_u_io, atm_v_io, atm_w_io, br_io, &
+    cbmf2d_io, cldefi_io, cu_avg_ww_io, deltas_io, dstor_io, dtrnof_io, &
+    emisv_io, eta_io, flw_io, flwd_io, fsw_io, gwet_io, heatrt_io, hfx_io, &
+    hi_io, hstor_io, kpbl_io, ldew_io, ldmsk1_io, ldmsk_io, lwdifalb_io, &
+    lwdiralb_io, o3prof_io, ps_io, psa_io, psb_io, q2m_io, &
+    qflux_restore_sst_io, qfx_io, rah_io, ram_io, read_savefile, sfice_io, &
+    sinc_io, snag_io, sncv_io, snwm_io, solvl_io, solvld_io, solvs_io, &
+    solvsd_io, sw_io, swdifalb_io, swdiralb_io, swvol_io, taf_io, tdeltas_io, &
+    tgbb_io, tgbrd_io, tgrd_io, tke_pbl_io, tlak_io, tlef_io, tskin_io, &
+    tsoi_io, u10m_io, um10_io, ustar_io, uvdrag_io, v10m_io, w10m_io, zo_io, &
+    zpbl_io
+  use mod_slice, only : mkslice
+  use mod_constants, only : cpd, cpovr, d_1000, d_half, d_one, d_r1000, &
+    d_zero, egrav, ep1, ep2, lnd_sfcemiss, mathpi, ocn_sfcemiss, p00, rgas, &
+    rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhs, wlhv
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_massck, only : dryerror, dryini, waterror, watini
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_vertint, only : intz1
+  use mod_zita, only : md_zeta
   use mod_sound, only : init_sound
   use mod_moloch, only : init_moloch
 #ifdef ECLM

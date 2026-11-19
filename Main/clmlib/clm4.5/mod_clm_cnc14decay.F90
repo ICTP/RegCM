@@ -3,15 +3,18 @@ module mod_clm_cnc14decay
   !
   ! Module for 14-carbon flux variable update, non-mortality fluxes.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_clm_nchelper
-  use mod_mpmessage
-  use mod_runparams
-  use mod_stdio
-  use mod_dynparam
-  use mod_mppparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_date, only : curr_date, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_clm_nchelper, only : clm_closefile, clm_filetype, clm_inqdim, &
+    clm_openfile, clm_readvar
+  use mod_mpmessage, only : fatal
+  use mod_runparams, only : dt, dtsrf
+  use mod_stdio, only : stderr, stdout
+  use mod_dynparam, only : dayspy, myid
+  use mod_mppparam, only : italk
   use mod_clm_varpar, only : ndecomp_cascade_transitions, &
           nlevdecomp, ndecomp_pools
   use mod_clm_varctl, only : nextdate
@@ -38,7 +41,7 @@ module mod_clm_cnc14decay
   ! On the radiation time step, calculate the radioactive decay of C14
   !
   subroutine C14Decay(num_soilc, filter_soilc, num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, decomp_cascade_con
     use mod_clm_varcon, only : secspday
     use mod_clm_varctl, only : spinup_state
     implicit none
@@ -188,7 +191,7 @@ module mod_clm_cnc14decay
   ! for transient pulse simulation, impose a simplified bomb spike
   !
   subroutine C14BombSpike(num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : c14ratio,secspday
     implicit none
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter

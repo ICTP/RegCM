@@ -76,7 +76,7 @@
 !
 module linpack
 
-  use mod_realkinds
+  use mod_realkinds, only : rkx
 
   implicit none
 

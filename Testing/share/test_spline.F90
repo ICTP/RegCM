@@ -20,10 +20,10 @@
 ! for linear data. Points outside the input range are also checked.
 
 program test_spline
-  use mod_intkinds
-  use mod_realkinds
-  use mod_spline
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_spline, only : spline, spline1d, splini, splint
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: n = 9, m = 7
   real(rkx), dimension(n) :: xa, ya, y2a, p, q

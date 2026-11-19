@@ -4,10 +4,10 @@ module mod_clm_cnverticalprofile
   ! Module holding routines for vertical discretization of C and N
   ! inputs into deocmposing pools
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr
+  use mod_mpmessage, only : fatal
   use mod_clm_varcon, only: dzsoi_decomp
 
   implicit none
@@ -33,7 +33,7 @@ module mod_clm_cnverticalprofile
 
   subroutine decomp_vertprofiles(lbp,ubp,lbc,ubc, &
                   num_soilc,filter_soilc,num_soilp,filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_subgridave, only : p2c
     use mod_clm_varcon, only : zsoi, dzsoi, zisoi
     use mod_clm_varpar, only : nlevdecomp, nlevgrnd, &

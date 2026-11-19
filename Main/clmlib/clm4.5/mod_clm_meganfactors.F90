@@ -2,11 +2,12 @@ module mod_clm_meganfactors
   !
   ! Manages input of MEGAN emissions factors from netCDF file
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mpmessage
-  use mod_clm_nchelper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr
+  use mod_mpmessage, only : fatal
+  use mod_clm_nchelper, only : clm_closefile, clm_filetype, clm_inqdim, &
+    clm_openfile, clm_readvar
 
   implicit none
 

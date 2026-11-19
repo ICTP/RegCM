@@ -16,14 +16,17 @@
 module mod_domain
 
   use netcdf
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
-  use mod_constants
-  use mod_nchelper
-  use mod_stdio
-  use mod_message
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_dynparam, only : clat, clon, cntri, cntrj, ds, i_band, i_crm, &
+    idynamic, iproj, iy, jx, kz, kzp1, mo_a0, mo_h, mo_lcap, mo_ztop, nsg, &
+    ptop, xcone
+  use mod_memutil, only : getmem
+  use mod_constants, only : d_r10, d_r1000, d_zero
+  use mod_nchelper, only : checkncerr, get_attribute, read_var1d_static, &
+    read_var2d_static, read_var3d_static
+  use mod_stdio, only : stderr
+  use mod_message, only : die
 
   implicit none
 

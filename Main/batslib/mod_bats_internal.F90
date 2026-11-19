@@ -15,12 +15,18 @@
 
 module mod_bats_internal
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_memutil
-  use mod_dynparam
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : cpd, csnw, csoilc, cws, d_10, d_1000, d_four, &
+    d_half, d_one, d_r10, d_r100, d_r1000, d_rfour, d_three, d_two, d_zero, &
+    dewmax, dewmaxi, dlowval, drain, egrav, ep2, lnd_sfcemiss, lrate, &
+    minwrat, regrav, rgas, rmax0, rtice, rtwat, rtwat_rtice_r, rwat, secpd, &
+    sigm, trsmx0, twopi, twot, tzero, vonkar, wlhf, wlhs, wlhv, wtur, zlnd, &
+    zsno
+  use mod_memutil, only : getmem
+  use mod_dynparam, only : dayspy, ici1, ici2, jci1, jci2, lsmoist, myid, &
+    nnsg, nsg
+  use mod_regcm_types, only : lm_exchange, lm_state, masked_comm
 
   implicit none
 

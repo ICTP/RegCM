@@ -15,9 +15,10 @@
 
 module mod_humid
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_constants, only : d_1000, d_half, d_one, d_zero, ep2, govr, rtice, &
+    rtwat, rtwat_rtice_r, rwat, tzero, wlhs, wlhv
 
   implicit none
 

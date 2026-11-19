@@ -7,13 +7,13 @@ module mod_clm_hydrology1
   !     of foliage that is dry and transpiring.
   ! (4) snow layer initialization if the snow accumulation exceeds 10 mm.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_runparams
-  use mod_mppparam
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_dynparam, only : myid
+  use mod_runparams, only : dtsrf
+  use mod_mppparam, only : bcast, iocpu
+  use mod_stdio, only : file_freeunit, file_getunit, stdout
 
   implicit none
 
@@ -73,7 +73,7 @@ module mod_clm_hydrology1
   !
   subroutine Hydrology1(lbc, ubc, lbp, ubp, num_nolakec, filter_nolakec, &
                         num_nolakep, filter_nolakep)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_atmlnd, only : clm_a2l
     use mod_clm_varcon, only : tfrz, istice, istwet, istsoil, isturb, &
            istcrop, icol_sunwall, icol_shadewall, zlnd, rpi

@@ -20,8 +20,8 @@ module mod_clm_qsat
   !
   pure subroutine qsat(t,p,es,esdt,qs,qsdt)
     !$acc routine seq
-    use mod_realkinds
-    use mod_constants
+    use mod_realkinds, only : rk8
+    use mod_constants, only : rk8, tzero
     implicit none
     real(rk8), intent(in)  :: t     ! Temperature (K)
     real(rk8), intent(in)  :: p     ! surface atmospheric pressure (pa)

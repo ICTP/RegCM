@@ -2,18 +2,30 @@ module mod_clm_histfile
   !
   ! Module containing methods to for CLM history file handling.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_constants
-  use mod_runparams
-  use mod_mppparam
-  use mod_date
-  use mod_clm_type
-  use mod_clm_nchelper
-  use mod_clm_decomp
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr, stdout
+  use mod_mpmessage, only : fatal
+  use mod_dynparam, only : debug_level, dirout, myid, nioutsg, njoutsg, &
+    pthsep
+  use mod_constants, only : secph
+  use mod_runparams, only : dtsec, ichecold, rcmtimer
+  use mod_mppparam, only : italk, lndcomm
+  use mod_date, only : calendar_str, curr_date, curr_time, ref_date, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_clm_type, only : clm3, namec, nameg, namel, namep
+  use mod_clm_nchelper, only : clm_addatt, clm_adddim, clm_addvar, &
+    clm_closefile, clm_createfile, clm_enddef, clm_filetype, clm_inqdim, &
+    clm_openfile, clm_readvar, clm_readwrite, clm_syncfile, clm_writevar, &
+    clmvar_double, clmvar_integer, clmvar_logical, clmvar_real, clmvar_text, &
+    clmvar_unlim
+#ifdef ASYNC_NETCDF
+  use mod_clm_nchelper, only : clm_set_async_writes
+#endif
+  use mod_clm_decomp, only : gcomm_column, gcomm_gridcell, gcomm_landunit, &
+    gcomm_pft, get_proc_bounds, get_proc_global, numc, numg, numl, nump, &
+    subgrid_type
   use mod_clm_varcon, only : spval, ispval
   use mod_clm_varcon, only : dzsoi_decomp
   use mod_clm_subgridave, only : p2g, c2g, l2g

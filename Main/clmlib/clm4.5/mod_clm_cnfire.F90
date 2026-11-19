@@ -10,17 +10,18 @@ module mod_clm_cnfire
   ! a CLM4.5 version, Qian et al. (2006) atmospheric forcing, and
   ! climatological lightning data.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mppparam
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : is_nan, rk8
+  use mod_mppparam, only : italk
   use mod_runparams, only : dtsrf, idate1, dtsec, rcmtimer
-  use mod_dynparam
-  use mod_stdio
-  use mod_date
-  use mod_clm_type
-  use mod_clm_decomp
-  use mod_clm_nchelper
+  use mod_dynparam, only : dayspy, debug_level, myid
+  use mod_stdio, only : stdout
+  use mod_date, only : split_idate, tochar, yeardayfrac, yeardays, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_clm_type, only : clm3, decomp_cascade_con, pftcon
+  use mod_clm_decomp, only : gcomm_gridcell
+  use mod_clm_nchelper, only : clm_filetype, clm_openfile, clm_readvar
   use mod_clm_time_manager, only : is_end_curr_year
   use mod_clm_subgridave, only : p2c
   use mod_clm_varpar, only : nlevdecomp, ndecomp_pools

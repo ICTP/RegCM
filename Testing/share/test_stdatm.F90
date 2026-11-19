@@ -19,10 +19,11 @@
 ! p/(RT) and the decrease of water vapour with height.
 
 program test_stdatm
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdatm
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdatm, only : istdatm_airdn, istdatm_qdens, istdatm_tempk, &
+    stdatm_val
+  use share_test_utils, only : check, test_end
   implicit none
   real(rk8), parameter :: rd = 287.05_rk8
   real(rk8), parameter :: dpy = 365.0_rk8

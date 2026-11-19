@@ -15,25 +15,34 @@
 
 module mod_che_interface
 
-  use mod_realkinds
-  use mod_regcm_types
-  use mod_runparams
-  use mod_che_common
-  use mod_che_cumtran
-  use mod_che_dust
-  use mod_che_indices
-  use mod_che_mppio
-  use mod_che_ncio
-  use mod_che_param
-  use mod_che_drydep
-  use mod_che_bdyco
-  use mod_che_emission
-  use mod_che_carbonaer
-  use mod_che_species
-  use mod_che_tend
-  use mod_che_start
-  use mod_che_bionit
-  use mod_che_linox
+  use mod_runparams, only : iaerosol, iindirect, pc_total
+  use mod_che_common, only : allocate_mod_che_common, assignpnt, bndp0, &
+    bndp1, cadvhdiag, cadvvdiag, cbdydiag, cccn, ccldfra, cconvdiag, cconvpr, &
+    cdifhdiag, cdlat, cdlon, cdrydepflx, cdzq, cfcc, cfmz, chem_config, &
+    chemall, chemt, chia, chib, chib3d, chifxuw, chiten, cht, clndcat, &
+    convcldfra, cpb3d, cpf3d, cps0, cps2d, cpsb, cptrop, cqxb3d, cra, crembc, &
+    cremrat, crhb3d, crho2d, crhob3d, csdelqk2d, csdeltk2d, csfracb2d, &
+    csfracs2d, csfracv2d, csol2d, cssw2da, ctaucld, ctb3d, ctbldiag, ctg, &
+    ctga, cubx3d, custar, cvbx3d, cveg2d, cvegfrac, cw10m, cwetdepflx, &
+    cxlai2d, cxlat, cza, czen, czo, czq, drydepv, idust, idynamic, kcumbot, &
+    kcumtop, psbb0, psbb1, rainout, remdrd, tvirt0, tvirt1, washout
+#if defined(CLM45) || defined(ECLM)
+  use mod_che_common, only : cddepv_clm, cdustflx_clm, csw_vol, ctsoi, &
+    cvoc_em_clm
+#endif
+  use mod_che_cumtran, only : cumtran, init_cumtran
+  use mod_che_dust, only : allocate_mod_che_dust
+  use mod_che_indices, only : totsp
+  use mod_che_mppio, only : allocate_mod_che_mppio, ccn_io, chia_io, chib_io, &
+    chifxuw_io, cra_io, drydepflx_io, drydepv_io, duflux_io, rainout_io, &
+    remdrd_io, sfracb2d_io, sfracs2d_io, ssw2da_io, svegfrac2d_io, &
+    sxlai2d_io, trac_io, voflux_io, washout_io, wetdepflx_io
+  use mod_che_ncio, only : close_chbc
+  use mod_che_bdyco, only : allocate_mod_che_bdyco, cba, chem_bdyin, &
+    chem_bdyval, morelax_chiten, nudge_chiten, setup_che_bdycon
+  use mod_che_tend, only : tractend2
+  use mod_che_start, only : start_chem
+  use mod_che_bionit, only : allocate_mod_che_bionit
 
   implicit none
 
@@ -81,8 +90,16 @@ module mod_che_interface
     ! the rest of the model
     ! It also call startchem which is the chemistry initialisation routine
 
-    use mod_atm_interface
-    use mod_rad_interface
+    use mod_atm_interface, only : aten, atm0, atm1, atm2, atms, ba_cr, ccn, &
+      cldfra, convpr, coszrs, drydepflx, fcc, icumbot, icumtop, mddom, &
+      mo_atm, nhbh0, nhbh1, ptrop, rembc, remrat, sdelq, sdelt, sfracb2d, &
+      sfracs2d, sfracv2d, sfs, solis, ssw2da, svegfrac2d, sxlai2d, wetdepflx, &
+      xpsb
+#if defined(CLM45) || defined(ECLM)
+    use mod_atm_interface, only : ddepv_clm, dustflx_clm, sw_vol, tsoi, &
+      voc_em_clm
+#endif
+    use mod_rad_interface, only : taucldsp
     implicit none
 
     call assignpnt(icumtop,kcumtop)

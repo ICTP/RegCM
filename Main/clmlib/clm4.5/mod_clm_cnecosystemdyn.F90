@@ -3,9 +3,7 @@ module mod_clm_cnecosystemdyn
   !
   ! Ecosystem dynamics: phenology, vegetation
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_clm_type
+  use mod_intkinds, only : ik4
   use mod_clm_varctl, only: use_c13, use_c14
   use mod_clm_cnallocation, only : CNAllocationInit
   use mod_clm_cnphenology, only : CNPhenologyInit

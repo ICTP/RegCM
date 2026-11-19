@@ -20,11 +20,11 @@
 ! sigma levels.
 
 program test_hgt
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_hgt
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_constants, only : egrav, lrate, rgas, rk4, rk8, rkx
+  use mod_hgt, only : height, htsig, hydrost, mslp, psig, psig1
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: nk = 8, np = 7, nf = 80, ns = 18
   real(rk8), parameter :: t0 = 288.15_rk8, p0 = 101325.0_rk8

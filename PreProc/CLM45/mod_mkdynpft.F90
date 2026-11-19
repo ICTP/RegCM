@@ -15,14 +15,14 @@
 
 #ifdef DYNPFT
 module mod_mkdynpft
-  use mod_realkinds
-  use mod_intkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_grid
-  use mod_stdio
-  use mod_message
-  use mod_rdldtr
+  use mod_realkinds, only : rkx
+  use mod_intkinds, only : ik4
+  use mod_dynparam, only : cmip6_experiment, dattyp, ds, i_band, inpglob, iy, &
+    iysg, jxsg, nsg, pthsep, roidem
+  use mod_constants, only : d_zero
+  use mod_grid, only : h_missing_value, xlat, xlon
+  use mod_stdio, only : stderr
+  use mod_rdldtr, only : bestaround, gfclose, gfopen, gfread, globalfile
 
   implicit none
 

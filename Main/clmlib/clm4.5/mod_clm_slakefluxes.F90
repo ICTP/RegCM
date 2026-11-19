@@ -2,8 +2,8 @@ module mod_clm_slakefluxes
   !
   ! Calculates surface fluxes for lakes.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
 
   implicit none
 
@@ -24,7 +24,7 @@ module mod_clm_slakefluxes
   ! WARNING: This subroutine assumes lake columns have one and only one pft.
   !
   subroutine SLakeFluxes(lbc, ubc, lbp, ubp, num_lakep, filter_lakep)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_atmlnd, only : clm_a2l
     use mod_clm_varcon, only : hvap, hsub, cpair, tkice, tkair
     use mod_clm_varcon, only : sb, vkc, grav, tfrz, zsno

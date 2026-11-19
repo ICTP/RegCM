@@ -22,12 +22,12 @@
 ! (nhpp).
 
 program test_nhinterp
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_memutil
-  use mod_nhinterp
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : egrav, rgas, rkx, tiso
+  use mod_memutil, only : getmem, memory_destroy, memory_init
+  use mod_nhinterp, only : nhbase, nhinterp, nhpp, nhsetup
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: kx = 12
   real(rkx), parameter :: pbase = 101325.0_rkx, tlp = 47.70_rkx

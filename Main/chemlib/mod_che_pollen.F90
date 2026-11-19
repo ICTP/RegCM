@@ -15,13 +15,13 @@
 
 module mod_che_pollen
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_che_common
-  use mod_che_species
-  use mod_che_indices
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz
+  use mod_constants, only : d_one, d_zero, mathpi
+  use mod_che_common, only : cdzq, cemtrac, cfdout, chemsrc, chifxuw, chiten, &
+    cpsb, crhob3d, ichdrdepo
+  use mod_che_indices, only : ipollen
 
   implicit none
 

@@ -15,34 +15,49 @@
 
 module mod_regcm_interface
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_dynparam
-  use mod_memutil
-  use mod_stdio
-  use mod_date
-  use mod_service
-  use mod_che_interface
-  use mod_lm_interface
-  use mod_atm_interface
-  use mod_pbl_interface
-  use mod_rad_interface
+  use mod_realkinds, only : rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_dynparam, only : debug_level, dirout, domname, ice1, ice2, ici1, &
+    idynamic, init_random_number_generator, initparam, jce1, jce2, jci1, kz, &
+    mycomm, myid, nicross, njcross, nproc, prestr, pthsep
+#ifdef OPENACC
+  use mod_dynparam, only : init_gpu_random_number_generator
+#endif
+  use mod_memutil, only : memory_destroy, memory_init
+  use mod_stdio, only : stdout
+  use mod_date, only : tochar10, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+#ifdef DEBUG
+  use mod_service, only : activate_debug, start_debug, stop_debug, &
+    time_print, time_reset
+#endif
+  use mod_che_interface, only : close_chbc
+  use mod_atm_interface, only : atm1, mo_atm, setup_model_indexes, sfs
+  use mod_rad_interface, only : closeaerosol, closeo3
   use mod_ipcc_scenario, only : update_scenario
-  use mod_runparams
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_ncio
-  use mod_ncout
-  use mod_output
-  use mod_split
-  use mod_bdycod
-  use mod_init
-  use mod_header
-  use mod_params
-  use mod_tendency
-  use mod_service
-  use mod_moloch
-  use mod_ensemble
+  use mod_runparams, only : alarm_in_bdy, do_parallel_netcdf_out, dtsec, &
+    ichem, iclimaaer, iclimao3, ifrest, ioasiscpl, iocncpl, irceideal, &
+    iwavcpl, lrcemip_noise_level, lrcemip_perturb, namelistfile, prgname, &
+    rcmtimer
+  use mod_mppparam, only : broadcast_params, iocpu, italk, set_nproc
+  use mod_mpmessage, only : fatal, setup_mesg
+  use mod_ncio, only : close_icbc
+  use mod_ncout, only : begin_output_streams_async_batch, &
+    dispose_output_streams, end_output_streams_async_batch, &
+    init_output_streams
+  use mod_output, only : init_output, lastout, output
+  use mod_split, only : spinit
+  use mod_bdycod, only : bdyin, bdyval, init_bdy
+#ifdef ASYNC_NETCDF
+  use mod_bdycod, only : bdyin_prefetch
+#endif
+  use mod_init, only : init
+  use mod_header, only : checktime, finaltime, header, whoami
+  use mod_params, only : param
+  use mod_tendency, only : tend
+  use mod_moloch, only : moloch
+  use mod_ensemble, only : randify
 #ifdef CPL
   use mod_update, only: rcm_get, rcm_put
 #endif

@@ -2,13 +2,17 @@ module mod_clm_urbaninput
   !
   ! Read in input urban data - fill in data structure urbinp
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_mppparam
-  use mod_stdio
-  use mod_clm_nchelper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_dynparam, only : myid
+#ifdef CLM45
+  use mod_dynparam, only : enable_urban_landunit
+#endif
+  use mod_mppparam, only : italk
+  use mod_stdio, only : stderr, stdout
+  use mod_clm_nchelper, only : clm_check_dim, clm_closefile, clm_filetype, &
+    clm_inqdim, clm_openfile, clm_readvar
   use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell
 
   implicit none

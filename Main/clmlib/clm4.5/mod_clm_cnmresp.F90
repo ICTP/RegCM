@@ -4,8 +4,8 @@ module mod_clm_cnmresp
   ! Module holding maintenance respiration routines for coupled carbon
   ! nitrogen code.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_clm_varpar, only : nlevgrnd
   use mod_clm_varcon, only : tfrz
 
@@ -20,7 +20,8 @@ module mod_clm_cnmresp
   contains
 
   subroutine CNMResp(lbc, ubc, num_soilc, filter_soilc, num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, column_estate_type, pft_estate_type, &
+      pftcon
     use mod_clm_pftvarcon, only : npcropmin
     use mod_clm_subgridave, only : p2c
     use mod_clm_varctl, only : q10_maintenance

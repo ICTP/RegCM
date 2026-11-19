@@ -19,13 +19,24 @@ module mod_bats_leaftemp
   ! documented in NCAR Tech Note, Dickinson et al., 1986.
   ! modifications by Klaus Blumel, 1988.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
-  use mod_bats_internal
-  use mod_bats_param
-  use mod_service
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_bats_internal, only : abswveg, bseas, bsw, cdr, cdrd, cdrn, cdrx, &
+    cf, cgrnd, cgrndl, cgrnds, cn1, cpd, csoilc, czenith, d_10, d_1000, &
+    d_four, d_half, d_one, d_rfour, d_two, d_zero, dcd, delq, delt, dewmaxi, &
+    df, dlowval, dtbat, efe, efpr, eg, egrav, emiss, ep2, etr, etrc, evpr, &
+    fdry, fevpg, flnet, flneto, fracd, fseng, fwet, gwet, htvp, ilndbeg, &
+    ilndend, ldew, lftra, lftrs, lveg, lwflx, pfesats, pfqsats, pfqsdts, &
+    qgrd, qs, qsatl, rgr, rhs, rib, ribd, rlai, rmax0, rpp, rppq, sent, sfcp, &
+    sigf, sigm, sts, swsi, taf, tgrd, tlef, trsmx0, twot, uaf, usw, vegt, &
+    vpdc, vspda, vsw, watr, watu, wiltr, wta, wta0, wtaq0, wtg, wtg0, wtg2, &
+    wtga, wtgaq, wtgl, wtglq, wtgq, wtgq0, wtl0, wtlh, wtlq, wtlq0, wtshi, &
+    wtsqi, wtur, xlai, xlsai, zh
+  use mod_bats_param, only : displa, fc, lcrop_cutoff, minsigf, rootf, rough, &
+    rsmin, sqrtdi
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
 
   implicit none
 

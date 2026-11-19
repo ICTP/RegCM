@@ -4,12 +4,12 @@ module mod_clm_drydep
   ! This module is shared by land and atmosphere models for the computations of
   ! dry deposition of tracers
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_stdio
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : inf, rk8
+  use mod_dynparam, only : debug_level
+  use mod_constants, only : amw
+  use mod_stdio, only : file_freeunit, file_getunit, stdout
+  use mod_mpmessage, only : fatal
 
   implicit none
 

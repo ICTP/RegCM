@@ -50,7 +50,8 @@ module rrtmg_sw_read_nc
 subroutine sw_kgb16(fname)
     use rrsw_kg16, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no16, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, keylower, plower, pupper, rb, status, tdiff, &
+      tforeignlower, tself
     use netcdf
 
     implicit none
@@ -124,7 +125,8 @@ end subroutine sw_kgb16
 subroutine sw_kgb17(fname)
         use rrsw_kg17, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no17, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, keylower, keyupper, plower, pupper, rb, &
+      status, tdiff, tforeignlower, tself
     use netcdf
 
         implicit none
@@ -202,7 +204,8 @@ end subroutine sw_kgb17
 subroutine sw_kgb18(fname)
     use rrsw_kg18, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no18, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, keylower, plower, pupper, rb, status, tdiff, &
+      tforeignlower, tself
     use netcdf
 
         implicit none
@@ -278,7 +281,8 @@ end subroutine sw_kgb18
 subroutine sw_kgb19(fname)
         use rrsw_kg19, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no19, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, keylower, plower, pupper, rb, status, tdiff, &
+      tforeignlower, tself
     use netcdf
 
         implicit none
@@ -354,7 +358,8 @@ end subroutine sw_kgb19
 subroutine sw_kgb20(fname)
         use rrsw_kg20, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, absch4o, no20, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : getabsorberindex, im, plower, pupper, rb, status, &
+      tdiff, tforeignlower, tself
     use netcdf
 
         implicit none
@@ -442,7 +447,8 @@ end subroutine sw_kgb20
 subroutine sw_kgb21(fname)
         use rrsw_kg21, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no21, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, keylower, keyupper, plower, pupper, rb, &
+      status, tdiff, tforeignlower, tself
     use netcdf
 
         implicit none
@@ -522,7 +528,8 @@ end subroutine sw_kgb21
 subroutine sw_kgb22(fname)
         use rrsw_kg22, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no22, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, keylower, plower, pupper, rb, status, tdiff, &
+      tforeignlower, tself
     use netcdf
 
         implicit none
@@ -598,7 +605,7 @@ end subroutine sw_kgb22
 subroutine sw_kgb23(fname)
         use rrsw_kg23, only: sfluxrefo, kao, selfrefo, forrefo, raylo, no23, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, plower, status, tdiff, tforeignlower, tself
     use netcdf
 
         implicit none
@@ -666,7 +673,8 @@ subroutine sw_kgb24(fname)
         use rrsw_kg24, only: sfluxrefo, kao, kbo, selfrefo, forrefo, &
                              raylao, raylbo, abso3ao, abso3bo, no24, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : getabsorberindex, im, keylower, plower, pupper, &
+      status, tdiff, tforeignlower, tself
     use netcdf
 
         implicit none
@@ -755,7 +763,7 @@ end subroutine sw_kgb24
 subroutine sw_kgb25(fname)
         use rrsw_kg25, only: sfluxrefo, kao, raylo, abso3ao, abso3bo, no25, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : getabsorberindex, im, plower, status, tdiff
     use netcdf
 
         implicit none
@@ -826,7 +834,7 @@ end subroutine sw_kgb25
 subroutine sw_kgb26(fname)
         use rrsw_kg26, only: sfluxrefo, raylo, no26, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, status
     use netcdf
 
         implicit none
@@ -880,7 +888,7 @@ end subroutine sw_kgb26
 subroutine sw_kgb27(fname)
         use rrsw_kg27, only: sfluxrefo, kao, kbo, raylo, no27, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, plower, pupper, status, tdiff
     use netcdf
 
         implicit none
@@ -944,7 +952,8 @@ end subroutine sw_kgb27
 subroutine sw_kgb28(fname)
         use rrsw_kg28, only: sfluxrefo, kao, kbo, rayl, no28, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : im, keylower, keyupper, plower, pupper, rb, &
+      status, tdiff
     use netcdf
 
         implicit none
@@ -1013,7 +1022,8 @@ subroutine sw_kgb29(fname)
         use rrsw_kg29, only: sfluxrefo, kao, kbo, selfrefo, forrefo, &
                              absh2oo, absco2o, rayl, no29, &
                              irradnceo, facbrghto, snsptdrko
-    use rrsw_ncpar
+    use rrsw_ncpar, only : getabsorberindex, im, plower, pupper, rb, status, &
+      tdiff, tforeignlower, tself
     use netcdf
 
         implicit none

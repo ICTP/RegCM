@@ -108,8 +108,8 @@
 !
 module eispack
 
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
 
   implicit none
 

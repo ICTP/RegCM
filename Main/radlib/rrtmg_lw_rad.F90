@@ -74,7 +74,6 @@
 ! -------- Modules --------
       use parkind, only : im => kind_im, rb => kind_rb
       use mod_intkinds, only : ik4
-      use rrlw_vsn
       use mcica_subcol_gen_lw, only: mcica_subcol_lw
       use rrtmg_lw_cldprmc, only: cldprmc
 #ifdef DEBUG

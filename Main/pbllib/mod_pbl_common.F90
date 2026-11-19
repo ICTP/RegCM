@@ -17,11 +17,9 @@ module mod_pbl_common
 !
 ! Storage parameters and constants related to the boundary layer
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_memutil
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_regcm_types, only : tcm_state
 
   implicit none
 

@@ -15,24 +15,25 @@
 
 module mod_ifs
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_date
-  use mod_constants
-  use mod_memutil
-  use mod_grid
-  use mod_write
-  use mod_vertint
-  use mod_earth
-  use mod_hgt
-  use mod_humid
-  use mod_projections
-  use mod_vectutil
-  use mod_message
-  use mod_nchelper
-  use mod_kdinterp
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : globidate1, i_band, i_crm, idynamic, inpglob, iy, &
+    jx, kz, pthsep, ptop
+  use mod_stdio, only : stdout
+  use mod_date, only : rcm_time_and_date, split_idate, tochar, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_constants, only : d_half, d_one, d_r1000, d_zero, ep1, rovg
+  use mod_memutil, only : getmem
+  use mod_grid, only : dlat, dlon, mask, pjd, pju, pjv, ps0, sigmah, topogm, &
+    topou, topov, ulat, ulon, vlat, vlon, xlat, xlon, z0, zetau, zetav
+  use mod_write, only : pd4, ps4, q4, qc4, qi4, t4, ts4, u4, v4
+  use mod_vertint, only : intp1, intpsn, intz1
+  use mod_humid, only : sph2mxr
+  use mod_vectutil, only : crs2dot, ucrs2dot, vcrs2dot
+  use mod_nchelper, only : checkncerr
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
   use netcdf
   implicit none
 

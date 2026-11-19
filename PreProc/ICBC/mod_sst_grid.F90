@@ -15,16 +15,21 @@
 
 module mod_sst_grid
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_dynparam
-  use mod_memutil
-  use mod_message
-  use mod_nchelper
-  use mod_ncstream_types
-  use mod_ncstream
-  use mod_domain
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_stdio, only : stderr, stdout
+  use mod_dynparam, only : dirglob, domname, iy, jx, kzp1, pthsep, ssttyp
+  use mod_memutil, only : getmem
+  use mod_nchelper, only : closefile, openfile_withname
+  use mod_ncstream_types, only : nc_output_stream, ncattribute_string, &
+    ncoutstream_params, ncvariable2d_mixed, ncvariable3d_mixed, &
+    rcm_time_and_date, tochar, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_ncstream, only : outstream_addatt, outstream_addrec, &
+    outstream_addvar, outstream_addvaratt, outstream_dispose, &
+    outstream_enable, outstream_setup, outstream_writevar
+  use mod_domain, only : mddom_io, read_domain
   implicit none
 
   private

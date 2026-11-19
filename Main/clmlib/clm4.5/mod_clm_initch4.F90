@@ -1,11 +1,11 @@
 #ifdef LCH4
 module mod_clm_initch4
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_dynparam
-  use mod_mppparam
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : myid
+  use mod_mppparam, only : italk
+  use mod_clm_type, only : clm3
   use mod_clm_varpar, only : nlevsoi, nlevgrnd
   use mod_clm_varpar, only : ngases, nlevdecomp
   use mod_clm_varcon, only : istsoil, istdlak, spval, istcrop

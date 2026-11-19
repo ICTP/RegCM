@@ -17,16 +17,23 @@ module mod_slice
   !
   ! Fill 3D spaces for calculations
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_runparams
-  use mod_memutil
-  use mod_atm_interface
-  use mod_che_interface
-  use mod_pbl_interface
-  use mod_rad_interface
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : dayspy, ice1, ice1ga, ice1gb, ice1gc, ice2, &
+    ice2ga, ice2gb, ice2gc, ici1, ici2, ide1ga, ide1gb, ide1gc, ide2ga, &
+    ide2gb, ide2gc, idynamic, jce1, jce1ga, jce1gb, jce1gc, jce2, jce2ga, &
+    jce2gb, jce2gc, jci1, jci2, jde1ga, jde1gb, jde1gc, jde2ga, jde2gb, &
+    jde2gc, kz, kzm1, kzp1, mo_lcap, ntr, ptop
+  use mod_constants, only : cpovr, d_1000, d_half, d_one, d_rfour, d_zero, &
+    egrav, ep1, ep2, minqq, p00, regrav, rgas, rovcp, rovg, rtice, rtwat, &
+    rtwat_rtice_r, rwat, twopi, tzero, wlhs, wlhv
+  use mod_runparams, only : calday, hsigma, ibltyp, ichem, icldmstrat, &
+    idiffu, ipptls, iqc, iqfrst, iqi, iqr, iqs, iqv, irceideal, nqx, &
+    qxcheckval, qxzeroval, sigma, twt
+  use mod_memutil, only : assignpnt, getmem
+  use mod_atm_interface, only : atm0, atm2, atms, ktrop, mddom, mo_atm, &
+    omega, ptrop, sfs
+  use mod_pbl_interface, only : kmxpbl
 
   implicit none
 

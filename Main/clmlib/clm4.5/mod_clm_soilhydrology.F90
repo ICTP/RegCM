@@ -2,15 +2,14 @@ module mod_clm_soilhydrology
   !
   ! Calculate soil hydrology
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_stdio
-  use mod_mppparam
-  use mod_dynparam
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : file_freeunit, file_getunit, stderr, stdout
+  use mod_mppparam, only : bcast, iocpu
+  use mod_dynparam, only : ds, dsmax, myid
+  use mod_mpmessage, only : fatal
   use mod_runparams, only : dtsrf
-  use mod_clm_type
+  use mod_clm_type, only : clm3
   use mod_clm_varcon, only : denh2o, denice, rpi, pc, mu
   use mod_clm_varcon, only : wimp, pondmx_urban, roverg,  &
            icol_roof, icol_sunwall, icol_shadewall, istsoil, &

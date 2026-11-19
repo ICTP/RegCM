@@ -15,13 +15,14 @@
 
 module mod_che_carbonaer
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_che_common
-  use mod_che_species
-  use mod_che_indices
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, ntr
+  use mod_constants, only : d_one, d_six, d_zero, mathpi, mintr
+  use mod_che_common, only : assignpnt, carb_aging_control, cfdout, chemdiag, &
+    chemt, chib, chiten, cpsb, crhob3d, dt, getmem, ibchb, ibchl, ichdiag, &
+    iochb, iochl, ism1, ism2, nbchl, nchlmax, nochl
+  use mod_che_indices, only : iso4
   use mod_runparams, only : chechgact
 
   implicit none

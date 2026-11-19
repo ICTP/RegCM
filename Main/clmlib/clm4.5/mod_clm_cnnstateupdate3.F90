@@ -4,8 +4,8 @@ module mod_clm_cnnstateupdate3
   ! Module for nitrogen state variable update, mortality fluxes.
   ! Also, sminn leaching flux.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
   use mod_clm_varpar, only : nlevdecomp, ndecomp_pools
 
@@ -24,7 +24,7 @@ module mod_clm_cnnstateupdate3
   ! Also the Sminn leaching flux.
   !
   subroutine NStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar, only : i_cwd, i_met_lit, i_cel_lit, i_lig_lit
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter

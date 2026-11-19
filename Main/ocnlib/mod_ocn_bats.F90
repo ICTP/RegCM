@@ -15,13 +15,20 @@
 
 module mod_ocn_bats
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_service
-  use mod_ocn_internal
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_ocn_internal, only : aarea, age3, br, drag, dtocn, evpr, ht, icpl, &
+    iocnbeg, iocnend, mask, prcp, q2m, qv, rah1, ram1, rhoa, rhox, rlwf, &
+    rswf, sent, sfice, sfps, sm, snag, sncv, t2m, tatm, taux, tauy, tgb, &
+    tgbrd, tgrd, u10m, ustr, usw, v10m, vsw, zoo
   use mod_runparams, only : icetriggert
-  use mod_constants
+  use mod_constants, only : cpd, csnw, d_10, d_1000, d_half, d_one, d_r10, &
+    d_r1000, d_three, d_two, d_zero, dlowval, egrav, ep1, ep2, iceminh, &
+    regrav, rgas, rtice, rtwat, rtwat_rtice_r, rwat, shice, tzero, vonkar, &
+    wlhf, wlhs, wlhv, wtur, zlnd, zoce, zsno
 
   implicit none
 

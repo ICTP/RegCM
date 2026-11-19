@@ -15,7 +15,7 @@
 
 #ifdef PNETCDF
 subroutine myabort
-  use mod_stdio
+  use mod_stdio, only : stderr
   use mpi_f08
   implicit none
   integer :: ierr
@@ -84,29 +84,40 @@ program icbc
 !                                                                      !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_message
-  use mod_header
-  use mod_stdio
-  use mod_memutil
-  use mod_mksst
-  use mod_date
-  use mod_grid
-  use mod_date
-  use mod_ein
-  use mod_era5
-  use mod_era5rda
-  use mod_ncep
-  use mod_ecday
-  use mod_nest
-  use mod_gnhnc
-  use mod_cmip6
-  use mod_cmip7
-  use mod_write
-  use mod_ifs
-  use mod_projections
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_dynparam, only : base_state_pressure, clat, clon, dattyp, ds, &
+    globidate1, globidate2, ibdyfrq, ical, idynamic, init_fnestparam, &
+    init_globwindow, initparam, iproj, iy, jx, kz, logp_lrate, plat, plon, &
+    truelath, truelatl
+  use mod_message, only : die
+  use mod_header, only : finaltime, header, ik4, stderr, stdout
+  use mod_stdio, only : stderr, stdout
+  use mod_memutil, only : memory_destroy, memory_init
+  use mod_mksst, only : closesst
+  use mod_date, only : gregorian, lsamemonth, monfirst, noleap, &
+    rcm_time_and_date, rcm_time_interval, tochar, tohours, uhrs, y360, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_grid, only : init_grid, lat0, lat1, lon0, lon1, pjd, pju, pjv
+  use mod_date, only : gregorian, lsamemonth, monfirst, noleap, &
+    rcm_time_and_date, rcm_time_interval, tochar, tohours, uhrs, y360, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_ein, only : conclude_ein, get_ein, init_ein
+  use mod_era5, only : conclude_era5, get_era5, init_era5
+  use mod_era5rda, only : conclude_era5rda, get_era5rda, init_era5rda
+  use mod_ncep, only : conclude_ncep, get_ncep, init_ncep
+  use mod_ecday, only : conclude_ecday, get_ecday, init_ecday
+  use mod_nest, only : coarsedir, coarsedom, conclude_nest, get_nest, &
+    init_nest
+  use mod_gnhnc, only : conclude_gnhnc, get_gnhnc, init_gnhnc
+  use mod_cmip6, only : conclude_cmip6, get_cmip6, init_cmip6
+  use mod_cmip7, only : conclude_cmip7, get_cmip7, init_cmip7
+  use mod_write, only : close_output, dispose_output, init_output, newfile, &
+    writef
+  use mod_ifs, only : conclude_ifs, get_ifs, init_ifs
+  use mod_projections, only : anyprojparams
 #ifdef PNETCDF
   use mpi_f08
 #endif

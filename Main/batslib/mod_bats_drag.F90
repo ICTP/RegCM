@@ -15,12 +15,16 @@
 
 module mod_bats_drag
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_service
-  use mod_bats_internal
-  use mod_bats_param
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_bats_internal, only : cdr, cdrn, cdrx, d_one, d_three, d_two, &
+    d_zero, egrav, ilndbeg, ilndend, lncl, lveg, rhosw, rib, ribd, scrat, &
+    scvk, sigf, snag, sncv, sts, taf, tgrd, usw, vonkar, vspda, vsw, wt, &
+    wtur, zh, zlgdis, zlglnd, zlgsno
+  use mod_bats_param, only : displa, rough
 
   implicit none
 !

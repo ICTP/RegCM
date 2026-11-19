@@ -2,22 +2,43 @@ module mod_clm_typeinit
   !
   ! Allocate clmtype components and initialize them to signaling NaN.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_intkinds
-  use mod_mpmessage
-  use mod_clm_type
-  use mod_clm_varpar
-#if (defined VICHYDRO)
-  use mod_clm_varpar
+  use mod_intkinds, only : bigint, ik4
+  use mod_realkinds, only : nan_r8, rk8
+  use mod_mpmessage, only : fatal
+  use mod_clm_type, only : carbon_balance_type, clm3, column_cflux_type, &
+    column_cstate_type, column_eflux_type, column_estate_type, &
+    column_nflux_type, column_nstate_type, column_pstate_type, column_type, &
+    column_wflux_type, column_wstate_type, decomp_cascade_con, &
+    energy_balance_type, gridcell_eflux_type, gridcell_efstate_type, &
+    gridcell_estate_type, gridcell_type, gridcell_wflux_type, &
+    gridcell_wstate_type, landunit_eflux_type, landunit_pstate_type, &
+    landunit_type, nitrogen_balance_type, pft_cflux_type, pft_cstate_type, &
+    pft_depvd_type, pft_dflux_type, pft_eflux_type, pft_epv_type, &
+    pft_estate_type, pft_mflux_type, pft_nflux_type, pft_nstate_type, &
+    pft_pstate_type, pft_psynstate_type, pft_type, pft_vflux_type, &
+    pft_vstate_type, pft_wflux_type, pft_wstate_type, pftcon, &
+    water_balance_type
+#if (defined CNDV)
+  use mod_clm_type, only : dgv_pftcon, gridcell_dgvstate_type, &
+    pft_dgvstate_type
 #endif
-  use mod_clm_varctl
+#ifdef LCH4
+  use mod_clm_type, only : column_ch4_type, gridcell_ch4_type
+#endif
+  use mod_clm_varpar, only : ndecomp_cascade_transitions, ndecomp_pools, &
+    ndst, ngases, nlevcan, nlevdecomp_full, nlevgrnd, nlevlak, nlevsno, &
+    nlevsoi, nlevurb, numpft, numrad
+#if (defined VICHYDRO)
+  use mod_clm_varpar, only : nlayer, nlayert
+#endif
+#if (defined VICHYDRO)
+#endif
+  use mod_clm_varctl, only : source, use_c13, use_c14
   use mod_clm_decomp, only : get_proc_bounds, get_proc_global
   use mod_clm_varcon, only : spval, ispval
   use mod_clm_surfrd, only : crop_prog
   use mod_clm_megan, only : shr_megan_megcomps_n
   use mod_clm_drydep, only : n_drydep, drydep_method, DD_XLND
-  use mod_clm_varpar
 
   implicit none
 

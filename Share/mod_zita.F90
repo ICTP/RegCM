@@ -15,9 +15,9 @@
 
 module mod_zita
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_constants, only : egrav, regrav, rgas
   use mod_dynparam, only : mo_lcap, mo_b0
 
   implicit none

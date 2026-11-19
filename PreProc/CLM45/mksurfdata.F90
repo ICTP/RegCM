@@ -21,7 +21,7 @@ end subroutine myabort
 program mksurfdata
 
 #ifndef CLM45
-  use mod_stdio
+  use mod_stdio, only : stderr, stdout
   write(stdout,*) 'RegCM built without CLM45 support.'
   write(stdout,*) 'Please recompile it using --enable-clm45 flag'
 #else
@@ -38,56 +38,91 @@ program mksurfdata
 #endif
 #endif
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_dynparam, only : calendar, cmip6_experiment, dattyp, dirglob, &
+    dirter, domname, globidate1, globidate2, i_band, idynamic, initparam, iy, &
+    iysg, jx, jxsg, kzp1, mo_a0, mo_h, mo_ztop, nsg, pthsep, ptop
+#ifdef CLM45
+  use mod_dynparam, only : enable_more_crop_pft, enable_urban_landunit
+#endif
   use mod_posix, only : hostname
-  use mod_message
-  use mod_grid
-  use mod_date
-  use mod_memutil
-  use mod_stdio
-  use mod_domain
-  use mod_nchelper
-  use mod_mkglacier
-  use mod_mkwetland
-  use mod_mkurban
-  use mod_mkpft
-  use mod_mklaisai
-  use mod_mkfmax
-  use mod_mksoilcol
-  use mod_mksoitex
-  use mod_mkgdp
-  use mod_mkrough
-  use mod_mkpeatf
-  use mod_mkabm
-  use mod_mkvocef
-  use mod_mkorganic
-  use mod_mkwattab
-  use mod_mklake
-  use mod_mkalbedo
-  use mod_zita
+  use mod_message, only : die
+  use mod_grid, only : ax, bx, init_domain, mypack, rsigx, rxlat, rxlon, &
+    setup_pack, sigx, slope, topo, topostd, xlat, xlon, xmask, zita
+  use mod_date, only : monmiddle, nextmon, rcm_time_and_date, &
+    rcm_time_interval, split_idate, tochar, tohours, yrfirst, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_memutil, only : getmem, memory_destroy, memory_init
+  use mod_stdio, only : stderr, stdout
+  use mod_domain, only : read_domain
+  use mod_nchelper, only : add_common_global_params, add_dimension, &
+    checkncerr, closefile, createfile_withname, define_basic_dimensions, &
+    define_cross_geolocation_coord, define_horizontal_coord, &
+    define_vertical_coord, openfile_withname, regcm_vartype, &
+    write_horizontal_coord, write_var2d_static, write_vertical_coord, &
+    write_vertical_coord_zita
+  use mod_mkglacier, only : mkglacier
+  use mod_mkwetland, only : mkwetland
+  use mod_mkurban, only : ip2d, ip3d, ip4d, lngn2d, lngn3d, lngn4d, &
+    mkurban_base, mkurban_param, npu2d, npu3d, npu4d, parm2d, parm3d, parm4d, &
+    unit2d, unit3d, unit4d
+  use mod_mkpft, only : mkpft
+  use mod_mklaisai, only : mklaisai
+  use mod_mkfmax, only : mkfmax
+  use mod_mksoilcol, only : mksoilcol
+  use mod_mksoitex, only : mksoitex
+  use mod_mkgdp, only : mkgdp
+  use mod_mkrough, only : do_roughness, mkrough
+  use mod_mkpeatf, only : mkpeatf
+  use mod_mkabm, only : mkabm
+  use mod_mkvocef, only : mkvocef
+  use mod_mkorganic, only : mkorganic
+  use mod_mkwattab, only : mkwattab
+  use mod_mklake, only : mklake
+  use mod_mkalbedo, only : mkalbedo
+  use mod_zita, only : md_ak, md_bk, model_zitah
   use netcdf
 #ifdef CN
-  use mod_mklightning
-  use mod_mkpopd
-  use mod_mkq10soil
-  use mod_mkndep
+#ifdef CN
+  use mod_mklightning, only : mklightning, mklightning_close, &
+    mklightning_init
+#endif
+#ifdef CN
+  use mod_mkpopd, only : mkpopd, mkpopd_close, mkpopd_init
+#endif
+#if defined(CN)
+  use mod_mkq10soil, only : mkq10soil
+#endif
+#if defined(CN)
+  use mod_mkndep, only : mkndep
+#endif
 #endif
 #ifdef DYNPFT
 #ifdef CN
-  use mod_mkharvest
+#ifdef CN
+  use mod_mkharvest, only : mkharvest
 #endif
-  use mod_mkdynpft
+#endif
+#ifdef DYNPFT
+  use mod_mkdynpft, only : mkdynpft
+#endif
 #endif
 #ifdef CN
 #ifdef LCH4
-  use mod_mkch4topm
-  use mod_mksoilph
+#if defined(CN) && defined(LCH4)
+  use mod_mkch4topm, only : mkch4topm
+#endif
+#if defined(CN) && defined(LCH4)
+  use mod_mksoilph, only : mksoilph
+#endif
 #endif
 #endif
 #ifdef VICHYDRO
-  use mod_mkvic
+#ifdef VICHYDRO
+  use mod_mkvic, only : mkvic
+#endif
 #endif
 
   implicit none

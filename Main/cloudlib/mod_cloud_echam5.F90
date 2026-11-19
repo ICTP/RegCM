@@ -15,11 +15,10 @@
 
 module mod_cloud_echam5
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_one, d_zero
+  use mod_dynparam, only : ici1, ici2, jci1, jci2, kz
 
   implicit none
 

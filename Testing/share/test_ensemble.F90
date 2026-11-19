@@ -19,10 +19,10 @@
 ! equal mean, and gives zeros for a zero total.
 
 program test_ensemble
-  use mod_intkinds
-  use mod_realkinds
-  use mod_ensemble
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_ensemble, only : randify, random_pick
+  use share_test_utils, only : check, fixed_seed, test_end
   implicit none
   integer(ik4), parameter :: ni = 40, nj = 30, nk = 5, nv = 24
   integer(ik4), parameter :: ntry = 20000

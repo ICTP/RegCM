@@ -17,12 +17,14 @@ module mod_cu_em
   !
   ! Kerry Emanuel MIT Convective scheme
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_memutil
-  use mod_mppparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : cpd, cpv, cpw, d_10, d_100, d_1000, d_four, &
+    d_half, d_one, d_r100, d_two, d_zero, dlowval, egrav, ep2, rcpd, regrav, &
+    rgas, rgowi, rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhs, wlhv
+  use mod_dynparam, only : ici1, ici2, jci1, jci2, kz, kzp1, myid, ntr
+  use mod_memutil, only : getmem
+  use mod_mppparam, only : bcast
   use mod_runparams, only : alphae, betae, coeffr, coeffs, cu,   &
     damp, dtmax, entp, minorig, omtrain, omtsnow, tlcrit, iqv, &
     ichem, ichcumtra, icup, dt
@@ -34,9 +36,13 @@ module mod_cu_em
   use mod_runparams, only : sigd_min, sigd_max
   use mod_runparams, only : epmax_lnd_min, epmax_lnd_max
   use mod_runparams, only : elcrit_lnd_min, elcrit_lnd_max
-  use mod_cu_common
-  use mod_service
-  use mod_regcm_types
+  use mod_cu_common, only : cu_chiten, cu_cldfrc, cu_cldlwc, &
+    cu_cloud_fraction, cu_convpr, cu_kbot, cu_ktop, cu_prate, cu_qten, &
+    cu_tten, cu_uten, cu_vten, cuscheme, total_precip_points
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_regcm_types, only : mod_2_cum
 
   implicit none
 

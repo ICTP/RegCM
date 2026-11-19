@@ -15,10 +15,10 @@
 
 module mod_vectutil
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_message
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_four, d_half, d_one, d_rfour, d_two, d_zero
+  use mod_message, only : fatal
   use mod_dynparam, only : maxvert
 
   private

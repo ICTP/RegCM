@@ -1,8 +1,8 @@
 module mod_clm_reweight
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
   use mod_clm_type, only : clm3, gridcell_type, landunit_type, &
                             column_type, pft_type
   use mod_clm_filter, only : setFilters

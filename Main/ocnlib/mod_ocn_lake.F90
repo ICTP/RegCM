@@ -15,13 +15,23 @@
 
 module mod_ocn_lake
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_service
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : cpd, cpw, cpw0, d_10, d_100, d_1000, d_half, &
+    d_one, d_r10, d_r100, d_two, d_zero, degrad, dlowval, dmissval, egrav, &
+    emsw, ep2, hdmw, iceminh, regrav, rhoh2o, rhoice, rhosnow, rhosnowp, &
+    rtice, rtwat, rtwat_rtice_r, rwat, secph, sigm, stdp, stdpmb, tboil, &
+    tzero, vonkar, wlhs, wlhv, wtur, zlnd, zoce, zsno
+  use mod_dynparam, only : ds, ndpmax
+#ifdef DEBUG
+  use mod_service, only : dbgslen, ndebug, time_begin, time_end
+#endif
   use mod_runparams, only : rcmtimer
-  use mod_ocn_internal
+  use mod_ocn_internal, only : aarea, age3, br, dhlake, drag, dtlake, evpr, &
+    getmem, ht, ilake, iocnbeg, iocnend, lat, mask, nocnp, prcp, q2m, qv, &
+    rah1, ram1, rhoa, rhox, rlwf, rswf, sent, sfice, sfps, sm, snag, sncv, &
+    t2m, tatm, taux, tauy, tgb, tgbrd, tgrd, threedays, u10m, um10, ustr, &
+    usw, v10m, vsw, zoo
 
   implicit none
 

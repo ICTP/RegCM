@@ -15,12 +15,12 @@
 
 module mod_ocn_internal
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_memutil
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_memutil, only : getmem, memory_init
+  use mod_dynparam, only : ds, ici1, ici2, jci1, jci2, myid, ndpmax, nnsg
   use mod_runparams, only : idcsst, lakemod, iseaice, dtsrf, iocnflux
-  use mod_regcm_types
+  use mod_regcm_types, only : lm_exchange, lm_state, masked_comm
 
   implicit none
 

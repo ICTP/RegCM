@@ -17,12 +17,13 @@ module mod_che_cumtran
 !
 ! Tracer convective transport
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_runparams
-  use mod_che_common
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : ici1, ici2, jci1, jci2, kz, ntr
+  use mod_constants, only : d_one, d_two, d_zero
+  use mod_runparams, only : dsigma, dt, ichdiag, icup_lnd, icup_ocn
+  use mod_che_common, only : cconvdiag, cfdout, convcldfra, cveg2d, getmem, &
+    kcumtop
 
   implicit none
 

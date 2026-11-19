@@ -30,13 +30,15 @@ module mod_pbl_myj
   !     which provides a self-consistent Janjic Eta surface layer.
   !     The turbulent vertical exchange is then executed.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_memutil
-  use mod_regcm_types
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : cpd, d_four, d_half, d_one, d_three, d_two, &
+    d_zero, egrav, eliwv, ep1, p00, regrav, rgas, rovcp, vonkar
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, kzm1, kzm2, &
+    kzp1, ntr
+  use mod_regcm_types, only : mod_2_pbl, pbl_2_mod
+  use mod_runparams, only : dt, dtsec, ichdrdepo, ichem, ipptls, iqc, iqi, &
+    iqv
   use mod_pbl_myj_sflayer, only : myj_sfclayer
 
   implicit none

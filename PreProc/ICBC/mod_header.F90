@@ -15,8 +15,8 @@
 
 module mod_header
 
-  use mod_intkinds
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_stdio, only : stderr, stdout
   use mod_posix, only : hostname
 
   implicit none

@@ -14,20 +14,24 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_slabocean
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : ice1, ice2, ici1, ici2, icross1, icross2, inpglob, &
+    jce1, jce2, jci1, jci2, jcross1, jcross2, mpy, myid, pthsep
+  use mod_runparams, only : do_qflux_adj, do_restore_sst, dtsrf, isocean, &
+    rcmtimer, sst_restore_timescale, stepcount, syncro_rep
+  use mod_memutil, only : assignpnt, getmem
+  use mod_regcm_types, only : lm_state, surfstate
   use mod_atm_interface, only : xtsb
-  use mod_mppparam
-  use mod_constants
-  use mod_stdio
-  use mod_outvars
-  use mod_mpmessage
+  use mod_mppparam, only : grid_collect, grid_distribute, iocpu, italk, &
+    maxall
+  use mod_constants, only : d_zero, dmissval, wlhv
+  use mod_stdio, only : stderr, stdout
+  use mod_outvars, only : slab_qflx_out
+  use mod_mpmessage, only : fatal
   use netcdf
-  use mod_kdinterp
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
 
   implicit none
 

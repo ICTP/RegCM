@@ -15,24 +15,33 @@
 
 module mod_rad_aerosol
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_runparams
-  use mod_constants
-  use mod_memutil
-  use mod_mpmessage
-  use mod_stdatm
-  use mod_rad_common
-  use mod_regcm_types
-  use mod_mppparam
-  use mod_nhinterp
-  use mod_kdinterp
-  use mod_interp
-  use mod_zita
-  use mod_date
-  use mod_stdio
-  use mod_vertint
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : is_nan, rk4, rk8, rkx
+  use mod_dynparam, only : dirglob, domname, globidate1, ibdyfrq, ice1, ice2, &
+    ici1, ici2, icross1, icross2, idot1, idot2, idynamic, inpglob, iy, jce1, &
+    jce2, jci1, jci2, jcross1, jcross2, jdot1, jdot2, kz, kzp1, myid, &
+    nicross, njcross, nspi, ntr, pthsep
+  use mod_runparams, only : chtrname, do_parallel_netcdf_in, hsigma, ichem, &
+    iclimaaer, idate1, irrtm, ismoke, nbin, radclimpath, scenario, sigma
+  use mod_constants, only : egrav, regrav
+  use mod_memutil, only : assignpnt, getmem, relmem
+  use mod_mpmessage, only : fatal, vprntv
+  use mod_stdatm, only : n_hreflev, n_prehlev, stdhlevf, stdhlevh, stdplevh
+  use mod_rad_common, only : kth, wavmax, wavmin, wavnm1, wavnm2
+  use mod_regcm_types, only : mod_2_rad
+  use mod_mppparam, only : bcast, grid_collect, grid_distribute, iocpu, italk
+  use mod_nhinterp, only : nhinterp
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create
+  use mod_interp, only : interp1d
+  use mod_zita, only : zita_interp
+  use mod_date, only : monfirst, monmiddle, nextmon, prevmon, &
+    rcm_time_and_date, rcm_time_interval, split_idate, timeval2date, tochar, &
+    tochar10, tohours, uhrs, yeardayfrac, yeardays, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stderr, stdout
+  use mod_vertint, only : intp1
   use parrrsw, only : nbndsw
   use parrrtm, only : nbndlw
   use netcdf

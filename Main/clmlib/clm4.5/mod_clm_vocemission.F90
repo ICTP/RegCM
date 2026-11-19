@@ -2,10 +2,10 @@ module mod_clm_vocemission
   !
   ! Volatile organic compound emission
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stdout
+  use mod_mpmessage, only : fatal
   use mod_clm_varpar,   only : numpft, nlevcan
   use mod_clm_pftvarcon,   only : ndllf_evr_tmp_tree,  ndllf_evr_brl_tree,    &
                            ndllf_dcd_brl_tree,  nbrdlf_evr_trp_tree,   &
@@ -465,7 +465,7 @@ module mod_clm_vocemission
   ! Units: [ug m-2 h-1]
   !
   function get_map_EF(ivt_in,g_in)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     implicit none
     integer(ik4), intent(in) :: ivt_in
     integer(ik4), intent(in) :: g_in

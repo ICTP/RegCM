@@ -5,11 +5,11 @@ module mod_clm_histflds
   ! history fields or modify defaults associated with existing history
   ! fields.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
+  use mod_clm_type, only : clm3, decomp_cascade_con
   use mod_clm_varcon, only : spval
   use mod_clm_varcon, only : dzsoi_decomp
   use mod_clm_varpar, only : ndecomp_cascade_transitions

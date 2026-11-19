@@ -2,11 +2,11 @@ module mod_clm_snowhydrology
   !
   ! Calculate snow hydrology.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mpmessage
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr
+  use mod_mpmessage, only : fatal
+  use mod_runparams, only : dtsrf
   use mod_clm_varpar , only: nlevsno
 
   implicit none
@@ -45,7 +45,7 @@ module mod_clm_snowhydrology
   !
   subroutine SnowWater(lbc, ubc, num_snowc, filter_snowc, &
                        num_nosnowc, filter_nosnowc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : denh2o, denice, wimp, ssi
     use mod_clm_atmlnd, only : clm_a2l
     use mod_clm_snicar, only : scvng_fct_mlt_bcphi, scvng_fct_mlt_bcpho, &
@@ -554,7 +554,7 @@ module mod_clm_snowhydrology
   ! fraction after the melting versus before the melting.
   !
   subroutine SnowCompaction(lbc, ubc, num_snowc, filter_snowc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon     , only : denice, denh2o, tfrz
     use mod_clm_varcon     , only : rpi, istsoil, istcrop
     use mod_clm_varctl     , only : subgridflag
@@ -740,7 +740,7 @@ module mod_clm_snowhydrology
   ! clm\_combo.f90 then executes the combination of mass and energy.
   !
   subroutine CombineSnowLayers(lbc, ubc, num_snowc, filter_snowc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : isturb, istdlak, istwet
     use mod_clm_varcon, only : istsoil, istice, istcrop
     use mod_clm_slakecon , only : lsadz
@@ -1135,7 +1135,7 @@ module mod_clm_snowhydrology
   ! Subdivides snow layers if they exceed their prescribed maximum thickness.
   !
   subroutine DivideSnowLayers(lbc, ubc, num_snowc, filter_snowc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon,  only : tfrz
     implicit none
     integer(ik4), intent(in)    :: lbc, ubc    ! column bounds
@@ -1668,7 +1668,7 @@ module mod_clm_snowhydrology
   subroutine BuildSnowFilter(lbc, ubc, num_nolakec, filter_nolakec, &
                              num_snowc, filter_snowc, &
                              num_nosnowc, filter_nosnowc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     implicit none
     integer(ik4), intent(in)  :: lbc, ubc ! column bounds
     ! number of column non-lake points in column filter
@@ -1717,7 +1717,7 @@ module mod_clm_snowhydrology
   ! Subdivides snow layers if they exceed their prescribed maximum thickness.
   !
   subroutine DivideSnowLayers_Lake(lbc, ubc, num_snowc, filter_snowc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon,  only : tfrz
     use mod_clm_slakecon ,  only : lsadz
     implicit none

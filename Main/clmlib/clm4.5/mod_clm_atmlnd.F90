@@ -2,8 +2,8 @@ module mod_clm_atmlnd
   !
   ! Handle atm2lnd, lnd2atm mapping
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : nan, rk8
   use mod_clm_varpar, only : numrad, ndst, nlevsoi
   use mod_clm_varctl, only : use_c13
   use mod_clm_decomp, only : get_proc_bounds
@@ -397,8 +397,8 @@ end subroutine init_atm2lnd_type
   ! Compute l2a component of gridcell derived type
   !
   subroutine clm_map2gcell(init)
-    use mod_clm_type
-    use mod_clm_subgridave
+    use mod_clm_type, only : clm3, column_type, gridcell_type, pft_type
+    use mod_clm_subgridave, only : c2g, p2g
     use mod_clm_varcon , only : sb
     use mod_clm_varpar , only : numrad
 #ifdef LCH4

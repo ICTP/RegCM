@@ -7,14 +7,21 @@ module mod_clm_control
   !       ../../bld/namelist_files/namelist_definition.xml
   !       Display the file in a browser to see it neatly formatted in html.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : file_freeunit, file_getunit, stderr, stdout
   use mod_posix, only : hostname
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_mppparam
-  use mod_runparams
+  use mod_mpmessage, only : fatal
+  use mod_dynparam, only : dirglob, domname, inpglob, myid, prestr, pthsep
+#ifdef CLM45
+  use mod_dynparam, only : enable_cru_precip, enable_dv_baresoil, &
+    enable_megan_emission, enable_more_crop_pft, enable_urban_landunit
+#endif
+  use mod_mppparam, only : bcast, iocpu, italk
+  use mod_runparams, only : dtsrf, ifrest, namelistfile
+#if defined(CLM45) || defined(ECLM)
+  use mod_runparams, only : rcm_megan_enabled
+#endif
   use mod_clm_varctl, only : clmvarctl_init, set_clmvarctl, &
           nsrStartup, nsrContinue
   use mod_clm_varpar, only : maxpatch_pft, more_vertlayers

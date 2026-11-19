@@ -15,15 +15,22 @@
 
 module mod_rad_outrad
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_rad_common
-  use mod_runparams
-  use mod_outvars
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : d_zero, dlowval_r8, smissval
+  use mod_dynparam, only : ici1, ici2, ifopt, ifrad, jci1, jci2, kz, kzm1
+  use mod_rad_common, only : kth
+  use mod_runparams, only : iaerosol, iclimaaer, iclimao3, idirect, irrtm, &
+    rcmtimer, rnrad_for_optfrq, rnrad_for_radfrq
+  use mod_outvars, only : opt_aassrlrf_out, opt_aastalrf_out, &
+    opt_aastoarf_out, opt_aastsrrf_out, opt_acssrlrf_out, opt_acstalrf_out, &
+    opt_acstoarf_out, opt_acstsrrf_out, opt_aext8_out, opt_agfu8_out, &
+    opt_aod_out, opt_assa8_out, opt_deltaz_out, rad_cld_out, rad_clrls_out, &
+    rad_clrlt_out, rad_clrss_out, rad_clrst_out, rad_clwp_out, rad_frla_out, &
+    rad_frsa_out, rad_higcl_out, rad_lowcl_out, rad_lwout_out, rad_midcl_out, &
+    rad_o3_out, rad_qrl_out, rad_qrs_out, rad_solin_out, rad_solout_out, &
+    rad_tauci_out, rad_taucl_out
+  use mod_regcm_types, only : mod_2_rad, rad_2_mod
 
   implicit none
 

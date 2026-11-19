@@ -23,12 +23,13 @@
 
 program test_rdldtr
   use netcdf
-  use mod_intkinds
-  use mod_realkinds
-  use mod_memutil
-  use mod_rdldtr
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_memutil, only : memory_destroy, memory_init
+  use mod_rdldtr, only : bestaround, gfclose, gfopen, gfread, globalfile, &
+    read_ncglob
   use mod_kdinterp, only : h_missing_value
-  use share_test_utils
+  use share_test_utils, only : check, test_end
   implicit none
   character(len=*), parameter :: fname = 'test_rdldtr.nc'
   integer(ik4), parameter :: ng = 600

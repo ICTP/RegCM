@@ -2,12 +2,11 @@ module mod_clm_surfaceradiation
   !
   ! Calculate solar fluxes absorbed by vegetation and ground surface
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_stdio
-  use mod_mpmessage
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr
+  use mod_mpmessage, only : fatal
+  use mod_runparams, only : dtsrf
 
   implicit none
 
@@ -35,7 +34,7 @@ module mod_clm_surfaceradiation
   ! Output variables are parsun,parsha,sabv,sabg,fsa,fsr,ndvi
   !
   subroutine SurfaceRadiation(lbp, ubp, num_nourbanp, filter_nourbanp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_atmlnd     , only : clm_a2l
     use mod_clm_varpar     , only : numrad
     use mod_clm_varcon     , only : spval, istsoil, degpsec, isecspday

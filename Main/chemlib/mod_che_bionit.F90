@@ -14,13 +14,18 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_bionit
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_che_common
-  use mod_che_dust
-  use mod_che_ncio
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_100, d_1000, d_one, d_r1000, d_zero, tzero
+  use mod_che_common, only : cdepuv, cdzq, cemisdiag, cemtrac, cfdout, &
+    chifxuw, chiten, cpsb, crhob3d, cssw2da, ctg, ctga, cxlai2d, getmem, &
+    ichbion, ichdiag, ichdrdepo, ichem, ino
+#if defined(CLM45) || defined(ECLM)
+  use mod_che_common, only : csw_vol, ctsoi
+#endif
+  use mod_che_dust, only : dustsotex, fsand
+  use mod_che_ncio, only : read_bionem
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, nats
 
   implicit none
 

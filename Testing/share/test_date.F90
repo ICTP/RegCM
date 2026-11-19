@@ -19,10 +19,14 @@
 ! stepping on the three calendars.
 
 program test_date
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use share_test_utils
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk8
+  use mod_date, only : getyear, hourdiff, julianday, prevmon, &
+    rcm_time_and_date, rcm_time_interval, setcal, timeval2date, tochar, &
+    toint10, ucnt, uday, uhrs, umin, umnt, usec, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use share_test_utils, only : check, test_end
   implicit none
   type(rcm_time_interval) :: a
   type(rcm_time_and_date) :: d, e, d0

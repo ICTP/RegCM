@@ -17,16 +17,21 @@ module mod_che_dust
   !
   ! DUST module
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_memutil
-  use mod_mppparam
-  use mod_che_common
-  use mod_che_ncio
-  use mod_che_mppio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_10, d_100, d_1000, d_half, d_one, d_two, &
+    d_zero, dlowval, egrav, mathpi, regrav, twopi, twot, vonkar
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, nats, ntr
+  use mod_mpmessage, only : fatal
+  use mod_memutil, only : getmem
+  use mod_mppparam, only : bcast
+  use mod_che_common, only : cdzq, cemisdiag, cemtrac, cfdout, chifxuw, &
+    chiten, chtrname, chtrsol, cpsb, crhob3d, ichdiag, ichdrdepo, ichdustemd, &
+    ichdustparam, ichem, idust, imine, nbin, nmine, rdstemfac, sigma, stderr
+#if defined(CLM45) || defined(ECLM)
+  use mod_che_common, only : cdustflx_clm
+#endif
+  use mod_che_ncio, only : read_dust_param, read_miner, read_texture
 
   implicit none
 

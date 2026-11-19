@@ -15,8 +15,8 @@
 
 module mod_rad_common
 
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : is_nan, rk4, rk8, rkx
   use mod_dynparam, only : nspi
 
   implicit none

@@ -3,12 +3,12 @@ module mod_clm_soillittverttransp
   !
   ! calculate vertical mixing of all decomposing C and N pools
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
   use mod_runparams, only : dtsrf
-  use mod_clm_type
+  use mod_clm_type, only : clm3, decomp_cascade_con
   use mod_clm_varctl, only : use_c13, use_c14, spinup_state
   use mod_clm_varpar, only : nlevdecomp, ndecomp_pools, nlevdecomp_full
   use mod_clm_varcon, only : secspday, zsoi, dzsoi_decomp, zisoi

@@ -15,17 +15,27 @@
 
 module mod_che_ncio
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_date
-  use mod_nchelper
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_che_indices
-  use mod_che_common
-  use mod_runparams
-  use mod_domain
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_half, d_zero
+  use mod_date, only : rcm_time_and_date, rcm_time_interval, split_idate, &
+    timeval2date, tochar, tochar10, tohours, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_nchelper, only : check_dims, closefile, openfile_withname, &
+    read_var2d_static, read_var3d_static
+  use mod_dynparam, only : dirglob, dirter, domname, ibdyfrq, ice1, ice2, &
+    ici1, ici2, ide1, ide2, iy, jce1, jce2, jci1, jci2, jde1, jde2, jx, kz, &
+    myid, nats, pthsep
+  use mod_mpmessage, only : fatal
+  use mod_che_indices, only : iald2, iaone, ic2h6, icalc, ich3oh, ichl, ico, &
+    ieth, ifld, igth, igyp, ihcho, ihmt, iilt, iiron, ikal, imica, inh3, &
+    ino2, iolei, iolet, ipar, ipollen, iqtz, ircooh, ismec, iso2, itol, ivmc, &
+    ixyl
+  use mod_che_common, only : bcast, getmem, grid_distribute, iocpu, italk, &
+    stderr, stdout
+  use mod_runparams, only : do_parallel_netcdf_in, iaerosol, ibchb, ich4, &
+    igaschem, iisop, ino, iochb, ioxclim, ism1, ismoke, nmine
   use mod_ncstream, only : outstream_netcdf_lock, outstream_netcdf_unlock
   use netcdf
 

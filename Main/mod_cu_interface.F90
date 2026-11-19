@@ -16,14 +16,18 @@
 ! Link atmospheric model and cumulus schemes
 !
 module mod_cu_interface
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_stdio
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : d_half, d_one, d_zero
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : debug_level, ici1, ici2, idi1, idi1ga, idi2, &
+    idi2ga, idynamic, iout1, iout2, jci1, jci2, jdi1, jdi1ga, jdi2, jdi2ga, &
+    jout1, jout2, kz, myid, ntr
+  use mod_runparams, only : clfrcv, dt, dtcum, dtsec, ichem, icup, icup_lnd, &
+    icup_ocn, ipptls, iqc, iqi, iqv, isocean, nqx, pc_dynamic, pc_physic, &
+    pc_total, rcmtimer, syncro_cum
+  use mod_memutil, only : assignpnt, getmem
+  use mod_regcm_types, only : cum_2_mod, mod_2_cum
   use mod_mppparam, only : exchange_lrbt, uvcross2dot, uvdot2cross, italk
   use mod_mppparam, only : tenxtouvten, uvtentotenx
   use mod_mppparam, only : reproducible_sumall, minall, maxall
@@ -42,8 +46,8 @@ module mod_cu_interface
       shrmax2d, shrmin2d, edtmax2d, edtmin2d,  edtmaxo2d, edtmaxx2d, &
       edtmino2d, edtminx2d, htmax2d, htmin2d, pbcmax2d, dtauc2d,     &
       pbcmax2d, kbmax2d
-  use mod_cu_kf
-  use mod_cu_shallow
+  use mod_cu_kf, only : allocate_mod_cu_kf, kf_lutab, kfdrv
+  use mod_cu_shallow, only : shallcu
 
   implicit none
 
@@ -89,7 +93,7 @@ module mod_cu_interface
   contains
 
   subroutine allocate_cumulus
-    use mod_atm_interface
+    use mod_atm_interface, only : mddom
     implicit none
     integer(ik4) :: i, j
     call getmem(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
@@ -130,8 +134,9 @@ module mod_cu_interface
   end subroutine allocate_cumulus
 
   subroutine init_cumulus
-    use mod_atm_interface
-    use mod_che_interface
+    use mod_atm_interface, only : aten, atm1, atm2, atms, ccn, cldfra, &
+      cldlwc, convpr, crrate, heatrt, icumbot, icumtop, ktrop, mddom, mo_atm, &
+      pptc, q_detr, qdot, rain_cc, sfs, sptc, zpbl
     implicit none
     ! INPUT
     call assignpnt(mddom%ht,m2c%ht)
@@ -223,7 +228,7 @@ module mod_cu_interface
   end subroutine cucloud
 
   subroutine cumulus
-    use mod_atm_interface
+    use mod_atm_interface, only : aten
     implicit none
     integer(ik4) :: i, j, k, n
     real(rkx) :: ijs, w1

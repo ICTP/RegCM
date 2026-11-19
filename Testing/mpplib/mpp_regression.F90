@@ -27,8 +27,8 @@
 !
 
 module mpp_regression_dump
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8
   implicit none
   integer :: iu = -1
   interface dump
@@ -145,14 +145,30 @@ end module mpp_regression_dump
 
 program mpp_regression
   use mpi_f08
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
-  use mod_mppparam
-  use mod_regcm_types
-  use mod_date
-  use mpp_regression_dump
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8
+  use mod_dynparam, only : i_band, i_crm, ice1, ice2, ici1, ici2, icross1, &
+    icross2, ide1, ide2, idi1, idi2, idot1, idot2, iout1, iout2, ioutsg1, &
+    ioutsg2, iy, iym1, iym2, iym3, iysg, jce1, jce2, jci1, jci2, jcross1, &
+    jcross2, jde1, jde2, jdi1, jdi2, jdot1, jdot2, jout1, jout2, joutsg1, &
+    joutsg2, jx, jxm1, jxm2, jxm3, jxsg, kz, kzm1, kzm2, kzp1, kzp2, kzp3, &
+    kzp4, mycomm, myid, niycpus, njxcpus, nnsg, nproc, nsg
+  use mod_memutil, only : assignpnt, memory_init
+  use mod_mppparam, only : allgather_i, allgather_r, bcast, c2l_gs, c2l_ss, &
+    cl_dispose, cl_setup, column_reduce, exchange, exchange_bdy_bt, &
+    exchange_bdy_lr, exchange_bt, exchange_lb, exchange_lr, exchange_lrbt, &
+    exchange_rt, gather_i, gather_r, glb_c2l_gs, glb_c2l_ss, glb_l2c_ss, &
+    global_cross_iend, global_cross_istart, global_cross_jend, &
+    global_cross_jstart, global_dot_iend, global_dot_istart, global_dot_jend, &
+    global_dot_jstart, grid_collect, grid_distribute, grid_fill, &
+    input_reorder, iocpu, l2c_ss, ma, maxall, minall, reorder_add_subgrid, &
+    reorder_subgrid, reproducible_sumall, row_reduce, set_nproc, &
+    subgrid_collect, subgrid_distribute, sumall, trueforall
+  use mod_regcm_types, only : ik4, masked_comm, rk4, rk8
+  use mod_date, only : rcm_time_and_date, toint10, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mpp_regression_dump, only : dump, ik4, iu, rk4, rk8
   implicit none
   integer(ik4) :: ierr, icase, nex, j, i, k, n, kk, nn, iv
   character(len=256) :: outdir, arg

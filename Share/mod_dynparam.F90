@@ -15,11 +15,18 @@
 
 module mod_dynparam
 
-  use mod_stdio
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_date
+  use mod_stdio, only : stderr, stdout
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk8, rkx
+#ifdef F2008
+#ifdef NAGFOR
+  use mod_realkinds, only : init_realkinds
+#endif
+#endif
+  use mod_constants, only : d_r1000, d_two, degrad, erkm, twopi
+  use mod_date, only : gregorian, i8wcal, noleap, rcm_time_and_date, y360, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
 #ifndef PNETCDF
   use netcdf
 #endif

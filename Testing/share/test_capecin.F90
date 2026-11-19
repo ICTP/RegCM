@@ -20,12 +20,12 @@
 ! difference from a dry adiabat, 250 - 250*(500/1000)**(R/cp) = 45 K.
 
 program test_capecin
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_memutil
-  use mod_capecin
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : cpd, egrav, ep1, ep2, rgas, rkx, rovcp
+  use mod_memutil, only : getmem, memory_destroy, memory_init
+  use mod_capecin, only : getcape_new, otlift
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: nk = 81
   real(rkx), pointer, contiguous, dimension(:,:,:) :: p => null()

@@ -19,11 +19,11 @@
 ! conversion, and specific humidity to mixing ratio and back.
 
 program test_humid
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_humid
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : egrav, lrate, rgas, rk8, rkx
+  use mod_humid, only : mxr2rh, mxr2sph, rh2mxr, rh2mxr_z, sph2mxr
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: nk = 8
   real(rk8), parameter :: t0 = 288.15_rk8, p0 = 101325.0_rk8

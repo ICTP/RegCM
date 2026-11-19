@@ -4,8 +4,8 @@ module mod_clm_cngresp
   ! Module for growth respiration fluxes,
   ! for coupled carbon-nitrogen code.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
 
   implicit none
 
@@ -21,7 +21,7 @@ module mod_clm_cngresp
   ! variables
   !
   subroutine CNGResp(num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, pftcon
     use mod_clm_pftvarcon, only : npcropmin, grperc, grpnow
     implicit none
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter

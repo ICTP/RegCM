@@ -22,8 +22,8 @@
 
 module mod_cbmz_jacobian
 
-  use mod_cbmz_parameters
-  use mod_cbmz_jacobiansp
+  use mod_cbmz_parameters, only : dp, ik4, lu_nonzero, nfix, nreact, nvar, &
+    rk8
 
   implicit none
 

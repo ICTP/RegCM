@@ -73,7 +73,6 @@
 
 ! -------- Modules --------
       use parkind, only : im => kind_im, rb => kind_rb
-      use rrlw_vsn
       use rrtmg_lw_cldprop, only: cldprop
 ! *** Move the required call to rrtmg_lw_ini below and the following
 ! use association to the GCM initialization area ***

@@ -3,9 +3,9 @@ module mod_clm_initsoilparvic
   !
   ! Performs mapping between VIC and CLM layers
   !
-  use mod_realkinds
-  use mod_intkinds
-  use mod_clm_type
+  use mod_realkinds, only : rk8
+  use mod_intkinds, only : ik4
+  use mod_clm_type, only : clm3
   use mod_clm_varcon, only : denh2o, denice, pondmx
   use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
 

@@ -99,8 +99,8 @@
 
 module mod_kdtree2_priority
 
-  use mod_realkinds
-  use mod_message
+  use mod_realkinds, only : rk4, rk8
+  use mod_message, only : die
 
   implicit none
 

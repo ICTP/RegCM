@@ -15,21 +15,24 @@
 
 module mod_rad_radiation
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_mpmessage
-  use mod_service
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_dynparam, only : kz, kzp1, kzp2, kzp3, kzp4, nspi
+  use mod_constants, only : amcfc11, amcfc12, amch4, amco2, amd, amn2o, amo3, &
+    cpd, dlowval, egrav, ep2, navgdr, sigm, stdp
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
   use mod_runparams, only : idirect, ichem, iclimaaer
   use mod_runparams, only : scon, lsrfhack
-  use mod_memutil
-  use mod_ipcc_scenario
+  use mod_ipcc_scenario, only : ghgval, igh_cfc11, igh_cfc12, igh_ch4, &
+    igh_co2, igh_n2o
 
   ! Used by this module only
 
-  use mod_rad_common
-  use mod_rad_aerosol
+  use mod_rad_common, only : dolw, dosw, wavmax, wavmin
+  use mod_rad_aerosol, only : aeroppt, aertrlw, ftota3d, gtota3d, tauasc3d, &
+    tauxar3d
 
   implicit none
 

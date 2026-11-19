@@ -10,24 +10,23 @@ module mod_clm_surfrd
   ! area not to total grid area. Need to adjust them for fraction of grid
   ! that is vegetated. Also fills in urban, lake, wetland, and glacier patches.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_memutil
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_stdio, only : stderr, stdout
+  use mod_mpmessage, only : fatal
   use mod_dynparam, only : myid, iout1, iout2, jout1, jout2
 #if (defined CNDV)
   use mod_dynparam, only : enable_dv_baresoil
 #endif
-  use mod_mppparam
-  use mod_clm_nchelper
+  use mod_mppparam, only : italk, sumall, trueforall
+  use mod_clm_nchelper, only : clm_check_dimlen, clm_check_var, &
+    clm_closefile, clm_filetype, clm_inqdim, clm_openfile, clm_readvar
   use mod_clm_varpar, only : nlevsoifl, numpft, maxpatch_pft, &
          npatch_urban_class, numurbl, npatch_lake,  &
          npatch_wet, npatch_glacier
   use mod_clm_varsur, only : wtxy, vegxy, pctspec
   use mod_clm_decomp, only : get_proc_bounds, procinfo
   use mod_clm_decomp, only : gcomm_gridcell
-  use mod_clm_type
 
   implicit none
 

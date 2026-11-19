@@ -14,8 +14,8 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_regcm_types
-  use mod_realkinds
-  use mod_intkinds
+  use mod_realkinds, only : is_nan, rk16, rk4, rk8, rkx
+  use mod_intkinds, only : ik4, ik8
   use mpi_f08, only : mpi_comm
 
   implicit none

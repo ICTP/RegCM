@@ -34,9 +34,9 @@
 
 module mod_heatindex
 
-  use mod_realkinds
-  use mod_stdio
-  use mod_message
+  use mod_realkinds, only : rkx
+  use mod_stdio, only : stderr
+  use mod_message, only : fatal
 
   implicit none
 

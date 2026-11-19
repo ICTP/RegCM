@@ -2,9 +2,9 @@ module mod_clm_hydrology2
   !
   ! Calculation of soil/snow hydrology.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_runparams, only : dtsrf
 
   implicit none
 
@@ -36,7 +36,7 @@ module mod_clm_hydrology2
                         num_urbanc, filter_urbanc, &
                         num_snowc, filter_snowc, &
                         num_nosnowc, filter_nosnowc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_atmlnd, only : clm_a2l
     use mod_clm_varcon, only : denh2o, denice, istice, istwet, istsoil, &
             isturb, spval, icol_roof, icol_road_imperv, icol_road_perv,  &

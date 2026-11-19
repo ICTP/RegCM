@@ -7,14 +7,14 @@ module mod_clm_ch4
   ! Sources, sinks, "competition" for CH4 & O2, & transport are
   ! resolved in ch4_tran.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : nan, rk8
+  use mod_stdio, only : stderr
   use mod_dynparam, only : dayspy
   use mod_constants, only : secpd
   use mod_runparams, only : dtsrf
-  use mod_mpmessage
-  use mod_clm_type
+  use mod_mpmessage, only : fatal
+  use mod_clm_type, only : clm3
   use mod_clm_atmlnd, only : clm_a2l, clm_l2a
   use mod_clm_subgridave, only : p2c, c2g
   use mod_clm_varpar, only : nlevsoi, ngases, nlevsno
@@ -25,7 +25,16 @@ module mod_clm_ch4
   use mod_clm_varcon, only : secspday
   use mod_clm_varctl, only : anoxia
   use mod_clm_time_manager, only : is_end_curr_year
-  use mod_clm_ch4varcon
+#ifdef LCH4
+  use mod_clm_ch4varcon, only : aereoxid, allowlakeprod, anoxicmicrosites, &
+    ch4frzout, ch4rmcnlim, cnscalefactor, f_ch4, fin_use_fsat, k_m, k_m_o2, &
+    k_m_unsat, lake_decomp_fact, mino2lim, nongrassporosratio, organic_max, &
+    q10_ch4oxid, q10ch4, q10ch4base, redoxlag, redoxlag_vertical, &
+    replenishlakec, rootlitfrac, satpow, scale_factor_aere, &
+    scale_factor_gasdiff, scale_factor_liqdiff, smp_crit, transpirationloss, &
+    unsat_aere_ratio, usefrootc, usephfact, vgc_max, vmax_ch4_oxid, &
+    vmax_oxid_unsat
+#endif
   use mod_clm_pftvarcon, only : noveg, crop, nc4_grass
   use mod_clm_pftvarcon, only : nc3_arctic_grass, nc3_nonarctic_grass
   use mod_clm_tridiagonal, only : Tridiagonal

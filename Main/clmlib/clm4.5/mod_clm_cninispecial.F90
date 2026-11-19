@@ -1,6 +1,6 @@
 module mod_clm_cninispecial
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
 
   implicit none
 
@@ -21,8 +21,11 @@ module mod_clm_cninispecial
     use mod_clm_varcon, only : spval
     use mod_clm_varpar, only : nlevdecomp_full
     use mod_clm_varctl, only : use_c13, use_c14
-    use mod_clm_type
-    use mod_clm_cnsetvalue
+    use mod_clm_type, only : clm3
+#if (defined CN)
+    use mod_clm_cnsetvalue, only : cnsetccf, cnsetccs, cnsetcnf, cnsetcns, &
+      cnsetcps, cnsetpcf, cnsetpcs, cnsetpepv, cnsetpnf, cnsetpns, cnsetpps
+#endif
     use mod_clm_surfrd, only : crop_prog
     implicit none
     ! landunit index of corresponding column

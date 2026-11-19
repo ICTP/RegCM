@@ -19,11 +19,12 @@
 ! remappnt4, and a valgrind clean memory_destroy.
 
 program test_memutil
-  use mod_intkinds
-  use mod_realkinds
-  use mod_memutil
+  use mod_intkinds, only : ik2, ik4
+  use mod_realkinds, only : rk4, rk8
+  use mod_memutil, only : assignpnt, getmem, memory_destroy, memory_init, &
+    relmem, remappnt4
   use mod_date, only : rcm_time_and_date
-  use share_test_utils
+  use share_test_utils, only : check, test_end
   implicit none
   real(rk8), pointer, contiguous, dimension(:,:) :: a => null()
   real(rk8), pointer, contiguous, dimension(:,:) :: b => null()

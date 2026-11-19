@@ -5,17 +5,21 @@ module mod_clm_cndv
   ! that works with CN, reset related variables,
   ! and initialize/reset time invariant variables
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_runparams
-  use mod_mpmessage
-  use mod_stdio
-  use mod_date
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_dynparam, only : dirout, myid, nioutsg, njoutsg, pthsep
+  use mod_runparams, only : syncro_srf
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stdout
+  use mod_date, only : curr_date, curr_time, ref_date, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
   use mod_posix, only : hostname
-  use mod_mppparam
-  use mod_clm_type
-  use mod_clm_nchelper
+  use mod_mppparam, only : italk, lndcomm
+  use mod_clm_type, only : clm3
+  use mod_clm_nchelper, only : clm_addatt, clm_adddim, clm_addvar, &
+    clm_closefile, clm_createfile, clm_enddef, clm_filetype, clm_writevar, &
+    clmvar_double, clmvar_integer, clmvar_logical, clmvar_unlim
   use mod_clm_time_manager, only : getdatetime
   use mod_clm_varctl, only : caseid, inst_suffix, nextdate
   use mod_clm_varctl, only : ctitle, finidat, fsurdat, fpftcon

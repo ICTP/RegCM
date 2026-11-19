@@ -18,8 +18,10 @@
 ! brute force ones, and a tree with many coincident points is built.
 
 program test_kdtree2
-  use mod_kdtree2
-  use share_test_utils
+  use mod_kdtree2, only : kdkind, kdtree2, kdtree2_create, kdtree2_destroy, &
+    kdtree2_n_nearest, kdtree2_n_nearest_brute_force, kdtree2_r_count, &
+    kdtree2_r_nearest, kdtree2_r_nearest_brute_force, kdtree2_result
+  use share_test_utils, only : check, fixed_seed, test_end
   implicit none
   integer, parameter :: n = 20000
   integer, parameter :: nq = 2000

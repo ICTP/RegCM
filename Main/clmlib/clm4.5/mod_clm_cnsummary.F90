@@ -3,10 +3,10 @@ module mod_clm_cnsummary
   !
   ! Module for carbon and nitrogen summary calculations
   !
-  use mod_stdio
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
+  use mod_stdio, only : stderr
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : is_nan, rk8
+  use mod_mpmessage, only : fatal
   use mod_runparams, only : dtsrf
   use mod_clm_varcon, only: dzsoi_decomp, zisoi
   use mod_clm_pftvarcon  , only: npcropmin
@@ -27,7 +27,8 @@ module mod_clm_cnsummary
   ! summary calculations
   !
   subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, column_cflux_type, column_cstate_type, &
+      decomp_cascade_con, pft_cflux_type, pft_cstate_type
     use mod_clm_subgridave, only : p2c
     use mod_clm_varpar, only : nlevdecomp, ndecomp_pools, &
             ndecomp_cascade_transitions
@@ -1417,7 +1418,7 @@ module mod_clm_cnsummary
   ! summary calculations
   !
   subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, decomp_cascade_con
     use mod_clm_subgridave, only : p2c
     use mod_clm_varpar, only : nlevdecomp, ndecomp_cascade_transitions, &
             ndecomp_pools

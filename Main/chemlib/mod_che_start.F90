@@ -15,27 +15,37 @@
 
 module mod_che_start
 
-  use mod_intkinds
-  use mod_runparams
-  use mod_realkinds
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_che_common
-  use mod_che_indices
-  use mod_che_bdyco
-  use mod_che_wetdep
-  use mod_che_chemistry
-  use mod_che_carbonaer
-  use mod_che_ncio
-  use mod_che_mppio
-  use mod_che_bdyco
-  use mod_che_dust
-  use mod_che_sox
-  use mod_che_seasalt
-  use mod_mppparam
-  use mod_che_molwg
-  use mod_che_bionit
-  use mod_cbmz_hvread
+  use mod_intkinds, only : ik4
+  use mod_runparams, only : alarm_out_che, chemsimtype, chtrname, dtche, &
+    iaerosol, ianh4, iano3, ibchb, ibchl, ich4, ichbion, ichdustemd, &
+    ichecold, ifrest, igaschem, iisop, ino, io3, iochb, iochl, ism1, ism2, &
+    nbchl, nbin, nmine, nochl
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : ice1, ice2, idynamic, jce1, jce2, kz, myid, ntr
+  use mod_mpmessage, only : fatal, iprntv
+  use mod_che_common, only : cfdout, chemt, chia, chib, chtrsol, icarb, &
+    idust, imine, isslt, stderr, stdout, trac
+#if defined CLM45
+  use mod_che_common, only : bvoc_trmask
+#endif
+  use mod_che_indices, only : cbmzspec, iald2, iaone, ic2h6, ich3oh, ich3ooh, &
+    ico, icres, idms, ieth, iethooh, ih2o2, ih2so4, ihcho, ihcooh, ihno2, &
+    ihno3, ihno4, iisopn, iisoprd, imgly, imsa, in2o5, inh3, ino2, iolei, &
+    iolet, ionit, iopen, ipan, ipar, ipollen, ircooh, irooh, iso2, iso4, &
+    isulf, itol, ixyl, mine_name, totsp
+  use mod_che_bdyco, only : che_init_bdy, chib0, ichbdy2trac
+  use mod_che_chemistry, only : dtchsolv
+  use mod_che_carbonaer, only : carb_init, carbed, reffbc, reffoc, reffochl, &
+    reffsm1, reffsm2, solbc, soloc, solochl, solsm1, solsm2
+  use mod_che_ncio, only : aeaero, aedu12, chbcname, init_mod_che_ncio, &
+    n_chbcvar
+  use mod_che_dust, only : inidust
+  use mod_che_sox, only : solso2, solso4
+  use mod_che_seasalt, only : solsslt
+  use mod_mppparam, only : italk
+  use mod_che_molwg, only : mw_cbmz
+  use mod_che_bionit, only : ini_bionit
+  use mod_cbmz_hvread, only : hvread
 
   implicit none
 

@@ -3,13 +3,15 @@ module mod_clm_cnphenology
   !
   ! Module holding routines used in phenology model for coupled carbon
   ! nitrogen code.
-  use mod_realkinds
-  use mod_intkinds
-  use mod_stdio
-  use mod_date
+  use mod_realkinds, only : rk8
+  use mod_intkinds, only : bigint, ik4
+  use mod_stdio, only : stdout
+  use mod_date, only : curr_date, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
   use mod_dynparam, only : dayspy
-  use mod_runparams
-  use mod_clm_type
+  use mod_runparams, only : dtsrf
+  use mod_clm_type, only : clm3, pftcon
   use mod_clm_varcon, only : tfrz
   use mod_clm_varpar, only : numpft
   use mod_clm_varctl, only : nextdate

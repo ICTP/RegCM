@@ -15,11 +15,13 @@
 
 module mod_pbl_thetal
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_mpmessage
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : cpd, d_one, d_rfour, d_three, d_two, d_zero, &
+    dlowval, ep2, p00, rcpd, rgas, rovcp, rtice, rtwat, rtwat_rtice_r, rwat, &
+    tzero, wlhs, wlhv
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
 
   implicit none
 

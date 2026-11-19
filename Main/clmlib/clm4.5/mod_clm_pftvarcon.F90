@@ -1,11 +1,12 @@
 module mod_clm_pftvarcon
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_clm_nchelper
-  use mod_dynparam
-  use mod_mppparam
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_clm_nchelper, only : clm_closefile, clm_filetype, clm_inqdim, &
+    clm_openfile, clm_readvar
+  use mod_dynparam, only : myid
+  use mod_mppparam, only : italk
+  use mod_stdio, only : stderr, stdout
   use mod_clm_varpar, only : mxpft, numrad, ivis, inir
   use mod_clm_varctl, only : fpftcon
 

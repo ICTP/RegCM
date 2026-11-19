@@ -2,14 +2,13 @@ module mod_clm_restfile
   !
   ! Reads from or writes to/ the CLM restart file.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_mppparam
-  use mod_runparams
-  use mod_clm_nchelper
+  use mod_intkinds, only : ik4
+  use mod_stdio, only : stdout
+  use mod_mpmessage, only : fatal
+  use mod_dynparam, only : dirout, myid, pthsep
+  use mod_mppparam, only : italk
+  use mod_clm_nchelper, only : clm_addatt, clm_adddim, clm_check_dimlen, &
+    clm_closefile, clm_createfile, clm_enddef, clm_filetype, clm_openfile
   use mod_clm_surfrd, only : crop_prog
   use mod_clm_subgridrest, only : SubgridRest
   use mod_clm_biogeophysrest, only : BiogeophysRest
@@ -31,7 +30,7 @@ module mod_clm_restfile
   use mod_clm_ch4rest, only : ch4Rest
 #endif
   use mod_clm_histfile, only : hist_restart_ncd
-  use mod_clm_time_manager
+  use mod_clm_time_manager, only : getdatetime
 
   implicit none
 

@@ -15,41 +15,129 @@
 
 module mod_params
 
-  use mod_runparams
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_constants
-  use mod_stdio
-  use mod_date
-  use mod_domain
-  use mod_service
-  use mod_cu_interface
-  use mod_lm_interface
-  use mod_atm_interface
-  use mod_che_interface
-  use mod_rad_interface
-  use mod_pbl_interface
-#ifdef CLM45
-  use mod_clm_regcm
+  use mod_runparams, only : abulk, adyndif, ak, alarm_day, alarm_hour, &
+    alarm_in_bdy, alarm_out_atm, alarm_out_che, alarm_out_lak, alarm_out_nwf, &
+    alarm_out_opt, alarm_out_rad, alarm_out_sav, alarm_out_shf, &
+    alarm_out_srf, alarm_out_sts, alarm_out_sub, allocate_mod_runparams, &
+    alphae, atwo, auto_rate_kessl, auto_rate_khair, auto_rate_klepi, &
+    base_state_ts0, bdydate1, betae, bk, budget_compute, caccrlnd, caccroce, &
+    carb_aging_control, cevaplnd, cevapoce, chechgact, chemsimtype, chtrname, &
+    ckh, clfrcv, cllwcv, coef_ccn, coeffr, coeffs, conf, cpldt, cu, cu_cfmax, &
+    czero, damp, detrpen_lnd, detrpen_ocn, diaghf, diaghfs, diffu_hgtf, &
+    do_parallel_netcdf_in, do_parallel_netcdf_out, do_parallel_save, &
+    do_qflux_adj, do_restore_sst, doing_restart, dsigma, dt, dt2, dtabem, &
+    dtau, dtauc, dtbdys, dtcb, dtche, dtcum, dtmax, dtrad, dtsec, dtsplit, &
+    dtsq, dtsrf, dx, dx16, dx2, dx4, dx8, dxsq, edtmax, edtmax_ocn, edtmaxo, &
+    edtmaxo_ocn, edtmaxx, edtmaxx_ocn, edtmin, edtmin_ocn, edtmino, &
+    edtmino_ocn, edtminx, edtminx_ocn, elcrit_lnd, elcrit_lnd_max, &
+    elcrit_lnd_min, elcrit_ocn, entp, entrdd, entrpen_lnd, entrpen_ocn, &
+    entshalp, epmax_lnd, epmax_lnd_max, epmax_lnd_min, epmax_ocn, &
+    fixedsolarval, gas_tweak_factors, ghg_year_const, gnu1, gnu2, gulland, &
+    guloce, holtth10iter, hsigma, htmax, htmin, iaerosol, iautoconv, ibltyp, &
+    iboudy, iceflglw, iceflgsw, icetriggert, ichbion, ichcumtra, ichdiag, &
+    ichdrdepo, ichdustemd, ichdustparam, ichebdy, ichecold, ichem, ichjphcld, &
+    ichlinox, ichremcvc, ichremlsc, ichsolver, ichsursrc, icld, icldfrac, &
+    icldmstrat, iclimaaer, iclimao3, iconvcf, iconvlwp, icopcpl, icosp, &
+    icumcloud, icup, icup_lnd, icup_ocn, idate0, idate1, idate2, idcsst, &
+    idiag, idif, idiffu, idirect, iemiss, ifaholt, ifaholtth10, ifixsolar, &
+    ifrayd, ifrest, ifslaboc, ifupr, igaschem, igcc, iindirect, iisoropia, &
+    imcica, inflglw, inflgsw, intbdy, intsom, ioasiscpl, iocncpl, iocnflux, &
+    ioxclim, ipgf, ipptls, iqc, iqfrst, iqh, iqlst, iqmsl, iqs, irceideal, &
+    irng, irrtm, iseaice, islab_ocean, isladvec, ismoke, isnowdark, isocean, &
+    isolconst, istochastic, itweak, itweak_greenhouse_gases, &
+    itweak_solar_irradiance, itweak_sst, itweak_temperature, iuwvadv, &
+    iwavcpl, iwhitecap, izengrough, k2_const, kf_convrate, kf_dpp, &
+    kf_entrate, kf_max_dtcape, kf_max_pef, kf_min_dtcape, kf_min_pef, &
+    kf_tkemax, kf_wthreshold, kfac_deep, kfac_shal, lakemod, larcticcorr, &
+    lconst2050, lepcld, liqflglw, liqflgsw, lmfcapebl, lmfcapeforc, lmfdd, &
+    lmfdudv, lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, &
+    lmoistn2, lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, minorig, &
+    mixed_layer_depth, mo_dzita, moloch_do_test_1, moloch_do_test_2, &
+    namelistfile, nbin, nhbet, nhxkd, nqx, nradfo, nsplit, nssopt, nuk, &
+    omtrain, omtsnow, pbcmax, q_rel_extrema, qck1land, qck1oce, qcon, &
+    rad_max, rad_min, rad_sigma, radclimpath, rayalpha0, rayhd, rayndamp, &
+    rayzd, rcldiff, rcmtimer, rcovpmin, rcpec_lnd, rcpec_ocn, rcrit, &
+    rcuc_lnd, rcuc_ocn, rdstemfac, rdt, rdx, rdxsq, rh0land, rh0oce, &
+    rhebc_lnd, rhebc_ocn, rhmax, rhmin, ricr_lnd, ricr_ocn, rkconv, rocemfac, &
+    rpecons, rprc_lnd, rprc_ocn, rrtm_extend, rstbl, rtaucape, rtaufac, &
+    scenario, shrmax, shrmax_ocn, shrmin, shrmin_ocn, sigd, sigd_max, &
+    sigd_min, sigma, sigs, sigs_max, sigs_min, skbmax, skconv, solar_tweak, &
+    sst_restore_timescale, sst_tweak, stability_enhance, stats, syncro_che, &
+    syncro_cpl, syncro_cum, syncro_dbg, syncro_emi, syncro_rad, &
+    syncro_radfor, syncro_rep, syncro_srf, t_extrema, tc0, temp_tend_maxval, &
+    temperature_tweak, tlcrit, twt, uoffc, upstream_mode, ustarmax, uvrotate, &
+    vfqs, vqrang, wind_tend_maxval, year_offset, zhnew_fac, zita, zitah, &
+    zomax
+#if defined(CLM45) || defined(ECLM)
+  use mod_runparams, only : rcm_megan_enabled
 #endif
-  use mod_micro_interface
-  use mod_split
-  use mod_slice
-  use mod_bdycod
-  use mod_ncio
-  use mod_tendency
-  use mod_ncout
+  use mod_mppparam, only : bcast, exchange, exchange_bt, exchange_lr, &
+    exchange_lrbt, iocpu, italk, ma, maxall, psc2psd
+  use mod_mpmessage, only : fatal
+  use mod_constants, only : cpd, cvd, d_100, d_1000, d_four, d_half, d_one, &
+    d_rfour, d_two, d_zero, degrad, earthrad, egrav, eomeg2, mathpi, raddeg, &
+    regrav, rgas, rkx, secpd, secph, secpm
+  use mod_stdio, only : stderr, stdout
+  use mod_date, only : i8wcal, rcm_time_interval, tochar, tohours, uhrs, &
+    umnt, assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_cu_interface, only : allocate_cumulus, dtauc2d, edtmax2d, &
+    edtmaxo2d, edtmaxx2d, edtmin2d, edtmino2d, edtminx2d, htmax2d, htmin2d, &
+    init_cumulus, k700, kbmax2d, mincld2d, pbcmax2d, shrmax2d, shrmin2d, &
+    twght, vqflx
+  use mod_lm_interface, only : allocate_surface_model, dtbat, &
+    init_surface_model
+  use mod_atm_interface, only : allocate_mod_atm_interface, &
+    allocate_v2dbound, allocate_v3dbound, atm0, ba_cr, ba_dt, ba_ud, ba_vd, &
+    cross, dot, dpsdxm, dpsdym, dub, dvb, flw, fsw, mddom, mdsub, mo_atm, &
+    setup_boundaries, sfs, xpaib, xppb, xpsb, xqb, xtb, xtsb, xwwb
+  use mod_che_interface, only : allocate_mod_che_bdyco, &
+    allocate_mod_che_bionit, allocate_mod_che_common, allocate_mod_che_dust, &
+    allocate_mod_che_mppio, chem_config, init_chem, setup_che_bdycon
+  use mod_rad_interface, only : aerclima_nbin, aerclima_ntr, &
+    allocate_radiation, init_radiation, set_scenario
+  use mod_pbl_interface, only : allocate_pblscheme, init_pblscheme, ricr
+#ifdef CLM45
+#endif
+  use mod_micro_interface, only : allocate_micro, caccr, cevap, cgul, &
+    init_micro, qck1, rh0
+  use mod_split, only : allocate_mod_split
+  use mod_slice, only : init_slice
+  use mod_bdycod, only : allocate_mod_bdycon, setup_bdycon
+  use mod_ncio, only : read_domain_info, read_subdomain_info
+  use mod_tendency, only : allocate_mod_tend
+  use mod_ncout, only : atm_vars_off, atm_vars_only, che_vars_off, &
+    che_vars_only, enable_atm_vars, enable_che_vars, enable_lak_vars, &
+    enable_opt_vars, enable_rad_vars, enable_shf_vars, enable_srf_vars, &
+    enable_sts_vars, enable_sub_vars, lak_vars_off, lak_vars_only, &
+    opt_vars_off, opt_vars_only, rad_vars_off, rad_vars_only, shf_vars_off, &
+    shf_vars_only, srf_vars_off, srf_vars_only, sts_vars_off, sts_vars_only, &
+    sub_vars_off, sub_vars_only, varname_len
   use mod_advection, only : init_advection
   use mod_sladvection, only : init_sladvection
   use mod_diffusion, only : allocate_mod_diffusion
-  use mod_savefile
-  use mod_slabocean
-  use mod_sldepparam
-  use mod_sound
-  use mod_timer
-  use mod_zita
-  use mod_moloch
-  use mod_timefilter
+  use mod_savefile, only : allocate_mod_savefile
+  use mod_slabocean, only : allocate_mod_slabocean, init_slabocean
+  use mod_sldepparam, only : allocate_mod_sldepparam, atmfrq, &
+    base_state_pressure, bdy_dm, bdy_nm, bdy_use_lehmann, chemfrq, clat, &
+    clon, cmip6_experiment, dattyp, dbgfrq, debug_level, dirglob, dirout, &
+    dirter, domname, ds, globidate1, globidate2, high_nudge, i_band, i_crm, &
+    ibdyfrq, ical, ice1, ice2, ici1, ici2, ide1, ide2, idi1, idi2, idynamic, &
+    ifatm, ifchem, ifcordex, iflak, ifopt, ifrad, ifsave, ifshf, ifsrf, &
+    ifsts, ifsub, ik4, ik8, iproj, iy, iyp, jce1, jce2, jci1, jci2, jde1, &
+    jde2, jdi1, jdi2, jx, jxp, kz, kzp1, lakfrq, logp_lrate, low_nudge, &
+    lsmoist, medium_nudge, mo_a0, mo_h, mo_lcap, mo_nadv, mo_nsound, mo_ztop, &
+    myid, ncfilter, ncfilter_params, nnsg, nsg, nspgd, nspgx, ntr, optfrq, &
+    outnwf, plat, plon, prestr, ptop, radfrq, savfrq, srffrq, ssttyp, subfrq, &
+    truelath, truelatl, xcone
+  use mod_sound, only : allocate_mod_sound
+  use mod_timer, only : rcm_alarm, rcm_syncro, rcm_timer, operator(/)
+  use mod_zita, only : md_ak, md_bk, md_fmz, md_zeta, model_zitaf, &
+    model_zitah, sigmazita
+  use mod_moloch, only : allocate_moloch
 #ifdef OASIS
   use mod_oasis_interface
 #endif
@@ -3572,7 +3660,7 @@ module mod_params
     contains
 
       subroutine make_reference_atmosphere
-        use mod_nhinterp
+        use mod_nhinterp, only : nhbase, nhsetup
         implicit none
         integer(ik4) :: i, j, k
         real(rkx) :: ztop

@@ -15,26 +15,44 @@
 !
 #ifdef CLM45
 program clmsa
-  use mod_realkinds
-  use mod_intkinds
-  use mod_date
-  use mod_stdio
-  use mod_constants
-  use mod_memutil
-  use mod_service
-  use mod_runparams
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_header
-  use mod_clm_params
-  use mod_service
-  use mod_date
-  use mod_dynparam
-  use mod_atm_stub
-  use mod_clm_regcm
+  use mod_realkinds, only : rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_date, only : rcm_time_interval, tochar10, tohours, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stderr, stdout
+  use mod_constants, only : d_zero, rk8, rkx, secph
+  use mod_memutil, only : getmem, memory_destroy, memory_init, relmem
+#ifdef DEBUG
+  use mod_service, only : activate_debug, start_debug, stop_debug, &
+    time_print, time_reset
+#endif
+  use mod_runparams, only : alarm_hour, alarm_in_bdy, doing_restart, dtsrf, &
+    idate1, idate2, ifrest, namelistfile, prgname, rcmtimer, xbctime
+#ifdef CLM45
+  use mod_runparams, only : sfbcread
+#endif
+  use mod_mppparam, only : bcast, broadcast_params, iocpu, italk, set_nproc, &
+    subgrid_collect, subgrid_distribute
+  use mod_mpmessage, only : fatal, setup_mesg
+  use mod_header, only : finaltime, header, whoami
+  use mod_clm_params, only : param
+#ifdef DEBUG
+  use mod_service, only : activate_debug, start_debug, stop_debug, &
+    time_print, time_reset
+#endif
+  use mod_date, only : rcm_time_interval, tochar10, tohours, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_dynparam, only : debug_level, dirout, domname, ici1, ici2, icross1, &
+    icross2, init_random_number_generator, initparam, jci1, jci2, jcross1, &
+    jcross2, mycomm, myid, nnsg, nproc
+  use mod_atm_stub, only : atmval, bdyin, coszrs, flwd, init_bdy, lm, lms, &
+    lwdif, lwdir, mddom, pptc, setup_model_indexes, solar, swdif, swdir, totc
+  use mod_clm_regcm, only : albedoclm45, initsaclm45, runsaclm45
   use mod_ipcc_scenario, only : update_scenario
   use mod_sun, only : zenitm
-  use mod_ncio
+  use mod_ncio, only : close_clmbc, close_icbc, read_clmbc
   use mpi_f08
   implicit none
 

@@ -17,21 +17,27 @@ module mod_che_emission
   !
   ! Chemical and aerosol surface emission
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_mpmessage
-  use mod_service
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : d_two, d_zero, degrad, degrad_r8, halfpi, &
+    halfpi_r8, mathpi, mathpi_r8, raddeg, raddeg_r8
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_dynparam, only : idynamic, jci1, jci2, kz, myid, ntr
 #if defined(CLM45) || defined(ECLM)
   use mod_runparams, only : rcm_megan_enabled
 #endif
-  use mod_che_common
-  use mod_che_param
-  use mod_che_mppio
-  use mod_che_dust
-  use mod_che_ncio
-  use mod_che_indices
+  use mod_che_common, only : cdzq, cemisdiag, cemtrac, cfdout, chemsimtype, &
+    chemsrc, chemsrcan, chemsrcbb, chifxuw, chiten, chtrname, cpsb, crhob3d, &
+    cxlat, czen, declin, ibchb, ibltyp, ich4, ichdiag, ichdrdepo, iisop, &
+    iochb, ism1, ismoke, italk, rocemfac, stdout, tmpsrc
+#if defined(CLM45) || defined(ECLM)
+  use mod_che_common, only : cvoc_em_clm
+#endif
+  use mod_che_ncio, only : ifrqday, ifrqmon, read_bioburn_emission, &
+    read_emission
+  use mod_che_indices, only : mine_name
   use netcdf
   !
   implicit none

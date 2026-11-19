@@ -3,9 +3,9 @@ module mod_clm_cnprecisioncontrol
   !
   ! controls on very low values in critical state variables
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr
   use mod_clm_varpar, only : ndecomp_pools
 
   implicit none
@@ -22,7 +22,7 @@ module mod_clm_cnprecisioncontrol
   ! they get too small.
   !
   subroutine CNPrecisionControl(num_soilc,filter_soilc,num_soilp,filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varctl, only : use_c13, use_c14
     use mod_clm_varpar, only : nlevdecomp
     use mod_clm_pftvarcon, only : nc3crop

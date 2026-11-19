@@ -3,9 +3,9 @@ module mod_clm_baregroundfluxes
   ! Compute sensible and latent fluxes and their derivatives with respect
   ! to ground temperature using ground temperatures from previous time step.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_clm_type, only : clm3
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_varpar, only : nlevgrnd
   use mod_clm_varcon, only : cpair, vkc, grav, denice, denh2o, istsoil

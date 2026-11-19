@@ -15,16 +15,19 @@
 
 module mod_runparams
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_stdio
-  use mod_date
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_memutil
-  use mod_timer
-  use mod_spline
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : d_one, d_zero
+  use mod_stdio, only : stderr
+  use mod_date, only : rcm_time_and_date, rcm_time_interval, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_dynparam, only : high_nudge, idynamic, kz, kzp1, low_nudge, &
+    medium_nudge, mpy, myid
+  use mod_mpmessage, only : fatal, vprntv
+  use mod_memutil, only : getmem
+  use mod_timer, only : rcm_alarm, rcm_syncro, rcm_timer, operator(/)
+  use mod_spline, only : spline1d
 
   implicit none
 

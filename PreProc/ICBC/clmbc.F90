@@ -15,7 +15,7 @@
 
 #ifdef PNETCDF
 subroutine myabort
-  use mod_stdio
+  use mod_stdio, only : stderr
   use mpi_f08
   implicit none
   integer :: ierr
@@ -39,18 +39,24 @@ end subroutine myabort
 !                                                                      !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 program clmbc
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_message
-  use mod_header
-  use mod_stdio
-  use mod_memutil
-  use mod_date
-  use mod_grid
-  use mod_date
-  use mod_write
-  use mod_era5
+  use mod_intkinds, only : ik4
+  use mod_dynparam, only : globidate1, globidate2, initparam, iy, jx, kz
+  use mod_message, only : die
+  use mod_header, only : finaltime, header, ik4, stderr, stdout
+  use mod_stdio, only : stderr, stdout
+  use mod_memutil, only : memory_destroy, memory_init
+  use mod_date, only : lsamemonth, monfirst, rcm_time_and_date, &
+    rcm_time_interval, tochar, tohours, uhrs, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_grid, only : init_hgrid
+  use mod_date, only : lsamemonth, monfirst, rcm_time_and_date, &
+    rcm_time_interval, tochar, tohours, uhrs, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_write, only : close_output, dispose_output, init_houtput, newhfile, &
+    writehf
+  use mod_era5, only : conclude_era5h, get_era5h, init_era5h
 #ifdef PNETCDF
   use mpi_f08
 #endif

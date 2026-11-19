@@ -1,9 +1,11 @@
 module mod_clm_time_manager
 
-   use mod_date
-   use mod_intkinds
-   use mod_realkinds
-   use mod_mpmessage
+   use mod_date, only : date_is, i4wcal, rcm_time_and_date, &
+     rcm_time_interval, split_idate, time_is, yeardayfrac, yearpoint, &
+     assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+     operator(<=), operator(==), operator(>), operator(>=)
+   use mod_intkinds, only : ik4, ik8
+   use mod_realkinds, only : rk8
    use mod_constants, only : secpd
    use mod_dynparam, only : dayspy
    use mod_runparams, only : idate0

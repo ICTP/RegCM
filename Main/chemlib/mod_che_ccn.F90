@@ -15,11 +15,12 @@
 
 module mod_che_ccn
 
-  use mod_intkinds
-  use mod_constants
-  use mod_realkinds
-  use mod_che_common
-  use mod_che_carbonaer
+  use mod_intkinds, only : ik4
+  use mod_constants, only : d_one, d_zero, mathpi
+  use mod_realkinds, only : rkx
+  use mod_che_common, only : cccn, chib3d, coef_ccn, crhob3d, ibchl, ici1, &
+    ici2, iochl, iso4, isslt, jci1, jci2, kz, nbchl, nochl
+  use mod_che_carbonaer, only : rhobchl, rhoochl
   implicit none
 
   private

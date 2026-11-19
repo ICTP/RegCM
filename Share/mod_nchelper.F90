@@ -16,13 +16,15 @@
 module mod_nchelper
 
   use netcdf
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_constants
-  use mod_memutil
-  use mod_dynparam
-  use mod_message
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_stdio, only : stderr
+  use mod_constants, only : d_two
+  use mod_memutil, only : getmem
+  use mod_dynparam, only : clat, clon, debug_level, domname, ds, idynamic, &
+    iomode, iproj, iy, jx, kz, ncfilter, ncfilter_nparams, ncfilter_params, &
+    nsg, plat, plon, ptop, truelath, truelatl, xcone
+  use mod_message, only : die
 
   implicit none
 

@@ -15,14 +15,15 @@
 
 module mod_kdinterp
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
-  use mod_stdio
-  use mod_message
-  use mod_earth
-  use mod_spbarcoord
-  use mod_kdtree2
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_constants, only : d_100, d_one, d_zero, erkm
+  use mod_stdio, only : stderr, stdout
+  use mod_message, only : die
+  use mod_earth, only : gcdist_simple, ll2xyz
+  use mod_spbarcoord, only : spherical_barycentric
+  use mod_kdtree2, only : kdkind, kdtree2, kdtree2_create, kdtree2_destroy, &
+    kdtree2_n_nearest, kdtree2_r_count, kdtree2_r_nearest, kdtree2_result
   implicit none
 
   private

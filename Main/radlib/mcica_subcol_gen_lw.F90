@@ -51,7 +51,6 @@
       use parrrtm, only : nbndlw, ngptlw
       use rrlw_con, only: grav
       use rrlw_wvn, only: ngb
-      use rrlw_vsn
 
       implicit none
 
@@ -364,7 +363,6 @@
   !   without cloud condensate or the opposite).
   !---------------------------------------------------------------------------------------------------------------
 
-      use mcica_random_numbers
 ! The Mersenne Twister random number engine
       use MersenneTwister, only: randomNumberSequence, &
                                  new_RandomNumberSequence, getRandomReal

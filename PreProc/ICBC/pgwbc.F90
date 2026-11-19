@@ -15,7 +15,7 @@
 
 #ifdef PNETCDF
 subroutine myabort
-  use mod_stdio
+  use mod_stdio, only : stderr
   use mpi_f08
   implicit none
   integer :: ierr
@@ -30,19 +30,25 @@ end subroutine myabort
 #endif
 
 program pgwbc
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_message
-  use mod_header
-  use mod_stdio
-  use mod_memutil
-  use mod_date
-  use mod_grid
-  use mod_date
-  use mod_write
-  use mod_projections
-  use mod_pgw
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_dynparam, only : base_state_pressure, clat, clon, ds, idynamic, &
+    initparam, iproj, iy, jx, kz, logp_lrate, plat, plon, truelath, truelatl
+  use mod_message, only : die
+  use mod_header, only : finaltime, header, ik4, stderr, stdout
+  use mod_stdio, only : stderr, stdout
+  use mod_memutil, only : memory_destroy, memory_init
+  use mod_date, only : nextmon, rcm_time_and_date, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_grid, only : init_grid, pjd, pju, pjv
+  use mod_date, only : nextmon, rcm_time_and_date, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_write, only : close_output, dispose_output, init_outpgw, &
+    newpgwfile, writepgwf
+  use mod_projections, only : anyprojparams
+  use mod_pgw, only : conclude_pgw, get_pgw, init_pgw, plevs
 #ifdef PNETCDF
   use mpi_f08
 #endif

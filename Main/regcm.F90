@@ -21,14 +21,15 @@ program regcm
 !
 !**********************************************************************
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_stdio
-  use mod_constants
-  use mod_dynparam
-  use mod_regcm_interface
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_date, only : rcm_time_interval, tohours, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stderr
+  use mod_constants, only : d_zero, rk8, secph
+  use mod_regcm_interface, only : rcm_finalize, rcm_initialize, rcm_run
+  use mod_runparams, only : idate1, idate2
   use mpi_f08
 #ifdef OASIS
   use mod_oasis_interface

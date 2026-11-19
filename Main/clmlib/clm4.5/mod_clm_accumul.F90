@@ -16,15 +16,18 @@ module mod_clm_accumul
   !   continuously accumulated. The trigger value "-99999." resets
   !   the accumulation to zero.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_runparams
-  use mod_mppparam
-  use mod_clm_nchelper
-  use mod_clm_decomp
+  use mod_intkinds, only : bigint, ik4, ik8
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr, stdout
+  use mod_mpmessage, only : fatal
+  use mod_dynparam, only : debug_level, myid
+  use mod_runparams, only : dtsrf, rcmtimer
+  use mod_mppparam, only : italk
+  use mod_clm_nchelper, only : clm_addvar, clm_check_var, clm_filetype, &
+    clm_readvar, clm_writevar, clmvar_double, clmvar_integer
+  use mod_clm_decomp, only : gcomm_column, gcomm_gridcell, gcomm_landunit, &
+    gcomm_pft, get_proc_bounds, get_proc_global, numc, numg, numl, nump, &
+    subgrid_type
   use mod_clm_varcon, only : spval, secspday
 
   implicit none

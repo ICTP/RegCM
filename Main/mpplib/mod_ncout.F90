@@ -15,17 +15,140 @@
 
 module mod_ncout
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_memutil
-  use mod_dynparam
-  use mod_runparams
-  use mod_mppparam
-  use mod_ncstream_types
-  use mod_ncstream
-  use mod_outvars
-  use mod_service
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rkx
+  use mod_memutil, only : getmem
+  use mod_dynparam, only : base_state_pressure, bdy_dm, bdy_nm, &
+    bdy_use_lehmann, cmip6_experiment, cmip6_grid, cmip6_model, &
+    cmip6_variant, dattyp, debug_level, dirglob, dirout, domname, &
+    ensemble_run, high_nudge, i_band, i_crm, ici1, ici2, idynamic, ifatm, &
+    ifchem, ifcordex, iflak, ifopt, ifrad, ifshf, ifsrf, ifsts, ifsub, iout1, &
+    iout2, ioutsg1, ioutsg2, jci1, jci2, jout1, jout2, joutsg1, joutsg2, kz, &
+    logp_lrate, low_nudge, lperturb_ps, lperturb_q, lperturb_t, &
+    lperturb_topo, lperturb_ts, lperturb_u, lperturb_v, medium_nudge, &
+    mo_divdamp, mo_divfilter, mo_nadv, mo_nsound, mo_spectral_nudge, &
+    mo_top_nudge, mycomm, myid, ndpmax, nsg, nspgd, nspgx, ntr, &
+    num_soil_layers, perturb_frac_ps, perturb_frac_q, perturb_frac_t, &
+    perturb_frac_topo, perturb_frac_ts, perturb_frac_u, perturb_frac_v, &
+    pmip4_experiment, pmip4_grid, pmip4_model, pmip4_variant, prestr, pthsep, &
+    ssttyp
+  use mod_runparams, only : abulk, adyndif, alphae, atwo, auto_rate_kessl, &
+    auto_rate_khair, auto_rate_klepi, base_state_ts0, betae, budget_compute, &
+    caccrlnd, caccroce, carb_aging_control, cevaplnd, cevapoce, chechgact, &
+    chemsimtype, chtrname, ckh, clfrcv, cllwcv, coef_ccn, coeffr, coeffs, &
+    conf, cpldt, cu, czero, damp, detrpen_lnd, detrpen_ocn, diffu_hgtf, &
+    do_qflux_adj, do_restore_sst, dtabem, dtauc, dtche, dtcum, dtmax, dtrad, &
+    dtsec, dtsrf, edtmax, edtmax_ocn, edtmaxo, edtmaxo_ocn, edtmaxx, &
+    edtmaxx_ocn, edtmin, edtmin_ocn, edtmino, edtmino_ocn, edtminx, &
+    edtminx_ocn, elcrit_lnd, elcrit_lnd_max, elcrit_lnd_min, elcrit_ocn, &
+    entp, entrdd, entrpen_lnd, entrpen_ocn, entshalp, epmax_lnd, &
+    epmax_lnd_max, epmax_lnd_min, epmax_ocn, fixedsolarval, &
+    gas_tweak_factors, ghg_year_const, gnu1, gnu2, gulland, guloce, &
+    holtth10iter, hsigma, htmax, htmin, iaerosol, iautoconv, ibltyp, iboudy, &
+    iceflglw, iceflgsw, ichbion, ichcumtra, ichdiag, ichdrdepo, ichdustemd, &
+    ichdustparam, ichebdy, ichecold, ichem, ichjphcld, ichlinox, ichremcvc, &
+    ichremlsc, ichsolver, ichsursrc, icld, icldfrac, icldmstrat, iclimaaer, &
+    iclimao3, iconvcf, iconvlwp, icopcpl, icosp, icumcloud, icup, icup_lnd, &
+    icup_ocn, idate0, idate1, idate2, idcsst, idiag, idiffu, idirect, iemiss, &
+    ifaholt, ifaholtth10, ifixsolar, ifrayd, ifrest, ifslaboc, ifupr, igcc, &
+    iindirect, imcica, inflglw, inflgsw, iocncpl, iocnflux, ipgf, ipptls, &
+    iqmsl, irceideal, irng, irrtm, iseaice, islab_ocean, isladvec, ismoke, &
+    isnowdark, isolconst, istochastic, itweak, itweak_greenhouse_gases, &
+    itweak_solar_irradiance, itweak_sst, itweak_temperature, iuwvadv, &
+    iwavcpl, iwhitecap, izengrough, k2_const, kf_convrate, kf_dpp, &
+    kf_entrate, kf_max_dtcape, kf_max_pef, kf_min_dtcape, kf_min_pef, &
+    kf_tkemax, kf_wthreshold, kfac_deep, kfac_shal, lakemod, larcticcorr, &
+    lconst2050, lepcld, liqflglw, liqflgsw, lmfcapebl, lmfdd, lmfdudv, &
+    lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, lmoistn2, &
+    lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, minorig, &
+    mixed_layer_depth, nhbet, nhxkd, nradfo, nsplit, nssopt, nuk, omtrain, &
+    omtsnow, pbcmax, q_rel_extrema, qck1land, qck1oce, rad_max, rad_min, &
+    rad_sigma, rayalpha0, rayhd, rayndamp, rayzd, rcldiff, rcovpmin, &
+    rcpec_lnd, rcpec_ocn, rcrit, rcuc_lnd, rcuc_ocn, rdstemfac, rh0land, &
+    rh0oce, rhebc_lnd, rhebc_ocn, rhmax, rhmin, ricr_lnd, ricr_ocn, rkconv, &
+    rocemfac, rpecons, rprc_lnd, rprc_ocn, rrtm_extend, rstbl, rtaufac, &
+    scenario, shrmax, shrmax_ocn, shrmin, shrmin_ocn, sigd, sigd_max, &
+    sigd_min, sigs, sigs_max, sigs_min, skbmax, skconv, solar_tweak, &
+    sst_restore_timescale, sst_tweak, stability_enhance, stats, t_extrema, &
+    tc0, temp_tend_maxval, temperature_tweak, tlcrit, uoffc, upstream_mode, &
+    ustarmax, uvrotate, vfqs, wind_tend_maxval, year_offset, zhnew_fac, zomax
+  use mod_mppparam, only : grid_collect, iocpu, italk, ma, ncout_mpi_info
+  use mod_ncstream_types, only : d_zero, dmissval, nc_output_stream, &
+    nc_varlist, ncattribute_integer, ncattribute_logical, ncattribute_real8, &
+    ncattribute_string, ncoutstream_params, ncvariable2d_mixed, &
+    ncvariable3d_mixed, ncvariable4d_mixed, ncvariable_standard, &
+    rcm_time_and_date, tochar, tochar10, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_ncstream, only : outstream_addatt, outstream_addrec, &
+    outstream_addvar, outstream_addvaratt, outstream_async_defer_wake_begin, &
+    outstream_async_defer_wake_end, outstream_async_finalize, &
+    outstream_async_flush, outstream_dispose, outstream_enable, &
+    outstream_netcdf_lock, outstream_netcdf_unlock, outstream_setup, &
+    outstream_sync, outstream_writevar, outstream_writevar_rank0
+  use mod_outvars, only : area_out, atm_autoconvr_out, atm_ccnnum_out, &
+    atm_kth_out, atm_kzm_out, atm_mrso_out, atm_nc_out, atm_nn_out, &
+    atm_nr_out, atm_omega_out, atm_pai_out, atm_pp_out, atm_q_detr_out, &
+    atm_qc_out, atm_qcrit_out, atm_qg_out, atm_qh_out, atm_qi_out, &
+    atm_qincl_out, atm_qr_out, atm_qs_out, atm_qten_adh_out, &
+    atm_qten_adi_out, atm_qten_adv_out, atm_qten_bdy_out, atm_qten_con_out, &
+    atm_qten_dif_out, atm_qten_lsc_out, atm_qten_tbl_out, atm_qv_out, &
+    atm_raincc_out, atm_rainls_out, atm_rh_out, atm_smw_out, atm_snw_out, &
+    atm_stats_autocc_out, atm_stats_autocw_out, atm_stats_con1c_out, &
+    atm_stats_con1w_out, atm_stats_dep_out, atm_stats_detc_out, &
+    atm_stats_detw_out, atm_stats_eroc_out, atm_stats_erow_out, &
+    atm_stats_evc_out, atm_stats_evw_out, atm_stats_frz_out, &
+    atm_stats_melt_out, atm_stats_rainev_out, atm_stats_snowev_out, &
+    atm_stats_supc_out, atm_stats_supw_out, atm_t_out, atm_tgb_out, &
+    atm_tke_out, atm_tpr_out, atm_tsoil_out, atm_tten_adh_out, &
+    atm_tten_adi_out, atm_tten_adv_out, atm_tten_bdy_out, atm_tten_con_out, &
+    atm_tten_dif_out, atm_tten_lsc_out, atm_tten_rad_out, atm_tten_tbl_out, &
+    atm_u_out, atm_v_out, atm_w_out, che_advhten_out, che_advvten_out, &
+    che_airden_out, che_bdyten_out, che_burden_out, che_cheten_out, &
+    che_chgact_out, che_cuten_out, che_ddflx_out, che_ddvel_out, &
+    che_difhten_out, che_emflx_out, che_emten_out, che_mixrat_out, &
+    che_ncon_out, che_pai_out, che_pblten_out, che_pp_out, che_raiten_out, &
+    che_sedten_out, che_tuten_out, che_wasten_out, che_wdcflx_out, &
+    che_wdrflx_out, lak_aldifs_out, lak_aldirs_out, lak_evp_out, lak_fld_out, &
+    lak_flw_out, lak_fsw_out, lak_ice_out, lak_scv_out, lak_sena_out, &
+    lak_sina_out, lak_tg_out, lak_tlake_out, lak_tpr_out, mask_out, &
+    ncospvars, opt_aassrlrf_out, opt_aastalrf_out, opt_aastoarf_out, &
+    opt_aastsrrf_out, opt_acssrlrf_out, opt_acstalrf_out, opt_acstoarf_out, &
+    opt_acstsrrf_out, opt_aext8_out, opt_agfu8_out, opt_aod_out, &
+    opt_assa8_out, opt_deltaz_out, opt_ncon_out, opt_pai_out, opt_pp_out, &
+    opt_surf_out, p0_out, ps_out, rad_cld_out, rad_clrls_out, rad_clrlt_out, &
+    rad_clrss_out, rad_clrst_out, rad_clwp_out, rad_cosp_out, rad_frla_out, &
+    rad_frsa_out, rad_higcl_out, rad_lowcl_out, rad_lwout_out, rad_midcl_out, &
+    rad_o3_out, rad_pai_out, rad_pp_out, rad_qrl_out, rad_qrs_out, &
+    rad_solin_out, rad_solout_out, rad_tauci_out, rad_taucl_out, &
+    rad_totci_out, rad_totcl_out, rad_totwv_out, shf_pcpavg_out, &
+    shf_pcpmax_out, shf_pcprcv_out, shf_t2m_out, shf_twetb_out, &
+    slab_qflx_out, srf_aldifs_out, srf_aldirs_out, srf_cape_out, srf_cin_out, &
+    srf_dew_out, srf_evp_out, srf_evpot_out, srf_fld_out, srf_flw_out, &
+    srf_fsw_out, srf_grau_out, srf_hail_out, srf_hfso_out, srf_htindx_out, &
+    srf_hus50_out, srf_lena_out, srf_li_out, srf_mrsos_out, srf_mslp_out, &
+    srf_pcpmax_out, srf_prcv_out, srf_q2m_out, srf_rh2m_out, srf_rhoa_out, &
+    srf_scv_out, srf_seaice_out, srf_sena_out, srf_sina_out, srf_smw_out, &
+    srf_snow_out, srf_snowmelt_out, srf_srunoff_out, srf_sund_out, &
+    srf_t2m_out, srf_ta50_out, srf_taux_out, srf_tauy_out, srf_tg_out, &
+    srf_tlef_out, srf_totcf_out, srf_tpr_out, srf_tprw_out, srf_trunoff_out, &
+    srf_tsoil_out, srf_twetb_out, srf_u10m_out, srf_ua100_out, srf_ua150_out, &
+    srf_ua50_out, srf_uflw_out, srf_ufsw_out, srf_ustar_out, srf_uvdrag_out, &
+    srf_v10m_out, srf_va100_out, srf_va150_out, srf_va50_out, srf_wspd_out, &
+    srf_zo_out, srf_zpbl_out, sts_pcpavg_out, sts_pcpmax_out, sts_psavg_out, &
+    sts_psmin_out, sts_srunoff_out, sts_sund_out, sts_t2avg_out, &
+    sts_t2max_out, sts_t2min_out, sts_tgmax_out, sts_tgmin_out, &
+    sts_trunoff_out, sts_w10max_out, sts_wsgsmax_out, sub_area_out, &
+    sub_evp_out, sub_mask_out, sub_ps_out, sub_q2m_out, sub_scv_out, &
+    sub_sena_out, sub_smw_out, sub_srunoff_out, sub_t2m_out, sub_tg_out, &
+    sub_tlef_out, sub_topo_out, sub_trunoff_out, sub_u10m_out, &
+    sub_uvdrag_out, sub_v10m_out, sub_xlat_bnds_out, sub_xlat_out, &
+    sub_xlon_bnds_out, sub_xlon_out, topo_out, xlat_bnds_out, xlat_out, &
+    xlon_bnds_out, xlon_out
+#ifdef DEBUG
+  use mod_service, only : ndebug
+#endif
+  use mod_stdio, only : stderr, stdout
   use netcdf
 
   implicit none

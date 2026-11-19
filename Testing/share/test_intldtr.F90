@@ -22,11 +22,13 @@
 ! DEM statistics of topostats.
 
 program test_intldtr
-  use mod_intkinds
-  use mod_realkinds
-  use mod_intldtr
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_intldtr, only : grdlnma, grdlnmn, grdltma, grdltmn, interp, &
+    lcrosstime, lonwrap, mxmnll, nlatin, nlonin, puddlefilter, topostats, &
+    xmaxlat, xminlat
   use mod_constants, only : earthrad_r8
-  use share_test_utils
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: m = 30, n = 20, jx = 7, iy = 5
   real(rkx), dimension(m,n) :: imt

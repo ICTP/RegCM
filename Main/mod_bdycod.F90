@@ -18,27 +18,51 @@ module mod_bdycod
   ! Subroutines for input of boundary values and tendencies
   ! Relaxation and Sponge Boundary Conditions routines
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_stdio
-  use mod_constants
-  use mod_dynparam
-  use mod_runparams
-  use mod_regcm_types
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_memutil
-  use mod_atm_interface
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk8, rkx
+  use mod_date, only : monfirst, prevmon, rcm_time_and_date, &
+    rcm_time_interval, tochar, tochar10, tohours, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_stdio, only : stdout
+  use mod_constants, only : cpd, d_100, d_four, d_half, d_one, d_r10, d_r100, &
+    d_r1000, d_two, d_zero, egrav, ep1, govcp, govr, halfpi, lrate, mathpi, &
+    minqq, p00, regrav, rgas, rovcp, secph, stdpmb, stdt
+  use mod_dynparam, only : bdy_dm, bdy_nm, bdy_use_lehmann, ds, globidate1, &
+    ice1, ice1ga, ice2, ice2ga, ici1, ici2, ide1, ide1ga, ide2, ide2ga, idi1, &
+    idi2, idynamic, iy, iym1, jce1, jce1ga, jce2, jce2ga, jci1, jci2, jde1, &
+    jde1ga, jde2, jde2ga, jdi1, jdi2, jx, jxm1, kz, kzm1, kzp1, mo_h, &
+    mo_lcap, mo_nadv, mo_spectral_nudge, mo_top_nudge, mo_ztop, myid, &
+    nicross, njcross, nnsg, nspgd, nspgx, ptop
+  use mod_runparams, only : alarm_in_bdy, bdydate1, bdydate2, do_qflux_adj, &
+    dt, dt2, dtbdys, dtrad, dtsec, dx, exponential_nudging, ibltyp, iboudy, &
+    icetriggert, ichem, iclimaaer, idate1, idate2, intbdy, invert_top_bottom, &
+    iocncpl, ipptls, iqc, iqfrst, iqi, iqv, iseaice, islab_ocean, islake, &
+    iwavcpl, lakemod, lrcemip_noise_level, lrcemip_perturb, moloch_do_test_1, &
+    moloch_do_test_2, nqx, qxzeroval, rayalpha0, rayhd, rayndamp, rcmtimer, &
+    relax_coefficients, sigma, xbctime, xslabtime
+  use mod_regcm_types, only : bound_area, v2dbound, v3dbound
+  use mod_mppparam, only : column_reduce, exchange, exchange_bdy_bt, &
+    exchange_bdy_lr, italk, ma, psc2psd, reproducible_sumall, reprosum_int, &
+    reprosum_real, reprosum_shift, row_reduce
+  use mod_mpmessage, only : fatal, vprntv
+  use mod_memutil, only : getmem
+  use mod_atm_interface, only : allocate_v3dbound, atm0, atm1, atm2, ba_cr, &
+    ba_dt, cplmsk, cross, dub, dvb, mddom, mdsub, mo_atm, nhbh0, nhbh1, sfs, &
+    xib, xlb, xpaib, xppb, xpsb, xqb, xtb, xtsb, xwwb
   use mod_pbl_interface, only : tkemin
-  use mod_che_interface
-  use mod_lm_interface
-  use mod_mpmessage
-  use mod_ncio
-  use mod_service
-  use mod_zita
-  use mod_stdatm
-  use mod_slabocean
+  use mod_che_interface, only : chem_bdyin, chem_bdyval
+  use mod_lm_interface, only : lms
+  use mod_ncio, only : fixqcqi, icbc_search, open_icbc, open_som, read_icbc, &
+    read_som, som_search, we_have_qc, we_have_qi
+#ifdef ASYNC_NETCDF
+  use mod_ncio, only : consume_icbc_prefetch, prefetch_icbc, &
+    warmup_icbc_prefetch
+#endif
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_slabocean, only : qflb0, qflb1, qflbt
   use mod_vertint, only : intz1
   use mod_humid, only : rh2mxr
 

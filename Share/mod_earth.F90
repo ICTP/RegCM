@@ -15,9 +15,9 @@
 
 module mod_earth
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_constants, only : d_two, degrad, erkm, mathpi
   implicit none
 
   private

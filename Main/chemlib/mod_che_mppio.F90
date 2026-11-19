@@ -15,16 +15,13 @@
 
 module mod_che_mppio
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mppparam
-  use mod_runparams
-  use mod_dynparam
-  use mod_memutil
-  use mod_mpmessage
-  use mod_che_param
-  use mod_che_common
-  use mod_che_species
+  use mod_realkinds, only : rkx
+  use mod_mppparam, only : iocpu
+  use mod_runparams, only : do_parallel_save, iaerosol, ibltyp, ichdrdepo, &
+    ichem, iindirect
+  use mod_dynparam, only : ice1, ice2, ici1, ici2, icross1, icross2, &
+    idynamic, jce1, jce2, jci1, jci2, jcross1, jcross2, kz, myid, ntr
+  use mod_memutil, only : getmem
 
   implicit none
 

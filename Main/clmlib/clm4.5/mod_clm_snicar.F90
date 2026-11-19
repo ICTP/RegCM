@@ -3,15 +3,16 @@ module mod_clm_snicar
   ! Calculate albedo of snow containing impurities
   ! and the evolution of snow effective radius
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_mppparam
-  use mod_dynparam
-  use mod_runparams
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_mppparam, only : italk
+  use mod_dynparam, only : debug_level, ds, myid
+  use mod_runparams, only : dtsrf, rcmtimer
+  use mod_stdio, only : stderr, stdout
   use mod_clm_varcon, only : rpi
-  use mod_clm_nchelper
+  use mod_clm_nchelper, only : clm_closefile, clm_filetype, clm_openfile, &
+    clm_readvar
 
   implicit none
 
@@ -208,7 +209,7 @@ module mod_clm_snicar
   subroutine SNICAR_RT(flg_snw_ice, lbc, ubc, num_nourbanc, filter_nourbanc, &
                        coszen, flg_slr_in, h2osno_liq, h2osno_ice, snw_rds,  &
                        mss_cnc_aer_in, albsfc, albout, flx_abs)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar, only : nlevsno, numrad
     implicit none
     ! flag: =1 when called from CLM, =2 when called from CSIM
@@ -1278,7 +1279,7 @@ module mod_clm_snicar
   !
   subroutine SnowAge_grain(lbc, ubc, num_snowc, filter_snowc, &
                   num_nosnowc, filter_nosnowc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar      , only : nlevsno
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds

@@ -15,21 +15,26 @@
 
 module mod_sst_gnhnc
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_dynparam
-  use mod_memutil
-  use mod_sst_grid
-  use mod_earth
-  use mod_kdinterp
-  use mod_message
-  use mod_nchelper
-  use mod_ccsm3_helper
-  use mod_ecearth_helper
-  use mod_mpiesm_helper
-  use mod_lgm_helper
-  use mod_date
+  use mod_intkinds, only : ik2, ik4
+  use mod_realkinds, only : is_nan, rkx
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : globidate1, globidate2, i_band, ibdyfrq, inpglob, &
+    pthsep, ssttyp
+  use mod_memutil, only : getmem
+  use mod_sst_grid, only : open_sstfile, sstmm, writerec, xlat, xlon
+  use mod_earth, only : get_window, global_domain
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_message, only : die
+  use mod_nchelper, only : checkncerr, nf90_myget_att_text
+  use mod_ccsm3_helper, only : find_ccsm3_file
+  use mod_ecearth_helper, only : find_ecearth_sst
+  use mod_mpiesm_helper, only : find_mpiesm_sst
+  use mod_lgm_helper, only : find_lgm_sst
+  use mod_date, only : dayofyear, monfirst, rcm_time_and_date, &
+    rcm_time_interval, split_idate, timeval2date, tochar, tohours, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
   use netcdf
   implicit none
 

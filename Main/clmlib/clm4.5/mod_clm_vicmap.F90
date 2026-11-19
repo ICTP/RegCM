@@ -7,8 +7,8 @@ module mod_clm_vicmap
   !              the next nlvic(2) layers  to VIC alyer 2
   !              and the remaining to VIC layer 3
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
 
   implicit none
 
@@ -28,7 +28,7 @@ module mod_clm_vicmap
   !
   subroutine initCLMVICMap(c)
     !$acc routine seq
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : denh2o, denice, pondmx
     use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
     implicit none
@@ -115,7 +115,7 @@ module mod_clm_vicmap
   ! mapping from VIC to CLM layers, M.Huang
   !
   subroutine CLMVICMap(lbc, ubc, numf, filter)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : denh2o, denice, pondmx, watmin
     use mod_clm_varpar, only : nlevsoi, nlayer, nlayert, nlevgrnd
     implicit none

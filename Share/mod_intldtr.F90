@@ -15,12 +15,13 @@
 
 module mod_intldtr
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_stdio
-  use mod_message
-  use mod_earth
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : d_100, d_four, d_one, d_two, d_zero, deg00, &
+    deg180, deg360, deg90, degrad_r8, earthrad_r8, raddeg_r8
+  use mod_stdio, only : stderr, stdout
+  use mod_message, only : die
+  use mod_earth, only : gcdist_simple
   implicit none
 
   private

@@ -4,12 +4,12 @@ module mod_clm_ch4varcon
   ! Module containing CH4 parameters and logical switches and routine to
   ! read constants from CLM namelist.
   !
-  use mod_stdio
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_mppparam
+  use mod_stdio, only : file_freeunit, file_getunit, stdout
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_dynparam, only : myid
+  use mod_mppparam, only : bcast, iocpu
   use mod_runparams, only : namelistfile
 
   implicit none

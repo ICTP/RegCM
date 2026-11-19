@@ -2,8 +2,7 @@ module mod_clm_slakecon
   !
   ! Module containing constants and parameters for the SLake code
   !   (CLM4-LISSS, documented in Subin et al. 2011, JAMES)
-  use mod_intkinds
-  use mod_realkinds
+  use mod_realkinds, only : rk8
   use mod_clm_varpar, only : numrad
 
   implicit none

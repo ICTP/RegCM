@@ -14,12 +14,15 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_ocn_coare
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_service
-  use mod_ocn_internal
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : cpd, cpw, d_half, d_one, d_zero, dlowval, egrav, &
+    ep1, ep2, regrav, rtice, rtwat, rtwat_rtice_r, rwat, tzero, vonkar, wlhs, &
+    wlhv
+  use mod_ocn_internal, only : br, drag, dtocn, evpr, hpbl, ht, iocnbeg, &
+    iocnend, llake, lseaice, mask, q2m, qv, rah1, ram1, rhox, rlwf, rswf, &
+    sent, sfice, sfps, sfta, t2m, tatm, taux, tauy, tgb, tgbrd, tgrd, &
+    threedays, u10m, um10, ustr, usw, v10m, vsw, zoo
 
   implicit none
 

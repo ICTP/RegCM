@@ -16,10 +16,10 @@
 module mod_hgt
 
   use mod_dynparam, only : maxvert
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_message
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_constants, only : cpovr, d_half, d_one, d_two, d_zero, egrav, ep1, &
+    lrate, p00, rgas, rovcp, rovg
 
   implicit none
 

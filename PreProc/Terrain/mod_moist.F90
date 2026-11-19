@@ -15,10 +15,9 @@
 
 module mod_moist
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_stdio, only : stderr, stdout
   use mod_dynparam, only : i_band
   use netcdf
   implicit none

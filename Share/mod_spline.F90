@@ -23,9 +23,10 @@
 
 module mod_spline
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_four, d_half, d_one, d_six, d_three, d_two, &
+    d_zero
 
   implicit none
 

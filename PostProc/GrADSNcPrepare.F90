@@ -20,15 +20,18 @@ end subroutine myabort
 
 program ncprepare
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_projections
-  use mod_stdio
-  use mod_date
-  use mod_message
-  use mod_nchelper
-  use mod_memutil
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rkx
+  use mod_constants, only : dlowval, earthrad, raddeg, rk4, rkx
+  use mod_projections, only : anyprojparams, regcm_projection, rounder
+  use mod_stdio, only : stderr, stdout
+  use mod_date, only : rcm_time_and_date, rcm_time_interval, split_idate, &
+    timeval2date, tohours, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_message, only : checkalloc
+  use mod_nchelper, only : checkncerr
+  use mod_memutil, only : memory_destroy, memory_init
   use netcdf
 
   implicit none

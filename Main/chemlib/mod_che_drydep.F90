@@ -17,17 +17,21 @@ module mod_che_drydep
   !
   ! Chemical and aerosol surface emission and dry deposition
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_che_common
-  use mod_che_dust
-  use mod_mpmessage
-  use mod_service
-  use mod_che_ncio
-  use mod_che_mppio
-  use mod_che_indices
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : boltzk, d_half, d_one, d_two, d_zero, egrav, ep2, &
+    mathpi, mintr, regrav, rtice, rtwat, rtwat_rtice_r, rwat, stdpmb, tzero, &
+    vonkar, wlhs, wlhv
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, ntr
+  use mod_che_common, only : aest, agam, arye, ast, cdrydepflx, cdzq, cfdout, &
+    cfmz, chemt, chib, chib3d, chifxuw, chiten, cpsb, crhob3d, cseddpdiag, &
+    czen, ddv_out, drydepv, dt, ichdiag, ichdrdepo, igaschem, io3, rdt, &
+    remdrd, twt
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_che_indices, only : iald2, ich3oh, ih2o2, ihcho, ihno3, inh3, ino2, &
+    ipan, iso2
 
   implicit none
 
@@ -786,7 +790,8 @@ module mod_che_drydep
 
     subroutine drydep_gas(i,lmonth,lday,ivegcov,rh10,srad,tsurf, &
                           prec,temp10,xlai,ustar,resa)
-      use mod_che_indices
+      use mod_che_indices, only : iald2, ich3oh, ih2o2, ihcho, ihno3, ik4, &
+        inh3, ino2, ipan, iso2
       implicit none
       integer(ik4), intent(in) :: i
       integer(ik4), intent(in) :: lmonth, lday

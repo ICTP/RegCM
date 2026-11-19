@@ -52,17 +52,33 @@ module mod_mppparam
   !
   ! ========================================================================
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk16, rk4, rk8, rkx
+  use mod_dynparam, only : bdy_dm, bdy_nm, bdy_use_lehmann, calendar, clat, &
+    clon, cntri, cntrj, dayspy, dbgfrq, debug_level, domname, dpd, ds, &
+    half_dayspy, high_nudge, i_band, i_crm, ibdyfrq, ical, ice1, ice2, ici1, &
+    ici2, icii1, icii2, icross1, icross2, ide1, ide2, idi1, idi2, idii1, &
+    idii2, idot1, idot2, idynamic, inpglob, iout1, iout2, ioutsg1, ioutsg2, &
+    iproj, iy, iym1, iym1sg, iym2, iym2sg, iym3, iym3sg, iyp, iypsg, iysg, &
+    jce1, jce2, jci1, jci2, jcii1, jcii2, jcross1, jcross2, jde1, jde2, jdi1, &
+    jdi2, jdii1, jdii2, jdot1, jdot2, jout1, jout2, joutsg1, joutsg2, jx, &
+    jxm1, jxm1sg, jxm2, jxm2sg, jxm3, jxm3sg, jxp, jxpsg, jxsg, kz, kzm1, &
+    kzm2, kzp1, kzp2, kzp3, kzp4, low_nudge, medium_nudge, mo_a0, mo_divdamp, &
+    mo_divfilter, mo_h, mo_lcap, mo_nadv, mo_nsound, mo_spectral_nudge, &
+    mo_top_nudge, mo_ztop, mycomm, myid, nicross, nidot, niout, nioutsg, &
+    niycpus, njcross, njdot, njout, njoutsg, njxcpus, nnsg, nproc, nsg, &
+    nspgd, nspgx, nveg, plat, plon, ptop, sixteenth_dayspy, truelath, &
+    truelatl, vernal_equinox
+  use mod_constants, only : d_half, d_rfour, dmissval, smissval_r4
   use mod_runparams, only : namelistfile, prgname
-  use mod_mpmessage
-  use mod_memutil
-  use mod_date
-  use mod_stdio
+  use mod_mpmessage, only : fatal
+  use mod_memutil, only : assignpnt, getmem, relmem
+  use mod_date, only : rcm_time_and_date, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_stdio, only : stderr, stdout
   use netcdf
-  use mod_regcm_types
+  use mod_regcm_types, only : masked_comm, model_area, mpi_comm
   use mpi_f08
 
   implicit none

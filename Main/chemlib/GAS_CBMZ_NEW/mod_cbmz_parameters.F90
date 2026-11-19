@@ -21,7 +21,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 module mod_cbmz_parameters
-  use mod_cbmz_precision
+  use mod_cbmz_precision, only : dp, ik4, rk8
   implicit none
   public
   save

@@ -19,10 +19,11 @@
 ! from a coarser grid, close to bilinear also across the date line.
 
 program test_kdinterp
-  use mod_intkinds
-  use mod_realkinds
-  use mod_kdinterp
-  use share_test_utils
+  use mod_realkinds, only : rk8, rkx
+  use mod_kdinterp, only : h_interpolate_class, h_interpolate_cont, &
+    h_interpolate_nn, h_interpolate_sum, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy, h_missing_value
+  use share_test_utils, only : check, test_end
   implicit none
   integer, parameter :: nlon = 360, nlat = 181, nj = 40, ni = 30, nk = 3
   real(rk8), parameter :: d2r = acos(-1.0_rk8)/180.0_rk8

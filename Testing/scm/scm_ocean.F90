@@ -42,13 +42,16 @@
 ! same for all the schemes.
 
 program scm_ocean
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_ocn_internal
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_zero, rgas, rkx, rovcp, wlhv
+  use mod_runparams, only : iocnflux, iwavcpl, izengrough
+  use mod_memutil, only : getmem, memory_init
+  use mod_ocn_internal, only : br, drag, dtocn, evpr, getmem, hpbl, ht, icpl, &
+    ik4, iocnbeg, iocnend, iocnflux, ldcsst, llake, lseaice, mask, &
+    memory_init, nocnp, patm, q2m, qv, rah1, ram1, rhoa, rhox, rkx, rlwf, &
+    rswf, sent, sfice, sfps, sfta, t2m, tatm, taux, tauy, tgb, tgbrd, tgrd, &
+    u10m, um10, ustr, usw, v10m, vsw, zoo
   use mod_ocn_zeng, only : zengocndrv
   use mod_ocn_coare, only : coare3_drv
   implicit none

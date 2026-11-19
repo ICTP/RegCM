@@ -3,8 +3,8 @@ module mod_clm_cnvegstructupdate
   !
   ! Module for vegetation structure updates (LAI, SAI, htop, hbot)
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
 
   implicit none
@@ -23,7 +23,10 @@ module mod_clm_cnvegstructupdate
   ! vegetation structure (LAI, SAI, height)
   !
   subroutine CNVegStructUpdate(num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, pftcon
+#if (defined CNDV)
+    use mod_clm_type, only : dgv_pftcon
+#endif
     use mod_clm_pftvarcon, only : noveg, nc3crop, nc3irrig, &
       nbrdlf_evr_shrub, nbrdlf_dcd_brl_shrub
     use mod_clm_pftvarcon, only : ncorn, ncornirrig, npcropmin, ztopmx, laimx

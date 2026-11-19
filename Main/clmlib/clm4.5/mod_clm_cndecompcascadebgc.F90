@@ -8,8 +8,8 @@ implicit none
   ! Module that sets the coeffiecients used in the decomposition cascade
   ! submodel.  This uses the BGC parameters as in CLMCN 4.0
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
   use mod_clm_varcon, only : tfrz, zsoi
   use mod_clm_varpar, only : nlevsoi, nlevgrnd, nlevdecomp, &
@@ -56,7 +56,7 @@ implicit none
     ! model originally implemented in CLM-CN
     !  written by C. Koven based on original CLM4 decomposition cascade
     ! by P. Thornton
-    use mod_clm_type
+    use mod_clm_type, only : clm3, decomp_cascade_con
     implicit none
     ! column level
     integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
@@ -385,7 +385,7 @@ implicit none
     ! written by C. Koven based on original CLM4 decomposition cascade
     ! by P. Thornton
     !
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only: secspday
     implicit none
     integer(ik4), intent(in) :: lbc, ubc   ! column bounds

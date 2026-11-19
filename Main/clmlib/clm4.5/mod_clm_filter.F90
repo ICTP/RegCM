@@ -4,15 +4,11 @@ module mod_clm_filter
   ! types, including lake, non-lake, urban, soil, snow, non-snow, and
   ! naturally-vegetated patches.
   !
-  use mod_realkinds
-  use mod_intkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_clm_type, only : clm3
   use mod_clm_decomp, only : get_proc_bounds
   use mod_clm_pftvarcon, only : npcropmin
   use mod_clm_varcon, only : istsoil, isturb, icol_road_perv, istcrop
-  use mod_dynparam
 
   implicit none
 

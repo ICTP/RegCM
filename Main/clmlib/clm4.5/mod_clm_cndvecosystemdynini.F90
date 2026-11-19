@@ -1,7 +1,7 @@
 #if (defined CNDV)
 module mod_clm_cndvecosystemdynini
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
 
   implicit none
 
@@ -15,7 +15,7 @@ module mod_clm_cndvecosystemdynini
   ! CNDV related initializations
   !
   subroutine CNDVEcosystemDynini(adomain)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, gridcell_type, pft_type
     use mod_clm_decomp, only : get_proc_bounds, get_proc_global
     use mod_constants, only : tzero
     use mod_clm_atmlnd, only : atm_domain

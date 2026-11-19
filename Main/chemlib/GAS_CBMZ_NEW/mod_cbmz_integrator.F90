@@ -25,7 +25,7 @@
 
 module mod_cbmz_integrator
 
-  use mod_cbmz_precision
+  use mod_cbmz_precision, only : dp, ik4, qp, rk8
   use mod_cbmz_global, only : fix, rconst, time, atol, rtol
   use mod_cbmz_parameters, only : nvar, nfix, lu_nonzero
   use mod_cbmz_jacobiansp, only : lu_diag
@@ -143,8 +143,8 @@ module mod_cbmz_integrator
   end subroutine reset_integrate
 
   subroutine integrate(tin,tout,icntrl_u,rcntrl_u,istatus_u,rstatus_u,ierr_u)
-    use mod_cbmz_parameters
-    use mod_cbmz_global
+    use mod_cbmz_parameters, only : dp
+    use mod_cbmz_global, only : atol, dp, rtol, stepmin, var
     implicit none
 
     real(kind=dp), intent(in) :: tin  ! start time
@@ -1388,7 +1388,7 @@ module mod_cbmz_integrator
     implicit none
     interface
       subroutine f(n,t,v,fct)
-        use mod_cbmz_parameters
+        use mod_cbmz_parameters, only : dp, nvar
         implicit none
         integer :: n
         real(kind=dp) :: v(nvar), fct(nvar), t
@@ -1396,7 +1396,7 @@ module mod_cbmz_integrator
     end interface
     interface
       subroutine jac(n,t,v,jf)
-        use mod_cbmz_parameters
+        use mod_cbmz_parameters, only : dp, lu_nonzero, nvar
         implicit none
         integer :: n
         real(kind=dp) :: v(nvar), t
@@ -2390,7 +2390,7 @@ module mod_cbmz_integrator
 !**end
       interface
         subroutine f(n,t,v,fct)
-          use mod_cbmz_parameters
+          use mod_cbmz_parameters, only : dp, nvar
           implicit none
           integer :: n
           real(kind=dp) :: v(nvar), fct(nvar), t
@@ -2398,7 +2398,7 @@ module mod_cbmz_integrator
       end interface
       interface
         subroutine jac(n,t,v,jf)
-          use mod_cbmz_parameters
+          use mod_cbmz_parameters, only : dp, lu_nonzero, nvar
           implicit none
           integer :: n
           real(kind=dp) :: v(nvar), t
@@ -3194,10 +3194,10 @@ module mod_cbmz_integrator
       end subroutine dlsode
 
     subroutine fun_chem(n, t, v, fct)
-      use mod_cbmz_parameters
-      use mod_cbmz_global
+      use mod_cbmz_parameters, only : dp, nvar
+      use mod_cbmz_global, only : dp, fix, nvar, rconst
       use mod_cbmz_function, only: fun
-      use mod_cbmz_rates
+      use mod_cbmz_rates, only : dp, fix, nvar, rconst
       implicit none
       integer :: n
       real(kind=dp) :: v(nvar), fct(nvar), t
@@ -3212,11 +3212,10 @@ module mod_cbmz_integrator
     end subroutine fun_chem
 
     subroutine jac_chem (n, t, v, jf)
-      use mod_cbmz_parameters
-      use mod_cbmz_global
-      use mod_cbmz_jacobiansp
+      use mod_cbmz_parameters, only : dp, lu_nonzero, nvar
+      use mod_cbmz_global, only : dp, fix, nvar, rconst
       use mod_cbmz_jacobian, only: jac_sp
-      use mod_cbmz_rates
+      use mod_cbmz_rates, only : dp, fix, lu_nonzero, nvar, rconst
       implicit none
       real(kind=dp) :: v(nvar), t
       integer :: n

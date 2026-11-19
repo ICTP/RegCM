@@ -2,8 +2,8 @@ module mod_clm_tridiagonal
   !
   ! Tridiagonal matrix solution
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
 
   implicit none
 
@@ -61,7 +61,7 @@ module mod_clm_tridiagonal
 
   subroutine Tridiagonal_gpu (lbc, ubc, lbj, ubj, jtop, numf, filter, &
                           a, b, c, r, u)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar, only : nlevurb
     use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall
     implicit none
@@ -146,7 +146,7 @@ module mod_clm_tridiagonal
 
   subroutine Tridiagonal_cpu (lbc, ubc, lbj, ubj, jtop, numf, filter, &
                           a, b, c, r, u)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar, only : nlevurb
     use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall
     implicit none

@@ -15,13 +15,17 @@
 
 module mod_cmip7_helper
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_message
-  use mod_dynparam
-  use mod_kdinterp
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_date, only : rcm_time_and_date, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_message, only : die
+  use mod_dynparam, only : cmip7_atmo_grid_label, cmip7_experiment, &
+    cmip7_inp, cmip7_model, cmip7_ocn_grid_label, cmip7_region, &
+    cmip7_variant, dattyp, pthsep
+  use mod_kdinterp, only : h_interpolator
+  use mod_stdio, only : stderr
   use netcdf
 
   implicit none

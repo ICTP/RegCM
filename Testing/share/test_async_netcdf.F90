@@ -23,10 +23,17 @@
 program test_async_netcdf
   use, intrinsic :: iso_c_binding
   use netcdf
-  use mod_intkinds
-  use mod_realkinds
-  use mod_async_netcdf
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_async_netcdf, only : async_netcdf_buffer, async_netcdf_close, &
+    async_netcdf_counter, async_netcdf_counter_reset, &
+    async_netcdf_counter_wait, async_netcdf_defer_wake_begin, &
+    async_netcdf_defer_wake_end, async_netcdf_get_var_rkx, &
+    async_netcdf_is_enabled, async_netcdf_lock, async_netcdf_put_var, &
+    async_netcdf_release_buffer, async_netcdf_shutdown, async_netcdf_sync, &
+    async_netcdf_try_acquire_buffer, async_netcdf_unlock, &
+    async_netcdf_wait_all
+  use share_test_utils, only : check, test_end
   implicit none
   character(len=*), parameter :: fname = 'test_async_netcdf.nc'
   integer(ik4), parameter :: nx = 50, nrec = 200

@@ -22,8 +22,17 @@
 
 module mod_cbmz_rates
 
-  use mod_cbmz_parameters
-  use mod_cbmz_global
+  use mod_cbmz_parameters, only : dp, ik4, indv_ano2, indv_c2o3, indv_ch3o2, &
+    indv_ethp, indv_isopn, indv_isopo2, indv_isopp, indv_nap, indv_ro2, &
+    indv_xo2, lu_nonzero, nvar, rk8
+  use mod_cbmz_global, only : altabove, altbelow, altmid, aperox, atol, &
+    bperox, c, c_jval, c_m, cfactor, dens, deptha, depthb, dt, fix, jano2, &
+    jc2o3, jch3o2, jethp, jisopn, jisopo2, jisopp, jnap, jro2, jval_c2h5cho, &
+    jval_ch2oa, jval_ch2ob, jval_ch3choa, jval_ch3coch3, jval_ch3ooh, &
+    jval_chocho, jval_h2o2, jval_hno2, jval_hno3, jval_hno4, jval_n2o5b, &
+    jval_no2, jval_no3a, jval_no3b, jval_o31d, jval_o33p, jval_pan, jxo2, &
+    nperox, rconst, rk_param, rtol, stepmax, stepmin, temp, tend, time, &
+    tstart, var, xr, xrin, xrout, zenith
 
   implicit none
 
@@ -390,7 +399,9 @@ module mod_cbmz_rates
 
   subroutine update_photo ( )
 
-   use mod_cbmz_global
+   use mod_cbmz_global, only : dp, jval_ch2oa, jval_ch2ob, jval_ch3choa, &
+     jval_ch3coch3, jval_ch3ooh, jval_h2o2, jval_hno2, jval_hno3, jval_hno4, &
+     jval_no2, jval_no3a, jval_o31d, jval_o33p, rconst
 
     rconst(1) = (jval_no2)
     rconst(2) = (jval_no3a)

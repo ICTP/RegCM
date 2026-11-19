@@ -3,13 +3,13 @@ module mod_clm_croprest
   !
   ! Read/Write to/from Crop info to CLM restart file.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mppparam
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_clm_nchelper
+  use mod_intkinds, only : ik4
+  use mod_stdio, only : stdout
+  use mod_mppparam, only : italk
+  use mod_dynparam, only : myid
+  use mod_mpmessage, only : fatal
+  use mod_clm_nchelper, only : clm_addvar, clm_check_var, clm_filetype, &
+    clm_readvar, clm_writevar, clmvar_double, clmvar_integer, clmvar_logical
 
   implicit none
 
@@ -31,7 +31,8 @@ module mod_clm_croprest
   ! Read/write Crop restart data
   !
   subroutine CropRest ( ncid, flag )
-    use mod_clm_type
+    use mod_clm_type, only : clm3, column_type, gridcell_type, landunit_type, &
+      pft_type
     use mod_clm_atmlnd, only : clm_a2l
     use mod_clm_varpar, only : numrad
     use mod_clm_decomp, only : get_proc_bounds, gcomm_pft

@@ -17,18 +17,25 @@ module mod_sun
 !
 ! Sun zenith and declination
 !
-   use mod_intkinds
-   use mod_realkinds
-   use mod_stdio
-   use mod_memutil
-   use mod_constants
-   use mod_dynparam
-   use mod_runparams
-   use mod_mpmessage
-   use mod_mppparam
-   use mod_service
-   use mod_date
-   use mod_sunorbit
+   use mod_intkinds, only : bigint, ik4
+   use mod_realkinds, only : rk8, rkx
+   use mod_stdio, only : stderr, stdout
+   use mod_memutil, only : getmem
+   use mod_constants, only : d_1000, degrad
+   use mod_dynparam, only : ici1, ici2, inpglob, jci1, jci2, myid, pthsep
+   use mod_runparams, only : alarm_day, calday, declin, doing_restart, eccen, &
+     eccf, fixedsolarval, ifixsolar, irceideal, isolconst, itweak, &
+     itweak_solar_irradiance, lambm0, mvelp, mvelpp, obliq, obliqr, rcmtimer, &
+     scenario, scon, solar_tweak, solcon, year_offset
+   use mod_mpmessage, only : fatal
+   use mod_mppparam, only : bcast, iocpu, italk
+#ifdef DEBUG
+   use mod_service, only : dbgslen, time_begin, time_end
+#endif
+   use mod_date, only : yeardayfrac, yearpoint, assignment(=), operator(+), &
+     operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+     operator(>), operator(>=)
+   use mod_sunorbit, only : orb_cosz, orb_decl, orb_params
    use netcdf
 
    implicit none

@@ -15,8 +15,8 @@
 
 module mod_bats_param
 !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
   !
   ! Landuse Categories (BATS 1e, Table 1, pag 17 + added classes)
   !

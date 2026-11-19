@@ -15,10 +15,12 @@
 
 module mod_capecin
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
-  use mod_spline
+  use mod_realkinds, only : rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_constants, only : cpd, cpi, cpv, cpw, d_half, d_one, d_zero, egrav, &
+    eliwv, ep1, ep2, p00, regrav, rgas, rovcp, rtice, rtwat, rtwat_rtice_r, &
+    rwat, tzero, wlhs, wlhv
+  use mod_spline, only : spline
 
   implicit none
 

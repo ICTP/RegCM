@@ -1,14 +1,22 @@
 module mod_clm_initimeconst
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_runparams
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_mppparam
-  use mod_clm_type
-  use mod_clm_decomp
-  use mod_clm_nchelper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr, stdout
+  use mod_runparams, only : obliqr
+  use mod_dynparam, only : ds, dsmax, myid
+#ifdef CLM45
+  use mod_dynparam, only : scalez
+#endif
+  use mod_mpmessage, only : fatal, vprntv
+  use mod_mppparam, only : italk
+  use mod_clm_type, only : clm3, pftcon
+#if (defined CNDV)
+  use mod_clm_type, only : dgv_pftcon
+#endif
+  use mod_clm_decomp, only : gcomm_gridcell, get_proc_bounds, &
+    get_proc_global, numc, numg, numl, nump
+  use mod_clm_nchelper, only : clm_check_var, clm_closefile, clm_filetype, &
+    clm_inqdim, clm_openfile, clm_readvar
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_varpar, only : nlevsoi, nlevgrnd, nlevlak, numpft
   use mod_clm_varpar, only : numrad, nlevurb, mach_eps, toplev_equalspace
@@ -23,7 +31,15 @@ module mod_clm_initimeconst
   use mod_clm_varctl, only : fsurdat, ialblawr
   use mod_clm_varctl, only : fsnowoptics, fsnowaging
   use mod_clm_varsur, only : pctspec
-  use mod_clm_pftvarcon
+  use mod_clm_pftvarcon, only : allom1, allom1s, allom2, allom2s, allom3, &
+    c3psn, croot_stem, deadwdcn, displar, dleaf, dsladlai, dwood, evergreen, &
+    fcur, fertnitro, ffrootcn, fleafcn, flivewd, flnr, fnitr, fr_fcel, &
+    fr_flab, fr_flig, froot_leaf, frootcn, fstemcn, graincn, leaf_long, &
+    leafcn, lf_fcel, lf_flab, lf_flig, lflitcn, livewdcn, &
+    nbrdlf_dcd_brl_shrub, noveg, ntree, pftpar20, pftpar28, pftpar29, &
+    pftpar30, pftpar31, reinickerp, rhol, rhos, roota_par, rootb_par, &
+    season_decid, slatop, smpsc, smpso, stem_leaf, stress_decid, taul, taus, &
+    woody, xl, z0mr
   use mod_clm_organicfile, only : organicrd
 #ifdef CN
   use mod_clm_cninispecial, only : CNiniSpecial

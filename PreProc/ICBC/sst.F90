@@ -15,7 +15,7 @@
 
 #ifdef PNETCDF
 subroutine myabort
-  use mod_stdio
+  use mod_stdio, only : stderr
   use mpi_f08
   implicit none
   integer :: ierr
@@ -31,22 +31,24 @@ end subroutine myabort
 
 program sst
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_header
-  use mod_dynparam
-  use mod_memutil
-  use mod_stdio
-  use mod_date
-  use mod_message
-  use mod_sst_grid
-  use mod_sst_1deg
-  use mod_sst_ersst
-  use mod_sst_gnmnc
-  use mod_sst_gndnc
-  use mod_sst_gnhnc
-  use mod_sst_cmip6
-  use mod_sst_cmip7
+  use mod_intkinds, only : ik4
+  use mod_header, only : finaltime, header, ik4, stderr, stdout
+  use mod_dynparam, only : dirter, domname, ical, initparam, pthsep, ssttyp
+  use mod_memutil, only : memory_destroy, memory_init
+  use mod_stdio, only : stderr, stdout
+  use mod_date, only : gregorian, noleap, y360, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_message, only : die
+  use mod_sst_grid, only : close_sstfile, init_grid, read_domain_info, &
+    setup_outvars
+  use mod_sst_1deg, only : sst_1deg
+  use mod_sst_ersst, only : sst_ersst
+  use mod_sst_gnmnc, only : sst_gnmnc
+  use mod_sst_gndnc, only : sst_gndnc
+  use mod_sst_gnhnc, only : sst_gnhnc
+  use mod_sst_cmip6, only : cmip6_sst
+  use mod_sst_cmip7, only : cmip7_sst
 #ifdef PNETCDF
   use mpi_f08
 #endif

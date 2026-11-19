@@ -20,22 +20,23 @@ end subroutine myabort
 
 program sigma2p
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_constants, only : cpd, cpovr, d_100, d_one, dlowval, egrav, ep1, &
+    p00, rgas, rk4, rk8, rkx, rovcp, smissval_r4
   use mod_dynparam, only : iomode, mo_lcap
   use mod_stdio, only : stderr
 #ifdef NETCDF4_HDF5
   use mod_dynparam, only : ncfilter, ncfilter_nparams, ncfilter_params
 #endif
-  use mod_message
-  use mod_vertint
-  use mod_memutil
+  use mod_message, only : checkalloc
+  use mod_vertint, only : intlin, intlog
+  use mod_memutil, only : memory_destroy, memory_init
   use mod_sigma, only : init_sigma, half_sigma_coordinate
-  use mod_zita
-  use mod_hgt
-  use mod_humid
-  use mod_nchelper
+  use mod_zita, only : md_zeta_h, model_zitah
+  use mod_hgt, only : gs_filter, height_o, htsig_o, mslp, nonhydrost
+  use mod_humid, only : mxr2rh, sph2mxr
+  use mod_nchelper, only : checkncerr
   use netcdf
 
   implicit none

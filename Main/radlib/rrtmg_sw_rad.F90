@@ -74,7 +74,6 @@ module rrtmg_sw_rad
 ! --------- Modules ---------
 
       use parkind, only : im => kind_im, rb => kind_rb
-      use rrsw_vsn
       use mcica_subcol_gen_sw, only: mcica_subcol_sw
       use rrtmg_sw_cldprmc, only: cldprmc_sw
 #ifdef DEBUG

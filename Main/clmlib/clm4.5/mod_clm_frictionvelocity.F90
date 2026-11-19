@@ -3,9 +3,9 @@ module mod_clm_frictionvelocity
   ! Calculation of the friction velocity, relation for potential
   ! temperature and humidity profiles of surface boundary layer.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_clm_type, only : clm3
   use mod_clm_varcon, only : vkc, rpi, grav
 
   implicit none

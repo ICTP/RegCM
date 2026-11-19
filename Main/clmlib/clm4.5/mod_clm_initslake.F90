@@ -8,14 +8,14 @@ module mod_clm_initslake
   ! variable values are missing (spval).
   ! Once this version is officialized, this is no longer necessary.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_mppparam
-  use mod_runparams
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr, stdout
+  use mod_mpmessage, only : fatal
+  use mod_dynparam, only : myid
+  use mod_mppparam, only : italk
+  use mod_runparams, only : dtsrf
+  use mod_clm_type, only : clm3
   use mod_clm_varpar, only : nlevsno, nlevlak, nlevgrnd, nlevsoi
   use mod_clm_varcon, only : bdsno, denice, denh2o, spval, tfrz, tkwat
   use mod_clm_varcon, only : istdlak, zlak, dzlak, zsoi, dzsoi, zisoi

@@ -17,12 +17,18 @@ module mod_ocn_zeng
   !
   ! Ocean flux model
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_service
-  use mod_ocn_internal
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : cpd, cpv, cpw0, d_one, d_zero, egrav, ep1, ep2, &
+    onet, p00, regrav, rgas, rhoh2o, rovcp, rtice, rtwat, rtwat_rtice_r, &
+    rwat, tzero, vonkar, wlhs, wlhv
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_ocn_internal, only : br, deltas, drag, dtocn, dtsst, evpr, hpbl, &
+    ht, iocnbeg, iocnend, ldcsst, mask, patm, q2m, qv, rah1, ram1, rhoa, &
+    rhox, rlwf, rswf, sent, sfps, sst, t2m, tatm, taux, tauy, tdeltas, tgb, &
+    tgbrd, tgrd, threedays, tskin, u10m, um10, ustr, usw, v10m, vsw, zoo
   use mod_runparams, only : izengrough, syncro_cpl
   use mod_runparams, only : iwavcpl
   use mod_runparams, only : zomax, ustarmax

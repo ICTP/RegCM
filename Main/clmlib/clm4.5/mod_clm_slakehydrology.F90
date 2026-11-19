@@ -1,7 +1,7 @@
 module mod_clm_slakehydrology
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
   !
   ! Calculation of Lake Hydrology.
@@ -58,7 +58,7 @@ module mod_clm_slakehydrology
     ! Snow filter for lakes is not returned to driver.  That's okay, because
     ! it looks like it is only needed for the call to SnowAge_grain, which
     ! will be done at the bottom of this module.
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_atmlnd, only : clm_a2l
     use mod_clm_varcon, only : denh2o, denice, spval, hfus, tfrz, cpliq, cpice
     use mod_clm_slakecon, only : lsadz

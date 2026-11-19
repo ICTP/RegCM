@@ -3,15 +3,14 @@ module mod_clm_urban
   ! Calculate solar and longwave radiation, and turbulent fluxes for
   ! urban landunit
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_runparams, only : dtsrf, rcmtimer
   use mod_clm_varctl, only : nextdate
   use mod_clm_varpar, only : numrad
   use mod_clm_varcon, only : isecspday, degpsec
-  use mod_mpmessage
-  use mod_stdio
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
 
   implicit none
 
@@ -92,7 +91,7 @@ module mod_clm_urban
                           num_urbanl, filter_urbanl, &
                           num_urbanc, filter_urbanc, &
                           num_urbanp, filter_urbanp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : icol_roof, icol_sunwall, icol_shadewall, &
             icol_road_perv, icol_road_imperv, sb
     implicit none
@@ -561,7 +560,7 @@ module mod_clm_urban
   !
   subroutine UrbanSnowAlbedo (lbl,ubl,num_urbanl,filter_urbanl,coszen,ind, &
                               albsn_roof,albsn_improad,albsn_perroad)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : icol_roof, icol_road_perv, icol_road_imperv
     implicit none
     integer(ik4),  intent(in) :: lbl, ubl   ! landunit-index bounds
@@ -646,7 +645,7 @@ module mod_clm_urban
                              num_nourbanl, filter_nourbanl, &
                              num_urbanl, filter_urbanl, &
                              num_urbanp, filter_urbanp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : spval, icol_roof, icol_sunwall, icol_shadewall, &
               icol_road_perv, icol_road_imperv
     use mod_clm_varcon, only : tfrz  ! To use new constant..
@@ -1123,7 +1122,7 @@ module mod_clm_urban
   !   atmospheric models. Boundary-Layer Meteorology 94:357-397
   !
   subroutine view_factor (lbl, ubl, num_urbanl, filter_urbanl, canyon_hwr)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     implicit none
     integer(ik4),  intent(in) :: lbl, ubl   ! landunit-index bounds
     integer(ik4), intent(in)  :: num_urbanl ! number of urban landunits
@@ -1389,7 +1388,7 @@ module mod_clm_urban
   !
   subroutine incident_diffuse (lbl, ubl, num_urbanl, filter_urbanl, &
                     canyon_hwr, sdif, sdif_road, sdif_sunwall, sdif_shadewall)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     implicit none
     integer(ik4),  intent(in)  :: lbl, ubl   ! landunit-index bounds
     integer(ik4), intent(in)  :: num_urbanl  ! number of urban landunits
@@ -1462,7 +1461,7 @@ module mod_clm_urban
                   sref_shadewall_dir, sref_roof_dir, &
                   sref_improad_dif, sref_perroad_dif, sref_sunwall_dif, &
                   sref_shadewall_dif, sref_roof_dif)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     implicit none
     integer(ik4),  intent(in)  :: lbl, ubl   ! landunit-index bounds
     integer(ik4), intent(in)  :: num_urbanl  ! number of urban landunits
@@ -2246,7 +2245,7 @@ module mod_clm_urban
                   lwup_roof, lwup_improad, lwup_perroad, lwup_sunwall, &
                   lwup_shadewall, lwup_canyon)
     use mod_clm_varcon, only : sb
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     implicit none
     integer(ik4), intent(in)  :: num_urbanl  ! number of urban landunits
     integer(ik4),  intent(in)  :: lbl, ubl   ! landunit-index bounds
@@ -2738,7 +2737,7 @@ module mod_clm_urban
   ! Initialize urban surface dataset variables
   !
   subroutine UrbanClumpInit()
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : icol_roof, icol_sunwall, &
             icol_shadewall, icol_road_perv, icol_road_imperv, udens_base
     use mod_clm_filter, only : filter
@@ -2847,7 +2846,7 @@ module mod_clm_urban
                           num_nourbanl, filter_nourbanl, &
                           num_urbanl, filter_urbanl, &
                           num_urbanp, filter_urbanp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : cpair, vkc, spval, icol_roof, icol_sunwall, &
              icol_shadewall, icol_road_perv, icol_road_imperv, &
              grav, pondmx_urban, rpi, rgas, &

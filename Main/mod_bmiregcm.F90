@@ -39,7 +39,8 @@
 
 module bmiregcm
 
-  use bmif_2_0
+  use bmif_2_0, only : bmi, bmi_failure, bmi_max_component_name, &
+    bmi_max_var_name, bmi_success
 
   use, intrinsic :: iso_c_binding, only: c_ptr, c_loc, c_f_pointer
   use mod_regcm_interface, only : atm_model

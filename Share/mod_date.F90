@@ -15,10 +15,10 @@
 
 module mod_date
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_stdio
-  use mod_message
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_intkinds, only : ik4, ik8
+  use mod_stdio, only : stderr, stdout
+  use mod_message, only : die
 
   implicit none
 

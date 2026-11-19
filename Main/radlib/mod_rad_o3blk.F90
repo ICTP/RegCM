@@ -15,20 +15,26 @@
 
 module mod_rad_o3blk
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_runparams
-  use mod_constants
-  use mod_date
-  use mod_kdinterp
-  use mod_vertint
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_memutil
-  use mod_rad_common
-  use mod_stdio
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_runparams, only : iclimao3, scenario
+  use mod_constants, only : amd, amo3, d_100, d_one
+  use mod_date, only : monmiddle, nextmon, prevmon, rcm_time_and_date, &
+    rcm_time_interval, split_idate, tohours, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_vertint, only : intlinprof, intlinreg
+  use mod_mppparam, only : bcast, grid_collect, grid_distribute, iocpu, italk
+  use mod_mpmessage, only : fatal, vprntv
+  use mod_dynparam, only : ice1, ice2, ici1, ici2, icross1, icross2, inpglob, &
+    jce1, jce2, jci1, jci2, jcross1, jcross2, kzp1, myid, nicross, njcross, &
+    pthsep
+  use mod_memutil, only : getmem
+  use mod_rad_common, only : o3prof
+  use mod_stdio, only : stderr, stdout
+  use mod_regcm_types, only : mod_2_rad
   use netcdf
   use mod_ncstream, only : outstream_netcdf_lock, outstream_netcdf_unlock
 

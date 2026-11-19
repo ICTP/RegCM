@@ -27,14 +27,25 @@
 ! column a COLUMN line and one line per level, top to bottom.
 
 program scm_tiedtke
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_regcm_types
-  use mod_cu_common
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : cpd, d_one, d_two, d_zero, regrav, rkx, vonkar, &
+    wlhv
+  use mod_dynparam, only : ice1, ice1ga, ice1gb, ice2, ice2ga, ice2gb, ici1, &
+    ici2, idi1, idi2, idynamic, jce1, jce1ga, jce1gb, jce2, jce2ga, jce2gb, &
+    jci1, jci2, jdi1, jdi2, kz, kzm1, kzp1, ntr
+  use mod_runparams, only : detrpen_lnd, detrpen_ocn, dtcum, dx, entrdd, &
+    entrpen_lnd, entrpen_ocn, entshalp, iaerosol, ichem, iconvcf, icumcloud, &
+    icup, icup_lnd, icup_ocn, iindirect, ipptls, iqc, iqi, iqv, k2_const, &
+    kfac_deep, kfac_shal, lepcld, lmfcapebl, lmfcapeforc, lmfdd, lmfdudv, &
+    lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, nqx, &
+    rcpec_lnd, rcpec_ocn, rcuc_lnd, rcuc_ocn, rhebc_lnd, rhebc_ocn, rprc_lnd, &
+    rprc_ocn, rtaucape, rtaufac
+  use mod_memutil, only : getmem, memory_init
+  use mod_regcm_types, only : ik4, mod_2_cum, rkx
+  use mod_cu_common, only : avg_ww, cu_cldfrc, cu_cldlwc, cu_kbot, cu_ktop, &
+    cu_prate, cu_qdetr, cu_qten, cu_raincc, cu_srate, cu_tten, cu_uten, &
+    cu_vten, cuscheme, init_mod_cumulus, total_precip_points
   use mod_cu_tiedtke, only : allocate_mod_cu_tiedtke, tiedtkedrv, &
                              pmean, ktype, pmfu
   implicit none

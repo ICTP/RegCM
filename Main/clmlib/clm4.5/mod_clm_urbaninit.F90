@@ -2,8 +2,8 @@ module mod_clm_urbaninit
   !
   ! Initialize urban data
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_clm_urban, only : urban_traffic, urban_hac, urban_hac_off
 
   implicit none

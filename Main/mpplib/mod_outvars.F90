@@ -15,7 +15,7 @@
 
 module mod_outvars
 
-  use mod_realkinds
+  use mod_realkinds, only : rk4, rk8, rkx
 
   implicit none
 

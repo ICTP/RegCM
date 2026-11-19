@@ -15,7 +15,7 @@
 
 module mod_stdio
 
-  use mod_intkinds
+  use mod_intkinds, only : error_unit, ik4, input_unit, output_unit
   use, intrinsic :: iso_fortran_env
 
   implicit none

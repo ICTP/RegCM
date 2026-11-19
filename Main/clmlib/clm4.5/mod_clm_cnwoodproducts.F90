@@ -4,8 +4,8 @@ module mod_clm_cnwoodproducts
   ! Calculate loss fluxes from wood products pools, and update product
   ! pool state variables
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
   use mod_clm_decomp, only : get_proc_bounds
   use mod_clm_varcon, only : istsoil
@@ -27,7 +27,7 @@ module mod_clm_cnwoodproducts
   ! with wood harvest.
   !
   subroutine CNWoodProducts(num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, column_type
     use mod_clm_varctl, only : use_c13, use_c14
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter

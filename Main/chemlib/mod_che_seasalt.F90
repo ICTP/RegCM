@@ -15,11 +15,13 @@
 
 module mod_che_seasalt
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_che_common
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz
+  use mod_constants, only : d_half, d_three, d_zero, fourt, mathpi, onet, &
+    rdry
+  use mod_che_common, only : cdzq, cemtrac, cfdout, chiten, cpsb, crhob3d, &
+    isslt, sbin
 
   implicit none
 

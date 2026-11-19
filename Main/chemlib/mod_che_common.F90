@@ -15,17 +15,42 @@
 
 module mod_che_common
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_mppparam
-  use mod_runparams
-  use mod_memutil
-  use mod_stdio
-  use mod_mpmessage
-  use mod_che_param
-  use mod_che_species
-  use mod_che_indices
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : bdy_dm, bdy_nm, dirglob, dirter, domname, &
+    globidate1, ibdyfrq, ice1, ice2, ici1, ici2, icross1, icross2, ide1, &
+    ide1ga, ide2, ide2ga, idi1, idi2, idynamic, iy, jce1, jce2, jci1, jci2, &
+    jcross1, jcross2, jde1, jde1ga, jde2, jde2ga, jdi1, jdi2, jx, kz, myid, &
+    nats, nspgx, ntr, pthsep
+  use mod_mppparam, only : bcast, exchange, grid_distribute, iocpu, italk, ma
+  use mod_runparams, only : alarm_out_che, calday, carb_aging_control, &
+    chechgact, chemsimtype, chtrname, coef_ccn, declin, &
+    do_parallel_netcdf_in, do_parallel_save, dsigma, dt, dt2, dtbdys, dtche, &
+    dx, exponential_nudging, hsigma, iaerosol, ianh4, iano3, ibchb, ibchl, &
+    ibltyp, ich4, ichbion, ichdiag, ichdrdepo, ichdustemd, ichdustparam, &
+    ichebdy, ichecold, ichem, ichjphcld, ichlinox, ichremcvc, ichremlsc, &
+    ichsolver, ichsursrc, icup_lnd, icup_ocn, idate1, ifrest, igaschem, &
+    iindirect, iisop, iisoropia, ino, intbdy, io3, iochb, iochl, ioxclim, &
+    iqc, iqv, ism1, ism2, ismoke, nbchl, nbin, nchlmax, nmine, nochl, &
+    pc_physic, pc_total, rcmtimer, rdstemfac, rdt, relax_coefficients, &
+    rocemfac, sigma, syncro_che, syncro_rep, twt, xbctime
+#if defined(CLM45) || defined(ECLM)
+  use mod_runparams, only : rcm_megan_enabled
+#endif
+  use mod_memutil, only : assignpnt, getmem
+  use mod_stdio, only : stderr, stdout
+  use mod_mpmessage, only : fatal, iprntv
+  use mod_che_param, only : aest, agam, arye, ast, cdepuv, ciexsol, cxmopor
+  use mod_che_species, only : iox_h2o2, iox_oh
+  use mod_che_indices, only : cbmzspec, iald2, ialkooh, iaone, ic2h5ooh, &
+    ic2h6, ic3h7ooh, icalc, ich3cocho, ich3cooh, ich3coooh, ich3oh, ich3ooh, &
+    ichl, ico, icres, idms, ieoh, ieth, iethooh, ifld, iglyald, igth, igyp, &
+    ih2o2, ih2so4, ihcho, ihcooh, ihmt, ihno2, ihno3, ihno4, ihyac, ihydrald, &
+    iilt, iiron, iisopn, iisopno3, iisopooh, iisoprd, ikal, imacr, imacrooh, &
+    imekooh, imgly, imica, imsa, imvk, in2o5, ind_h2o, inh3, inh4, inh4no3, &
+    ino2, iolei, iolet, ionit, ionitr, iopen, ipan, ipar, ipb, ipollen, &
+    ipooh, iqtz, ircooh, irooh, ismec, iso2, iso4, isoa, isulf, iterpooh, &
+    itol, itolooh, ivmc, ixooh, ixyl, jvno2, mine_name, totsp
   use mod_cbmz_global, only : xr, xrin, xrout, c
   use mod_cbmz_parameters, only : nfix
 

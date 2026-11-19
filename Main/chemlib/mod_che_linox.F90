@@ -17,11 +17,12 @@ module mod_che_linox
   !
   ! Tracer convective transport
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_che_common
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_zero, earthrad, mathpi, navgdr, tzero
+  use mod_che_common, only : cdzq, cemisdiag, cfdout, chiten, cpsb, crhob3d, &
+    ctb3d, cxlat, cza, dx, ichdiag, ino, kcumbot, kcumtop
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz
 
   implicit none
 

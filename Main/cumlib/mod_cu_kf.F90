@@ -15,21 +15,22 @@
 
 module mod_cu_kf
 
-  use mod_realkinds
-  use mod_intkinds
+  use mod_realkinds, only : rk8, rkx
+  use mod_intkinds, only : ik4
   use mod_constants, only : egrav, regrav, rdry, gdry, tzero
   use mod_constants, only : ep1
   use mod_constants, only : cpd, rcpd, wlhv, wlhf, p00, cpw, cpv
   use mod_constants, only : d_zero, d_one, d_half, d_two
   use mod_constants, only : d_10, d_100, d_1000, dlowval
   use mod_constants, only : mathpi
-  use mod_memutil
-  use mod_mppparam
-  use mod_dynparam
-  use mod_stdio
-  use mod_regcm_types
-  use mod_mpmessage
-  use mod_cu_common
+  use mod_memutil, only : getmem
+  use mod_dynparam, only : ici1, ici2, jci1, jci2, kz, kzp1
+  use mod_stdio, only : stderr, stdout
+  use mod_regcm_types, only : mod_2_cum
+  use mod_mpmessage, only : fatal
+  use mod_cu_common, only : avg_ww, cu_cldfrc, cu_cldlwc, cu_cloud_fraction, &
+    cu_cloud_water, cu_convpr, cu_kbot, cu_ktop, cu_prate, cu_qten, cu_tten, &
+    cuscheme, total_precip_points
   use mod_runparams, only : dx, dxsq, ipptls, ibltyp, dt
   use mod_runparams, only : iqv, iqr, iqi, iqs, iqc
   use mod_runparams, only : kf_entrate, kf_convrate, kf_min_pef, kf_max_pef
@@ -38,7 +39,9 @@ module mod_cu_kf
   use mod_runparams, only : k2_const, kfac_shal, kfac_deep, iconvcf
   use mod_runparams, only : istochastic, rad_sigma, rad_min, rad_max
   use mod_runparams, only : ichem
-  use mod_service
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
 
   implicit none
 

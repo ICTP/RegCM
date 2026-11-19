@@ -15,13 +15,17 @@
 
 module mod_cmip6_helper
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_message
-  use mod_dynparam
-  use mod_kdinterp
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_date, only : rcm_time_and_date, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_message, only : die
+  use mod_dynparam, only : cmip6_experiment, cmip6_grid, cmip6_inp, &
+    cmip6_model, cmip6_variant, dattyp, pmip4_experiment, pmip4_grid, &
+    pmip4_inp, pmip4_model, pmip4_variant, pthsep
+  use mod_kdinterp, only : h_interpolator
+  use mod_stdio, only : stderr
   use netcdf
 
   implicit none

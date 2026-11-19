@@ -50,13 +50,15 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_micro_nogtom
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_mpmessage
-  use mod_memutil
-  use mod_service
-  use mod_regcm_types
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, kzp1
+  use mod_stdio, only : stderr
+  use mod_mpmessage, only : fatal
+  use mod_memutil, only : getmem
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_regcm_types, only : ik4, micro_2_mod, mod_2_micro, nogtom_stats
   use mod_constants, only : d_zero, d_one, d_half, d_two, d_1000
   use mod_constants, only : dlowval, mathpi, ep2, secph
   use mod_constants, only : tzero, rtice, rtwat_rtice_r

@@ -22,9 +22,9 @@ module mod_spbarcoord
   !   Eurographics Symposium on Geometry Processing (2006)
   !   Polthier - Sheffer Editors
   !
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
+  use mod_realkinds, only : rk8
+  use mod_intkinds, only : ik4
+  use mod_constants, only : d_zero
 
   implicit none
 

@@ -49,13 +49,19 @@ end module test_nchelper_c
 
 program test_nchelper
   use netcdf
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
-  use mod_nchelper
-  use test_nchelper_c
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_dynparam, only : ds, idynamic, iomode, iy, jx, kz, nsg
+  use mod_memutil, only : memory_destroy, memory_init
+  use mod_nchelper, only : add_attribute, add_dimension, add_variable, &
+    check_dimlen, check_dims, check_var, closefile, createfile_withname, &
+    define_basic_dimensions, define_horizontal_coord, define_vertical_coord, &
+    get_attribute, ncd_inqdim, nf90_myget_att_text, openfile_withname, &
+    read_var1d_static, read_var2d_static, read_var3d_static, &
+    write_horizontal_coord, write_var2d_static, write_var3d_static, &
+    write_vertical_coord
+  use test_nchelper_c, only : put_string_att
+  use share_test_utils, only : check, test_end
   implicit none
   character(len=*), parameter :: fname = 'test_nchelper.nc'
   integer(ik4), parameter :: nx = 6, ny = 4, nz = 3

@@ -6,11 +6,11 @@ module mod_clm_cndecompcascadecentury
   ! Module that sets the coeffiecients used in the decomposition cascade
   ! submodel.  This uses the CENTURY parameters
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
   use mod_dynparam, only : dayspy
-  use mod_mpmessage
+  use mod_mpmessage, only : fatal
   use mod_clm_varpar, only : nlevsoi, nlevgrnd, nlevdecomp
   use mod_clm_varpar, only : ndecomp_cascade_transitions, ndecomp_pools
   use mod_clm_varpar, only : nsompools
@@ -64,7 +64,7 @@ module mod_clm_cndecompcascadecentury
   ! written by C. Koven
   !
   subroutine init_decompcascade(begc, endc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, decomp_cascade_con
     implicit none
     ! column level
     ! per-proc beginning and ending column indices
@@ -403,7 +403,7 @@ module mod_clm_cndecompcascadecentury
   ! written by C. Koven based on original CLM4 decomposition cascade
   !
   subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only: secspday
     implicit none
     integer(ik4), intent(in) :: lbc, ubc        ! column bounds

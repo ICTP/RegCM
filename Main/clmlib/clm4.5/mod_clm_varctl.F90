@@ -3,14 +3,13 @@ module mod_clm_varctl
   ! Module containing run control variables
   !
   use mod_date, only : rcm_time_and_date
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_dynparam, only : myid
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
   use mod_clm_varpar, only : maxpatch_pft, numpft
-  use mod_mppparam
-  use mod_runparams
+  use mod_mppparam, only : italk
 
   implicit none
   public :: set_clmvarctl   ! Set variables

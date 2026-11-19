@@ -15,12 +15,12 @@
 
 module mod_cbmz_jval1
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_mppparam
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_constants, only : d_one, d_two, d_zero, dlowval, mathpi
+  use mod_dynparam, only : dayspy, iy, myid
+  use mod_mppparam, only : italk
+  use mod_stdio, only : stdout
   implicit none
 
   private

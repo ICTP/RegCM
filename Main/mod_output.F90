@@ -15,37 +15,125 @@
 
 module mod_output
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_runparams
-  use mod_header
-  use mod_stdio
-  use mod_date
-  use mod_memutil
-  use mod_mpmessage
-  use mod_outvars
-  use mod_mppparam
-  use mod_service
-  use mod_projections
-  use mod_atm_interface
-  use mod_che_interface
-  use mod_che_output
-  use mod_lm_interface
-  use mod_rad_interface
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : d_10, d_100, d_1000, d_half, d_one, d_rfour, &
+    d_zero, dmissval, ep1, ep2, regrav, rovg, rtice, rtwat, rtwat_rtice_r, &
+    rwat, secph, smissval, tzero, wlhs, wlhv
+  use mod_dynparam, only : atmfrq, clat, clon, debug_level, dirout, domname, &
+    ice1, ice2, ici1, ici2, ide1, ide2, idynamic, ifsave, iproj, iy, jce1, &
+    jce2, jci1, jci2, jde1, jde2, jx, kz, kzm1, kzp1, myid, ndpmax, nnsg, &
+    nsg, ntr, num_soil_layers, plat, plon, prestr, pthsep, ptop, savfrq, &
+    truelath, truelatl
+  use mod_runparams, only : alarm_out_atm, alarm_out_che, alarm_out_lak, &
+    alarm_out_nwf, alarm_out_opt, alarm_out_rad, alarm_out_sav, &
+    alarm_out_shf, alarm_out_srf, alarm_out_sts, alarm_out_sub, cqc, cqn, &
+    cqr, diaghf, diaghfs, do_parallel_save, do_restore_sst, doing_restart, &
+    dsigma, dtsrf, dx, iaerosol, ibltyp, ichdrdepo, ichem, iclimao3, icosp, &
+    icup, idate2, idcsst, idiag, iindirect, ioasiscpl, iocncpl, ipptls, iqc, &
+    iqg, iqh, iqi, iqlst, iqr, iqs, iqv, irrtm, iseaice, islab_ocean, &
+    iwavcpl, lakemod, nqx, nsplit, rcmtimer, rhmax, rhmin, rnrad_for_optfrq, &
+    rnrad_for_radfrq, rnsrf_for_day, rnsrf_for_lakfrq, rnsrf_for_srffrq, &
+    rnsrf_for_subfrq, sigma, stats, uvrotate
+  use mod_header, only : checktime
+  use mod_stdio, only : stderr, stdout
+  use mod_date, only : lfdomonth, lmidnight, rcm_time_and_date, tochar10, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_memutil, only : assignpnt, getmem
+  use mod_outvars, only : area_out, atm_autoconvr_out, atm_ccnnum_out, &
+    atm_kth_out, atm_kzm_out, atm_nc_out, atm_nn_out, atm_nr_out, &
+    atm_omega_out, atm_pai_out, atm_pp_out, atm_q_detr_out, atm_qc_out, &
+    atm_qcrit_out, atm_qg_out, atm_qh_out, atm_qi_out, atm_qincl_out, &
+    atm_qr_out, atm_qs_out, atm_qten_adh_out, atm_qten_adi_out, &
+    atm_qten_adv_out, atm_qten_bdy_out, atm_qten_con_out, atm_qten_dif_out, &
+    atm_qten_lsc_out, atm_qten_tbl_out, atm_qv_out, atm_raincc_out, &
+    atm_rainls_out, atm_rh_out, atm_stats_autocc_out, atm_stats_autocw_out, &
+    atm_stats_con1c_out, atm_stats_con1w_out, atm_stats_dep_out, &
+    atm_stats_detc_out, atm_stats_detw_out, atm_stats_eroc_out, &
+    atm_stats_erow_out, atm_stats_evc_out, atm_stats_evw_out, &
+    atm_stats_frz_out, atm_stats_melt_out, atm_stats_rainev_out, &
+    atm_stats_snowev_out, atm_stats_supc_out, atm_stats_supw_out, atm_t_out, &
+    atm_tgb_out, atm_tke_out, atm_tpr_out, atm_tten_adh_out, &
+    atm_tten_adi_out, atm_tten_adv_out, atm_tten_bdy_out, atm_tten_con_out, &
+    atm_tten_dif_out, atm_tten_lsc_out, atm_tten_rad_out, atm_tten_tbl_out, &
+    atm_u_out, atm_v_out, atm_w_out, che_pai_out, che_pp_out, lak_evp_out, &
+    lak_fld_out, lak_flw_out, lak_fsw_out, lak_scv_out, lak_sena_out, &
+    lak_sina_out, lak_tpr_out, mask_out, opt_aassrlrf_out, opt_aastalrf_out, &
+    opt_aastoarf_out, opt_aastsrrf_out, opt_acssrlrf_out, opt_acstalrf_out, &
+    opt_acstoarf_out, opt_acstsrrf_out, opt_pai_out, opt_pp_out, p0_out, &
+    ps_out, rad_cld_out, rad_clrls_out, rad_clrlt_out, rad_clrss_out, &
+    rad_clrst_out, rad_clwp_out, rad_frla_out, rad_frsa_out, rad_higcl_out, &
+    rad_lowcl_out, rad_lwout_out, rad_midcl_out, rad_o3_out, rad_pai_out, &
+    rad_pp_out, rad_qrl_out, rad_qrs_out, rad_solin_out, rad_solout_out, &
+    rad_totci_out, rad_totcl_out, rad_totwv_out, shf_pcpavg_out, &
+    shf_pcpmax_out, shf_pcprcv_out, shf_twetb_out, srf_cape_out, srf_cin_out, &
+    srf_dew_out, srf_evp_out, srf_evpot_out, srf_fld_out, srf_flw_out, &
+    srf_fsw_out, srf_grau_out, srf_hail_out, srf_hus50_out, srf_lena_out, &
+    srf_li_out, srf_pcpmax_out, srf_prcv_out, srf_scv_out, srf_sena_out, &
+    srf_sina_out, srf_snow_out, srf_snowmelt_out, srf_srunoff_out, &
+    srf_sund_out, srf_ta50_out, srf_taux_out, srf_tauy_out, srf_totcf_out, &
+    srf_tpr_out, srf_tprw_out, srf_trunoff_out, srf_twetb_out, srf_u10m_out, &
+    srf_ua100_out, srf_ua150_out, srf_ua50_out, srf_uflw_out, srf_ufsw_out, &
+    srf_v10m_out, srf_va100_out, srf_va150_out, srf_va50_out, srf_wspd_out, &
+    srf_zpbl_out, sts_pcpavg_out, sts_pcpmax_out, sts_psavg_out, &
+    sts_psmin_out, sts_srunoff_out, sts_sund_out, sts_t2avg_out, &
+    sts_t2max_out, sts_t2min_out, sts_tgmax_out, sts_tgmin_out, &
+    sts_trunoff_out, sts_w10max_out, sts_wsgsmax_out, sub_area_out, &
+    sub_evp_out, sub_mask_out, sub_ps_out, sub_scv_out, sub_sena_out, &
+    sub_srunoff_out, sub_topo_out, sub_trunoff_out, sub_u10m_out, &
+    sub_v10m_out, sub_xlat_bnds_out, sub_xlat_out, sub_xlon_bnds_out, &
+    sub_xlon_out, topo_out, xlat_bnds_out, xlat_out, xlon_bnds_out, xlon_out
+  use mod_mppparam, only : exchange, grid_collect, italk, reorder_subgrid, &
+    subgrid_collect
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_projections, only : anyprojparams, regcm_projection
+  use mod_atm_interface, only : atm0, atm1, atm2, atms, ba_cr, ccn, &
+    drydepflx, dstor, flw, flwd, fsw, heatrt, hstor, kpbl, mddom, mdsub, &
+    mo_atm, omega, q_detr, qdiag, rain_cc, rain_ls, sfracb2d, sfracs2d, sfs, &
+    sinc, solvl, solvld, solvs, solvsd, ssw2da, svegfrac2d, sxlai2d, tdiag, &
+    wetdepflx, zpbl
+#if defined(CLM45) || defined(ECLM)
+  use mod_atm_interface, only : dustflx_clm, sw_vol, tsoi, voc_em_clm
+#endif
+  use mod_che_interface, only : ccn_io, chia_io, chib_io, chifxuw, &
+    chifxuw_io, cra, cra_io, drydepflx_io, drydepv, drydepv_io, duflux_io, &
+    rainout, rainout_io, remdrd, remdrd_io, sfracb2d_io, sfracs2d_io, &
+    ssw2da_io, svegfrac2d_io, sxlai2d_io, trac_io, voflux_io, washout, &
+    washout_io, wetdepflx_io
+  use mod_che_output, only : fill_chem_outvars
+  use mod_lm_interface, only : lms
+  use mod_rad_interface, only : absemin, o3prof
   use mod_rad_cosp, only : cosp_output
-  use mod_cu_interface
-  use mod_pbl_interface
-  use mod_micro_interface
-  use mod_ncout
-  use mod_bdycod
-  use mod_split
-  use mod_savefile
-  use mod_slabocean
-  use mod_moloch
-  use mod_capecin
-  use mod_timer
+  use mod_cu_interface, only : avg_ww, cbmf2d, cldefi
+  use mod_pbl_interface, only : uwstate
+  use mod_micro_interface, only : ngs
+  use mod_ncout, only : atm_stream, begin_output_streams_async_batch, &
+    che_stream, end_output_streams_async_batch, lak_stream, &
+    lock_output_streams_netcdf, newoutfiles, opt_stream, rad_stream, &
+    shf_stream, slaboc_stream, srf_stream, sts_stream, sub_stream, &
+    unlock_output_streams_netcdf, write_record_output_stream, &
+    write_vars_slaboc_stream
+  use mod_bdycod, only : setup_bdymask
+  use mod_savefile, only : absemin_io, atm1_pp_io, atm1_qx_io, atm1_t_io, &
+    atm1_tke_io, atm1_u_io, atm1_v_io, atm1_w_io, atm2_pp_io, atm2_qx_io, &
+    atm2_t_io, atm2_tke_io, atm2_u_io, atm2_v_io, atm2_w_io, atm_pai_io, &
+    atm_qx_io, atm_t_io, atm_tke_io, atm_u_io, atm_v_io, atm_w_io, br_io, &
+    cbmf2d_io, cldefi_io, cu_avg_ww_io, deltas_io, dstor_io, dtrnof_io, &
+    emisv_io, eta_io, flw_io, flwd_io, fsw_io, gwet_io, heatrt_io, hfx_io, &
+    hi_io, hstor_io, kpbl_io, ldew_io, ldmsk1_io, ldmsk_io, lwdifalb_io, &
+    lwdiralb_io, o3prof_io, ps_io, psa_io, psb_io, q2m_io, &
+    qflux_restore_sst_io, qfx_io, rah_io, ram_io, sfice_io, sinc_io, snag_io, &
+    sncv_io, snwm_io, solvl_io, solvld_io, solvs_io, solvsd_io, sw_io, &
+    swdifalb_io, swdiralb_io, swvol_io, taf_io, tdeltas_io, tgbb_io, &
+    tgbrd_io, tgrd_io, tke_pbl_io, tlak_io, tlef_io, tskin_io, tsoi_io, &
+    u10m_io, um10_io, ustar_io, uvdrag_io, v10m_io, w10m_io, write_savefile, &
+    zo_io, zpbl_io
+  use mod_slabocean, only : fill_slaboc_outvars, qflux_restore_sst
+  use mod_capecin, only : getcape_new, otlift
+  use mod_timer, only : rcm_alarm, operator(/)
 #ifdef ECLM
   use mod_oasis_params, only : oasis_nlevsoi
 #endif

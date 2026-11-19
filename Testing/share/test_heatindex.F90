@@ -19,10 +19,10 @@
 ! boundaries, and no floating point overflow in the root solvers.
 
 program test_heatindex
-  use mod_intkinds
-  use mod_realkinds
-  use mod_heatindex
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : ieee_get_flag, ieee_overflow, ieee_set_flag, rkx
+  use mod_heatindex, only : heatindex
+  use share_test_utils, only : check, test_end
   use, intrinsic :: ieee_exceptions
   implicit none
   integer(ik4), parameter :: nchart = 5

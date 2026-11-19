@@ -15,24 +15,25 @@
 
 module mod_ecday
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_grid
-  use mod_write
-  use mod_date
-  use mod_constants
-  use mod_kdinterp
-  use mod_vertint
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_projections
-  use mod_vectutil
-  use mod_message
-  use mod_memutil
-  use mod_nchelper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : dattyp, globidate1, i_band, i_crm, idynamic, &
+    inpglob, iy, jx, kz, pthsep, ptop
+  use mod_stdio, only : stdout
+  use mod_grid, only : dlat, dlon, pjd, pju, pjv, sigmah, topogm, topou, &
+    topov, ulat, ulon, vlat, vlon, xlat, xlon, z0, zetau, zetav
+  use mod_write, only : pd4, ps4, q4, t4, ts4, u4, v4
+  use mod_date, only : dayofyear, lfdoyear, rcm_time_and_date, split_idate, &
+    tochar, assignment(=), operator(+), operator(-), operator(/=), &
+    operator(<), operator(<=), operator(==), operator(>), operator(>=)
+  use mod_constants, only : d_10
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_vertint, only : intv1, intv2, intv3, intz1, intz3
+  use mod_mksst, only : readsst
+  use mod_vectutil, only : crs2dot, ucrs2dot, vcrs2dot
+  use mod_memutil, only : getmem
+  use mod_nchelper, only : checkncerr
   implicit none
 
   private

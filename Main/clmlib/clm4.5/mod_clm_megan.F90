@@ -12,13 +12,12 @@
 !================================================================================
 module mod_clm_megan
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_dynparam
-  use mod_mppparam
-  use mod_dynparam
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_dynparam, only : debug_level, myid
+  use mod_mppparam, only : bcast, iocpu
+  use mod_stdio, only : file_freeunit, file_getunit, stderr, stdout
 
   implicit none
 

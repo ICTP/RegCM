@@ -21,14 +21,19 @@
 
 program test_domain
   use netcdf
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
-  use mod_ncstream
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rkx
+  use mod_dynparam, only : calendar, clat, clon, cntri, cntrj, domname, ds, &
+    ical, idynamic, iproj, iy, jx, kz, kzp1, nsg, ptop, truelath, truelatl, &
+    xcone
+  use mod_memutil, only : getmem, memory_destroy, memory_init, relmem
+  use mod_ncstream, only : nc_output_stream, ncoutstream_params, &
+    ncvariable2d_mixed, ncvariable3d_mixed, outstream_addvar, &
+    outstream_async_finalize, outstream_dispose, outstream_enable, &
+    outstream_setup, outstream_writevar
   use mod_nchelper, only : openfile_withname, closefile
-  use mod_domain
-  use share_test_utils
+  use mod_domain, only : check_domain, mddom_io, read_domain
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: nj = 12, ni = 10, nk = 5
   real(rkx), pointer, contiguous, dimension(:) :: sigma => null()

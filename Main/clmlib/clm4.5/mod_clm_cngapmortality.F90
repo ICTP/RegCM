@@ -4,8 +4,8 @@ module mod_clm_cngapmortality
   ! Module holding routines used in gap mortality for coupled carbon
   ! nitrogen code.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_dynparam, only : dayspy
 
   implicit none
@@ -21,7 +21,7 @@ module mod_clm_cngapmortality
   ! Gap-phase mortality routine for coupled carbon-nitrogen code (CN)
   !
   subroutine CNGapMortality(num_soilc, filter_soilc, num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, pftcon
     use mod_clm_varcon   , only : secspday
     use mod_clm_pftvarcon, only : npcropmin
     implicit none
@@ -344,7 +344,7 @@ module mod_clm_cngapmortality
   ! three litter pools
   !
   subroutine CNGapPftToColumn (num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, pftcon
     use mod_clm_varpar, only : maxpatch_pft, nlevdecomp
     implicit none
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter

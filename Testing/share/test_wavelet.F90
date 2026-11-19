@@ -20,10 +20,10 @@
 ! 2a and is removed by a threshold of 2a; odd sizes are handled.
 
 program test_wavelet
-  use mod_intkinds
-  use mod_realkinds
-  use mod_wavelet
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_wavelet, only : wavelet_denoise
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: nx = 20, ny = 16
   real(rkx), dimension(nx,ny) :: f, g, base

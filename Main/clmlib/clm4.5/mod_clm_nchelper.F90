@@ -16,18 +16,19 @@
 module mod_clm_nchelper
 
   use netcdf
-  use mod_realkinds
-  use mod_intkinds
-  use mod_stdio
-  use mod_memutil
-  use mod_message
-  use mod_mppparam
-  use mod_dynparam
+  use mod_realkinds, only : rk4, rk8
+  use mod_intkinds, only : ik4
+  use mod_stdio, only : stderr
+  use mod_memutil, only : getmem, relmem
+  use mod_message, only : die, fatal
+  use mod_mppparam, only : iocpu
+  use mod_dynparam, only : iomode, iout1, iout2, jout1, jout2, myid, &
+    ncfilter, ncfilter_nparams, ncfilter_params, niout, njout, nsg
   use mod_runparams, only : lsync
   use mod_runparams, only : do_parallel_netcdf_in
-  use mod_regcm_types
-  use mod_clm_decomp
-  use mod_clm_varcon
+  use mod_clm_decomp, only : gcomm_pft, numg, processor_type, procinfo, &
+    subgrid_type
+  use mod_clm_varcon, only : ispval, rspval, spval
 #ifdef ASYNC_NETCDF
   use mod_async_netcdf, only : async_netcdf_put_var, &
                                 async_netcdf_put_var_device, &

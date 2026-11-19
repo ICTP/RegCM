@@ -3,8 +3,8 @@ module mod_clm_cnnstateupdate1
   !
   ! Module for nitrogen state variable updates, non-mortality fluxes.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
 
   implicit none
@@ -21,7 +21,7 @@ module mod_clm_cnnstateupdate1
   ! variables (except for gap-phase mortality and fire fluxes)
   !
   subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, decomp_cascade_con, pftcon
     use mod_clm_varpar, only : nlevdecomp, ndecomp_pools, &
             ndecomp_cascade_transitions
     use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd

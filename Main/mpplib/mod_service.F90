@@ -17,11 +17,10 @@
 #ifdef DEBUG
 
 module mod_service
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_mppparam
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_mppparam, only : allgather_i, allgather_r, italk
   use mod_dynparam, only : mycomm, myid, nproc, debug_level
   use mpi_f08
 

@@ -20,12 +20,12 @@
 ! zenith angle at noon and midnight.
 
 program test_sunorbit
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
   use mod_constants, only : mathpi, degrad
   use mod_dynparam, only : dayspy, vernal_equinox
-  use mod_sunorbit
-  use share_test_utils
+  use mod_sunorbit, only : orb_cosz, orb_decl, orb_params
+  use share_test_utils, only : check, test_end
   implicit none
   real(rk8) :: eccen, obliq, mvelp, obliqr, lambm0, mvelpp
   real(rk8) :: delta, eccf, day, emax, emin, dmax, dmin, esum, d

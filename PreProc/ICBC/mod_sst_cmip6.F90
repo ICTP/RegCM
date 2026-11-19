@@ -15,29 +15,32 @@
 
 module mod_sst_cmip6
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_cmip6_helper
-  use mod_message
-  use mod_dynparam
-  use mod_memutil
-  use mod_sst_grid
-  use mod_kdinterp
-  use mod_date
-  use mod_stdio
-  use mod_cmip6_cesm
-  use mod_cmip6_canesm
-  use mod_cmip6_cmcc
-  use mod_cmip6_cnrm
-  use mod_cmip6_ecea
-  use mod_cmip6_gfdl
-  use mod_cmip6_hadmm
-  use mod_cmip6_ipsllr
-  use mod_cmip6_miroc6
-  use mod_cmip6_miresl
-  use mod_cmip6_mpihr
-  use mod_cmip6_mpilr
-  use mod_cmip6_normm
+  use mod_intkinds, only : ik8
+  use mod_realkinds, only : rkx
+  use mod_cmip6_helper, only : cmip6_2d_var
+  use mod_message, only : die
+  use mod_dynparam, only : cmip6_model, dattyp, globidate1, globidate2, ical, &
+    pmip4_model, ssttyp
+  use mod_sst_grid, only : open_sstfile, sstmm, writerec, xlat, xlon
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator_destroy
+  use mod_date, only : gregorian, imondiff, monfirst, nextmon, noleap, &
+    prevmon, rcm_time_and_date, rcm_time_interval, tochar, tohours, umnt, &
+    y360, assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stderr, stdout
+  use mod_cmip6_cesm, only : read_sst_cesm
+  use mod_cmip6_canesm, only : read_sst_canesm
+  use mod_cmip6_cmcc, only : read_sst_cmcc
+  use mod_cmip6_cnrm, only : read_sst_cnrm
+  use mod_cmip6_ecea, only : read_sst_ecea
+  use mod_cmip6_gfdl, only : read_sst_gfdl
+  use mod_cmip6_hadmm, only : read_sst_hadmm
+  use mod_cmip6_ipsllr, only : read_sst_ipsllr
+  use mod_cmip6_miroc6, only : read_sst_miroc6
+  use mod_cmip6_miresl, only : read_sst_miresl
+  use mod_cmip6_mpihr, only : read_sst_mpihr
+  use mod_cmip6_mpilr, only : read_sst_mpilr
+  use mod_cmip6_normm, only : read_sst_normm
   use netcdf
 
   implicit none

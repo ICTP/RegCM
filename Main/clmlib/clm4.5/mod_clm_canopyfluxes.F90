@@ -4,13 +4,13 @@ module mod_clm_canopyfluxes
   ! transpiration, photosynthesis and  updates the dew
   ! accumulation due to evaporation.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
+  use mod_runparams, only : dtsrf, dx
   use mod_clm_varctl, only: use_c13, use_c14, nextdate
-  use mod_clm_type
+  use mod_clm_type, only : clm3, pftcon
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_varpar, only : nlevgrnd, nlevsno, nlevcan
   use mod_clm_varcon, only : sb, cpair, hvap, vkc, grav, denice, &

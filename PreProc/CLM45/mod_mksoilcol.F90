@@ -14,12 +14,12 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_mksoilcol
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_grid
-  use mod_rdldtr
+  use mod_realkinds, only : rkx
+  use mod_intkinds, only : ik4
+  use mod_dynparam, only : ds, i_band, inpglob, iysg, jxsg, nsg, pthsep, &
+    roidem
+  use mod_grid, only : xlat, xlon
+  use mod_rdldtr, only : gfclose, gfopen, gfread, globalfile
 
   implicit none
 

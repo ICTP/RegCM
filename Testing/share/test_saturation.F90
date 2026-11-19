@@ -19,10 +19,11 @@
 ! liquid/ice switch at 0 C, the dew point inverse and the pressure cap.
 
 program test_saturation
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : ep2, rk8, rkx, rtice, rtwat, rtwat_rtice_r, rwat, &
+    tzero, wlhs, wlhv
+  use share_test_utils, only : check, test_end
   implicit none
   real(rkx) :: t, p, err, w, d, fd
   real(rkx), parameter :: h = 1.0e-3_rkx

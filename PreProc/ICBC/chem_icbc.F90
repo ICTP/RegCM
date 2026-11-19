@@ -15,7 +15,7 @@
 
 #ifdef PNETCDF
 subroutine myabort
-  use mod_stdio
+  use mod_stdio, only : stderr
   use mpi_f08
   implicit none
   integer :: ierr
@@ -31,20 +31,26 @@ end subroutine myabort
 
 program chem_icbc
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_date
-  use mod_grid
-  use mod_wrtoxd
-  use mod_header
-  use mod_ch_icbc
-  use mod_ch_icbc_clim
-  use mod_ox_icbc
-  use mod_ae_icbc
-  use mod_ch_fnest
-  use mod_memutil
-  use mod_cams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : chemtyp, globidate1, globidate2, ibdyfrq, &
+    init_fnestparam, initparam, iy, jx, kz
+  use mod_date, only : lsamemonth, monfirst, rcm_time_and_date, &
+    rcm_time_interval, tochar, tohours, uhrs, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_grid, only : init_grid
+  use mod_wrtoxd, only : close_outoxd, init_outoxd, newfile_ae_icbc, &
+    newfile_ae_icbc1, newfile_ch_icbc, newfile_ox_icbc
+  use mod_header, only : finaltime, header, ik4, stderr, stdout
+  use mod_ch_icbc, only : close_ch_icbc, get_ch_icbc, init_ch_icbc
+  use mod_ch_icbc_clim, only : close_ch_icbc_clim, get_ch_icbc_clim, &
+    init_ch_icbc_clim
+  use mod_ox_icbc, only : close_ox_icbc, get_ox_icbc, init_ox_icbc
+  use mod_ae_icbc, only : close_ae_icbc, get_ae_icbc, init_ae_icbc
+  use mod_ch_fnest, only : close_fnest, get_fnest, init_fnest
+  use mod_memutil, only : memory_destroy, memory_init
+  use mod_cams, only : conclude_cams, get_cams, init_cams
 #ifdef PNETCDF
   use mpi_f08
 #endif

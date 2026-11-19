@@ -15,11 +15,10 @@
 
 module mod_ccsm3_helper
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_message
+  use mod_intkinds, only : ik4
+  use mod_dynparam, only : inpglob
+  use mod_stdio, only : stderr
+  use mod_message, only : die
   implicit none
 
   private

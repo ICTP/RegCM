@@ -15,25 +15,29 @@
 
 module mod_sst_gnmnc
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_stdio
-  use mod_dynparam
-  use mod_memutil
-  use mod_sst_grid
-  use mod_kdinterp
-  use mod_message
-  use mod_nchelper
-  use mod_hadgem_helper
-  use mod_csiro_helper
-  use mod_canesm_helper
-  use mod_miroc_helper
-  use mod_ipsl_helper
-  use mod_gfdl_helper
-  use mod_cnrm_helper
-  use mod_ecearth_helper
-  use mod_ccsm4_helper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_date, only : imondiff, monfirst, nextmon, prevmon, &
+    rcm_time_and_date, rcm_time_interval, timeval2date, tochar, tohours, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : globidate1, globidate2, inpglob, iy, jx, ssttyp
+  use mod_memutil, only : getmem
+  use mod_sst_grid, only : open_sstfile, sstmm, writerec, xlat, xlon
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_message, only : die
+  use mod_nchelper, only : checkncerr
+  use mod_hadgem_helper, only : find_hadgem_sst
+  use mod_csiro_helper, only : find_csiro_sst
+  use mod_canesm_helper, only : find_canesm_sst
+  use mod_miroc_helper, only : find_miroc_sst
+  use mod_ipsl_helper, only : find_ipsl_sst
+  use mod_gfdl_helper, only : find_gfdl_sst
+  use mod_cnrm_helper, only : find_cnrm_sst
+  use mod_ecearth_helper, only : find_ecearth_sst
+  use mod_ccsm4_helper, only : find_ccsm4_sst
   use netcdf
   implicit none
 

@@ -3,17 +3,24 @@ module mod_clm_pftdyn
   ! Determine pft weights at current time using dynamic landuse datasets.
   ! ASSUMES that only have one dynamic landuse dataset.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_mppparam
-  use mod_runparams
-  use mod_mpmessage
-  use mod_stdio
-  use mod_date
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_dynparam, only : dayspy, dirglob, domname, myid, pthsep
+#ifdef CLM45
+  use mod_dynparam, only : enable_dv_baresoil
+#endif
+  use mod_mppparam, only : italk
+  use mod_runparams, only : dtsrf, rcmtimer
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr, stdout
+  use mod_date, only : curr_date, yeardays, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
   use mod_constants, only : pdbratio
-  use mod_clm_nchelper
-  use mod_clm_type
+  use mod_clm_nchelper, only : clm_check_dimlen, clm_closefile, clm_filetype, &
+    clm_openfile, clm_readvar
+  use mod_clm_type, only : clm3, column_type, gridcell_type, landunit_type, &
+    pft_type, pftcon
   use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell
   use mod_clm_varsur, only : pctspec
   use mod_clm_varpar, only : max_pft_per_col
@@ -2954,7 +2961,7 @@ module mod_clm_pftdyn
   ! Harvest mortality routine for coupled carbon-nitrogen code (CN)
   !
   subroutine CNHarvest (num_soilc, filter_soilc, num_soilp, filter_soilp)
-   use mod_clm_type
+   use mod_clm_type, only : clm3
    use mod_clm_pftvarcon, only : noveg, nbrdlf_evr_shrub, pprodharv10
    use mod_clm_varcon, only : secspday
    implicit none
@@ -3258,7 +3265,7 @@ module mod_clm_pftdyn
   ! three litter pools
   !
   subroutine CNHarvestPftToColumn (num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, pftcon
     use mod_clm_varpar, only : max_pft_per_col, maxpatch_pft, nlevdecomp
     implicit none
     ! number of soil columns in filter

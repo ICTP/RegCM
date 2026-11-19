@@ -15,15 +15,16 @@
 
 module mod_rdldtr
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_constants
-  use mod_memutil
-  use mod_nchelper
-  use mod_message
-  use mod_earth
-  use mod_kdinterp
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_stdio, only : stderr, stdout
+  use mod_memutil, only : getmem
+  use mod_nchelper, only : checkncerr
+  use mod_message, only : die
+  use mod_earth, only : get_window, global_domain
+  use mod_kdinterp, only : h_interpolate_class, h_interpolate_cont, &
+    h_interpolate_sum, h_interpolator, h_interpolator_create, &
+    h_interpolator_destroy, h_missing_value
   implicit none
 
   private

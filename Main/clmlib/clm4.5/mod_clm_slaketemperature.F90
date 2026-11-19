@@ -2,9 +2,9 @@ module mod_clm_slaketemperature
   !
   ! Calculates lake temperatures.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_runparams, only : dtsrf
 
   implicit none
 
@@ -99,9 +99,9 @@ module mod_clm_slaketemperature
   !
   subroutine SLakeTemperature(lbc, ubc, lbp, ubp, num_lakec, filter_lakec, &
                                num_lakep, filter_lakep)
-    use mod_realkinds
-    use mod_stdio
-    use mod_clm_type
+    use mod_realkinds, only : rk8
+    use mod_stdio, only : stderr
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : hfus, cpliq, cpice, tkwat, tkice, denice, &
                                 vkc, grav, denh2o, tfrz, cnfac
     use mod_clm_slakecon, only : betavis, za_lake, n2min, tdmax
@@ -1200,8 +1200,8 @@ module mod_clm_slaketemperature
   !
   subroutine SoilThermProp_Lake (lbc, ubc, num_lakec, filter_lakec, &
                   tk, cv, tktopsoillay)
-    use mod_realkinds
-    use mod_clm_type
+    use mod_realkinds, only : rk8
+    use mod_clm_type, only : clm3
     use mod_clm_varcon , only : denh2o, denice, tfrz, tkice, tkair
     use mod_clm_varcon , only : cpice, cpliq, thk_bedrock
     use mod_clm_varpar , only : nlevsno, nlevsoi, nlevgrnd
@@ -1398,8 +1398,8 @@ module mod_clm_slaketemperature
   !
   subroutine PhaseChange_Lake (lbc, ubc, num_lakec, filter_lakec, &
                   cv, cv_lake, lhabs)
-    use mod_realkinds
-    use mod_clm_type
+    use mod_realkinds, only : rk8
+    use mod_clm_type, only : clm3
     use mod_clm_varcon , only : tfrz, hfus, denh2o, cpliq, cpice
     use mod_clm_varpar , only : nlevsno, nlevgrnd, nlevlak
     implicit none

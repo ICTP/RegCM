@@ -15,14 +15,16 @@
 
 module mod_cu_common
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_10, d_1000, d_half, d_one, d_two, d_zero, egrav
+  use mod_dynparam, only : ice1ga, ice1gb, ice2ga, ice2gb, ici1, ici2, idi1, &
+    idi2, idynamic, jce1ga, jce1gb, jce2ga, jce2gb, jci1, jci2, jdi1, jdi2, &
+    kz, ntr
   use mod_runparams, only : clfrcv, nqx
   use mod_runparams, only : icup, ipptls, icumcloud, ichem
-  use mod_memutil
-  use mod_regcm_types
+  use mod_memutil, only : getmem
+  use mod_regcm_types, only : mod_2_cum
 
   implicit none
 

@@ -19,20 +19,20 @@ subroutine myabort
 end subroutine myabort
 
 program sigma2z
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_message
-  use mod_vertint
-  use mod_nchelper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rkx
+  use mod_constants, only : cpovr, d_100, d_one, dlowval, p00, rk4, rkx
+  use mod_message, only : checkalloc
+  use mod_vertint, only : intlinz
+  use mod_nchelper, only : checkncerr
   use mod_dynparam, only : iomode
 #ifdef NETCDF4_HDF5
   use mod_dynparam, only : ncfilter, ncfilter_nparams, ncfilter_params
 #endif
-  use mod_hgt
-  use mod_humid
-  use mod_stdio
-  use mod_memutil
+  use mod_hgt, only : gs_filter, height, htsig_o, mslp, nonhydrost
+  use mod_humid, only : mxr2rh, sph2mxr
+  use mod_stdio, only : stderr
+  use mod_memutil, only : memory_destroy, memory_init
   use mod_sigma, only : init_sigma, half_sigma_coordinate
   use netcdf
 

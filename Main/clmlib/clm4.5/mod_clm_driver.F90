@@ -68,14 +68,17 @@ module mod_clm_driver
   ! Optional subroutines are denoted by an plus (+) with the associated
   ! CPP token or variable in brackets at the end of the line.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_date
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_dynparam, only : myid
+  use mod_date, only : rcm_time_interval, split_idate, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stdout
   use mod_mppparam, only : italk
-  use mod_runparams
-  use mod_clm_type
+  use mod_runparams, only : declin, dtsec, dtsrf, idate0, rcmtimer, &
+    syncro_srf
+  use mod_clm_type, only : clm3, column_type
   use mod_clm_varctl, only : wrtdia, nextdate
   use mod_clm_decomp, only : get_proc_bounds
   use mod_clm_filter, only : filter

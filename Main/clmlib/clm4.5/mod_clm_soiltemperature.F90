@@ -2,10 +2,10 @@ module mod_clm_soiltemperature
   !
   ! Calculates snow and soil temperatures including phase change
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : nan, nan_r8, rk8
   use mod_runparams, only : dtsrf
-  use mod_clm_type
+  use mod_clm_type, only : clm3
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_varcon, only : sb, capr, cnfac, hvap, isturb,  &
                     icol_roof, icol_sunwall, icol_shadewall,  &

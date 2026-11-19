@@ -15,10 +15,11 @@
 
 module physics_msis
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_spline
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_10, d_100, d_1000, d_four, d_half, d_one, &
+    d_r1000, d_two, d_zero, degrad, egrav, rgasmol
+  use mod_spline, only : spline, splini, splint
 
   implicit none
 

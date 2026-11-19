@@ -17,10 +17,15 @@ module mod_ncstream_types
 #ifdef OPENACC
   use, intrinsic :: iso_c_binding
 #endif
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_date
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_constants, only : cpd, cpovr, d_10, d_1000, d_four, d_one, d_r100, &
+    d_two, d_zero, deg180, deg360, deg90, degrad, dmissval, earthrad, egrav, &
+    ep1, ep2, erkm, govcp, govr, halfpi, lrate, mathpi, p00, raddeg, rgas, &
+    rovcp, rtice, rtwat, rtwat_rtice_r, rwat, smissval_r4, tzero, wlhs, wlhv
+  use mod_date, only : hourdiff, rcm_time_and_date, setcal, tochar, tochar10, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
   use mpi_f08, only : mpi_comm, mpi_info, mpi_comm_null, mpi_info_null
 #ifdef PNETCDF
   use mpi_f08, only : mpi_offset_kind

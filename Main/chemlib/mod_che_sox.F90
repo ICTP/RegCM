@@ -15,15 +15,17 @@
 
 module mod_che_sox
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_che_bdyco
-  use mod_constants
-  use mod_dynparam
-  use mod_che_common
-  use mod_che_species
-  use mod_che_indices
-  use mod_che_carbonaer
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_che_bdyco, only : oxcl
+  use mod_constants, only : amd, d_one, d_r1000, d_two, d_zero, navgdr
+  use mod_dynparam, only : idynamic, jci1, jci2, kz, ntr
+  use mod_che_common, only : carb_aging_control, cdzq, cfdout, chemdiag, &
+    chemt, chib, chiten, chtrsol, cpsb, crembc, crhob3d, czen, dt, ichdiag, &
+    igaschem, ioxclim, kcumtop, washout, wdrout, wdwout
+  use mod_che_species, only : iox_h2o2, iox_oh
+  use mod_che_indices, only : ih2o2, ih2so4, iso2, iso4, isulf
+  use mod_che_carbonaer, only : so4chagct
 
   implicit none
 

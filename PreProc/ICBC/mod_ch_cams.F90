@@ -15,25 +15,29 @@
 
 module mod_cams
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_memutil
-  use mod_grid
-  use mod_date
-  use mod_constants
-  use mod_wrtoxd
-  use mod_vertint
-  use mod_earth
-  use mod_hgt
-  use mod_humid
-  use mod_projections
-  use mod_vectutil
-  use mod_message
-  use mod_nchelper
-  use mod_kdinterp
-  use mod_ch_param
+  use mod_intkinds, only : ik2, ik4
+  use mod_realkinds, only : rk4, rkx
+  use mod_dynparam, only : chemtyp, globidate1, i_band, idynamic, inpglob, &
+    iy, jx, kz, pthsep
+  use mod_stdio, only : stderr, stdout
+  use mod_memutil, only : getmem
+  use mod_grid, only : topogm, xlat, xlon, z0
+  use mod_date, only : rcm_time_and_date, rcm_time_interval, split_idate, &
+    timeval2date, tochar, tohours, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_wrtoxd, only : aev4, chv4, write_ae_icbc, write_ch_icbc
+  use mod_vertint, only : intz1
+  use mod_earth, only : get_window, global_domain
+  use mod_vectutil, only : top2btm
+  use mod_message, only : die
+  use mod_nchelper, only : checkncerr
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_ch_param, only : ae_bchb, ae_bchl, ae_dust1, ae_dust2, ae_dust3, &
+    ae_dust4, ae_ochb, ae_ochl, ae_so2, ae_so4, ae_sslt1, ae_sslt2, cb_c2h6, &
+    cb_ch4, cb_co, cb_h2o2, cb_hcho, cb_hno3, cb_isop, cb_no, cb_no2, cb_o3, &
+    cb_pan, cb_par, cb_so2
   use netcdf
   implicit none
 

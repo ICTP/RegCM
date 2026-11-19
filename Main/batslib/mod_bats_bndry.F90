@@ -15,15 +15,28 @@
 
 module mod_bats_bndry
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_service
-  use mod_bats_leaftemp
-  use mod_bats_param
-  use mod_bats_drag
-  use mod_bats_internal
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : dayspy
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_bats_leaftemp, only : lftemp, satur
+  use mod_bats_param, only : bee, deprv, deptv, depuv, freza, frezu, minsigf, &
+    rough, sai, skrat, xla, xlai0, xmofc, xmohyd, xmopor, xmosuc, xmowil
+  use mod_bats_drag, only : dragc
+  use mod_bats_internal, only : abswveg, aseas, bb, bcoef, bfc, bsw, cc, &
+    cdrx, cgrnd, cgrndl, cgrnds, delq, delt, deprat, drag, dtbat, efpr, etr, &
+    etrrun, evaps, evapw, evmx0, evpr, fct2, fevpg, flnet, flneto, fseng, &
+    gwet, gwmx0, gwmx1, gwmx2, htvp, ilndbeg, ilndend, ldew, ltex, lveg, &
+    lwflx, pfqsdts, porsl, prcp, ps, pw, qgrd, qs, relfc, rhosw, rhs, rlai, &
+    rnet, rsubst, rsw, scrat, scvk, sdrop, sent, sfcp, sigf, sm, snag, sncv, &
+    srnof, ssw, sts, swflx, taf, texrat, tgbrd, tgrd, tlef, tm, trnof, tsw, &
+    uaf, vegt, vspda, watr, watt, watu, wflux1, wflux2, wfluxc, wiltr, xkmx, &
+    xlai, xlsai
+  use mod_constants, only : cpd, csnw, csoilc, cws, d_10, d_1000, d_four, &
+    d_half, d_one, d_r10, d_r1000, d_rfour, d_three, d_two, d_zero, dewmax, &
+    dlowval, drain, minwrat, secpd, twopi, tzero, wlhf
 
   implicit none
 

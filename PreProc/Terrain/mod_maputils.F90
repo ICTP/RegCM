@@ -15,10 +15,10 @@
 
 module mod_maputils
 
-  use mod_constants
-  use mod_intkinds
-  use mod_realkinds
-  use mod_projections
+  use mod_constants, only : degrad, eomeg2
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_projections, only : anyprojparams, regcm_projection
   implicit none
 
   private

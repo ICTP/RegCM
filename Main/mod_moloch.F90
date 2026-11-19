@@ -15,30 +15,50 @@
 
 module mod_moloch
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_runparams
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_stdio
-  use mod_service
-  use mod_memutil
-  use mod_atm_interface
-  use mod_che_interface
-  use mod_cu_interface
-  use mod_lm_interface
-  use mod_rad_interface
-  use mod_pbl_interface
-  use mod_micro_interface
-  use mod_bdycod
-  use mod_slice
-  use mod_sun
-  use mod_slabocean
-  use mod_massck
-  use mod_stdatm
-  use mod_zita
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : is_inf, is_nan, rk4, rk8, rkx
+  use mod_dynparam, only : debug_level, ds, ice1, ice1ga, ice1gb, ice2, &
+    ice2ga, ice2gb, ici1, ici1ga, ici2, ici2ga, icross1, icross2, ide1, &
+    ide1ga, ide2, ide2ga, idi1, idi2, idii1, idii2, iproj, jce1, jce1ga, &
+    jce1gb, jce2, jce2ga, jce2gb, jci1, jci1ga, jci2, jci2ga, jcross1, &
+    jcross2, jde1, jde1ga, jde2, jde2ga, jdi1, jdi2, jdii1, jdii2, kz, kzm1, &
+    kzp1, mo_a0, mo_divdamp, mo_divfilter, mo_lcap, mo_nadv, mo_nsound, &
+    mo_spectral_nudge, mo_top_nudge, mo_ztop, myid, ntr
+  use mod_constants, only : cpd, cpovr, d_half, d_one, d_r100, d_two, d_zero, &
+    degrad, egrav, eomeg2, ep1, ep2, govcp, govr, lrate, p00, rdrcv, rgas, &
+    rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhs, wlhv
+  use mod_runparams, only : alarm_out_rad, declin, dtrad, dtsec, dx, ffilt, &
+    ibltyp, ichcumtra, ichdiag, ichem, icldfrac, iclimaaer, iclimao3, icup, &
+    idiag, ipptls, iqc, iqfrst, iqi, iqr, iqs, iqv, irceideal, islab_ocean, &
+    mo_dzita, moloch_do_test_1, moloch_do_test_2, nqx, qxcheckval, qxzeroval, &
+    rcmtimer, rdt, rdx, scenario, syncro_cum, syncro_emi, syncro_rad, &
+    syncro_rep, syncro_srf, xslabtime, zita, zitah
+  use mod_mppparam, only : exchange, exchange_bt, exchange_lr, exchange_lrbt, &
+    italk, ma, maxall, minall, sumall
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr, stdout
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_memutil, only : assignpnt, getmem
+  use mod_atm_interface, only : ba_cr, ba_ud, ba_vd, cldfra, cldlwc, coszrs, &
+    dub, dvb, heatrt, mddom, mo_atm, qdiag, sfs, tdiag, xib, xlb, xpaib, xqb, &
+    xtb
+  use mod_che_interface, only : cadvhdiag, cbdydiag, cconvdiag, convcldfra, &
+    ctbldiag, cumtran, morelax_chiten, tractend2
+  use mod_cu_interface, only : cucloud, cumulus, shallow_convection, &
+    total_precip_points
+  use mod_lm_interface, only : surface_albedo, surface_model
+  use mod_rad_interface, only : radiation, updateaeropp, updateaeropp_cmip6, &
+    updateaerosol, updateo3
+  use mod_pbl_interface, only : pblscheme, tkemin
+  use mod_micro_interface, only : cldfrac, condtq, microscheme
+  use mod_bdycod, only : bdyval, is_present_qc, is_present_qi, morelax, &
+    mospectral_nudge, motopnudge, setup_bdywt
+  use mod_slice, only : mkslice
+  use mod_sun, only : zenitm
+  use mod_massck, only : massck
+  use mod_zita, only : gzita
 
   implicit none
 

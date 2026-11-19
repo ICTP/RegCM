@@ -17,10 +17,10 @@ module mod_sunorbit
   !
   ! Compute solar orbit parameters
   !
-  use mod_realkinds
-  use mod_intkinds
-  use mod_message
-  use mod_stdio
+  use mod_realkinds, only : rk4, rk8
+  use mod_intkinds, only : ik4
+  use mod_message, only : die
+  use mod_stdio, only : stdout
   use mod_constants, only : mathpi, degrad, d_zero, d_one, d_two, d_half
   use mod_dynparam, only : dayspy, vernal_equinox
 

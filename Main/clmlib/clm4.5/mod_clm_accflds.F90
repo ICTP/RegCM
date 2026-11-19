@@ -18,13 +18,18 @@ module mod_clm_accflds
   ! averaging interval. Accumulated fields are continuously accumulated.
   ! The trigger value "-99999." resets the accumulation to zero.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_date
-  use mod_mpmessage
-  use mod_runparams
-  use mod_clm_type
+  use mod_intkinds, only : bigint, ik4, ik8
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr
+  use mod_date, only : curr_date, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_mpmessage, only : fatal
+  use mod_runparams, only : dtsrf, syncro_srf
+  use mod_clm_type, only : clm3
+#if (defined CNDV)
+  use mod_clm_type, only : dgv_pftcon
+#endif
   use mod_clm_decomp, only : get_proc_bounds, get_proc_global
   use mod_clm_surfrd, only : crop_prog
   use mod_clm_accumul, only : init_accum_field, print_accum_fields

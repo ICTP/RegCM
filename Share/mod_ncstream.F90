@@ -15,15 +15,41 @@
 
 module mod_ncstream
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_constants
-  use mod_dynparam
-  use mod_message
-  use mod_date
-  use mod_ncstream_types
-  use mod_zita
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_stdio, only : stderr, stdout
+  use mod_constants, only : d_1000, d_one, d_two, deg180, deg360, deg90, &
+    degrad, earthrad, erkm, halfpi, mathpi, raddeg
+  use mod_dynparam, only : calendar, clat, clon, cntri, cntrj, domname, ds, &
+    ical, idynamic, iomode, iproj, iy, jx, kz, mo_a0, mo_h, mo_lcap, mo_ztop, &
+    myid, ncfilter, ncfilter_nparams, ncfilter_params, ndpmax, npgwlev, nsg, &
+    ntex, num_soil_layers, plat, plon, ptop, truelath, truelatl, xcone
+#ifdef CLM45
+  use mod_dynparam, only : scalez
+#endif
+  use mod_message, only : die
+  use mod_date, only : hourdiff, rcm_time_and_date, setcal, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_ncstream_types, only : basic_variables, h100m_level_dim, &
+    h10m_level_dim, h150m_level_dim, h2m_level_dim, h50m_level_dim, &
+    internal_obuffer, iy_dim, jx_dim, kz_dim, months_dim, mpi_comm_null, &
+    mpi_info_null, nc_output_stream, ncattribute_integer, &
+    ncattribute_logical, ncattribute_real4, ncattribute_real4_array, &
+    ncattribute_real8, ncattribute_real8_array, ncattribute_standard, &
+    ncattribute_string, ncmaxdims, ncoutstream, ncoutstream_params, &
+    ncvariable0d_char, ncvariable0d_double, ncvariable0d_integer, &
+    ncvariable0d_mixed, ncvariable0d_real, ncvariable1d_double, &
+    ncvariable1d_integer, ncvariable1d_mixed, ncvariable1d_real, &
+    ncvariable2d_double, ncvariable2d_integer, ncvariable2d_mixed, &
+    ncvariable2d_real, ncvariable3d_double, ncvariable3d_integer, &
+    ncvariable3d_mixed, ncvariable3d_real, ncvariable4d_double, &
+    ncvariable4d_integer, ncvariable4d_mixed, ncvariable4d_real, &
+    ncvariable_0d, ncvariable_1d, ncvariable_2d, ncvariable_3d, &
+    ncvariable_4d, ncvariable_standard, nv_dim, soil_layer_dim, &
+    spectral_b_dim, spectral_dim, texture_dim, time_bound_dim, time_dim, &
+    water_depth_dim
+  use mod_zita, only : md_ak, md_bk, zitasigma
   use mpi_f08, only : mpi_comm_null
 #ifdef PNETCDF
   use mpi_f08, only : mpi_comm_self, mpi_info_null

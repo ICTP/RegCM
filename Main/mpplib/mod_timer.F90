@@ -15,10 +15,13 @@
 
 module mod_timer
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
-  use mod_date
+  use mod_realkinds, only : rkx
+  use mod_intkinds, only : ik4, ik8
+  use mod_constants, only : d_one, secph
+  use mod_date, only : rcm_time_and_date, rcm_time_interval, split_idate, &
+    tochar, tohours, usec, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
 
   implicit none
 
@@ -382,10 +385,12 @@ subroutine myabort
 end subroutine myabort
 
 program test_timing
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_timer
+  use mod_intkinds, only : ik8
+  use mod_realkinds, only : rkx
+  use mod_date, only : rcm_time_and_date, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_timer, only : rcm_alarm, rcm_timer, operator(/)
   implicit none
 
   integer(ik8), dimension(3) :: idates = [ 1950010100_ik8, &

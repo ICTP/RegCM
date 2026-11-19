@@ -22,8 +22,8 @@
 
 module mod_cbmz_linearalgebra
 
-  use mod_cbmz_parameters
-  use mod_cbmz_jacobiansp
+  use mod_cbmz_parameters, only : dp, ik4, lu_nonzero, nvar, rk8
+  use mod_cbmz_jacobiansp, only : lu_crow, lu_diag, lu_icol
 
   implicit none
 

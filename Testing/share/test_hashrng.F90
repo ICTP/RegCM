@@ -20,10 +20,10 @@
 ! independence from the order in which the points are visited.
 
 program test_hashrng
-  use mod_intkinds
-  use mod_realkinds
-  use mod_hashrng
-  use share_test_utils
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk8, rkx
+  use mod_hashrng, only : hash_key, hash_uint32, hash_uniform
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: seed = 19590209
   integer(ik4), parameter :: nj = 64, ni = 64, nk = 16, nbin = 16

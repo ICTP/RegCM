@@ -8,12 +8,15 @@ module mod_clm_cnsetvalue
   !     which initialize flux variables used in the pftdyn
   !     routines. This is called from clm_driver1
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_clm_varpar, only : nlevgrnd, nlevdecomp_full, &
           ndecomp_pools, ndecomp_cascade_transitions, nlevdecomp
   use mod_clm_varctl, only : use_c13, use_c14
-  use mod_clm_type
+  use mod_clm_type, only : clm3, column_cflux_type, column_cstate_type, &
+    column_nflux_type, column_nstate_type, column_pstate_type, column_type, &
+    pft_cflux_type, pft_cstate_type, pft_epv_type, pft_nflux_type, &
+    pft_nstate_type, pft_pstate_type
 
   implicit none
 

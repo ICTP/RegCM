@@ -1,29 +1,43 @@
 module mod_clm_regcm
-  use mod_date
-  use mod_stdio
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_kdinterp
-  use mod_runparams
+  use mod_date, only : lfdomonth, lmidnight, ndaypm, rcm_time_and_date, &
+    rcm_time_interval, split_idate, tochar, tochar10, yeardayfrac, yearpoint, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stderr, stdout
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : debug_level, ici1, ici2, icross1, icross2, &
+    inpglob, iy, iym1, jci1, jci2, jcross1, jcross2, myid, nnsg, &
+    num_soil_layers, pthsep, savfrq
+#ifdef CLM45
+  use mod_dynparam, only : enable_megan_emission
+#endif
+  use mod_kdinterp, only : h_interpolate_nn, h_interpolator, &
+    h_interpolator_create
+  use mod_runparams, only : alarm_out_sav, declin, dtsec, dtsrf, eccen, &
+    ibchb, ibchl, ich4, ichbion, ichdustemd, ichem, ichsursrc, iisop, ino, &
+    iochb, iochl, isnowdark, lambm0, mvelpp, nbchl, nochl, obliqr, rcmtimer, &
+    replacemoist, replacetemp, rhmax, rhmin, syncro_rad, syncro_srf
   use mod_ipcc_scenario, only : ghgval, igh_co2, igh_ch4
-  use mod_memutil
-  use mod_mppparam
-  use mod_ensemble
-  use mod_mpmessage
-  use mod_constants
-  use mod_sunorbit
-  use mod_regcm_types
-  use mod_service
-  use mod_clm_initialize
-  use mod_clm_driver
+  use mod_memutil, only : assignpnt, getmem
+  use mod_mppparam, only : bcast, glb_c2l_gs, glb_c2l_ss, glb_l2c_ss, &
+    glb_l2c_ss2, glb_l2c_ss4, grid_collect, grid_distribute, iocpu, italk, &
+    lndcomm
+  use mod_ensemble, only : random_pick
+  use mod_mpmessage, only : fatal
+  use mod_constants, only : d_zero, ep2, regrav, rgas, rtice, rtwat, &
+    rtwat_rtice_r, rwat, secpd, tzero, vonkar, wlhs, wlhv
+  use mod_sunorbit, only : orb_decl
+  use mod_regcm_types, only : lm_exchange, lm_state
+  use mod_clm_initialize, only : initialize1, initialize2
+  use mod_clm_driver, only : clm_drv
   use mod_clm_varctl, only : use_c13, co2_ppmv, tcrit, nextdate
   use mod_clm_varctl, only : ndep_nochem, luse_cru, crufile, lcru_rand
   use mod_clm_varpar, only : nlevsoi, nlevgrnd
   use mod_clm_varcon, only : o2_molar_const, c13ratio, tfrz, sb
   use mod_clm_atmlnd, only : clm_a2l, clm_l2a, adomain
   use mod_clm_decomp, only : procinfo, get_proc_bounds
-  use mod_clm_megan
+  use mod_clm_megan, only : shr_megan_mechcomps, shr_megan_mechcomps_n
   use mod_clm_drydep, only : n_drydep
   use netcdf
   implicit none

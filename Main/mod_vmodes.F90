@@ -15,18 +15,21 @@
 
 module mod_vmodes
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_stdio
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_mpmessage
-  use mod_mppparam
-  use mod_service
-  use linpack
-  use eispack
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_half, d_one, d_zero, dlowval, lrate, regrav, &
+    rgas, rovcp, stdpcb, stdt
+  use mod_stdio, only : stderr, stdout
+  use mod_dynparam, only : kz, kzp1, myid, ptop
+  use mod_runparams, only : hsigma, lstand, sigma
+  use mod_memutil, only : getmem
+  use mod_mpmessage, only : fatal, vprntm, vprntv
+  use mod_mppparam, only : iocpu, italk
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use linpack, only : sgedi, sgefa
+  use eispack, only : rg
 
   implicit none
 

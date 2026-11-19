@@ -4,9 +4,8 @@ module mod_clm_cnnitrifdenitrif
   !
   ! Calculate nitrification and denitrification rates
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_clm_varcon, only: secspday, tfrz
 
   implicit none
@@ -24,7 +23,7 @@ module mod_clm_cnnitrifdenitrif
   !  calculate nitrification and denitrification rates
   !
   subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar     , only : nlevgrnd,nlevdecomp
     use mod_clm_varcon, only: rpi, denh2o, dzsoi, zisoi, grav
 #ifdef LCH4

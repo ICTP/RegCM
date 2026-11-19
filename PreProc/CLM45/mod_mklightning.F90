@@ -15,12 +15,13 @@
 
 #ifdef CN
 module mod_mklightning
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_grid
-  use mod_rdldtr
+  use mod_realkinds, only : rkx
+  use mod_intkinds, only : ik4
+  use mod_constants, only : d_zero
+  use mod_dynparam, only : ds, i_band, inpglob, iysg, jxsg, nsg, pthsep, &
+    roidem
+  use mod_grid, only : h_missing_value, xlat, xlon
+  use mod_rdldtr, only : bestaround, gfclose, gfopen, gfread, globalfile
 
   implicit none
 

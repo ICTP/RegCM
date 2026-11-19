@@ -15,10 +15,11 @@
 
 module mod_projections
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_memutil
+  use mod_intkinds, only : ik4, real32, real64
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_constants, only : deg00, deg180, deg360, deg45, deg90, degrad_r8, &
+    dlowval_r8, earthrad_r8, halfpi_r8, mathpi_r8, raddeg_r8
+  use mod_memutil, only : getmem
 
 #ifdef F2008
   use, intrinsic :: iso_fortran_env

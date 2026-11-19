@@ -20,10 +20,10 @@
 ! one or two points.
 
 program test_interp
-  use mod_intkinds
-  use mod_realkinds
-  use mod_interp
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8
+  use mod_interp, only : interp1d
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: n = 9, m = 7
   real(rk8), dimension(n) :: xi, g, zi, zg

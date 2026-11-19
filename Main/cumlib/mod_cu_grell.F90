@@ -15,17 +15,21 @@
 
 module mod_cu_grell
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_service
-  use mod_dynparam
-  use mod_memutil
-  use mod_cu_common
-  use mod_constants
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, kzm1, kzp1
+  use mod_memutil, only : getmem
+  use mod_cu_common, only : cu_cldfrc, cu_cloud_fraction, cu_convpr, cu_kbot, &
+    cu_ktop, cu_prate, cu_qten, cu_tten, cuscheme, total_precip_points
+  use mod_constants, only : cpd, d_100, d_1000, d_half, d_one, d_r100, &
+    d_zero, dlowval, egrav, ep1, ep2, minqq, rcpd, regrav, rgas, rtice, &
+    rtwat, rtwat_rtice_r, rwat, rwlhv, secpd, tzero, wlhs, wlhv, wlhvocp
   use mod_runparams, only : iqv, igcc, ichem
   use mod_runparams, only : kfac_deep, kfac_shal, k2_const, iconvcf
-  use mod_regcm_types
+  use mod_regcm_types, only : mod_2_cum
 
   implicit none
 

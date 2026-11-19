@@ -15,25 +15,29 @@
 
 module mod_era5
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_memutil
-  use mod_grid
-  use mod_date
-  use mod_constants
-  use mod_write
-  use mod_vertint
-  use mod_earth
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_projections
-  use mod_vectutil
-  use mod_message
-  use mod_nchelper
-  use mod_kdinterp
+  use mod_intkinds, only : ik2, ik4
+  use mod_realkinds, only : rk4, rkx
+  use mod_dynparam, only : dattyp, dayspy, globidate1, i_band, i_crm, &
+    ibdyfrq, idynamic, inpglob, iy, jx, kz, pthsep, ptop
+  use mod_stdio, only : stdout
+  use mod_memutil, only : getmem
+  use mod_grid, only : dlat, dlon, pa, pjd, pju, pjv, sigmah, tlayer, topogm, &
+    topou, topov, ulat, ulon, vlat, vlon, xlat, xlon, z0, za, zetau, zetav
+  use mod_date, only : rcm_time_and_date, rcm_time_interval, setcal, &
+    split_idate, timeval2date, tochar, tohours, uhrs, yeardayfrac, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_constants, only : d_10, dlowval, secph
+  use mod_write, only : clt, pd4, pr, ps4, q4, ssr, strd, t4, ts4, u4, v4
+  use mod_vertint, only : intgtb, intpsn, intv1, intv2, intv3, intz1, intz3, &
+    intzps
+  use mod_earth, only : get_window, global_domain
+  use mod_humid, only : sph2mxr
+  use mod_mksst, only : readsst
+  use mod_vectutil, only : crs2dot, top2btm, ucrs2dot, vcrs2dot
+  use mod_nchelper, only : checkncerr, nf90_myget_att_text
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolate_nn, &
+    h_interpolator, h_interpolator_create, h_interpolator_destroy
   use netcdf
   implicit none
 

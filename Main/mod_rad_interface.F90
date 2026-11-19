@@ -15,19 +15,24 @@
 
 module mod_rad_interface
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, kzp1, &
+    mo_lcap, mo_ztop, myid, nspi, ptop
+  use mod_constants, only : d_10, d_r1000
+  use mod_stdio, only : stdout
   use mod_mppparam, only : italk
-  use mod_date
-  use mod_memutil
-  use mod_runparams
-  use mod_regcm_types
+  use mod_date, only : rcm_time_and_date, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_memutil, only : assignpnt, getmem
+  use mod_runparams, only : ichem, iclimaaer, icosp, irrtm, rrtm_extend, &
+    scenario
+  use mod_regcm_types, only : exp_data3d, mod_2_rad, rad_2_mod
   use mod_ipcc_scenario, only : set_scenario
-  use mod_stdatm
-  use mod_rad_common
+  use mod_stdatm, only : n_hreflev, n_hrehlev, n_prehlev, stdhlevf, stdhlevh, &
+    stdplevh
+  use mod_rad_common, only : absemin, gasabsnxt, gasabstot, gasemstot, &
+    kclimf, kclimh, ktf, kth, o3prof, taucldsp
   use mod_rad_colmod3, only : allocate_mod_rad_colmod3, colmod3
   use mod_rad_colmod3, only : colmod3_tables
   use mod_rrtmg_driver, only : allocate_mod_rad_rrtmg, rrtmg_driver
@@ -139,7 +144,10 @@ module mod_rad_interface
   end subroutine allocate_radiation
 
   subroutine init_radiation
-    use mod_atm_interface
+    use mod_atm_interface, only : albvl, albvs, aldifl, aldifs, aldirl, &
+      aldirs, atm0, atms, cldfra, cldlwc, coszrs, emiss, flw, flwd, fsw, &
+      heatrt, mddom, nhbh0, nhbh1, ptrop, sabveg, sfs, sinc, solis, solvl, &
+      solvld, solvs, solvsd, totcf
     implicit none
     ! Set pipings from atm_interface to radiation I/O data types
 

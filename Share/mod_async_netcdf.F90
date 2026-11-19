@@ -16,8 +16,8 @@
 module mod_async_netcdf
 
   use, intrinsic :: iso_c_binding
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
   use netcdf
 #ifdef OPENACC
   use cudafor

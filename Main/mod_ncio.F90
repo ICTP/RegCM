@@ -16,19 +16,33 @@
 module mod_ncio
 
   use, intrinsic :: iso_c_binding
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_stdio
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_date, only : rcm_time_and_date, rcm_time_interval, timeval2date, &
+    tochar, tochar10, tohours, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_stdio, only : stderr, stdout
+  use mod_constants, only : d_100, d_zero, ep2, rtice, rtwat, rtwat_rtice_r, &
+    rwat, tzero, wlhs, wlhv
   use netcdf
-  use mod_runparams
-  use mod_dynparam
-  use mod_ensemble
-  use mod_mpmessage
-  use mod_mppparam
-  use mod_memutil
-  use mod_nchelper
+  use mod_runparams, only : do_parallel_netcdf_in, ipptls, itweak, &
+    itweak_sst, itweak_temperature, lakemod, rcmtimer, replacemoist, &
+    replacetemp, sigma, sst_tweak, temperature_tweak
+  use mod_dynparam, only : dirglob, dirter, domname, ensemble_run, ibdyfrq, &
+    ice1, ice2, ici1, ici2, ide1, ide1sg, ide2, ide2sg, idynamic, inpglob, &
+    iproj, iy, iysg, jce1, jce2, jci1, jci2, jde1, jde1sg, jde2, jde2sg, jx, &
+    jxsg, kz, kzp1, lperturb_ps, lperturb_q, lperturb_t, lperturb_topo, &
+    lperturb_ts, lperturb_u, lperturb_v, myid, nnsg, nsg, num_soil_layers, &
+    perturb_frac_ps, perturb_frac_q, perturb_frac_t, perturb_frac_topo, &
+    perturb_frac_ts, perturb_frac_u, perturb_frac_v, pthsep
+  use mod_ensemble, only : randify
+  use mod_mpmessage, only : fatal
+  use mod_mppparam, only : bcast, grid_distribute, input_reorder, iocpu, &
+    italk, subgrid_distribute
+  use mod_memutil, only : getmem
+  use mod_nchelper, only : closefile, get_attribute, openfile_withname, &
+    read_var1d_static, read_var2d_static, read_var3d_static
   use mod_ncstream, only : outstream_async_flush, outstream_netcdf_lock, &
                            outstream_netcdf_unlock
 #ifdef ASYNC_NETCDF
@@ -43,7 +57,7 @@ module mod_ncio
                                async_netcdf_release_buffer, &
                                async_netcdf_try_acquire_buffer
 #endif
-  use mod_domain
+  use mod_domain, only : check_domain, read_reference_surface_temp
   implicit none
 
   private

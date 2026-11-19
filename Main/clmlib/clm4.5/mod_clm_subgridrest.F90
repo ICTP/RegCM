@@ -1,14 +1,18 @@
 module mod_clm_subgridrest
-  use mod_intkinds
-  use mod_realkinds
-  use mod_clm_type
-  use mod_mpmessage
-  use mod_date
-  use mod_runparams
-  use mod_clm_nchelper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_clm_type, only : clm3, column_type, gridcell_type, landunit_type, &
+    pft_type
+  use mod_mpmessage, only : fatal
+  use mod_date, only : curr_date, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_clm_nchelper, only : clm_addvar, clm_filetype, clm_writevar, &
+    clmvar_double, clmvar_integer
   use mod_clm_domain, only : ldomain
   use mod_clm_varctl, only : nextdate
-  use mod_clm_decomp
+  use mod_clm_decomp, only : gcomm_column, gcomm_gridcell, gcomm_landunit, &
+    gcomm_pft, get_proc_bounds
 
   implicit none
 

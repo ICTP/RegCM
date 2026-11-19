@@ -15,17 +15,22 @@
 
 module mod_ae_icbc
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
-  use mod_stdio
-  use mod_constants
-  use mod_grid
-  use mod_wrtoxd
-  use mod_kdinterp
-  use mod_date
-  use mod_nchelper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : dattyp, dirglob, domname, inpglob, iy, jx, kz, &
+    pthsep, ptop
+  use mod_memutil, only : getmem
+  use mod_stdio, only : stdout
+  use mod_constants, only : d_zero
+  use mod_grid, only : sigmah, xlat, xlon
+  use mod_wrtoxd, only : aespec, aev4, naesp, write_ae_icbc1
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_date, only : getmonth, lsamemonth, monfirst, nextmon, &
+    rcm_time_and_date, rcm_time_interval, split_idate, tochar10, tohours, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_nchelper, only : checkncerr
   use netcdf
   implicit none
 

@@ -17,24 +17,38 @@ module mod_bats_common
 !
 ! Storage for Surface (BATS and shared by CLM) variables
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : ici1, ici2, jci1, jci2, lsmoist, myid, nnsg, nsg
   use mod_runparams, only : ichem, iemiss, syncro_srf, replacemoist
   use mod_runparams, only : rhmax, rhmin
   use mod_runparams, only : rcmtimer
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_constants
-  use mod_service
-  use mod_stdio
-  use mod_bats_param
-  use mod_bats_internal
-  use mod_bats_bndry
-  use mod_bats_leaftemp
-  use mod_bats_drag
-  use mod_bats_albedo
-  use mod_regcm_types
+  use mod_mppparam, only : c2l_gs, c2l_ss, italk, l2c_ss, lndcomm
+  use mod_constants, only : d_half, d_one, d_r10, d_r100, d_rfour, d_zero, &
+    egrav, ep2, lnd_sfcemiss, lrate, regrav, rgas, rtice, rtwat, &
+    rtwat_rtice_r, rwat, tzero, vonkar, wlhs, wlhv, zlnd, zsno
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_stdio, only : stdout
+  use mod_bats_param, only : deprv, deptv, depuv, displa, lndemiss, mfcv, &
+    rough, seasemi, seasf, slmo, xmopor
+  use mod_bats_internal, only : abswveg, allocate_mod_bats_internal, aseas, &
+    cdrx, cpr0, czenith, delq, delt, df, dlnesice, dlnesliq, dlnesmix, drag, &
+    dtbat, dzh, emiss, esatice, esatliq, esatmix, evpr, fracd, getmem, gwet, &
+    ht, hts, ilndbeg, ilndend, lat, ldew, lncl, ltex, lveg, lwal, lwdifal, &
+    lwdiral, lwflx, ncpr0, p0, pfesat, pfesatl, pfesats, pfesdt, pfesdtl, &
+    pfesdts, pfmxsat, pfqsat, pfqsatl, pfqsats, pfqsdt, pfqsdtl, pfqsdts, &
+    pfwsat, pfwsatl, pfwsats, prcp, qs, qs0, rhs, rib, rsw, satliqfrac, scvk, &
+    sent, sfcp, sigf, sm, snag, sncv, srnof, ssw, sts, swal, swd0, swdifal, &
+    swdiral, swf0, swflx, swsi, taf, tdewliq, tgbb, tgbrd, tgrd, tlef, trnof, &
+    ts0, tsw, usw, vsw, wt, xlai, z10fra, z1log, z2fra, zh, zlgdis, zlglnd, &
+    zlgsno, zlgveg, zo
+  use mod_bats_bndry, only : bndry, soilbc
+  use mod_bats_leaftemp, only : fseas
+  use mod_bats_drag, only : depth
+  use mod_bats_albedo, only : albedo
+  use mod_regcm_types, only : lm_exchange, lm_state
 
   implicit none
 

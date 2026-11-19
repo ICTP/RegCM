@@ -17,19 +17,24 @@ module mod_split
   !
   ! Split explicit time integration
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_mppparam
-  use mod_runparams
-  use mod_constants
-  use mod_stdio
-  use mod_atm_interface
-  use mod_vmodes
-  use mod_bdycod
-  use mod_atm_interface
-  use mod_memutil
-  use mod_service
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : ice1, ice2, ici1, ici2, ide1, ide1ga, ide2, &
+    ide2ga, idi1, idi2, idi2ga, jce1, jce2, jci1, jci2, jde1, jde1ga, jde2, &
+    jde2ga, jdi1, jdi2, jdi2ga, kz, kzp1, myid, nicross, njcross, ptop
+  use mod_mppparam, only : exchange, exchange_lb, exchange_rt, italk, ma, &
+    psc2psd, reproducible_sumall
+  use mod_runparams, only : dsigma, dtau, dtsec, dx2, gnu1, ifrest, lstand, &
+    nsplit
+  use mod_constants, only : d_one, d_two, d_zero, rgas
+  use mod_stdio, only : stdout
+  use mod_atm_interface, only : atm1, atm2, dstor, hstor, mddom, sfs
+  use mod_vmodes, only : a0, allocate_mod_vmodes, hbar, hydroc, hydros, pd, &
+    sigmah, tau, tbarh, varpa1, vmodes, xps, zmatx, zmatxr
+  use mod_memutil, only : getmem
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
 
   implicit none
 

@@ -17,17 +17,26 @@ module mod_sladvection
 
   ! To compute the horizontal advection using semi-lagrangian
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
-  use mod_stdio
-  use mod_dynparam
-  use mod_runparams
+  use mod_realkinds, only : rkx
+  use mod_intkinds, only : ik4
+  use mod_constants, only : d_half, d_one, d_zero, dlowval
+  use mod_stdio, only : stderr
+  use mod_dynparam, only : ice1, ice2, ici1, ici2, ide1, ide2, idi1, idi2, &
+    jce1, jce2, jci1, jci2, jde1, jde2, jdi1, jdi2, kz
+  use mod_runparams, only : dt, dtcb, dtsq, dx, iqmsl
   use mod_atm_interface, only : atmx, mddom
-  use mod_sldepparam
-  use mod_mpmessage
-  use mod_mppparam
-  use mod_service
+  use mod_sldepparam, only : alfdp_d, alfdp_x, alffbl_d, alffbl_x, alfm1dp_d, &
+    alfm1dp_x, alfm2dp_d, alfm2dp_x, alfp1dp_d, alfp1dp_x, assignpnt, &
+    betdp_d, betdp_x, betm1dp_d, betm1dp_x, betm2dp_d, betm2dp_x, betp1dp_d, &
+    betp1dp_x, uadvx_d, uadvx_x, uadxm1_d, uadxm1_x, uadxp1_d, uadxp1_x, &
+    vadvy_d, vadvy_x, vadym1_d, vadym1_x, vadyp1_d, vadyp1_x, xndp_d, xndp_x, &
+    xnnm1dp_d, xnnm1dp_x, xnnm2dp_d, xnnm2dp_x, xnnp1dp_d, xnnp1dp_x, yndp_d, &
+    yndp_x, ynnm1dp_d, ynnm1dp_x, ynnm2dp_d, ynnm2dp_x, ynnp1dp_d, ynnp1dp_x
+  use mod_mpmessage, only : fatal
+  use mod_mppparam, only : ma
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
 
   implicit none
 

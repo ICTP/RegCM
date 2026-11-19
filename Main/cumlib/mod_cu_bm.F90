@@ -15,16 +15,21 @@
 
 module mod_cu_bm
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_memutil
-  use mod_service
-  use mod_cu_common
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : ici1, ici2, jci1, jci2, kz, kzm1, kzp1
+  use mod_constants, only : cpd, cpovr, cpowlhv, d_1000, d_half, d_one, &
+    d_zero, dlowval, egrav, ep1, ep2, p00, rcpd, rhoh2o, rovcp, rtice, rtwat, &
+    rtwat_rtice_r, rtzero, rwat, rwlhv, secpd, tzero, wlhs, wlhv, wlhvocp
+  use mod_memutil, only : getmem
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_cu_common, only : cu_convpr, cu_kbot, cu_ktop, cu_prate, cu_qten, &
+    cu_tten, total_precip_points
   use mod_runparams, only : iqv, dt, dtsec, ichem, ifrest
   use mod_runparams, only : rhmin, rhmax
-  use mod_regcm_types
+  use mod_regcm_types, only : mod_2_cum
 
 !*****************************************************************
 !

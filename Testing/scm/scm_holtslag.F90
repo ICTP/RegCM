@@ -30,13 +30,19 @@
 ! bottom.
 
 program scm_holtslag
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : cpd, d_one, d_two, d_zero, degrad, eomeg, ep1, &
+    p00, regrav, rgas, rkx, rovcp, vonkar, wlhv
+  use mod_dynparam, only : ice1, ice1ga, ice1gb, ice2, ice2ga, ice2gb, ici1, &
+    ici1ga, ici2, ici2ga, idi1, idi2, idynamic, jce1, jce1ga, jce1gb, jce2, &
+    jce2ga, jce2gb, jci1, jci1ga, jci2, jci2ga, jdi1, jdi2, kz, kzm1, kzp1, &
+    ntr
+  use mod_runparams, only : dt, holtth10iter, ibltyp, ichem, ifaholt, &
+    ifaholtth10, ipptls, iqc, iqv, lmoistn2, lsctop, maxprandtl, nqx, rdt, &
+    ricr_lnd, ricr_ocn, zhnew_fac
+  use mod_memutil, only : getmem, memory_init
+  use mod_regcm_types, only : ik4, mod_2_pbl, pbl_2_mod, rkx
   use mod_pbl_common, only : ricr, kmxpbl
   use mod_pbl_holtbl, only : allocate_mod_pbl_holtbl, holtbl
   implicit none

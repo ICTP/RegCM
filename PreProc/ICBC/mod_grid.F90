@@ -15,17 +15,15 @@
 
 module mod_grid
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_memutil
-  use mod_stdio
-  use mod_message
-  use mod_nchelper
-  use mod_domain
-  use mod_nhinterp
-  use mod_zita
-  use mod_projections
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_half
+  use mod_memutil, only : getmem
+  use mod_nchelper, only : closefile, openfile_withname
+  use mod_domain, only : read_domain, read_reference_surface_temp
+  use mod_nhinterp, only : nhbase, nhsetup
+  use mod_zita, only : md_zeta_h, model_zitah, sigmazita
+  use mod_projections, only : regcm_projection
   implicit none
 
   private
@@ -78,7 +76,6 @@ module mod_grid
   contains
 
   subroutine init_hgrid(nx,ny,nz)
-    use mod_dynparam
     implicit none
     integer(ik4), intent(in) :: nx, ny, nz
     call getmem(xlat,1,nx,1,ny,'mod_grid:xlat')
@@ -93,7 +90,7 @@ module mod_grid
   end subroutine init_hgrid
 
   subroutine init_grid(nx,ny,nz)
-    use mod_dynparam
+    use mod_dynparam, only : idynamic
     implicit none
     integer(ik4), intent(in) :: nx, ny, nz
     call getmem(xlat,1,nx,1,ny,'mod_grid:xlat')
@@ -143,7 +140,7 @@ module mod_grid
   end subroutine init_grid
 
   subroutine read_domain_hinfo
-    use mod_dynparam
+    use mod_dynparam, only : dirter, domname, kz, pthsep
     implicit none
     integer(ik4) :: incin
     character(len=256) :: fname
@@ -159,7 +156,8 @@ module mod_grid
   end subroutine read_domain_hinfo
 
   subroutine read_domain_info
-    use mod_dynparam
+    use mod_dynparam, only : base_state_pressure, dirter, domname, idynamic, &
+      iy, jx, kz, logp_lrate, mo_a0, mo_h, mo_ztop, pthsep, ptop
     implicit none
     integer(ik4) :: incin
     character(len=256) :: fname

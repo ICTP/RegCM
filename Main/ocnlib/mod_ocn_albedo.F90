@@ -15,12 +15,15 @@
 
 module mod_ocn_albedo
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_runparams
-  use mod_service
-  use mod_ocn_internal
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_one, d_three, d_two, d_zero
+  use mod_runparams, only : icetriggert, iwhitecap
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_ocn_internal, only : czenith, iocnbeg, iocnend, lwdifal, lwdiral, &
+    mask, snag, sncv, swdifal, swdiral, t2m, um10
 
   implicit none
 

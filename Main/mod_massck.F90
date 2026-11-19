@@ -19,14 +19,16 @@ module mod_massck
   ! and compares with the initial values.
   ! The unit used in all the calculation is "kg".
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_dynparam
-  use mod_constants
-  use mod_runparams
-  use mod_mppparam
-  use mod_atm_interface
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk16, rk8
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : ice1, ice2, ici1, ici2, ide1, ide2, idynamic, &
+    jce1, jce2, jci1, jci2, jde1, jde2, kz, myid
+  use mod_constants, only : d_100, d_zero, dlowval, regrav
+  use mod_runparams, only : alarm_day, dsigma, dt, dx, dxsq, iqlst, rcmtimer, &
+    syncro_dbg
+  use mod_mppparam, only : italk, ma, sumall
+  use mod_atm_interface, only : atm1, crrate, mo_atm, ncrrate, sfs
 
   implicit none
 

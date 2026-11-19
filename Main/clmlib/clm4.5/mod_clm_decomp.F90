@@ -5,11 +5,10 @@ module mod_clm_decomp
   ! This has been simplified, as in regional model the communication
   ! ATM <-> LND is managed in the RegCM code.
   !
-  use mod_stdio
-  use mod_realkinds
-  use mod_intkinds
-  use mod_mpmessage
-  use mod_regcm_types
+  use mod_stdio, only : stderr
+  use mod_intkinds, only : ik4
+  use mod_mpmessage, only : fatal
+  use mod_regcm_types, only : mpi_comm
   use mod_clm_type, only : nameg, namel, namec, namep
   use mpi_f08, only : mpi_comm
 

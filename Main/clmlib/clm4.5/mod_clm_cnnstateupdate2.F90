@@ -3,8 +3,8 @@ module mod_clm_cnnstateupdate2
   !
   ! Module for nitrogen state variable update, mortality fluxes.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
   use mod_clm_varpar, only : nlevsoi, nlevdecomp
 
@@ -21,7 +21,7 @@ module mod_clm_cnnstateupdate2
   ! variables affected by gap-phase mortality fluxes
   !
   subroutine NStateUpdate2(num_soilc, filter_soilc, num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
     implicit none
     integer(ik4), intent(in) :: num_soilc   ! number of soil columns in filter
@@ -212,7 +212,7 @@ module mod_clm_cnnstateupdate2
   ! variables affected by harvest mortality fluxes
   !
   subroutine NStateUpdate2h(num_soilc, filter_soilc, num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter

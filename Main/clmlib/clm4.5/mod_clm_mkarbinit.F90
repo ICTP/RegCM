@@ -14,14 +14,14 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_clm_mkarbinit
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mppparam
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stdout
+  use mod_mppparam, only : italk
+  use mod_dynparam, only : lsmoist, myid
   use mod_runparams, only : replacemoist, replacetemp
-  use mod_clm_atmlnd
-  use mod_clm_type
+  use mod_clm_atmlnd, only : adomain, atm_domain
+  use mod_clm_type, only : clm3, landunit_type
   use mod_clm_varpar, only : nlevsoi, nlevgrnd, nlevsno, nlevlak, nlevurb
   use mod_clm_varcon, only : bdsno, istice, istwet, istsoil, isturb, &
        denice, denh2o, spval, sb, icol_road_perv, icol_road_imperv,   &

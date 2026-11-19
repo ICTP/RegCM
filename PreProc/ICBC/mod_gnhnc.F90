@@ -22,37 +22,56 @@ module mod_gnhnc
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_dynparam
-  use mod_memutil
-  use mod_constants
-  use mod_grid
-  use mod_write
-  use mod_kdinterp
-  use mod_vertint
-  use mod_hgt
-  use mod_date
-  use mod_humid
-  use mod_mksst
-  use mod_projections
-  use mod_vectutil
-  use mod_message
-  use mod_nchelper
-  use mod_ccsm3_helper
-  use mod_hadgem_helper
-  use mod_csiro_helper
-  use mod_canesm_helper
-  use mod_miroc_helper
-  use mod_ipsl_helper
-  use mod_gfdl_helper
-  use mod_cnrm_helper
-  use mod_mpiesm_helper
-  use mod_noresm_helper
-  use mod_ecearth_helper
-  use mod_ccsm4_helper
-  use mod_lgm_helper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : dattyp, dayspy, globidate1, i_band, i_crm, &
+    ibdyfrq, idynamic, inpglob, iy, jx, kz, pthsep, ptop
+  use mod_memutil, only : getmem, relmem
+  use mod_constants, only : d_10, dlowval, egrav, regrav
+  use mod_grid, only : dlat, dlon, pa, pjd, pju, pjv, sigmah, tlayer, topogm, &
+    topou, topov, ulat, ulon, vlat, vlon, xlat, xlon, z0, za, zetau, zetav
+  use mod_write, only : pd4, ps4, q4, t4, ts4, u4, v4
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_vertint, only : intgtb, intlin, intlog, intpsn, intv1, intv2, &
+    intv3, intz1, intz3, intzps
+  use mod_hgt, only : height, htsig, psig, psig1
+  use mod_date, only : dayofyear, gregorian, ndaypm, noleap, &
+    rcm_time_and_date, rcm_time_interval, setcal, split_idate, timeval2date, &
+    tochar, tohours, uhrs, y360, yeardayfrac, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_humid, only : rh2mxr, sph2mxr
+  use mod_mksst, only : readsst
+  use mod_vectutil, only : crs2dot, top2btm, ucrs2dot, vcrs2dot
+  use mod_message, only : die
+  use mod_nchelper, only : checkncerr
+  use mod_ccsm3_helper, only : find_ccsm3_file, find_ccsm3_topo
+  use mod_hadgem_helper, only : find_hadgem_dim, find_hadgem_file, &
+    find_hadgem_ufile, find_hadgem_vfile, havars
+  use mod_csiro_helper, only : csirvars, find_csiro_dim, find_csiro_file, &
+    find_csiro_topo
+  use mod_canesm_helper, only : cavars, find_canesm_dim, find_canesm_file, &
+    find_canesm_topo
+  use mod_miroc_helper, only : find_miroc_dim, find_miroc_file, &
+    find_miroc_topo, mirocvars
+  use mod_ipsl_helper, only : find_ipsl_dim, find_ipsl_file, find_ipsl_topo, &
+    ipvars
+  use mod_gfdl_helper, only : find_gfdl_dim, find_gfdl_file, find_gfdl_topo, &
+    gfdlvars
+  use mod_cnrm_helper, only : cnrmvars, find_cnrm_dim, find_cnrm_file, &
+    find_cnrm_topo
+  use mod_mpiesm_helper, only : find_mpiesm_dim, find_mpiesm_file, &
+    find_mpiesm_topo, mpievars
+  use mod_noresm_helper, only : find_noresm_dim, find_noresm_file, &
+    find_noresm_topo, novars
+  use mod_ecearth_helper, only : echcmorvars, echvars, find_ecearth_dim, &
+    find_ecearth_file, find_ecearth_topo
+  use mod_ccsm4_helper, only : ccsm4vars, find_ccsm4_dim, find_ccsm4_file, &
+    find_ccsm4_topo
+  use mod_lgm_helper, only : find_lgm_dim, find_lgm_file, find_lgm_topo, &
+    lgmvars
 
   implicit none
 

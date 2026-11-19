@@ -15,12 +15,13 @@
 
 module mod_mpiesm_helper
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_message
-  use mod_date
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_dynparam, only : dattyp, inpglob, pthsep, ssttyp
+  use mod_message, only : die
+  use mod_date, only : date_in_scenario, rcm_time_and_date, split_idate, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stderr
   implicit none
 
   private

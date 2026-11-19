@@ -15,7 +15,7 @@
 
 module mod_posix
 
-  use mod_stdio
+  use mod_stdio, only : stderr
   use, intrinsic :: iso_c_binding
 
   implicit none

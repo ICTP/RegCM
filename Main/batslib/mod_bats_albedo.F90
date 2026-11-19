@@ -15,15 +15,15 @@
 
 module mod_bats_albedo
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_runparams
-  use mod_service
-  use mod_bats_param
-  use mod_bats_internal
-  use mod_bats_drag
-  use mod_bats_leaftemp
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_one, d_two, d_zero
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_bats_param, only : albvgl, albvgs, depuv, kolsol, solour
+  use mod_bats_internal, only : czenith, ilndbeg, ilndend, lncl, lveg, lwal, &
+    lwdifal, lwdiral, scvk, snag, sncv, ssw, swal, swdifal, swdiral, wt
 
   implicit none
 

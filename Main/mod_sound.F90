@@ -15,18 +15,26 @@
 
 module mod_sound
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_memutil
-  use mod_dynparam
-  use mod_runparams
-  use mod_mpmessage
-  use mod_constants
-  use mod_stdio
-  use mod_mppparam
+  use mod_realkinds, only : rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_memutil, only : getmem
+  use mod_dynparam, only : ice1, ice2, ici1, ici1ga, ici2, ici2ga, icross1, &
+    icross2, ide1, ide2, idi1, idi2, jce1, jce2, jci1, jci1ga, jci2, jci2ga, &
+    jcross1, jcross2, jde1, jde2, jdi1, jdi2, kz, kzp1, myid, nicross, &
+    njcross
+  use mod_runparams, only : alarm_day, dsigma, dt, dx, dxsq, gnu1, gnu2, &
+    icup, ifupr, iqv, nhbet, nhxkd, pc_total, rcmtimer, sigma, syncro_rep, &
+    twt
+  use mod_mpmessage, only : fatal
+  use mod_constants, only : cpd, d_half, d_one, d_rfour, d_two, d_zero, &
+    dlowval, egrav, mathpi, regrav, rgas, rovcp
+  use mod_stdio, only : stderr, stdout
+  use mod_mppparam, only : bcast, exchange, grid_collect, iocpu, italk, ma, &
+    maxall, reproducible_sumall, sumall
   use mod_cu_interface, only : total_precip_points
-  use mod_atm_interface
-  use mod_timefilter
+  use mod_atm_interface, only : aten, atm0, atm1, atm2, atmc, dpsdxm, dpsdym, &
+    mddom, sfs, tmask
+  use mod_timefilter, only : timefilter_apply
 
   implicit none
 

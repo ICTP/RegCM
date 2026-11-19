@@ -3,10 +3,10 @@ module mod_clm_biogeophysics2
   ! Performs the calculation of soil/snow and ground temperatures
   ! and updates surface fluxes based on the new ground temperature.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
-  use mod_clm_type
+  use mod_clm_type, only : clm3
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_varcon, only : hvap, cpair, grav, vkc, tfrz, sb, &
                  icol_road_perv, isturb, icol_roof, icol_sunwall, &

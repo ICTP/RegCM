@@ -15,17 +15,18 @@
 
 module mod_sst_cmip7
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_cmip7_helper
-  use mod_message
-  use mod_dynparam
-  use mod_memutil
-  use mod_sst_grid
-  use mod_kdinterp
-  use mod_date
-  use mod_stdio
-  use mod_cmip7_ecea
+  use mod_realkinds, only : rkx
+  use mod_cmip7_helper, only : cmip7_2d_var
+  use mod_message, only : die
+  use mod_dynparam, only : cmip7_model, dattyp, globidate1, globidate2, ical, &
+    ssttyp
+  use mod_sst_grid, only : open_sstfile, sstmm, writerec, xlat, xlon
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator_destroy
+  use mod_date, only : gregorian, rcm_time_and_date, rcm_time_interval, &
+    tochar, tohours, assignment(=), operator(+), operator(-), operator(/=), &
+    operator(<), operator(<=), operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stderr, stdout
+  use mod_cmip7_ecea, only : read_sst_ecea
   use netcdf
 
   implicit none

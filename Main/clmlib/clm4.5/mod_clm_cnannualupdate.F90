@@ -3,8 +3,8 @@ module mod_clm_cnannualupdate
   !
   ! Module for updating annual summation variables
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
   use mod_clm_time_manager, only : is_end_curr_year
 
@@ -22,7 +22,7 @@ module mod_clm_cnannualupdate
   !
   subroutine CNAnnualUpdate(lbc, ubc, lbp, ubp, num_soilc, filter_soilc, &
                             num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon , only: secspday
     use mod_clm_subgridave, only: p2c
     implicit none

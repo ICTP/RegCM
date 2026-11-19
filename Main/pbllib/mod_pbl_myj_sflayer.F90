@@ -26,11 +26,11 @@ module mod_pbl_myj_sflayer
   !   Janjic (1994), Mon. Wea. Rev., 122, 927-945.
   !   Janjic (2002), NCEP Office Note 437.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : cpd, d_one, egrav, ep1, p00, rovcp, vonkar
+  use mod_dynparam, only : ici1, ici2, jci1, jci2, kz
+  use mod_regcm_types, only : mod_2_pbl
   use mod_runparams, only : iqv
 
   implicit none

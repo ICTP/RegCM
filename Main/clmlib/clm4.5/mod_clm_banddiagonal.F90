@@ -2,11 +2,11 @@ module mod_clm_banddiagonal
   !
   ! Band Diagonal matrix solution
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
-  use lapack_dgbsv
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stdout
+  use lapack_dgbsv, only : dgbsv
 
   implicit none
 

@@ -15,23 +15,18 @@
 
 module mod_pgw
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_stdio
-  use mod_memutil
-  use mod_grid
-  use mod_write
-  use mod_vertint
-  use mod_earth
-  use mod_hgt
-  use mod_humid
-  use mod_projections
-  use mod_vectutil
-  use mod_message
-  use mod_nchelper
-  use mod_kdinterp
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : idynamic, iy, jx
+  use mod_constants, only : d_one
+  use mod_stdio, only : stdout
+  use mod_memutil, only : getmem
+  use mod_grid, only : dlat, dlon, pjd, pju, pjv, ulat, ulon, vlat, vlon, &
+    xlat, xlon
+  use mod_write, only : ps4, q4, t4, ts4, u4, v4, z4
+  use mod_nchelper, only : checkncerr
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
   use netcdf
   implicit none
 

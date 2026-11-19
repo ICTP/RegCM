@@ -15,7 +15,7 @@
 
 #ifdef PNETCDF
 subroutine myabort
-  use mod_stdio
+  use mod_stdio, only : stderr
   use mpi_f08
   implicit none
   integer :: ierr
@@ -65,27 +65,51 @@ program terrain
 !  and analyzes heights and landuse values to a given grid.
 !
 !---------------------------------------------------------------------
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_date
-  use mod_constants
-  use mod_maps
-  use mod_smooth
-  use mod_maputils
-  use mod_intldtr
-  use mod_rdldtr
-  use mod_write
-  use mod_header
-  use mod_stdio
-  use mod_message
-  use mod_memutil
-  use mod_moist
-  use mod_sigma
-  use mod_nhinterp
-  use mod_earth
-  use mod_stdatm
-  use mod_zita
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : base_state_pressure, clat, clon, debug_level, &
+    dirter, domname, ds, dsmax, dsmin, globidate1, h2ohgt, h2opct, i_band, &
+    idynamic, initparam, inpter, iproj, ismthlev, iy, iysg, jx, jxsg, kz, &
+    kzp1, lakedpth, lclm45lake, logp_lrate, lresamp, lsmoist, mo_a0, mo_h, &
+    mo_ztop, moist_filename, nsg, nsmthbdy, ntex, num_soil_layers, plat, &
+    plon, pthsep, ptop, roidem, smsrc, smthbdy, tersrc, texsrc, truelath, &
+    truelatl, xcone
+  use mod_date, only : split_idate, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_constants, only : d_10, d_half, d_one, d_r100, d_zero, degrad, &
+    egrav, lrate, rk8, rkx, rovg, smissval, stdp, stdpmb, stdt, tzero
+  use mod_maps, only : ak, bk, coriol, coriol_s, dlat, dlat_bnds, &
+    dlat_bnds_s, dlat_s, dlon, dlon_bnds, dlon_bnds_s, dlon_s, dmap, dmap_s, &
+    dpth, dpth_s, fmz, fmz_s, frac_tex, frac_tex_s, htgrid, htgrid_s, ik4, &
+    lndout, lndout_s, mask, mask_s, memory_destroy, memory_init, pr0, pr0_s, &
+    prepare_grid, prepare_subgrid, ps0, ps0_s, relmem, rho0, rho0_s, rk8, &
+    rkx, rmoist, rmoist_s, rts, rts_s, sigma, slope, slope_s, smoist, &
+    smoist_s, snowam, snowam_s, t0, t0_s, texout, texout_s, topostd, &
+    topostd_s, topou, topou_s, topov, topov_s, ulat, ulat_bnds, ulat_bnds_s, &
+    ulat_s, ulnd, ulnd_s, ulon, ulon_bnds, ulon_bnds_s, ulon_s, umap, umap_s, &
+    vlat, vlat_bnds, vlat_bnds_s, vlat_s, vlnd, vlnd_s, vlon, vlon_bnds, &
+    vlon_bnds_s, vlon_s, vmap, vmap_s, xlat, xlat_bnds, xlat_bnds_s, xlat_s, &
+    xlon, xlon_bnds, xlon_bnds_s, xlon_s, xmap, xmap_s, z0, z0_s, zeta, &
+    zeta_s, zetau, zetau_s, zetav, zetav_s, zita
+  use mod_smooth, only : smtdsmt, smth121, smthtr
+  use mod_maputils, only : anyprojparams, corpar, get_coord_bounds, getcoord, &
+    mappar, regcm_projection
+  use mod_intldtr, only : grdlnma, grdlnmn, grdltma, grdltmn, interp, mxmnll, &
+    nlatin, nlonin, puddlefilter, topostats
+  use mod_rdldtr, only : read_ncglob
+  use mod_write, only : domain_datafile, lrmoist, lrts, setup_outvars, &
+    write_domain
+  use mod_header, only : header
+  use mod_stdio, only : stderr, stdout
+  use mod_message, only : die, viz_clear, viz_done, viz_init, viz_plot
+  use mod_memutil, only : memory_destroy, memory_init, relmem
+  use mod_moist, only : read_moist
+  use mod_sigma, only : init_sigma, sigma_coordinate
+  use mod_nhinterp, only : base_state_temperature, nhbase, nhsetup
+  use mod_stdatm, only : istdatm_tempk, stdatm_val
+  use mod_zita, only : md_ak, md_bk, md_fmz_h, md_zeta_h, model_zitaf, &
+    sigmazita
 #ifdef PNETCDF
   use mpi_f08
 #endif

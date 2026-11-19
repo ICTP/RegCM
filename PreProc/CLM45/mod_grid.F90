@@ -15,12 +15,10 @@
 
 module mod_grid
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
-  use mod_message
-  use mod_stdio
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_dynparam, only : iy, iysg, jx, jxsg, kzp1, nnsg, nsg
+  use mod_memutil, only : getmem
 
   implicit none
 

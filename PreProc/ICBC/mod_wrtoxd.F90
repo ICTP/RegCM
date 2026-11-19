@@ -15,15 +15,20 @@
 
 module mod_wrtoxd
 
-  use mod_dynparam
-  use mod_date
-  use mod_grid
-  use mod_realkinds
-  use mod_memutil
-  use mod_message
-  use mod_stdio
-  use mod_ncstream_types
-  use mod_ncstream
+  use mod_dynparam, only : dirglob, domname, iy, jx, kz, pthsep
+  use mod_date, only : rcm_time_and_date, tochar, tochar10, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_grid, only : sigmah, xlat, xlat_bnds, xlon, xlon_bnds
+  use mod_realkinds, only : rkx
+  use mod_memutil, only : getmem
+  use mod_message, only : die, fatal
+  use mod_stdio, only : stderr, stdout
+  use mod_ncstream_types, only : ik4, nc_output_stream, ncattribute_string, &
+    ncoutstream_params, ncvariable2d_mixed, ncvariable3d_mixed
+  use mod_ncstream, only : outstream_addatt, outstream_addrec, &
+    outstream_addvar, outstream_addvaratt, outstream_dispose, &
+    outstream_enable, outstream_setup, outstream_writevar
   implicit none
 
   private

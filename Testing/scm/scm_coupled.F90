@@ -101,14 +101,39 @@
 ! top to bottom.
 
 program scm_coupled
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_regcm_types
-  use mod_cu_common
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : cpd, d_half, d_one, d_two, d_zero, degrad, egrav, &
+    eomeg, ep1, ep2, lowcld, mathpi, p00, rcpd, regrav, rgas, rk8, rkx, &
+    rovcp, rtice, rtwat, rtwat_rtice_r, rwat, tzero, vonkar, wlhs, wlhv
+  use mod_dynparam, only : dayspy, dpd, half_dayspy, ice1, ice1ga, ice1gb, &
+    ice2, ice2ga, ice2gb, ici1, ici1ga, ici2, ici2ga, idi1, idi2, idynamic, &
+    ifopt, ifrad, jce1, jce1ga, jce1gb, jce2, jce2ga, jce2gb, jci1, jci1ga, &
+    jci2, jci2ga, jdi1, jdi2, kz, kzm1, kzm2, kzp1, kzp2, kzp3, kzp4, ntr, &
+    sixteenth_dayspy, vernal_equinox
+  use mod_runparams, only : auto_rate_kessl, auto_rate_khair, &
+    auto_rate_klepi, budget_compute, clfrcv, cu_cfmax, declin, detrpen_lnd, &
+    detrpen_ocn, dt, dtabem, dtcum, dtrad, dtsec, dx, dxsq, eccen, eccf, &
+    entrdd, entrpen_lnd, entrpen_ocn, entshalp, holtth10iter, iaerosol, &
+    iautoconv, ibltyp, ichem, iclimaaer, iclimao3, iconvcf, icumcloud, icup, &
+    icup_lnd, icup_ocn, idirect, ifaholt, ifaholtth10, iindirect, iocnflux, &
+    ipptls, iqc, iqi, iqr, iqs, iqv, irrtm, istochastic, itweak, iwavcpl, &
+    izengrough, k2_const, kf_convrate, kf_dpp, kf_entrate, kf_max_dtcape, &
+    kf_max_pef, kf_min_dtcape, kf_min_pef, kf_tkemax, kf_wthreshold, &
+    kfac_deep, kfac_shal, lambm0, larcticcorr, lepcld, lmfcapebl, &
+    lmfcapeforc, lmfdd, lmfdudv, lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, &
+    lmfuvdis, lmfwstar, lmoistn2, lsctop, lsrfhack, maxprandtl, mvelp, &
+    mvelpp, nqx, nssopt, obliq, obliqr, qxcheckval, qxzeroval, rcldiff, &
+    rcmtimer, rcovpmin, rcpec_lnd, rcpec_ocn, rcuc_lnd, rcuc_ocn, rdt, &
+    rh0land, rh0oce, rhebc_lnd, rhebc_ocn, rhmax, rhmin, ricr_lnd, ricr_ocn, &
+    rkconv, rpecons, rprc_lnd, rprc_ocn, rtaucape, rtaufac, scenario, scon, &
+    skconv, solcon, tc0, vfqs, zhnew_fac
+  use mod_memutil, only : getmem, memory_init
+  use mod_regcm_types, only : ik4, ik8, micro_2_mod, mod_2_cum, mod_2_micro, &
+    mod_2_pbl, mod_2_rad, pbl_2_mod, rad_2_mod, rk8, rkx
+  use mod_cu_common, only : avg_ww, cu_cldfrc, cu_cldlwc, cu_kbot, cu_ktop, &
+    cu_prate, cu_qdetr, cu_qten, cu_raincc, cu_srate, cu_tten, cu_uten, &
+    cu_vten, cuscheme, init_mod_cumulus, total_precip_points
   use mod_cu_tiedtke, only : allocate_mod_cu_tiedtke, tiedtkedrv, &
                              pmean, ktype, pmfu
   use mod_cu_kf, only : allocate_mod_cu_kf, kfdrv, kf_lutab

@@ -15,9 +15,13 @@
 
 module mod_che_molwg
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_che_indices
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_che_indices, only : cbmzspec, iald2, iaone, ic2h6, ich3oh, ich3ooh, &
+    ico, icres, idms, ieth, iethooh, ih2o2, ih2so4, ihcho, ihcooh, ihno2, &
+    ihno3, ihno4, iisopn, iisoprd, imgly, imsa, in2o5, ind_h2o, inh3, ino2, &
+    iolei, iolet, ionit, iopen, ipan, ipar, ipollen, ircooh, irooh, iso2, &
+    iso4, isulf, itol, ixyl, mine_name, totsp
 
   implicit none
 

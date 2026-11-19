@@ -60,20 +60,22 @@
 
 module mod_pbl_uwtcm
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_memutil
-  use mod_dynparam
-  use mod_constants
-  use mod_mpmessage
-  use mod_mppparam
-  use mod_pbl_common
-  use mod_pbl_thetal
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_memutil, only : getmem
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, kzm1, kzp1, &
+    kzp2, maxtracer, maxvert, ntr
+  use mod_constants, only : cpd, cpv, d_half, d_one, d_two, d_zero, egrav, &
+    ep1, ep2, minqq, p00, rgas, rovcp, rtice, rtwat, rtwat_rtice_r, rwat, &
+    tzero, vonkar, wlhs, wlhv
+  use mod_pbl_common, only : uwstate
   use mod_runparams, only : iqv, iqc, iqi, atwo, rstbl, &
           czero, nuk, dt, rdt, ichem, ipptls, rhcrit_lnd, rhcrit_sea, &
           rhcrit_siglow
-  use mod_regcm_types
-  use mod_service
+  use mod_regcm_types, only : mod_2_pbl, pbl_2_mod, tcm_state
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
 
   implicit none
 

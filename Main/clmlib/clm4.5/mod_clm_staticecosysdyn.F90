@@ -6,19 +6,20 @@ module mod_clm_staticecosysdyn
   ! so that DryDeposition code can get estimates of LAI differences
   ! between months.
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_date
-  use mod_dynparam
-  use mod_mppparam
+  use mod_realkinds, only : nan, rk8
+  use mod_intkinds, only : ik4
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr, stdout
+  use mod_date, only : curr_date, ndaypm, tochar, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_dynparam, only : myid
+  use mod_mppparam, only : italk
   use mod_ncstream, only : outstream_async_flush
-  use mod_runparams
-  use mod_mpmessage
-  use mod_clm_nchelper
+  use mod_clm_nchelper, only : clm_check_dimlen, clm_check_dims, &
+    clm_closefile, clm_filetype, clm_openfile, clm_readvar
   use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell
-  use mod_clm_type
+  use mod_clm_type, only : clm3
   use mod_clm_pftvarcon, only : noveg, nc3crop, nbrdlf_dcd_brl_shrub
   use mod_clm_varctl, only : fsurdat, nextdate
   use mod_clm_varpar, only : numpft

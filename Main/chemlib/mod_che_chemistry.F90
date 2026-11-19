@@ -15,19 +15,19 @@
 
 module mod_che_chemistry
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, ntr
+  use mod_constants, only : amd, amw, d_one, d_zero, navgdr, raddeg
   use mod_runparams, only : iqv, calday
   !use mod_runparams, only : rcmtimer
-  use mod_che_common
-  use mod_che_indices
-  use mod_che_species
-  use mod_cbmz_Global
-  use mod_cbmz_Parameters
-  use mod_cbmz_main1
-  use mod_che_molwg
+  use mod_che_common, only : cdzq, chemall, chemten, chib3d, cpb3d, cpsb, &
+    cptrop, cqxb3d, crhob3d, ctaucld, ctb3d, czen, ichjphcld, jphoto, nphoto, &
+    trac
+  use mod_che_indices, only : ind_h2o, totsp
+  use mod_cbmz_global, only : altabove, altbelow, altmid, c_jval, c_m, &
+    cfactor, dens, deptha, depthb, temp, time, xr, xrin, xrout, zenith
+  use mod_cbmz_main1, only : chemmain
 
   implicit none
 

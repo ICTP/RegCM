@@ -1,11 +1,10 @@
 module mod_clm_organicfile
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_dynparam
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_clm_nchelper
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : myid
+  use mod_mppparam, only : italk
+  use mod_clm_nchelper, only : clm_closefile, clm_filetype, clm_openfile, &
+    clm_readvar
   use mod_clm_domain, only : ldomain
   use mod_clm_varctl, only : fsurdat
   use mod_clm_decomp, only : gcomm_gridcell

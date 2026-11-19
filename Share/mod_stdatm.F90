@@ -15,9 +15,9 @@
 
 module mod_stdatm
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8
+  use mod_constants, only : dmissval, mathpi
 
   implicit none
 

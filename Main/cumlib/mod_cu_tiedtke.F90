@@ -14,19 +14,26 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_cu_tiedtke
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_memutil
-  use mod_stdio
-  use mod_constants
-  use mod_cu_common
-  use mod_service
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, kzm1, kzp1, &
+    ntr
+  use mod_mpmessage, only : fatal
+  use mod_memutil, only : getmem
+  use mod_constants, only : cpd, d_1000, d_half, d_one, d_r1000, d_three, &
+    d_two, d_zero, dlowval, egrav, ep1, ep2, mathpi, p00, rcpd, regrav, rgas, &
+    rtber, rtice, rtwat, rtwat_rtice_r, rwat, stdp, tzero, wlhf, wlhfocp, &
+    wlhs, wlhsocp, wlhv, wlhvocp
+  use mod_cu_common, only : avg_ww, cu_chiten, cu_cldfrc, cu_cldlwc, &
+    cu_cloud_fraction, cu_convpr, cu_kbot, cu_ktop, cu_prate, cu_qdetr, &
+    cu_qten, cu_raincc, cu_srate, cu_tten, cu_uten, cu_vten, cuscheme, &
+    total_precip_points
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
   use mod_runparams, only : iqc, iqv, iqi, dx, ichem, iaerosol, &
          iindirect, ipptls, ichcumtra, rcmtimer, icup, dtcum, io3
   use mod_runparams, only : k2_const, kfac_deep, kfac_shal, iconvcf
-  use mod_mpmessage
   use mod_runparams, only : rcrit
   use mod_runparams, only : entrdd, entshalp, entrpen_lnd, entrpen_ocn
   use mod_runparams, only : detrpen_lnd, detrpen_ocn
@@ -36,7 +43,7 @@ module mod_cu_tiedtke
   use mod_runparams, only : lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
           lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
           lmfcapeforc, rtaucape, rtaufac
-  use mod_regcm_types
+  use mod_regcm_types, only : mod_2_cum
 
   implicit none
 

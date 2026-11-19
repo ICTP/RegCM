@@ -3,14 +3,14 @@ module mod_clm_ch4rest
   !
   ! Reads from or writes restart data
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_runparams
-  use mod_clm_type
-  use mod_clm_decomp
-  use mod_clm_nchelper
+  use mod_intkinds, only : ik4
+  use mod_mpmessage, only : fatal
+  use mod_runparams, only : rcmtimer
+  use mod_clm_type, only : clm3, column_type, gridcell_type, landunit_type, &
+    pft_type
+  use mod_clm_decomp, only : gcomm_column, gcomm_pft
+  use mod_clm_nchelper, only : clm_addvar, clm_check_var, clm_filetype, &
+    clm_readvar, clm_writevar, clmvar_double
   use mod_clm_varctl, only : nsrest
 
   implicit none

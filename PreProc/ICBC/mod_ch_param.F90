@@ -15,8 +15,8 @@
 
 module mod_ch_param
 
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik2, ik4
+  use mod_realkinds, only : rk4, rk8, rkx
   implicit none
 
   public

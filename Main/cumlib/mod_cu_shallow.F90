@@ -14,14 +14,15 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_cu_shallow
-  use mod_realkinds
-  use mod_intkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_cu_common
-  use mod_dynparam
+  use mod_realkinds, only : rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, kzp1
+  use mod_constants, only : cpd, d_100, d_half, d_one, d_r100, d_zero, &
+    dlowval, egrav, ep1, ep2, minqq, regrav, rgas, rtice, rtwat, &
+    rtwat_rtice_r, rwat, tzero, wlhs, wlhv
+  use mod_cu_common, only : cu_qten, cu_tten
   use mod_runparams, only : iqv, dtcum, dt
-  use mod_regcm_types
+  use mod_regcm_types, only : mod_2_cum
 
   implicit none
 

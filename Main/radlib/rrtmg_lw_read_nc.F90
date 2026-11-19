@@ -52,7 +52,8 @@ implicit none
 subroutine lw_kgb01(fname)
     use rrlw_kg01, only : fracrefao, fracrefbo, kao, kbo, kao_mn2, kbo_mn2, &
                         selfrefo, forrefo, no1
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, plower, pupper, status, t, &
+      tdiff, tforeign, tself
     use netcdf
 
     implicit none
@@ -121,7 +122,8 @@ end subroutine lw_kgb01
 !*******************************************************************************
 subroutine lw_kgb02(fname)
         use rrlw_kg02, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no2
-        use rrlw_ncpar
+        use rrlw_ncpar, only : im, plower, pupper, status, tdiff, tforeign, &
+          tself
     use netcdf
 
         implicit none
@@ -180,7 +182,8 @@ end subroutine lw_kgb02
 subroutine lw_kgb03(fname)
         use rrlw_kg03, only : fracrefao, fracrefbo, kao, kbo, kao_mn2o, &
                           kbo_mn2o, selfrefo, forrefo, no3
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, keylower, keyupper, plower, &
+      pupper, status, t, tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -251,7 +254,8 @@ end subroutine lw_kgb03
 !*******************************************************************************
 subroutine lw_kgb04(fname)
         use rrlw_kg04, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no4
-    use rrlw_ncpar
+    use rrlw_ncpar, only : im, keylower, keyupper, plower, pupper, status, &
+      tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -310,7 +314,8 @@ end subroutine lw_kgb04
 subroutine lw_kgb05(fname)
         use rrlw_kg05, only : fracrefao, fracrefbo, kao, kbo, kao_mo3, &
                           selfrefo, forrefo, ccl4o, no5
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, keylower, keyupper, plower, &
+      pupper, status, t, tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -384,7 +389,8 @@ end subroutine lw_kgb05
 subroutine lw_kgb06(fname)
         use rrlw_kg06, only : fracrefao, kao, kao_mco2, selfrefo, forrefo, &
                           cfc11adjo, cfc12o, no6
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, plower, status, t, tdiff, &
+      tforeign, tself
     use netcdf
 
         implicit none
@@ -455,7 +461,8 @@ end subroutine lw_kgb06
 subroutine lw_kgb07(fname)
         use rrlw_kg07, only : fracrefao, fracrefbo, kao, kbo, kao_mco2, &
                           kbo_mco2, selfrefo, forrefo, no7
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, keylower, plower, pupper, &
+      status, t, tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -528,7 +535,8 @@ subroutine lw_kgb08(fname)
         use rrlw_kg08, only : fracrefao, fracrefbo, kao, kao_mco2, kao_mn2o, &
                           kao_mo3, kbo, kbo_mco2, kbo_mn2o, selfrefo, forrefo, &
                           cfc12o, cfc22adjo, no8
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, plower, pupper, status, t, &
+      tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -633,7 +641,8 @@ end subroutine lw_kgb08
 subroutine lw_kgb09(fname)
         use rrlw_kg09, only : fracrefao, fracrefbo, kao, kbo, kao_mn2o, &
                             kbo_mn2o, selfrefo, forrefo, no9
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, keylower, plower, pupper, &
+      status, t, tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -704,7 +713,7 @@ end subroutine lw_kgb09
 !*******************************************************************************
 subroutine lw_kgb10(fname)
         use rrlw_kg10, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no10
-    use rrlw_ncpar
+    use rrlw_ncpar, only : im, plower, pupper, status, tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -763,7 +772,8 @@ end subroutine lw_kgb10
 subroutine lw_kgb11(fname)
         use rrlw_kg11, only : fracrefao, fracrefbo, kao, kbo, kao_mo2, &
                           kbo_mo2, selfrefo, forrefo, no11
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, plower, pupper, status, t, &
+      tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -834,7 +844,8 @@ end subroutine lw_kgb11
 !*******************************************************************************
 subroutine lw_kgb12(fname)
         use rrlw_kg12, only : fracrefao, kao, selfrefo, forrefo, no12
-    use rrlw_ncpar
+    use rrlw_ncpar, only : im, keylower, plower, status, tdiff, tforeign, &
+      tself
     use netcdf
 
         implicit none
@@ -883,7 +894,8 @@ end subroutine lw_kgb12
 subroutine lw_kgb13(fname)
         use rrlw_kg13, only : fracrefao, fracrefbo, kao, kao_mco2, kao_mco, &
                           kbo_mo3, selfrefo, forrefo, no13
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, keylower, plower, status, t, &
+      tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -958,7 +970,7 @@ end subroutine lw_kgb13
 !*******************************************************************************
 subroutine lw_kgb14(fname)
         use rrlw_kg14, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no14
-    use rrlw_ncpar
+    use rrlw_ncpar, only : im, plower, pupper, status, tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -1016,7 +1028,8 @@ end subroutine lw_kgb14
 !*******************************************************************************
 subroutine lw_kgb15(fname)
         use rrlw_kg15, only : fracrefao, kao, kao_mn2, selfrefo, forrefo, no15
-    use rrlw_ncpar
+    use rrlw_ncpar, only : getabsorberindex, im, keylower, plower, status, t, &
+      tdiff, tforeign, tself
     use netcdf
 
         implicit none
@@ -1072,7 +1085,8 @@ end subroutine lw_kgb15
 !*******************************************************************************
 subroutine lw_kgb16(fname)
         use rrlw_kg16, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no16
-    use rrlw_ncpar
+    use rrlw_ncpar, only : im, keylower, plower, pupper, status, tdiff, &
+      tforeign, tself
     use netcdf
 
         implicit none

@@ -2,9 +2,9 @@ module mod_clm_driverinit
   !
   ! Initialization of clm driver variables needed from previous timestep
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_clm_type, only : clm3
   use mod_clm_varpar, only : nlevsno
   use mod_clm_subgridave, only : p2c
   use mod_clm_varcon, only : h2osno_max, rair, cpair, grav

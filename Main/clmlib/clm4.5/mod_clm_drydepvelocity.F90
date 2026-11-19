@@ -53,11 +53,11 @@ Module mod_clm_drydepvelocity
   ! Modified: Francis Vitt -- 30 Mar 2007
   !-----------------------------------------------------------------------
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
+  use mod_clm_type, only : clm3
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_drydep, only : n_drydep, drydep_list
   use mod_clm_drydep, only : drydep_method, DD_XLND

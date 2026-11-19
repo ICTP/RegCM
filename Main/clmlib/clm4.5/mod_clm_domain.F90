@@ -2,13 +2,12 @@ module mod_clm_domain
   !
   ! Module containing 2-d global surface boundary data information
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_mppparam
-  use mod_runparams
-  use mod_mpmessage
+  use mod_intkinds, only : bigint, ik4
+  use mod_realkinds, only : nan, rk8
+  use mod_dynparam, only : myid
+  use mod_stdio, only : stdout
+  use mod_mppparam, only : italk
+  use mod_mpmessage, only : fatal
 
   implicit none
 

@@ -18,19 +18,24 @@ module mod_pbl_holtbl
   ! Holtslag planetary boundary layer scheme
   ! Reference : Holtslag, De Bruijn and Pan - MWR - 8/90
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : ici1, ici1ga, ici2, idi1, idi2, idii1, idii2, &
+    idynamic, jci1, jci1ga, jci2, jdi1, jdi2, jdii1, jdii2, kz, kzm1, kzp1, &
+    maxvert, ntr
+  use mod_constants, only : cpd, d_10, d_five, d_half, d_one, d_r10, d_rfour, &
+    d_zero, dlowval, egrav, ep1, ep2, minqq, onet, p00, rcpd, rovcp, rtice, &
+    rtwat, rtwat_rtice_r, rwat, tzero, vonkar, wlhs, wlhv, wlhvocp
   use mod_runparams, only : iqv, dt, rdt, ichem, zhnew_fac, &
        ifaholtth10, ifaholt, holtth10iter, ipptls, iqc, iqi, &
        lmoistn2, maxprandtl, lsctop
-  use mod_mppparam
-  use mod_memutil
-  use mod_service
-  use mod_mpmessage
-  use mod_pbl_common
-  use mod_regcm_types
+  use mod_mppparam, only : exchange_lb
+  use mod_memutil, only : getmem
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_pbl_common, only : kmxpbl, ricr
+  use mod_regcm_types, only : mod_2_pbl, pbl_2_mod
 
   implicit none
 

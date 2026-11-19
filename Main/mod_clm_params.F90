@@ -15,26 +15,50 @@
 
 module mod_clm_params
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
-  use mod_stdio
-  use mod_dynparam
-  use mod_date
-  use mod_runparams
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_domain
-  use mod_service
-  use mod_sun
-  use mod_atm_stub
-  use mod_zita
+  use mod_realkinds, only : rkx
+  use mod_intkinds, only : ik4, ik8
+  use mod_constants, only : d_1000, d_four, d_half, d_one, d_two, d_zero, &
+    egrav, regrav, secpd, secph
+  use mod_stdio, only : stderr, stdout
+  use mod_dynparam, only : clat, clon, dbgfrq, debug_level, dirglob, dirout, &
+    dirter, domname, ds, globidate1, globidate2, ibdyfrq, ical, ice1, ice2, &
+    ici1, ici2, ide1, ide2, idynamic, ifcordex, ifshf, iproj, iy, jce1, jce2, &
+    jci1, jci2, jde1, jde2, jx, kz, kzp1, lsmoist, mo_a0, mo_h, mo_ztop, &
+    myid, nnsg, nsg, ntr, plat, plon, prestr, ptop, ssttyp, truelath, &
+    truelatl, xcone
+  use mod_date, only : i8wcal, rcm_time_interval, tochar, tohours, uhrs, &
+    umnt, assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_runparams, only : ak, alarm_day, alarm_hour, alarm_in_bdy, &
+    allocate_mod_runparams, base_state_ts0, bdydate1, bk, &
+    do_parallel_netcdf_in, do_parallel_netcdf_out, do_parallel_save, &
+    doing_restart, dsigma, dt, dtabem, dtbdys, dtcb, dtche, dtcum, dtrad, &
+    dtsec, dtsq, dtsrf, dx, dx16, dx2, dx4, dx8, dxsq, fixedsolarval, &
+    gas_tweak_factors, ghg_year_const, hsigma, icetriggert, idate0, idate1, &
+    idate2, ifixsolar, ifrest, intbdy, intsom, iseaice, isolconst, itweak, &
+    itweak_greenhouse_gases, itweak_solar_irradiance, itweak_sst, &
+    itweak_temperature, lsync, mo_dzita, namelistfile, nbin, rcmtimer, rdt, &
+    rdx, rdxsq, scenario, sigma, solar_tweak, sst_tweak, syncro_che, &
+    syncro_cum, syncro_dbg, syncro_emi, syncro_rad, syncro_rep, syncro_srf, &
+    temperature_tweak, zita, zitah
 #ifdef CLM45
-  use mod_clm_regcm
+  use mod_runparams, only : sfbcread
+#endif
+  use mod_mppparam, only : bcast, iocpu, italk
+  use mod_mpmessage, only : fatal
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_sun, only : zenitm
+  use mod_atm_stub, only : allocate_mod_atm_interface, &
+    allocate_surface_model, coszrs, fmzf, mddom, mdsub, zeta
+  use mod_zita, only : md_ak, md_bk, md_fmz, model_zitaf, model_zitah, &
+    sigmazita
+#ifdef CLM45
 #endif
   use mod_ipcc_scenario, only : set_scenario
-  use mod_ncio
-  use mod_timer
+  use mod_ncio, only : read_domain_info, read_subdomain_info
+  use mod_timer, only : rcm_alarm, rcm_syncro, rcm_timer, operator(/)
 
   implicit none
 

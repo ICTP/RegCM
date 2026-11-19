@@ -15,10 +15,14 @@
 
 module mod_che_species
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : bdy_dm, bdy_nm, dirglob, dirter, domname, &
+    globidate1, ibdyfrq, ice1, ice2, ici1, ici2, icross1, icross2, ide1, &
+    ide1ga, ide2, ide2ga, idi1, idi2, idynamic, iy, jce1, jce2, jci1, jci2, &
+    jcross1, jcross2, jde1, jde1ga, jde2, jde2ga, jdi1, jdi2, jx, kz, myid, &
+    nats, nspgx, ntr, pthsep
+  use mod_memutil, only : assignpnt, getmem
 
   implicit none
 

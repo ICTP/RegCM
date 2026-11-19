@@ -20,13 +20,14 @@ end subroutine myabort
 
 #ifdef CLM45
 program interpinic
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_memutil
-  use mod_message
-  use mod_kdinterp
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : is_nan, rkx
+  use mod_dynparam, only : clat, clon, plat, plon
+  use mod_stdio, only : stderr, stdout
+  use mod_memutil, only : getmem, memory_destroy, memory_init
+  use mod_message, only : die
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
   use mod_posix, only : hostname
   use netcdf
 
@@ -1019,7 +1020,7 @@ end program interpinic
 #else
 
 program interpinic
-  use mod_stdio
+  use mod_stdio, only : stdout
   implicit none
   write(stdout,*) 'RegCM built without CLM45 support.'
   write(stdout,*) 'Please recompile it using --enable-clm45 flag'

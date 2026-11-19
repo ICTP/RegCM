@@ -15,24 +15,28 @@
 
 module mod_ncep
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_stdio
-  use mod_grid
-  use mod_write
-  use mod_date
-  use mod_constants
-  use mod_kdinterp
-  use mod_vertint
-  use mod_hgt
-  use mod_humid
-  use mod_mksst
-  use mod_projections
-  use mod_vectutil
-  use mod_message
-  use mod_memutil
-  use mod_nchelper
+  use mod_intkinds, only : ik2, ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : dattyp, dayspy, globidate1, i_band, i_crm, &
+    idynamic, inpglob, iy, jx, kz, ptop
+  use mod_stdio, only : stdout
+  use mod_grid, only : dlat, dlon, pa, pjd, pju, pjv, sigmah, tlayer, topogm, &
+    topou, topov, ulat, ulon, vlat, vlon, xlat, xlon, z0, za, zetau, zetav
+  use mod_write, only : pd4, ps4, q4, t4, ts4, u4, v4
+  use mod_date, only : lfdoyear, lmidnight, rcm_time_and_date, split_idate, &
+    tochar, yeardayfrac, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_constants, only : d_10
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_vertint, only : intgtb, intpsn, intv1, intv2, intv3, intz1, intz3, &
+    intzps
+  use mod_humid, only : rh2mxr, rh2mxr_z
+  use mod_mksst, only : readsst
+  use mod_vectutil, only : crs2dot, ucrs2dot, vcrs2dot
+  use mod_memutil, only : getmem
+  use mod_nchelper, only : checkncerr
   implicit none
 
   private

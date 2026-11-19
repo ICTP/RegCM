@@ -4,11 +4,11 @@ module mod_clm_cnbalancecheck
   !
   ! Module for carbon mass balance checking.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : dtsrf
-  use mod_mpmessage
-  use mod_stdio
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
 
   implicit none
 
@@ -27,7 +27,7 @@ module mod_clm_cnbalancecheck
   ! for mass conservation checks.
   !
   subroutine BeginCBalance(lbc, ubc, num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of soil columns filter
@@ -60,7 +60,7 @@ module mod_clm_cnbalancecheck
   ! balance for mass conservation checks.
   !
   subroutine BeginNBalance(lbc, ubc, num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of soil columns filter
@@ -94,7 +94,7 @@ module mod_clm_cnbalancecheck
   ! check for column and pft
   !
   subroutine CBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of soil columns in filter
@@ -207,7 +207,7 @@ module mod_clm_cnbalancecheck
   ! for column and pft
   !
   subroutine NBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_surfrd, only : crop_prog
     implicit none
     integer(ik4), intent(in) :: lbc, ubc ! column bounds

@@ -17,15 +17,21 @@ module mod_diffusion
 !
 ! Diffusion calculations
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_stdio
-  use mod_memutil
-  use mod_dynparam
-  use mod_runparams
-  use mod_mppparam
-  use mod_service
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_one, d_rfour, d_two, d_zero, regrav, vonkar
+  use mod_stdio, only : stdout
+  use mod_memutil, only : assignpnt, getmem
+  use mod_dynparam, only : ice1, ice1ga, ice2, ice2ga, ici1, ici1ga, ici2, &
+    ici2ga, icii1, icii2, idi1, idi2, idii1, idii2, idynamic, iy, iym1, jce1, &
+    jce1ga, jce2, jce2ga, jci1, jci1ga, jci2, jci2ga, jcii1, jcii2, jdi1, &
+    jdi2, jdii1, jdii2, jx, jxm1, kz, kzp1, myid
+  use mod_runparams, only : adyndif, ckh, diffu_hgtf, dtsec, dx, dxsq, &
+    idiffu, rdxsq
+  use mod_mppparam, only : exchange, ma, maxall, minall
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
 
   implicit none
 

@@ -3,9 +3,9 @@ module mod_clm_fracwet
   ! Determine fraction of vegetated surfaces which are wet and
   ! fraction of elai which is dry.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_clm_type, only : clm3
 
   implicit none
 

@@ -22,10 +22,10 @@ module mod_timefilter
   ! RAW Robert-Asselin-Williams filter - MWR 2009
   !              http://dx.doi.org/10.1175/2009MWR2724.1
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_one, d_two, d_zero, minqq
+  use mod_dynparam, only : ici1, ici2, idi1, idi2, jci1, jci2, jdi1, jdi2
   use mod_runparams, only : iqv
 
   implicit none

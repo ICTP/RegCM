@@ -15,9 +15,9 @@
 
 module mod_cbmz_main1
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : d_zero
   use mod_cbmz_boxvars
   use mod_cbmz_chemmech
   use mod_cbmz_chemvars

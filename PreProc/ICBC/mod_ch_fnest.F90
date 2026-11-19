@@ -14,21 +14,25 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_ch_fnest
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_stdio
-  use mod_memutil
-  use mod_grid
-  use mod_wrtoxd
-  use mod_kdinterp
-  use mod_date
-  use mod_nchelper
-  use mod_posix
-  use mod_message
-  use mod_vertint
-  use mod_vectutil
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : dirglob, domname, iy, jx, kz, pthsep, ptop
+  use mod_constants, only : d_100, d_half, d_r1000, d_two, d_zero
+  use mod_stdio, only : stderr
+  use mod_memutil, only : getmem
+  use mod_grid, only : sigmah, xlat, xlon, z0
+  use mod_wrtoxd, only : aespec, aev4, cbmzspec, chv4, naesp, ncbmz, noxsp, &
+    oxspec, oxv4, write_ae_icbc, write_ch_icbc, write_ox_icbc
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create
+  use mod_date, only : lsamemonth, monfirst, prevmon, rcm_time_and_date, &
+    timeval2date, tochar, tochar10, assignment(=), operator(+), operator(-), &
+    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
+    operator(>=)
+  use mod_nchelper, only : checkncerr
+  use mod_posix, only : direntry, dirlist
+  use mod_message, only : die
+  use mod_vertint, only : intlin, intz1
   use netcdf
 
   implicit none

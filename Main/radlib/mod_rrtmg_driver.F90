@@ -17,29 +17,38 @@
 
 module mod_rrtmg_driver
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_ipcc_scenario
-  use mod_memutil
-  use mod_rad_common
-  use mod_rad_tracer
-  use mod_rad_aerosol
-  use mod_date
-  use mod_stdatm
-  use mcica_subcol_gen_sw
-  use parrrsw
-  use rrsw_wvn
-  use parrrtm
-  use rrtmg_sw_rad
-  use rrtmg_lw_rad
-  use rrtmg_lw_rad_nomcica
-  use rrtmg_sw_rad_nomcica
-  use mod_rad_outrad
-  use mod_mpmessage
-  use mod_runparams
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : amcfc11, amcfc12, amch4, amco2, amd, amn2o, amo3, &
+    amw, c287, dlowval, rep2, secpd
+  use mod_dynparam, only : dayspy, ici1, ici2, idynamic, jci1, jci2, kz, &
+    kzp1, kzp2, nicross, njcross, ntr
+  use mod_ipcc_scenario, only : ghgval, igh_cfc11, igh_cfc12, igh_ch4, &
+    igh_co2, igh_n2o
+  use mod_memutil, only : getmem
+  use mod_rad_common, only : cldwpmin, cloud_fice, cloud_rei, cloud_rel_cam, &
+    dge2rei, kclimf, kclimh, ktf, kth, o3prof
+  use mod_rad_tracer, only : trcmix
+  use mod_rad_aerosol, only : aermmr, aeroppt, gtota3d, tauasc3d, tauxar3d, &
+    tauxar3d_lw
+  use mod_date, only : dayofyear, yeardays, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_stdatm, only : istdatm_airdn, istdatm_ozone, istdatm_qdens, &
+    istdatm_tempk, stdatm_val, stdhlevf, stdplevf, stdplevh
+  use mcica_subcol_gen_sw, only : get_alpha, mcica_subcol_sw
+  use parrrsw, only : nbndsw, ngptsw
+  use parrrtm, only : nbndlw, ngptlw
+  use rrtmg_sw_rad, only : rrtmg_sw
+  use rrtmg_lw_rad, only : mcica_subcol_lw, rrtmg_lw
+  use rrtmg_lw_rad_nomcica, only : rrtmg_lw_nomcica
+  use rrtmg_sw_rad_nomcica, only : rrtmg_sw_nomcica
+  use mod_rad_outrad, only : radout
+  use mod_runparams, only : calday, eccf, hsigma, iaerosol, iceflglw, &
+    iceflgsw, ichem, icld, iclimaaer, idirect, imcica, inflglw, inflgsw, &
+    ipptls, iqc, iqi, iqv, irng, liqflglw, liqflgsw, rcmtimer, sigma, solcon, &
+    syncro_radfor
+  use mod_regcm_types, only : mod_2_rad, rad_2_mod
 #ifdef DEBUG
   use mod_service, only : time_begin, time_end, dbgslen
 #endif

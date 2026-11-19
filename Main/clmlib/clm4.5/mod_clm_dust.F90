@@ -11,11 +11,11 @@ module mod_clm_dust
   ! column. The two calculations will determine the dust dry deposition flux
   ! to the surface.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
+  use mod_clm_type, only : clm3
   use mod_clm_varpar , only : dst_src_nbr, ndst, sz_nbr
   use mod_clm_varcon , only : grav, istsoil
   use mod_clm_varcon , only : istcrop

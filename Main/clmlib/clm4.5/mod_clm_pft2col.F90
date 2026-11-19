@@ -3,10 +3,10 @@ module mod_clm_pft2col
   ! Contains calls to methods to perfom averages over from pfts to columns
   ! for model variables.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_clm_subgridave
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_clm_subgridave, only : p2c
+  use mod_clm_type, only : clm3
 
   implicit none
 

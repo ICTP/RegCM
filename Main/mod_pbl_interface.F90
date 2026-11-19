@@ -15,13 +15,13 @@
 
 module mod_pbl_interface
 
-  use mod_realkinds
-  use mod_service
-  use mod_constants
-  use mod_dynparam
-  use mod_memutil
-  use mod_mppparam
-  use mod_regcm_types
+  use mod_realkinds, only : rkx
+  use mod_constants, only : d_zero
+  use mod_dynparam, only : ice1ga, ice2ga, ici1, ici2, idi1, idi2, idynamic, &
+    jce1ga, jce2ga, jci1, jci2, jdi1, jdi2, kz
+  use mod_memutil, only : assignpnt, getmem
+  use mod_mppparam, only : uvcross2dot
+  use mod_regcm_types, only : ik4, mod_2_pbl, pbl_2_mod
   use mod_pbl_common, only : ricr, uwstate, kmxpbl
   use mod_pbl_holtbl, only : holtbl, allocate_mod_pbl_holtbl
   use mod_pbl_uwtcm, only : allocate_tcm_state
@@ -56,7 +56,6 @@ module mod_pbl_interface
   contains
 
   subroutine allocate_pblscheme
-    use mod_atm_interface
     implicit none
     if ( ibltyp == 1 ) then
       call getmem(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
@@ -85,9 +84,11 @@ module mod_pbl_interface
   end subroutine allocate_pblscheme
 
   subroutine init_pblscheme
-    use mod_atm_interface
-    use mod_che_interface
-    use mod_che_common
+    use mod_atm_interface, only : aten, atm2, atms, fcc, heatrt, kpbl, mddom, &
+      mo_atm, sfs, zpbl
+    use mod_che_interface, only : chifxuw, drydepv, remdrd
+    use mod_che_common, only : assignpnt, chifxuw, drydepv, ibltyp, idynamic, &
+      pc_physic, remdrd
     implicit none
 
     ! INPUT to PBL
@@ -176,7 +177,6 @@ module mod_pbl_interface
   end subroutine init_pblscheme
 
   subroutine pblscheme
-    use mod_atm_interface
     implicit none
     integer(ik4) :: i, j, k
     ! The cross point wind tendencies are accumulated by the schemes

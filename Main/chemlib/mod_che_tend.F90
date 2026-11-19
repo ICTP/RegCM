@@ -17,29 +17,37 @@ module mod_che_tend
 !
 ! Tendency and budget for tracer transport and chemicals
 !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : d_1000, d_one, d_zero, lrate, zoce
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, myid, ntr
   use mod_runparams, only : iqc, syncro_che
-  use mod_mppparam
-  use mod_che_common
-  use mod_che_indices
-  use mod_che_param
-  use mod_che_sox
-  use mod_che_drydep
-  use mod_che_wetdep
-  use mod_che_emission
-  use mod_che_dust
-  use mod_che_seasalt
-  use mod_che_carbonaer
-  use mod_che_mppio
-  use mod_che_chemistry
-  use mod_che_isorropia
-  use mod_che_pollen
-  use mod_che_bionit
-  use mod_che_ccn
-  use mod_che_linox
+  use mod_mppparam, only : italk
+  use mod_che_common, only : carb_aging_control, cconvpr, cdzq, cfcc, cfdout, &
+    chemdiag, chemt, chemten, chib, chib3d, chifxuw, chiten, clndcat, &
+    convcldfra, cpb3d, cps2d, cqxb3d, cra, crembc, crhb3d, crho2d, crhob3d, &
+    csfracb2d, csfracs2d, csol2d, cssw2da, ctb3d, ctg, custar, cveg2d, &
+    cvegfrac, cw10m, cxlai2d, cza, czo, declin, dt, dtrace, hsigma, iaerosol, &
+    ibchb, icarb, ichbion, ichdiag, ichdrdepo, ichdustemd, ichlinox, &
+    ichremlsc, ichsolver, ichsursrc, idust, igaschem, iindirect, iisoropia, &
+    imine, ino, iochb, ism1, ism2, isslt, jphoto, nbchl, nbin, nmine, nochl, &
+    sbin, stdout, syncro_rep
+  use mod_che_indices, only : ih2so4, ipollen, iso2, iso4, jvno2
+  use mod_che_param, only : cdepuv, ciexsol, cxmopor
+  use mod_che_sox, only : chemsox
+  use mod_che_drydep, only : drydep_aero, drydep_gas
+  use mod_che_wetdep, only : sethet, wetdepa
+  use mod_che_emission, only : emis_tend
+  use mod_che_dust, only : clm_dust_tend, dustbed, dustbsiz, rhodust, sfflux
+  use mod_che_seasalt, only : rhosslt, sea_salt, ssltbed
+  use mod_che_carbonaer, only : aging_carb, carb_prepare, carbed, rhobchl, &
+    rhooc
+  use mod_che_chemistry, only : chemistry
+  use mod_che_isorropia, only : aerodriver
+  use mod_che_pollen, only : pollen_emission, reffpollen, rhopollen
+  use mod_che_bionit, only : soilnitro_emissions
+  use mod_che_ccn, only : ccn
+  use mod_che_linox, only : linox_em
   implicit none
 
   private

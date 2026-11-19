@@ -19,14 +19,15 @@ module mod_ipcc_scenario
   !
   !     ftp://crgd.atmos.uiuc.edu/pub/post-sres
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_mpmessage
-  use mod_memutil
-  use mod_runparams
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : inpglob, myid, pthsep
+  use mod_mpmessage, only : fatal
+  use mod_memutil, only : getmem
+  use mod_runparams, only : gas_tweak_factors, ghg_year_const, itweak, &
+    itweak_greenhouse_gases, lconst2050
   use mod_mppparam, only : italk, iocpu, bcast
-  use mod_stdio
+  use mod_stdio, only : stderr, stdout
   use netcdf
 
   implicit none

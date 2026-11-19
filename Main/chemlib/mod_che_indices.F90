@@ -15,7 +15,7 @@
 
 module mod_che_indices
 
-  use mod_intkinds
+  use mod_intkinds, only : ik4
   use mod_cbmz_parameters, only : nvar
 
   implicit none

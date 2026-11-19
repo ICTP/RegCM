@@ -2,10 +2,10 @@ module mod_clm_dynland
   !
   ! Compute heat and water content to track conservation wrt dynamic land use
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_clm_type, only : clm3, column_type, gridcell_type, landunit_type, &
+    pft_type
   use mod_clm_decomp, only : get_proc_bounds
   use mod_clm_varcon, only : istsoil, istice, istwet, istdlak, &
                       istslak, isturb, istcrop, icol_road_perv, &

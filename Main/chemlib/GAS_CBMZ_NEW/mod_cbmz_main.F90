@@ -28,9 +28,15 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 module mod_cbmz_main1
-  use mod_cbmz_model
-  use mod_cbmz_global
-  use mod_cbmz_parameters
+  use mod_cbmz_model, only : dp, ik4, integrate, loadperoxyparameters, &
+    reset_integrate, rk8, update_rconst
+  use mod_cbmz_global, only : altabove, altbelow, altmid, atol, c, c_jval, &
+    c_m, cfactor, dens, deptha, depthb, dt, fix, jval_c2h5cho, jval_ch2oa, &
+    jval_ch2ob, jval_ch3choa, jval_ch3coch3, jval_chocho, jval_h2o2, &
+    jval_hno2, jval_hno3, jval_hno4, jval_n2o5b, jval_no2, jval_no3a, &
+    jval_no3b, jval_o31d, jval_o33p, jval_pan, rconst, rtol, stepmax, &
+    stepmin, temp, tend, time, tstart, var, xr, xrin, xrout, zenith
+  use mod_cbmz_parameters, only : nvar
   implicit none
 
   public :: chemmain
@@ -38,11 +44,22 @@ module mod_cbmz_main1
   contains
 
   subroutine chemmain(jday,dtche)
-    use mod_cbmz_model
-    use mod_cbmz_global
-    use mod_cbmz_parameters
-    use mod_cbmz_jval1
-    use mod_cbmz_hvread
+    use mod_cbmz_model, only : altabove, altbelow, altmid, atol, c, c_jval, &
+      c_m, deptha, depthb, dp, dt, fix, integrate, jval_c2h5cho, jval_ch2oa, &
+      jval_ch2ob, jval_ch3choa, jval_ch3coch3, jval_chocho, jval_h2o2, &
+      jval_hno2, jval_hno3, jval_hno4, jval_n2o5b, jval_no2, jval_no3a, &
+      jval_no3b, jval_o31d, jval_o33p, jval_pan, loadperoxyparameters, nvar, &
+      rconst, reset_integrate, rtol, stepmax, stepmin, temp, tend, time, &
+      tstart, update_rconst, var, xrin, xrout, zenith
+    use mod_cbmz_global, only : altabove, altbelow, altmid, atol, c, c_jval, &
+      c_m, deptha, depthb, dp, dt, fix, jval_c2h5cho, jval_ch2oa, jval_ch2ob, &
+      jval_ch3choa, jval_ch3coch3, jval_chocho, jval_h2o2, jval_hno2, &
+      jval_hno3, jval_hno4, jval_n2o5b, jval_no2, jval_no3a, jval_no3b, &
+      jval_o31d, jval_o33p, jval_pan, nvar, rconst, rtol, stepmax, stepmin, &
+      temp, tend, time, tstart, var, xrin, xrout, zenith
+    use mod_cbmz_parameters, only : dp, nvar
+    use mod_cbmz_jval1, only : jvalpro
+    use mod_cbmz_hvread, only : c_hvmat, c_jarray, c_nhv, dp, jvalpro
     implicit none
 
     real(kind=dp), intent(in) :: jday, dtche

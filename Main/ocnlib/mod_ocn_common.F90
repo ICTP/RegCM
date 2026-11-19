@@ -17,19 +17,27 @@ module mod_ocn_common
 !
 ! Storage for Surface (BATS and shared by CLM) variables
 !
-  use mod_mpmessage
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_regcm_types
-  use mod_ocn_internal
-  use mod_ocn_bats
-  use mod_ocn_coare
-  use mod_ocn_lake
-  use mod_ocn_zeng
-  use mod_ocn_albedo
+  use mod_mpmessage, only : fatal
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : ice_sfcemiss
+  use mod_regcm_types, only : lm_exchange, lm_state
+  use mod_ocn_internal, only : allocate_mod_ocn_internal, br, cprate, &
+    czenith, deltas, dhlake, drag, dwrlwf, emiss, evpr, hpbl, ht, ici1, ici2, &
+    icpl, ilake, iocnbeg, iocnend, iocnflux, jci1, jci2, laketa, lakhi, &
+    laktlake, lat, ldcsst, llake, lseaice, lwdifal, lwdiral, mask, ncprate, &
+    nnsg, omask, patm, prcp, q2m, qv, rah1, ram1, rhoa, rhox, rlwf, rswf, &
+    sent, sfice, sfps, sfta, sm, snag, sncv, sst, swdifal, swdiral, t2m, &
+    tatm, taux, tauy, tdeltas, tgb, tgbrd, tgrd, tskin, u10m, um10, ustr, &
+    usw, v10m, vsw, zoo
+  use mod_ocn_bats, only : seaice
+  use mod_ocn_coare, only : coare3_drv
+  use mod_ocn_lake, only : allocate_mod_ocn_lake, initlake, lake_fillvar, &
+    lakedrv, lakmsk, var_eta, var_hi, var_tlak
+  use mod_ocn_zeng, only : zengocndrv
+  use mod_ocn_albedo, only : ocn_albedo
   use mod_runparams, only : rcmtimer, syncro_srf, iwavcpl
-  use mod_mppparam
+  use mod_mppparam, only : c2l_gs, c2l_ss, l2c_ss, ocncomm
 
   implicit none
 

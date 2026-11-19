@@ -15,12 +15,11 @@
 
 module mod_vertint
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_constants
-  use mod_message
-  use mod_stdatm
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_stdio, only : stderr
+  use mod_constants, only : d_half, d_one, d_two, egrav, govr, lrate, regrav, &
+    rgas
   use mod_interp, only : interp1d
   use mod_dynparam, only : maxvert
 

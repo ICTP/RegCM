@@ -15,16 +15,19 @@
 
 module mod_sst_ersst
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_date
-  use mod_dynparam
-  use mod_sst_grid
-  use mod_kdinterp
-  use mod_message
-  use mod_memutil
-  use mod_nchelper
+  use mod_intkinds, only : ik2, ik4
+  use mod_realkinds, only : rkx
+  use mod_stdio, only : stdout
+  use mod_date, only : imondiff, monfirst, nextmon, prevmon, &
+    rcm_time_and_date, split_idate, tochar, assignment(=), operator(+), &
+    operator(-), operator(/=), operator(<), operator(<=), operator(==), &
+    operator(>), operator(>=)
+  use mod_dynparam, only : globidate1, globidate2, inpglob, pthsep, ssttyp
+  use mod_sst_grid, only : open_sstfile, sstmm, writerec, xlat, xlon
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_memutil, only : getmem
+  use mod_nchelper, only : checkncerr
   use netcdf
 
   implicit none

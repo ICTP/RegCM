@@ -17,10 +17,20 @@ module mod_sldepparam
   !
   ! for the departure point calculation
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
+  use mod_intkinds, only : ik4, ik8
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : atmfrq, base_state_pressure, bdy_dm, bdy_nm, &
+    bdy_use_lehmann, chemfrq, clat, clon, cmip6_experiment, dattyp, dbgfrq, &
+    debug_level, dirglob, dirout, dirter, domname, ds, globidate1, &
+    globidate2, high_nudge, i_band, i_crm, ibdyfrq, ical, ice1, ice2, ici1, &
+    ici2, ide1, ide2, idi1, idi2, idynamic, ifatm, ifchem, ifcordex, iflak, &
+    ifopt, ifrad, ifsave, ifshf, ifsrf, ifsts, ifsub, iproj, iy, iyp, jce1, &
+    jce2, jci1, jci2, jde1, jde2, jdi1, jdi2, jx, jxp, kz, kzp1, lakfrq, &
+    logp_lrate, low_nudge, lsmoist, medium_nudge, mo_a0, mo_h, mo_lcap, &
+    mo_nadv, mo_nsound, mo_ztop, myid, ncfilter, ncfilter_params, nnsg, nsg, &
+    nspgd, nspgx, ntr, optfrq, outnwf, plat, plon, prestr, ptop, radfrq, &
+    savfrq, srffrq, ssttyp, subfrq, truelath, truelatl, xcone
+  use mod_memutil, only : assignpnt, getmem
 
   implicit none
 

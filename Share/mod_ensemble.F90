@@ -15,10 +15,9 @@
 
 module mod_ensemble
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_memutil
-  use mod_constants
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8, rkx
+  use mod_constants, only : d_half, d_two, dlowval
 
   implicit none
 !

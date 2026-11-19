@@ -2,15 +2,16 @@ module mod_clm_biogeophysrest
   !
   ! Reads from or biogeophysics restart/initial data
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
-  use mod_stdio
-  use mod_dynparam
-  use mod_runparams
-  use mod_mppparam
-  use mod_clm_nchelper
-  use mod_clm_type
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : is_nan, rk8
+  use mod_mpmessage, only : fatal
+  use mod_stdio, only : stderr
+  use mod_dynparam, only : myid
+  use mod_runparams, only : rcmtimer
+  use mod_mppparam, only : italk
+  use mod_clm_nchelper, only : clm_addvar, clm_check_var, clm_filetype, &
+    clm_readvar, clm_writevar, clmvar_double, clmvar_integer
+  use mod_clm_type, only : clm3, column_type, landunit_type, pft_type
   use mod_clm_decomp, only : get_proc_bounds, gcomm_gridcell, &
           gcomm_landunit, gcomm_column, gcomm_pft
   use mod_clm_varpar, only : nlevgrnd, nlevsno, nlevlak, nlevurb, nlevsoi, &

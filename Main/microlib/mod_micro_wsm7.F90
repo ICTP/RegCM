@@ -15,15 +15,18 @@
 
 module mod_micro_wsm7
 
-  use mod_realkinds
-  use mod_intkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_memutil
+  use mod_realkinds, only : rk8, rkx
+  use mod_intkinds, only : ik4
+  use mod_constants, only : cpd, cpi, cpv, cpw, d_four, d_half, d_one, d_six, &
+    d_two, d_zero, dlowval, egrav, ep2, fourt, halfpi, m_euler, mathpi, onet, &
+    pisqr, rhoh2o, rhosnow, rtice, rtwat, rtwat_rtice_r, rwat, secph, stdrho, &
+    twopi, tzero, wattp, wlhf, wlhs, wlhv
+  use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz, kzm1, kzp1
+  use mod_memutil, only : getmem
   use mod_runparams, only : ichem, dt
   use mod_runparams, only : iqi, iqc, iqr, iqg, iqh, iqs, iqv
   use mod_runparams, only : rdt, dtsec
-  use mod_regcm_types
+  use mod_regcm_types, only : micro_2_mod, mod_2_micro
   implicit none
 
   private

@@ -2,11 +2,12 @@ module mod_clm_subgrid
   !
   ! sub-grid data and mapping types and modules
   !
-  use mod_realkinds
-  use mod_intkinds
-  use mod_clm_varpar
-  use mod_clm_varctl
-  use mod_clm_varsur
+  use mod_realkinds, only : rk8
+  use mod_intkinds, only : ik4
+  use mod_clm_varpar, only : maxpatch_pft, npatch_glacier, npatch_lake, &
+    npatch_urban_class, npatch_wet, numcft, numpft, numurbl
+  use mod_clm_varctl, only : allocate_all_vegpfts, create_crop_landunit
+  use mod_clm_varsur, only : wtxy
 
   implicit none
 

@@ -15,10 +15,11 @@
 
 module mod_pbl_gfs
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_memutil
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_constants, only : cpd, d_one, d_r1000, d_two, d_zero, egrav, ep1, &
+    p00, rcpd, regrav, rovcp, vonkar, wlhv, wlhvocp
+  use mod_memutil, only : getmem
   use mod_dynparam, only : kz, kzp1, ntr, idynamic
   use mod_dynparam, only : ici1, ici2, jci1, jci2
   use mod_runparams, only : dt, nqx, ichem, ipptls, iqv, iqi

@@ -3,16 +3,19 @@ module mod_clm_cnrest
   !
   ! Read/Write to/from CN info to CLM restart file.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_dynparam
-  use mod_mppparam
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : nan, rk8
+  use mod_stdio, only : stderr, stdout
+  use mod_dynparam, only : myid
+  use mod_mppparam, only : italk
+  use mod_mpmessage, only : fatal
   use mod_runparams, only : rcmtimer, syncro_srf
-  use mod_clm_nchelper
-  use mod_clm_type
-  use mod_clm_decomp
+  use mod_clm_nchelper, only : clm_addvar, clm_check_var, clm_filetype, &
+    clm_readvar, clm_writevar, clmvar_double, clmvar_integer
+  use mod_clm_type, only : clm3, column_type, decomp_cascade_con, &
+    gridcell_type, landunit_type, pft_cstate_type, pft_type, pftcon
+  use mod_clm_decomp, only : gcomm_column, gcomm_gridcell, gcomm_pft, &
+    get_proc_bounds
   use mod_clm_surfrd, only : crop_prog
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_varpar, only : numrad, ndecomp_pools, nlevdecomp

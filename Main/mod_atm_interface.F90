@@ -15,15 +15,33 @@
 
 module mod_atm_interface
 
-  use mod_dynparam
-  use mod_stdio
-  use mod_constants
-  use mod_runparams
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_service
-  use mod_memutil
-  use mod_regcm_types
+  use mod_dynparam, only : ice1, ice1ga, ice1gb, ice1gc, ice1sl, ice2, &
+    ice2ga, ice2gb, ice2gc, ice2sl, ici1, ici1ga, ici1gb, ici1gc, ici1sl, &
+    ici2, ici2ga, ici2gb, ici2gc, ici2sl, icii1, icii2, ide1, ide1ga, ide1gb, &
+    ide1gc, ide1sg, ide1sl, ide2, ide2ga, ide2gb, ide2gc, ide2sg, ide2sl, &
+    idi1, idi1ga, idi1gb, idi1gc, idi1sl, idi2, idi2ga, idi2gb, idi2gc, &
+    idi2sl, idii1, idii2, idot1, idot2, idynamic, iy, iysg, jce1, jce1ga, &
+    jce1gb, jce1gc, jce1sl, jce2, jce2ga, jce2gb, jce2gc, jce2sl, jci1, &
+    jci1ga, jci1gb, jci1gc, jci1sl, jci2, jci2ga, jci2gb, jci2gc, jci2sl, &
+    jcii1, jcii2, jde1, jde1ga, jde1gb, jde1gc, jde1sg, jde1sl, jde2, jde2ga, &
+    jde2gb, jde2gc, jde2sg, jde2sl, jdi1, jdi1ga, jdi1gb, jdi1gc, jdi1sl, &
+    jdi2, jdi2ga, jdi2gb, jdi2gc, jdi2sl, jdii1, jdii2, jdot1, jdot2, jx, &
+    jxsg, kz, kzp1, myid, nnsg, nsg, nspgd, nspgx, ntr, num_soil_layers
+  use mod_constants, only : d_1000, d_half, d_rfour, egrav, rkx
+  use mod_runparams, only : iaerosol, ibltyp, ichem, icldmstrat, iclimaaer, &
+    icup, idiag, idiffu, iindirect, iocncpl, ipptls, isladvec, iwavcpl, &
+    lakemod, nqx, nsplit, number_of_prognostic_components
+  use mod_mppparam, only : exchange, global_cross_iend, global_cross_istart, &
+    global_cross_jend, global_cross_jstart, global_dot_iend, &
+    global_dot_istart, global_dot_jend, global_dot_jstart, ma
+#ifdef DEBUG
+  use mod_service, only : ndebug
+#endif
+  use mod_memutil, only : assignpnt, getmem
+  use mod_regcm_types, only : atmosphere, atmstate_a, atmstate_b, atmstate_c, &
+    atmstate_decoupled, atmstate_tendency, bound_area, domain, &
+    domain_subgrid, exp_data3d, ik4, mass_divergence, nhboundhelp, qendiag, &
+    reference_atmosphere, slice, surfstate, tendiag, v2dbound, v3dbound
 #ifdef ECLM
   use mod_oasis_params, only : oasis_nlevsoi
 #endif

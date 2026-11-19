@@ -15,25 +15,30 @@
 
 module mod_nest
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_dynparam
-  use mod_constants
-  use mod_date
-  use mod_grid
-  use mod_write
-  use mod_kdinterp
-  use mod_vertint
-  use mod_stdatm
-  use mod_hgt
-  use mod_humid
-  use mod_projections
-  use mod_vectutil
-  use mod_message
-  use mod_memutil
-  use mod_mksst
-  use mod_nchelper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_stdio, only : stderr, stdout
+  use mod_dynparam, only : globidate1, i_band, i_crm, idynamic, inpglob, iy, &
+    jx, kz, pthsep, ptop
+  use mod_constants, only : cpovr, d_100, d_1000, d_half, d_one, d_r1000, &
+    d_zero, dlowval, minqq, p00, rovg, stdp, tiso
+  use mod_date, only : monfirst, prevmon, rcm_time_and_date, timeval2date, &
+    tochar, tochar10, assignment(=), operator(+), operator(-), operator(/=), &
+    operator(<), operator(<=), operator(==), operator(>), operator(>=)
+  use mod_grid, only : dlat, dlon, pjd, pju, pjv, ps0, sigmah, topogm, topou, &
+    topov, ulat, ulon, vlat, vlon, xlat, xlon, z0, zetau, zetav
+  use mod_write, only : pd4, ps4, q4, qc4, qi4, t4, ts4, u4, v4
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_vertint, only : intp1, intp3, intpsn, intz1, intz3
+  use mod_hgt, only : hydrost
+  use mod_humid, only : sph2mxr
+  use mod_projections, only : anyprojparams, regcm_projection
+  use mod_vectutil, only : crs2dot, top2btm
+  use mod_message, only : die
+  use mod_memutil, only : getmem
+  use mod_mksst, only : readsst
+  use mod_nchelper, only : checkncerr
   implicit none
 
   private

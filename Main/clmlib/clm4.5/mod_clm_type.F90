@@ -1,8 +1,7 @@
 module mod_clm_type
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_clm_domain
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
 
   !
   ! Define derived type hierarchy. Includes declaration of

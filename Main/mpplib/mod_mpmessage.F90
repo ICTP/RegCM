@@ -15,10 +15,11 @@
 
 module mod_mpmessage
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_message
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rk8
+  use mod_stdio, only : stdout
+  use mod_message, only : aline, checkalloc, cry, die, fatal, note, say, &
+    setup_mesg
 
   implicit none
 

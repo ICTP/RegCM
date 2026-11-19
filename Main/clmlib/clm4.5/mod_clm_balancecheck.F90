@@ -2,10 +2,10 @@ module mod_clm_balancecheck
   !
   ! Water and energy balance check.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_stdio, only : stderr
+  use mod_mpmessage, only : fatal
   use mod_runparams, only : syncro_srf, dtsrf
   use mod_clm_type, only : clm3
   use mod_clm_atmlnd, only : clm_a2l
@@ -14,7 +14,7 @@ module mod_clm_balancecheck
   use mod_clm_varcon, only : icol_road_perv, icol_road_imperv
   use mod_clm_varcon, only : isturb, spval, istdlak
   use mod_clm_varcon, only : istslak, istsoil, istcrop, istwet
-  use mod_clm_subgridave
+  use mod_clm_subgridave, only : c2g, p2c, p2g
 
   implicit none
 

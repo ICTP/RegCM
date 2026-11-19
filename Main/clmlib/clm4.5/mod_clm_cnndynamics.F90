@@ -4,8 +4,8 @@ module mod_clm_cnndynamics
   ! Module for mineral nitrogen dynamics (deposition, fixation, leaching)
   ! for coupled carbon-nitrogen code.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_dynparam, only : dayspy
   use mod_runparams, only : dtsrf
   use mod_clm_varcon, only : dzsoi_decomp, zisoi
@@ -41,7 +41,7 @@ module mod_clm_cnndynamics
   ! directly into the canopy and mineral N entering the soil pool.
   !
   subroutine CNNDeposition( lbc, ubc )
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_atmlnd, only : clm_a2l
     implicit none
     integer(ik4), intent(in) :: lbc, ubc        ! column bounds
@@ -79,7 +79,7 @@ module mod_clm_cnndynamics
   ! All N fixation goes to the soil mineral N pool.
   !
   subroutine CNNFixation(num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon     , only: secspday, spval
     implicit none
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
@@ -141,7 +141,7 @@ module mod_clm_cnndynamics
   ! as a function of soluble mineral N and total soil water outflow.
   !
   subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varpar     , only : nlevdecomp, nlevsoi
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column bounds
@@ -366,7 +366,7 @@ module mod_clm_cnndynamics
   ! All fertilizer goes into the soil mineral N pool.
   !
   subroutine CNNFert(num_soilc, filter_soilc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_subgridave, only : p2c
     implicit none
     integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
@@ -391,7 +391,7 @@ module mod_clm_cnndynamics
   ! availibility of nitrogen in the soil root zone.
   !
   subroutine CNSoyfix (num_soilc, filter_soilc, num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_pftvarcon, only : nsoybean
     use mod_clm_subgridave, only : p2c
 

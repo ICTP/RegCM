@@ -21,14 +21,16 @@ module mod_micro_subex
   !
   ! -- Pal et al. 2000 JGR-Atmos
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_mpmessage
-  use mod_regcm_types
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : cpd, cpv, d_10, d_half, d_one, d_r1000, d_two, &
+    d_zero, dlowval, ep2, halfpi, mathpi, regrav, rtice, rtwat, &
+    rtwat_rtice_r, rwat, secph, twopi, tzero, wlhs, wlhv
+  use mod_dynparam, only : dayspy, ici1, ici2, idynamic, jci1, jci2, kz
+  use mod_runparams, only : calday, dt, dtsec, iaerosol, ichem, idiag, &
+    iindirect, iqc, iqv, rcrit, rhmax, rhmin
+  use mod_memutil, only : assignpnt, getmem
+  use mod_regcm_types, only : micro_2_mod, mod_2_micro
 
   implicit none
 

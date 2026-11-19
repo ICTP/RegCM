@@ -46,8 +46,8 @@ module mod_che_isorropia
   ! ISORROPIA webpage.
   !
 
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
 
   implicit none
 
@@ -58,12 +58,15 @@ module mod_che_isorropia
   contains
 
   subroutine aerodriver
-    use mod_dynparam
-    use mod_constants
-    use mod_che_common
-    use mod_che_indices
-    use mod_che_species
-    use mod_che_molwg
+    use mod_dynparam, only : ici1, ici2, idynamic, jci1, jci2, kz
+    use mod_constants, only : d_zero, rkx
+    use mod_che_common, only : chemten, chib3d, cpsb, crhb3d, crhob3d, ctb3d, &
+      ianh4, iano3, ici1, ici2, idynamic, ih2so4, ihno3, ik4, inh3, jci1, &
+      jci2, kz, rkx
+    use mod_che_indices, only : ih2so4, ihno3, ik4, inh3
+    use mod_che_species, only : ici1, ici2, idynamic, ik4, jci1, jci2, kz, &
+      rkx
+    use mod_che_molwg, only : ih2so4, ihno3, ik4, inh3, rkx, w_hno3, w_nh3
     implicit none
     character(len = 15) :: scasi
     integer(ik4), parameter :: nctrl = 2
@@ -311,7 +314,16 @@ module mod_che_isorropia
 !
   subroutine isoropia(wi,rhi,tempi,cntrl,wt,gas,aerliq,aersld,scasi,    &
                         other)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : awab, awac, awan, awas, awcc, awcn, &
+      awlc, awmc, awmn, awms, awpb, awpc, awpn, awps, awsa, awsb, awsc, awsn, &
+      awss, calain, calaou, ccacl2, ccano32, ccaso4, ck2so4, ckcl, ckhso4, &
+      ckno3, clc, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, cnahso4, cnano3, &
+      cnh42s4, cnh4cl, cnh4hs4, cnh4no3, coh, crnarat, crrat, eps, epsact, &
+      errmsg, errstk, gama, gamin, gamou, gasaq, ghcl, ghno3, gnh3, great, &
+      iacalc, iclact, ik4, imw, ionic, iprob, maxit, metstbl, molal, molalr, &
+      nadj, ncomp, ndiv, ngasaq, nions, nofer, nslds, nsweep, one, r, rh, &
+      rkx, scase, smw, so4rat, sodrat, stkofl, sulrat, sulratw, temp, tiny1, &
+      tiny2, version, water, wftyp, wmw, z, zero, zz
     implicit none
     integer(ik4) :: i
     real(rkx) :: rhi, tempi
@@ -818,7 +830,8 @@ module mod_che_isorropia
 !
   subroutine setparm(wftypi,iacalci,epsi,maxiti,nsweepi,epsacti,ndivi,  &
                        nadji)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : eps, epsact, iacalc, ik4, maxit, &
+      nadj, ndiv, nsweep, rkx, wftyp, zero
     implicit none
     real(rkx) :: epsacti, epsi
     integer(ik4) :: iacalci, maxiti, nadji, ndivi, nsweepi
@@ -856,7 +869,8 @@ module mod_che_isorropia
 !
   subroutine getparm(wftypi,iacalci,epsi,maxiti,nsweepi,epsacti,ndivi,  &
                        nadji)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : eps, epsact, iacalc, ik4, maxit, &
+      nadj, ndiv, nsweep, rkx, wftyp
     implicit none
     real(rkx) :: epsacti, epsi
     integer(ik4) :: iacalci, maxiti, nadji, ndivi, nsweepi
@@ -889,7 +903,15 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine init1(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : awab, awas, awlc, awsa, calain, &
+      calaou, ccacl2, ccano32, ccaso4, ch2so4, chcl, chno3, ck2so4, ckcl, &
+      ckhso4, ckno3, clc, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, cnahso4, &
+      cnano3, cnh42s4, cnh4cl, cnh4hs4, cnh4no3, coh, crnarat, crrat, &
+      drh2so4, drlc, drmlcab, drmlcas, drnh42s4, drnh4hs4, errmsg, errstk, &
+      frst, gama, gamin, gamou, gasaq, ghcl, ghno3, gnh3, great, iclact, ik4, &
+      iprob, m0, molal, molalr, ncomp, nerrmx, ngasaq, nions, nofer, npair, &
+      nzsr, rh, rkx, scase, sodrat, stkofl, sulratw, temp, tiny1, w, waer, &
+      water, xk1, xk12, xk13, xk2, xk21, xk22, xk7, xkw, zero
     implicit none
     real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
     integer(ik4) :: i, irh
@@ -1166,7 +1188,16 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine init2(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : awab, awan, awas, awlc, awsa, &
+      calain, calaou, ccacl2, ccano32, ccaso4, ch2so4, chcl, chno3, ck2so4, &
+      ckcl, ckhso4, ckno3, clc, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnahso4, cnano3, cnh42s4, cnh4cl, cnh4hs4, cnh4no3, coh, crnarat, &
+      crrat, drh2so4, drlc, drmasan, drmlcab, drmlcas, drnh42s4, drnh4hs4, &
+      drnh4no3, errmsg, errstk, frst, gama, gamin, gamou, gasaq, ghcl, ghno3, &
+      gnh3, great, iclact, ik4, iprob, m0, molal, molalr, ncomp, nerrmx, &
+      ngasaq, nions, nofer, npair, nzsr, rh, rkx, scase, sodrat, stkofl, &
+      sulratw, temp, tiny1, w, waer, water, xk1, xk10, xk12, xk13, xk2, xk21, &
+      xk22, xk4, xk41, xk42, xk7, xkw, zero
     implicit none
     real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
     integer(ik4) :: i, irh
@@ -1460,7 +1491,20 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isoinit3(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : awab, awac, awan, awas, awlc, awsa, &
+      awsb, awsc, awsn, awss, calain, calaou, ccacl2, ccano32, ccaso4, &
+      ch2so4, chcl, chno3, ck2so4, ckcl, ckhso4, ckno3, clc, cmgcl2, cmgno32, &
+      cmgso4, cna2so4, cnacl, cnahso4, cnano3, cnh42s4, cnh4cl, cnh4hs4, &
+      cnh4no3, coh, crnarat, crrat, drh2so4, drlc, drmasan, drmg1, drmg2, &
+      drmg3, drmh1, drmh2, drmi1, drmi2, drmi3, drmlcab, drmlcas, drmq1, &
+      drmr1, drmr10, drmr11, drmr12, drmr13, drmr2, drmr3, drmr4, drmr5, &
+      drmr6, drmr7, drmr8, drmr9, drna2so4, drnacl, drnahso4, drnano3, &
+      drnh42s4, drnh4cl, drnh4hs4, drnh4no3, errmsg, errstk, frst, gama, &
+      gamin, gamou, gasaq, ghcl, ghno3, gnh3, great, iclact, ik4, iprob, m0, &
+      molal, molalr, ncomp, nerrmx, ngasaq, nions, nofer, npair, nzsr, rh, &
+      rkx, scase, stkofl, sulratw, temp, tiny1, w, waer, water, xk1, xk10, &
+      xk11, xk12, xk13, xk14, xk2, xk21, xk22, xk3, xk31, xk32, xk4, xk41, &
+      xk42, xk5, xk6, xk7, xk8, xk9, xkw, zero
     implicit none
     real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
     integer(ik4) :: i, irh
@@ -1829,7 +1873,24 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine init4(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : awab, awac, awan, awas, awcc, awcn, &
+      awlc, awmc, awmn, awms, awpb, awpc, awpn, awps, awsa, awsb, awsc, awsn, &
+      awss, calain, calaou, ccacl2, ccano32, ccaso4, ch2so4, chcl, chno3, &
+      ck2so4, ckcl, ckhso4, ckno3, clc, cmgcl2, cmgno32, cmgso4, cna2so4, &
+      cnacl, cnahso4, cnano3, cnh42s4, cnh4cl, cnh4hs4, cnh4no3, coh, &
+      crnarat, crrat, drcacl2, drcano32, drh2so4, drk2so4, drkcl, drkhso4, &
+      drkno3, drlc, drmasan, drmg1, drmg2, drmg3, drmgcl2, drmgno32, drmgso4, &
+      drmh1, drmh2, drmi1, drmi2, drmi3, drml1, drml2, drml3, drmlcab, &
+      drmlcas, drmm1, drmm2, drmo1, drmo2, drmo3, drmp1, drmp2, drmp3, drmp4, &
+      drmp5, drmq1, drmr1, drmr10, drmr11, drmr12, drmr13, drmr2, drmr3, &
+      drmr4, drmr5, drmr6, drmr7, drmr8, drmr9, drmv1, drna2so4, drnacl, &
+      drnahso4, drnano3, drnh42s4, drnh4cl, drnh4hs4, drnh4no3, errmsg, &
+      errstk, frst, gama, gamin, gamou, gasaq, ghcl, ghno3, gnh3, great, &
+      iclact, ik4, iprob, m0, molal, molalr, ncomp, nerrmx, ngasaq, nions, &
+      nofer, npair, nzsr, rh, rkx, scase, so4rat, stkofl, sulratw, temp, &
+      tiny1, w, waer, water, xk1, xk10, xk11, xk12, xk13, xk14, xk15, xk16, &
+      xk17, xk18, xk19, xk2, xk20, xk21, xk22, xk23, xk24, xk25, xk3, xk31, &
+      xk32, xk4, xk41, xk42, xk5, xk6, xk7, xk8, xk9, xkw, zero
     implicit none
     real(rkx) :: coef, rhi, t0, t0t, tcf, tempi
     integer(ik4) :: i, irh
@@ -2368,7 +2429,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine adjust(wi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : clc, cna2so4, cnahso4, cnh42s4, &
+      cnh4cl, cnh4hs4, cnh4no3, ghcl, ghno3, gnh3, iprob, molal, rkx, tiny1, &
+      zero
     implicit none
     real(rkx) :: excl, exnh4, exno3, exs4
     real(rkx), dimension(:) :: wi
@@ -2683,7 +2746,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcha
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, ghcl, molal, r, rkx, temp, &
+      tiny1, w, water, xk3
     implicit none
     real(rkx) :: alfa, delt, diak, x
     real(rkx) :: kapa
@@ -2736,7 +2800,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calchap
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, gasaq, ghcl, molal, r, rkx, &
+      temp, tiny1, water, xk3
     implicit none
     real(rkx) :: alfa, delt
 !
@@ -2773,7 +2838,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcna
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, ghno3, molal, r, rkx, temp, &
+      tiny1, w, water, xk4
     implicit none
     real(rkx) :: alfa, delt, diak, x
     real(rkx) :: kapa
@@ -2825,7 +2891,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcnap
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, gasaq, ghno3, molal, r, rkx, &
+      temp, tiny1, water, xk4
     implicit none
     real(rkx) :: alfa, delt
 !
@@ -2866,7 +2933,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcnh3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, gnh3, molal, one, r, rkx, &
+      temp, tiny1, water, xk2, xkw
     implicit none
     real(rkx) :: a1, bb, cc, chi1, chi2, diak, psi
 !
@@ -2915,7 +2983,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcnh3p
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, gnh3, molal, r, rkx, temp, &
+      tiny1, water, xk2, xkw
     implicit none
     real(rkx) :: a1
 !
@@ -2946,7 +3015,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcnha
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, ghcl, ghno3, ik4, molal, r, &
+      rkx, temp, tiny1, w, water, xk3, xk4, zero
     implicit none
     real(rkx) :: a3, a4, c1, c2, c3, chi3, chi4, delcl, delno, omega
     integer(ik4) :: islv
@@ -3055,7 +3125,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcnhp
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, gasaq, ghcl, ghno3, molal, r, &
+      rkx, temp, tiny1, waer, water, xk3, xk4
     implicit none
     real(rkx) :: a3, a4, delt
 !
@@ -3170,7 +3241,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcamaq(nh4i,ohi,delt)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, rh, rkx, water, xk22, xkw, &
+      zero
     implicit none
     real(rkx) :: a22, akw, bb, cc, dd, del1, del2, delt
     real(rkx) :: ohi, om1, om2
@@ -3226,7 +3298,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcamaq2(ggnh3,nh4i,ohi,nh3aq)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, rh, rkx, tiny1, water, xk22, &
+      xkw
     implicit none
     real(rkx) :: a22, akw, alf1, alf2, bb, cc, del, ggnh3, ohi
     real(rkx) :: nh4i, nh3aq
@@ -3268,7 +3341,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcclaq(cli,hi,delt)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, rkx, water, xk32, zero
     implicit none
     real(rkx) :: a32, bb, cc, dd, del1, del2, delt, hi, om1, om2
     real(rkx) :: cli
@@ -3314,7 +3387,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcclaq2(ggcl,cli,hi,claq)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, rh, rkx, tiny1, water, xk32, &
+      xkw
     implicit none
     real(rkx) :: a32, akw, alf1, alf2, claq, coef, del1, ggcl, hi
     real(rkx) :: cli
@@ -3354,7 +3428,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcniaq(no3i,hi,delt)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, rkx, water, xk42, zero
     implicit none
     real(rkx) :: a42, bb, cc, dd, del1, del2, om1, om2
     real(rkx) :: no3i, hi, delt
@@ -3406,7 +3480,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcniaq2(ggno3,no3i,hi,no3aq)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, rh, rkx, tiny1, water, xk42, &
+      xkw
     implicit none
     real(rkx) :: a42, akw, alf1, alf2, alf3, bb, cc, del1, ggno3, hi
     real(rkx) :: no3i, no3aq
@@ -3449,8 +3524,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcmr
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : ik4, m0, molal, molalr, npair, rkx, &
+      scase, tiny1, w, waer, water, zero
+    use mod_che_common_solut, only : ik4, psi1, psi10, psi12, psi13, psi14, &
+      psi15, psi16, psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, &
+      rkx
     implicit none
     real(rkx) :: aml5, frcl, frnh4, frno3, hso4i, so4i, tots4
     integer(ik4) :: i
@@ -3727,7 +3805,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcmdrh(rhi,rhdry,rhliq,drycase,liqcase)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : clc, cna2so4, cnacl, cnahso4, &
+      cnano3, cnh42s4, cnh4cl, cnh4hs4, cnh4no3, ghcl, ghno3, gnh3, ik4, &
+      molal, nions, one, rkx, tiny1, water, wftyp, zero
     implicit none
     interface
       subroutine drycase
@@ -3884,7 +3964,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcmdrh2(rhi,rhdry,rhliq,drycase,liqcase)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccacl2, ccano32, ccaso4, ck2so4, &
+      ckcl, ckhso4, ckno3, clc, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnahso4, cnano3, cnh42s4, cnh4cl, cnh4hs4, cnh4no3, ghcl, ghno3, gnh3, &
+      ik4, molal, nions, one, rkx, tiny1, water, wftyp, zero
     implicit none
     interface
       subroutine drycase
@@ -4107,7 +4190,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcmdrp(rhi,rhdry,rhliq,drycase,liqcase)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : clc, cna2so4, cnacl, cnahso4, &
+      cnano3, cnh42s4, cnh4cl, cnh4hs4, cnh4no3, gama, ghcl, ghno3, gnh3, &
+      ik4, molal, nions, one, r, rh, rkx, temp, tiny1, waer, water, wftyp, &
+      xk1, xk2, xk3, xk4, xkw, zero
     implicit none
     interface
       subroutine drycase
@@ -4251,7 +4337,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcmdrpii(rhi,rhdry,rhliq,drycase,liqcase)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccacl2, ccano32, ccaso4, ck2so4, &
+      ckcl, ckhso4, ckno3, clc, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnahso4, cnano3, cnh42s4, cnh4cl, cnh4hs4, cnh4no3, gama, ghcl, ghno3, &
+      gnh3, ik4, molal, nions, one, r, rh, rkx, temp, tiny1, waer, water, &
+      wftyp, xk1, xk2, xk3, xk4, xkw, zero
     implicit none
     interface
       subroutine drycase
@@ -4431,7 +4521,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calchs4(hi,so4i,hso4i,delta)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, rkx, tiny1, water, xk1, zero
     implicit none
     real(rkx) :: a8, bb, cc, dd, delta, delta1, delta2, hi, &
          hso4i, so4i, sqdd
@@ -4493,7 +4583,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcph(gg,hi,ohi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : rh, rkx, tiny1, water, xkw
     implicit none
     real(rkx) :: akw, bb, cc, cn, dd, gg, hi, ohi
 !
@@ -4533,7 +4623,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcact
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : tiny1, w
     implicit none
     if ( w(1)+w(4)+w(5)+w(6)+w(7)+w(8)<=tiny1 ) then
          !a ,k ,mg ,na ,cl ,no3 = 0
@@ -4566,7 +4656,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcact4
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, epsact, frst, gama, &
+      gamin, gamou, iacalc, iclact, ik4, ionic, molal, nions, npair, rkx, &
+      temp, tiny1, water, z, zero, zz
     implicit none
     real(rkx) :: errin, errou
     integer(ik4) :: i, j
@@ -4747,7 +4839,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcact3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, epsact, frst, gama, &
+      gamin, gamou, iacalc, iclact, ik4, ionic, molal, rkx, temp, tiny1, &
+      water, z, zero, zz
     implicit none
     real(rkx) :: errin, errou
     integer(ik4) :: i, j
@@ -4893,7 +4987,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcact2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, epsact, frst, gama, &
+      gamin, gamou, iacalc, iclact, ik4, ionic, molal, rkx, temp, tiny1, &
+      water, z, zero, zz
     implicit none
     real(rkx) :: errin, errou
     integer(ik4) :: i, j
@@ -5071,7 +5167,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcact1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, epsact, frst, gama, &
+      gamin, gamou, iacalc, iclact, ik4, ionic, molal, rkx, temp, tiny1, &
+      water, z, zero, zz
     implicit none
     real(rkx) :: errin, errou
     integer(ik4) :: i, j
@@ -5245,7 +5343,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine rstgam
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : gama, ik4, npair, rkx
     implicit none
     integer(ik4) :: i
     do i = 1, npair
@@ -17201,7 +17299,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine pusherr(ierr,errinf)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : errmsg, errstk, ik4, nerrmx, nofer, &
+      stkofl
     implicit none
     integer(ik4) :: ierr
     character(len=*) :: errinf
@@ -17232,7 +17331,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine iserrinf(errstki,errmsgi,noferi,stkofli)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : errmsg, errstk, ik4, nerrmx, nofer, &
+      stkofl
     implicit none
     integer(ik4) :: i, noferi
     character(len=40), dimension(nerrmx) :: errmsgi
@@ -17263,7 +17363,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine errstat(io,ierr,errinf)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ik4, scase, tiny1, w
     implicit none
     integer(ik4) :: iend, ierr, io, iok
     character(len=4) :: cer
@@ -17447,7 +17547,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isorinf(versi,ncmp,nion,naqgas,nsol,nerr,tin,grt)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : great, ik4, ncomp, nerrmx, ngasaq, &
+      nions, nslds, rkx, tiny1, version
     implicit none
     real(rkx) :: grt, tin
     integer(ik4) :: naqgas, ncmp, nerr, nion, nsol
@@ -17482,7 +17583,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isrp1f(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drlc, drnh42s4, drnh4hs4, metstbl, &
+      ncomp, rh, rkx, scase, sulrat, w, zero
     implicit none
     real(rkx) :: dc, rhi, tempi
     real(rkx), dimension(ncomp) :: wi
@@ -17580,7 +17682,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isrp2f(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drlc, drnh42s4, drnh4hs4, drnh4no3, &
+      metstbl, ncomp, rh, rkx, scase, sulrat, w
     implicit none
     real(rkx) :: rhi, tempi
     real(rkx), dimension(ncomp) :: wi
@@ -17697,7 +17800,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isrp3f(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drlc, drna2so4, drnacl, drnahso4, &
+      drnano3, drnh42s4, drnh4cl, drnh4hs4, drnh4no3, metstbl, ncomp, one, &
+      rh, rkx, scase, sodrat, sulrat, w
     implicit none
     real(rkx) :: rest, rhi, tempi
     real(rkx), dimension(ncomp) :: wi
@@ -17874,7 +17979,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isrp4f(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : crnarat, crrat, drcacl2, drcano32, &
+      drk2so4, drkcl, drkhso4, drkno3, drlc, drmgcl2, drmgno32, drmgso4, &
+      drna2so4, drnacl, drnahso4, drnano3, drnh42s4, drnh4cl, drnh4hs4, &
+      drnh4no3, metstbl, ncomp, one, rh, rkx, scase, so4rat, w, zero
     implicit none
     real(rkx) :: cafri, ccacl2i, ccano32i, ccaso4i, clfri, cmgcl2i, &
          cmgno32i, cmgso4i, cna2so4i, cnacli, cnano3i, frmgi,       &
@@ -18218,7 +18326,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calca2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
     implicit none
     real(rkx) :: dx, omehi, omelo, x1, x2, x3, y1, y2, y3
     integer(ik4) :: i
@@ -18293,7 +18402,9 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funca2(omegi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, coh, frst, gama, &
+      gnh3, ik4, molal, nsweep, one, r, rh, rkx, temp, tiny1, w, water, xk1, &
+      xk2, xkw
     implicit none
     real(rkx) :: a1, a2, a3, denom, omegi, psi, zeta
     integer(ik4) :: i
@@ -18359,7 +18470,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calca1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnh42s4, gnh3, w, zero
     implicit none
     cnh42s4 = w(2)
     gnh3 = max(w(3)-2.0*cnh42s4,zero)
@@ -18387,7 +18498,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb4
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, clc, cnh42s4, &
+      cnh4hs4, frst, gama, ik4, m0, molal, molalr, nsweep, rkx, tiny1, w, &
+      water, xk1, zero
     implicit none
     real(rkx) :: ak1, bb, bet, cc, dd, gam
     integer(ik4) :: i
@@ -18453,7 +18566,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : rkx, scase, w, zero
     implicit none
     real(rkx) :: tlc, tnh42s4, tnh4hs4, x, y
 !
@@ -18503,7 +18616,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb3a(tlc,tnh42s4)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, ndiv, rkx, &
+      zero
     implicit none
     real(rkx) :: dz, tlc, tnh42s4, y1, y2, y3, &
          yhi, ylo, z1, z2, z3, zhi, zk, zlo
@@ -18591,7 +18705,8 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcb3a(zk,y,x)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, cnh42s4, frst, gama, &
+      ik4, molal, nsweep, one, rkx, tiny1, water, xk1, xk7
     implicit none
     real(rkx) :: dd, grat1, x, y, zk
     integer(ik4) :: i
@@ -18648,7 +18763,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb3b(y,x)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, frst, gama, ik4, &
+      molal, nsweep, rkx, tiny1, water, xk1
     implicit none
     real(rkx) :: dd, grat1, x, y
     integer(ik4) :: i
@@ -18703,7 +18819,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : rkx, scase, tiny1, w
     implicit none
     real(rkx) :: x, y
 !
@@ -18750,7 +18866,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb2a(tlc,tnh42s4)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : clc, cnh42s4, drmlcas, rh, rkx, &
+      scase
     implicit none
     real(rkx) :: tlc, tnh42s4
 !
@@ -18792,7 +18909,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb2a2(tlc,tnh42s4)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : clc, cnh42s4, drlc, drmlcas, molal, &
+      one, rh, rkx, water, wftyp, zero
     implicit none
     real(rkx) :: clco, cnh42so, onemwf, tlc, tnh42s4, wf
 !
@@ -18857,7 +18975,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb2b(tlc,tnh4hs4)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, ndiv, rkx, &
+      zero
     implicit none
     real(rkx) :: dx, tlc, tnh4hs4, x1, x2, x3, &
          y1, y2, y3, yhi, ylo, zhi, zlo
@@ -18945,7 +19064,8 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcb2b(x,tnh4hs4,tlc)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, clc, frst, gama, &
+      ik4, molal, nsweep, one, rkx, tiny1, water, xk1, xk13, zero
     implicit none
     real(rkx) :: delta, grat2, omega, parm, tlc, tnh4hs4, x
     integer(ik4) :: i
@@ -19005,7 +19125,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmlcab, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -19046,7 +19166,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : clc, cnh42s4, cnh4hs4, rkx, w, zero
     implicit none
     real(rkx) :: x, y
 !
@@ -19093,7 +19213,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcb1b
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : clc, cnh42s4, cnh4hs4, drmlcab, &
+      drnh4hs4, molal, one, rh, rkx, water, wftyp, zero
     implicit none
     real(rkx) :: clco, cnh42so, cnh4hso, onemwf, wf
 !
@@ -19155,7 +19276,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcc2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, ch2so4, frst, gama, &
+      ik4, molal, nsweep, rkx, tiny1, w, water, xk1, zero
     implicit none
     real(rkx) :: bb, cc, parm, psi
     integer(ik4) :: i
@@ -19211,7 +19333,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcc1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, ndiv, rkx, &
+      tiny1, w, zero
     implicit none
     real(rkx) :: dx, x1, x2, x3, y1, y2, y3, yhi, ylo
     integer(ik4) :: i
@@ -19303,7 +19426,8 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcc1(kapa)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, ch2so4, cnh4hs4, &
+      frst, gama, ik4, molal, nsweep, one, rkx, w, water, xk1, xk12, zero
     implicit none
     real(rkx) :: bb, cc, par1, par2, psi
     integer(ik4) :: i
@@ -19363,8 +19487,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcd3
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, cnh42s4, cnh4no3, eps, &
+      ghno3, gnh3, ik4, maxit, molal, ndiv, rkx, tiny1, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, ik4, psi1, psi2, &
+      psi3, psi4, rkx
     implicit none
     real(rkx) :: delta, dx, p4, psi4hi, psi4lo, &
          x1, x2, x3, y1, y2, y3, yhi, ylo, yy
@@ -19497,8 +19623,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcd3(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cnh42s4, cnh4no3, &
+      frst, gama, ghno3, gnh3, ik4, molal, nsweep, one, r, rh, rkx, temp, &
+      tiny1, water, xk2, xk4, xk7, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, a7, chi2, chi3, chi4, ik4, &
+      psi1, psi2, psi3, psi4, rkx
     implicit none
     real(rkx) :: abb, ahi, bb, denm, p4
     integer(ik4) :: i
@@ -19604,8 +19733,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcd2
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, cnh42s4, cnh4no3, eps, &
+      ghno3, gnh3, ik4, maxit, molal, ndiv, rkx, tiny1, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, ik4, psi1, psi2, &
+      psi3, psi4, rkx
     implicit none
     real(rkx) :: delta, dx, p4, psi4hi, psi4lo, &
          x1, x2, x3, y1, y2, y3, yhi, ylo, yy
@@ -19743,8 +19874,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcd2(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cnh42s4, cnh4no3, &
+      frst, gama, ghno3, gnh3, ik4, molal, nsweep, one, r, rh, rkx, temp, &
+      tiny1, water, xk2, xk4, xk7, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, a7, chi2, chi3, chi4, ik4, &
+      psi1, psi14, psi2, psi3, psi4, rkx
     implicit none
     real(rkx) :: abb, ahi, bb, denm, p4
     integer(ik4) :: i, islv
@@ -19838,7 +19972,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcd1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmasan, drnh4no3, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -19878,7 +20012,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcd1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnh42s4, cnh4no3, ghno3, gnh3, r, &
+      rkx, temp, w, xk10, zero
     implicit none
     real(rkx) :: diak, om, omps, parm, ps, x, ze
 !
@@ -19924,8 +20059,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcg5
-    use mod_che_common_isorropia
-    use mod_che_common_caseg
+    use mod_che_common_isorropia, only : calaou, eps, ik4, m0, maxit, molal, &
+      ndiv, rkx, tiny1, w, water, zero
+    use mod_che_common_caseg, only : chi1, chi2, chi3, chi4, chi5, chi6, ik4, &
+      psi1, psi2, rkx
     implicit none
     real(rkx) :: delta, dx, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
@@ -20027,8 +20164,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcg5a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseg
+    use mod_che_common_isorropia, only : calain, calaou, cnh42s4, cnh4cl, &
+      cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, one, r, &
+      rkx, temp, tiny1, w, water, xk2, xk3, xk4, xk5, xk7, xkw, zero
+    use mod_che_common_caseg, only : a1, a2, a4, a5, a6, chi4, chi5, chi6, &
+      ik4, psi1, psi2, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: akk, bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
@@ -20122,8 +20262,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcg4
-    use mod_che_common_isorropia
-    use mod_che_common_caseg
+    use mod_che_common_isorropia, only : calaou, eps, ik4, m0, maxit, molal, &
+      ndiv, rkx, tiny1, w, water, zero
+    use mod_che_common_caseg, only : chi1, chi2, chi3, chi4, chi5, chi6, ik4, &
+      psi2, rkx
     implicit none
     real(rkx) :: delta, dx, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
@@ -20224,8 +20366,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcg4a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseg
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnh42s4, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk2, xk3, xk4, xk5, xk7, xkw, zero
+    use mod_che_common_caseg, only : a1, a2, a4, a5, a6, chi1, chi4, chi5, &
+      chi6, ik4, psi1, psi2, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: bb, cc, cli, dd, hi, ohi, so4i, x
     integer(ik4) :: i, islv
@@ -20345,7 +20490,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcg3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmg3, drnh42s4, ik4, molal, nions, &
+      rh, scase, tiny1, w, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -20396,8 +20542,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcg3a
-    use mod_che_common_isorropia
-    use mod_che_common_caseg
+    use mod_che_common_isorropia, only : calaou, cna2so4, eps, ik4, maxit, &
+      molal, ndiv, rkx, tiny1, w, water, zero
+    use mod_che_common_caseg, only : a1, chi1, chi2, chi3, chi4, chi5, chi6, &
+      ik4, psi1, psi2, rkx
     implicit none
     real(rkx) :: delta, dx, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
@@ -20517,8 +20665,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcg3a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseg
+    use mod_che_common_isorropia, only : calain, calaou, cnh42s4, cnh4cl, &
+      cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, one, r, &
+      rkx, temp, tiny1, w, water, xk2, xk3, xk4, xk5, xk7, xkw, zero
+    use mod_che_common_caseg, only : a1, a2, a4, a5, a6, chi2, chi4, chi5, &
+      chi6, ik4, psi2, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, psi20, smin, x
     integer(ik4) :: i, islv
@@ -20617,7 +20768,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcg2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmg2, drmg3, drnh42s4, drnh4cl, &
+      ik4, molal, nions, rh, scase, tiny1, w, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -20684,8 +20836,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcg2a
-    use mod_che_common_isorropia
-    use mod_che_common_caseg
+    use mod_che_common_isorropia, only : calaou, cna2so4, eps, ik4, maxit, &
+      molal, ndiv, rkx, tiny1, tiny2, w, water, zero
+    use mod_che_common_caseg, only : a1, chi1, chi2, chi3, chi4, chi5, chi6, &
+      ik4, psi1, psi2, rkx
     implicit none
     real(rkx) :: delta, dx, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
@@ -20808,8 +20962,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcg2a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseg
+    use mod_che_common_isorropia, only : calain, calaou, cnh42s4, cnh4cl, &
+      cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, one, r, &
+      rkx, temp, tiny1, water, xk2, xk3, xk4, xk5, xk6, xk7, xkw, zero
+    use mod_che_common_caseg, only : a1, a2, a3, a4, a5, a6, chi2, chi4, &
+      chi5, chi6, ik4, psi2, psi3, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: bb, cc, dd, delt, deno, hi, ohi, &
          psi20, psi31, psi32, smin, x
@@ -20935,7 +21092,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcg1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmg1, drnh4no3, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -20975,7 +21132,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcg1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cna2so4, cnh42s4, cnh4cl, cnh4no3, &
+      ghcl, ghno3, gnh3, one, r, rkx, temp, w, xk10, xk6, zero
     implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cc, dd, &
          dd1, dd2, frna, gam, rtsq, so4fr, sqdd, &
@@ -21115,8 +21273,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calch6
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
@@ -21215,8 +21375,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funch6a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, &
+      nsweep, one, r, rkx, temp, tiny1, w, water, xk1, xk2, xk3, xk4, xk5, &
+      xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a1, a4, a5, a6, a7, a8, a9, chi1, chi4, &
+      chi5, chi6, chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, &
+      psi8, rkx
     implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
@@ -21315,8 +21480,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calch5
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, scase, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
@@ -21424,8 +21591,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funch5a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, &
+      nsweep, one, r, rkx, temp, tiny1, w, water, xk1, xk2, xk3, xk4, xk5, &
+      xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a1, a4, a5, a6, a7, a8, a9, chi1, chi4, &
+      chi5, chi6, chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, &
+      psi8, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
@@ -21536,8 +21708,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calch4
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, scase, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
@@ -21645,8 +21819,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funch4a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, &
+      molal, nsweep, one, r, rkx, temp, tiny1, w, water, xk1, xk2, xk3, xk4, &
+      xk5, xk6, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a1, a3, a4, a5, a6, a7, a8, a9, chi1, &
+      chi4, chi5, chi6, chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, &
+      psi7, psi8, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, delt, hi, ohi, psi31, psi32, smin, x
     integer(ik4) :: i, islv
@@ -21782,8 +21961,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calch3
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, scase, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
@@ -21888,8 +22069,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funch3a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, &
+      molal, nsweep, one, r, rkx, temp, tiny1, w, water, xk1, xk2, xk3, xk4, &
+      xk5, xk6, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a1, a3, a4, a5, a6, a7, a8, a9, chi1, &
+      chi4, chi5, chi6, chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, &
+      psi7, psi8, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, delt, diak, hi, ohi, &
          psi31, psi32, smin, x
@@ -22040,7 +22226,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calch2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmh2, drnano3, rh, scase, tiny1, w, &
+      water
     implicit none
 !
 ! *** regime depends on the existance of nitrates
@@ -22082,8 +22269,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calch2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frna, psi6hi, psi6lo, &
          x1, x2, x3, y1, y2, y3
@@ -22179,8 +22368,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funch2a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, &
+      molal, nsweep, one, r, rkx, temp, tiny1, w, water, xk1, xk2, xk3, xk4, &
+      xk5, xk6, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a1, a3, a4, a5, a6, a7, a8, a9, chi1, &
+      chi4, chi5, chi6, chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, &
+      psi7, psi8, rkx
     implicit none
     real(rkx) :: a64, aa, bb, cc, dd, delt, diak, hi, ohi, psi31, &
          psi32, smin, x
@@ -22334,7 +22528,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calch1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmh1, drnh4no3, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -22369,7 +22563,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calch1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cna2so4, cnacl, cnano3, cnh42s4, &
+      cnh4cl, cnh4no3, ghcl, ghno3, gnh3, one, r, rkx, temp, w, xk10, xk6, &
+      zero
     implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cc, clfr, dd, dd1, dd2, &
          gam, rtsq, sqdd, sqdd1, sqdd2, theta1, theta2
@@ -22511,8 +22707,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calci6
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, clc, cna2so4, &
+      cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, nsweep, rkx, water, &
+      xk1, zero
+    use mod_che_common_solut, only : a6, chi1, chi2, chi3, chi4, chi5, ik4, &
+      psi1, psi2, psi3, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: bb, cc, dd
     integer(ik4) :: i
@@ -22592,8 +22791,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calci5
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, clc, cna2so4, cnahso4, &
+      cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, tiny1, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, ik4, psi1, &
+      psi2, psi3, psi4, psi5, rkx
     implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -22703,8 +22904,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funci5a(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, clc, cna2so4, &
+      cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, nsweep, one, rkx, &
+      water, xk1, xk5, xk7, zero
+    use mod_che_common_solut, only : a4, a5, a6, chi4, ik4, psi1, psi2, psi3, &
+      psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: bb, cc, dd, p4
     integer(ik4) :: i
@@ -22775,8 +22979,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calci4
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, clc, cna2so4, cnahso4, &
+      cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, tiny1, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, ik4, psi1, &
+      psi2, psi3, psi4, psi5, rkx
     implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -22885,8 +23091,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funci4a(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, clc, cna2so4, &
+      cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, nsweep, one, rkx, &
+      water, xk1, xk5, xk7, zero
+    use mod_che_common_solut, only : a4, a5, a6, a7, chi4, chi5, ik4, psi1, &
+      psi2, psi3, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: bb, cc, dd, p4
     integer(ik4) :: i
@@ -22969,7 +23178,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calci3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnahso4, cnh4hs4, drlc, drmi3, ik4, &
+      molal, nions, rh, scase, tiny1, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -23019,8 +23229,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calci3a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, clc, cna2so4, cnahso4, &
+      cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, ik4, psi1, &
+      psi2, psi3, psi4, psi5, rkx
     implicit none
     real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
          y1, y2, y3, yhi
@@ -23117,8 +23329,9 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funci3a(p2)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : eps, gama, ik4, maxit, molal, ndiv, &
+      one, rkx, tiny1, water, xk13, zero
+    use mod_che_common_solut, only : a2, chi4, ik4, psi2, rkx
     implicit none
     real(rkx) :: dx, p2, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi
@@ -23210,8 +23423,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funci3b(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, clc, cna2so4, &
+      cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, nsweep, one, rkx, &
+      tiny1, water, xk1, xk5, xk7, zero
+    use mod_che_common_solut, only : a4, a5, a6, a7, chi2, chi4, chi5, ik4, &
+      psi1, psi2, psi3, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: bb, cc, dd, p4
     integer(ik4) :: i
@@ -23297,7 +23513,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calci2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnh4hs4, drmi2, drnahso4, ik4, &
+      molal, nions, rh, scase, tiny1, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -23347,8 +23564,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calci2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, clc, cna2so4, cnahso4, &
+      cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, ik4, psi1, &
+      psi2, psi3, psi4, psi5, rkx
     implicit none
     real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
          y1, y2, y3, yhi
@@ -23445,8 +23664,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funci2a(p2)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, clc, cna2so4, &
+      cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, nsweep, one, rkx, &
+      tiny1, water, xk1, xk11, xk13, xk5, xk7, zero
+    use mod_che_common_solut, only : a2, a3, a4, a5, a6, a7, chi2, chi3, &
+      chi4, chi5, ik4, psi1, psi2, psi3, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, p2
     integer(ik4) :: i, islv
@@ -23556,7 +23778,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calci1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmi1, drnh4hs4, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -23595,7 +23817,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calci1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : clc, cna2so4, cnahso4, cnh42s4, &
+      cnh4hs4, ghcl, ghno3, gnh3, rkx, tiny1, w, zero
     implicit none
     real(rkx) :: frnh4, frso4
 !
@@ -23650,7 +23873,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcj3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, cnahso4, cnh4hs4, &
+      frst, gama, ik4, molal, nsweep, rkx, tiny1, w, water, xk1, zero
     implicit none
     real(rkx) :: a3, bb, cc, chi1, chi2, dd, psi1, psi2
     integer(ik4) :: i
@@ -23722,8 +23946,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcj2
-    use mod_che_common_isorropia
-    use mod_che_common_casej
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, ndiv, rkx, &
+      tiny1, w, zero
+    use mod_che_common_casej, only : chi1, chi2, ik4, rkx
     implicit none
     real(rkx) :: dx, psi1hi, psi1lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -23811,8 +24036,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcj2(p1)
-    use mod_che_common_isorropia
-    use mod_che_common_casej
+    use mod_che_common_isorropia, only : calain, calaou, cnahso4, cnh4hs4, &
+      frst, gama, ik4, molal, nsweep, one, rkx, tiny1, w, water, xk1, xk11, &
+      zero
+    use mod_che_common_casej, only : a1, a3, chi1, chi2, ik4, kapa, lamda, &
+      psi1, psi2, rkx
     implicit none
     real(rkx) :: bb, cc, dd, p1
     integer(ik4) :: i
@@ -23885,8 +24113,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcj1
-    use mod_che_common_isorropia
-    use mod_che_common_casej
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, ndiv, rkx, &
+      tiny1, w, zero
+    use mod_che_common_casej, only : chi1, chi2, ik4, rkx
     implicit none
     real(rkx) :: dx, psi1hi, psi1lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -23974,8 +24203,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcj1(p1)
-    use mod_che_common_isorropia
-    use mod_che_common_casej
+    use mod_che_common_isorropia, only : calain, calaou, cnahso4, cnh4hs4, &
+      frst, gama, ik4, molal, nsweep, one, rkx, tiny1, w, water, xk1, xk11, &
+      xk12, zero
+    use mod_che_common_casej, only : a1, a2, a3, chi1, chi2, ik4, kapa, &
+      lamda, psi1, psi2, rkx
     implicit none
     real(rkx) :: bb, cc, dd, p1
     integer(ik4) :: i
@@ -24048,8 +24280,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco7
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calaou, eps, ik4, m0, maxit, molal, &
+      ndiv, rkx, tiny1, w, water, zero
+    use mod_che_common_caseo, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, chi9, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, &
+      rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
@@ -24165,8 +24400,12 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funco7(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnh42s4, cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, &
+      gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, water, xk2, xk3, &
+      xk4, xkw, zero
+    use mod_che_common_caseo, only : a4, a5, a6, chi4, chi5, chi6, chi9, ik4, &
+      psi1, psi2, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
@@ -24271,8 +24510,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco6
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calaou, eps, ik4, m0, maxit, molal, &
+      ndiv, rkx, tiny1, w, water, zero
+    use mod_che_common_caseo, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, chi9, ik4, psi1, psi2, psi3, psi7, psi8, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
@@ -24386,8 +24627,12 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funco6(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnh42s4, cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, &
+      gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, water, xk17, &
+      xk2, xk3, xk4, xkw, zero
+    use mod_che_common_caseo, only : a4, a5, a6, a7, chi4, chi5, chi6, chi7, &
+      chi9, ik4, psi1, psi2, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
@@ -24504,8 +24749,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco5
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calaou, eps, ik4, m0, maxit, molal, &
+      ndiv, rkx, tiny1, w, water, zero
+    use mod_che_common_caseo, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, chi9, ik4, psi1, psi2, psi3, psi7, psi8, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
@@ -24618,8 +24865,12 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funco5(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnh42s4, cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, &
+      gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, water, xk17, &
+      xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_caseo, only : a1, a4, a5, a6, a7, chi1, chi4, chi5, &
+      chi6, chi7, chi9, ik4, psi1, psi2, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
@@ -24744,8 +24995,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco4
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calaou, cna2so4, eps, ik4, m0, &
+      maxit, molal, ndiv, rkx, tiny1, w, water, zero
+    use mod_che_common_caseo, only : a1, chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, chi9, ik4, psi1, psi2, psi3, psi7, psi8, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
@@ -24876,8 +25129,12 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funco4(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cnh42s4, cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, &
+      molal, nsweep, one, r, rkx, temp, tiny1, w, water, xk17, xk2, xk3, xk4, &
+      xk5, xkw, zero
+    use mod_che_common_caseo, only : a1, a4, a5, a6, a7, chi2, chi4, chi5, &
+      chi6, chi7, chi9, ik4, psi2, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
@@ -24996,7 +25253,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmo3, drnh42s4, ik4, molal, nions, &
+      rh, scase, tiny1, w, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -25047,8 +25305,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco3a
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calaou, cna2so4, eps, ik4, maxit, &
+      molal, ndiv, rkx, tiny1, w, water, zero
+    use mod_che_common_caseo, only : a1, chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, chi9, ik4, psi1, psi2, psi7, psi8, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3, nafr
@@ -25176,8 +25436,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funco3a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cnh42s4, cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, &
+      molal, nsweep, one, r, rkx, temp, tiny1, w, water, xk17, xk2, xk3, xk4, &
+      xk5, xk7, xkw, zero
+    use mod_che_common_caseo, only : a1, a2, a4, a5, a6, a7, chi2, chi4, &
+      chi5, chi6, chi7, chi8, chi9, ik4, psi2, psi3, psi4, psi5, psi6, psi7, &
+      psi8, rkx
     implicit none
     real(rkx) :: a65, bb, cc, dd, deno, hi, ohi, psi20, smin, x
     integer(ik4) :: i, islv
@@ -25306,7 +25571,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmo2, drmo3, drnh42s4, drnh4cl, &
+      ik4, molal, nions, rh, scase, tiny1, w, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -25373,8 +25639,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco2a
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calaou, cna2so4, eps, ik4, maxit, &
+      molal, ndiv, rkx, tiny1, tiny2, w, water, zero
+    use mod_che_common_caseo, only : a1, chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, chi9, ik4, psi1, psi2, psi7, psi8, rkx
     implicit none
     real(rkx) :: cafr, nafr, delta, dx, frk, frmg, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
@@ -25505,8 +25773,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funco2a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_caseo
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cnh42s4, cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, &
+      molal, nsweep, one, r, rkx, temp, tiny1, water, xk17, xk2, xk3, xk4, &
+      xk5, xk6, xk7, xkw, zero
+    use mod_che_common_caseo, only : a1, a2, a3, a4, a5, a6, a7, chi2, chi4, &
+      chi5, chi6, chi7, chi9, ik4, psi2, psi3, psi4, psi5, psi6, psi7, psi8, &
+      rkx
     implicit none
     real(rkx) :: a65, bb, cc, dd, delt, deno, hi, ohi, psi20, &
          psi31, psi32, smin, x
@@ -25661,7 +25934,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmo1, drnh4no3, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -25699,7 +25972,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calco1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccaso4, ck2so4, cmgso4, cna2so4, &
+      cnh42s4, cnh4cl, cnh4no3, ghcl, ghno3, gnh3, one, r, rkx, temp, w, &
+      xk10, xk6, zero
     implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cafr, cc, dd, dd1, dd2, &
          frk, frmg, frna, gam, rtsq, so4fr, sqdd, sqdd1, sqdd2, &
@@ -25849,8 +26124,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcm8
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi2, chi3, chi4, &
+      chi5, chi6, chi7, chi8, chi9, ik4, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
@@ -25954,8 +26231,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcm8(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4no3, frst, gama, ghcl, &
+      ghno3, gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, water, &
+      xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a4, a5, a6, chi1, chi10, chi11, chi4, &
+      chi5, chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi2, psi3, &
+      psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
@@ -26064,8 +26346,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcm7
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi2, chi3, chi4, &
+      chi5, chi6, chi7, chi8, chi9, ik4, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
@@ -26169,8 +26453,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcm7(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4no3, frst, gama, ghcl, &
+      ghno3, gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, water, &
+      xk17, xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a4, a5, a6, a9, chi1, chi10, chi11, &
+      chi4, chi5, chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi2, &
+      psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i, islv
@@ -26289,8 +26578,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcm6
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi2, chi3, chi4, &
+      chi5, chi6, chi7, chi8, chi9, ik4, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
@@ -26394,8 +26685,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcm6(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4no3, frst, gama, ghcl, &
+      ghno3, gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, water, &
+      xk17, xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a1, a4, a5, a6, a9, chi1, chi10, chi11, &
+      chi4, chi5, chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi2, &
+      psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, hi, ohi, riz, smin, x
     integer(ik4) :: i, islv
@@ -26541,8 +26837,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcm5
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi2, chi3, chi4, &
+      chi5, chi6, chi7, chi8, chi9, ik4, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
@@ -26646,8 +26944,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcm5(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4no3, frst, gama, ghcl, &
+      ghno3, gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, water, &
+      xk17, xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a1, a4, a5, a6, a9, chi1, chi10, chi11, &
+      chi4, chi5, chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi2, &
+      psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, hi, ohi, riz, smin, x
     integer(ik4) :: i, islv
@@ -26793,8 +27096,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcm4
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, scase, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi2, chi3, chi4, &
+      chi5, chi6, chi7, chi8, chi9, ik4, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
@@ -26907,8 +27212,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcm4(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, &
+      ghcl, ghno3, gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, &
+      water, xk17, xk2, xk3, xk4, xk5, xk6, xkw, zero
+    use mod_che_common_solut, only : a1, a3, a4, a5, a6, a9, chi1, chi10, &
+      chi11, chi4, chi5, chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, &
+      psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, delt, hi, ohi, psi31, psi32, riz, &
          smin, x
@@ -27084,8 +27394,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcm3
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, scase, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi2, chi3, chi4, &
+      chi5, chi6, chi7, chi8, chi9, ik4, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
@@ -27198,8 +27510,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcm3(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, &
+      ghcl, ghno3, gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, &
+      water, xk17, xk2, xk23, xk3, xk4, xk5, xk6, xk8, xkw, zero
+    use mod_che_common_solut, only : a1, a10, a3, a4, a5, a6, a7, a9, chi1, &
+      chi10, chi11, chi4, chi5, chi6, chi7, chi8, chi9, ik4, psi1, psi10, &
+      psi11, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, delt, diak, hi, ohi, psi31, psi32, &
          riz, smin, x
@@ -27398,7 +27715,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcm2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnh4no3, drmm2, drnano3, rh, scase, &
+      tiny1, water
     implicit none
 !
 ! *** regime depends on the existance of nitrates
@@ -27440,8 +27758,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcm2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi2, chi3, chi4, &
+      chi5, chi6, chi7, chi8, chi9, ik4, rkx
     implicit none
     real(rkx) :: cafr, delta, dx, frk, frmg, frna, psi6hi, &
          psi6lo, so4fr, x1, x2, x3, y1, y2, y3
@@ -27545,8 +27865,13 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcm2a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, &
+      ghcl, ghno3, gnh3, ik4, molal, nsweep, one, r, rkx, temp, tiny1, w, &
+      water, xk17, xk2, xk3, xk4, xk5, xk6, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a1, a3, a4, a5, a6, a7, a8, a9, chi1, &
+      chi10, chi11, chi4, chi5, chi6, chi7, chi8, chi9, ik4, psi1, psi10, &
+      psi11, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: a64, aa, bb, cc, dd, delt, diak, hi, ohi, psi31, &
          psi32, riz, smin, x
@@ -27758,7 +28083,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcm1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmm1, drnh4no3, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -27791,7 +28116,9 @@ module mod_che_isorropia
 !======================================================================
 
   subroutine calcm1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccaso4, ck2so4, cmgso4, cna2so4, &
+      cnacl, cnano3, cnh4cl, cnh4no3, ghcl, ghno3, gnh3, one, r, rkx, temp, &
+      w, xk10, xk6, zero
     implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cafr, cc, clfr, dd, &
          dd1, dd2, frk, frmg, gam, rtsq, so4fr, sqdd, sqdd1, &
@@ -27943,8 +28270,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp13
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -28073,8 +28403,14 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp13(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a4, a5, a6, chi10, chi11, chi12, chi13, &
+      chi14, chi15, chi16, chi17, chi4, chi5, chi6, chi7, chi8, chi9, ik4, &
+      psi1, psi10, psi11, psi12, psi13, psi14, psi15, psi16, psi17, psi2, &
+      psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: bb, cc, dd, hi, ohi, smin, x
     integer(ik4) :: i
@@ -28221,8 +28557,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp12
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -28350,8 +28689,14 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp12(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk17, xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a4, a5, a6, a9, chi10, chi11, chi12, &
+      chi13, chi14, chi15, chi16, chi17, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, psi16, psi17, &
+      psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, hi, ohi, smin, x
     integer(ik4) :: i, islv
@@ -28511,8 +28856,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp11
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -28640,8 +28988,15 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp11(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk17, xk19, xk2, xk3, xk4, xkw, &
+      zero
+    use mod_che_common_solut, only : a13, a4, a5, a6, a9, chi10, chi11, &
+      chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, chi6, chi7, chi8, &
+      chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, psi16, &
+      psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delta, gkama, hi, &
          ohi, smin, vhta, x
@@ -28811,8 +29166,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp10
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -28940,8 +29298,15 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp10(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk17, xk19, xk2, xk3, xk4, xkw, &
+      zero
+    use mod_che_common_solut, only : a13, a4, a5, a6, a9, chi10, chi11, &
+      chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, chi6, chi7, chi8, &
+      chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, psi16, &
+      psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delta, gkama, hi, &
          ohi, smin, vhta, x
@@ -29111,8 +29476,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp9
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -29240,8 +29608,15 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp9(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk17, xk19, xk2, xk20, xk3, xk4, &
+      xkw, zero
+    use mod_che_common_solut, only : a13, a14, a4, a5, a6, a9, chi10, chi11, &
+      chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, chi6, chi7, chi8, &
+      chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, psi16, &
+      psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delta, gkama, hi, &
          ohi, smin, vhta, x
@@ -29418,8 +29793,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp8
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -29547,8 +29925,15 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp8(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk17, xk19, xk2, xk20, xk3, xk4, &
+      xk6, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a3, a4, a5, a6, a9, chi10, &
+      chi11, chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, chi6, &
+      chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, &
+      psi16, psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, gkama, &
          hi, ohi, psi31, psi32, smin, vhta, x
@@ -29753,8 +30138,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp7
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -29882,8 +30270,15 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp7(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk17, xk19, xk2, xk20, xk3, xk4, &
+      xk6, xk8, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a3, a4, a5, a6, a7, a9, chi10, &
+      chi11, chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, chi6, &
+      chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, &
+      psi16, psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi31, psi32, smin, vhta, vita, x
@@ -30097,8 +30492,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp6
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -30226,8 +30624,16 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp6(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk17, xk19, xk2, xk20, xk3, xk4, &
+      xk6, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a3, a4, a5, a6, a7, a8, a9, &
+      chi10, chi11, chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, &
+      chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, &
+      psi15, psi16, psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, &
+      rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi31, psi32, smin, vhta, vita, x
@@ -30451,7 +30857,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp5
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmp5, drnh4no3, ik4, molal, nions, &
+      rh, scase, tiny1, w, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -30504,8 +30911,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp5a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -30633,8 +31043,16 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp5(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk10, xk17, xk19, xk2, xk20, xk3, &
+      xk4, xk6, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a6, a7, a8, &
+      a9, chi10, chi11, chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, &
+      chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, &
+      psi15, psi16, psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, &
+      rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, &
@@ -30887,7 +31305,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp4
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmgno32, drmp4, ik4, molal, nions, &
+      rh, scase, tiny1, w, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -30940,8 +31359,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp4a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -31068,8 +31490,16 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp4(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk10, xk17, xk19, xk2, xk20, xk3, &
+      xk4, xk6, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a6, a7, a8, &
+      a9, chi10, chi11, chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, &
+      chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, &
+      psi15, psi16, psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, &
+      rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, vhta, &
@@ -31322,7 +31752,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drcano32, drmp3, ik4, molal, nions, &
+      rh, scase, tiny1, w, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -31375,8 +31806,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp3a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, frno3, &
          frso4, psi6hi, psi6lo, x1, x2, x3, y1, y2, y3
@@ -31504,8 +31938,16 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp3(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk10, xk17, xk19, xk2, xk20, xk3, &
+      xk4, xk6, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a6, a7, a8, &
+      a9, chi10, chi11, chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, &
+      chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, &
+      psi15, psi16, psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, &
+      rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, vhta, &
@@ -31766,7 +32208,9 @@ module mod_che_isorropia
 !
 !
   subroutine calcp2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccacl2, cmgcl2, drcano32, drmgcl2, &
+      drmgno32, drmp2, drmp3, drmp4, drmp5, drnh4no3, ik4, molal, nions, rh, &
+      scase, tiny1, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -31845,8 +32289,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, molal, &
+      ndiv, rkx, tiny1, w, zero
+    use mod_che_common_solut, only : chi1, chi10, chi11, chi12, chi13, chi14, &
+      chi15, chi16, chi17, chi2, chi3, chi4, chi5, chi6, chi7, chi8, chi9, &
+      ik4, rkx
     implicit none
     real(rkx) :: delta, dx, frca, frcl, frk, frmg, frna, &
          frno3, frso4, psi6hi, psi6lo, x1, x2,  &
@@ -31975,8 +32422,16 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcp2a(x)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, &
+      cnh4cl, cnh4no3, frst, gama, ghcl, ghno3, gnh3, ik4, molal, nsweep, &
+      one, r, rkx, temp, tiny1, w, water, xk10, xk17, xk19, xk2, xk20, xk3, &
+      xk4, xk6, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a6, a7, a8, &
+      a9, chi10, chi11, chi12, chi13, chi14, chi15, chi16, chi17, chi4, chi5, &
+      chi6, chi7, chi8, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, &
+      psi15, psi16, psi17, psi2, psi3, psi4, psi5, psi6, psi7, psi8, psi9, &
+      rkx
     implicit none
     real(rkx) :: bb, bbp, cc, ccp, dd, ddp, delt, delta, diak, &
          gkama, hi, ohi, psi21, psi22, psi31, psi32, smin, vhta, &
@@ -32233,7 +32688,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcp1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drcacl2, drmp1, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -32268,7 +32723,9 @@ module mod_che_isorropia
 !======================================================================
 
   subroutine calcp1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccacl2, ccano32, ccaso4, ck2so4, &
+      ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, cnh4cl, cnh4no3, &
+      ghcl, ghno3, gnh3, one, r, rkx, temp, w, xk10, xk6, zero
     implicit none
     real(rkx) :: a1, a2, alf, bb, bet, cafr, cc, clfr, dd, &
          dd1, dd2, frk, frmg, gam, rtsq, so4fr, sqdd, sqdd1, &
@@ -32436,8 +32893,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl9
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ck2so4, ckhso4, clc, &
+      cmgso4, cna2so4, cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, &
+      nsweep, rkx, tiny1, water, xk1, zero
+    use mod_che_common_solut, only : a9, chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: bb, cc, dd
     integer(ik4) :: i
@@ -32533,8 +32993,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl8
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, ck2so4, ckhso4, clc, cmgso4, &
+      cna2so4, cnahso4, cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, tiny1, &
+      zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: dx, psi6hi, psi6lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -32647,8 +33110,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcl8(p6)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ck2so4, ckhso4, clc, &
+      cmgso4, cna2so4, cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, &
+      nsweep, one, rkx, tiny1, water, xk1, xk17, zero
+    use mod_che_common_solut, only : a6, a9, chi6, ik4, psi1, psi2, psi3, &
+      psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: bb, cc, dd, p6
     integer(ik4) :: i
@@ -32728,8 +33194,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl7
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, ck2so4, ckhso4, clc, cmgso4, &
+      cna2so4, cnahso4, cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, tiny1, &
+      zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -32842,8 +33311,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcl7(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ck2so4, ckhso4, clc, &
+      cmgso4, cna2so4, cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, &
+      nsweep, one, rkx, tiny1, water, xk1, xk17, xk5, zero
+    use mod_che_common_solut, only : a4, a6, a9, chi4, chi6, ik4, psi1, psi2, &
+      psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, p4
     integer(ik4) :: i, islv
@@ -32942,8 +33414,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl6
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, ck2so4, ckhso4, clc, cmgso4, &
+      cna2so4, cnahso4, cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, tiny1, &
+      zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -33056,8 +33531,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcl6(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ck2so4, ckhso4, clc, &
+      cmgso4, cna2so4, cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, &
+      nsweep, one, rkx, tiny1, water, xk1, xk17, xk5, zero
+    use mod_che_common_solut, only : a4, a6, a9, chi4, chi6, chi7, ik4, psi1, &
+      psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: aa, bb, cc, dd, p4
     integer(ik4) :: i, islv
@@ -33157,8 +33635,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl5
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, ck2so4, ckhso4, clc, cmgso4, &
+      cna2so4, cnahso4, cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, tiny1, &
+      zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -33274,8 +33755,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcl5(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ck2so4, ckhso4, clc, &
+      cmgso4, cna2so4, cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, &
+      nsweep, one, rkx, tiny1, water, xk1, xk17, xk18, xk5, zero
+    use mod_che_common_solut, only : a4, a6, a8, a9, chi4, chi6, chi7, chi8, &
+      ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
     integer(ik4) :: i, islv
@@ -33384,8 +33868,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl4
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, ck2so4, ckhso4, clc, cmgso4, &
+      cna2so4, cnahso4, cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, tiny1, &
+      zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: dx, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -33499,8 +33986,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcl4(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ck2so4, ckhso4, clc, &
+      cmgso4, cna2so4, cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, &
+      nsweep, one, rkx, tiny1, water, xk1, xk17, xk18, xk5, xk7, zero
+    use mod_che_common_solut, only : a4, a5, a6, a8, a9, chi4, chi5, chi6, &
+      chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
     integer(ik4) :: i, islv
@@ -33618,7 +34108,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnahso4, cnh4hs4, drlc, drml3, ik4, &
+      molal, nions, rh, scase, tiny1, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -33668,8 +34159,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl3a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, ck2so4, ckhso4, clc, cmgso4, &
+      cna2so4, cnahso4, cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
          y1, y2, y3, yhi
@@ -33772,8 +34265,9 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcl3a(p2)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : eps, gama, ik4, maxit, molal, ndiv, &
+      one, rkx, tiny1, water, xk13, zero
+    use mod_che_common_solut, only : a2, chi4, ik4, psi2, rkx
     implicit none
     real(rkx) :: dx, p2, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi
@@ -33870,8 +34364,12 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcl3b(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ck2so4, ckhso4, clc, &
+      cmgso4, cna2so4, cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, &
+      nsweep, one, rkx, tiny1, water, xk1, xk17, xk18, xk5, xk7, zero
+    use mod_che_common_solut, only : a4, a5, a6, a8, a9, chi2, chi4, chi5, &
+      chi6, chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, &
+      rkx
     implicit none
     real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
     integer(ik4) :: i, islv
@@ -33987,7 +34485,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnh4hs4, drml2, drnahso4, ik4, &
+      molal, nions, rh, scase, tiny1, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -34039,8 +34538,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, ck2so4, ckhso4, clc, cmgso4, &
+      cna2so4, cnahso4, cnh42s4, cnh4hs4, eps, ik4, maxit, ndiv, rkx, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, chi5, chi6, &
+      chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, psi7, psi8, rkx
     implicit none
     real(rkx) :: dx, psi2hi, psi2lo, x1, x2, x3, &
          y1, y2, y3, yhi
@@ -34140,8 +34641,9 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcl2a(p2)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : eps, gama, ik4, maxit, molal, ndiv, &
+      one, rkx, tiny1, water, xk13, zero
+    use mod_che_common_solut, only : a2, chi4, ik4, psi2, rkx
     implicit none
     real(rkx) :: dx, p2, psi4hi, psi4lo, x1, x2, x3, &
          y1, y2, y3, yhi
@@ -34240,8 +34742,12 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcl2b(p4)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ck2so4, ckhso4, clc, &
+      cmgso4, cna2so4, cnahso4, cnh42s4, cnh4hs4, frst, gama, ik4, molal, &
+      nsweep, one, rkx, tiny1, water, xk1, xk11, xk17, xk18, xk5, xk7, zero
+    use mod_che_common_solut, only : a3, a4, a5, a6, a8, a9, chi2, chi3, &
+      chi4, chi5, chi6, chi7, chi8, ik4, psi1, psi2, psi3, psi4, psi5, psi6, &
+      psi7, psi8, rkx
     implicit none
     real(rkx) :: aa, bb, bita, cama, cc, dd, delt, p4
     integer(ik4) :: i, islv
@@ -34373,7 +34879,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drml1, drnh4hs4, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -34412,7 +34918,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcl1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccaso4, ck2so4, ckhso4, clc, cmgso4, &
+      cna2so4, cnahso4, cnh42s4, cnh4hs4, ghcl, ghno3, gnh3, rkx, tiny1, w, &
+      zero
     implicit none
     real(rkx) :: cafr, frk, frmg, frna, frnh4, frso4
 !
@@ -34495,8 +35003,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calck4
-    use mod_che_common_isorropia
-    use mod_che_common_casek
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ckhso4, &
+      cmgso4, cnahso4, cnh4hs4, frst, gama, ik4, molal, nsweep, rkx, tiny1, &
+      w, water, xk1, zero
+    use mod_che_common_casek, only : a4, chi1, chi2, chi3, chi4, ik4, kapa, &
+      lamda, psi1, psi2, psi3, rkx
     implicit none
     real(rkx) :: bb, cc, dd, psi4
     integer(ik4) :: i
@@ -34572,8 +35083,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calck3
-    use mod_che_common_isorropia
-    use mod_che_common_casek
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, ndiv, rkx, &
+      tiny1, w, zero
+    use mod_che_common_casek, only : chi1, chi2, chi3, chi4, ik4, rkx
     implicit none
     real(rkx) :: dx, psi3hi, psi3lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -34663,8 +35175,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funck3(p1)
-    use mod_che_common_isorropia
-    use mod_che_common_casek
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ckhso4, &
+      cmgso4, cnahso4, cnh4hs4, frst, gama, ik4, molal, nsweep, one, rkx, &
+      tiny1, w, water, xk1, xk18, zero
+    use mod_che_common_casek, only : a3, a4, chi1, chi2, chi3, chi4, ik4, &
+      kapa, lamda, psi1, psi2, psi3, rkx
     implicit none
     real(rkx) :: bb, cc, dd, p1, psi4
     integer(ik4) :: i
@@ -34744,8 +35259,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calck2
-    use mod_che_common_isorropia
-    use mod_che_common_casek
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, ndiv, rkx, &
+      tiny1, w, zero
+    use mod_che_common_casek, only : chi1, chi2, chi3, chi4, ik4, rkx
     implicit none
     real(rkx) :: dx, psi3hi, psi3lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -34835,8 +35351,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funck2(p1)
-    use mod_che_common_isorropia
-    use mod_che_common_casek
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ckhso4, &
+      cmgso4, cnahso4, cnh4hs4, frst, gama, ik4, molal, nsweep, one, rkx, &
+      tiny1, w, water, xk1, xk11, xk18, zero
+    use mod_che_common_casek, only : a2, a3, a4, chi1, chi2, chi3, chi4, ik4, &
+      kapa, lamda, psi1, psi2, psi3, rkx
     implicit none
     real(rkx) :: bb, cc, dd, p1, psi4
     integer(ik4) :: i
@@ -34917,8 +35436,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calck1
-    use mod_che_common_isorropia
-    use mod_che_common_casek
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, ndiv, rkx, &
+      tiny1, w, zero
+    use mod_che_common_casek, only : chi1, chi2, chi3, chi4, ik4, rkx
     implicit none
     real(rkx) :: dx, psi3hi, psi3lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo
@@ -35008,8 +35528,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funck1(p1)
-    use mod_che_common_isorropia
-    use mod_che_common_casek
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ckhso4, &
+      cmgso4, cnahso4, cnh4hs4, frst, gama, ik4, molal, nsweep, one, rkx, &
+      tiny1, w, water, xk1, xk11, xk12, xk18, zero
+    use mod_che_common_casek, only : a1, a2, a3, a4, chi1, chi2, chi3, chi4, &
+      ik4, kapa, lamda, psi1, psi2, psi3, rkx
     implicit none
     real(rkx) :: bb, cc, dd, p1, psi4
     integer(ik4) :: i
@@ -35091,7 +35614,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isrp1r(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drlc, drnh42s4, drnh4hs4, metstbl, &
+      ncomp, rh, rkx, scase, sulrat, sulratw, w, waer
     implicit none
     real(rkx) :: rhi, tempi
     real(rkx), dimension(ncomp) :: wi
@@ -35201,7 +35725,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isrp2r(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drlc, drnh42s4, drnh4hs4, drnh4no3, &
+      metstbl, molal, ncomp, rh, rkx, scase, sulrat, sulratw, tiny1, w, waer, &
+      water
     implicit none
     real(rkx) :: rhi, tempi
     real(rkx), dimension(ncomp) :: wi
@@ -35349,7 +35875,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isrp3r(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drlc, drna2so4, drnacl, drnahso4, &
+      drnano3, drnh42s4, drnh4cl, drnh4hs4, drnh4no3, ik4, metstbl, ncomp, &
+      rh, rkx, scase, sodrat, sulrat, sulratw, tiny1, w, waer, water
     implicit none
     real(rkx) :: frso4, rhi, sri, tempi
     integer(ik4) :: i
@@ -35563,7 +36091,11 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine isrp4r(wi,rhi,tempi)
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : crnarat, crrat, drcacl2, drcano32, &
+      drk2so4, drkcl, drkhso4, drkno3, drlc, drmgcl2, drmgno32, drmgso4, &
+      drna2so4, drnacl, drnahso4, drnano3, drnh42s4, drnh4cl, drnh4hs4, &
+      drnh4no3, ik4, iprob, metstbl, ncomp, rh, rkx, scase, so4rat, sulratw, &
+      tiny1, w, waer, water
     implicit none
     real(rkx) :: frso4, rhi, sri, tempi
     integer(ik4) :: i
@@ -35868,7 +36400,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcs2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : calain, calaou, coh, frst, gama, &
+      gasaq, gnh3, ik4, m0, molal, molalr, nsweep, r, rh, rkx, temp, tiny1, &
+      waer, water, xk2, xkw, zero
     implicit none
     real(rkx) :: a2, akw, del, hi, hso4i, ohi, so4i
     integer(ik4) :: i
@@ -35953,7 +36487,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcs1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnh42s4, gnh3, rkx, w, waer, zero
     implicit none
 !
     cnh42s4 = min(waer(2),0.5_rkx*waer(3))    ! for bad input problems
@@ -35980,8 +36514,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcn3
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cnh42s4, cnh4no3, &
+      coh, frst, gama, gasaq, ghno3, gnh3, ik4, m0, molal, molalr, nsweep, r, &
+      rh, rkx, temp, tiny1, waer, water, xk2, xk4, xk7, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, ik4, rkx
     implicit none
     real(rkx) :: akw, aml5, del, gg, hi, hso4i, ohi, so4i
     integer(ik4) :: i
@@ -36083,8 +36619,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcn2
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calaou, eps, ik4, maxit, ndiv, rkx, &
+      tiny1, waer, zero
+    use mod_che_common_solut, only : chi1, chi2, chi3, chi4, ik4, psi2, psi3, &
+      rkx
     implicit none
     real(rkx) :: dx, p4, psi1hi, psi1lo, x1, x2, x3, &
          y1, y2, y3, yhi, ylo, yy
@@ -36179,8 +36717,11 @@ module mod_che_isorropia
 !======================================================================
 !
   real(rkx) function funcn2(p1)
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cnh42s4, cnh4no3, &
+      coh, frst, gama, gasaq, ghno3, gnh3, ik4, molal, nsweep, one, r, rh, &
+      rkx, temp, water, xk2, xk4, xk7, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, chi1, ik4, psi1, psi2, psi3, &
+      rkx
     implicit none
     real(rkx) :: akw, del, gg, hi, hso4i, ohi, p1, so4i
     integer(ik4) :: i
@@ -36286,7 +36827,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcn1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmasan, drnh4no3, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -36320,7 +36861,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcn1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnh42s4, cnh4no3, ghno3, gnh3, rkx, &
+      tiny1, w, waer, zero
     implicit none
     real(rkx) :: psi1, psi2
 !
@@ -36368,8 +36910,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcq5
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, gasaq, ghcl, ghno3, gnh3, &
+      ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, xk2, xk3, &
+      xk4, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, ik4, psi1, psi4, psi5, psi6, &
+      rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, so4i
@@ -36507,8 +37053,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcq4
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, a5, chi1, ik4, psi1, psi4, &
+      psi5, psi6, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, root3, so4i
@@ -36683,7 +37233,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcq3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmg3, drnh42s4, rh, scase, tiny1, &
+      waer
     implicit none
     logical :: exno, excl
 !
@@ -36725,8 +37276,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcq3a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk2, xk3, xk4, xk5, xk7, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, a5, a7, chi1, chi4, chi6, &
+      ik4, psi1, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, psi6o, root1, root3, so4i
@@ -36924,7 +37479,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcq2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmg2, drmg3, drnh42s4, drnh4cl, rh, &
+      scase, tiny1, waer
     implicit none
     logical :: exno, excl
 !
@@ -36977,8 +37533,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcq2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk14, xk2, xk3, xk4, xk5, xk7, xkw, zero
+    use mod_che_common_solut, only : a14, a2, a3, a4, a5, a7, chi1, chi4, &
+      chi6, ik4, psi1, psi4, psi5, psi6, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, psi4o, psi6o, root1, root2,   &
@@ -37207,7 +37767,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcq1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmg1, drmg2, drmg3, drmq1, &
+      drnh42s4, drnh4cl, drnh4no3, rh, scase, tiny1, waer
     implicit none
     logical :: exno, excl
 !
@@ -37278,7 +37839,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcq1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cna2so4, cnh42s4, cnh4cl, cnh4no3, &
+      ghcl, ghno3, gnh3, rkx, tiny1, waer, water, zero
     implicit none
     real(rkx) :: frnh3, frso4
 !
@@ -37324,8 +37886,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr6
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, gasaq, ghcl, ghno3, gnh3, &
+      ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, xk2, xk3, &
+      xk4, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, ik4, psi1, psi2, psi3, psi4, &
+      psi5, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, so4i
@@ -37464,8 +38030,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr5
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, a5, chi1, ik4, psi1, psi2, &
+      psi3, psi4, psi5, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psio, root, so4i
@@ -37649,7 +38219,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr4
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnacl, cnano3, cnh4cl, cnh4no3, &
+      drmh1, drmr5, drnh4cl, rh, scase, tiny1
     implicit none
     logical :: exan, exac, exsn, exsc
 !
@@ -37699,8 +38270,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr4a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk14, xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a14, a2, a3, a4, a5, chi1, chi4, ik4, &
+      psi1, psi2, psi3, psi4, psi5, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psio1, psio4, root, so4i
@@ -37891,7 +38466,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnacl, cnano3, cnh4cl, cnh4no3, &
+      drmh1, drmr2, drmr4, drmr5, drnacl, rh, scase, tiny1
     implicit none
     logical :: exan, exac, exsn, exsc
 !
@@ -37957,8 +38533,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr3a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, ngasaq, nions, nsweep, r, rh, rkx, temp, &
+      tiny1, waer, water, xk14, xk2, xk3, xk4, xk5, xk8, xkw, zero
+    use mod_che_common_solut, only : a14, a2, a3, a4, a5, a8, chi1, chi3, &
+      chi4, ik4, psi1, psi2, psi3, psi4, psi5, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, psi3o, psi4o, root1, root2,   &
@@ -38201,7 +38781,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnacl, cnano3, cnh4cl, cnh4no3, &
+      drmh1, drmh2, drmr1, drmr2, drmr3, drmr4, drmr5, drmr6, drnacl, &
+      drnano3, drnh4cl, rh, scase, tiny1
     implicit none
     logical :: exan, exac, exsn, exsc
 !
@@ -38295,8 +38877,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, ngasaq, nions, nsweep, one, r, rh, rkx, temp, &
+      tiny1, waer, water, xk14, xk2, xk3, xk4, xk5, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a14, a2, a3, a4, a5, a8, a9, chi1, chi2, &
+      chi3, chi4, ik4, psi1, psi2, psi3, psi4, psi5, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, ggcl, ggno3, &
          hi, hso4i, ohi, psi1o, psi2o, psi3o, psi4o, root1,   &
@@ -38571,7 +39157,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnacl, cnano3, cnh4cl, cnh4no3, &
+      drmh1, drmh2, drmr1, drmr10, drmr11, drmr12, drmr13, drmr2, drmr3, &
+      drmr4, drmr5, drmr6, drmr7, drmr8, drmr9, drnacl, drnano3, drnh4cl, &
+      drnh4no3, rh, scase, tiny1
     implicit none
     logical :: exan, exac, exsn, exsc
 !
@@ -38722,7 +39311,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcr1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cna2so4, cnacl, cnano3, cnh42s4, &
+      cnh4cl, cnh4no3, ghcl, ghno3, gnh3, rkx, waer, water, zero
     implicit none
     real(rkx) :: frcl, frna, frnh3, frno3
 !
@@ -38774,8 +39364,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv7
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnh42s4, cnh4cl, cnh4no3, frst, gama, gasaq, ghcl, &
+      ghno3, gnh3, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, chi9, ik4, psi1, psi4, psi5, &
+      psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, ohi, so4i
     integer(ik4) :: i
@@ -38940,8 +39534,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv6
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, &
+      ghcl, ghno3, gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, &
+      waer, water, xk17, xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, a7, chi7, chi9, ik4, psi1, &
+      psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi70, root7, so4i
@@ -39142,8 +39740,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv5
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, &
+      ghcl, ghno3, gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, &
+      waer, water, xk17, xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a1, a2, a3, a4, a7, chi1, chi7, chi9, &
+      ik4, psi1, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi70, root1, root7, so4i
@@ -39368,8 +39970,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv4
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, &
+      ghcl, ghno3, gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, &
+      waer, water, xk17, xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a1, a2, a3, a4, a7, chi1, chi7, chi8, &
+      chi9, ik4, psi1, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi70, root1, root7, so4i
@@ -39594,7 +40200,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmo3, drnh42s4, rh, scase, tiny1, &
+      waer
     implicit none
     logical :: exno, excl
 !
@@ -39636,8 +40243,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv3a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, &
+      ghcl, ghno3, gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, &
+      waer, water, xk17, xk2, xk3, xk4, xk5, xk7, xkw, zero
+    use mod_che_common_solut, only : a1, a2, a3, a4, a6, a7, chi1, chi6, &
+      chi7, chi8, chi9, ik4, psi1, psi4, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi60, psi70, root1, root6, root7, so4i
@@ -39885,7 +40496,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmo2, drmo3, drnh42s4, drnh4cl, rh, &
+      scase, tiny1, waer
     implicit none
     logical :: exno, excl
 !
@@ -39940,8 +40552,13 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, &
+      ghcl, ghno3, gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, &
+      waer, water, xk14, xk17, xk2, xk3, xk4, xk5, xk7, xkw, zero
+    use mod_che_common_solut, only : a1, a14, a2, a3, a4, a6, a7, chi1, chi4, &
+      chi6, chi7, chi8, chi9, ik4, psi1, psi4, psi5, psi6, psi7, psi8, psi9, &
+      rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi40, psi60, psi70, root1, root4, root4a, &
@@ -40224,7 +40841,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmo1, drmo2, drmo3, drmv1, &
+      drnh42s4, drnh4cl, drnh4no3, rh, scase, tiny1, waer
     implicit none
     logical :: exno, excl
 !
@@ -40306,7 +40924,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcv1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccaso4, ck2so4, cmgso4, cna2so4, &
+      cnh42s4, cnh4cl, cnh4no3, ghcl, ghno3, gnh3, rkx, tiny1, waer, water, &
+      zero
     implicit none
     real(rkx) :: cafr, frk, frmg, frnh3, so4fr, nafr
 !
@@ -40361,8 +40981,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu8
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, &
+      gasaq, ghcl, ghno3, gnh3, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, &
+      waer, water, xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, chi9, ik4, psi1, psi2, psi3, &
+      psi4, psi5, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, ohi, so4i
     integer(ik4) :: i
@@ -40533,8 +41157,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu7
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, &
+      gama, gasaq, ghcl, ghno3, gnh3, great, ik4, molal, nsweep, r, rh, rkx, &
+      temp, tiny1, waer, water, xk17, xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, a7, chi7, chi9, ik4, psi1, &
+      psi2, psi3, psi4, psi5, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi70, root7, so4i
@@ -40754,8 +41382,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu6
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, &
+      gama, gasaq, ghcl, ghno3, gnh3, great, ik4, molal, nsweep, r, rh, rkx, &
+      temp, tiny1, waer, water, xk17, xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a1, a2, a3, a4, a7, chi1, chi7, chi9, &
+      ik4, psi1, psi2, psi3, psi4, psi5, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi70, root1, root7, so4i
@@ -40999,8 +41631,12 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu5
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, &
+      gama, gasaq, ghcl, ghno3, gnh3, great, ik4, molal, nsweep, r, rh, rkx, &
+      temp, tiny1, waer, water, xk17, xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a1, a2, a3, a4, a7, chi1, chi7, chi8, &
+      chi9, ik4, psi1, psi2, psi3, psi4, psi5, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi70, root1, root7, so4i
@@ -41242,7 +41878,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu4
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnacl, cnano3, cnh4cl, cnh4no3, &
+      drmm1, drmr5, drnh4cl, rh, scase, tiny1
     implicit none
     logical :: exan, exac, exsn, exsc
 !
@@ -41292,8 +41929,13 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu4a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, &
+      gama, gasaq, ghcl, ghno3, gnh3, great, ik4, molal, nsweep, r, rh, rkx, &
+      temp, tiny1, waer, water, xk14, xk17, xk2, xk3, xk4, xk5, xkw, zero
+    use mod_che_common_solut, only : a1, a14, a2, a3, a4, a7, chi1, chi4, &
+      chi7, chi8, chi9, ik4, psi1, psi2, psi3, psi4, psi5, psi7, psi8, psi9, &
+      rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi40, psi70, root1, root4, root7, so4i
@@ -41556,7 +42198,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnacl, cnano3, cnh4cl, cnh4no3, &
+      drmm1, drmr2, drmr4, drmr5, drnacl, rh, scase, tiny1
     implicit none
     logical :: exan, exac, exsn, exsc
 !
@@ -41624,8 +42267,14 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu3a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, &
+      gama, gasaq, ghcl, ghno3, gnh3, great, ik4, molal, ngasaq, nions, &
+      nsweep, r, rh, rkx, temp, tiny1, waer, water, xk14, xk17, xk2, xk3, &
+      xk4, xk5, xk8, xkw, zero
+    use mod_che_common_solut, only : a1, a14, a2, a3, a4, a7, a8, chi1, chi3, &
+      chi4, chi7, chi8, chi9, ik4, psi1, psi2, psi3, psi4, psi5, psi7, psi8, &
+      psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi30, psi40, psi70, root1, root3, root3a, &
@@ -41928,7 +42577,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnacl, cnano3, cnh4cl, cnh4no3, &
+      drmm1, drmm2, drmr1, drmr2, drmr3, drmr4, drmr5, drmr6, drnacl, &
+      drnano3, drnh4cl, rh, scase, tiny1
     implicit none
     logical :: exan, exac, exsn, exsc
 !
@@ -42048,8 +42699,14 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccaso4, ck2so4, &
+      cmgso4, cna2so4, cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, &
+      gama, gasaq, ghcl, ghno3, gnh3, great, ik4, molal, ngasaq, nions, &
+      nsweep, r, rh, rkx, temp, tiny1, waer, water, xk14, xk17, xk2, xk3, &
+      xk4, xk5, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a1, a14, a2, a3, a4, a7, a8, a9, chi1, &
+      chi2, chi3, chi4, chi7, chi8, chi9, ik4, psi1, psi2, psi3, psi4, psi5, &
+      psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi1o, psi20, psi30, psi40, psi50, psi70, root1, &
@@ -42381,7 +43038,10 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : cnacl, cnano3, cnh4cl, cnh4no3, &
+      drmm1, drmm2, drmr1, drmr10, drmr11, drmr12, drmr13, drmr2, drmr3, &
+      drmr4, drmr5, drmr6, drmr7, drmr8, drmr9, drnacl, drnano3, drnh4cl, &
+      drnh4no3, rh, scase, tiny1
     implicit none
     logical :: exan, exac, exsn, exsc
 !
@@ -42525,7 +43185,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcu1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccaso4, ck2so4, cmgso4, cna2so4, &
+      cnacl, cnano3, cnh42s4, cnh4cl, cnh4no3, ghcl, ghno3, gnh3, rkx, waer, &
+      water, zero
     implicit none
     real(rkx) :: cafr, frcl, frk, frmg, frna, frnh3, frno3, so4fr
 !
@@ -42590,8 +43252,14 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw13
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, frst, gama, gasaq, ghcl, ghno3, gnh3, &
+      ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, xk2, xk3, &
+      xk4, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, chi11, ik4, psi1, psi10, &
+      psi11, psi12, psi13, psi14, psi15, psi16, psi17, psi5, psi6, psi7, &
+      psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, so4i, kcl
@@ -42771,8 +43439,14 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw12
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk17, xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a2, a3, a4, a9, chi11, chi9, ik4, psi1, &
+      psi10, psi11, psi12, psi13, psi14, psi15, psi16, psi17, psi5, psi6, &
+      psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi9o, root9, so4i, kcl
@@ -42988,8 +43662,14 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw11
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk17, xk19, xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a13, a2, a3, a4, a9, chi11, chi13, chi9, &
+      ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, psi16, psi17, &
+      psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi9o, root13, root13a, root13b, root9, &
@@ -43233,8 +43913,14 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw10
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk17, xk19, xk2, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a13, a2, a3, a4, a9, chi10, chi11, &
+      chi13, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, &
+      psi16, psi17, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi9o, root13, root13a, root13b, root9, &
@@ -43480,8 +44166,14 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw9
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk17, xk19, xk2, xk20, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a9, chi10, chi11, &
+      chi13, chi14, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, &
+      psi15, psi16, psi17, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi9o, root13, root13a, root13b, &
@@ -43751,8 +44443,14 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw8
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk14, xk17, xk19, xk2, xk20, xk3, xk4, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a9, chi10, &
+      chi11, chi13, chi14, chi5, chi9, ik4, psi1, psi10, psi11, psi12, psi13, &
+      psi14, psi15, psi16, psi17, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi9o, root13, root13a, &
@@ -44047,8 +44745,14 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw7
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk14, xk17, xk19, xk2, xk20, xk3, xk4, xk8, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a7, a9, chi10, &
+      chi11, chi13, chi14, chi5, chi7, chi9, ik4, psi1, psi10, psi11, psi12, &
+      psi13, psi14, psi15, psi16, psi17, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi9o, root13, &
@@ -44369,8 +45073,15 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw6
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk14, xk17, xk19, xk2, xk20, xk3, xk4, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a7, a8, a9, &
+      chi10, chi11, chi13, chi14, chi5, chi7, chi8, chi9, ik4, psi1, psi10, &
+      psi11, psi12, psi13, psi14, psi15, psi16, psi17, psi5, psi6, psi7, &
+      psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, &
@@ -44715,7 +45426,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw5
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmp5, drnh4no3, ik4, molal, nions, &
+      rh, scase, tiny1, waer, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -44768,8 +45480,15 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw5a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk14, xk17, xk19, xk2, xk20, xk3, xk4, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a7, a8, a9, &
+      chi10, chi11, chi13, chi14, chi5, chi6, chi7, chi8, chi9, ik4, psi1, &
+      psi10, psi11, psi12, psi13, psi14, psi15, psi16, psi17, psi5, psi6, &
+      psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, root13, &
@@ -45114,7 +45833,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw4
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drmgno32, drmp4, ik4, molal, nions, &
+      rh, scase, tiny1, waer, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -45167,8 +45887,15 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw4a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk14, xk17, xk19, xk2, xk20, xk3, xk4, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a7, a8, a9, &
+      chi10, chi11, chi13, chi14, chi15, chi5, chi6, chi7, chi8, chi9, ik4, &
+      psi1, psi10, psi11, psi12, psi13, psi14, psi15, psi16, psi17, psi5, &
+      psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, root13, &
@@ -45514,7 +46241,8 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw3
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drcano32, drmp3, ik4, molal, nions, &
+      rh, scase, tiny1, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -45571,8 +46299,15 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw3a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk14, xk17, xk19, xk2, xk20, xk3, xk4, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a7, a8, a9, &
+      chi10, chi11, chi12, chi13, chi14, chi15, chi5, chi6, chi7, chi8, chi9, &
+      ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, psi16, psi17, &
+      psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, &
@@ -45927,7 +46662,9 @@ module mod_che_isorropia
 !
 !
   subroutine calcw2
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccacl2, cmgcl2, drcano32, drmgcl2, &
+      drmgno32, drmp2, drmp3, drmp4, drmp5, drnh4no3, ik4, molal, nions, rh, &
+      scase, tiny1, water, zero
     implicit none
     integer(ik4) :: i
 !
@@ -46006,8 +46743,15 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw2a
-    use mod_che_common_isorropia
-    use mod_che_common_solut
+    use mod_che_common_isorropia, only : calain, calaou, ccacl2, ccano32, &
+      ccaso4, ck2so4, ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cna2so4, cnacl, &
+      cnano3, cnh42s4, cnh4cl, cnh4no3, eps, frst, gama, gasaq, ghcl, ghno3, &
+      gnh3, great, ik4, molal, nsweep, r, rh, rkx, temp, tiny1, waer, water, &
+      xk14, xk17, xk19, xk2, xk20, xk3, xk4, xk8, xk9, xkw, zero
+    use mod_che_common_solut, only : a13, a14, a2, a3, a4, a5, a7, a8, a9, &
+      chi10, chi11, chi12, chi13, chi14, chi15, chi16, chi5, chi6, chi7, &
+      chi8, chi9, ik4, psi1, psi10, psi11, psi12, psi13, psi14, psi15, psi16, &
+      psi17, psi5, psi6, psi7, psi8, psi9, rkx
     implicit none
     real(rkx) :: akw, bb, cc, cli, dd, del, gg, hi, hso4i, &
          ohi, psi13o, psi14o, psi5o, psi7o, psi8o, psi9o, root13, &
@@ -46359,7 +47103,7 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw1
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : drcacl2, drmp1, rh, scase
     implicit none
 !
 ! *** regime depends upon the ambient relative humidity
@@ -46394,7 +47138,9 @@ module mod_che_isorropia
 !======================================================================
 !
   subroutine calcw1a
-    use mod_che_common_isorropia
+    use mod_che_common_isorropia, only : ccacl2, ccano32, ccaso4, ck2so4, &
+      ckcl, ckno3, cmgcl2, cmgno32, cmgso4, cnacl, cnano3, ghcl, ghno3, gnh3, &
+      rkx, waer, water, zero
     implicit none
     real(rkx) :: cafr, clfr, frk, frmg, frna, frno3, so4fr
 !

@@ -20,11 +20,11 @@
 ! rotation restores the input.
 
 program test_projections
-  use mod_intkinds
-  use mod_realkinds
-  use mod_projections
-  use mod_memutil
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_projections, only : anyprojparams, regcm_projection
+  use mod_memutil, only : getmem, memory_destroy, memory_init, relmem
+  use share_test_utils, only : check, test_end
   implicit none
   real(rk8), parameter :: d2r = acos(-1.0_rk8)/180.0_rk8
   call memory_init

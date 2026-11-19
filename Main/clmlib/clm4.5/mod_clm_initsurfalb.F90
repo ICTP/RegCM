@@ -3,10 +3,10 @@ module mod_clm_initsurfalb
   ! Computes initial surface albedo calculation -
   ! Initialization of ecosystem dynamics is needed for this
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_constants, only : degrad
-  use mod_clm_type
+  use mod_clm_type, only : clm3
   use mod_clm_decomp, only : get_proc_bounds
   use mod_clm_filter, only : filter
   use mod_clm_varpar, only : nlevsoi, nlevsno, nlevlak, nlevgrnd
@@ -15,8 +15,8 @@ module mod_clm_initsurfalb
   use mod_clm_fracwet, only : FracWet
   use mod_clm_surfacealbedo, only : SurfaceAlbedo
 #if (defined CN)
-  use mod_stdio
-  use mod_mpmessage
+  use mod_stdio, only : stderr
+  use mod_mpmessage, only : fatal
   use mod_clm_cnecosystemdyn, only : CNEcosystemDyn
   use mod_clm_cnvegstructupdate, only : CNVegStructUpdate
 #else

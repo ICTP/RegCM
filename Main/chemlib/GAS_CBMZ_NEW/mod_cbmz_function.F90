@@ -22,7 +22,7 @@
 
 module mod_cbmz_function
 
-  use mod_cbmz_parameters
+  use mod_cbmz_parameters, only : dp, ik4, nfix, nreact, nvar, rk8
   implicit none
 
   ! a - rate for each equation

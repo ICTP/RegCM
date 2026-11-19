@@ -15,24 +15,30 @@
 
 module mod_cmip7
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_cmip7_helper
-  use mod_message
-  use mod_date
-  use mod_stdio
-  use mod_dynparam
-  use mod_memutil
-  use mod_grid
-  use mod_kdinterp
-  use mod_write
-  use mod_vectutil
-  use mod_mksst
-  use mod_humid
-  use mod_hgt
-  use mod_vertint
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_cmip7_helper, only : cmip7_2d_var, cmip7_3d_var
+  use mod_message, only : die
+  use mod_date, only : rcm_time_and_date, tochar, yeardayfrac, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : cmip7_model, dattyp, dayspy, i_band, i_crm, &
+    idynamic, iy, jx, kz, ptop
+  use mod_memutil, only : getmem
+  use mod_grid, only : dlat, dlon, pa, pjd, pju, pjv, sigmah, tlayer, topogm, &
+    topou, topov, ulat, ulon, vlat, vlon, xlat, xlon, z0, za, zetau, zetav
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator_create, &
+    h_interpolator_destroy
+  use mod_write, only : pd4, ps4, q4, t4, ts4, u4, v4
+  use mod_vectutil, only : crs2dot, ucrs2dot, vcrs2dot
+  use mod_mksst, only : readsst
+  use mod_humid, only : sph2mxr
+  use mod_hgt, only : height, htsig
+  use mod_vertint, only : intgtb, intlin, intlog, intpsn, intv1, intv2, &
+    intv3, intz1, intz3, intzps
   use netcdf
-  use mod_cmip7_ecea
+  use mod_cmip7_ecea, only : read_2d_ecea, read_3d_ecea, read_fx_ecea
 
   implicit none
 

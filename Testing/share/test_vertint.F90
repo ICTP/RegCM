@@ -20,12 +20,12 @@
 ! pressure of a standard atmosphere at any surface height (intzps).
 
 program test_vertint
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_vertint
-  use mod_memutil
-  use share_test_utils
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_constants, only : egrav, lrate, rgas, rk8, rkx
+  use mod_vertint, only : intgtb, intlinreg, intlog, intv2, intv3, intzps
+  use mod_memutil, only : getmem, memory_destroy, memory_init
+  use share_test_utils, only : check, test_end
   implicit none
   integer(ik4), parameter :: km = 8, kp = 5, nk = 12, nz = 7, ng = 6
   real(rk8), parameter :: p0 = 101325.0_rk8

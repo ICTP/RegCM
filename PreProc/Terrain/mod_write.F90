@@ -15,12 +15,17 @@
 
 module mod_write
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_ncstream_types
-  use mod_ncstream
-  use mod_memutil
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : ds, h2ohgt, h2opct, idynamic, iproj, ismthlev, &
+    lakedpth, lresamp, lsmoist, nsg, nsmthbdy, roidem, smthbdy
+  use mod_ncstream_types, only : nc_output_stream, ncattribute_integer, &
+    ncattribute_logical, ncattribute_real8, ncattribute_string, &
+    ncoutstream_params, ncvariable2d_double, ncvariable2d_real, &
+    ncvariable3d_double, ncvariable3d_real
+  use mod_ncstream, only : outstream_addatt, outstream_addvar, &
+    outstream_addvaratt, outstream_dispose, outstream_enable, &
+    outstream_setup, outstream_writevar
   implicit none
 
   private

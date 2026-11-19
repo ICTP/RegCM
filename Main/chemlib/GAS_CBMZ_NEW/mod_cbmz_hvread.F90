@@ -1,7 +1,7 @@
 module mod_cbmz_hvread
 
-  use mod_cbmz_precision
-  use mod_cbmz_jval1
+  use mod_cbmz_precision, only : dp, ik4
+  use mod_cbmz_jval1, only : jvalpro, readhv
   implicit none
 
   integer, public :: c_hvin

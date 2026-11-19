@@ -4,8 +4,8 @@ module mod_clm_cndecomp
   ! Module holding routines used in litter and soil decomposition model
   ! for coupled carbon-nitrogen code.
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_clm_varcon, only : dzsoi_decomp
 #ifndef CENTURY_DECOMP
   use mod_clm_cndecompcascadebgc, only : decomp_rate_constants
@@ -29,7 +29,7 @@ module mod_clm_cndecomp
 
   subroutine CNDecompAlloc(lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
                            num_soilp, filter_soilp)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, decomp_cascade_con
     use mod_clm_cnallocation, only : CNAllocation
     use mod_clm_varpar, only : nlevdecomp, &
       ndecomp_cascade_transitions, ndecomp_pools

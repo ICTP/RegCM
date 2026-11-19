@@ -14,12 +14,12 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_bats_co2
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_bats_param
-  use mod_bats_leaftemp
-  use mod_bats_internal
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_bats_param, only : minsigf
+  use mod_bats_internal, only : d_four, d_half, d_one, d_two, d_zero, dtbat, &
+    fdry, gwmx0, ilndbeg, ilndend, lftra, lftrs, resp, rlai, sigf, ssw, swsi, &
+    tgrd, tlef, xlai, xlsai
 
   implicit none
 

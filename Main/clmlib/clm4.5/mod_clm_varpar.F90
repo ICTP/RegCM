@@ -2,8 +2,8 @@ module mod_clm_varpar
   !
   ! Module containing CLM parameters
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_dynparam, only : num_soil_layers
 
   implicit none

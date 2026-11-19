@@ -3,17 +3,16 @@ module mod_clm_decompinit
   ! Module provides a descomposition into a data structure which can
   ! be mapped back to atmosphere physics chunks.
   !
-  use mod_realkinds
-  use mod_intkinds
-  use mod_memutil
-  use mod_mpmessage
-  use mod_service
-  use mod_stdio
-  use mod_dynparam
-  use mod_mppparam
-  use mod_regcm_types
-  use mod_service
-  use mod_clm_decomp
+  use mod_intkinds, only : ik4
+  use mod_mpmessage, only : fatal
+#ifdef DEBUG
+  use mod_service, only : ndebug
+#endif
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : myid, nproc
+  use mod_mppparam, only : allgather_i, italk, lndcomm, sumall
+  use mod_clm_decomp, only : gcomm_column, gcomm_gridcell, gcomm_landunit, &
+    gcomm_pft, ldecomp, numc, numg, numl, nump, procinfo
   use mod_clm_subgrid, only : subgrid_get_gcellinfo
   use mpi_f08
 

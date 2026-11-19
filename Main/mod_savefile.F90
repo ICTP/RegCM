@@ -16,20 +16,30 @@
 module mod_savefile
 
   use mod_nchelper, only : regcm_vartype
-  use mod_intkinds
-  use mod_realkinds
-  use mod_date
-  use mod_stdio
-  use mod_dynparam
-  use mod_runparams
-  use mod_mpmessage
-  use mod_mppparam
-  use mod_memutil
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk16, rk4, rk8, rkx
+  use mod_date, only : c10wcal, rcm_time_and_date, tochar, tochar10, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_stdio, only : stderr, stdout
+  use mod_dynparam, only : debug_level, dirout, domname, ical, ice1, ice2, &
+    ici1, ici2, icross1, icross2, ide1, ide2, idot1, idot2, idynamic, jce1, &
+    jce2, jci1, jci2, jcross1, jcross2, jde1, jde2, jdot1, jdot2, kz, kzp1, &
+    myid, ncfilter, ncfilter_nparams, ncfilter_params, ndpmax, nnsg, ntr, &
+    num_soil_layers, prestr, pthsep
+  use mod_runparams, only : declin, do_parallel_save, do_restore_sst, &
+    iaerosol, ibltyp, ichdrdepo, ichecold, ichem, iclimao3, icup, idcsst, &
+    ifupr, iindirect, ioasiscpl, iocncpl, ipptls, irrtm, iseaice, &
+    islab_ocean, iwavcpl, lakemod, nqx, nsplit, rcmtimer, solcon, stepcount
+  use mod_mpmessage, only : fatal
+  use mod_mppparam, only : get_cartcomm, iocpu, ncout_mpi_info
+  use mod_memutil, only : getmem
   use mod_atm_interface, only : tmask
-  use mod_lm_interface
-  use mod_che_interface
-  use mod_che_mppio
-  use mod_massck
+  use mod_che_mppio, only : ccn_io, chia_io, chib_io, chifxuw_io, cra_io, &
+    drydepflx_io, drydepv_io, duflux_io, rainout_io, remdrd_io, sfracb2d_io, &
+    sfracs2d_io, ssw2da_io, svegfrac2d_io, sxlai2d_io, trac_io, voflux_io, &
+    washout_io, wetdepflx_io
+  use mod_massck, only : dryerror, dryini, waterror, watini
 #ifdef ECLM
   use mod_oasis_params, only : oasis_nlevsoi
 #endif

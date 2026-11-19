@@ -15,11 +15,13 @@
 
 module mod_memutil
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_space
-  use mod_message
-  use mod_constants
+  use mod_intkinds, only : ik2, ik4
+  use mod_realkinds, only : rk4, rk8
+  use mod_space, only : bounds, getspc, iarr1d, iarr2d, iarr3d, iarr4d, &
+    iarr5d, larr1d, larr2d, larr3d, larr4d, larr5d, r4arr1d, r4arr2d, &
+    r4arr3d, r4arr4d, r4arr5d, r8arr1d, r8arr2d, r8arr3d, r8arr4d, r8arr5d, &
+    rtarr1d, sarr1d, sarr2d, sarr3d, sarr4d, sarr5d
+  use mod_message, only : checkalloc
   use mod_date, only : rcm_time_and_date
 
   implicit none

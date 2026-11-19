@@ -2,11 +2,9 @@ module mod_clm_activelayer
   !
   ! Module holding routines for calculation of active layer dynamics
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_runparams
-  use mod_date
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_constants, only : d_zero, tzero
   use mod_clm_type, only : clm3
   use mod_clm_varpar, only : nlevgrnd
   use mod_clm_varcon, only : zsoi

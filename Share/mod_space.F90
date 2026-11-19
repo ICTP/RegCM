@@ -15,8 +15,8 @@
 
 module mod_space
 
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik2, ik4
+  use mod_realkinds, only : rk4, rk8
   use mod_date, only : rcm_time_and_date
 
   implicit none

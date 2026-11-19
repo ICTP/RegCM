@@ -15,7 +15,7 @@
 
   subroutine myabort
     use mod_dynparam, only : mycomm
-    use mod_intkinds
+    use mod_intkinds, only : ik4
     use mpi_f08
     implicit none
     integer(ik4) :: ierr, myid

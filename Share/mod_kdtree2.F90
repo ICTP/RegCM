@@ -99,10 +99,11 @@
 
 module mod_kdtree2
 
-  use mod_realkinds
-  use mod_stdio
-  use mod_message
-  use mod_kdtree2_priority
+  use mod_realkinds, only : rk4, rk8
+  use mod_stdio, only : stderr
+  use mod_message, only : die
+  use mod_kdtree2_priority, only : kdtree2_result, pq, pq_create, pq_insert, &
+    pq_replace_max
 
   implicit none
 

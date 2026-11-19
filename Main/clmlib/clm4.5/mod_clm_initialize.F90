@@ -2,18 +2,15 @@ module mod_clm_initialize
   !
   ! Performs land model initialization
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   use mod_runparams, only : rcmtimer, dtsrf, ichecold
   use mod_runparams, only : eccen, mvelpp, lambm0, obliqr
-  use mod_date
-  use mod_stdio
-  use mod_sunorbit
-  use mod_mpmessage
-  use mod_mppparam
-  use mod_dynparam
-  use mod_regcm_types
-  use mod_clm_nchelper
+  use mod_stdio, only : stderr, stdout
+  use mod_sunorbit, only : orb_decl
+  use mod_mpmessage, only : fatal
+  use mod_mppparam, only : italk, lndcomm
+  use mod_dynparam, only : myid
   use mod_clm_varctl, only : nsrest, nsrStartup, nsrContinue, &
           fsurdat, fatmlndfrc, noland, finidat,   &
           version, atm_regcm, DoForceRestart
@@ -28,7 +25,8 @@ module mod_clm_initialize
   use mod_clm_surfrd, only : surfrd_get_grid, surfrd_get_data
   use mod_clm_control, only : control_init, control_print
   use mod_clm_urbaninput, only : UrbanInput
-  use mod_clm_atmlnd
+  use mod_clm_atmlnd, only : adomain, clm_a2l, clm_l2a, clm_map2gcell, &
+    init_atm2lnd_type, init_lnd2atm_type
   use mod_clm_initgridcells, only : initGridCells
   use mod_clm_filter, only : allocFilters
   use mod_clm_reweight, only : reweightWrapup

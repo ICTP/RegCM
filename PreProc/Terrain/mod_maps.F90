@@ -15,9 +15,9 @@
 
 module mod_maps
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_memutil
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_memutil, only : getmem, memory_destroy, memory_init, relmem
   implicit none
 
   public

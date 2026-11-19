@@ -15,20 +15,37 @@
 
 module mod_ch_icbc
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
-  use mod_dynparam
-  use mod_constants
-  use mod_grid
-  use mod_wrtoxd
-  use mod_kdinterp
-  use mod_date
-  use mod_memutil
-  use mod_message
-  use mod_nchelper
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_stdio, only : stdout
+  use mod_dynparam, only : dirglob, domname, globidate1, inpglob, iy, jx, kz, &
+    pthsep, ptop
+  use mod_constants, only : amd, d_zero, lrate, regrav, rgas
+  use mod_grid, only : sigmah, xlat, xlon
+  use mod_wrtoxd, only : chspec, chv4, nchsp, write_ch_icbc
+  use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
+    h_interpolator_create, h_interpolator_destroy
+  use mod_date, only : lsamemonth, rcm_time_and_date, rcm_time_interval, &
+    split_idate, timeval2date, tochar, tochar10, tohours, assignment(=), &
+    operator(+), operator(-), operator(/=), operator(<), operator(<=), &
+    operator(==), operator(>), operator(>=)
+  use mod_memutil, only : getmem
+  use mod_nchelper, only : checkncerr
   use netcdf
-  use mod_ch_param
+  use mod_ch_param, only : cb_ald2, cb_aone, cb_c2h6, cb_ch3oh, cb_ch3ooh, &
+    cb_ch4, cb_co, cb_cres, cb_dms, cb_eth, cb_ethooh, cb_h2o2, cb_h2so4, &
+    cb_hcho, cb_hno3, cb_hno4, cb_isop, cb_isopn, cb_isoprd, cb_mgly, &
+    cb_n2o5, cb_no, cb_no2, cb_o3, cb_olei, cb_olet, cb_onit, cb_open, &
+    cb_pan, cb_par, cb_so2, cb_tol, cb_xyl, mz_bigald, mz_bigalk, mz_bigene, &
+    mz_c2h4, mz_c2h5ooh, mz_c2h6, mz_c3h6, mz_c3h8, mz_ch2o, mz_ch3cho, &
+    mz_ch3coch3, mz_ch3cocho, mz_ch3oh, mz_ch3ooh, mz_ch4, mz_co, mz_cresol, &
+    mz_dms, mz_glyald, mz_h2o2, mz_hno3, mz_ho2no2, mz_hyac, mz_hydrald, &
+    mz_isop, mz_isopno3, mz_macr, mz_mek, mz_mvk, mz_n2o5, mz_no, mz_no2, &
+    mz_o3, mz_onit, mz_onitr, mz_pan, mz_so2, mz_so4, mz_toluene, w_ald2, &
+    w_aone, w_c2h6, w_ch3oh, w_ch3ooh, w_ch4, w_co, w_cres, w_dms, w_eth, &
+    w_ethooh, w_h2o2, w_h2so4, w_hcho, w_hno3, w_hno4, w_isop, w_isopn, &
+    w_isoprd, w_mgly, w_n2o5, w_no, w_no2, w_o3, w_olei, w_olet, w_onit, &
+    w_open, w_pan, w_par, w_so2, w_tol, w_xyl
   implicit none
 
   private

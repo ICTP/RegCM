@@ -2,8 +2,8 @@ module mod_clm_varsur
   !
   ! Module containing 2-d surface boundary data information
   !
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
 
   implicit none
 

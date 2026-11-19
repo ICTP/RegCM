@@ -15,25 +15,30 @@
 
 module mod_che_bdyco
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_date
-  use mod_memutil
-  use mod_nhinterp
-  use mod_mppparam
-  use mod_runparams
-  use mod_service
-  use mod_mpmessage
-  use mod_che_common
-  use mod_che_mppio
-  use mod_che_ncio
-  use mod_che_species
-  use mod_che_indices
-  use mod_che_emission
-  use mod_mppparam
-  use mod_zita
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rkx
+  use mod_dynparam, only : bdy_dm, bdy_nm, globidate1, ice1, ice2, ici1, &
+    ici2, ide1, ide1ga, ide2, ide2ga, idi1, idi2, idynamic, jce1, jce2, jci1, &
+    jci2, jde1, jde1ga, jde2, jde2ga, jdi1, jdi2, kz, myid, nspgx, ntr
+  use mod_constants, only : d_four, d_zero
+  use mod_date, only : monfirst, rcm_time_and_date, split_idate, tochar, &
+    tochar10, assignment(=), operator(+), operator(-), operator(/=), &
+    operator(<), operator(<=), operator(==), operator(>), operator(>=)
+  use mod_memutil, only : getmem
+  use mod_nhinterp, only : nhinterp
+  use mod_mppparam, only : exchange, italk, ma
+  use mod_runparams, only : dt, dt2, dtbdys, exponential_nudging, hsigma, &
+    ichebdy, ichsursrc, idate1, ifrest, intbdy, ioxclim, rcmtimer, &
+    relax_coefficients, sigma, xbctime
+#ifdef DEBUG
+  use mod_service, only : dbgslen, time_begin, time_end
+#endif
+  use mod_mpmessage, only : fatal
+  use mod_che_common, only : bndp0, bndp1, chemt, chia, chib, cps0, cza, &
+    psbb0, psbb1, stdout, tvirt0, tvirt1
+  use mod_che_ncio, only : chbc_search, open_chbc, read_chbc
+  use mod_che_emission, only : chem_emission
+  use mod_zita, only : zita_interp
 
   implicit none
 

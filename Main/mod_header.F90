@@ -15,14 +15,12 @@
 
 module mod_header
 
-  use mod_intkinds
-  use mod_realkinds
-  use mod_constants
-  use mod_mppparam
-  use mod_date
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk4, rkx
+  use mod_mppparam, only : iocpu
   use mod_dynparam, only : nproc
   use mod_posix, only : hostname
-  use mod_stdio
+  use mod_stdio, only : stderr, stdout
 
   implicit none
 

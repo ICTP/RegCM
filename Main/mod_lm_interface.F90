@@ -17,27 +17,60 @@ module mod_lm_interface
 !
 ! Link surface and atmospheric models
 !
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
-  use mod_regcm_types
-  use mod_outvars
-  use mod_constants
-  use mod_mppparam
-  use mod_mpmessage
-  use mod_service
-  use mod_bats_common
-  use mod_ocn_common
-  use mod_stdio
-  use mod_slabocean
-  use mod_heatindex
+  use mod_dynparam, only : ice1, ice1ga, ice2, ice2ga, ici1, ici2, ifatm, &
+    iflak, ifshf, ifsrf, ifsts, ifsub, jce1, jce1ga, jce2, jce2ga, jci1, &
+    jci2, kz, myid, ndpmax, nnsg, ntr, num_soil_layers
+  use mod_runparams, only : alarm_out_atm, alarm_out_srf, dtsrf, ichem, icup, &
+    idcsst, iocncpl, ipptls, iqv, irceideal, iseaice, islab_ocean, iwavcpl, &
+    lakemod, rcmtimer, rhmax, rhmin, rnsrf_for_day, rnsrf_for_lakfrq, &
+    rnsrf_for_srffrq, rnsrf_for_subfrq, syncro_cpl, syncro_srf, xslabtime
+  use mod_memutil, only : assignpnt, getmem
+  use mod_regcm_types, only : exp_data, ik4, imp_data, lm_exchange, lm_state, &
+    rk8, rkx
+  use mod_outvars, only : atm_mrso_out, atm_smw_out, atm_snw_out, &
+    atm_tgb_out, atm_tsoil_out, lak_aldifs_out, lak_aldirs_out, lak_evp_out, &
+    lak_fld_out, lak_flw_out, lak_fsw_out, lak_ice_out, lak_scv_out, &
+    lak_sena_out, lak_sina_out, lak_tg_out, lak_tlake_out, lak_tpr_out, &
+    shf_pcpavg_out, shf_pcpmax_out, shf_pcprcv_out, shf_t2m_out, &
+    shf_twetb_out, srf_aldifs_out, srf_aldirs_out, srf_evp_out, &
+    srf_evpot_out, srf_fld_out, srf_flw_out, srf_fsw_out, srf_grau_out, &
+    srf_hail_out, srf_hfso_out, srf_htindx_out, srf_lena_out, srf_mrsos_out, &
+    srf_mslp_out, srf_pcpmax_out, srf_prcv_out, srf_q2m_out, srf_rh2m_out, &
+    srf_rhoa_out, srf_scv_out, srf_seaice_out, srf_sena_out, srf_sina_out, &
+    srf_smw_out, srf_snow_out, srf_snowmelt_out, srf_srunoff_out, &
+    srf_sund_out, srf_t2m_out, srf_taux_out, srf_tauy_out, srf_tg_out, &
+    srf_tlef_out, srf_totcf_out, srf_tpr_out, srf_trunoff_out, srf_tsoil_out, &
+    srf_twetb_out, srf_u10m_out, srf_ustar_out, srf_uvdrag_out, srf_v10m_out, &
+    srf_zo_out, srf_zpbl_out, sts_pcpavg_out, sts_pcpmax_out, sts_psavg_out, &
+    sts_psmin_out, sts_srunoff_out, sts_sund_out, sts_t2avg_out, &
+    sts_t2max_out, sts_t2min_out, sts_tgmax_out, sts_tgmin_out, &
+    sts_trunoff_out, sts_w10max_out, sts_wsgsmax_out, sub_evp_out, &
+    sub_ps_out, sub_q2m_out, sub_scv_out, sub_sena_out, sub_smw_out, &
+    sub_srunoff_out, sub_t2m_out, sub_tg_out, sub_tlef_out, sub_trunoff_out, &
+    sub_u10m_out, sub_uvdrag_out, sub_v10m_out
+  use mod_constants, only : d_100, d_half, d_one, d_r10, d_rfour, d_zero, &
+    dmissval, egrav, ep2, iceminh, lrate, regrav, rgas, rsecpd, rsqrt2, &
+    rtice, rtwat, rtwat_rtice_r, rwat, twopi, tzero, vonkar, wlhs, wlhv
+  use mod_mppparam, only : cl_setup, exchange, lndcomm, ma, maxall, minall, &
+    ocncomm, reorder_add_subgrid, reorder_subgrid
+  use mod_mpmessage, only : fatal
+#ifdef DEBUG
+  use mod_service, only : ndebug
+#endif
+  use mod_bats_common, only : albedobats, allocate_mod_bats_internal, dtbat, &
+    initbats, rdnnsg, vecbats
+  use mod_ocn_common, only : albedoocn, allocate_mod_ocn_internal, initocn, &
+    lcoup, ldcsst, llake, lseaice, vecocn
+  use mod_stdio, only : stderr
+  use mod_slabocean, only : update_slabocean
+  use mod_heatindex, only : heatindex
   use mod_rad_outrad, only : accumulate_rad_fluxes
 #ifdef ECLM
   use mod_oasis_params, only : oasis_nlevsoi, oasis_ndust
 #endif
 
 #ifdef CLM45
-  use mod_clm_regcm
+  use mod_clm_regcm, only : albedoclm45, initclm45, runclm45
 #endif
 
   implicit none
@@ -172,8 +205,15 @@ module mod_lm_interface
   end subroutine allocate_surface_model
 
   subroutine init_surface_model
-    use mod_atm_interface
-    use mod_che_interface
+    use mod_atm_interface, only : albvl, albvs, aldifl, aldifs, aldirl, &
+      aldirs, atms, coszrs, cplmsk, drydepflx, emiss, flw, flwd, fsw, mddom, &
+      mdsub, pptc, pptnc, sabveg, sdelq, sdelt, sfracb2d, sfracs2d, sfracv2d, &
+      sfs, sinc, solis, solvl, solvld, solvs, solvsd, sptc, ssw2da, &
+      svegfrac2d, sxlai2d, totcf, wetdepflx, zpbl
+#if defined(CLM45) || defined(ECLM)
+    use mod_atm_interface, only : sw_vol, tsoi
+#endif
+    use mod_che_interface, only : cra, idust
     implicit none
 
 #ifndef ECLM
@@ -593,7 +633,7 @@ module mod_lm_interface
   end subroutine export_data_from_surface
 !
   subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
-    use mod_atm_interface
+    use mod_atm_interface, only : cplmsk
     implicit none
     type(imp_data), intent(in) :: impfie
     real(rkx), intent(in) :: tol

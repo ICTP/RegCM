@@ -1,6 +1,6 @@
 module mod_clm_h2osfc
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
   !
   ! Calculate surface water hydrology
   !
@@ -22,7 +22,7 @@ module mod_clm_h2osfc
   ! based on surface microtopography and surface water storage.
   !
   subroutine FracH2oSfc(lbc,ubc,num_h2osfc,filter_h2osfc,frac_h2osfc)
-    use mod_clm_type
+    use mod_clm_type, only : clm3
     use mod_clm_varcon, only : rpi, istsoil, istcrop
     implicit none
     integer(ik4), intent(in) :: lbc, ubc   ! column bounds

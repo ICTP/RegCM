@@ -3,9 +3,9 @@ module mod_clm_cncstateupdate1
   !
   ! Module for carbon state variable update, non-mortality fluxes.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_mpmessage
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8
+  use mod_mpmessage, only : fatal
   use mod_runparams, only : dtsrf
   use mod_clm_varpar, only : ndecomp_cascade_transitions, nlevdecomp
 
@@ -23,7 +23,7 @@ module mod_clm_cncstateupdate1
   ! On the radiation time step, update cpool carbon state
   !
   subroutine CStateUpdate0(num_soilp, filter_soilp, isotope)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, pft_cflux_type, pft_cstate_type
     implicit none
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -78,7 +78,8 @@ module mod_clm_cncstateupdate1
   !
   subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, &
                            filter_soilp, isotope)
-    use mod_clm_type
+    use mod_clm_type, only : clm3, column_cflux_type, column_cstate_type, &
+      decomp_cascade_con, pft_cflux_type, pft_cstate_type, pftcon
     use mod_clm_varpar, only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
     use mod_clm_pftvarcon, only : npcropmin
     implicit none

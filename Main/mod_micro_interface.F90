@@ -15,27 +15,31 @@
 
 module mod_micro_interface
 
-  use mod_realkinds
-  use mod_service
-  use mod_stdio
-  use mod_constants
-  use mod_dynparam
-  use mod_memutil
-  use mod_mppparam
-  use mod_regcm_types
-  use mod_runparams
-  use mod_micro_nogtom
-  use mod_micro_subex
-  use mod_micro_wsm5
-  use mod_micro_wsm7
-  use mod_micro_wdm7
-  use mod_cloud_subex
-  use mod_cloud_xuran
-  use mod_cloud_thomp
-  use mod_cloud_guli2007
-  use mod_cloud_texeira
-  use mod_cloud_tompkins
-  use mod_cloud_echam5
+  use mod_realkinds, only : rk8, rkx
+  use mod_stdio, only : stderr, stdout
+  use mod_constants, only : cpd, cpv, d_1000, d_one, d_zero, dlowval, ep2, &
+    lowcld, minqq, rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhs, wlhv
+  use mod_dynparam, only : ds, ici1, ici2, idynamic, jci1, jci2, kz, myid, &
+    ptop
+  use mod_memutil, only : assignpnt, getmem
+  use mod_mppparam, only : italk
+  use mod_regcm_types, only : ik4, micro_2_mod, mod_2_micro, nogtom_stats
+  use mod_runparams, only : conf, dt, hsigma, iaerosol, ichem, icldfrac, &
+    icldmstrat, iconvlwp, icup, idiag, iindirect, ipptls, iqc, iqi, iqr, iqs, &
+    iqv, pc_physic, pc_total, rcmtimer, rhmax, rhmin, stats, tc0
+  use mod_micro_nogtom, only : allocate_mod_nogtom, init_nogtom, nogtom
+  use mod_micro_subex, only : allocate_subex, caccr, cevap, cgul, init_subex, &
+    qck1, subex, xcevap
+  use mod_micro_wsm5, only : allocate_mod_wsm5, init_wsm5, wsm5
+  use mod_micro_wsm7, only : allocate_mod_wsm7, init_wsm7, wsm7
+  use mod_micro_wdm7, only : allocate_mod_wdm7, init_wdm7, wdm7
+  use mod_cloud_subex, only : subex_cldfrac
+  use mod_cloud_xuran, only : xuran_cldfrac
+  use mod_cloud_thomp, only : thomp_cldfrac
+  use mod_cloud_guli2007, only : gulisa_cldfrac
+  use mod_cloud_texeira, only : texeira_cldfrac
+  use mod_cloud_tompkins, only : tompkins_cldfrac
+  use mod_cloud_echam5, only : echam5_cldfrac
 
   implicit none
 
@@ -133,8 +137,8 @@ module mod_micro_interface
   end subroutine allocate_micro
 
   subroutine init_micro
-    use mod_atm_interface
-    use mod_che_interface
+    use mod_atm_interface, only : aten, atms, ccn, fcc, heatrt, mddom, &
+      mo_atm, ncrrate, pptnc, q_detr, qdiag, rain_ls, rembc, remrat, sfs
     implicit none
 
     call assignpnt(mddom%ldmsk,mo2mc%ldmsk)

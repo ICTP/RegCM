@@ -15,7 +15,7 @@
 
 #ifdef PNETCDF
 subroutine myabort
-  use mod_stdio
+  use mod_stdio, only : stderr
   use mpi_f08
   implicit none
   integer :: ierr
@@ -30,21 +30,26 @@ end subroutine myabort
 #endif
 
 program pgw_icbc
-  use mod_intkinds
-  use mod_realkinds
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
   use mod_dynparam, only : npgwlev, mo_lcap
-  use mod_message
-  use mod_header
-  use mod_stdio
-  use mod_memutil
-  use mod_date
-  use mod_date
+  use mod_message, only : die
+  use mod_header, only : finaltime, header, ik4, stderr, stdout
+  use mod_stdio, only : stderr, stdout
+  use mod_memutil, only : getmem, memory_destroy, memory_init
+  use mod_date, only : rcm_time_and_date, split_idate, timeval2date, tochar, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
+  use mod_date, only : rcm_time_and_date, split_idate, timeval2date, tochar, &
+    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
+    operator(<=), operator(==), operator(>), operator(>=)
   use netcdf
-  use mod_vertint
-  use mod_vectutil
-  use mod_constants
-  use mod_zita
-  use mod_wavelet
+  use mod_vertint, only : intlinreg, intv1
+  use mod_vectutil, only : crs2dot
+  use mod_constants, only : cpd, cpovr, d_four, d_one, d_two, egrav, ep1, &
+    govcp, lrate, p00, regrav, rgas, rk8, rkx, rovcp
+  use mod_zita, only : md_zeta_h, model_zitah
+  use mod_wavelet, only : wavelet_denoise
 #ifdef PNETCDF
   use mpi_f08
 #endif
