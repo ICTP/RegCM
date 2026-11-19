@@ -40,6 +40,7 @@ scm_coupled_LDADD = $(CUMLIBPTH)/libcum.a $(PBLLIBPTH)/libpbl.a \
                     $(CLDLIBPTH)/libcloud.a $(RADLIBPTH)/librad.a \
                     $(RADLIBPTH)/RRTMG/librrtmg.a \
                     $(REGCM_ROOT)/external/libaerosol.a \
+                    $(REGCM_ROOT)/external/libcosp.a \
                     $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)
 scm_ocean_SOURCES = scm_ocean.F90
 scm_ocean_LDADD = $(OCNLIBPTH)/libocn.a $(MPPLIBPTH)/libmpp.a $(OMPFLAGS)
