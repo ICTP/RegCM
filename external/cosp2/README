@@ -1,0 +1,13 @@
+COSP2, the CFMIP Observation Simulator Package version 2
+(https://github.com/CFMIP/COSPv2.0, BSD 3-clause license, see the header
+of each file). Commit in COSP2_VERSION.
+
+Only the files needed by RegCM are here, flattened in one directory:
+src/ and src/simulator/ (RTTOV as stubs), model-interface/, and from
+subsample_and_optics_example/ the subcolumn generator (scops.F90,
+mo_rng.F90) and the optics routines (cosp_optics.F90).
+
+Local change: cosp_kinds.F90 sets wp = dp (double precision).
+
+The model calls the ISCCP and MODIS simulators with icosp = 1
+(Main/radlib/mod_rad_cosp.F90).
