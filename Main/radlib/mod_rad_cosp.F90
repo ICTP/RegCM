@@ -101,10 +101,14 @@ module mod_rad_cosp
     cwgt(:,:,:) = 0.0_rk8
     lrttov = .false.
     micro_scheme = 'MMF_v3_single_moment'
-    ! ISCCP and MODIS only; ISCCP cloud top from the 10.5 micron
-    ! brightness temperature (1), lowest level of that temperature (2)
+    ! ISCCP and MODIS only; cloud top from the 10.5 micron brightness
+    ! temperature (1), at the lowest level of that temperature (1): under
+    ! a subsidence inversion the highest level (2) would place the
+    ! boundary layer clouds in the free troposphere, while the MODIS
+    ! Collection 6 retrieval places the marine low clouds at the
+    ! inversion (lapse rate method).
     call cosp_init(.true.,.true.,.false.,.false.,.false.,.false.,  &
-                   .false.,.false.,lrttov,94.0_wp,-1.0_wp,0,0,1,2,0, &
+                   .false.,.false.,lrttov,94.0_wp,-1.0_wp,0,0,1,1,0, &
                    rcfg,.false.,.false.,0,kz,micro_scheme,0,         &
                    rttov_namelists,rttov_configs)
     ! ISCCP subcolumn cloud top pressure and optical depth, used by MODIS
