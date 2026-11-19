@@ -27,7 +27,9 @@ cartopy for coastlines on the maps (optional). No ESMF is needed.
   fraction on the common grid), and land-only (or ocean-only) datasets are
   compared only where they have data.
 * **Statistics.** For every variable, season, region, run and reference:
-  area weighted means, bias, RMSE and pattern correlation.
+  area weighted means, bias, RMSE and pattern correlation, with the number
+  of cells of the comparison; no correlation is given for less than 10
+  cells (a small region on the grid of a coarse reference).
 * **Cache.** Every intermediate result is stored under a key made of the
   source files (path, size, modification time), the period, the variable,
   the grids and the code of the package. A new model output, a changed

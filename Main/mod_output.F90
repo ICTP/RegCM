@@ -34,6 +34,7 @@ module mod_output
   use mod_che_output
   use mod_lm_interface
   use mod_rad_interface
+  use mod_rad_cosp, only : cosp_output
   use mod_cu_interface
   use mod_pbl_interface
   use mod_micro_interface
@@ -116,7 +117,7 @@ module mod_output
     logical :: lstartup
     logical :: lasync_batch
     integer(ik4) :: i, j, k, n, kk, itr
-    real(rkx) :: cell, srffac, radfac, lakfac, subfac, optfac, stsfac
+    real(rkx) :: srffac, radfac, lakfac, subfac, optfac, stsfac
     real(rkx) :: wmass, rtot, wv, wl, wi
     logical, save :: diag_hf_started = .false.
 #ifdef DEBUG
@@ -498,63 +499,6 @@ module mod_output
                      pfwsats(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
             end do
           end if
-        end if
-        if ( associated(atm_pf_out) ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            atm_pf_out(j,i,k) = atms%pf3d(j,i,k)
-          end do
-        end if
-        if ( idynamic == 1 ) then
-          if ( associated(atm_ph_out) ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              atm_ph_out(j,i,k) = (sigma(k)*sfs%psa(j,i)+ptop)*d_1000
-            end do
-          end if
-          if ( associated(atm_zh_out) ) then
-            do i = ici1, ici2
-              do j = jci1, jci2
-                cell = ptop / sfs%psa(j,i)
-                atm_zh_out(j,i,kz) = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
-                     log((sigma(kzp1)+cell)/(sigma(kz)+cell))
-                do k = kz-1, 1, -1
-                  atm_zh_out(j,i,k) = atms%zq(j,i,k+1) +&
-                      rovg * atm1%t(j,i,k)/sfs%psa(j,i) *  &
-                        log((sigma(k+1)+cell)/(sigma(k)+cell))
-                end do
-              end do
-            end do
-          end if
-        else if ( idynamic == 2 ) then
-          if ( associated(atm_ph_out) ) then
-            !$acc kernels
-            atm_ph_out(:,:,1) = ptop*d_1000
-            !$acc end kernels
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-              atm_ph_out(j,i,k) = atm0%pf(j,i,k) + &
-                       d_half*(atm1%pp(j,i,k-1)+atm1%pp(j,i,k))/sfs%psa(j,i)
-            end do
-          end if
-          if ( associated(atm_zh_out) ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              atm_zh_out(j,i,k) = atms%za(j,i,k)
-            end do
-          end if
-        else if ( idynamic == 3 ) then
-          if ( associated(atm_ph_out) ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              atm_ph_out(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
-            end do
-          end if
-          if ( associated(atm_zh_out) ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              atm_zh_out(j,i,k) = mo_atm%zeta(j,i,k)
-            end do
-          end if
-        end if
-        if ( associated(atm_zf_out) ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            atm_zf_out(j,i,k) = atms%zq(j,i,k)
-          end do
         end if
         if ( ipptls == 2 ) then
           if ( associated(atm_rainls_out) ) then
@@ -1711,6 +1655,8 @@ module mod_output
         call mean_rad_out3(rad_qrs_out,radfac)
         call mean_rad_out3(rad_qrl_out,radfac)
         call mean_rad_out3(rad_o3_out,radfac)
+        ! COSP satellite simulator means over the output interval
+        if ( icosp == 1 ) call cosp_output(smissval)
         call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ', rcmtimer%str( )

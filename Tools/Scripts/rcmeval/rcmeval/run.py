@@ -337,12 +337,12 @@ class Evaluation:
                 md.append(f'| {rg} | ' + ' | '.join(cells) + ' |')
             md.append('')
             if stat != 'profile':
-                md += ['| region | run | ref | bias | RMSE | corr |',
-                       '|---|---|---|---|---|---|']
+                md += ['| region | run | ref | bias | RMSE | corr | cells |',
+                       '|---|---|---|---|---|---|---|']
                 for r in rows:
                     md.append(f'| {r["region"]} | {r["run"]} | {r["ref"]} '
                               f'| {r["bias"]:+.2f} | {r["rmse"]:.2f} | '
-                              f'{r["corr"]:.2f} |')
+                              f'{fmt(r["corr"])} | {r["cells"]} |')
                 md.append('')
         with open(os.path.join(self.out, 'report.md'), 'w') as f:
             f.write('\n'.join(md) + '\n')

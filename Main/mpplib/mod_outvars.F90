@@ -61,10 +61,6 @@ module mod_outvars
   real(rkx), dimension(:,:,:), pointer, contiguous :: atm_nc_out => null()
   real(rkx), dimension(:,:,:), pointer, contiguous :: atm_nr_out => null()
   real(rkx), dimension(:,:,:), pointer, contiguous :: atm_rh_out => null()
-  real(rkx), dimension(:,:,:), pointer, contiguous :: atm_zf_out => null()
-  real(rkx), dimension(:,:,:), pointer, contiguous :: atm_zh_out => null()
-  real(rkx), dimension(:,:,:), pointer, contiguous :: atm_pf_out => null()
-  real(rkx), dimension(:,:,:), pointer, contiguous :: atm_ph_out => null()
   real(rkx), dimension(:,:,:), pointer, contiguous :: atm_q_detr_out => null()
   real(rkx), dimension(:,:,:), pointer, contiguous :: atm_rainls_out => null()
   real(rkx), dimension(:,:,:), pointer, contiguous :: atm_raincc_out => null()
@@ -232,6 +228,12 @@ module mod_outvars
   real(rkx), dimension(:,:), pointer, contiguous :: rad_higcl_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: rad_midcl_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: rad_lowcl_out => null()
+  ! COSP satellite simulator fields (icosp = 1), see mod_rad_cosp
+  integer, parameter :: ncospvars = 20
+  type cosp_out_field
+    real(rkx), dimension(:,:), pointer, contiguous :: p => null()
+  end type cosp_out_field
+  type(cosp_out_field), dimension(ncospvars) :: rad_cosp_out
 
   real(rkx), dimension(:,:,:), pointer, contiguous :: rad_pp_out => null()
   real(rkx), dimension(:,:,:), pointer, contiguous :: rad_pai_out => null()

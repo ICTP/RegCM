@@ -70,6 +70,11 @@ def region_mask(lat, lon, land, valid, region):
     return m
 
 
+# Fewest cells of a region for a pattern correlation: with fewer the
+# correlation is noise and is not given.
+MINCORR = 10
+
+
 def compare(model, ref, area, mask):
     """Area weighted means, bias, RMSE and pattern correlation of two fields
     on the same grid over the cells of mask."""
@@ -82,7 +87,7 @@ def compare(model, ref, area, mask):
     ma = float((w * a).sum())
     mb = float((w * b).sum())
     rmse = float(np.sqrt((w * (a - b) ** 2).sum()))
-    if ok.sum() > 2:
+    if ok.sum() >= MINCORR:
         cov = (w * (a - ma) * (b - mb)).sum()
         sa = np.sqrt((w * (a - ma) ** 2).sum())
         sb = np.sqrt((w * (b - mb) ** 2).sum())

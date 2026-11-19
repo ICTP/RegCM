@@ -62,7 +62,7 @@ module mod_ncout
   integer(ik4), parameter :: nbase = 6
 
   integer(ik4), parameter :: natm2dvars = 5 + nbase
-  integer(ik4), parameter :: natm3dvars = 68
+  integer(ik4), parameter :: natm3dvars = 64
   integer(ik4), parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4), parameter :: nshf2dvars = 4 + nbase
@@ -85,7 +85,7 @@ module mod_ncout
   integer(ik4), parameter :: nlak3dvars = 1
   integer(ik4), parameter :: nlakvars = nlak2dvars+nlak3dvars
 
-  integer(ik4), parameter :: nrad2dvars = 16 + nbase
+  integer(ik4), parameter :: nrad2dvars = 16 + nbase + ncospvars
   integer(ik4), parameter :: nrad3dvars = 7
   integer(ik4), parameter :: nrad4dvars = 2
   integer(ik4), parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
@@ -243,56 +243,52 @@ module mod_ncout
   integer(ik4), parameter :: atm_nn           = 16
   integer(ik4), parameter :: atm_nc           = 17
   integer(ik4), parameter :: atm_nr           = 18
-  integer(ik4), parameter :: atm_zf           = 19
-  integer(ik4), parameter :: atm_zh           = 20
-  integer(ik4), parameter :: atm_pf           = 21
-  integer(ik4), parameter :: atm_ph           = 22
-  integer(ik4), parameter :: atm_q_detr       = 23
-  integer(ik4), parameter :: atm_rainls       = 24
-  integer(ik4), parameter :: atm_raincc       = 25
-  integer(ik4), parameter :: atm_tke          = 26
-  integer(ik4), parameter :: atm_kth          = 27
-  integer(ik4), parameter :: atm_kzm          = 28
-  integer(ik4), parameter :: atm_tten_adh     = 29
-  integer(ik4), parameter :: atm_tten_adv     = 30
-  integer(ik4), parameter :: atm_tten_tbl     = 31
-  integer(ik4), parameter :: atm_tten_dif     = 32
-  integer(ik4), parameter :: atm_tten_bdy     = 33
-  integer(ik4), parameter :: atm_tten_con     = 34
-  integer(ik4), parameter :: atm_tten_adi     = 35
-  integer(ik4), parameter :: atm_tten_rad     = 36
-  integer(ik4), parameter :: atm_tten_lsc     = 37
-  integer(ik4), parameter :: atm_qten_adh     = 38
-  integer(ik4), parameter :: atm_qten_adv     = 39
-  integer(ik4), parameter :: atm_qten_tbl     = 40
-  integer(ik4), parameter :: atm_qten_dif     = 41
-  integer(ik4), parameter :: atm_qten_bdy     = 42
-  integer(ik4), parameter :: atm_qten_con     = 43
-  integer(ik4), parameter :: atm_qten_adi     = 44
-  integer(ik4), parameter :: atm_qten_lsc     = 45
-  integer(ik4), parameter :: atm_stats_supw   = 46
-  integer(ik4), parameter :: atm_stats_supc   = 47
-  integer(ik4), parameter :: atm_stats_detw   = 48
-  integer(ik4), parameter :: atm_stats_detc   = 49
-  integer(ik4), parameter :: atm_stats_erow   = 50
-  integer(ik4), parameter :: atm_stats_eroc   = 51
-  integer(ik4), parameter :: atm_stats_evw    = 52
-  integer(ik4), parameter :: atm_stats_evc    = 53
-  integer(ik4), parameter :: atm_stats_con1w  = 54
-  integer(ik4), parameter :: atm_stats_con1c  = 55
-  integer(ik4), parameter :: atm_stats_dep    = 56
-  integer(ik4), parameter :: atm_stats_melt   = 57
-  integer(ik4), parameter :: atm_stats_frz    = 58
-  integer(ik4), parameter :: atm_stats_rainev = 59
-  integer(ik4), parameter :: atm_stats_snowev = 60
-  integer(ik4), parameter :: atm_stats_autocw = 61
-  integer(ik4), parameter :: atm_stats_autocc = 62
-  integer(ik4), parameter :: atm_qcrit        = 63
-  integer(ik4), parameter :: atm_ccnnum       = 64
-  integer(ik4), parameter :: atm_qincl        = 65
-  integer(ik4), parameter :: atm_autoconvr    = 66
-  integer(ik4), parameter :: atm_smw          = 67
-  integer(ik4), parameter :: atm_tsoil        = 68
+  integer(ik4), parameter :: atm_q_detr       = 19
+  integer(ik4), parameter :: atm_rainls       = 20
+  integer(ik4), parameter :: atm_raincc       = 21
+  integer(ik4), parameter :: atm_tke          = 22
+  integer(ik4), parameter :: atm_kth          = 23
+  integer(ik4), parameter :: atm_kzm          = 24
+  integer(ik4), parameter :: atm_tten_adh     = 25
+  integer(ik4), parameter :: atm_tten_adv     = 26
+  integer(ik4), parameter :: atm_tten_tbl     = 27
+  integer(ik4), parameter :: atm_tten_dif     = 28
+  integer(ik4), parameter :: atm_tten_bdy     = 29
+  integer(ik4), parameter :: atm_tten_con     = 30
+  integer(ik4), parameter :: atm_tten_adi     = 31
+  integer(ik4), parameter :: atm_tten_rad     = 32
+  integer(ik4), parameter :: atm_tten_lsc     = 33
+  integer(ik4), parameter :: atm_qten_adh     = 34
+  integer(ik4), parameter :: atm_qten_adv     = 35
+  integer(ik4), parameter :: atm_qten_tbl     = 36
+  integer(ik4), parameter :: atm_qten_dif     = 37
+  integer(ik4), parameter :: atm_qten_bdy     = 38
+  integer(ik4), parameter :: atm_qten_con     = 39
+  integer(ik4), parameter :: atm_qten_adi     = 40
+  integer(ik4), parameter :: atm_qten_lsc     = 41
+  integer(ik4), parameter :: atm_stats_supw   = 42
+  integer(ik4), parameter :: atm_stats_supc   = 43
+  integer(ik4), parameter :: atm_stats_detw   = 44
+  integer(ik4), parameter :: atm_stats_detc   = 45
+  integer(ik4), parameter :: atm_stats_erow   = 46
+  integer(ik4), parameter :: atm_stats_eroc   = 47
+  integer(ik4), parameter :: atm_stats_evw    = 48
+  integer(ik4), parameter :: atm_stats_evc    = 49
+  integer(ik4), parameter :: atm_stats_con1w  = 50
+  integer(ik4), parameter :: atm_stats_con1c  = 51
+  integer(ik4), parameter :: atm_stats_dep    = 52
+  integer(ik4), parameter :: atm_stats_melt   = 53
+  integer(ik4), parameter :: atm_stats_frz    = 54
+  integer(ik4), parameter :: atm_stats_rainev = 55
+  integer(ik4), parameter :: atm_stats_snowev = 56
+  integer(ik4), parameter :: atm_stats_autocw = 57
+  integer(ik4), parameter :: atm_stats_autocc = 58
+  integer(ik4), parameter :: atm_qcrit        = 59
+  integer(ik4), parameter :: atm_ccnnum       = 60
+  integer(ik4), parameter :: atm_qincl        = 61
+  integer(ik4), parameter :: atm_autoconvr    = 62
+  integer(ik4), parameter :: atm_smw          = 63
+  integer(ik4), parameter :: atm_tsoil        = 64
 
   integer(ik4), parameter :: shf_xlon   = 1
   integer(ik4), parameter :: shf_xlat   = 2
@@ -439,6 +435,83 @@ module mod_ncout
   integer(ik4), parameter :: rad_higcl  = 20
   integer(ik4), parameter :: rad_midcl  = 21
   integer(ik4), parameter :: rad_lowcl  = 22
+  ! COSP satellite simulator fields: rad_cosp+1 to rad_cosp+ncospvars
+  integer(ik4), parameter :: rad_cosp   = 22
+  character(len=16), dimension(ncospvars), parameter :: cosp_name = [ &
+    'cltisccp        ', 'pctisccp        ', 'tauisccp        ', &
+    'albisccp        ', 'meantbisccp     ', 'meantbclrisccp  ', &
+    'cltmodis        ', 'clwmodis        ', 'climodis        ', &
+    'clhmodis        ', 'clmmodis        ', 'cllmodis        ', &
+    'tautmodis       ', 'tauwmodis       ', 'tauimodis       ', &
+    'reffclwmodis    ', 'reffclimodis    ', 'pctmodis        ', &
+    'lwpmodis        ', 'iwpmodis        ' ]
+  character(len=8), dimension(ncospvars), parameter :: cosp_unit = [ &
+    '%       ', 'Pa      ', '1       ', '1       ', 'K       ', &
+    'K       ', '%       ', '%       ', '%       ', '%       ', &
+    '%       ', '%       ', '1       ', '1       ', '1       ', &
+    'm       ', 'm       ', 'Pa      ', 'kg m-2  ', 'kg m-2  ' ]
+  character(len=64), dimension(ncospvars), parameter :: cosp_long_name = [ &
+    'ISCCP Total Cloud Fraction                                      ', &
+    'ISCCP Mean Cloud Top Pressure                                   ', &
+    'ISCCP Mean Cloud Optical Depth                                  ', &
+    'ISCCP Mean Cloud Albedo                                         ', &
+    'ISCCP Mean All-sky 10.5 micron Brightness Temperature           ', &
+    'ISCCP Mean Clear-sky 10.5 micron Brightness Temperature         ', &
+    'MODIS Total Cloud Fraction                                      ', &
+    'MODIS Liquid Cloud Fraction                                     ', &
+    'MODIS Ice Cloud Fraction                                        ', &
+    'MODIS High Level Cloud Fraction                                 ', &
+    'MODIS Mid Level Cloud Fraction                                  ', &
+    'MODIS Low Level Cloud Fraction                                  ', &
+    'MODIS Total Cloud Optical Thickness                             ', &
+    'MODIS Liquid Cloud Optical Thickness                            ', &
+    'MODIS Ice Cloud Optical Thickness                               ', &
+    'MODIS Cloud Particle Size (liquid)                              ', &
+    'MODIS Cloud Particle Size (ice)                                 ', &
+    'MODIS Cloud Top Pressure                                        ', &
+    'MODIS Cloud Liquid Water Path                                   ', &
+    'MODIS Cloud Ice Water Path                                      ' ]
+  character(len=80), dimension(ncospvars), parameter :: cosp_std_name = [ &
+    'cloud_area_fraction                                              '// &
+    '               ', &
+    'air_pressure_at_cloud_top                                        '// &
+    '               ', &
+    'atmosphere_optical_thickness_due_to_cloud                        '// &
+    '               ', &
+    'cloud_albedo                                                     '// &
+    '               ', &
+    'toa_brightness_temperature                                       '// &
+    '               ', &
+    'toa_brightness_temperature_assuming_clear_sky                    '// &
+    '               ', &
+    'cloud_area_fraction                                              '// &
+    '               ', &
+    'liquid_water_cloud_area_fraction                                 '// &
+    '               ', &
+    'ice_cloud_area_fraction                                          '// &
+    '               ', &
+    'cloud_area_fraction_in_atmosphere_layer                          '// &
+    '               ', &
+    'cloud_area_fraction_in_atmosphere_layer                          '// &
+    '               ', &
+    'cloud_area_fraction_in_atmosphere_layer                          '// &
+    '               ', &
+    'atmosphere_optical_thickness_due_to_cloud                        '// &
+    '               ', &
+    'atmosphere_optical_thickness_due_to_liquid_water_cloud           '// &
+    '               ', &
+    'atmosphere_optical_thickness_due_to_ice_cloud                    '// &
+    '               ', &
+    'effective_radius_of_cloud_liquid_water_particles                 '// &
+    '               ', &
+    'effective_radius_of_cloud_ice_particles                          '// &
+    '               ', &
+    'air_pressure_at_cloud_top                                        '// &
+    '               ', &
+    'atmosphere_mass_content_of_cloud_liquid_water                    '// &
+    '               ', &
+    'atmosphere_mass_content_of_cloud_ice                             '// &
+    '               ' ]
 
   integer(ik4), parameter :: rad_pp     = 1
   integer(ik4), parameter :: rad_pai    = 2
@@ -789,7 +862,7 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( idiag > 0 .or. icosp == 1 ) then
+        if ( idiag > 0 ) then
           if ( enable_atm2d_vars(atm_tpr) ) then
             call setup_var(v2dvar_atm,atm_tpr,vsize,'pr','kg m-2 s-1', &
               'Precipitation','precipitation_flux',.true., &
@@ -949,7 +1022,7 @@ module mod_ncout
               'mass_fraction_of_cloud_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
-          if ( icosp == 1 .or. idiag > 0 .or. irceideal == 1 ) then
+          if ( idiag > 0 .or. irceideal == 1 ) then
             if ( enable_atm3d_vars(atm_qr) ) then
               call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
                 'Mass Fraction of Rain', &
@@ -1029,7 +1102,7 @@ module mod_ncout
           enable_atm3d_vars(atm_nr) = .false.
         end if
         if ( ipptls == 2 ) then
-          if ( any(icup == 5) .and. icosp == 1 ) then
+          if ( any(icup == 5) .and. idiag > 0 ) then
             if ( enable_atm3d_vars(atm_q_detr) ) then
               call setup_var(v3dvar_atm,atm_q_detr,vsize,'qdetr','kg/m^2', &
                 'Detrainment', 'detrainment',.true.)
@@ -1193,38 +1266,6 @@ module mod_ncout
         else
           enable_atm3d_vars(atm_kth) = .false.
           enable_atm3d_vars(atm_kzm) = .false.
-        end if
-
-        if ( icosp > 0 ) then
-          if ( enable_atm3d_vars(atm_zf) ) then
-            call setup_var(v3dvar_atm,atm_zf,vsize,'zf','m', &
-              'Height at Full Levels', &
-              'height_full_levels',.true.)
-            atm_zf_out => v3dvar_atm(atm_zf)%rval
-          end if
-          if ( enable_atm3d_vars(atm_zh) ) then
-            call setup_var(v3dvar_atm,atm_zh,vsize,'zh','m', &
-              'Height at Half Levels', &
-              'height_half_levels',.true.)
-            atm_zh_out => v3dvar_atm(atm_zh)%rval
-          end if
-          if ( enable_atm3d_vars(atm_pf) ) then
-            call setup_var(v3dvar_atm,atm_pf,vsize,'pf','Pa', &
-              'Pressure at Full Levels', &
-              'pressure_full_levels',.true.)
-            atm_pf_out => v3dvar_atm(atm_pf)%rval
-          end if
-          if ( enable_atm3d_vars(atm_ph) ) then
-            call setup_var(v3dvar_atm,atm_ph,vsize,'ph','Pa', &
-              'Pressure at Half Levels', &
-              'pressure_half_levels',.true.)
-            atm_ph_out => v3dvar_atm(atm_ph)%rval
-          end if
-        else
-          enable_atm3d_vars(atm_zf) = .false.
-          enable_atm3d_vars(atm_zh) = .false.
-          enable_atm3d_vars(atm_pf) = .false.
-          enable_atm3d_vars(atm_ph) = .false.
         end if
 
         if ( idiag > 0 ) then
@@ -2510,6 +2551,21 @@ module mod_ncout
             'cloud_area_fraction_in_atmosphere_layer',.true.,'time: mean')
           rad_lowcl_out => v2dvar_rad(rad_lowcl)%rval
         end if
+        ! COSP ISCCP and MODIS simulators (icosp = 1): day time means,
+        ! cloud properties weighted by the cloud fraction they refer to
+        do i = 1, ncospvars
+          if ( icosp == 1 ) then
+            if ( enable_rad2d_vars(rad_cosp+i) ) then
+              call setup_var(v2dvar_rad,rad_cosp+i,vsize, &
+                trim(cosp_name(i)),trim(cosp_unit(i)),          &
+                trim(cosp_long_name(i)),trim(cosp_std_name(i)), &
+                .true.,'time: mean',l_fill=.true.)
+              rad_cosp_out(i)%p => v2dvar_rad(rad_cosp+i)%rval
+            end if
+          else
+            enable_rad2d_vars(rad_cosp+i) = .false.
+          end if
+        end do
 
         vsize%k2 = kz
         if ( idynamic == 2 ) then
@@ -2567,7 +2623,7 @@ module mod_ncout
         else
           enable_rad3d_vars(rad_o3) = .false.
         end if
-        if ( icosp == 1 ) then
+        if ( idiag > 0 ) then
           if ( enable_rad4d_vars(rad_taucl) ) then
             v4dvar_rad(rad_taucl)%axis = 'xyzS'
             call setup_var(v4dvar_rad,rad_taucl,vsize,'taucl','1', &

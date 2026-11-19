@@ -57,7 +57,7 @@ module mod_cu_em
   real(rkx), pointer, contiguous, dimension(:) :: cbmf, pret, qprime, &
     tprime, wd, elcrit, epmax
   real(rkx), pointer, contiguous, dimension(:,:) :: fq, ft, fu, fv, pcup, &
-    qcup, qscup, tcup, ucup, vcup, zcup, cldfra, phcup, ppcp
+    qcup, qscup, tcup, ucup, vcup, zcup, cldfra, cldwat, phcup, ppcp
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ftra, tra
   integer(ik4), pointer, contiguous, dimension(:) :: iflag, kbase, ktop, &
     imap, jmap, ldmsk
@@ -97,6 +97,7 @@ module mod_cu_em
     call getmem(vcup,1,ncp,1,kz,'emanuel:vcup')
     call getmem(zcup,1,ncp,1,kz,'emanuel:zcup')
     call getmem(cldfra,1,ncp,1,kz,'emanuel:cldfra')
+    call getmem(cldwat,1,ncp,1,kz,'emanuel:cldwat')
     call getmem(ppcp,1,ncp,1,kz,'emanuel:ppcp')
     if ( ichem == 1 ) then
       call getmem(ftra,1,ncp,1,kz,1,ntr,'emanuel:ftra')
@@ -167,6 +168,7 @@ module mod_cu_em
         ft(n,k) = d_zero
         fq(n,k) = d_zero
         cldfra(n,k) = d_zero
+        cldwat(n,k) = d_zero
         ppcp(n,k) = d_zero
       end do
     end do
@@ -220,7 +222,7 @@ module mod_cu_em
 
     call cupeman(nap,kz,ntr,tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup, &
                  iflag,ft,fq,fu,fv,ftra,pret,ppcp,wd,tprime,qprime,   &
-                 cbmf,cldfra,kbase,ktop,elcrit,epmax)
+                 cbmf,cldfra,cldwat,kbase,ktop,elcrit,epmax)
 
     do n = 1, nap
       i = imap(n)
@@ -259,6 +261,7 @@ module mod_cu_em
         do k = 1, kz
           kk = kzp1 - k
           cu_cldfrc(j,i,k) = cldfra(n,kk)
+          cu_cldlwc(j,i,k) = cldwat(n,kk)
         end do
 
         ! Precipitation
@@ -433,8 +436,8 @@ module mod_cu_em
 !   9. Remove dry adiabatic adjustment: regcm has a pbl scheme.
 !
   subroutine cupeman(np,nd,ntra,t,q,qs,u,v,tra,p,ph,iflag,ft,fq,fu,fv,  &
-                     ftra,precip,ppcp,wd,tprime,qprime,cbmf,cldfra,kcb, &
-                     kct,elcrit,epmax)
+                     ftra,precip,ppcp,wd,tprime,qprime,cbmf,cldfra,     &
+                     cldwat,kcb,kct,elcrit,epmax)
     implicit none
     integer(ik4), intent(in) :: np, nd, ntra
     real(rkx), pointer, contiguous, dimension(:), intent(inout) :: cbmf
@@ -447,6 +450,7 @@ module mod_cu_em
     integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: iflag, kcb, kct
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: fq, ft, fu, fv
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: cldfra, ppcp
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: cldwat
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ftra
 
     real(rkx) :: ad, afac, ahmax, ahmin, alt, altem, am,          &
@@ -1190,6 +1194,13 @@ module mod_cu_em
       do i = icb, ict
         cldfra(n,i) = cu_cloud_fraction(iconvcf,ctype,d_half*(m(i)+m(i+1)), &
           zcup(n,i),abs(zcup(n,i+1)-zcup(n,i)),kfac_deep,kfac_shal,k2_const)
+        ! In cloud condensate for radiation [g/m3]: the scheme has no
+        ! updraft velocity, the cloud is the parcel with the condensate
+        ! left by the precipitation, (1-ep)*clw.
+        if ( cldfra(n,i) > d_zero ) then
+          cldwat(n,i) = d_1000 * p(n,i) * d_100 / (rgas*t(n,i)) * &
+            max((d_one-ep(i))*clw(i),d_zero)
+        end if
       end do
       kcb(n) = icb
       kct(n) = ict

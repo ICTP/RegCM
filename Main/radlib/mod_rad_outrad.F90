@@ -273,8 +273,10 @@ module mod_rad_outrad
 
     if ( ifrad ) then
       if ( lout ) then
-        if ( icosp == 1 ) then
+        if ( associated(rad_taucl_out) ) then
           call copy4d1(outtaucl,rad_taucl_out,4)
+        end if
+        if ( associated(rad_tauci_out) ) then
           call copy4d1(outtauci,rad_tauci_out,4)
         end if
       end if

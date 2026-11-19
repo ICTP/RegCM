@@ -36,6 +36,9 @@ module mod_rad_radiation
   private
 
   public :: radctl, radtype, radtables
+  ! Cloud extinction coefficients (visible band 1 for the COSP
+  ! satellite simulators, mod_rad_cosp)
+  public :: abarl, bbarl, abari, bbari
 
   type radtype
     integer(ik4) :: n1, n2

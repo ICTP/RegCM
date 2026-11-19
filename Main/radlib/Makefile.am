@@ -29,6 +29,7 @@ NOOPTFC += -I$(MPP_INCLUDE) -I$(REGCM_ROOT)/external
 noinst_LIBRARIES = librad.a
 if RRTM_NC
 librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
+  mod_rad_cosp.F90 \
   mod_rad_common.F90 mod_rad_radiation.F90 mod_rad_tracer.F90 \
   mod_rad_aerosol.F90 mod_atm_msis.F90 mod_rrtmg_driver.F90 \
   rrtmg_sw_cldprmc.F90 rrtmg_sw_read_nc.F90 rrtmg_sw_spcvmc.F90 \
@@ -42,6 +43,7 @@ librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
   rrtmg_lw_cldprmc.F90 rrtmg_lw_read_nc.F90 rrtmg_lw_rtrnmr.F90
 else
 librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
+  mod_rad_cosp.F90 \
   mod_rad_common.F90 mod_rad_radiation.F90 mod_rad_tracer.F90 \
   mod_rad_aerosol.F90 mod_atm_msis.F90 mod_rrtmg_driver.F90 \
   rrtmg_sw_cldprmc.F90 rrtmg_sw_k_g.F90 rrtmg_sw_spcvmc.F90 \
@@ -75,6 +77,7 @@ mod_atm_msis.o : mod_atm_msis.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_rad_aerosol.o : mod_rad_aerosol.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_regcm_types.o mod_runparams.o mod_constants.o mod_memutil.o mod_mpmessage.o mod_rad_common.o mod_mppparam.o mod_nhinterp.o mod_zita.o mo_simple_plumes.o mod_date.o mod_stdio.o mod_ncstream.o
 mod_rad_colmod3.o : mod_rad_colmod3.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_service.o mod_runparams.o mod_rad_radiation.o mod_rad_common.o mod_rad_outrad.o mod_rrtmg_driver.o mod_rad_aerosol.o mod_regcm_types.o
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
+mod_rad_cosp.o : mod_rad_cosp.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_message.o mod_memutil.o mod_mppparam.o mod_runparams.o mod_outvars.o mod_regcm_types.o mod_rad_common.o mod_rad_radiation.o cosp.o cosp_kinds.o cosp_config.o cosp_stats.o cosp_rttov_utilSTUB.o scops.o mo_rng.o cosp_optics.o
 mod_rad_common.o : mod_rad_common.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o
 mod_rad_o3blk.o : mod_rad_o3blk.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o mod_kdinterp.o mod_vertint.o mod_mppparam.o mod_mpmessage.o mod_dynparam.o mod_memutil.o mod_rad_common.o mod_stdio.o mod_runparams.o mod_regcm_types.o mod_ncstream.o
 mod_rad_outrad.o : mod_rad_outrad.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_rad_common.o mod_runparams.o mod_outvars.o mod_regcm_types.o mod_constants.o

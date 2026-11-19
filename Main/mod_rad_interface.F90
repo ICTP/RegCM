@@ -39,6 +39,7 @@ module mod_rad_interface
   use mod_rad_aerosol, only : cmip6_plume_profile
   use mod_rad_aerosol, only : aerclima_ntr, aerclima_nbin
   use mod_rad_outrad, only : allocate_mod_rad_outrad
+  use mod_rad_cosp, only : allocate_mod_rad_cosp, cosp_driver
 
   implicit none
 
@@ -122,6 +123,7 @@ module mod_rad_interface
     call allocate_mod_rad_aerosol
     call allocate_mod_rad_o3blk
     call allocate_mod_rad_outrad
+    if ( icosp == 1 ) call allocate_mod_rad_cosp
     if ( irrtm == 1 ) then
       call allocate_mod_rad_rrtmg
     else
@@ -220,6 +222,8 @@ module mod_rad_interface
     else
       call colmod3(iyear,imonth,loutrad,labsem,m2r,r2m)
     end if
+    ! Satellite simulators on the cloud seen by the radiation
+    if ( icosp == 1 ) call cosp_driver(m2r)
   end subroutine radiation
 
   subroutine inito3

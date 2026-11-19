@@ -83,6 +83,7 @@ module mod_cu_kf
   real(rkx), dimension(:,:), pointer, contiguous :: qc_kf, qi_kf
   integer(ik4), dimension(:), pointer, contiguous :: ktop, kbot
   real(rkx), dimension(:,:), pointer, contiguous :: cldfra_dp_kf, cldfra_sh_kf
+  real(rkx), dimension(:,:), pointer, contiguous :: cldlwc_kf
   real(rkx), dimension(:,:), pointer, contiguous :: pptliq, pptice
 
   real(rkx), dimension(:,:), pointer, contiguous :: dqdt, dtdt, dqcdt
@@ -158,6 +159,7 @@ module mod_cu_kf
     call getmem(pptliq,1,kz,1,nipoi,'mod_cu_kf:pptliq')
     call getmem(pptice,1,kz,1,nipoi,'mod_cu_kf:pptice')
     call getmem(cldfra_sh_kf,1,kz,1,nipoi,'mod_cu_kf:cldfra_sh_kf')
+    call getmem(cldlwc_kf,1,kz,1,nipoi,'mod_cu_kf:cldlwc_kf')
     call getmem(qc_kf,1,kz,1,nipoi,'mod_cu_kf:qc_kf')
     call getmem(qi_kf,1,kz,1,nipoi,'mod_cu_kf:qi_kf')
     call getmem(pratec,1,nipoi,'mod_cu_kf:pratec')
@@ -270,6 +272,7 @@ module mod_cu_kf
     pptice(:,:) = d_zero
     cldfra_sh_kf(:,:) = d_zero
     cldfra_dp_kf(:,:) = d_zero
+    cldlwc_kf(:,:) = d_zero
     ktop(:) = 0
     kbot(:) = 0
 
@@ -291,6 +294,7 @@ module mod_cu_kf
         cu_tten(j,i,kk) = dtdt(k,np)
         cu_qten(j,i,kk,iqv) = dqdt(k,np)
         cu_cldfrc(j,i,kk) = max(cldfra_sh_kf(k,np),cldfra_dp_kf(k,np))
+        cu_cldlwc(j,i,kk) = cldlwc_kf(k,np)
       end do
     end do
 
@@ -358,7 +362,7 @@ module mod_cu_kf
             qd, tg, tvg, qg, ems, emsd, umf, uer, udr, dmf, der, &
             ddr, umf2, uer2, udr2, dmf2, der2, ddr2, dza, thta0, &
             thetee, thtau, theteu, thtad, theted, qliq, qice,    &
-            qlqout, qicout, detlq, detic, detlq2, detic2, ratio2
+            qlqout, qicout, detlq, detic, detlq2, detic2, ratio2, wu
     real(rkx), dimension(kts:kte) :: domgdp, exn, tvqu, dp, rh, &
             eqfrc, wspd, qdt, fxm, thtag, thpa, thfxout,        &
             thfxin, qpa, qfxout, qfxin, qlpa, qlfxin, qlfxout,  &
@@ -658,6 +662,8 @@ module mod_cu_kf
           end if
           plcl = p0(k,np) + (p0(klcl,np)-p0(k,np))*dlp
           wtw = wlcl*wlcl
+          wu(:) = d_zero
+          wu(k) = wlcl
           tvlcl = tlcl*(d_one + ep1*qmix)
           rholcl = plcl/(rdry*tvlcl)
           lcl = klcl
@@ -794,6 +800,8 @@ module mod_cu_kf
 
             call condload(qliq(nk1),qice(nk1),wtw,dzz,boterm,enterm, &
                           qnewlq,qnewic,qlqout(nk1),qicout(nk1))
+            ! Updraft vertical velocity, for the cloud water to radiation
+            wu(nk1) = sqrt(max(wtw,d_zero))
             !
             ! If vert velocity is less than zero, exit the updraft loop and,
             ! if cloud is tall enough, finalize updraft calculations.
@@ -1795,6 +1803,8 @@ module mod_cu_kf
           xcldfra = cu_cloud_fraction(iconvcf,2,umf_new,z0(nk,np), &
             abs(z0(min(nk+1,kz),np)-z0(nk,np)),kfac_deep,kfac_shal,k2_const)
           cldfra_sh_kf(nk,np) = xcldfra
+          cldlwc_kf(nk,np) = cu_cloud_water(umf_new,qliq(nk)+qice(nk), &
+            wu(nk),xcldfra)
         end do
       else
         do nk = klcl-1, ltop1
@@ -1802,6 +1812,8 @@ module mod_cu_kf
           xcldfra = cu_cloud_fraction(iconvcf,1,umf_new,z0(nk,np), &
             abs(z0(min(nk+1,kz),np)-z0(nk,np)),kfac_deep,kfac_shal,k2_const)
           cldfra_dp_kf(nk,np) = xcldfra
+          cldlwc_kf(nk,np) = cu_cloud_water(umf_new,qliq(nk)+qice(nk), &
+            wu(nk),xcldfra)
         end do
       end if
       !

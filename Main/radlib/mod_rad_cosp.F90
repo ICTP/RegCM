@@ -91,10 +91,6 @@ module mod_rad_cosp
     character(len=256), dimension(0) :: rttov_namelists
     character(len=64) :: micro_scheme
     logical :: lrttov
-#ifdef OPENACC
-    call fatal(__FILE__,__LINE__, &
-      'COSP (icosp = 1) runs on the host: not available with OpenACC')
-#endif
     npr = (jci2-jci1+1)*(ici2-ici1+1)
     call getmem(csum,jci1,jci2,ici1,ici2,1,ncospvars,'cosp:csum')
     call getmem(cwgt,jci1,jci2,ici1,ici2,1,ncospvars,'cosp:cwgt')
@@ -108,6 +104,9 @@ module mod_rad_cosp
                    .false.,.false.,lrttov,94.0_wp,-1.0_wp,0,0,1,2,0, &
                    rcfg,.false.,.false.,0,kz,micro_scheme,0,         &
                    rttov_namelists,rttov_configs)
+    ! ISCCP subcolumn cloud top pressure and optical depth, used by MODIS
+    allocate(cospout%isccp_boxtau(npr,ncol))
+    allocate(cospout%isccp_boxptop(npr,ncol))
     allocate(cospout%isccp_totalcldarea(npr))
     allocate(cospout%isccp_meanptop(npr))
     allocate(cospout%isccp_meantaucld(npr))
@@ -138,7 +137,7 @@ module mod_rad_cosp
   !
   subroutine cosp_driver(m2r)
     implicit none
-    type(mod_2_rad), intent(in) :: m2r
+    type(mod_2_rad), intent(inout) :: m2r
     real(rk8) :: tk, ql, qi, cf, wp_in, fi, re_l, re_i, dzk, iwc
     type(cosp_optical_inputs) :: cin
     type(cosp_column_inputs) :: cst
@@ -152,6 +151,11 @@ module mod_rad_cosp
     integer(ik8) :: iseed
     real(rk8) :: zh, zb, kabs, kabsl, kabsi
     nj = jci2-jci1+1
+    ! The simulators run on the host: copy back the inputs from the
+    ! device (nothing to do with unified memory)
+!$acc update self(m2r%tatms,m2r%phatms,m2r%pfatms,m2r%qxatms) if_present
+!$acc update self(m2r%cldfrc,m2r%cldlwc,m2r%deltaz,m2r%coszrs) if_present
+!$acc update self(m2r%tg,m2r%ldmsk,m2r%ht,m2r%xlat) if_present
     do n0 = 1, npr, nchunk
       n1 = n0
       n2 = min(npr,n0+nchunk-1)

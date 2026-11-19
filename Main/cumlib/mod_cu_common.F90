@@ -59,7 +59,7 @@ module mod_cu_common
   logical, parameter :: addnoise = .false.
 
   public :: init_mod_cumulus, model_cumulus_cloud
-  public :: cu_cloud_fraction
+  public :: cu_cloud_fraction, cu_cloud_water
 
   contains
 
@@ -247,6 +247,26 @@ module mod_cu_common
       cf = min(max(d_zero,cf),0.4_rkx)
     end if
   end function cu_cloud_fraction
+  !
+  ! In cloud convective condensate seen by radiation (g/m3), for the mass
+  ! flux cumulus schemes: the updraft condensate per unit volume of the
+  ! grid box, rho*a*lu with the updraft area a = mfu/(rho*wu), spread over
+  ! the convective cloud fraction cf.
+  !   mfu : grid mean updraft mass flux (kg m-2 s-1)
+  !   lu  : updraft condensate, liquid and ice (kg/kg)
+  !   wu  : updraft vertical velocity (m/s), at least 1 m/s
+  !   cf  : convective cloud fraction of the layer
+  !
+  pure real(rkx) function cu_cloud_water(mfu,lu,wu,cf) result(cwc)
+!$acc routine seq
+    implicit none
+    real(rkx), intent(in) :: mfu, lu, wu, cf
+    if ( cf > d_zero ) then
+      cwc = d_1000 * max(mfu,d_zero) * max(lu,d_zero) / (max(wu,d_one) * cf)
+    else
+      cwc = d_zero
+    end if
+  end function cu_cloud_water
 
 end module mod_cu_common
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
