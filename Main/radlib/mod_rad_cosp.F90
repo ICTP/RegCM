@@ -47,7 +47,7 @@ module mod_rad_cosp
   use mod_outvars, only : ncospvars, rad_cosp_out
   use mod_rad_radiation, only : abarl, bbarl, abari, bbari
   use cosp_kinds, only : wp
-  use mod_cosp_config, only : r_undef, parasol_nrefl
+  use mod_cosp_config, only : parasol_nrefl
   use mod_cosp_stats, only : cosp_optical_inputs, cosp_column_inputs, &
     radar_cfg
   use mod_cosp_rttov_util, only : rttov_cfg
@@ -68,6 +68,9 @@ module mod_rad_cosp
   integer(ik4), parameter :: overlap = 3
   ! Columns of a call to the simulators
   integer(ik4), parameter :: nchunk = 128
+  ! Missing values of the simulators (R_UNDEF, ICARUS output_missing_value
+  ! -1.0e30 in single or double precision) are below undef
+  real(wp), parameter :: undef = -1.0e29_wp
   ! Surface emissivity at 11 micron
   real(wp), parameter :: emsfc_lw = 0.99_wp
 
@@ -316,13 +319,16 @@ module mod_rad_cosp
       real(rk8) :: w
       real(wp), pointer, dimension(:) :: fw
       do n = 1, npr
-        if ( abs(f(n)-r_undef) < 1.0_wp ) cycle
+        if ( f(n) < undef ) cycle
+        ! MODIS gives a zero cloud top pressure to cloudy subcolumns
+        ! without a retrieved cloud top
+        if ( (iv == 2 .or. iv == 18) .and. f(n) <= 0.0_wp ) cycle
         j = jci1 + mod(n-1,nj)
         i = ici1 + (n-1)/nj
         if ( iweight(iv) > 0 ) then
           m = iweight(iv)
           fw => weight_field(m)
-          if ( abs(fw(n)-r_undef) < 1.0_wp ) cycle
+          if ( fw(n) < undef ) cycle
           w = fw(n)*0.01_rk8
         else
           w = 1.0_rk8
