@@ -15,8 +15,13 @@
 
 !
 ! Satellite simulators of COSP2 (Bodas-Salcedo et al., 2011; Swales et al.,
-! 2018, external/cosp2) on the cloud seen by the radiation (icosp = 1):
-! what the ISCCP and MODIS products would be for the model state.
+! 2018, external/cosp2) on the cloud seen by the radiation: what the
+! MODIS (icosp = 1) or the ISCCP (icosp = 2) products would be for the
+! model state. The two cannot be produced together: COSP has one cloud top
+! method, set at the initialisation, and the MODIS simulator takes its
+! cloud tops from the ISCCP subcolumns. MODIS uses the model cloud top
+! (as the MODIS Collection 6 retrieval places the marine low clouds at
+! the inversion), ISCCP the cloud top of its infrared retrieval.
 !
 ! At every radiation call the layer cloud fraction, in cloud water path,
 ! ice fraction and effective radii of the radiation are split in ncol
@@ -35,7 +40,7 @@ module mod_rad_cosp
   use mod_intkinds, only : ik4, ik8
   use mod_realkinds, only : rk8, rkx
   use mod_dynparam, only : kz, kzp1, jci1, jci2, ici1, ici2
-  use mod_runparams, only : ipptls, iqv, iqc, iqi
+  use mod_runparams, only : ipptls, iqv, iqc, iqi, icosp
   use mod_regcm_types, only : mod_2_rad
   use mod_rad_common, only : cldwpmin, cloud_fice, cloud_rel_cam, &
     cloud_rei
@@ -94,6 +99,7 @@ module mod_rad_cosp
     character(len=256), dimension(0) :: rttov_namelists
     character(len=64) :: micro_scheme
     logical :: lrttov
+    integer(ik4) :: ctop
     npr = (jci2-jci1+1)*(ici2-ici1+1)
     call getmem(csum,jci1,jci2,ici1,ici2,1,ncospvars,'cosp:csum')
     call getmem(cwgt,jci1,jci2,ici1,ici2,1,ncospvars,'cosp:cwgt')
@@ -101,25 +107,34 @@ module mod_rad_cosp
     cwgt(:,:,:) = 0.0_rk8
     lrttov = .false.
     micro_scheme = 'MMF_v3_single_moment'
-    ! ISCCP and MODIS only; cloud top from the 10.5 micron brightness
-    ! temperature (1), at the lowest level of that temperature (1): under
-    ! a subsidence inversion the highest level (2) would place the
-    ! boundary layer clouds in the free troposphere, while the MODIS
-    ! Collection 6 retrieval places the marine low clouds at the
-    ! inversion (lapse rate method).
-    call cosp_init(.true.,.true.,.false.,.false.,.false.,.false.,  &
-                   .false.,.false.,lrttov,94.0_wp,-1.0_wp,0,0,1,1,0, &
-                   rcfg,.false.,.false.,0,kz,micro_scheme,0,         &
+    ! Cloud top method of COSP (ICARUS): MODIS (icosp = 1) the model cloud
+    ! top (2); ISCCP (icosp = 2) the cloud top from the 10.5 micron
+    ! brightness temperature (1), taken at the highest level of that
+    ! temperature (2) as in the ISCCP retrieval and the CFMIP setup.
+    if ( icosp == 1 ) then
+      ctop = 2
+    else
+      ctop = 1
+    end if
+    call cosp_init(.true.,icosp == 1,.false.,.false.,.false.,.false., &
+                   .false.,.false.,lrttov,94.0_wp,-1.0_wp,0,0,ctop,2,0, &
+                   rcfg,.false.,.false.,0,kz,micro_scheme,0,            &
                    rttov_namelists,rttov_configs)
-    ! ISCCP subcolumn cloud top pressure and optical depth, used by MODIS
+    ! ISCCP subcolumn cloud top pressure and optical depth, needed by
+    ! both simulators (MODIS takes its cloud tops from them)
     allocate(cospout%isccp_boxtau(npr,ncol))
     allocate(cospout%isccp_boxptop(npr,ncol))
-    allocate(cospout%isccp_totalcldarea(npr))
-    allocate(cospout%isccp_meanptop(npr))
-    allocate(cospout%isccp_meantaucld(npr))
-    allocate(cospout%isccp_meanalbedocld(npr))
-    allocate(cospout%isccp_meantb(npr))
-    allocate(cospout%isccp_meantbclr(npr))
+    ! Outputs of the selected simulator only: COSP runs the column
+    ! statistics of the outputs it is given
+    if ( icosp == 2 ) then
+      allocate(cospout%isccp_totalcldarea(npr))
+      allocate(cospout%isccp_meanptop(npr))
+      allocate(cospout%isccp_meantaucld(npr))
+      allocate(cospout%isccp_meanalbedocld(npr))
+      allocate(cospout%isccp_meantb(npr))
+      allocate(cospout%isccp_meantbclr(npr))
+      return
+    end if
     allocate(cospout%modis_cloud_fraction_total_mean(npr))
     allocate(cospout%modis_cloud_fraction_water_mean(npr))
     allocate(cospout%modis_cloud_fraction_ice_mean(npr))
@@ -279,8 +294,10 @@ module mod_rad_cosp
       call cosp_simulator_optics(np,ncol,kz,cin%frac_out,ti,ti,taui)
       call cosp_simulator_optics(np,ncol,kz,cin%frac_out,rl,rl,sizel)
       call cosp_simulator_optics(np,ncol,kz,cin%frac_out,ri,ri,sizei)
-      call modis_optics(np,kz,ncol,taul,sizel,taui,sizei, &
-                        cin%fracliq,cin%asym,cin%ss_alb)
+      if ( icosp == 1 ) then
+        call modis_optics(np,kz,ncol,taul,sizel,taui,sizei, &
+                          cin%fracliq,cin%asym,cin%ss_alb)
+      end if
       cin%emsfc_lw = emsfc_lw
       status = cosp_simulator(cin,cst,cospout,n1,n2,.false.)
       if ( any(len_trim(status) > 0) ) then
@@ -290,26 +307,29 @@ module mod_rad_cosp
       deallocate(rngs,seed,tca,conv,tl,ti,dem,rl,ri,rho)
       deallocate(taul,taui,sizel,sizei)
     end do
-    call accumulate( 1,cospout%isccp_totalcldarea)
-    call accumulate( 2,cospout%isccp_meanptop)
-    call accumulate( 3,cospout%isccp_meantaucld)
-    call accumulate( 4,cospout%isccp_meanalbedocld)
-    call accumulate( 5,cospout%isccp_meantb)
-    call accumulate( 6,cospout%isccp_meantbclr)
-    call accumulate( 7,cospout%modis_cloud_fraction_total_mean)
-    call accumulate( 8,cospout%modis_cloud_fraction_water_mean)
-    call accumulate( 9,cospout%modis_cloud_fraction_ice_mean)
-    call accumulate(10,cospout%modis_cloud_fraction_high_mean)
-    call accumulate(11,cospout%modis_cloud_fraction_mid_mean)
-    call accumulate(12,cospout%modis_cloud_fraction_low_mean)
-    call accumulate(13,cospout%modis_optical_thickness_total_mean)
-    call accumulate(14,cospout%modis_optical_thickness_water_mean)
-    call accumulate(15,cospout%modis_optical_thickness_ice_mean)
-    call accumulate(16,cospout%modis_cloud_particle_size_water_mean)
-    call accumulate(17,cospout%modis_cloud_particle_size_ice_mean)
-    call accumulate(18,cospout%modis_cloud_top_pressure_total_mean)
-    call accumulate(19,cospout%modis_liquid_water_path_mean)
-    call accumulate(20,cospout%modis_ice_water_path_mean)
+    if ( icosp == 2 ) then
+      call accumulate( 1,cospout%isccp_totalcldarea)
+      call accumulate( 2,cospout%isccp_meanptop)
+      call accumulate( 3,cospout%isccp_meantaucld)
+      call accumulate( 4,cospout%isccp_meanalbedocld)
+      call accumulate( 5,cospout%isccp_meantb)
+      call accumulate( 6,cospout%isccp_meantbclr)
+    else
+      call accumulate( 7,cospout%modis_cloud_fraction_total_mean)
+      call accumulate( 8,cospout%modis_cloud_fraction_water_mean)
+      call accumulate( 9,cospout%modis_cloud_fraction_ice_mean)
+      call accumulate(10,cospout%modis_cloud_fraction_high_mean)
+      call accumulate(11,cospout%modis_cloud_fraction_mid_mean)
+      call accumulate(12,cospout%modis_cloud_fraction_low_mean)
+      call accumulate(13,cospout%modis_optical_thickness_total_mean)
+      call accumulate(14,cospout%modis_optical_thickness_water_mean)
+      call accumulate(15,cospout%modis_optical_thickness_ice_mean)
+      call accumulate(16,cospout%modis_cloud_particle_size_water_mean)
+      call accumulate(17,cospout%modis_cloud_particle_size_ice_mean)
+      call accumulate(18,cospout%modis_cloud_top_pressure_total_mean)
+      call accumulate(19,cospout%modis_liquid_water_path_mean)
+      call accumulate(20,cospout%modis_ice_water_path_mean)
+    end if
 
     contains
 

@@ -86,6 +86,7 @@ module mod_ncout
     outstream_async_flush, outstream_dispose, outstream_enable, &
     outstream_netcdf_lock, outstream_netcdf_unlock, outstream_setup, &
     outstream_sync, outstream_writevar, outstream_writevar_rank0
+  use mod_outvars, only : ncosp_isccp
   use mod_outvars, only : area_out, atm_autoconvr_out, atm_ccnnum_out, &
     atm_kth_out, atm_kzm_out, atm_mrso_out, atm_nc_out, atm_nn_out, &
     atm_nr_out, atm_omega_out, atm_pai_out, atm_pp_out, atm_q_detr_out, &
@@ -2674,10 +2675,12 @@ module mod_ncout
             'cloud_area_fraction_in_atmosphere_layer',.true.,'time: mean')
           rad_lowcl_out => v2dvar_rad(rad_lowcl)%rval
         end if
-        ! COSP ISCCP and MODIS simulators (icosp = 1): day time means,
-        ! cloud properties weighted by the cloud fraction they refer to
+        ! COSP MODIS (icosp = 1) or ISCCP (icosp = 2) simulator: day time
+        ! means, cloud properties weighted by the cloud fraction they
+        ! refer to
         do i = 1, ncospvars
-          if ( icosp == 1 ) then
+          if ( (icosp == 1 .and. i > ncosp_isccp) .or. &
+               (icosp == 2 .and. i <= ncosp_isccp) ) then
             if ( enable_rad2d_vars(rad_cosp+i) ) then
               call setup_var(v2dvar_rad,rad_cosp+i,vsize, &
                 trim(cosp_name(i)),trim(cosp_unit(i)),          &

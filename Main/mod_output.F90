@@ -1744,7 +1744,7 @@ module mod_output
         call mean_rad_out3(rad_qrl_out,radfac)
         call mean_rad_out3(rad_o3_out,radfac)
         ! COSP satellite simulator means over the output interval
-        if ( icosp == 1 ) call cosp_output(smissval)
+        if ( icosp > 0 ) call cosp_output(smissval)
         call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ', rcmtimer%str( )

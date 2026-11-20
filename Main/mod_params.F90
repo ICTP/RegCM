@@ -66,8 +66,8 @@ module mod_params
     syncro_cpl, syncro_cum, syncro_dbg, syncro_emi, syncro_rad, &
     syncro_radfor, syncro_rep, syncro_srf, t_extrema, tc0, temp_tend_maxval, &
     temperature_tweak, tlcrit, twt, uoffc, upstream_mode, ustarmax, uvrotate, &
-    vfqs, vqrang, wind_tend_maxval, year_offset, zhnew_fac, zita, zitah, &
-    zomax
+    vfqi, vfqs, vqrang, wind_tend_maxval, year_offset, zhnew_fac, zita, &
+    zitah, zomax
 #if defined(CLM45) || defined(ECLM)
   use mod_runparams, only : rcm_megan_enabled
 #endif
@@ -221,7 +221,7 @@ module mod_params
       cevaplnd, cevapoce, caccrlnd, caccroce, conf
 
     namelist /microparam/ stats, budget_compute, nssopt, &
-      iautoconv, vfqs, auto_rate_khair,                  &
+      iautoconv, vfqs, vfqi, auto_rate_khair,            &
       auto_rate_kessl, auto_rate_klepi, rkconv, skconv,  &
       rcovpmin, rpecons, rcldiff
 
@@ -496,10 +496,11 @@ module mod_params
                   ! => 3 Kessler (1969)
                   ! => 4 Sundqvist
     vfqs = 1.0_rkx
+    vfqi = 1.0_rkx
     auto_rate_khair = 0.355_rkx
     auto_rate_kessl = 1.e-3_rkx
     auto_rate_klepi = 0.5e-3_rkx
-    rkconv = 1.666e-4_rkx ! 1.0/6000.0
+    rkconv = 0.833e-4_rkx ! 1.0/12000.0
     skconv = 1.0e-3_rkx
     rcldiff = 1.0e-6_rkx
     rcovpmin = 0.1_rkx
@@ -1256,6 +1257,10 @@ module mod_params
       end if
 
       ! Check user input
+      if ( icosp < 0 .or. icosp > 2 ) then
+        write(stderr,*) 'icosp must be 0 (no COSP), 1 (MODIS) or 2 (ISCCP)'
+        call fatal(__FILE__,__LINE__,'INPUT NAMELIST ERROR')
+      end if
       if ( srffrq <= 0.0_rkx ) srffrq = 3.0_rkx
       if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
       if ( radfrq <= 0.0_rkx ) radfrq = 6.0_rkx
@@ -1768,6 +1773,7 @@ module mod_params
       call bcast(nssopt)
       call bcast(iautoconv)
       call bcast(vfqs)
+      call bcast(vfqi)
       call bcast(auto_rate_khair)
       call bcast(auto_rate_kessl)
       call bcast(auto_rate_klepi)
@@ -2485,7 +2491,7 @@ module mod_params
       write(stdout,'(a,l11)') '  Winds rotated to true north       : ', uvrotate
       write(stdout,'(a,l11)') '  Sync files after each write       : ', lsync
       write(stdout,'(a,i11)') '  Tendency diagnostics (idiag)      : ', idiag
-      write(stdout,'(a,i11)') '  COSP fields in output (icosp)     : ', icosp
+      write(stdout,'(a,i11)') '  COSP simulator (icosp)            : ', icosp
       write(stdout,'(a,l11)') &
         '  Parallel NetCDF input             : ', do_parallel_netcdf_in
       write(stdout,'(a,l11)') &
@@ -2924,6 +2930,7 @@ module mod_params
         write(stdout,'(a,i11)') &
           '  Autoconversion scheme             : ', iautoconv
         write(stdout,'(a,f11.6)') '  Snow fall speed                   : ', vfqs
+        write(stdout,'(a,f11.6)') '  Ice fall speed factor             : ', vfqi
         write(stdout,'(a,f11.6)') &
           '  Autoconversion rate Khairoutdinov : ', auto_rate_khair
         write(stdout,'(a,es11.4)') &

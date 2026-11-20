@@ -539,6 +539,7 @@ module mod_runparams
   integer(ik4), public :: iautoconv
   ! Fall speed values
   real(rkx), public :: vfqs
+  real(rkx), public :: vfqi
   ! autoconversion values
   real(rkx), public :: auto_rate_khair
   real(rkx), public :: auto_rate_kessl

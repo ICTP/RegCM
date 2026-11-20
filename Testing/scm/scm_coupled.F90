@@ -290,7 +290,7 @@ program scm_coupled
   auto_rate_khair = 0.355_rkx
   auto_rate_kessl = 1.e-3_rkx
   auto_rate_klepi = 0.5e-3_rkx
-  rkconv = 1.666e-4_rkx
+  rkconv = 0.833e-4_rkx
   skconv = 1.0e-3_rkx
   rcldiff = 1.0e-6_rkx
   rcovpmin = 0.1_rkx

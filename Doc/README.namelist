@@ -292,9 +292,15 @@
                               ! Enabled by default if debug_level > 2
                               ! This is supported only by netCDF3 and CDF5
  uvrotate = .false.,          ! Rotate projected wind to S-N, W-E direction
- icosp = 0,                   ! 1: COSP2 ISCCP and MODIS satellite simulators,
-                              ! day time means in the RAD file (cltisccp,
-                              ! pctisccp, ..., cltmodis, ..., iwpmodis)
+ icosp = 0,                   ! COSP2 satellite simulator, day time means in
+                              ! the RAD file. One of (a single cloud top
+                              ! method in COSP, so not both):
+                              ! 1 MODIS: cltmodis, clwmodis, ..., iwpmodis,
+                              !   with the model cloud top. Use to compare
+                              !   with MODIS L3 (MOD08/MYD08) monthly data
+                              ! 2 ISCCP: cltisccp, pctisccp, tauisccp, ...,
+                              !   with the infrared retrieved cloud top.
+                              !   Use to compare with ISCCP D/H series
  idiag = 0,                   ! Enable tendency diagnostic output in the ATM
                               ! file. NOTE: output file gets HUGE.
  do_parallel_netcdf_in  = .false., ! This enables paralell input
@@ -608,10 +614,12 @@
                             ! => 3 Kessler (1969)
                             ! => 4 Sundqvist
  vfqs = 1.0,                ! Snow fall speed (default is 1 m/s)
+ vfqi = 1.0,                ! Factor on the ice fall speed (temperature
+                            ! and latitude dependent, NoTo)
  auto_rate_khair = 0.355,   ! Autoconversion coefficient for kautoconv=2
  auto_rate_kessl = 1.e-3,   ! Autoconversion coefficient for kautoconv=3
  auto_rate_klepi = 0.5e-3,  ! Autoconversion coefficient for kautoconv=1
- rkconv = 1.666e-4,         ! Autoconversion coefficient for kautoconv=4
+ rkconv = 0.833e-4,         ! Autoconversion coefficient for kautoconv=4
  skconv = 1.0-3,            ! Autoconversion coefficient for snow
  rcldiff = 1.0e-6,          ! Diffusion coefficient for evaporation
  rcovpmin = 0.1,            ! Minimum precipitation coverage

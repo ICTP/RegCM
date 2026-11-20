@@ -228,8 +228,11 @@ module mod_outvars
   real(rkx), dimension(:,:), pointer, contiguous :: rad_higcl_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: rad_midcl_out => null()
   real(rkx), dimension(:,:), pointer, contiguous :: rad_lowcl_out => null()
-  ! COSP satellite simulator fields (icosp = 1), see mod_rad_cosp
+  ! COSP satellite simulator fields, see mod_rad_cosp: the first
+  ! ncosp_isccp of the ISCCP simulator (icosp = 2), the others of the
+  ! MODIS simulator (icosp = 1)
   integer, parameter :: ncospvars = 20
+  integer, parameter :: ncosp_isccp = 6
   type cosp_out_field
     real(rkx), dimension(:,:), pointer, contiguous :: p => null()
   end type cosp_out_field

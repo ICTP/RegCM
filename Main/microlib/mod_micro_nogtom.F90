@@ -80,7 +80,7 @@ module mod_micro_nogtom
   use mod_runparams, only : auto_rate_khair, auto_rate_kessl, &
                              auto_rate_klepi, rcldiff
   use mod_runparams, only : rkconv, skconv, rcovpmin, rpecons
-  use mod_runparams, only : vfqs
+  use mod_runparams, only : vfqs, vfqi
 
 #ifdef DEBUG
   use mod_runparams, only : stats
@@ -864,7 +864,7 @@ module mod_micro_nogtom
           !
           !------------------------------------------------------------------
           lat = mo2mc%xlat(j,i)
-          vqx(iqqi) = ice_fallspeed(tk,lat)
+          vqx(iqqi) = vfqi*ice_fallspeed(tk,lat)
           ! Rain rate (mm/h) inside the precipitation cover of the
           ! level above, where the rain comes from
           precip = max(rainp,d_zero)*3600.0_rkx/max(covptot,rcovpmin)
