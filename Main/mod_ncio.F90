@@ -17,7 +17,7 @@ module mod_ncio
 
   use, intrinsic :: iso_c_binding
   use mod_intkinds, only : ik4
-  use mod_realkinds, only : rk8, rkx
+  use mod_realkinds, only : is_nan, rk8, rkx
   use mod_date, only : rcm_time_and_date, rcm_time_interval, timeval2date, &
     tochar, tochar10, tohours, assignment(=), operator(+), operator(-), &
     operator(/=), operator(<), operator(<=), operator(==), operator(>), &
@@ -2200,9 +2200,13 @@ module mod_ncio
     call outstream_netcdf_unlock()
     ! Unit of measure: set altitude in meters, CCN in #/m3
     ccn%altitude(:) = ccn%altitude(:) * 1000.0_rkx  ! In file km amsl
+    ! The missing values of the file are NaN (its _FillValue): tested
+    ! explicitly, a comparison with a NaN may be optimised to true.
     do concurrent ( j = 1:ccn%nlon, i = 1:ccn%nlat, &
                     k = 1:ccn%nlev, n = 1:nseas )
-      if ( ccn%ccn(j,i,k,n) < 1.0E20_rkx ) then
+      if ( is_nan(ccn%ccn(j,i,k,n)) ) then
+        ccn%ccn(j,i,k,n) = -9999.0_rkx
+      else if ( ccn%ccn(j,i,k,n) < 1.0E20_rkx ) then
         ccn%ccn(j,i,k,n) = ccn%ccn(j,i,k,n) * 1.0e6_rkx ! In file #/cm3
       else
         ccn%ccn(j,i,k,n) = -9999.0_rkx

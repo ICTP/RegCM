@@ -1284,7 +1284,8 @@ module mod_micro_wdm7
         !        (NC ->)
         ! reduce collection efficiency (suggested by B. Wilt)
         !
-        if ( qrs(i,k,2) > qrsmin .and. ncr(i,k,2) > ncmin ) then
+        if ( qrs(i,k,2) > qrsmin .and. ncr(i,k,2) > ncmin .and. &
+             qci(i,k,1) > qcimin ) then
           rceff = min(max(qrs(i,k,2)/qci(i,k,1),0.0_rkx),1.0_rkx)**2
           nsacw(i,k) = min(pacrc*n0sfac*rslope3(i,k,2) * &
             rslopeb(i,k,2)*rceff*ncr(i,k,2)*denfac(i,k), ncr(i,k,2)*rdtcld)
@@ -1304,7 +1305,8 @@ module mod_micro_wdm7
         !        (NC->
         ! reduce collection efficiency (suggested by B. Wilt)
         !
-        if ( qrs(i,k,3) > qrsmin .and. ncr(i,k,2) > ncmin ) then
+        if ( qrs(i,k,3) > qrsmin .and. ncr(i,k,2) > ncmin .and. &
+             qci(i,k,1) > qcimin ) then
           rceff = min(max(qrs(i,k,3)/qci(i,k,1),0.0_rkx),1.0_rkx)**2
           ngacw(i,k) = min(pacrg*rslope3(i,k,3)*rslopeb(i,k,3) * &
             ncr(i,k,2)*rceff*denfac(i,k), ncr(i,k,2)*rdtcld)
@@ -1338,7 +1340,8 @@ module mod_micro_wdm7
         !        (NC->)
         ! reduce collection efficiency (suggested by B. Wilt)
         !
-        if ( qrs(i,k,4) > qrsmin .and. ncr(i,k,2) > ncmin ) then
+        if ( qrs(i,k,4) > qrsmin .and. ncr(i,k,2) > ncmin .and. &
+             qci(i,k,1) > qcimin ) then
           rceff = min(max(qrs(i,k,4)/qci(i,k,1),0.0_rkx),1.0_rkx)**2
           nhacw(i,k) = min(pacrh*rslope3(i,k,4)*rslopeb(i,k,4) * &
               ncr(i,k,2)*rceff*denfac(i,k), ncr(i,k,2)*rdtcld)
@@ -1501,10 +1504,16 @@ module mod_micro_wdm7
           else
             pgaci_w(i,k) = 0.0_rkx
           end if
-          pgwet(i,k) = ghw1/ghw2*(precg1*rslope2(i,k,3)      + &
-                       precg3*ghw3*(rslope(i,k,3)**2.75_rkx) + &
-                       ghw4*(pgaci_w(i,k)+pgacs(i,k)))
-          pgwet(i,k) = max(pgwet(i,k), 0.0_rkx)
+          ! ghw2 vanishes about 79 K below freezing (latent heat of
+          ! fusion against the heat of the colder water): dry growth
+          if ( ghw2 > 0.0_rkx ) then
+            pgwet(i,k) = ghw1/ghw2*(precg1*rslope2(i,k,3)      + &
+                         precg3*ghw3*(rslope(i,k,3)**2.75_rkx) + &
+                         ghw4*(pgaci_w(i,k)+pgacs(i,k)))
+            pgwet(i,k) = max(pgwet(i,k), 0.0_rkx)
+          else
+            pgwet(i,k) = 0.0_rkx
+          end if
         end if
         !
         ! phwet: wet growth of hail [LFO 43]
@@ -1516,10 +1525,16 @@ module mod_micro_wdm7
           else
             phaci_w(i,k) = 0.0_rkx
           end if
-          phwet(i,k) = ghw1/ghw2*(prech1*rslope2(i,k,4)      + &
-                       prech3*ghw3*(rslope(i,k,4)**2.75_rkx) + &
-                       ghw4*(phaci_w(i,k)+phacs(i,k)))
-          phwet(i,k) = max(phwet(i,k), 0.0_rkx)
+          ! ghw2 vanishes about 79 K below freezing (latent heat of
+          ! fusion against the heat of the colder water): dry growth
+          if ( ghw2 > 0.0_rkx ) then
+            phwet(i,k) = ghw1/ghw2*(prech1*rslope2(i,k,4)      + &
+                         prech3*ghw3*(rslope(i,k,4)**2.75_rkx) + &
+                         ghw4*(phaci_w(i,k)+phacs(i,k)))
+            phwet(i,k) = max(phwet(i,k), 0.0_rkx)
+          else
+            phwet(i,k) = 0.0_rkx
+          end if
         end if
         if ( supcol <= 0.0_rkx ) then
           xlf = wlhf

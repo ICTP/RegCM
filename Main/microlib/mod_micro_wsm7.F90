@@ -1121,11 +1121,16 @@ module mod_micro_wsm7
           else
             pgaci_w(i,k) = d_zero
           end if
-          pgwet(i,k) = ghw1/ghw2*(precg1*rslope2(i,k,3)   + &
-                       precg3*ghw3*rslope(i,k,3)**(2.75_rkx)  + &
-                       ghw4*(pgaci_w(i,k)+pgacs(i,k)))
-
-          pgwet(i,k) = max(pgwet(i,k), d_zero)
+          ! ghw2 vanishes about 79 K below freezing (latent heat of
+          ! fusion against the heat of the colder water): dry growth
+          if ( ghw2 > d_zero ) then
+            pgwet(i,k) = ghw1/ghw2*(precg1*rslope2(i,k,3)   + &
+                         precg3*ghw3*rslope(i,k,3)**(2.75_rkx)  + &
+                         ghw4*(pgaci_w(i,k)+pgacs(i,k)))
+            pgwet(i,k) = max(pgwet(i,k), d_zero)
+          else
+            pgwet(i,k) = d_zero
+          end if
         end if
         !
         ! phwet: wet growth of hail [LFO 43]
@@ -1138,10 +1143,16 @@ module mod_micro_wsm7
           else
             phaci_w(i,k) = d_zero
           end if
-          phwet(i,k) = ghw1/ghw2*(prech1*rslope2(i,k,4)   + &
-                       prech3*ghw3*rslope(i,k,4)**(2.75_rkx)  + &
-                       ghw4*(phaci_w(i,k)+phacs(i,k)))
-          phwet(i,k) = max(phwet(i,k), d_zero)
+          ! ghw2 vanishes about 79 K below freezing (latent heat of
+          ! fusion against the heat of the colder water): dry growth
+          if ( ghw2 > d_zero ) then
+            phwet(i,k) = ghw1/ghw2*(prech1*rslope2(i,k,4)   + &
+                         prech3*ghw3*rslope(i,k,4)**(2.75_rkx)  + &
+                         ghw4*(phaci_w(i,k)+phacs(i,k)))
+            phwet(i,k) = max(phwet(i,k), d_zero)
+          else
+            phwet(i,k) = d_zero
+          end if
         end if
         !
         if ( phacw(i,k)+phacr(i,k) < 0.95_rkx*phwet(i,k) ) then
