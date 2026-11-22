@@ -24,7 +24,94 @@ COMPRESSION = 'zlib'
 SHUFFLE = True
 FLETCHER32 = True
 COMPRESSION_LEVEL = 1
+# Remove from the CORDEX files the lateral boundary zone (nspgx-2 points
+# per side, the boundary_points attribute of the RegCM files)
+CROP_BOUNDARY = True
+# RegCM horizontal dimensions cropped with the boundary zone
+HORIZONTAL_DIMS = ('jx', 'iy')
+
+# Default number of significant decimal digits kept by the netCDF quantization
+# (BitGroom) of single precision variables
 SIGNIFICANT_DIGITS = 4
+
+# Significant digits per variable. The values follow the GRIB2 packing
+# precision of the NCEP Unified Post Processor (UPP, parm/post_avblflds.xml,
+# the <scale> of each field, also used for the WRF GRIB2 output). GRIB2 simple
+# packing keeps "scale" significant digits of the field range, an absolute
+# precision; the netCDF quantization keeps significant digits of every value,
+# a relative precision. The numbers below give, at the typical magnitude of
+# each variable, a precision at least as fine as the UPP GRIB2 one:
+#   temperatures 4 (UPP TMP 2 m/surface 4, isobaric 3: 0.1 K, here ~0.02 K)
+#   pressures 6 (PRES, PRMSL 6: 0.1 Pa)
+#   geopotential height and orography 6 (HGT 6: 0.01 m)
+#   boundary layer height 5 (HPBL 6 over a 3 km range: 0.01 m)
+#   specific humidity 4 (SPFH 4), relative humidity 3 (RH 2 m 3)
+#   horizontal wind 4 (UGRD/VGRD 4), gusts 3 (GUST 3)
+#   vertical wind 3 (DZDT 3)
+#   precipitation and evaporation fluxes 4 (CPRAT, EVP 4)
+#   runoff 4 (SSRUN, BGRUN 4), soil moisture 3 (SOILW, SOILL 3)
+#   snow 3 (WEASD, SNOD, SNOWC 3), snow melt 4 (SNOM 4)
+#   turbulent and radiative fluxes 4 (SHTFL, LHTFL, DSWRF... 4)
+#   momentum flux 3 (UFLX 3)
+#   cloud cover 3 (TCDC 3), cloud water and ice path 3 (TCOLW 3)
+#   precipitable water 3 (PWAT 3)
+#   CAPE and CIN 4 (CAPE, CIN 4), lifted index 3 (LFTX 3)
+#   sea ice 3 (ICEC, ICETK 3), roughness length 3 (SFCR 2.7)
+#   total ozone 4 (TOZNE 4)
+#   land and sea fractions 3, cell areas 6 (no UPP field: area weighted
+#   sums need the extra digits)
+# The variables on pressure or height levels (ta850, ua100m, ...) take the
+# value of their family (ta, ua, ...). Not listed variables (aerosols,
+# chemistry, ocean) use SIGNIFICANT_DIGITS.
+SIGNIFICANT_DIGITS_VAR = {
+    'tas': 4, 'tasmax': 4, 'tasmin': 4, 'ts': 4, 'tsl': 4, 'ta': 4,
+    'tos': 4, 'tob': 4, 'sitemptop': 4,
+    'ps': 6, 'psl': 6,
+    'zg': 6, 'orog': 6,
+    'zmla': 5,
+    'huss': 4, 'hus': 4, 'hurs': 3,
+    'uas': 4, 'vas': 4, 'ua': 4, 'va': 4, 'sfcWind': 4, 'sfcWindmax': 4,
+    'wsgsmax': 3,
+    'wa': 3,
+    'pr': 4, 'prc': 4, 'prsn': 4, 'prhmax': 4,
+    'evspsbl': 4, 'evspsblpot': 4,
+    'mrro': 4, 'mrros': 4,
+    'mrso': 3, 'mrsos': 3, 'mrsol': 3, 'mrsfl': 3, 'mrfso': 3, 'mrfsos': 3,
+    'mrsofc': 3,
+    'snw': 3, 'snd': 3, 'snc': 3, 'snm': 4,
+    'hfls': 4, 'hfss': 4, 'hfds': 4,
+    'rsds': 4, 'rsus': 4, 'rlds': 4, 'rlus': 4, 'rsdt': 4, 'rsut': 4,
+    'rlut': 4, 'rsdscs': 4, 'rsuscs': 4, 'rldscs': 4, 'rluscs': 4,
+    'rsutcs': 4, 'rlutcs': 4, 'rsdsdir': 4, 'rsntds': 4,
+    'rsdsaf': 4, 'rsusaf': 4, 'rldsaf': 4, 'rlusaf': 4, 'rsutaf': 4,
+    'rlutaf': 4, 'rsdscsaf': 4, 'rsuscsaf': 4, 'rldscsaf': 4,
+    'rluscsaf': 4, 'rsutcsaf': 4, 'rlutcsaf': 4,
+    'tauu': 3, 'tauv': 3,
+    'clt': 3, 'cll': 3, 'clm': 3, 'clh': 3,
+    'clwvi': 3, 'clivi': 3, 'prw': 3,
+    'cape': 4, 'capemax': 4, 'cin': 4, 'cinmax': 4, 'li': 3, 'limax': 3,
+    'siconc': 3, 'siconca': 3, 'sithick': 3,
+    'z0': 3,
+    'toz': 4,
+    'sftlf': 3, 'sftgif': 3, 'sftlaf': 3, 'sftof': 3, 'sfturf': 3,
+    'areacella': 6, 'areacellr': 6, 'areacello': 6,
+}
+
+# Families of the variables on pressure or height levels
+LEVEL_VARIABLE_FAMILY = re.compile(r'^(ta|ua|va|wa|zg|hus)\d+m?$')
+
+
+def significant_digits(var_name):
+    """
+    Number of significant decimal digits kept by the quantization of a
+    single precision variable (see SIGNIFICANT_DIGITS_VAR)
+    """
+    if var_name in SIGNIFICANT_DIGITS_VAR:
+        return SIGNIFICANT_DIGITS_VAR[var_name]
+    family = LEVEL_VARIABLE_FAMILY.match(var_name)
+    if family:
+        return SIGNIFICANT_DIGITS_VAR[family.group(1)]
+    return SIGNIFICANT_DIGITS
 
 # Some dimensions in the RegCM files must have a different name in the CORDEX
 # files. The following dictionary stores the needed replacements

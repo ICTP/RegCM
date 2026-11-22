@@ -783,6 +783,18 @@ class CordexDataset(Dataset):
         if regcm_file.nesting_tag is not None:
             newattr['nesting_tag'] = regcm_file.nesting_tag
 
+        # Lateral boundary zone: the RegCM output does not contain the
+        # outermost row and the next one has a zero relaxation weight, so
+        # the model physics has exclusive control only beyond nspgx-2 points
+        # from every side (the global attribute boundary_points)
+        # (a python attribute of a Dataset would be a netCDF attribute)
+        nbnd = 0
+        if CROP_BOUNDARY:
+            nbnd = int(regcm_file.attributes.get('boundary_points', 0))
+        self.__dict__['_boundary_points'] = nbnd
+        if nbnd > 0:
+            newattr['boundary_points_removed'] = nbnd
+
         file_name = path.basename(output_file_path)
 
         # Write Global attributes
@@ -796,6 +808,9 @@ class CordexDataset(Dataset):
             self.setncattr(attribute, value)
 
         for attribute, value in regcm_file.attributes.items():
+            if (nbnd > 0 and
+                    attribute in ('boundary_points', 'boundary_points_dot')):
+                continue
             if attribute not in newattr:
                 LOGGER.debug(
                     'Adding attribute "%s" with value "%s" to file %s',
@@ -921,6 +936,32 @@ class CordexDataset(Dataset):
         if replace_dims is None:
             replace_dims = {}
 
+        # Remove the lateral boundary zone from the horizontal dimensions
+        nbnd = self.__dict__.get('_boundary_points', 0)
+        if nbnd > 0 and any(d[0] in HORIZONTAL_DIMS for d in dims):
+            slicer = []
+            cropped = []
+            for dim_name, dim_len in dims:
+                if dim_name in HORIZONTAL_DIMS:
+                    if dim_len <= 2 * nbnd:
+                        raise ValueError(
+                            f'Dimension {dim_name} of {var_name} has '
+                            f'{dim_len} points: cannot remove {nbnd} '
+                            'boundary points per side'
+                        )
+                    slicer.append(slice(nbnd, dim_len - nbnd))
+                    cropped.append((dim_name, dim_len - 2 * nbnd))
+                else:
+                    slicer.append(slice(None))
+                    cropped.append((dim_name, dim_len))
+            LOGGER.debug(
+                'Removing %s boundary points per side from %s',
+                nbnd,
+                var_name
+            )
+            data = data[tuple(slicer)]
+            dims = cropped
+
         # Copy dims
         dim_name_list = []
         for dim_name, dim_len in dims:
@@ -1003,7 +1044,7 @@ class CordexDataset(Dataset):
                 fill_value=fill_value,
                 compression=COMPRESSION,
                 complevel=COMPRESSION_LEVEL,
-                significant_digits=SIGNIFICANT_DIGITS,
+                significant_digits=significant_digits(var_name),
                 shuffle=SHUFFLE,
                 fletcher32=FLETCHER32
             )

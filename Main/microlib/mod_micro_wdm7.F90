@@ -733,10 +733,14 @@ module mod_micro_wdm7
         ! The fluxes use the values at the start of the substep, then
         ! every level is updated with its own and the incoming flux.
         ! Two loops: no dependency between the iterations of each.
+        ! The fall speed is updated every substep while mstep is not:
+        ! the outflow of a level is limited to its content, otherwise
+        ! the clipping at zero creates mass in the level below.
         do concurrent ( i = ims:ime, k = 1:kz )
           if ( n <= mstep(i) ) then
-            falk(i,k,1) = den(i,k)*qrs(i,k,1)*work1(i,k,1)/mstep(i)
-            falkn(i,k) = ncr(i,k,3)*workn(i,k)/mstep(i)
+            falk(i,k,1) = den(i,k)*qrs(i,k,1) * &
+                          min(work1(i,k,1)/mstep(i),rdtcld)
+            falkn(i,k) = ncr(i,k,3)*min(workn(i,k)/mstep(i),rdtcld)
             fall(i,k,1) = fall(i,k,1) + falk(i,k,1)
             falln(i,k) = falln(i,k) + falkn(i,k)
           end if
