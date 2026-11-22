@@ -528,12 +528,12 @@ module mod_rad_colmod3
     !
     ! Compute cloud drop size and emissivity
     !
-#if defined(OPENACC) && !defined(STDPAR_FIXED)
+#if defined(STDPAR_FIXED)
+    do concurrent( k = 1:kz, n = rt%n1:rt%n2 ) local(iwc)
+#else
     !$acc parallel loop collapse(2) gang vector private(iwc)
     do n = rt%n1, rt%n2
     do k = 1, kz
-#else
-    do concurrent( k = 1:kz, n = rt%n1:rt%n2 ) local(iwc)
 #endif
       ! Define liquid drop size
       ! rel : liquid effective drop size (microns)
@@ -577,7 +577,7 @@ module mod_rad_colmod3
         rt%rel(k,n) = 8.5_rk8
         rt%rei(k,n) = 20.0_rk8
       end if
-#if defined(OPENACC) && !defined(STDPAR_FIXED)
+#if !defined(STDPAR_FIXED)
     end do
 #endif
     end do
@@ -592,12 +592,12 @@ module mod_rad_colmod3
     if ( (ichem == 1 .and. iindirect == 1) .or. iclimaaer == 1 ) then
       do itr = 1, ntr
         if ( chtrname(itr) /= 'SO4' ) cycle
-#if defined(OPENACC) && !defined(STDPAR_FIXED)
+#if defined(STDPAR_FIXED)
+        do concurrent ( k = 1:kz, n = rt%n1:rt%n2 ) local(aerc,nc,lwc)
+#else
         !$acc parallel loop collapse(2) gang vector private(aerc,nc,lwc)
         do n = rt%n1, rt%n2
         do k = 1, kz
-#else
-        do concurrent ( k = 1:kz, n = rt%n1:rt%n2 ) local(aerc,nc,lwc)
 #endif
           aerc = rt%rho(k,n) * aermmr(n,k,itr) * 1.e9_rk8 !microg/m3
           ! thershold of 0.1 microg/m3 for activation of indirect effect
@@ -610,7 +610,7 @@ module mod_rad_colmod3
             ! Martin et al. (1994) with the droplet number nc
             rt%rel(k,n) = cloud_rel(lwc,rt%ioro(n) == 1,nc)
           end if
-#if defined(OPENACC) && !defined(STDPAR_FIXED)
+#if !defined(STDPAR_FIXED)
         end do
 #endif
         end do
