@@ -453,15 +453,33 @@ module mod_rad_colmod3
       end do
       ! Ice fraction of the cloud water seen by radiation: microphysics
       ! ratio, temperature ramp in convective only cloud
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+      !$acc parallel loop collapse(2) gang vector
+      do n = rt%n1, rt%n2
+      do k = 1, kz
+#else
       do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
+#endif
         rt%fice(k,n) = cloud_fice(.true.,rt%ql(k,n),rt%qi(k,n),rt%t(k,n))
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+      end do
+#endif
       end do
     else
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+      !$acc parallel loop collapse(2) gang vector
+      do n = rt%n1, rt%n2
+      do k = 1, kz
+#else
       do concurrent ( k = 1:kz,  n = rt%n1:rt%n2 )
+#endif
         ! Ice fraction from the mixed phase temperature ramp
         rt%fice(k,n) = cloud_fice(.false.,rt%ql(k,n),0.0_rk8,rt%t(k,n))
         rt%qi(k,n) = rt%ql(k,n) * rt%fice(k,n)
         rt%ql(k,n) = rt%ql(k,n) - rt%qi(k,n)
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+      end do
+#endif
       end do
     end if
     !
@@ -510,7 +528,13 @@ module mod_rad_colmod3
     !
     ! Compute cloud drop size and emissivity
     !
-    do concurrent( k = 1:kz, n = rt%n1:rt%n2 )
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+    !$acc parallel loop collapse(2) gang vector private(iwc)
+    do n = rt%n1, rt%n2
+    do k = 1, kz
+#else
+    do concurrent( k = 1:kz, n = rt%n1:rt%n2 ) local(iwc)
+#endif
       ! Define liquid drop size
       ! rel : liquid effective drop size (microns)
       !
@@ -553,6 +577,9 @@ module mod_rad_colmod3
         rt%rel(k,n) = 8.5_rk8
         rt%rei(k,n) = 20.0_rk8
       end if
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+    end do
+#endif
     end do
     ! Reset now or add all water
     do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
@@ -565,7 +592,13 @@ module mod_rad_colmod3
     if ( (ichem == 1 .and. iindirect == 1) .or. iclimaaer == 1 ) then
       do itr = 1, ntr
         if ( chtrname(itr) /= 'SO4' ) cycle
-        do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+        !$acc parallel loop collapse(2) gang vector private(aerc,nc,lwc)
+        do n = rt%n1, rt%n2
+        do k = 1, kz
+#else
+        do concurrent ( k = 1:kz, n = rt%n1:rt%n2 ) local(aerc,nc,lwc)
+#endif
           aerc = rt%rho(k,n) * aermmr(n,k,itr) * 1.e9_rk8 !microg/m3
           ! thershold of 0.1 microg/m3 for activation of indirect effect
           if ( aerc > 0.1_rk8 ) then
@@ -577,6 +610,9 @@ module mod_rad_colmod3
             ! Martin et al. (1994) with the droplet number nc
             rt%rel(k,n) = cloud_rel(lwc,rt%ioro(n) == 1,nc)
           end if
+#if defined(OPENACC) && !defined(STDPAR_FIXED)
+        end do
+#endif
         end do
       end do
     end if

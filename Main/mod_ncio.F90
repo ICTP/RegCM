@@ -2204,7 +2204,13 @@ module mod_ncio
     ! explicitly, a comparison with a NaN may be optimised to true.
     do concurrent ( j = 1:ccn%nlon, i = 1:ccn%nlat, &
                     k = 1:ccn%nlev, n = 1:nseas )
+#ifdef OPENACC
+      if ( (ccn%ccn(j,i,k,n) /= ccn%ccn(j,i,k,n)) .or. &
+           ((ccn%ccn(j,i,k,n) > 0.0_rkx) .eqv. &
+            (ccn%ccn(j,i,k,n) <= 0.0_rkx)) ) then
+#else
       if ( is_nan(ccn%ccn(j,i,k,n)) ) then
+#endif
         ccn%ccn(j,i,k,n) = -9999.0_rkx
       else if ( ccn%ccn(j,i,k,n) < 1.0E20_rkx ) then
         ccn%ccn(j,i,k,n) = ccn%ccn(j,i,k,n) * 1.0e6_rkx ! In file #/cm3
