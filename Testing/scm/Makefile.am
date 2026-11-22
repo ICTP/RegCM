@@ -63,7 +63,9 @@ EXTRA_DIST = README make_profiles.py scm_tiedtke.py scm_holtslag.py \
              make_dephy_case.py scm_les.py scm_bomex.txt \
              scm_bomex_target.txt scm_bomex_les.txt scm_rico.txt \
              scm_rico_target.txt scm_rico_les.txt \
-             reference/scm_coupled_bomex.out reference/scm_coupled_rico.out
+             reference/scm_coupled_bomex.out reference/scm_coupled_rico.out \
+             scm_fire.txt scm_fire_target.txt scm_fire_les.txt \
+             reference/scm_coupled_fire.out
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<

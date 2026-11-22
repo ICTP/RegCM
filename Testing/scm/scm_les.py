@@ -11,17 +11,20 @@
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# Shallow cumulus cases of the coupled single column test (scm_coupled)
-# against LES: BOMEX (Siebesma et al., 2003) and RICO (vanZanten et al.,
-# 2011), DEPHY forcing (make_dephy_case.py), HIGH-TUNE Meso-NH LES
-# ensemble as reference (scm_<case>_les.txt).
+# Shallow cumulus and stratocumulus cases of the coupled single column
+# test (scm_coupled) against LES: BOMEX (Siebesma et al., 2003), RICO
+# (vanZanten et al., 2011) and FIRE (Duynkerke et al., 2004, diurnal cycle
+# of stratocumulus, with the model radiation), DEPHY forcing
+# (make_dephy_case.py), HIGH-TUNE Meso-NH LES ensemble as reference
+# (scm_<case>_les.txt).
 #
 # Runs the case with its settings (below) plus the ones given on the
 # command line and prints, hour by hour, the PBL height, the cumulus cloud
 # type, the liquid water path and the largest cloud fraction against the
 # LES ensemble (mean and range), then the profiles of T, q, cloud
 # condensate and cloud fraction averaged over the evaluation window
-# (BOMEX hours 3-6, RICO 20-24, as in the intercomparisons).
+# (BOMEX hours 3-6, RICO 20-24, as in the intercomparisons; FIRE the
+# whole day).
 #
 # Examples:
 #   scm_les.py bomex
@@ -61,6 +64,10 @@ CASES = {
                           'iocnflux': '1', 'ocnsw': '0.0', 'ocnlw': '0.0',
                           'nout': '12'},
              'window': (20, 24)},
+    'fire': {'settings': {'ndays': '1.0', 'irad': '1', 'ladvt': '.true.',
+                          'taurelax': '1.0e12', 'lgeos': '.true.',
+                          'iocnflux': '1', 'nout': '12'},
+             'window': (0, 24)},
 }
 
 

@@ -27,9 +27,10 @@ status=0
 # is the reference of the case. The coupled cases run one day, with the
 # relaxation targets of their profiles; the _kf_ ones with the
 # Kain-Fritsch cumulus (icumulus = 6) instead of Tiedtke. The BOMEX (6
-# hours) and RICO (one day) shallow cumulus cases run with the settings
-# of scm_les.py: DEPHY forcing, geostrophic wind of the target file, no
-# relaxation, no interactive radiation.
+# hours) and RICO (one day) shallow cumulus cases and the FIRE (one day)
+# stratocumulus case run with the settings of scm_les.py: DEPHY forcing,
+# geostrophic wind of the target file, no relaxation; interactive
+# radiation only in FIRE.
 cases="tiedtke:scm_profiles.txt:scm_tiedtke
        holtslag:scm_profiles.txt:scm_holtslag
        tiedtke:scm_gate_check.txt:scm_tiedtke_gate
@@ -38,7 +39,8 @@ cases="tiedtke:scm_profiles.txt:scm_tiedtke
        coupled:scm_amazon.txt:scm_coupled_kf_amazon
        coupled:scm_itcz.txt:scm_coupled_kf_itcz
        coupled:scm_bomex.txt:scm_coupled_bomex
-       coupled:scm_rico.txt:scm_coupled_rico"
+       coupled:scm_rico.txt:scm_coupled_rico
+       coupled:scm_fire.txt:scm_coupled_fire"
 
 for case in $cases; do
   scheme=${case%%:*}
@@ -60,6 +62,8 @@ for case in $cases; do
         lgeos = .true., iocnflux = 0, ustarfix = 0.28," ;;
       *rico) extra="$extra ndays = 1.0, irad = 0, taurelax = 1.0e12,
         lgeos = .true., iocnflux = 1, ocnsw = 0.0, ocnlw = 0.0," ;;
+      *fire) extra="$extra ndays = 1.0, irad = 1, ladvt = .true.,
+        taurelax = 1.0e12, lgeos = .true., iocnflux = 1," ;;
       *) extra="$extra ndays = 1.0," ;;
     esac
     case $name in

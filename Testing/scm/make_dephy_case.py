@@ -30,8 +30,11 @@
 # scm_itcz.txt, the 32 MOLOCH levels of the South America test over the
 # ocean) below ztop (default 10000 m), or a uniform grid of spacing dz.
 #
-# Forcing (constant in time in BOMEX and RICO, the first record is used):
-#   tten  tnta_rad + tnta_adv (K/s), as present in the driver
+# Forcing (constant in time in BOMEX, RICO and FIRE, the first record is
+# used):
+#   tten  tnta_rad + tnta_adv (K/s), as present in the driver; with
+#         radiation = "on" (FIRE) only the advection, to be run with the
+#         model radiation and ladvt = .true.
 #   qten  tnqv_adv (kg/kg/s, specific humidity)
 #   omega -rho g wa (large scale subsidence)
 #   geostrophic wind ug, vg (target file)
@@ -42,7 +45,8 @@
 # LES reference: for every hour of the LES files LES0.nc ... LESn.nc
 # (hourly means of the ensemble members), on the column levels below the
 # LES top, the ensemble mean, minimum and maximum of T (from theta at the
-# pressure of the level), qv, ql (g/kg) and cloud fraction, each the mean
+# pressure of the level), qv, ql (g/kg, specific, from the Meso-NH mixing
+# ratios) and cloud fraction, each the mean
 # over the LES levels inside the layer of the column level; per hour the
 # liquid water path (g/m2) and the largest cloud fraction of the profile
 # (a lower bound of the cloud cover) of each member.
@@ -89,6 +93,7 @@ def read_driver(path):
     c = {'case': d.case, 'title': d.title,
          'start': d.start_date.replace('-', '').replace(' ', '')[:10],
          'tforc': d.surface_forcing_temp,
+         'radiation': getattr(d, 'radiation', 'off'),
          'z': np.array(d['zh'][0], dtype=float),
          'p': np.array(d['pa'][0], dtype=float),
          'ps': float(d['ps'][0]),
@@ -180,6 +185,11 @@ def les_reference(path, name, ldir, zfull, zhalf, pfull):
         for n in ('theta', 'qv', 'ql', 'rneb', 'rho'):
             v[n] = np.array(d[n][:], dtype=float).reshape(
                 len(tb), -1)[full]
+        # Meso-NH mixing ratios (MEAN_RV, MEAN_RC) to specific contents
+        # of moist air, as the column output
+        rt = v['qv'] + v['ql']
+        v['qv'] = v['qv'] / (1.0 + rt)
+        v['ql'] = v['ql'] / (1.0 + rt)
         members.append((z, hours, v))
     ztopl = min(m[0][-1] for m in members)
     keep = zfull < ztopl
@@ -264,6 +274,13 @@ def main():
               'W/m2)' % (c['ustar'], c['shf'], c['lhf']))
     else:
         print('  run with the ocean scheme, SST %.2f K' % c['sst'])
+    if c['radiation'] == 'on':
+        print('  radiation on: run with irad = 1 and ladvt = .true. (the '
+              'T tendency is advection), levels to the model top (--ztop)')
+    elif c['radiation'] == 'tend':
+        print('  radiative cooling in the forcing: run with irad = 0')
+    else:
+        print('  no radiation: run with irad = 0')
     if a.les:
         les_reference(base + '_les.txt', a.name, a.les, zfull, zhalf, pfull)
         print('  LES reference %s_les.txt' % base)

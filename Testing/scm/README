@@ -32,7 +32,9 @@ Files
                       (--case amazon or itcz)
   scm_bomex.txt, scm_bomex_target.txt, scm_bomex_les.txt
   scm_rico.txt, scm_rico_target.txt, scm_rico_les.txt
-                      shallow cumulus cases of scm_coupled (initial
+  scm_fire.txt, scm_fire_target.txt, scm_fire_les.txt
+                      shallow cumulus and stratocumulus cases of
+                      scm_coupled (initial
                       profiles and forcing, geostrophic wind, LES
                       reference), built by make_dephy_case.py
   scm_les.py          runs them and compares with the LES
@@ -147,12 +149,20 @@ model or albland (0.13) on land. Its heating replaces the input T
 tendency, its net surface radiation drives the COARE cool skin.
 
 The output levels also have the NoTo tendencies, cloud water + ice, the
-cloud fraction seen by the radiation and the radiative heating.
+cloud fraction seen by the radiation, the radiative heating, the in-cloud
+water seen by the radiation and the large scale cloud fraction of the
+cloud scheme (cfls, also the cloud cover of NoTo).
 
 Options of &scmparam beyond the forcing above:
   tauwind, windfac   winds relax to windfac times the target winds in
                      tauwind (0, default: Coriolis around the initial
                      winds times windfac)
+  ladvt              with irad = 1, keep the T tendency of the profile
+                     file as large scale advection (default: replaced by
+                     the model radiation)
+  icldfrac           large scale cloud fraction of NoTo and the
+                     radiation: 0 SUBEX (default), 1 Xu-Randall on the
+                     cloud water and ice
   lgeos              with tauwind = 0, Coriolis around the target winds
                      (the geostrophic wind) instead of the initial ones
   ustarfix           friction velocity (m/s) of the surface drag of land
@@ -212,8 +222,8 @@ scm_output/scm_coupled_<case>/scm_coupled_<case>.out of a "make check"
 run and set its "# profiles:" and "# targets:" lines to the file names
 without the directory.
 
-Shallow cumulus cases (BOMEX, RICO)
------------------------------------
+Shallow cumulus and stratocumulus cases (BOMEX, RICO, FIRE)
+-----------------------------------------------------------
 BOMEX (Siebesma et al. 2003, 6 hours, constant surface fluxes, no rain)
 and RICO (vanZanten et al. 2011, SST 299.8 K, rain, one day) from the
 DEPHY common format SCM drivers (https://github.com/GdR-DEPHY/DEPHY-SCM,
@@ -231,19 +241,29 @@ https://web.lmd.jussieu.fr/~nvillefranque/pub/data/les.tar):
       --driver BOMEX/REF/BOMEX_REF_SCM_driver.nc --les LES/BOMEX/REF
   ./make_dephy_case.py --name rico \
       --driver RICO/SHORT/RICO_SHORT_SCM_driver.nc --les LES/RICO/REF
+  ./make_dephy_case.py --name fire --ztop 30000 \
+      --driver FIRE/REF/FIRE_REF_SCM_driver.nc --les LES/FIRE/REF
 
-scm_les.py runs a case with its settings (irad = 0, taurelax = 1e12,
-lgeos; BOMEX iocnflux = 0 and ustarfix = 0.28, RICO iocnflux = 1, ocnsw =
-ocnlw = 0) and prints the hourly PBL height, cloud type, LWP and largest
+FIRE (Duynkerke et al. 2004) is the diurnal cycle of the California
+stratocumulus (14 July 1987 from 00 local time, SST 289 K, one day),
+with the model radiation: its levels go to the model top (all 32), the
+T tendency of the driver is a large scale advection kept with the
+radiation (ladvt = .true.), the LES (4 members) is overcast, LWP from
+about 130 g/m2 at night to 45 g/m2 in the afternoon.
+
+scm_les.py runs a case with its settings (taurelax = 1e12, lgeos; BOMEX
+irad = 0, iocnflux = 0 and ustarfix = 0.28, RICO irad = 0, iocnflux = 1,
+ocnsw = ocnlw = 0, FIRE irad = 1, ladvt, iocnflux = 1) and prints the hourly PBL height, cloud type, LWP and largest
 cloud fraction against the LES range, and the profiles over the
-evaluation window (BOMEX hours 3-6, RICO 20-24):
+evaluation window (BOMEX hours 3-6, RICO 20-24, FIRE the whole day):
 
   ./scm_les.py bomex
   ./scm_les.py rico --set icumulus=6
   ./scm_les.py rico --sweep entshalp=1.0,2.0,3.0
+  ./scm_les.py fire --set rh0oce=0.93
 
-"make check" runs both against reference/scm_coupled_bomex.out and
-reference/scm_coupled_rico.out.
+"make check" runs the three against reference/scm_coupled_bomex.out,
+reference/scm_coupled_rico.out and reference/scm_coupled_fire.out.
 
 Ocean flux test
 ---------------

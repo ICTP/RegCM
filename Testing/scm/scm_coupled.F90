@@ -22,13 +22,16 @@
 !
 ! The columns of the profile file are laid out as a 1 x ncol grid. Every
 ! time step the schemes are called through their model entry points,
-! tiedtkedrv or kfdrv, subex_cldfrac (icldfrac = 0) and nogtom, colmod3
+! tiedtkedrv or kfdrv, subex_cldfrac (icldfrac = 0, or xuran_cldfrac with
+! icldfrac = 1, on the cloud water and ice) and nogtom, colmod3
 ! (every dtrad), holtbl, on the same state, as the MOLOCH core does (idynamic
 ! = 3, no chemistry), and the state is advanced with the sum of their
 ! tendencies and of the large scale forcing:
 !   - the input tendencies of the profile file (tten, qten: radiative
 !     heating and horizontal advection), held fixed; with the model
-!     radiation (irad = 1, default) tten is replaced by its heating;
+!     radiation (irad = 1, default) tten is replaced by its heating,
+!     or, with ladvt = .true., tten is a large scale advection added to
+!     the model radiation (FIRE);
 !   - the vertical advection by the omega of the profile file, computed
 !     on the current state, which is also the omega seen by the cumulus
 !     scheme;
@@ -121,7 +124,8 @@ program scm_coupled
     auto_rate_klepi, budget_compute, clfrcv, cu_cfmax, declin, detrpen_lnd, &
     detrpen_ocn, dt, dtabem, dtcum, dtrad, dtsec, dx, dxsq, eccen, eccf, &
     entrdd, entrpen_lnd, entrpen_ocn, entshalp, holtth10iter, iaerosol, &
-    iautoconv, ibltyp, ichem, iclimaaer, iclimao3, iconvcf, icumcloud, icup, &
+    iautoconv, ibltyp, ichem, iclimaaer, iclimao3, icldfrac, iconvcf, &
+    icumcloud, icup, &
     icup_lnd, icup_ocn, idirect, ifaholt, ifaholtth10, iindirect, iocnflux, &
     ipptls, iqc, iqi, iqr, iqs, iqv, irrtm, istochastic, itweak, iwavcpl, &
     izengrough, k2_const, kf_convrate, kf_dpp, kf_entrate, kf_max_dtcape, &
@@ -154,6 +158,7 @@ program scm_coupled
   use mod_ocn_coare, only : coare3_drv
   use mod_micro_nogtom, only : allocate_mod_nogtom, init_nogtom, nogtom
   use mod_cloud_subex, only : subex_cldfrac
+  use mod_cloud_xuran, only : xuran_cldfrac
   use mod_rad_common, only : o3prof, gasabsnxt, gasabstot, gasemstot, &
     absemin, kth, ktf
   use mod_rad_aerosol, only : allocate_mod_rad_aerosol
@@ -167,7 +172,7 @@ program scm_coupled
   character(len=256) :: nmlfile, infile, outfile, tgtfile
   real(rkx) :: dxkm, dtstep, ndays, taurelax, zrelax, tauwtg, zwtg, &
     tauwind, windfac, ocnsw, ocnlw, omfac, ustarfix
-  logical :: lgeos
+  logical :: lgeos, ladvt
   integer(ik4) :: nout
   integer(ik4) :: ncol, nk, j, k, n, iu, io, ios, istep, nsteps
   character(len=32), allocatable, dimension(:) :: col_name
@@ -181,6 +186,7 @@ program scm_coupled
     ften, fqen, za, zf, pa, pf, t, q, u, v, mfu, ctt, cqt, ptt, pqt, &
     wrelax, omls, ttg, qtg
   real(rkx), allocatable, dimension(:,:,:) :: ttgt, qtgt, utgt, vtgt
+  real(rkx), allocatable, dimension(:,:) :: tadv
   real(rkx), allocatable, dimension(:,:) :: mtt, mqt, cfr, hrad, &
     cfrad, lwcrad
   integer(ik4) :: irad, iyear, imonth, nrad, nabs, icumulus, kty
@@ -193,7 +199,7 @@ program scm_coupled
   type(mod_2_rad) :: m2r
   type(rad_2_mod) :: r2m
   real(rkx), allocatable, dimension(:,:,:) :: qcnd
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: qvp, rhcp
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qvp, rhcp, totcp
   real(rkx), pointer, contiguous, dimension(:,:) :: rh0p
   logical :: lnoto
   type(mod_2_micro) :: mo2mc
@@ -209,9 +215,9 @@ program scm_coupled
 
   namelist /scmparam/ infile, outfile, dtstep, ndays, nout, dxkm, &
     taurelax, zrelax, tgtfile, tauwtg, zwtg, tauwind, windfac,    &
-    omfac, lgeos, ustarfix, &
+    omfac, lgeos, ustarfix, ladvt, &
     iocnflux, izengrough, ocnsw, ocnlw, lnoto, irad, dtrad, dtabem, &
-    albland, scenario, icumulus
+    albland, scenario, icumulus, icldfrac
   namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
     detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
@@ -244,6 +250,7 @@ program scm_coupled
   omfac = 1.0_rkx
   windfac = 1.0_rkx
   lgeos = .false.
+  ladvt = .false.
   ustarfix = 0.0_rkx
   iocnflux = 1
   izengrough = 1
@@ -315,6 +322,7 @@ program scm_coupled
   maxprandtl = 1.0_rkx
   lsctop = .true.
   icumulus = 5
+  icldfrac = 0
   kf_wthreshold = 0.02_rkx
   kf_entrate = 0.03_rkx
   kf_convrate = 0.03_rkx
@@ -497,6 +505,10 @@ program scm_coupled
   cfrad = d_zero
   lwcrad = d_zero
   hrad = ften
+  ! input temperature tendency kept as advection with the model radiation
+  allocate(tadv(ncol,nk))
+  tadv = d_zero
+  if ( irad == 1 .and. ladvt ) tadv = ften
   allocate(rcmtimer)
   rcmtimer%lcount = 0
   if ( irad == 1 ) call init_rad
@@ -541,9 +553,9 @@ program scm_coupled
     '  zwtg (m) ', zwtg, '  tauwind (s) ', tauwind, '  windfac ', windfac
   write(io,'(a,2i3,a,2f8.1)') '# iocnflux izengrough ', iocnflux, &
     izengrough, '  ocnsw ocnlw (W/m2) ', ocnsw, ocnlw
-  if ( lgeos .or. ustarfix > d_zero ) &
-    write(io,'(a,l2,a,f8.3)') '# lgeos ', lgeos, '  ustarfix (m/s) ', &
-      ustarfix
+  if ( lgeos .or. ustarfix > d_zero .or. ladvt ) &
+    write(io,'(a,l2,a,f8.3,a,l2)') '# lgeos ', lgeos, &
+      '  ustarfix (m/s) ', ustarfix, '  ladvt ', ladvt
   if ( icumulus == 5 ) then
     write(io,nml=tiedtkeparam)
   else
@@ -563,7 +575,8 @@ program scm_coupled
   write(io,'(a)') '# z(m) p(hPa) T(K) q(g/kg) mfu(kg/m2/s) '// &
     'dTcu dTpbl(K/day) dqcu dqpbl(g/kg/day) omega(Pa/s) '// &
     'dTmic(K/day) dqmic(g/kg/day) qc+qi(g/kg) cldfrac(radiation) '// &
-    'dTrad(K/day) lwc(g/m3, in cloud, seen by radiation)'
+    'dTrad(K/day) lwc(g/m3, in cloud, seen by radiation) '// &
+    'cfls(large scale cloud fraction of the cloud scheme)'
   write(io,'(a,3i6)') 'NCOL ', ncol, nk, nsteps/nout
 
   do istep = 1, nsteps
@@ -720,7 +733,7 @@ program scm_coupled
           dwdp = max(dwdp,d_zero)
         end if
         t(j,k) = t(j,k) + dt*(ctt(j,k) + mtt(j,k) + ptt(j,k) + &
-          hrad(j,k) - &
+          hrad(j,k) + tadv(j,k) - &
           omls(j,k)*(dtdp - rovcp*t(j,k)/pa(j,k)) - &
           wr*(t(j,k)-tg))
         q(j,k) = max(q(j,k) + dt*(cqt(j,k) + mqt(j,k) + pqt(j,k) + &
@@ -805,13 +818,13 @@ program scm_coupled
           rainl(j)*86400.0_rkx, rainc_acc(j), rainl_acc(j), wspd, &
           rsut(j), rlut(j), rsutcs(j), rlutcs(j)
         do k = 1, nk
-          write(io,'(f10.2,f10.3,f9.3,14es13.5)') za(j,k), &
+          write(io,'(f10.2,f10.3,f9.3,15es13.5)') za(j,k), &
             pa(j,k)*0.01_rkx, t(j,k), q(j,k)/(d_one+q(j,k))*1.0e3_rkx, &
             mfu(j,k), ctt(j,k)*86400.0_rkx, ptt(j,k)*86400.0_rkx, &
             cqt(j,k)*8.64e7_rkx, pqt(j,k)*8.64e7_rkx, omls(j,k), &
             mtt(j,k)*86400.0_rkx, mqt(j,k)*8.64e7_rkx, &
             (qcnd(j,k,iqc)+qcnd(j,k,iqi))*1.0e3_rkx, cfrad(j,k), &
-            hrad(j,k)*86400.0_rkx, lwcrad(j,k)
+            hrad(j,k)*86400.0_rkx, lwcrad(j,k), cfr(j,k)
         end do
       end do
     end if
@@ -1016,6 +1029,7 @@ program scm_coupled
     call getmem(mo2mc%qxx,1,ncol,1,1,1,nk,1,nqx,'scm:mqxx')
     call getmem(qvp,1,ncol,1,1,1,nk,'scm:qvp')
     call getmem(rhcp,1,ncol,1,1,1,nk,'scm:rhcp')
+    call getmem(totcp,1,ncol,1,1,1,nk,'scm:totcp')
     call getmem(rh0p,1,ncol,1,1,'scm:rh0p')
     call getmem(mc2mo%tten,1,ncol,1,1,1,nk,'scm:ctten')
     call getmem(mc2mo%qxten,1,ncol,1,1,1,nk,1,nqx,'scm:cqxten')
@@ -1058,6 +1072,10 @@ program scm_coupled
         mo2mc%qs(j,1,k) = pfwsat(t(j,k),pa(j,k))
         mo2mc%rh(j,1,k) = min(max(q(j,k)/mo2mc%qs(j,1,k),d_zero),d_one)
         qvp(j,1,k) = q(j,k)
+        ! cloud water + ice, as cldfrac in mod_micro_interface
+        totcp(j,1,k) = &
+          merge(qcnd(j,k,iqc),d_zero,qcnd(j,k,iqc) >= 2.0e-7_rkx) + &
+          merge(qcnd(j,k,iqi),d_zero,qcnd(j,k,iqi) >= 2.0e-7_rkx)
         ! Tiedtke: the detrained condensate goes to the microphysics
         ! through qdetr; Kain-Fritsch: as tendencies
         if ( icumulus == 5 ) then
@@ -1074,8 +1092,15 @@ program scm_coupled
       mc2mo%snownc(j,1) = d_zero
       mc2mo%trrate(j,1) = d_zero
     end do
-    call subex_cldfrac(mo2mc%t,mo2mc%phs,qvp,mo2mc%rh,tc0,rh0p,rhcp, &
-      mo2mc%cldf)
+    select case ( icldfrac )
+      case (0)
+        call subex_cldfrac(mo2mc%t,mo2mc%phs,qvp,mo2mc%rh,tc0,rh0p,rhcp, &
+          mo2mc%cldf)
+      case (1)
+        call xuran_cldfrac(totcp,mo2mc%qs,mo2mc%rh,mo2mc%cldf)
+      case default
+        call scm_error('icldfrac must be 0 (SUBEX) or 1 (Xu-Randall)')
+    end select
     call nogtom(mo2mc,mc2mo)
     do j = 1, ncol
       do k = 1, nk

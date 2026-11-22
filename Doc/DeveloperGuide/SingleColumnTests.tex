@@ -34,8 +34,10 @@ integration with prescribed large scale forcing.
         built by \verb=make_amazon_case.py=;
         \verb=scm_bomex.txt=, \verb=scm_bomex_target.txt=,
         \verb=scm_bomex_les.txt=, \verb=scm_rico.txt=,
-        \verb=scm_rico_target.txt=, \verb=scm_rico_les.txt=: the BOMEX
-        and RICO shallow cumulus cases (initial profiles and forcing,
+        \verb=scm_rico_target.txt=, \verb=scm_rico_les.txt=,
+        \verb=scm_fire.txt=, \verb=scm_fire_target.txt=,
+        \verb=scm_fire_les.txt=: the BOMEX and RICO shallow cumulus and
+        the FIRE stratocumulus cases (initial profiles and forcing,
         geostrophic wind, LES reference), built by
         \verb=make_dephy_case.py=; \verb=scm_les.py=: their wrapper;
   \item \verb=scm_ocean.F90=, \verb=scm_ocean.py=: the ocean surface flux
@@ -331,8 +333,10 @@ ocean is the one of the model with \code{iwhitecap} = 0,
 $0.05/(\cos\zeta+0.15)$ for the direct and 0.08 for the diffuse
 radiation, over land \code{albland} (0.13); the emissivity is 0.98 over
 the ocean and 0.96 over land, the ground temperature the SST or the one
-of the boundary layer input. The heating rate is also the radiative
-heating of NoTo, and the net surface radiation replaces \code{ocnsw} and
+of the boundary layer input. With \code{ladvt} = true the
+temperature tendency of the profile file is kept as a large scale
+advection in addition to the radiative heating. The heating rate is
+also the radiative heating of NoTo, and the net surface radiation replaces \code{ocnsw} and
 \code{ocnlw} for the ocean scheme. The pressure of the levels is held
 fixed.
 
@@ -340,7 +344,8 @@ The namelist has a \code{scmparam} group (\code{infile},
 \code{outfile}, \code{tgtfile}, \code{dtstep}, \code{ndays},
 \code{nout}, \code{dxkm}, \code{taurelax}, \code{zrelax},
 \code{tauwtg}, \code{zwtg}, \code{tauwind}, \code{windfac},
-\code{lgeos}, \code{ustarfix}, \code{iocnflux}, \code{izengrough}, \code{ocnsw}, \code{ocnlw},
+\code{lgeos}, \code{ustarfix}, \code{ladvt}, \code{icldfrac},
+\code{iocnflux}, \code{izengrough}, \code{ocnsw}, \code{ocnlw},
 \code{lnoto}, \code{irad}, \code{dtrad}, \code{dtabem},
 \code{albland}, \code{scenario}) and the model groups \code{tiedtkeparam},
 \code{cldparam}, \code{holtslagparam} and \code{microparam}. Every \code{nout} steps (default one hour)
@@ -353,7 +358,11 @@ height, pressure, temperature, specific humidity, updraft mass flux, the
 temperature and humidity tendencies of the cumulus and boundary layer
 schemes, the large scale $\omega$, the temperature and humidity
 tendencies of NoTo, cloud water plus ice, the cloud fraction seen by the
-radiation and the radiative heating rate.
+radiation, the radiative heating rate, the in-cloud water seen by the
+radiation and the large scale cloud fraction of the cloud scheme
+(\code{icldfrac} = 0 SUBEX, the default, or 1 Xu-Randall on the cloud
+water and ice, as \code{cldfrac} of the model), which is also the cloud
+cover of NoTo.
 
 \section{Amazon and ITCZ cases}
 
@@ -419,7 +428,7 @@ rains, 0 otherwise. For the same reason as above
 the comparison holds only for the build the reference was made with;
 another compiler or other optimisation flags give different rain events.
 
-\section{Shallow cumulus cases: BOMEX and RICO}
+\section{Shallow cumulus and stratocumulus cases: BOMEX, RICO, FIRE}
 
 Two cases of undisturbed trade wind cumulus over the ocean test the
 boundary layer, the shallow convection and the cloud scheme together
@@ -472,9 +481,20 @@ profiles averaged over the evaluation window of the intercomparisons
   scm_les.py bomex
   scm_les.py rico --sweep entshalp=1.0,2.0,3.0
 \end{verbatim}
-\code{make check} runs both cases against
-\verb=reference/scm_coupled_bomex.out= and
-\verb=reference/scm_coupled_rico.out=.
+FIRE \citep{duynkerke2004} is the diurnal cycle of the stratocumulus off
+California (14 July 1987 from midnight local time, SST 289~K, one day,
+DEPHY case \verb=FIRE/REF=). Its driver has the radiation on: the case is
+built on all the 32 levels (\code{--ztop} 30000), runs with the model
+radiation (\code{irad} = 1) and keeps the temperature tendency of the
+driver, a large scale advection, with \code{ladvt} = true; the
+evaluation window is the whole day. The HIGH-TUNE LES (four members, up
+to 1.2~km) is overcast, with a liquid water path from about 130~g~m$^{-2}$
+at night to 45~g~m$^{-2}$ in the afternoon.
+
+\code{make check} runs the three cases against
+\verb=reference/scm_coupled_bomex.out=,
+\verb=reference/scm_coupled_rico.out= and
+\verb=reference/scm_coupled_fire.out=.
 
 \section{Ocean surface flux test}
 

@@ -54,7 +54,7 @@ GROUPS = {
                  'tgtfile', 'tauwtg', 'zwtg', 'tauwind', 'windfac', 'omfac',
                  'iocnflux', 'izengrough', 'ocnsw', 'ocnlw', 'lnoto',
                  'irad', 'dtrad', 'dtabem', 'albland', 'scenario',
-                 'icumulus', 'lgeos', 'ustarfix'],
+                 'icumulus', 'lgeos', 'ustarfix', 'icldfrac', 'ladvt'],
     'kfparam': ['kf_min_pef', 'kf_max_pef', 'kf_entrate', 'kf_dpp',
                 'kf_min_dtcape', 'kf_max_dtcape', 'kf_tkemax',
                 'kf_convrate', 'kf_wthreshold'],
@@ -84,7 +84,7 @@ STEP_FIELDS = ['time', 'hour', 'shf', 'lhf', 'zpbl', 'kpbl', 'hqfac',
 INT_FIELDS = ('kpbl', 'ktype', 'kctop', 'kcbot')
 LEVEL_FIELDS = ['z', 'p', 'T', 'q', 'mfu', 'dTcu', 'dTpbl', 'dqcu',
                 'dqpbl', 'omega', 'dTmic', 'dqmic', 'qcond', 'cldf',
-                'dTrad', 'lwcr']
+                'dTrad', 'lwcr', 'cfls']
 
 
 def find_exe(exe):
