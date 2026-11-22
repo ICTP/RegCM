@@ -344,7 +344,8 @@ The namelist has a \code{scmparam} group (\code{infile},
 \code{outfile}, \code{tgtfile}, \code{dtstep}, \code{ndays},
 \code{nout}, \code{dxkm}, \code{taurelax}, \code{zrelax},
 \code{tauwtg}, \code{zwtg}, \code{tauwind}, \code{windfac},
-\code{lgeos}, \code{ustarfix}, \code{ladvt}, \code{icldfrac},
+\code{lgeos}, \code{ustarfix}, \code{ladvt}, \code{isplit},
+\code{csplit}, \code{icldfrac},
 \code{iocnflux}, \code{izengrough}, \code{ocnsw}, \code{ocnlw},
 \code{lnoto}, \code{irad}, \code{dtrad}, \code{dtabem},
 \code{albland}, \code{scenario}) and the model groups \code{tiedtkeparam},
@@ -494,7 +495,29 @@ at night to 45~g~m$^{-2}$ in the afternoon.
 \code{make check} runs the three cases against
 \verb=reference/scm_coupled_bomex.out=,
 \verb=reference/scm_coupled_rico.out= and
-\verb=reference/scm_coupled_fire.out=.
+\verb=reference/scm_coupled_fire.out=, and FIRE with the sequential
+split (below) against \verb=reference/scm_coupled_fire_seq.out=.
+
+\subsection{Splitting of the physics}
+
+As in the model, by default (\code{isplit} = 0) every scheme starts from the
+state at the beginning of the step and the tendencies are summed (parallel
+split); the only exchanges within the step are the cumulus tendencies and
+detrained condensate passed to NoTo, the cloud fraction passed to NoTo and
+the radiation, and the surface fluxes passed to the boundary layer. With
+\code{isplit} = 1 the step is split sequentially: the large scale forcing
+(the dynamics of the column) is applied first, then the four processes in
+the order of \code{csplit} (the words \code{rad}, \code{pbl}, \code{cu},
+\code{mic}, default \code{'rad pbl cu mic'}, the order of the IFS), each on
+the state left by the ones before it. Tiedtke, whose first guess is the
+state plus its input tendencies times the time step and whose closure uses
+the moisture tendency, gets the state after the forcing and the
+accumulated tendencies of the physics called before it; the other schemes
+get the updated state. NoTo receives the cumulus condensate (detrained
+condensate, Kain-Fritsch condensate tendencies) of the same step, or of the
+previous step if it is called before the cumulus scheme. The surface
+fluxes are computed after the forcing, the radiation clouds after the
+microphysics. The model itself keeps the parallel split.
 
 \section{Ocean surface flux test}
 

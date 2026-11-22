@@ -160,6 +160,14 @@ Options of &scmparam beyond the forcing above:
   ladvt              with irad = 1, keep the T tendency of the profile
                      file as large scale advection (default: replaced by
                      the model radiation)
+  isplit, csplit     splitting of the physics: 0 (default) parallel, as
+                     the model (all schemes on the state at the start of
+                     the step, tendencies summed); 1 sequential: the
+                     large scale forcing first, then the processes in
+                     the order of csplit (default 'rad pbl cu mic'),
+                     each on the state left by the ones before;
+                     Tiedtke gets the state after the forcing and the
+                     tendencies of the physics before it (IFS)
   icldfrac           large scale cloud fraction of NoTo and the
                      radiation: 0 SUBEX (default), 1 Xu-Randall on the
                      cloud water and ice
@@ -264,7 +272,8 @@ evaluation window (BOMEX hours 3-6, RICO 20-24, FIRE the whole day):
   ./scm_les.py fire --set lqtmix=.true.       Holtslag total water mixing
 
 "make check" runs the three against reference/scm_coupled_bomex.out,
-reference/scm_coupled_rico.out and reference/scm_coupled_fire.out.
+reference/scm_coupled_rico.out and reference/scm_coupled_fire.out, and
+FIRE with the sequential split against reference/scm_coupled_fire_seq.out.
 
 Ocean flux test
 ---------------

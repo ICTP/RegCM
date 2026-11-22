@@ -30,7 +30,8 @@ status=0
 # hours) and RICO (one day) shallow cumulus cases and the FIRE (one day)
 # stratocumulus case run with the settings of scm_les.py: DEPHY forcing,
 # geostrophic wind of the target file, no relaxation; interactive
-# radiation only in FIRE.
+# radiation only in FIRE. FIRE also runs with the sequential split
+# (isplit = 1, IFS order).
 cases="tiedtke:scm_profiles.txt:scm_tiedtke
        holtslag:scm_profiles.txt:scm_holtslag
        tiedtke:scm_gate_check.txt:scm_tiedtke_gate
@@ -40,7 +41,8 @@ cases="tiedtke:scm_profiles.txt:scm_tiedtke
        coupled:scm_itcz.txt:scm_coupled_kf_itcz
        coupled:scm_bomex.txt:scm_coupled_bomex
        coupled:scm_rico.txt:scm_coupled_rico
-       coupled:scm_fire.txt:scm_coupled_fire"
+       coupled:scm_fire.txt:scm_coupled_fire
+       coupled:scm_fire.txt:scm_coupled_fire_seq"
 
 for case in $cases; do
   scheme=${case%%:*}
@@ -64,6 +66,9 @@ for case in $cases; do
         lgeos = .true., iocnflux = 1, ocnsw = 0.0, ocnlw = 0.0," ;;
       *fire) extra="$extra ndays = 1.0, irad = 1, ladvt = .true.,
         taurelax = 1.0e12, lgeos = .true., iocnflux = 1," ;;
+      *fire_seq) extra="$extra ndays = 1.0, irad = 1, ladvt = .true.,
+        taurelax = 1.0e12, lgeos = .true., iocnflux = 1, isplit = 1,
+        csplit = 'rad pbl cu mic'," ;;
       *) extra="$extra ndays = 1.0," ;;
     esac
     case $name in

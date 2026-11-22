@@ -99,6 +99,14 @@
 ! surface radiation replaces ocnsw and ocnlw for the ocean scheme, and
 ! its heating is the radiative heating of NoTo.
 ! The pressure of the levels is held fixed.
+! Splitting (isplit): 0 (default) parallel, as the model: every scheme
+! starts from the state at the beginning of the step and the tendencies
+! are summed (the cumulus tendencies are input to NoTo). 1 sequential:
+! the large scale forcing is applied first (the dynamics of the column),
+! then radiation, boundary layer, cumulus and microphysics in the order
+! of csplit (default 'rad pbl cu mic'), each on the state left by the
+! ones before it; Tiedtke gets the state after the forcing with the
+! tendencies of the physics called before it (IFS).
 !
 ! The namelist has a &scmparam group and the model groups &tiedtkeparam,
 ! &kfparam,
@@ -174,6 +182,15 @@ program scm_coupled
   real(rkx) :: dxkm, dtstep, ndays, taurelax, zrelax, tauwtg, zwtg, &
     tauwind, windfac, ocnsw, ocnlw, omfac, ustarfix
   logical :: lgeos, ladvt
+  ! Splitting of the physics: 0 parallel (as the model), 1 sequential in
+  ! the order of csplit
+  integer(ik4) :: isplit, nproc
+  character(len=64) :: csplit
+  integer(ik4), dimension(4) :: iorder
+  ! Sequential split: state after the forcing, accumulated tendencies of
+  ! the physics (T, qv, cloud water and ice)
+  real(rkx), allocatable, dimension(:,:) :: tf, qf, acct, accq
+  real(rkx), allocatable, dimension(:,:,:) :: qcf, accqc
   integer(ik4) :: nout
   integer(ik4) :: ncol, nk, j, k, n, iu, io, ios, istep, nsteps
   character(len=32), allocatable, dimension(:) :: col_name
@@ -216,7 +233,7 @@ program scm_coupled
 
   namelist /scmparam/ infile, outfile, dtstep, ndays, nout, dxkm, &
     taurelax, zrelax, tgtfile, tauwtg, zwtg, tauwind, windfac,    &
-    omfac, lgeos, ustarfix, ladvt, &
+    omfac, lgeos, ustarfix, ladvt, isplit, csplit, &
     iocnflux, izengrough, ocnsw, ocnlw, lnoto, irad, dtrad, dtabem, &
     albland, scenario, icumulus, icldfrac
   namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
@@ -253,6 +270,8 @@ program scm_coupled
   windfac = 1.0_rkx
   lgeos = .false.
   ladvt = .false.
+  isplit = 0
+  csplit = 'rad pbl cu mic'
   ustarfix = 0.0_rkx
   iocnflux = 1
   izengrough = 1
@@ -512,6 +531,7 @@ program scm_coupled
   allocate(tadv(ncol,nk))
   tadv = d_zero
   if ( irad == 1 .and. ladvt ) tadv = ften
+  if ( isplit == 1 ) call parse_split
   allocate(rcmtimer)
   rcmtimer%lcount = 0
   if ( irad == 1 ) call init_rad
@@ -556,6 +576,11 @@ program scm_coupled
     '  zwtg (m) ', zwtg, '  tauwind (s) ', tauwind, '  windfac ', windfac
   write(io,'(a,2i3,a,2f8.1)') '# iocnflux izengrough ', iocnflux, &
     izengrough, '  ocnsw ocnlw (W/m2) ', ocnsw, ocnlw
+  if ( isplit == 1 ) then
+    write(io,'(a,a)') '# sequential split, forcing then ', trim(csplit)
+  else
+    write(io,'(a)') '# parallel split (as the model)'
+  end if
   if ( lgeos .or. ustarfix > d_zero .or. ladvt ) &
     write(io,'(a,l2,a,f8.3,a,l2)') '# lgeos ', lgeos, &
       '  ustarfix (m/s) ', ustarfix, '  ladvt ', ladvt
@@ -585,216 +610,145 @@ program scm_coupled
   do istep = 1, nsteps
     time = real(istep-1,rkx)*dt
     rcmtimer%lcount = int(istep,ik8)
-    ! Surface fluxes
-    do j = 1, ncol
-      hour = modulo(col_hour(j) + time/3600.0_rkx,24.0_rkx)
-      sfac = sin(mathpi*(hour-6.0_rkx)/12.0_rkx)
-      if ( col_land(j) /= 1 ) then
-        m2p%hfx(j,1) = col_shf(j)
-        m2p%qfx(j,1) = col_lhf(j)/wlhv
-      else if ( sfac > d_zero ) then
-        m2p%hfx(j,1) = col_shf(j)*mathpi*1.125_rkx*sfac
-        m2p%qfx(j,1) = col_lhf(j)*mathpi*0.95_rkx*sfac/wlhv
-      else
-        m2p%hfx(j,1) = -0.25_rkx*col_shf(j)
-        m2p%qfx(j,1) = 0.1_rkx*col_lhf(j)/wlhv
-      end if
-    end do
-    call update_derived
-    if ( any(col_ocn) ) call ocean_fluxes
-
-    ! Targets at this time, large scale omega
-    do j = 1, ncol
-      utc = modulo(col_hour(j) - col_lon(j)/15.0_rkx + &
-        time/3600.0_rkx,24.0_rkx)
-      n = min(int(utc/6.0_rkx),3)
-      wt = (utc - 6.0_rkx*real(n,rkx))/6.0_rkx
-      ttg(j,:) = (d_one-wt)*ttgt(j,:,n) + wt*ttgt(j,:,n+1)
-      qtg(j,:) = (d_one-wt)*qtgt(j,:,n) + wt*qtgt(j,:,n+1)
-    end do
-    if ( tauwtg > d_zero ) then
-      call wtg_omega
+    if ( isplit == 1 ) then
+      call seq_step
     else
-      omls = omega
-    end if
+      call surface_fluxes
+      call set_targets
+      call cu_call(.false.)
 
-    ! Cumulus, on the state at the start of the step
-    do j = 1, ncol
-      m2c%tas(j,1,:) = t(j,:)
-      m2c%qxas(j,1,:,iqv) = q(j,:)
-      m2c%qxas(j,1,:,iqc) = qcnd(j,:,iqc)
-      m2c%qxas(j,1,:,iqi) = qcnd(j,:,iqi)
-      m2c%qxas(j,1,:,iqr) = qcnd(j,:,iqr)
-      m2c%qxas(j,1,:,iqs) = qcnd(j,:,iqs)
-      do k = 1, nk
-        m2c%rhoas(j,1,k) = pa(j,k)/(rgas*t(j,k)* &
-          (d_one+ep1*q(j,k)/(d_one+q(j,k))))
-      end do
-      m2c%uas(j,1,:) = u(j,:)
-      m2c%vas(j,1,:) = v(j,:)
-      m2c%hfx(j,1) = m2p%hfx(j,1)
-      m2c%qfx(j,1) = m2p%qfx(j,1)
-      m2c%zpbl(j,1) = p2m%zpbl(j,1)
-      m2c%ustar(j,1) = ustar(j)
-    end do
-    m2c%tten(:,:,:) = d_zero
-    m2c%qxten(:,:,:,:) = d_zero
-    if ( icumulus == 5 ) then
-      ! Tiedtke: the large scale omega (Pa/s)
-      avg_ww(:,1,:) = omls
-    else
-      ! Kain-Fritsch: the large scale vertical velocity (m/s)
-      avg_ww(:,1,:) = -omls/(m2c%rhoas(:,1,:)*egrav)
-    end if
-    cu_prate(:,:) = d_zero
-    cu_srate(:,:) = d_zero
-    cu_ktop(:,:) = 0
-    cu_kbot(:,:) = 0
-    cu_tten(:,:,:) = d_zero
-    cu_qten(:,:,:,:) = d_zero
-    cu_uten(:,:,:) = d_zero
-    cu_vten(:,:,:) = d_zero
-    cu_cldfrc(:,:,:) = d_zero
-    cu_cldlwc(:,:,:) = d_zero
-    cu_qdetr(:,:,:) = d_zero
-    cu_raincc(:,:,:) = d_zero
-    total_precip_points = 0
-    if ( icumulus == 5 ) then
-      call tiedtkedrv(m2c)
-    else
-      call kfdrv(m2c)
-    end if
+      ! Cloud fraction and microphysics, on the same state, with the
+      ! cumulus tendencies as input (detrained condensate in qdetr)
+      if ( lnoto ) call micro_step(.false.)
+      call rad_clouds
 
-    ! Cloud fraction and microphysics, on the same state, with the
-    ! cumulus tendencies as input (detrained condensate in qdetr)
-    if ( lnoto ) call micro_step
-    call rad_clouds
+      ! Radiation, every dtrad, on the same state; the heating rate is
+      ! held between calls
+      if ( irad == 1 .and. mod(istep-1,nrad) == 0 ) call rad_step
 
-    ! Radiation, every dtrad, on the same state; the heating rate is
-    ! held between calls
-    if ( irad == 1 .and. mod(istep-1,nrad) == 0 ) call rad_step
+      ! Boundary layer, on the same state
+      p2m%tten(:,:,:) = d_zero
+      p2m%uten(:,:,:) = d_zero
+      p2m%vten(:,:,:) = d_zero
+      p2m%qxten(:,:,:,:) = d_zero
+      call holtbl(m2p,p2m)
 
-    ! Boundary layer, on the same state
-    p2m%tten(:,:,:) = d_zero
-    p2m%uten(:,:,:) = d_zero
-    p2m%vten(:,:,:) = d_zero
-    p2m%qxten(:,:,:,:) = d_zero
-    call holtbl(m2p,p2m)
-
-    ! Advance the state
-    do j = 1, ncol
-      utc = modulo(col_hour(j) - col_lon(j)/15.0_rkx + &
-        time/3600.0_rkx,24.0_rkx)
-      n = min(int(utc/6.0_rkx),3)
-      wt = (utc - 6.0_rkx*real(n,rkx))/6.0_rkx
-      do k = 1, nk
-        if ( lnoto ) then
-          ctt(j,k) = cu_tten(j,1,k)
-          cqt(j,k) = cu_qten(j,1,k,iqv)
-        else
-          ! detrained condensate evaporates in the layer
-          ctt(j,k) = cu_tten(j,1,k) - &
-            (wlhv*(cu_qten(j,1,k,iqc) + cu_qten(j,1,k,iqr)) + &
-             wlhs*(cu_qten(j,1,k,iqi) + cu_qten(j,1,k,iqs)))*rcpd
-          cqt(j,k) = cu_qten(j,1,k,iqv) + cu_qten(j,1,k,iqc) + &
-            cu_qten(j,1,k,iqi) + cu_qten(j,1,k,iqr) + cu_qten(j,1,k,iqs)
-        end if
-        ptt(j,k) = p2m%tten(j,1,k)
-        pqt(j,k) = p2m%qxten(j,1,k,iqv)
-        if ( icumulus == 5 ) then
-          mfu(j,k) = pmfu(j,k)
-        else
-          mfu(j,k) = d_zero
-        end if
-      end do
-      do k = 1, nk
-        ! vertical advection by omega, centred differences
-        if ( k == 1 ) then
-          dtdp = (t(j,2)-t(j,1))/(pa(j,2)-pa(j,1))
-          dqdp = (q(j,2)-q(j,1))/(pa(j,2)-pa(j,1))
-        else if ( k == nk ) then
-          dtdp = (t(j,nk)-t(j,nk-1))/(pa(j,nk)-pa(j,nk-1))
-          dqdp = (q(j,nk)-q(j,nk-1))/(pa(j,nk)-pa(j,nk-1))
-        else
-          dtdp = (t(j,k+1)-t(j,k-1))/(pa(j,k+1)-pa(j,k-1))
-          dqdp = (q(j,k+1)-q(j,k-1))/(pa(j,k+1)-pa(j,k-1))
-        end if
-        tg = ttg(j,k)
-        qg = qtg(j,k)
-        ! temperature relaxation, not where the WTG omega acts
-        wr = wrelax(j,k)
-        if ( tauwtg > d_zero .and. za(j,k) >= zwtg .and. &
-             pa(j,k) > 1.0e4_rkx ) wr = d_zero
-        ! inflow of target air where the large scale flow converges
-        dwdp = d_zero
-        if ( tauwtg > d_zero ) then
-          if ( k == nk ) then
-            dwdp = (d_zero-omls(j,k))/(pf(j,nk+1)-pa(j,k))
-          else
-            dwdp = (omls(j,k+1)-omls(j,k))/(pa(j,k+1)-pa(j,k))
-          end if
-          dwdp = max(dwdp,d_zero)
-        end if
-        t(j,k) = t(j,k) + dt*(ctt(j,k) + mtt(j,k) + ptt(j,k) + &
-          hrad(j,k) + tadv(j,k) - &
-          omls(j,k)*(dtdp - rovcp*t(j,k)/pa(j,k)) - &
-          wr*(t(j,k)-tg))
-        q(j,k) = max(q(j,k) + dt*(cqt(j,k) + mqt(j,k) + pqt(j,k) + &
-          fqen(j,k) - &
-          omls(j,k)*dqdp - wrelax(j,k)*(q(j,k)-qg) + &
-          dwdp*(qg-q(j,k))),1.0e-8_rkx)
-        if ( tauwind > d_zero ) then
-          ug = windfac*((d_one-wt)*utgt(j,k,n) + wt*utgt(j,k,n+1))
-          vg = windfac*((d_one-wt)*vtgt(j,k,n) + wt*vtgt(j,k,n+1))
-          u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) - &
-            (u(j,k)-ug)/tauwind)
-          v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
-            (v(j,k)-vg)/tauwind)
-        else if ( lgeos ) then
-          ug = windfac*((d_one-wt)*utgt(j,k,n) + wt*utgt(j,k,n+1))
-          vg = windfac*((d_one-wt)*vtgt(j,k,n) + wt*vtgt(j,k,n+1))
-          u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) + &
-            m2p%coriol(j,1)*(v(j,k)-vg))
-          v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
-            m2p%coriol(j,1)*(u(j,k)-ug))
-        else
-          u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) + &
-            m2p%coriol(j,1)*(v(j,k)-v0(j,k)))
-          v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
-            m2p%coriol(j,1)*(u(j,k)-u0(j,k)))
-        end if
-      end do
-      if ( lnoto ) then
-        ! condensate of the microphysics, no large scale advection
-        do n = iqc, iqs
-          do k = 1, nk
-            ! as status_update of the MOLOCH core, with the vertical
-            ! diffusion of cloud water and ice of the boundary layer
-            qcnd(j,k,n) = qcnd(j,k,n) + dt*(mc2mo%qxten(j,1,k,n) + &
-              p2m%qxten(j,1,k,n))
-            if ( qcnd(j,k,n) < qxcheckval(n) ) qcnd(j,k,n) = qxzeroval(n)
-          end do
-        end do
-        rainl(j) = mc2mo%trrate(j,1)
-      else
-        ! saturation adjustment, the condensate rains out
-        rainl(j) = d_zero
+      ! Advance the state
+      do j = 1, ncol
+        utc = modulo(col_hour(j) - col_lon(j)/15.0_rkx + &
+          time/3600.0_rkx,24.0_rkx)
+        n = min(int(utc/6.0_rkx),3)
+        wt = (utc - 6.0_rkx*real(n,rkx))/6.0_rkx
         do k = 1, nk
-          qs = pfwsat(t(j,k),pa(j,k))
-          if ( q(j,k) > qs ) then
-            dqs = pfqsdt(t(j,k),pa(j,k))
-            cond = (q(j,k)-qs)/(d_one + wlhv*rcpd*dqs)
-            q(j,k) = q(j,k) - cond
-            t(j,k) = t(j,k) + wlhv*rcpd*cond
-            rainl(j) = rainl(j) + cond*(pf(j,k+1)-pf(j,k))*regrav
+          if ( lnoto ) then
+            ctt(j,k) = cu_tten(j,1,k)
+            cqt(j,k) = cu_qten(j,1,k,iqv)
+          else
+            ! detrained condensate evaporates in the layer
+            ctt(j,k) = cu_tten(j,1,k) - &
+              (wlhv*(cu_qten(j,1,k,iqc) + cu_qten(j,1,k,iqr)) + &
+               wlhs*(cu_qten(j,1,k,iqi) + cu_qten(j,1,k,iqs)))*rcpd
+            cqt(j,k) = cu_qten(j,1,k,iqv) + cu_qten(j,1,k,iqc) + &
+              cu_qten(j,1,k,iqi) + cu_qten(j,1,k,iqr) + cu_qten(j,1,k,iqs)
+          end if
+          ptt(j,k) = p2m%tten(j,1,k)
+          pqt(j,k) = p2m%qxten(j,1,k,iqv)
+          if ( icumulus == 5 ) then
+            mfu(j,k) = pmfu(j,k)
+          else
+            mfu(j,k) = d_zero
           end if
         end do
-        rainl(j) = rainl(j)/dt
-      end if
-      rainc(j) = cu_prate(j,1)
-      rainc_acc(j) = rainc_acc(j) + rainc(j)*dt
-      rainl_acc(j) = rainl_acc(j) + rainl(j)*dt
-    end do
+        do k = 1, nk
+          ! vertical advection by omega, centred differences
+          if ( k == 1 ) then
+            dtdp = (t(j,2)-t(j,1))/(pa(j,2)-pa(j,1))
+            dqdp = (q(j,2)-q(j,1))/(pa(j,2)-pa(j,1))
+          else if ( k == nk ) then
+            dtdp = (t(j,nk)-t(j,nk-1))/(pa(j,nk)-pa(j,nk-1))
+            dqdp = (q(j,nk)-q(j,nk-1))/(pa(j,nk)-pa(j,nk-1))
+          else
+            dtdp = (t(j,k+1)-t(j,k-1))/(pa(j,k+1)-pa(j,k-1))
+            dqdp = (q(j,k+1)-q(j,k-1))/(pa(j,k+1)-pa(j,k-1))
+          end if
+          tg = ttg(j,k)
+          qg = qtg(j,k)
+          ! temperature relaxation, not where the WTG omega acts
+          wr = wrelax(j,k)
+          if ( tauwtg > d_zero .and. za(j,k) >= zwtg .and. &
+               pa(j,k) > 1.0e4_rkx ) wr = d_zero
+          ! inflow of target air where the large scale flow converges
+          dwdp = d_zero
+          if ( tauwtg > d_zero ) then
+            if ( k == nk ) then
+              dwdp = (d_zero-omls(j,k))/(pf(j,nk+1)-pa(j,k))
+            else
+              dwdp = (omls(j,k+1)-omls(j,k))/(pa(j,k+1)-pa(j,k))
+            end if
+            dwdp = max(dwdp,d_zero)
+          end if
+          t(j,k) = t(j,k) + dt*(ctt(j,k) + mtt(j,k) + ptt(j,k) + &
+            hrad(j,k) + tadv(j,k) - &
+            omls(j,k)*(dtdp - rovcp*t(j,k)/pa(j,k)) - &
+            wr*(t(j,k)-tg))
+          q(j,k) = max(q(j,k) + dt*(cqt(j,k) + mqt(j,k) + pqt(j,k) + &
+            fqen(j,k) - &
+            omls(j,k)*dqdp - wrelax(j,k)*(q(j,k)-qg) + &
+            dwdp*(qg-q(j,k))),1.0e-8_rkx)
+          if ( tauwind > d_zero ) then
+            ug = windfac*((d_one-wt)*utgt(j,k,n) + wt*utgt(j,k,n+1))
+            vg = windfac*((d_one-wt)*vtgt(j,k,n) + wt*vtgt(j,k,n+1))
+            u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) - &
+              (u(j,k)-ug)/tauwind)
+            v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
+              (v(j,k)-vg)/tauwind)
+          else if ( lgeos ) then
+            ug = windfac*((d_one-wt)*utgt(j,k,n) + wt*utgt(j,k,n+1))
+            vg = windfac*((d_one-wt)*vtgt(j,k,n) + wt*vtgt(j,k,n+1))
+            u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) + &
+              m2p%coriol(j,1)*(v(j,k)-vg))
+            v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
+              m2p%coriol(j,1)*(u(j,k)-ug))
+          else
+            u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) + &
+              m2p%coriol(j,1)*(v(j,k)-v0(j,k)))
+            v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
+              m2p%coriol(j,1)*(u(j,k)-u0(j,k)))
+          end if
+        end do
+        if ( lnoto ) then
+          ! condensate of the microphysics, no large scale advection
+          do n = iqc, iqs
+            do k = 1, nk
+              ! as status_update of the MOLOCH core, with the vertical
+              ! diffusion of cloud water and ice of the boundary layer
+              qcnd(j,k,n) = qcnd(j,k,n) + dt*(mc2mo%qxten(j,1,k,n) + &
+                p2m%qxten(j,1,k,n))
+              if ( qcnd(j,k,n) < qxcheckval(n) ) qcnd(j,k,n) = qxzeroval(n)
+            end do
+          end do
+          rainl(j) = mc2mo%trrate(j,1)
+        else
+          ! saturation adjustment, the condensate rains out
+          rainl(j) = d_zero
+          do k = 1, nk
+            qs = pfwsat(t(j,k),pa(j,k))
+            if ( q(j,k) > qs ) then
+              dqs = pfqsdt(t(j,k),pa(j,k))
+              cond = (q(j,k)-qs)/(d_one + wlhv*rcpd*dqs)
+              q(j,k) = q(j,k) - cond
+              t(j,k) = t(j,k) + wlhv*rcpd*cond
+              rainl(j) = rainl(j) + cond*(pf(j,k+1)-pf(j,k))*regrav
+            end if
+          end do
+          rainl(j) = rainl(j)/dt
+        end if
+        rainc(j) = cu_prate(j,1)
+        rainc_acc(j) = rainc_acc(j) + rainc(j)*dt
+        rainl_acc(j) = rainl_acc(j) + rainl(j)*dt
+      end do
+
+    end if
 
     if ( mod(istep,nout) == 0 ) then
       time = real(istep,rkx)*dt
@@ -837,6 +791,343 @@ program scm_coupled
     nsteps, ' steps, columns written to ', trim(outfile)
 
   contains
+
+  ! Surface fluxes: land half sine, ocean scheme; boundary layer input
+  subroutine surface_fluxes
+    implicit none
+    do j = 1, ncol
+      hour = modulo(col_hour(j) + time/3600.0_rkx,24.0_rkx)
+      sfac = sin(mathpi*(hour-6.0_rkx)/12.0_rkx)
+      if ( col_land(j) /= 1 ) then
+        m2p%hfx(j,1) = col_shf(j)
+        m2p%qfx(j,1) = col_lhf(j)/wlhv
+      else if ( sfac > d_zero ) then
+        m2p%hfx(j,1) = col_shf(j)*mathpi*1.125_rkx*sfac
+        m2p%qfx(j,1) = col_lhf(j)*mathpi*0.95_rkx*sfac/wlhv
+      else
+        m2p%hfx(j,1) = -0.25_rkx*col_shf(j)
+        m2p%qfx(j,1) = 0.1_rkx*col_lhf(j)/wlhv
+      end if
+    end do
+    call update_derived
+    if ( any(col_ocn) ) call ocean_fluxes
+
+  end subroutine surface_fluxes
+
+  ! Relaxation targets and large scale omega at this time
+  subroutine set_targets
+    implicit none
+    do j = 1, ncol
+      utc = modulo(col_hour(j) - col_lon(j)/15.0_rkx + &
+        time/3600.0_rkx,24.0_rkx)
+      n = min(int(utc/6.0_rkx),3)
+      wt = (utc - 6.0_rkx*real(n,rkx))/6.0_rkx
+      ttg(j,:) = (d_one-wt)*ttgt(j,:,n) + wt*ttgt(j,:,n+1)
+      qtg(j,:) = (d_one-wt)*qtgt(j,:,n) + wt*qtgt(j,:,n+1)
+    end do
+    if ( tauwtg > d_zero ) then
+      call wtg_omega
+    else
+      omls = omega
+    end if
+
+  end subroutine set_targets
+
+  ! Cumulus scheme on the current state or, with lseq and Tiedtke, on
+  ! the state after the forcing plus the accumulated physics tendencies
+  subroutine cu_call(lseq)
+    implicit none
+    logical, intent(in) :: lseq
+    do j = 1, ncol
+      m2c%tas(j,1,:) = t(j,:)
+      m2c%qxas(j,1,:,iqv) = q(j,:)
+      m2c%qxas(j,1,:,iqc) = qcnd(j,:,iqc)
+      m2c%qxas(j,1,:,iqi) = qcnd(j,:,iqi)
+      m2c%qxas(j,1,:,iqr) = qcnd(j,:,iqr)
+      m2c%qxas(j,1,:,iqs) = qcnd(j,:,iqs)
+      do k = 1, nk
+        m2c%rhoas(j,1,k) = pa(j,k)/(rgas*t(j,k)* &
+          (d_one+ep1*q(j,k)/(d_one+q(j,k))))
+      end do
+      m2c%uas(j,1,:) = u(j,:)
+      m2c%vas(j,1,:) = v(j,:)
+      m2c%hfx(j,1) = m2p%hfx(j,1)
+      m2c%qfx(j,1) = m2p%qfx(j,1)
+      m2c%zpbl(j,1) = p2m%zpbl(j,1)
+      m2c%ustar(j,1) = ustar(j)
+    end do
+    m2c%tten(:,:,:) = d_zero
+    m2c%qxten(:,:,:,:) = d_zero
+    if ( lseq .and. icumulus == 5 ) then
+      ! Tiedtke, sequential split: the state after the large scale
+      ! forcing and the tendencies of the physics called before it (its
+      ! first guess is the state plus the tendencies times dt, its
+      ! closure uses the moisture tendency)
+      do j = 1, ncol
+        m2c%tas(j,1,:) = tf(j,:)
+        m2c%qxas(j,1,:,iqv) = qf(j,:)
+        m2c%qxas(j,1,:,iqc) = qcf(j,:,1)
+        m2c%qxas(j,1,:,iqi) = qcf(j,:,2)
+        do k = 1, nk
+          m2c%rhoas(j,1,k) = pa(j,k)/(rgas*tf(j,k)* &
+            (d_one+ep1*qf(j,k)/(d_one+qf(j,k))))
+        end do
+        m2c%tten(j,1,:) = acct(j,:)
+        m2c%qxten(j,1,:,iqv) = accq(j,:)
+        m2c%qxten(j,1,:,iqc) = accqc(j,:,1)
+        m2c%qxten(j,1,:,iqi) = accqc(j,:,2)
+      end do
+    end if
+    if ( icumulus == 5 ) then
+      ! Tiedtke: the large scale omega (Pa/s)
+      avg_ww(:,1,:) = omls
+    else
+      ! Kain-Fritsch: the large scale vertical velocity (m/s)
+      avg_ww(:,1,:) = -omls/(m2c%rhoas(:,1,:)*egrav)
+    end if
+    cu_prate(:,:) = d_zero
+    cu_srate(:,:) = d_zero
+    cu_ktop(:,:) = 0
+    cu_kbot(:,:) = 0
+    cu_tten(:,:,:) = d_zero
+    cu_qten(:,:,:,:) = d_zero
+    cu_uten(:,:,:) = d_zero
+    cu_vten(:,:,:) = d_zero
+    cu_cldfrc(:,:,:) = d_zero
+    cu_cldlwc(:,:,:) = d_zero
+    cu_qdetr(:,:,:) = d_zero
+    cu_raincc(:,:,:) = d_zero
+    total_precip_points = 0
+    if ( icumulus == 5 ) then
+      call tiedtkedrv(m2c)
+    else
+      call kfdrv(m2c)
+    end if
+
+  end subroutine cu_call
+
+  ! Order of the processes of the sequential split: the four words rad,
+  ! pbl, cu, mic, each once, separated by blanks
+  subroutine parse_split
+    implicit none
+    character(len=8), dimension(4) :: words
+    integer(ik4) :: ip, iw
+    words = ''
+    read(csplit,*,iostat=ios) words
+    nproc = 0
+    do ip = 1, 4
+      select case ( trim(words(ip)) )
+        case ('rad')
+          iw = 1
+        case ('pbl')
+          iw = 2
+        case ('cu')
+          iw = 3
+        case ('mic')
+          iw = 4
+        case default
+          call scm_error('csplit: give rad, pbl, cu, mic in some order')
+      end select
+      if ( any(iorder(1:nproc) == iw) ) &
+        call scm_error('csplit: a process is given twice')
+      nproc = nproc + 1
+      iorder(nproc) = iw
+    end do
+    allocate(tf(ncol,nk), qf(ncol,nk), acct(ncol,nk), accq(ncol,nk), &
+      qcf(ncol,nk,2), accqc(ncol,nk,2))
+  end subroutine parse_split
+
+  ! Sequential split (isplit = 1): the large scale forcing (the
+  ! dynamics of the column) is applied first, then the processes in the
+  ! order of csplit (rad, pbl, cu, mic), each on the state left by the
+  ! ones before it. Tiedtke gets the state after the forcing and the
+  ! tendencies of the physics called before it, as in the IFS. The
+  ! surface fluxes are computed after the forcing (as the surface model
+  ! before the boundary layer in RegCM). When the microphysics comes
+  ! before the cumulus, it gets the cumulus condensate of the previous
+  ! step.
+  subroutine seq_step
+    implicit none
+    integer(ik4) :: ip
+    real(rkx) :: ft, fq
+    call set_targets
+    ! Large scale forcing
+    do j = 1, ncol
+      utc = modulo(col_hour(j) - col_lon(j)/15.0_rkx + &
+        time/3600.0_rkx,24.0_rkx)
+      n = min(int(utc/6.0_rkx),3)
+      wt = (utc - 6.0_rkx*real(n,rkx))/6.0_rkx
+      do k = 1, nk
+        if ( k == 1 ) then
+          dtdp = (t(j,2)-t(j,1))/(pa(j,2)-pa(j,1))
+          dqdp = (q(j,2)-q(j,1))/(pa(j,2)-pa(j,1))
+        else if ( k == nk ) then
+          dtdp = (t(j,nk)-t(j,nk-1))/(pa(j,nk)-pa(j,nk-1))
+          dqdp = (q(j,nk)-q(j,nk-1))/(pa(j,nk)-pa(j,nk-1))
+        else
+          dtdp = (t(j,k+1)-t(j,k-1))/(pa(j,k+1)-pa(j,k-1))
+          dqdp = (q(j,k+1)-q(j,k-1))/(pa(j,k+1)-pa(j,k-1))
+        end if
+        tg = ttg(j,k)
+        qg = qtg(j,k)
+        wr = wrelax(j,k)
+        if ( tauwtg > d_zero .and. za(j,k) >= zwtg .and. &
+             pa(j,k) > 1.0e4_rkx ) wr = d_zero
+        dwdp = d_zero
+        if ( tauwtg > d_zero ) then
+          if ( k == nk ) then
+            dwdp = (d_zero-omls(j,k))/(pf(j,nk+1)-pa(j,k))
+          else
+            dwdp = (omls(j,k+1)-omls(j,k))/(pa(j,k+1)-pa(j,k))
+          end if
+          dwdp = max(dwdp,d_zero)
+        end if
+        ft = tadv(j,k) - omls(j,k)*(dtdp - rovcp*t(j,k)/pa(j,k)) - &
+          wr*(t(j,k)-tg)
+        fq = fqen(j,k) - omls(j,k)*dqdp - wrelax(j,k)*(q(j,k)-qg) + &
+          dwdp*(qg-q(j,k))
+        t(j,k) = t(j,k) + dt*ft
+        q(j,k) = max(q(j,k) + dt*fq,1.0e-8_rkx)
+        if ( tauwind > d_zero ) then
+          ug = windfac*((d_one-wt)*utgt(j,k,n) + wt*utgt(j,k,n+1))
+          vg = windfac*((d_one-wt)*vtgt(j,k,n) + wt*vtgt(j,k,n+1))
+          u(j,k) = u(j,k) - dt*(u(j,k)-ug)/tauwind
+          v(j,k) = v(j,k) - dt*(v(j,k)-vg)/tauwind
+        else if ( lgeos ) then
+          ug = windfac*((d_one-wt)*utgt(j,k,n) + wt*utgt(j,k,n+1))
+          vg = windfac*((d_one-wt)*vtgt(j,k,n) + wt*vtgt(j,k,n+1))
+          u(j,k) = u(j,k) + dt*m2p%coriol(j,1)*(v(j,k)-vg)
+          v(j,k) = v(j,k) - dt*m2p%coriol(j,1)*(u(j,k)-ug)
+        else
+          u(j,k) = u(j,k) + dt*m2p%coriol(j,1)*(v(j,k)-v0(j,k))
+          v(j,k) = v(j,k) - dt*m2p%coriol(j,1)*(u(j,k)-u0(j,k))
+        end if
+      end do
+    end do
+    tf = t
+    qf = q
+    qcf(:,:,1) = qcnd(:,:,iqc)
+    qcf(:,:,2) = qcnd(:,:,iqi)
+    acct = d_zero
+    accq = d_zero
+    accqc = d_zero
+    ctt = d_zero
+    cqt = d_zero
+    ptt = d_zero
+    pqt = d_zero
+    mtt = d_zero
+    mqt = d_zero
+    mfu = d_zero
+    rainl = d_zero
+    call surface_fluxes
+    do ip = 1, nproc
+      select case ( iorder(ip) )
+        case (1)
+          ! Radiation, every dtrad; the heating rate is held between calls
+          if ( irad == 1 .and. mod(istep-1,nrad) == 0 ) call rad_step
+          t = t + dt*hrad
+          acct = acct + hrad
+        case (2)
+          ! Boundary layer on the current state, surface fluxes of the
+          ! step
+          call update_derived
+          do j = 1, ncol
+            if ( .not. col_ocn(j) ) cycle
+            m2p%uvdrag(j,1) = drag(j)
+            m2p%tg(j,1) = tgb(j)
+            ustar(j) = ustr(j)
+          end do
+          p2m%tten(:,:,:) = d_zero
+          p2m%uten(:,:,:) = d_zero
+          p2m%vten(:,:,:) = d_zero
+          p2m%qxten(:,:,:,:) = d_zero
+          call holtbl(m2p,p2m)
+          do j = 1, ncol
+            do k = 1, nk
+              ptt(j,k) = p2m%tten(j,1,k)
+              pqt(j,k) = p2m%qxten(j,1,k,iqv)
+              t(j,k) = t(j,k) + dt*ptt(j,k)
+              q(j,k) = max(q(j,k) + dt*pqt(j,k),1.0e-8_rkx)
+              qcnd(j,k,iqc) = qcnd(j,k,iqc) + dt*p2m%qxten(j,1,k,iqc)
+              qcnd(j,k,iqi) = qcnd(j,k,iqi) + dt*p2m%qxten(j,1,k,iqi)
+              u(j,k) = u(j,k) + dt*p2m%uten(j,1,k)
+              v(j,k) = v(j,k) + dt*p2m%vten(j,1,k)
+              acct(j,k) = acct(j,k) + ptt(j,k)
+              accq(j,k) = accq(j,k) + pqt(j,k)
+              accqc(j,k,1) = accqc(j,k,1) + p2m%qxten(j,1,k,iqc)
+              accqc(j,k,2) = accqc(j,k,2) + p2m%qxten(j,1,k,iqi)
+            end do
+          end do
+        case (3)
+          ! Cumulus
+          call cu_call(.true.)
+          do j = 1, ncol
+            do k = 1, nk
+              if ( lnoto ) then
+                ctt(j,k) = cu_tten(j,1,k)
+                cqt(j,k) = cu_qten(j,1,k,iqv)
+              else
+                ctt(j,k) = cu_tten(j,1,k) - &
+                  (wlhv*(cu_qten(j,1,k,iqc) + cu_qten(j,1,k,iqr)) + &
+                   wlhs*(cu_qten(j,1,k,iqi) + cu_qten(j,1,k,iqs)))*rcpd
+                cqt(j,k) = cu_qten(j,1,k,iqv) + cu_qten(j,1,k,iqc) + &
+                  cu_qten(j,1,k,iqi) + cu_qten(j,1,k,iqr) + &
+                  cu_qten(j,1,k,iqs)
+              end if
+              if ( icumulus == 5 ) mfu(j,k) = pmfu(j,k)
+              t(j,k) = t(j,k) + dt*ctt(j,k)
+              q(j,k) = max(q(j,k) + dt*cqt(j,k),1.0e-8_rkx)
+              u(j,k) = u(j,k) + dt*cu_uten(j,1,k)
+              v(j,k) = v(j,k) + dt*cu_vten(j,1,k)
+              acct(j,k) = acct(j,k) + ctt(j,k)
+              accq(j,k) = accq(j,k) + cqt(j,k)
+            end do
+          end do
+        case (4)
+          ! Cloud fraction and microphysics
+          if ( lnoto ) then
+            call micro_step(.true.)
+            do j = 1, ncol
+              do k = 1, nk
+                t(j,k) = t(j,k) + dt*mtt(j,k)
+                q(j,k) = max(q(j,k) + dt*mqt(j,k),1.0e-8_rkx)
+                do n = iqc, iqs
+                  qcnd(j,k,n) = qcnd(j,k,n) + dt*mc2mo%qxten(j,1,k,n)
+                end do
+                acct(j,k) = acct(j,k) + mtt(j,k)
+                accq(j,k) = accq(j,k) + mqt(j,k)
+              end do
+              rainl(j) = mc2mo%trrate(j,1)
+            end do
+          else
+            do j = 1, ncol
+              do k = 1, nk
+                qs = pfwsat(t(j,k),pa(j,k))
+                if ( q(j,k) > qs ) then
+                  dqs = pfqsdt(t(j,k),pa(j,k))
+                  cond = (q(j,k)-qs)/(d_one + wlhv*rcpd*dqs)
+                  q(j,k) = q(j,k) - cond
+                  t(j,k) = t(j,k) + wlhv*rcpd*cond
+                  rainl(j) = rainl(j) + cond*(pf(j,k+1)-pf(j,k))*regrav
+                end if
+              end do
+              rainl(j) = rainl(j)/dt
+            end do
+          end if
+          call rad_clouds
+      end select
+    end do
+    do j = 1, ncol
+      do n = iqc, iqs
+        do k = 1, nk
+          if ( qcnd(j,k,n) < qxcheckval(n) ) qcnd(j,k,n) = qxzeroval(n)
+        end do
+      end do
+      rainc(j) = cu_prate(j,1)
+      rainc_acc(j) = rainc_acc(j) + rainc(j)*dt
+      rainl_acc(j) = rainl_acc(j) + rainl(j)*dt
+    end do
+  end subroutine seq_step
 
   subroutine scm_error(msg)
     implicit none
@@ -1059,8 +1350,14 @@ program scm_coupled
     call init_nogtom(mo2mc%ldmsk)
   end subroutine init_micro
 
-  subroutine micro_step
+  ! Cloud fraction and NoTo on the current state. Parallel split: the
+  ! cumulus tendencies are its input tendencies (as in the model);
+  ! sequential split (lseq): they are already in the state, only the
+  ! cumulus condensate (qdetr, Kain-Fritsch condensate tendencies) is
+  ! passed.
+  subroutine micro_step(lseq)
     implicit none
+    logical, intent(in) :: lseq
     do j = 1, ncol
       do k = 1, nk
         mo2mc%t(j,1,k) = t(j,k)
@@ -1089,6 +1386,10 @@ program scm_coupled
         do n = 1, nqx
           mc2mo%qxten(j,1,k,n) = cu_qten(j,1,k,n)
         end do
+        if ( lseq ) then
+          mc2mo%tten(j,1,k) = d_zero
+          mc2mo%qxten(j,1,k,iqv) = d_zero
+        end if
       end do
       mc2mo%rainnc(j,1) = d_zero
       mc2mo%lsmrnc(j,1) = d_zero
@@ -1108,8 +1409,13 @@ program scm_coupled
     do j = 1, ncol
       do k = 1, nk
         cfr(j,k) = mo2mc%cldf(j,1,k)
-        mtt(j,k) = mc2mo%tten(j,1,k) - cu_tten(j,1,k)
-        mqt(j,k) = mc2mo%qxten(j,1,k,iqv) - cu_qten(j,1,k,iqv)
+        if ( lseq ) then
+          mtt(j,k) = mc2mo%tten(j,1,k)
+          mqt(j,k) = mc2mo%qxten(j,1,k,iqv)
+        else
+          mtt(j,k) = mc2mo%tten(j,1,k) - cu_tten(j,1,k)
+          mqt(j,k) = mc2mo%qxten(j,1,k,iqv) - cu_qten(j,1,k,iqv)
+        end if
         ! the condensate tendencies of the cumulus are in those of the
         ! microphysics (mc2mo%qxten), which advance qcnd
       end do
