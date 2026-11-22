@@ -932,13 +932,12 @@ functions of \code{saturation.inc}; a scheme includes the file (in the
 CLM land model and the ISORROPIA aerosol thermodynamics keep their own.
 
 \paragraph{Vapour pressure.}
-Over a flat surface of liquid water and of ice the vapour pressure is the
-integral of the Clausius-Clapeyron equation from the triple point
+Over a flat surface of liquid water the vapour pressure is the integral of
+the Clausius-Clapeyron equation from the triple point
 ($e_{s0} = 611.655$~Pa, $T_0 = 273.16$~K) with a latent heat linear in
 temperature, $L(T) = L_0 - \Delta c\,(T-T_0)$ \citep[as in][]{ambaum2020},
-with $L_0 = 2.501\times10^6$, $\Delta c = 2320$~J~kg$^{-1}$~K$^{-1}$ over
-liquid and $L_0 = 2.835\times10^6$, $\Delta c = 220$~J~kg$^{-1}$~K$^{-1}$
-over ice. It is written as
+with $L_0 = 2.501\times10^6$~J~kg$^{-1}$ and
+$\Delta c = 2320$~J~kg$^{-1}$~K$^{-1}$. It is written as
 \begin{equation}
   \ln e_s = c_0 - a \ln T - \frac{c_1}{T}, \qquad a = \frac{\Delta c}{R_v},
   \quad c_1 = \frac{L_0 + \Delta c\, T_0}{R_v}, \quad
@@ -946,10 +945,19 @@ over ice. It is written as
 \end{equation}
 one exponential and one logarithm per call, which costs as much as the
 polynomial fits it replaced. Against \citet{murphy2005} the error is below
-0.25\,\% over liquid between $-20$ and $40$~\textdegree C (0.5\,\% at
-$-40$~\textdegree C), below 0.7\,\% over ice down to 220~K and 3\,\% at
-190~K. The derivatives are exact,
-$\mathrm{d}\ln e_s/\mathrm{d}T = L(T)/(R_v T^2)$.
+0.25\,\% between $-20$ and $40$~\textdegree C (0.5\,\% at
+$-40$~\textdegree C). The \citet{murphy2005} liquid formula is twice as
+expensive (a hyperbolic tangent term) for this small gain. The derivative is
+exact, $\mathrm{d}\ln e_s/\mathrm{d}T = L(T)/(R_v T^2)$.
+
+Over ice the vapour pressure is Eq.~7 of \citet{murphy2005}, valid above
+110~K, at the same cost:
+\begin{equation}
+  \ln e_s = 9.550426 - \frac{5723.265}{T} + 3.53068 \ln T - 0.00728332\,T,
+\end{equation}
+with the exact derivative
+$\mathrm{d}\ln e_s/\mathrm{d}T = 5723.265/T^2 + 3.53068/T - 0.00728332$.
+At the triple point it gives 611.657~Pa.
 
 \paragraph{Phase.}
 Three variants cover the uses of the model:

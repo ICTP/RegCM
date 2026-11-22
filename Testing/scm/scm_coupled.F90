@@ -52,12 +52,18 @@
 ! for radiative convective equilibrium, with taurelax very large).
 ! The winds relax to the target winds (or the initial ones), times
 ! windfac, with time scale tauwind; with tauwind = 0 (default) the
-! Coriolis force turns them around the initial winds times windfac.
+! Coriolis force turns them around the initial winds times windfac, or
+! with lgeos = .true. around the target winds times windfac, which are
+! then the geostrophic wind (BOMEX, RICO).
 ! Land columns (and ocean columns with iocnflux = 0): the surface fluxes
 ! follow a half sine diurnal cycle in local solar time (daylight from 6
 ! to 18), with the daily means of the profile file: at night the
 ! sensible heat flux is -0.25 and the latent heat flux 0.1 times the
-! daily mean, the daytime half sine keeps the mean. Ocean columns with
+! daily mean, the daytime half sine keeps the mean; ocean columns with
+! iocnflux = 0 keep the fluxes of the profile file constant. With
+! ustarfix > 0 the friction velocity of the surface drag of the land
+! columns and of the ocean columns with iocnflux = 0 is ustarfix (BOMEX)
+! instead of the neutral log law one. Ocean columns with
 ! iocnflux = 1 (Zeng, with izengrough) or 2 (COARE 3.5): the fluxes,
 ! the drag and the friction velocity come from the ocean scheme of the
 ! model on the SST of the profile file, every step, with a net
@@ -160,7 +166,8 @@ program scm_coupled
 
   character(len=256) :: nmlfile, infile, outfile, tgtfile
   real(rkx) :: dxkm, dtstep, ndays, taurelax, zrelax, tauwtg, zwtg, &
-    tauwind, windfac, ocnsw, ocnlw, omfac
+    tauwind, windfac, ocnsw, ocnlw, omfac, ustarfix
+  logical :: lgeos
   integer(ik4) :: nout
   integer(ik4) :: ncol, nk, j, k, n, iu, io, ios, istep, nsteps
   character(len=32), allocatable, dimension(:) :: col_name
@@ -202,7 +209,7 @@ program scm_coupled
 
   namelist /scmparam/ infile, outfile, dtstep, ndays, nout, dxkm, &
     taurelax, zrelax, tgtfile, tauwtg, zwtg, tauwind, windfac,    &
-    omfac, &
+    omfac, lgeos, ustarfix, &
     iocnflux, izengrough, ocnsw, ocnlw, lnoto, irad, dtrad, dtabem, &
     albland, scenario, icumulus
   namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
@@ -236,6 +243,8 @@ program scm_coupled
   tauwind = 0.0_rkx
   omfac = 1.0_rkx
   windfac = 1.0_rkx
+  lgeos = .false.
+  ustarfix = 0.0_rkx
   iocnflux = 1
   izengrough = 1
   ocnsw = 200.0_rkx
@@ -532,6 +541,9 @@ program scm_coupled
     '  zwtg (m) ', zwtg, '  tauwind (s) ', tauwind, '  windfac ', windfac
   write(io,'(a,2i3,a,2f8.1)') '# iocnflux izengrough ', iocnflux, &
     izengrough, '  ocnsw ocnlw (W/m2) ', ocnsw, ocnlw
+  if ( lgeos .or. ustarfix > d_zero ) &
+    write(io,'(a,l2,a,f8.3)') '# lgeos ', lgeos, '  ustarfix (m/s) ', &
+      ustarfix
   if ( icumulus == 5 ) then
     write(io,nml=tiedtkeparam)
   else
@@ -722,6 +734,13 @@ program scm_coupled
             (u(j,k)-ug)/tauwind)
           v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
             (v(j,k)-vg)/tauwind)
+        else if ( lgeos ) then
+          ug = windfac*((d_one-wt)*utgt(j,k,n) + wt*utgt(j,k,n+1))
+          vg = windfac*((d_one-wt)*vtgt(j,k,n) + wt*vtgt(j,k,n+1))
+          u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) + &
+            m2p%coriol(j,1)*(v(j,k)-vg))
+          v(j,k) = v(j,k) + dt*(cu_vten(j,1,k) + p2m%vten(j,1,k) - &
+            m2p%coriol(j,1)*(u(j,k)-ug))
         else
           u(j,k) = u(j,k) + dt*(cu_uten(j,1,k) + p2m%uten(j,1,k) + &
             m2p%coriol(j,1)*(v(j,k)-v0(j,k)))
@@ -1084,7 +1103,7 @@ program scm_coupled
   ! Boundary layer input derived from the state: potential temperature,
   ! surface air density, ground temperature (same potential temperature
   ! as the lowest level, used only with ifaholtth10 /= 2) and the surface
-  ! drag from a neutral log law friction velocity.
+  ! drag from a neutral log law friction velocity (or ustarfix).
   subroutine update_derived
     implicit none
     real(rkx) :: ps, tv, wspd
@@ -1107,6 +1126,7 @@ program scm_coupled
       wspd = max(sqrt(u(j,nk)**2+v(j,nk)**2),0.1_rkx)
       zl = max(za(j,nk),d_two*col_z0(j))
       ws = vonkar*wspd/log(zl/col_z0(j))
+      if ( ustarfix > d_zero ) ws = ustarfix
       ustar(j) = ws
       m2p%uvdrag(j,1) = m2p%rhox2d(j,1)*ws*ws/wspd
     end do

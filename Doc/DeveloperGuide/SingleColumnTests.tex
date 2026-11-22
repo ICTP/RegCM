@@ -32,6 +32,12 @@ integration with prescribed large scale forcing.
         \verb=scm_itcz.txt=, \verb=scm_itcz_target.txt=,
         \verb=scm_itcz_era5.txt=: the ocean case, same layout; both
         built by \verb=make_amazon_case.py=;
+        \verb=scm_bomex.txt=, \verb=scm_bomex_target.txt=,
+        \verb=scm_bomex_les.txt=, \verb=scm_rico.txt=,
+        \verb=scm_rico_target.txt=, \verb=scm_rico_les.txt=: the BOMEX
+        and RICO shallow cumulus cases (initial profiles and forcing,
+        geostrophic wind, LES reference), built by
+        \verb=make_dephy_case.py=; \verb=scm_les.py=: their wrapper;
   \item \verb=scm_ocean.F90=, \verb=scm_ocean.py=: the ocean surface flux
         schemes on samples of the lowest level and the surface, and their
         evaluation;
@@ -261,7 +267,8 @@ against the radiative cooling.
 The winds relax to the target winds times \code{windfac} with time scale
 \code{tauwind}; with \code{tauwind} = 0 (default) the wind gets the
 Coriolis term of the Holtslag driver around the initial wind times
-\code{windfac}.
+\code{windfac}, or, with \code{lgeos} = true, around the target winds
+times \code{windfac}, which are then the geostrophic wind.
 
 Over land the surface fluxes follow a half sine in local solar time,
 from 6 to 18, keeping the daily means $\overline{H}$ and
@@ -277,7 +284,9 @@ SST, on open water, with a net shortwave radiation at the surface of
 daily mean \code{ocnsw} (200~W~m$^{-2}$) in a half sine and a net
 longwave \code{ocnlw} (50~W~m$^{-2}$), used by the COARE cool skin;
 with \code{iocnflux} = 0 the ocean fluxes are the constant daily means
-of the profile file.
+of the profile file. With \code{ustarfix} $> 0$ the friction velocity of
+the surface drag of these columns (land, and ocean with \code{iocnflux}
+= 0) is \code{ustarfix} instead of the neutral logarithmic law one.
 The microphysics (\code{lnoto}, default true) is NoTo with the SUBEX
 cloud fraction (\code{icldfrac} = 0), as in the model with
 \code{ipptls} = 2. As in \verb=mod_cu_interface=, the condensate
@@ -331,7 +340,7 @@ The namelist has a \code{scmparam} group (\code{infile},
 \code{outfile}, \code{tgtfile}, \code{dtstep}, \code{ndays},
 \code{nout}, \code{dxkm}, \code{taurelax}, \code{zrelax},
 \code{tauwtg}, \code{zwtg}, \code{tauwind}, \code{windfac},
-\code{iocnflux}, \code{izengrough}, \code{ocnsw}, \code{ocnlw},
+\code{lgeos}, \code{ustarfix}, \code{iocnflux}, \code{izengrough}, \code{ocnsw}, \code{ocnlw},
 \code{lnoto}, \code{irad}, \code{dtrad}, \code{dtabem},
 \code{albland}, \code{scenario}) and the model groups \code{tiedtkeparam},
 \code{cldparam}, \code{holtslagparam} and \code{microparam}. Every \code{nout} steps (default one hour)
@@ -409,6 +418,63 @@ of Tiedtke are zero; the cloud type column of the output is 1 when KF
 rains, 0 otherwise. For the same reason as above
 the comparison holds only for the build the reference was made with;
 another compiler or other optimisation flags give different rain events.
+
+\section{Shallow cumulus cases: BOMEX and RICO}
+
+Two cases of undisturbed trade wind cumulus over the ocean test the
+boundary layer, the shallow convection and the cloud scheme together
+against large eddy simulations: BOMEX \citep{siebesma2003}, six hours of
+non precipitating cumulus under constant surface fluxes, and RICO
+\citep{vanzanten2011}, precipitating cumulus over a fixed SST, one day.
+\verb=make_dephy_case.py= builds a case from the DEPHY common format SCM
+driver (\url{https://github.com/GdR-DEPHY/DEPHY-SCM}, cases
+\verb=BOMEX/REF= and \verb=RICO/SHORT=):
+\begin{itemize}
+  \item levels: the 32 MOLOCH levels of \verb=scm_itcz.txt= below
+        10~km (23 levels, 7 below 1~km), the resolution the model has;
+        \code{--dz} gives a uniform grid instead, \code{--ztop} the top;
+  \item initial $T$, $q$, $u$, $v$ of the driver, interpolated in height,
+        pressure interpolated in $\ln p$;
+  \item input tendencies, constant in time: the radiative and advective
+        temperature tendencies of the driver (\code{tnta\_rad},
+        \code{tnta\_adv}) and the humidity advection
+        (\code{tnqv\_adv}); $\omega = -\rho g w$ from the prescribed
+        subsidence;
+  \item the geostrophic wind as the winds of the target file (four equal
+        profiles, $T$ and $q$ the initial ones);
+  \item surface: BOMEX the prescribed sensible and latent heat fluxes
+        (8.04 and 130.04~W~m$^{-2}$) and friction velocity (0.28~m~s$^{-1}$),
+        RICO the SST (299.8~K) for the ocean scheme.
+\end{itemize}
+The cases run with \code{irad} = 0 (the radiative cooling is in the
+forcing), no relaxation (\code{taurelax} = $10^{12}$~s), \code{lgeos} =
+true, and BOMEX with \code{iocnflux} = 0 and \code{ustarfix} = 0.28, RICO
+with \code{iocnflux} = 1 and no surface radiation for the ocean scheme
+(\code{ocnsw} = \code{ocnlw} = 0).
+
+The reference is the Meso-NH LES ensemble of the HIGH-TUNE project
+\citep{couvreux2021}: for each case a reference run and eight runs that
+change the resolution, the domain, the advection scheme, the mixing
+length or the microphysics, hourly means up to 4~km. \code{--les} gives
+their directory; \verb=make_dephy_case.py= writes for every hour the
+mean, minimum and maximum over the members of $T$ (from $\theta$ at the
+pressure of the level), $q_v$, $q_l$ and the cloud fraction, averaged
+over the LES levels within the layer of each column level, and of the
+liquid water path and of the largest cloud fraction of the profile.
+\verb=scm_les.py= runs a case with its settings (and \code{--set},
+\code{--sweep} as the other wrappers) and prints hour by hour the PBL
+height, the cumulus cloud type, the liquid water path (of the NoTo
+condensate and of the condensate seen by the radiation, convective cloud
+included) and the largest cloud fraction against the LES range, then the
+profiles averaged over the evaluation window of the intercomparisons
+(BOMEX hours 3--6, RICO 20--24):
+\begin{verbatim}
+  scm_les.py bomex
+  scm_les.py rico --sweep entshalp=1.0,2.0,3.0
+\end{verbatim}
+\code{make check} runs both cases against
+\verb=reference/scm_coupled_bomex.out= and
+\verb=reference/scm_coupled_rico.out=.
 
 \section{Ocean surface flux test}
 

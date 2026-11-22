@@ -32,13 +32,14 @@ program test_saturation
   ! Triple point
   call check(abs(esatliq(273.16_rkx)/611.655_rkx-1.0_rkx) < 1.0e-12_rkx, &
     'esatliq at the triple point')
-  call check(abs(esatice(273.16_rkx)/611.655_rkx-1.0_rkx) < 1.0e-12_rkx, &
+  ! Murphy-Koop ice gives 611.657 Pa at the triple point
+  call check(abs(esatice(273.16_rkx)/611.655_rkx-1.0_rkx) < 1.0e-5_rkx, &
     'esatice at the triple point')
 
   ! Accuracy against Murphy and Koop (2005). With a constant difference
-  ! of heat capacities the error grows away from the triple point: 0.23 %
-  ! over liquid from -20 to 40 C (0.53 % at -40 C), 0.63 % over ice down
-  ! to 220 K, 3.2 % at 190 K.
+  ! of heat capacities the liquid error grows away from the triple point:
+  ! 0.23 % from -20 to 40 C (0.53 % at -40 C). Over ice the formula is
+  ! the Murphy-Koop one.
   err = 0.0_rkx
   do i = 0, 60
     t = 253.15_rkx + real(i,rkx)
@@ -56,13 +57,13 @@ program test_saturation
     t = 220.0_rkx + real(i,rkx)
     err = max(err,abs(esatice(t)/mkice(t)-1.0_rkx))
   end do
-  call check(err < 7.0e-3_rkx, 'esatice vs Murphy-Koop, 220 K to 0 C')
+  call check(err < 1.0e-12_rkx, 'esatice is Murphy-Koop, 220 K to 0 C')
   err = 0.0_rkx
   do i = 0, 83
     t = 190.0_rkx + real(i,rkx)
     err = max(err,abs(esatice(t)/mkice(t)-1.0_rkx))
   end do
-  call check(err < 3.5e-2_rkx, 'esatice vs Murphy-Koop, 190 K to 0 C')
+  call check(err < 1.0e-12_rkx, 'esatice is Murphy-Koop, 190 K to 0 C')
 
   ! Mixed phase: liquid above 0 C, ice below -23 C, monotonic blend
   call check(abs(esatmix(280.0_rkx)-esatliq(280.0_rkx)) < 1.0e-9_rkx, &

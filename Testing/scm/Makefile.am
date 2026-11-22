@@ -59,7 +59,11 @@ EXTRA_DIST = README make_profiles.py scm_tiedtke.py scm_holtslag.py \
              scm_itcz.txt scm_itcz_target.txt scm_itcz_era5.txt \
              reference/scm_coupled_itcz.out \
              reference/scm_coupled_kf_amazon.out \
-             reference/scm_coupled_kf_itcz.out scm_ocean.py
+             reference/scm_coupled_kf_itcz.out scm_ocean.py \
+             make_dephy_case.py scm_les.py scm_bomex.txt \
+             scm_bomex_target.txt scm_bomex_les.txt scm_rico.txt \
+             scm_rico_target.txt scm_rico_les.txt \
+             reference/scm_coupled_bomex.out reference/scm_coupled_rico.out
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<

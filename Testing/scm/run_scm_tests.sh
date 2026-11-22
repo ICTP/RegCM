@@ -26,14 +26,19 @@ status=0
 # Test cases, scheme:profile file:name. The output reference/<name>.out
 # is the reference of the case. The coupled cases run one day, with the
 # relaxation targets of their profiles; the _kf_ ones with the
-# Kain-Fritsch cumulus (icumulus = 6) instead of Tiedtke.
+# Kain-Fritsch cumulus (icumulus = 6) instead of Tiedtke. The BOMEX (6
+# hours) and RICO (one day) shallow cumulus cases run with the settings
+# of scm_les.py: DEPHY forcing, geostrophic wind of the target file, no
+# relaxation, no interactive radiation.
 cases="tiedtke:scm_profiles.txt:scm_tiedtke
        holtslag:scm_profiles.txt:scm_holtslag
        tiedtke:scm_gate_check.txt:scm_tiedtke_gate
        coupled:scm_amazon.txt:scm_coupled_amazon
        coupled:scm_itcz.txt:scm_coupled_itcz
        coupled:scm_amazon.txt:scm_coupled_kf_amazon
-       coupled:scm_itcz.txt:scm_coupled_kf_itcz"
+       coupled:scm_itcz.txt:scm_coupled_kf_itcz
+       coupled:scm_bomex.txt:scm_coupled_bomex
+       coupled:scm_rico.txt:scm_coupled_rico"
 
 for case in $cases; do
   scheme=${case%%:*}
@@ -47,10 +52,15 @@ for case in $cases; do
   mkdir -p $d
   extra=
   if [ $scheme = coupled ]; then
-    extra="tgtfile = '$here/${profiles%.txt}_target.txt', ndays = 1.0,"
+    extra="tgtfile = '$here/${profiles%.txt}_target.txt',"
     # the ITCZ case also runs the WTG omega and the wind relaxation
     case $name in
-      *itcz) extra="$extra tauwtg = 10800.0, tauwind = 10800.0," ;;
+      *itcz) extra="$extra ndays = 1.0, tauwtg = 10800.0, tauwind = 10800.0," ;;
+      *bomex) extra="$extra ndays = 0.25, irad = 0, taurelax = 1.0e12,
+        lgeos = .true., iocnflux = 0, ustarfix = 0.28," ;;
+      *rico) extra="$extra ndays = 1.0, irad = 0, taurelax = 1.0e12,
+        lgeos = .true., iocnflux = 1, ocnsw = 0.0, ocnlw = 0.0," ;;
+      *) extra="$extra ndays = 1.0," ;;
     esac
     case $name in
       *_kf_*) extra="$extra icumulus = 6," ;;

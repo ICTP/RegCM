@@ -30,6 +30,12 @@ Files
                       Atlantic trades), same layout
   make_amazon_case.py builds the files of a case from ERA5
                       (--case amazon or itcz)
+  scm_bomex.txt, scm_bomex_target.txt, scm_bomex_les.txt
+  scm_rico.txt, scm_rico_target.txt, scm_rico_les.txt
+                      shallow cumulus cases of scm_coupled (initial
+                      profiles and forcing, geostrophic wind, LES
+                      reference), built by make_dephy_case.py
+  scm_les.py          runs them and compares with the LES
   scm_ocean.F90       ocean surface flux schemes on samples of the
                       lowest level and the surface
   scm_ocean.py        evaluation of all the schemes and options
@@ -147,6 +153,11 @@ Options of &scmparam beyond the forcing above:
   tauwind, windfac   winds relax to windfac times the target winds in
                      tauwind (0, default: Coriolis around the initial
                      winds times windfac)
+  lgeos              with tauwind = 0, Coriolis around the target winds
+                     (the geostrophic wind) instead of the initial ones
+  ustarfix           friction velocity (m/s) of the surface drag of land
+                     columns and of ocean columns with iocnflux = 0 (0,
+                     default: neutral log law)
   tauwtg, zwtg       weak temperature gradient: above zwtg (2000 m) and
                      below 100 hPa the large scale omega is the one that
                      brings T back to the target in tauwtg, (Tr - T) /
@@ -200,6 +211,39 @@ holds only for the build it was made with. To update one, copy
 scm_output/scm_coupled_<case>/scm_coupled_<case>.out of a "make check"
 run and set its "# profiles:" and "# targets:" lines to the file names
 without the directory.
+
+Shallow cumulus cases (BOMEX, RICO)
+-----------------------------------
+BOMEX (Siebesma et al. 2003, 6 hours, constant surface fluxes, no rain)
+and RICO (vanZanten et al. 2011, SST 299.8 K, rain, one day) from the
+DEPHY common format SCM drivers (https://github.com/GdR-DEPHY/DEPHY-SCM,
+BOMEX/REF and RICO/SHORT), on the scm_itcz.txt levels below 10 km (23
+levels). The forcing is constant: radiative and advective T tendency,
+q advection, subsidence omega, geostrophic wind (target file winds, used
+with lgeos = .true.). The reference is the HIGH-TUNE Meso-NH LES ensemble
+(Couvreux et al. 2021; reference + 8 sensitivity runs, hourly means up to
+4 km): T, qv, ql, cloud fraction averaged on the column layers, LWP and
+largest cloud fraction, as ensemble mean, min and max per hour. To
+rebuild (needs numpy, netCDF4; the LES archive is
+https://web.lmd.jussieu.fr/~nvillefranque/pub/data/les.tar):
+
+  ./make_dephy_case.py --name bomex \
+      --driver BOMEX/REF/BOMEX_REF_SCM_driver.nc --les LES/BOMEX/REF
+  ./make_dephy_case.py --name rico \
+      --driver RICO/SHORT/RICO_SHORT_SCM_driver.nc --les LES/RICO/REF
+
+scm_les.py runs a case with its settings (irad = 0, taurelax = 1e12,
+lgeos; BOMEX iocnflux = 0 and ustarfix = 0.28, RICO iocnflux = 1, ocnsw =
+ocnlw = 0) and prints the hourly PBL height, cloud type, LWP and largest
+cloud fraction against the LES range, and the profiles over the
+evaluation window (BOMEX hours 3-6, RICO 20-24):
+
+  ./scm_les.py bomex
+  ./scm_les.py rico --set icumulus=6
+  ./scm_les.py rico --sweep entshalp=1.0,2.0,3.0
+
+"make check" runs both against reference/scm_coupled_bomex.out and
+reference/scm_coupled_rico.out.
 
 Ocean flux test
 ---------------
