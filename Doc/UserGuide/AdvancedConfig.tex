@@ -1250,6 +1250,11 @@ $1$.
  lsctop = .true.,  ! Add the mixing driven by the radiative cooling
                    ! at the top of boundary layer clouds (Lock et al.,
                    ! 2000, as in the GFS PBL)
+ lqtmix = .false., ! Mix cloud water and ice as total water and liquid
+                   ! water temperature: the diffused condensate arrives
+                   ! as vapour (with the latent cooling) and the
+                   ! microphysics condenses it where saturated, instead
+                   ! of being carried as a tracer into subsaturated air
  /
 \end{Verbatim}
 }

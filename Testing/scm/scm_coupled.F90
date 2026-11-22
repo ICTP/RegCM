@@ -132,7 +132,8 @@ program scm_coupled
     kf_max_pef, kf_min_dtcape, kf_min_pef, kf_tkemax, kf_wthreshold, &
     kfac_deep, kfac_shal, lambm0, larcticcorr, lepcld, lmfcapebl, &
     lmfcapeforc, lmfdd, lmfdudv, lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, &
-    lmfuvdis, lmfwstar, lmoistn2, lsctop, lsrfhack, maxprandtl, mvelp, &
+    lmfuvdis, lmfwstar, lmoistn2, lqtmix, lsctop, lsrfhack, maxprandtl, &
+    mvelp, &
     mvelpp, nqx, nssopt, obliq, obliqr, qxcheckval, qxzeroval, rcldiff, &
     rcmtimer, rcovpmin, rcpec_lnd, rcpec_ocn, rcuc_lnd, rcuc_ocn, rdt, &
     rh0land, rh0oce, rhebc_lnd, rhebc_ocn, rhmax, rhmin, ricr_lnd, ricr_ocn, &
@@ -232,7 +233,8 @@ program scm_coupled
     auto_rate_kessl, auto_rate_klepi, rkconv, skconv, rcovpmin,   &
     rpecons, rcldiff
   namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop
+    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop, &
+    lqtmix
 
   ! Defaults: as in Main/mod_params.F90
   infile = 'scm_amazon.txt'
@@ -321,6 +323,7 @@ program scm_coupled
   lmoistn2 = .false.
   maxprandtl = 1.0_rkx
   lsctop = .true.
+  lqtmix = .false.
   icumulus = 5
   icldfrac = 0
   kf_wthreshold = 0.02_rkx

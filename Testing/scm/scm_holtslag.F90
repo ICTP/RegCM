@@ -39,7 +39,8 @@ program scm_holtslag
     jce2ga, jce2gb, jci1, jci1ga, jci2, jci2ga, jdi1, jdi2, kz, kzm1, kzp1, &
     ntr
   use mod_runparams, only : dt, holtth10iter, ibltyp, ichem, ifaholt, &
-    ifaholtth10, ipptls, iqc, iqv, lmoistn2, lsctop, maxprandtl, nqx, rdt, &
+    ifaholtth10, ipptls, iqc, iqv, lmoistn2, lqtmix, lsctop, maxprandtl, &
+    nqx, rdt, &
     ricr_lnd, ricr_ocn, zhnew_fac
   use mod_memutil, only : getmem, memory_init
   use mod_regcm_types, only : ik4, mod_2_pbl, pbl_2_mod, rkx
@@ -65,7 +66,8 @@ program scm_holtslag
 
   namelist /scmparam/ infile, outfile, dtpbl, nsteps
   namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop
+    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop, &
+    lqtmix
 
   ! Defaults: as in Main/mod_params.F90
   infile = 'scm_profiles.txt'
@@ -81,6 +83,7 @@ program scm_holtslag
   lmoistn2 = .false.
   maxprandtl = 1.0_rkx
   lsctop = .true.
+  lqtmix = .false.
 
   nmlfile = 'scm_holtslag.in'
   if ( command_argument_count( ) > 0 ) call get_command_argument(1,nmlfile)

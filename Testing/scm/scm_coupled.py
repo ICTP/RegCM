@@ -74,7 +74,7 @@ GROUPS = {
                    'skconv', 'rcovpmin', 'rpecons', 'rcldiff'],
     'holtslagparam': ['ricr_ocn', 'ricr_lnd', 'zhnew_fac', 'ifaholtth10',
                       'ifaholt', 'holtth10iter', 'lmoistn2', 'maxprandtl',
-                      'lsctop'],
+                      'lsctop', 'lqtmix'],
 }
 GROUP_OF = {v: g for g, vs in GROUPS.items() for v in vs}
 

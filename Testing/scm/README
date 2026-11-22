@@ -261,6 +261,7 @@ evaluation window (BOMEX hours 3-6, RICO 20-24, FIRE the whole day):
   ./scm_les.py rico --set icumulus=6
   ./scm_les.py rico --sweep entshalp=1.0,2.0,3.0
   ./scm_les.py fire --set rh0oce=0.93
+  ./scm_les.py fire --set lqtmix=.true.       Holtslag total water mixing
 
 "make check" runs the three against reference/scm_coupled_bomex.out,
 reference/scm_coupled_rico.out and reference/scm_coupled_fire.out.

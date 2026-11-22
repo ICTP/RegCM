@@ -60,7 +60,7 @@ module mod_ncout
     kf_tkemax, kf_wthreshold, kfac_deep, kfac_shal, lakemod, larcticcorr, &
     lconst2050, lepcld, liqflglw, liqflgsw, lmfcapebl, lmfdd, lmfdudv, &
     lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, lmoistn2, &
-    lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, minorig, &
+    lqtmix, lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, minorig, &
     mixed_layer_depth, nhbet, nhxkd, nradfo, nsplit, nssopt, nuk, omtrain, &
     omtsnow, pbcmax, q_rel_extrema, qck1land, qck1oce, rad_max, rad_min, &
     rad_sigma, rayalpha0, rayhd, rayndamp, rayzd, rcldiff, rcovpmin, &
@@ -4156,6 +4156,8 @@ module mod_ncout
             ncattribute_real8('holtslag_max_prandtl',maxprandtl))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('holtslag_cloud_top_mixing',lsctop))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('holtslag_total_water_mixing',lqtmix))
         end if
         if ( ibltyp == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

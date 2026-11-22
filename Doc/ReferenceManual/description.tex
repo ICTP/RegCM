@@ -1475,6 +1475,20 @@ parameter $c_p\Delta\theta_e/(L_v\Delta q_t)$ exceeds 0.7.  The cloud top
 cooling is then balanced by the entrainment of warm and dry air from above
 instead of by condensation in the cloud layer.
 
+Cloud water and ice are diffused with the moisture diffusivity $K_q$.  As
+passive tracers they are carried down the gradient, out of the top of a
+stratocumulus deck into the subsaturated air below, where the microphysics
+evaporates them only as fast as the cloud fraction it is given allows.  With
+\verb=lqtmix= (off by default) the condensate is mixed as total water and
+liquid water temperature instead: the diffusion tendencies of cloud water and
+ice, $\partial q_{c,i}/\partial t|_{K}$, are added to the vapour tendency, and
+the temperature tendency is reduced by
+$(L_v\,\partial q_c/\partial t|_{K} + L_s\,\partial q_i/\partial t|_{K})/c_p$.
+Total water and the liquid (ice) water static energy are conserved; the
+condensate leaving a level is replaced by vapour and latent heat, the
+condensate reaching a level arrives as vapour with the latent cooling, and
+the microphysics condenses it again where the air is saturated.
+
 Compared to other schemes this formulation tends to produce relatively strong,
 and often excessive, turbulent vertical transfer, particularly in deep convection.
 

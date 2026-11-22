@@ -450,6 +450,7 @@ module mod_runparams
   logical, public :: lmoistn2
   real(rkx), public :: maxprandtl
   logical, public :: lsctop
+  logical, public :: lqtmix
 
   ! Chemistry nameliste option
 

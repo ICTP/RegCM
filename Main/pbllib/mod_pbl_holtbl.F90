@@ -28,7 +28,7 @@ module mod_pbl_holtbl
     rtwat, rtwat_rtice_r, rwat, tzero, vonkar, wlhs, wlhv, wlhvocp
   use mod_runparams, only : iqv, dt, rdt, ichem, zhnew_fac, &
        ifaholtth10, ifaholt, holtth10iter, ipptls, iqc, iqi, &
-       lmoistn2, maxprandtl, lsctop
+       lmoistn2, maxprandtl, lsctop, lqtmix
   use mod_mppparam, only : exchange_lb
   use mod_memutil, only : getmem
 #ifdef DEBUG
@@ -1046,6 +1046,29 @@ module mod_pbl_holtbl
 #ifdef RCEMIP
     !call force_water_conserve(qtenv,qtenc,qteni,m2p%qxatm,kqfs,m2p%psb)
 #endif
+    !
+    ! Total water mixing (lqtmix): the diffused cloud water and ice are
+    ! mixed as total water and liquid water temperature. The condensate
+    ! leaving a level is replaced by vapour with the latent heat release,
+    ! the condensate reaching a level arrives as vapour with the latent
+    ! cooling; the microphysics condenses it again where the air is
+    ! saturated. Total water and liquid (ice) water static energy are
+    ! conserved; no condensate is carried into subsaturated air.
+    !
+    if ( lqtmix ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        qtenv(j,i,k) = qtenv(j,i,k) + qtenc(j,i,k)
+        p2m%tten(j,i,k) = p2m%tten(j,i,k) - wlhv*rcpd*qtenc(j,i,k)
+        qtenc(j,i,k) = d_zero
+      end do
+      if ( ipptls > 1 ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          qtenv(j,i,k) = qtenv(j,i,k) + qteni(j,i,k)
+          p2m%tten(j,i,k) = p2m%tten(j,i,k) - wlhs*rcpd*qteni(j,i,k)
+          qteni(j,i,k) = d_zero
+        end do
+      end if
+    end if
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + qtenv(j,i,k)
       p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + qtenc(j,i,k)

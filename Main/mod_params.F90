@@ -51,7 +51,8 @@ module mod_params
     kf_tkemax, kf_wthreshold, kfac_deep, kfac_shal, lakemod, larcticcorr, &
     lconst2050, lepcld, liqflglw, liqflgsw, lmfcapebl, lmfcapeforc, lmfdd, &
     lmfdudv, lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, &
-    lmoistn2, lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, minorig, &
+    lmoistn2, lqtmix, lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, &
+    minorig, &
     mixed_layer_depth, mo_dzita, moloch_do_test_1, moloch_do_test_2, &
     namelistfile, nbin, nhbet, nhxkd, nqx, nradfo, nsplit, nssopt, nuk, &
     omtrain, omtsnow, pbcmax, q_rel_extrema, qck1land, qck1oce, qcon, &
@@ -262,7 +263,8 @@ module mod_params
     namelist /uwparam/ iuwvadv, atwo, rstbl, czero, nuk
 
     namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-      ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop
+      ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop, &
+      lqtmix
 
     namelist /cplparam/ cpldt, zomax, ustarmax
 
@@ -626,6 +628,7 @@ module mod_params
     lmoistn2 = .false.
     maxprandtl = 1.0_rkx
     lsctop = .true.
+    lqtmix = .false.
     !
     ! slabocparam ;
     !
@@ -1939,6 +1942,7 @@ module mod_params
       call bcast(lmoistn2)
       call bcast(maxprandtl)
       call bcast(lsctop)
+      call bcast(lqtmix)
     end if
     if ( ibltyp == 2 ) then
       call bcast(iuwvadv)
@@ -2835,6 +2839,7 @@ module mod_params
         write(stdout,'(a,l11)') '  lmoistn2     = ', lmoistn2
         write(stdout,'(a,f11.6)') '  maxprandtl   = ', maxprandtl
         write(stdout,'(a,l11)') '  lsctop       = ', lsctop
+        write(stdout,'(a,l11)') '  lqtmix       = ', lqtmix
       else if ( ibltyp == 2 ) then
         write(stdout,*) 'UW TCM Parameters'
         write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl
