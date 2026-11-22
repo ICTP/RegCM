@@ -25,7 +25,7 @@ end subroutine myabort
 #else
 subroutine myabort
   implicit none
-  stop ' Execution terminated because of runtime error'
+  error stop ' Execution terminated because of runtime error'
 end subroutine myabort
 #endif
 
@@ -217,6 +217,18 @@ program icbc
       dattyp(1:3) == 'LGM' ) then
     if ( ical /= gregorian ) then
       write(stderr,*) 'Calendar should be set to gregorian'
+      call die('icbc','Calendar mismatch',1)
+    end if
+  end if
+  if ( dattyp(1:4) == 'ERA5' .or. dattyp == 'RDAE5' ) then
+    if ( ical /= gregorian ) then
+      write(stderr,*) dattyp//' calendar should be set to gregorian'
+      call die('icbc','Calendar mismatch',1)
+    end if
+  end if
+  if ( dattyp == 'ERAXX' ) then
+    if ( ical /= noleap ) then
+      write(stderr,*) dattyp//' calendar should be set to noleap'
       call die('icbc','Calendar mismatch',1)
     end if
   end if

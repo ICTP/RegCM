@@ -25,7 +25,7 @@ end subroutine myabort
 #else
 subroutine myabort
   implicit none
-  stop ' Execution terminated because of runtime error'
+  error stop ' Execution terminated because of runtime error'
 end subroutine myabort
 #endif
 
@@ -40,7 +40,8 @@ end subroutine myabort
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 program clmbc
   use mod_intkinds, only : ik4
-  use mod_dynparam, only : globidate1, globidate2, initparam, iy, jx, kz
+  use mod_dynparam, only : dattyp, globidate1, globidate2, ical, initparam, &
+    iy, jx, kz
   use mod_message, only : die
   use mod_header, only : finaltime, header, ik4, stderr, stdout
   use mod_stdio, only : stderr, stdout
@@ -50,6 +51,7 @@ program clmbc
     operator(-), operator(/=), operator(<), operator(<=), operator(==), &
     operator(>), operator(>=)
   use mod_grid, only : init_hgrid
+  use mod_date, only : gregorian, noleap
   use mod_date, only : lsamemonth, monfirst, rcm_time_and_date, &
     rcm_time_interval, tochar, tohours, uhrs, assignment(=), operator(+), &
     operator(-), operator(/=), operator(<), operator(<=), operator(==), &
@@ -87,6 +89,15 @@ program clmbc
     write ( stderr, * ) ' '
     write ( stderr, * ) 'Check argument and namelist syntax'
     call die('clmbc','Check argument and namelist syntax',1)
+  end if
+
+  if ( dattyp(1:4) == 'ERA5' .and. ical /= gregorian ) then
+    write(stderr,*) dattyp//' calendar should be set to gregorian'
+    call die('clmbc','Calendar mismatch',1)
+  end if
+  if ( dattyp == 'ERAXX' .and. ical /= noleap ) then
+    write(stderr,*) dattyp//' calendar should be set to noleap'
+    call die('clmbc','Calendar mismatch',1)
   end if
 
   call memory_init

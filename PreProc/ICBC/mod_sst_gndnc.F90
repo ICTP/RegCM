@@ -17,7 +17,7 @@ module mod_sst_gndnc
 
   use mod_intkinds, only : ik2, ik4
   use mod_realkinds, only : is_nan, rkx
-  use mod_stdio, only : stdout
+  use mod_stdio, only : stderr, stdout
   use mod_dynparam, only : dattyp, globidate1, globidate2, inpglob, pthsep, &
     ssttyp
   use mod_memutil, only : getmem
@@ -56,6 +56,13 @@ module mod_sst_gndnc
   integer(ik2) :: fillvalue = 0_ik2
   real(rkx) :: add_offset, scale_factor
   logical :: cds_beta = .false.
+  ! Fill and missing values of the not packed (float) ERA5 files
+  real(rkx) :: ffill, fmiss
+  logical :: has_ffill = .false.
+  logical :: has_fmiss = .false.
+  ! Valid range of the ERA5 SST (K): values outside are missing
+  real(rkx), parameter :: sstmin = 200.0_rkx
+  real(rkx), parameter :: sstmax = 350.0_rkx
 
   data varname/'time', 'TOBESET'/
 
@@ -218,23 +225,7 @@ module mod_sst_gndnc
                       'Error read var lon')
       call h_interpolator_create(hint,glat,glon,xlat,xlon)
     else if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
-      istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
-      if ( istatus /= nf90_noerr ) then
-        add_offset = 0.0_rkx
-        scale_factor = 1.0_rkx
-        cds_beta = .true.
-      else
-        cds_beta = .false.
-        istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error read var '//varname(2)//' _FillValue')
-        istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error read var '//varname(2)//' scale_factor')
-        write(stdout,*) 'Fill Value   = ',fillvalue
-        write(stdout,*) 'Add offset   = ',add_offset
-        write(stdout,*) 'Scale factor = ',scale_factor
-      end if
+      call era5_packing( )
       call getmem(worki,1,ilon,1,jlat,'mod_gndnc_sst:worki')
       call getmem(glat1,1,jlat,'mod_gndnc_sst:glat')
       call getmem(glon1,1,ilon,'mod_gndnc_sst:glon')
@@ -373,23 +364,7 @@ module mod_sst_gndnc
                         'Error inquire dim time')
         call getmem(work,1,timlen,'mod_gndnc_sst:work')
         if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
-          istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
-          if ( istatus /= nf90_noerr ) then
-            add_offset = 0.0_rkx
-            scale_factor = 1.0_rkx
-            cds_beta = .true.
-          else
-            cds_beta = .false.
-            istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
-            call checkncerr(istatus,__FILE__,__LINE__, &
-                            'Error read var '//varname(2)//' _FillValue')
-            istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
-            call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var '//varname(2)//' scale_factor')
-            write(stdout,*) 'Fill Value   = ',fillvalue
-            write(stdout,*) 'Add offset   = ',add_offset
-            write(stdout,*) 'Scale factor = ',scale_factor
-          end if
+          call era5_packing( )
         end if
         istart(1) = 1
         icount(1) = timlen
@@ -399,7 +374,7 @@ module mod_sst_gndnc
         istatus = nf90_myget_att_text(inet1,ivar2(1),'units',cunit)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read attribute units of '//varname(1))
-        istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+        istatus = nf90_myget_att_text(inet1,ivar2(1),'calendar',ccal)
         if ( istatus /= nf90_noerr ) ccal = 'gregorian'
         fidate1 = timeval2date(work(1),cunit,ccal)
         tdif = idate-fidate1
@@ -408,6 +383,9 @@ module mod_sst_gndnc
         end if
         it = int(tohours(tdif))/24 + 1
       end if
+    end if
+    if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
+      call check_record(it,idate)
     end if
     istart(1) = 1
     icount(1) = ilon
@@ -421,9 +399,23 @@ module mod_sst_gndnc
         where ( is_nan(workf) )
           workf = 1.0E20_rkx
         end where
+        if ( has_ffill ) then
+          where ( workf == ffill )
+            workf = 1.0E20_rkx
+          end where
+        end if
+        if ( has_fmiss ) then
+          where ( workf == fmiss )
+            workf = 1.0E20_rkx
+          end where
+        end if
       else
         call getworki(2,workf,worki)
       end if
+      ! Any other fill value is outside the valid range
+      where ( workf < sstmin .or. workf > sstmax )
+        workf = 1.0E20_rkx
+      end where
     else
       call getworkf(2,workf)
       where ( is_nan(workf) )
@@ -498,6 +490,57 @@ module mod_sst_gndnc
       end subroutine getworkf
 
   end subroutine gndnc_sst
+  !
+  ! Packing of the ERA5 SST: a short variable has a scale_factor, an
+  ! optional add_offset and a _FillValue; a float one may have a
+  ! _FillValue and a missing_value (NaN in the CDS files).
+  !
+  subroutine era5_packing( )
+    implicit none
+    istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
+    if ( istatus /= nf90_noerr ) then
+      add_offset = 0.0_rkx
+      scale_factor = 1.0_rkx
+      cds_beta = .true.
+      istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',ffill)
+      has_ffill = ( istatus == nf90_noerr )
+      istatus = nf90_get_att(inet1,ivar2(2),'missing_value',fmiss)
+      has_fmiss = ( istatus == nf90_noerr )
+    else
+      cds_beta = .false.
+      istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
+      if ( istatus /= nf90_noerr ) add_offset = 0.0_rkx
+      istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2)//' _FillValue')
+      write(stdout,*) 'Fill Value   = ',fillvalue
+      write(stdout,*) 'Add offset   = ',add_offset
+      write(stdout,*) 'Scale factor = ',scale_factor
+    end if
+  end subroutine era5_packing
+  !
+  ! The record it of the open file must be the day of idate.
+  !
+  subroutine check_record(it,idate)
+    implicit none
+    integer(ik4), intent(in) :: it
+    type(rcm_time_and_date), intent(in) :: idate
+    type(rcm_time_and_date) :: rdate
+    integer(ik4) :: y1, m1, d1, h1, y2, m2, d2, h2
+    if ( it < 1 .or. it > timlen ) then
+      write (stderr,*) 'Date ', tochar(idate), ' outside file ', &
+        trim(inpfile)
+      call die('gndnc_sst','Missing date in SST file',1)
+    end if
+    rdate = timeval2date(work(it),cunit,ccal)
+    call split_idate(idate,y1,m1,d1,h1)
+    call split_idate(rdate,y2,m2,d2,h2)
+    if ( y1 /= y2 .or. m1 /= m2 .or. d1 /= d2 ) then
+      write (stderr,*) 'Date ', tochar(idate), ' requested, record ', it, &
+        ' of ', trim(inpfile), ' is at ', tochar(rdate)
+      call die('gndnc_sst','Not a daily SST file',1)
+    end if
+  end subroutine check_record
 
 end module mod_sst_gndnc
 

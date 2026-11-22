@@ -25,7 +25,7 @@ end subroutine myabort
 #else
 subroutine myabort
   implicit none
-  stop ' Execution terminated because of runtime error'
+  error stop ' Execution terminated because of runtime error'
 end subroutine myabort
 #endif
 
