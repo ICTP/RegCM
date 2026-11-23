@@ -547,12 +547,14 @@
  &cldparam
  rhmax     = 1.00,    ! Higher value limit for Relative Humidity
  rhmin     = 0.01,    ! Lower value limit for Relative Humidity
- rh0land   = 0.90,    ! Relative humidity threshold for land
-                      ! Critical relative humidity for cloud (land)
-                      ! Used in the Sundqvist cloud fraction scheme
- rh0oce    = 0.90,    ! Relative humidity threshold for ocean
-                      ! Critical relative humidity for cloud (ocean)
-                      ! Used in the Sundqvist cloud fraction scheme
+ rh0land   = 0.85,    ! Relative humidity threshold for land
+                      ! Base critical relative humidity for cloud (land)
+                      ! of the Sundqvist cloud fraction, also used by the
+                      ! NoTo cloud formation and the UW subgrid condensation
+ rh0oce    = 0.85,    ! Relative humidity threshold for ocean
+                      ! Base critical relative humidity for cloud (ocean)
+                      ! of the Sundqvist cloud fraction, also used by the
+                      ! NoTo cloud formation and the UW subgrid condensation
  k2_const  = 500.0,   ! K2 Factor cumulus mass flux - cloud fraction
                       ! Used in Emanuel, Kain-Fritsh and Tiedtke to compute
                       ! convective cloud fraction.

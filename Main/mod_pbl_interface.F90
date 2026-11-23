@@ -85,7 +85,7 @@ module mod_pbl_interface
 
   subroutine init_pblscheme
     use mod_atm_interface, only : aten, atm2, atms, fcc, heatrt, kpbl, mddom, &
-      mo_atm, sfs, zpbl
+      mo_atm, rhcrit, sfs, zpbl
     use mod_che_interface, only : chifxuw, drydepv, remdrd
     use mod_che_common, only : assignpnt, chifxuw, drydepv, ibltyp, idynamic, &
       pc_physic, remdrd
@@ -139,6 +139,7 @@ module mod_pbl_interface
     call assignpnt(chifxuw,m2p%chifxuw)
     call assignpnt(heatrt,m2p%heatrt)
     call assignpnt(fcc,m2p%fcc)
+    call assignpnt(rhcrit,m2p%rhcrit)
 
     ! OUTPUT FROM PBL
     if ( idynamic == 3 ) then

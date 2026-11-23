@@ -73,8 +73,6 @@ module mod_micro_nogtom
   use mod_runparams, only : iqqi => iqi !ice
   use mod_runparams, only : iqqs => iqs !snow
   use mod_runparams, only : dt, rdt, dtsec
-  use mod_runparams, only : rhcrit_lnd, rhcrit_sea, &
-                            siglow => rhcrit_siglow
   use mod_runparams, only : ichem, iaerosol, iindirect, rcrit
   use mod_runparams, only : budget_compute, iautoconv
   use mod_runparams, only : auto_rate_khair, auto_rate_kessl, &
@@ -171,7 +169,7 @@ module mod_micro_nogtom
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ttendc
   ! critical factors
   real(rkx), pointer, contiguous, dimension(:,:) :: xlcrit
-  real(rkx), pointer, contiguous, dimension(:,:) :: rhcrit
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: rhcrit
   ! fall speeds of three categories
   real(rkx), dimension(mxqx) :: vqx
   ! decoupled mixing ratios tendency
@@ -268,7 +266,7 @@ module mod_micro_nogtom
     call getmem(pfplsn,1,kzp1,jci1,jci2,ici1,ici2,'cmicro:pfplsn')
     call getmem(koop,1,kz,jci1,jci2,ici1,ici2,'cmicro:koop')
     call getmem(xlcrit,jci1,jci2,ici1,ici2,'cmicro:xlcrit')
-    call getmem(rhcrit,jci1,jci2,ici1,ici2,'cmicro:rhcrit')
+    call getmem(rhcrit,1,kz,jci1,jci2,ici1,ici2,'cmicro:rhcrit')
     call getmem(eeliq,1,kz,jci1,jci2,ici1,ici2,'cmicro:eeliq')
     call getmem(eeice,1,kz,jci1,jci2,ici1,ici2,'cmicro:eeice')
     call getmem(eeliqt,1,kz,jci1,jci2,ici1,ici2,'cmicro:eeliqt')
@@ -327,10 +325,8 @@ module mod_micro_nogtom
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       if ( ldmsk(j,i) == 1 ) then ! landmask =1 land
         xlcrit(j,i) = rclcrit_land ! landrclcrit_land = 5.e-4
-        rhcrit(j,i) = rhcrit_lnd
       else
         xlcrit(j,i) = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
-        rhcrit(j,i) = rhcrit_sea
       end if
     end do
   end subroutine init_nogtom
@@ -367,7 +363,7 @@ module mod_micro_nogtom
     real(rkx) :: totcond, qliqfrac, qicefrac, qicetot
     real(rkx) :: gdp, dtgdp, rdtgdp, alpha1, ldefr
     real(rkx) :: facl, faci, facw, corr, acond, zdl, infactor
-    real(rkx) :: alfaw, phases, qexc, rhc, zsig, preclr, arg
+    real(rkx) :: alfaw, phases, qexc, rhc, preclr, arg
     real(rkx) :: rexplicit, xlcondlim, tmpa, zrh, beta, beta1
     real(rkx) :: cond, dtdp, cdmax, tdiff, cons1, qvnew
     real(rkx) :: lat
@@ -433,6 +429,7 @@ module mod_micro_nogtom
       pverv(k,j,i) = mo2mc%pverv(j,i,k)
       heatrt(k,j,i) = mo2mc%heatrt(j,i,k)
       fcc(k,j,i) = mo2mc%cldf(j,i,k)
+      rhcrit(k,j,i) = mo2mc%rhcrit(j,i,k)
     end do
 
     if ( lccn .and. associated(mo2mc%ccn) ) then
@@ -1154,12 +1151,8 @@ module mod_micro_nogtom
               ! vapour excess in the clear sky part of the cell
               qexc = max((qxfg(iqqv)-ccover*qsmixv) / &
                   (d_one-ccover),d_zero)
-              rhc = rhcrit(j,i)
-              zsig = ph(k,j,i)/pbot
-              if ( zsig > siglow ) then
-                ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
-                rhc = rhc + (d_one-rhc)*((zsig-siglow)/(d_one-siglow))**2
-              end if
+              ! critical relative humidity of the cloud fraction
+              rhc = rhcrit(k,j,i)
               ! ice supersaturation
               if ( ltkgt0 ) then
                 ! no ice supersaturation allowed

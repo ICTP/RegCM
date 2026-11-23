@@ -24,14 +24,14 @@ module mod_micro_interface
   use mod_memutil, only : assignpnt, getmem
   use mod_mppparam, only : italk
   use mod_regcm_types, only : ik4, micro_2_mod, mod_2_micro, nogtom_stats
-  use mod_runparams, only : dt, hsigma, iaerosol, ichem, icldfrac, &
+  use mod_runparams, only : dt, hsigma, iaerosol, ibltyp, ichem, icldfrac, &
     icldmstrat, icup, idiag, iindirect, ipptls, iqc, iqi, iqr, iqs, &
     iqv, pc_physic, pc_total, rcmtimer, rhmax, rhmin, stats
   use mod_micro_nogtom, only : allocate_mod_nogtom, init_nogtom, nogtom
   use mod_micro_wsm5, only : allocate_mod_wsm5, init_wsm5, wsm5
   use mod_micro_wsm7, only : allocate_mod_wsm7, init_wsm7, wsm7
   use mod_micro_wdm7, only : allocate_mod_wdm7, init_wdm7, wdm7
-  use mod_cloud_sundqvist, only : sundqvist_cldfrac
+  use mod_cloud_sundqvist, only : sundqvist_rhcrit, sundqvist_cldfrac
   use mod_cloud_xuran, only : xuran_cldfrac
   use mod_cloud_thomp, only : thomp_cldfrac
   use mod_cloud_guli2007, only : gulisa_cldfrac
@@ -52,7 +52,6 @@ module mod_micro_interface
 
   ! Threshold relative humidity of the Sundqvist cloud fraction
   real(rkx), pointer, contiguous, dimension(:,:) :: rh0 => null( )
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: rhcrit => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: totc => null( )
 
   integer(ik4), parameter :: nchi = 256
@@ -119,9 +118,6 @@ module mod_micro_interface
       call allocate_mod_wdm7
     end if
     call getmem(rh0,jci1,jci2,ici1,ici2,'micro:rh0')
-    if ( icldfrac == 0 ) then
-      call getmem(rhcrit,jci1,jci2,ici1,ici2,1,kz,'micro:rhcrit')
-    end if
     call getmem(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
     call getmem(chis,0,nchi-1,'micro:chis')
     do i = 1, nchi
@@ -132,7 +128,8 @@ module mod_micro_interface
 
   subroutine init_micro
     use mod_atm_interface, only : aten, atms, ccn, fcc, heatrt, mddom, &
-      mo_atm, ncrrate, pptnc, q_detr, qdiag, rain_ls, rembc, remrat, sfs
+      mo_atm, ncrrate, pptnc, q_detr, qdiag, rain_ls, rembc, remrat, &
+      rhcrit, sfs
     implicit none
 
     call assignpnt(mddom%ldmsk,mo2mc%ldmsk)
@@ -154,6 +151,7 @@ module mod_micro_interface
     call assignpnt(heatrt,mo2mc%heatrt)
     call assignpnt(q_detr,mo2mc%qdetr)
     call assignpnt(fcc,mo2mc%cldf)
+    call assignpnt(rhcrit,mo2mc%rhcrit)
 
     call assignpnt(atms%qxb3d,mo2mc%qvn,iqv)
     call assignpnt(atms%qxb3d,mo2mc%qcn,iqc)
@@ -255,10 +253,16 @@ module mod_micro_interface
       end do
     end if
 
+    ! Critical relative humidity of the Sundqvist cloud fraction, of the
+    ! NoTo cloud formation and of the UW subgrid condensation
+    if ( icldfrac == 0 .or. ipptls == 2 .or. ibltyp == 2 ) then
+      call sundqvist_rhcrit(mo2mc%t,rh0,mo2mc%rhcrit)
+    end if
+
     select case ( icldfrac )
       case (0)
-        call sundqvist_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           mo2mc%rh,rh0,rhcrit,mc2mo%fcc)
+        call sundqvist_cldfrac(mo2mc%phs,mo2mc%qvn,mo2mc%rh, &
+                               mo2mc%rhcrit,mc2mo%fcc)
       case (1)
         call xuran_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (2)

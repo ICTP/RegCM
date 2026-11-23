@@ -26,43 +26,34 @@ module mod_cloud_sundqvist
 
   private
 
-  public :: sundqvist_cldfrac
+  public :: sundqvist_rhcrit, sundqvist_cldfrac
 
   ! Stream of the random perturbation of the critical relative humidity
   integer(ik4), parameter :: rhcrit_seed = 19590209
 
   contains
   !
-  ! This subroutine computes the fractional cloud coverage
-  ! which is used in radiation.
+  ! Critical relative humidity of the model: the threshold of the
+  ! Sundqvist cloud fraction, of the new cloud formation of the
+  ! Nogherotto-Tompkins microphysics and of the subgrid condensation of
+  ! the UW boundary layer.
   !
-  ! The fractional coverage of large scale clouds is a function of
-  ! relative humidity, using the relationship of sundqvist et
-  ! al., 1989.  The relative humidity at which clouds begin to
-  ! form is lower over land than ocean, due to the greater number
-  ! of cloud condensation nucleii.
+  ! A dynamic critical relative humidity based on temperature in
+  ! cloud parameterization to improve low cloud in an AGCM
+  ! https://doi.org/10.1016/j.atmosres.2025.108183
   !
-  ! See Pal et al (2000) for more info.
+  ! The random perturbation is a hash of the time step and of the
+  ! global indices of the point, so it does not depend on the domain
+  ! decomposition and a restart draws the same numbers.
   !
-  subroutine sundqvist_cldfrac(t,p,qv,rh,rh0,rhcrit,fcc)
+  subroutine sundqvist_rhcrit(t,rh0,rhcrit)
     implicit none
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: t, p
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qv, rh
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rhcrit
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: t
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: rh0
-    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rhcrit
     integer(ik4) :: i, j, k
     integer(ik8) :: key
-    real(rkx) :: tku, rcc, rhrng, rnd
-    !
-    ! A dynamic critical relative humidity based on temperature in
-    ! cloud parameterization to improve low cloud in an AGCM
-    ! https://doi.org/10.1016/j.atmosres.2025.108183
-    !
-    ! The random perturbation is a hash of the time step and of the
-    ! global indices of the point, so it does not depend on the domain
-    ! decomposition and a restart draws the same numbers.
-    !
+    real(rkx) :: tku, rnd
     key = hash_key(rhcrit_seed,rcmtimer%lcount)
 #if !defined(OPENACC) || defined(STDPAR_FIXED)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -84,6 +75,26 @@ module mod_cloud_sundqvist
     end do
 #endif
     end do
+  end subroutine sundqvist_rhcrit
+  !
+  ! This subroutine computes the fractional cloud coverage
+  ! which is used in radiation.
+  !
+  ! The fractional coverage of large scale clouds is a function of
+  ! relative humidity, using the relationship of sundqvist et
+  ! al., 1989, above the critical relative humidity rhcrit
+  ! (sundqvist_rhcrit).
+  !
+  ! See Pal et al (2000) for more info.
+  !
+  subroutine sundqvist_cldfrac(p,qv,rh,rhcrit,fcc)
+    implicit none
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: p
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qv, rh
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: rhcrit
+    real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
+    integer(ik4) :: i, j, k
+    real(rkx) :: rhrng
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------

@@ -207,7 +207,7 @@ program scm_coupled
   use mod_micro_wsm5, only : allocate_mod_wsm5, init_wsm5, wsm5
   use mod_micro_wsm7, only : allocate_mod_wsm7, init_wsm7, wsm7
   use mod_micro_wdm7, only : allocate_mod_wdm7, init_wdm7, wdm7
-  use mod_cloud_sundqvist, only : sundqvist_cldfrac
+  use mod_cloud_sundqvist, only : sundqvist_rhcrit, sundqvist_cldfrac
   use mod_cloud_xuran, only : xuran_cldfrac
   use mod_rad_common, only : o3prof, gasabsnxt, gasabstot, gasemstot, &
     absemin, kth, ktf
@@ -269,7 +269,7 @@ program scm_coupled
   type(mod_2_rad) :: m2r
   type(rad_2_mod) :: r2m
   real(rkx), allocatable, dimension(:,:,:) :: qcnd
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: qvp, rhcp, totcp
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: qvp, totcp
   real(rkx), pointer, contiguous, dimension(:,:) :: rh0p
   logical :: lnoto
   type(mod_2_micro) :: mo2mc
@@ -1593,7 +1593,7 @@ program scm_coupled
     call getmem(mo2mc%cldf,1,ncol,1,1,1,nk,'scm:mcldf')
     call getmem(mo2mc%qxx,1,ncol,1,1,1,nk,1,nqx,'scm:mqxx')
     call getmem(qvp,1,ncol,1,1,1,nk,'scm:qvp')
-    call getmem(rhcp,1,ncol,1,1,1,nk,'scm:rhcp')
+    call getmem(mo2mc%rhcrit,1,ncol,1,1,1,nk,'scm:mrhcrit')
     call getmem(totcp,1,ncol,1,1,1,nk,'scm:totcp')
     call getmem(rh0p,1,ncol,1,1,'scm:rh0p')
     call getmem(mc2mo%tten,1,ncol,1,1,1,nk,'scm:ctten')
@@ -1680,9 +1680,11 @@ program scm_coupled
       mc2mo%hailnc(j,1) = d_zero
       mc2mo%trrate(j,1) = d_zero
     end do
+    ! critical relative humidity of the cloud fraction, NoTo and UW
+    call sundqvist_rhcrit(mo2mc%t,rh0p,mo2mc%rhcrit)
     select case ( icldfrac )
       case (0)
-        call sundqvist_cldfrac(mo2mc%t,mo2mc%phs,qvp,mo2mc%rh,rh0p,rhcp, &
+        call sundqvist_cldfrac(mo2mc%phs,qvp,mo2mc%rh,mo2mc%rhcrit, &
           mo2mc%cldf)
       case (1)
         call xuran_cldfrac(totcp,mo2mc%qs,mo2mc%rh,mo2mc%cldf)
@@ -1738,6 +1740,7 @@ program scm_coupled
       m2p%tatm(j,1,:) = t(j,:)
       m2p%heatrt(j,1,:) = hrad(j,:)
       if ( lnoto ) m2p%fcc(j,1,:) = mo2mc%cldf(j,1,:)
+      if ( lnoto ) m2p%rhcrit(j,1,:) = mo2mc%rhcrit(j,1,:)
       m2p%qxatm(j,1,:,iqv) = q(j,:)
       m2p%qxatm(j,1,:,iqc) = qcnd(j,:,iqc)
       m2p%qxatm(j,1,:,iqi) = qcnd(j,:,iqi)
@@ -1799,6 +1802,9 @@ program scm_coupled
     ! large scale cloud fraction of the model (cldfrac)
     call getmem(m2p%fcc,1,ncol,1,1,1,nk,'scm:pfcc')
     m2p%fcc(:,:,:) = d_zero
+    ! critical relative humidity of the model (cldfrac)
+    call getmem(m2p%rhcrit,1,ncol,1,1,1,nk,'scm:prhcrit')
+    m2p%rhcrit(:,:,:) = d_one
     call getmem(m2p%patm,1,ncol,1,1,1,nk,'scm:patm')
     call getmem(m2p%patmf,1,ncol,1,1,1,nk+1,'scm:patmf')
     call getmem(m2p%tatm,1,ncol,1,1,1,nk,'scm:tatm')

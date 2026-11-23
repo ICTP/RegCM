@@ -900,6 +900,8 @@ module mod_regcm_types
         heatrt => null( )  ! radiation
     real(rkx), pointer, contiguous, dimension(:,:,:) :: &
         fcc => null( )     ! large scale cloud fraction (cldfrac)
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rhcrit => null( )  ! critical relative humidity (cldfrac)
   end type mod_2_pbl
 
   type pbl_2_mod
@@ -973,6 +975,8 @@ module mod_regcm_types
         qrn => null( )    ! qxx(iqr)
     real(rkx), pointer, contiguous, dimension(:,:,:) :: &
         cldf => null( )   ! cloud fraction
+    real(rkx), pointer, contiguous, dimension(:,:,:) :: &
+        rhcrit => null( ) ! critical relative humidity
     integer(ik4), pointer, contiguous, dimension(:,:) :: &
         ldmsk => null( ) ! mddom
     integer(ik4), pointer, contiguous, dimension(:,:) :: &

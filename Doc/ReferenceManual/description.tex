@@ -1605,9 +1605,9 @@ grid saturation, and UW uses a subgrid condensation consistent with them.  Total
 water has a triangular subgrid distribution \citep{Smith_90} with half width
 $(1-RH_c)\,q_s(T_l)$, which gives the grid-mean liquid water $q_l^{sg}$ and the
 cloud fraction $C$ as functions of $\theta_l$, $Q_w$ and the pressure.  The
-critical relative humidity $RH_c$ is that of the Nogherotto-Tompkins cloud
-formation: 0.8 over land and 0.9 elsewhere, increased to 1 towards the surface
-below $\sigma = 0.8$.  Only the change of the diagnosed condensate across the
+critical relative humidity $RH_c$ is $RH_\mathrm{crit}$ of the Sundqvist cloud
+fraction (section~\ref{sec:cloudfraction}), also the threshold of the cloud
+formation of the Nogherotto-Tompkins microphysics.  Only the change of the diagnosed condensate across the
 mixing step is applied to the cloud water carried by the model,
 \begin{equation}
   q_l^{n+1} = q_l^{n} + q_l^{sg}(\theta_l^{n+1},Q_w^{n+1}) -
@@ -2213,7 +2213,7 @@ for example, the MIT scheme is used over oceans and the Grell scheme over land
 — might be the most suitable option to pursue, and therefore this option was
 added to the model.
 
-\subsection{Cloud Fraction Schemes}
+\subsection{Cloud Fraction Schemes} \label{sec:cloudfraction}
 
 The cloud fraction $FC$ passed to the radiation schemes is computed by merging
 the large-scale (grid-resolved) and convective contributions. The large-scale
@@ -2273,7 +2273,10 @@ ocean), $P(T)$ is a fourth-degree polynomial of the temperature (limited to
 216--301~K) and $r$ is a random number uniform in $[0,1)$. The random number
 is a hash of the time step and of the global indices of the grid point, so
 it does not depend on the domain decomposition and a restarted run draws the
-same values. An optional correction for Arctic low cloud is based on
+same values. The same $RH_\mathrm{crit}$ is the threshold of the formation of
+new clouds in the Nogherotto-Tompkins microphysics and of the subgrid
+condensation of the UW boundary layer, whatever the cloud fraction scheme.
+An optional correction for Arctic low cloud is based on
 \citet{Vavrus_08}.\\
 
 \item {\bf Xu--Randall (\texttt{xu-randall}, \texttt{icldfrac}=1):}
@@ -2424,7 +2427,11 @@ calls.
 The microphysical pathways between the five species are illustrated
 schematically in Fig.~\ref{fig:newscheme}.  Warm-cloud processes include
 condensation, autoconversion of liquid to rain, collection of cloud water by
-rain, and evaporation of rain.  Cold-cloud processes include depositional
+rain, and evaporation of rain.  Condensation grows the cloud water in the
+existing clouds when the air cools; outside them, new clouds form when the
+vapour of the clear part of the cell exceeds the critical relative humidity
+$RH_\mathrm{crit}$ of the Sundqvist cloud fraction (computed whatever the
+cloud fraction scheme).  Cold-cloud processes include depositional
 growth, freezing, sublimation, and melting.  Each process is associated with a
 latent heat exchange.  Processes whose characteristic timescale is short
 relative to the model timestep are handled implicitly; slower processes are

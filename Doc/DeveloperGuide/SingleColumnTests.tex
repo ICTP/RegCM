@@ -300,8 +300,9 @@ temperature tendency of the profile file as radiative heating. Cloud
 water, ice, rain and snow are carried by the driver (not advected by the
 large scale flow) and clipped as in the \code{status\_update} of the
 MOLOCH core; the rain and snow reaching the ground are the large scale
-rain. The random critical relative humidity of the cloud fraction uses
-the step count, set in a minimal \code{rcmtimer}. The parameters are
+rain. The random critical relative humidity (\code{sundqvist\_rhcrit}),
+used by the cloud fraction, by NoTo and by UW, uses the step count, set in
+a minimal \code{rcmtimer}. The parameters are
 read from \code{microparam} and from \code{cldparam} (\code{rh0oce},
 \code{rh0land}, \code{rhmin}, \code{rhmax},
 \code{larcticcorr}). With \code{lnoto} false there is no microphysics:

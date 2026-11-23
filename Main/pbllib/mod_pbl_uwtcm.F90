@@ -70,8 +70,7 @@ module mod_pbl_uwtcm
     tzero, vonkar, wlhs, wlhv
   use mod_pbl_common, only : uwstate
   use mod_runparams, only : iqv, iqc, iqi, atwo, rstbl, &
-          czero, nuk, dt, rdt, ichem, ipptls, rhcrit_lnd, rhcrit_sea, &
-          rhcrit_siglow
+          czero, nuk, dt, rdt, ichem
   use mod_regcm_types, only : mod_2_pbl, pbl_2_mod, tcm_state
 #ifdef DEBUG
   use mod_service, only : dbgslen, time_begin, time_end
@@ -133,7 +132,7 @@ module mod_pbl_uwtcm
     real(rkx) :: uflxp, vflxp, rhoxsf, tskx, tvcon, fracz, dudz, &
                  dvdz, thgb, pblx, uu, qfxx, hfxx, uvdragx, &
                  q0s, tvfac, svs, pfcor, ustx, qt_liq
-    real(rkx) :: rhc0, zsig, dqc
+    real(rkx) :: dqc
     ! real(rkx) :: kh0, thvflx
     real(rkx) :: thv0, thx_t, thvx_t, dthv, dthv_t
     integer(ik4) :: kpbl2dx  ! Top of PBL
@@ -208,11 +207,6 @@ module mod_pbl_uwtcm
       hfxx = m2p%hfx(j,i)
       uvdragx = m2p%uvdrag(j,i)
       pfcor = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
-      if ( m2p%ldmsk(j,i) == 1 ) then
-        rhc0 = rhcrit_lnd
-      else
-        rhc0 = rhcrit_sea
-      end if
 
       ! Integrate the hydrostatic equation to calculate the level height
       ! Set variables that are on full levels
@@ -243,14 +237,9 @@ module mod_pbl_uwtcm
         ocp(k) = d_one/cp(k)
       end do
 
-      ! As in NoTo: rhcrit, increased to 1 towards the surface
+      ! Critical relative humidity of the cloud fraction (and of NoTo)
       do k = 1, kz
-        zsig = preshl(k)/presfl(kzp1)
-        rhcx(k) = rhc0
-        if ( zsig > rhcrit_siglow ) then
-          rhcx(k) = rhc0 + (d_one-rhc0) * &
-            ((zsig-rhcrit_siglow)/(d_one-rhcrit_siglow))**2
-        end if
+        rhcx(k) = m2p%rhcrit(j,i,k)
       end do
 
       do k = 1, kz
@@ -871,7 +860,7 @@ module mod_pbl_uwtcm
     call sgcloud(tl,qt,p,rhc,cpx,sgcond,cf)
   end function sgcond
 
-  ! N^2 with the subgrid cloud fraction (ipptls > 1). The buoyancy
+  ! N^2 with the subgrid cloud fraction. The buoyancy
   ! coefficients of the thetal and qt gradients are weighted between
   ! their clear and saturated values with the interface cloud fraction
   ! (Bretherton and Park, 2009, J. Climate 22, 3422-3448), the mean of

@@ -151,6 +151,8 @@ module mod_atm_interface
   real(rkx), pointer, contiguous, public, dimension(:,:) :: crrate => null( )
   real(rkx), pointer, contiguous, public, dimension(:,:) :: ncrrate => null( )
   real(rkx), pointer, contiguous, public, dimension(:,:,:) :: fcc => null( )
+  ! Critical relative humidity (cldfrac)
+  real(rkx), pointer, contiguous, public, dimension(:,:,:) :: rhcrit => null( )
   real(rkx), pointer, contiguous, public, dimension(:,:,:) :: remrat => null( )
   real(rkx), pointer, contiguous, public, dimension(:,:,:) :: rembc => null( )
   real(rkx), pointer, contiguous, public, dimension(:,:,:) :: ccn => null( )
@@ -1133,6 +1135,7 @@ module mod_atm_interface
 
       ! This needs to be saved in SAV file
       call getmem(fcc,jci1,jci2,ici1,ici2,1,kz,'storage:fcc')
+      call getmem(rhcrit,jci1,jci2,ici1,ici2,1,kz,'storage:rhcrit')
       if ( ichem == 1 ) then
         call getmem(rembc,jci1,jci2,ici1,ici2,1,kz,'storage:rembc')
         call getmem(remrat,jci1,jci2,ici1,ici2,1,kz,'storage:remrat')
