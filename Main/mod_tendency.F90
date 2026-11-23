@@ -50,7 +50,7 @@ module mod_tendency
   use mod_rad_interface, only : radiation, updateaeropp, updateaeropp_cmip6, &
     updateaerosol, updateo3
   use mod_pbl_interface, only : pblscheme, tkemin
-  use mod_micro_interface, only : cldfrac, condtq, microscheme
+  use mod_micro_interface, only : cldfrac, microscheme
   use mod_bdycod, only : eue, eui, eve, evi, is_present_qc, is_present_qi, &
     nudge, nue, nui, nve, nvi, raydamp, sponge, sue, sui, sve, svi, wue, wui, &
     wve, wvi
@@ -142,11 +142,7 @@ module mod_tendency
     implicit none
     call getmem(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
     call getmem(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
-    if ( ipptls > 1 ) then
-      call getmem(qcd,jce1,jce2,ice1,ice2,1,kz,'tendency:qcd')
-    else
-      call assignpnt(atmx%qx,qcd,iqc)
-    end if
+    call getmem(qcd,jce1,jce2,ice1,ice2,1,kz,'tendency:qcd')
     call getmem(tvfac,jce1,jce2,ice1,ice2,1,kz,'tendency:tvfac')
     call assignpnt(atmx%qx,qvd,iqv)
     call getmem(pten,jce1,jce2,ice1,ice2,'tendency:pten')
@@ -354,21 +350,6 @@ module mod_tendency
                       k = 1:kz, n = iqfrst:nqx)
         qxten(j,i,k,n) = qxten(j,i,k,n) + qxdyn(j,i,k,n) + qxphy(j,i,k,n)
       end do
-      if ( ipptls == 1 ) then
-        !
-        ! compute the condensation and precipitation terms for SUBEX
-        ! moisture schemes
-        !
-        qxphy(:,:,:,iqv) = d_zero
-        qxphy(:,:,:,iqc) = d_zero
-        tphy(:,:,:) = d_zero
-        call condtq
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          tten(j,i,k) = tten(j,i,k) + tphy(j,i,k)
-          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qxphy(j,i,k,iqv)
-          qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + qxphy(j,i,k,iqc)
-        end do
-      end if
       if ( idiag > 0 ) then
         call ten2diag(aten%t,tdiag%lsc,pc_physic)
         call ten2diag(aten%qx,qdiag%lsc,pc_physic)
@@ -1021,14 +1002,12 @@ module mod_tendency
       !
       ! Total water load
       !
-      if ( ipptls > 1 ) then
-        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          qcd(j,i,k) = d_zero
-          do n = iqfrst, iqlst
-            qcd(j,i,k) = qcd(j,i,k) + atmx%qx(j,i,k,n)
-          end do
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        qcd(j,i,k) = d_zero
+        do n = iqfrst, iqlst
+          qcd(j,i,k) = qcd(j,i,k) + atmx%qx(j,i,k,n)
         end do
-      end if
+      end do
     end subroutine decouple
 
     subroutine compute_omega
@@ -1297,9 +1276,7 @@ module mod_tendency
         call ten2diag(aten%qx,qdiag%adh,pc_dynamic,qen0)
         qen0 = qxdyn(:,:,:,iqv)
       end if
-      if ( all(icup /= 1) ) then
-        call vadv(qxdyn,atm1%qx,iqv)
-      end if
+      call vadv(qxdyn,atm1%qx,iqv)
       if ( idiag > 0 .and. idgq == iqv ) then
         call ten2diag(aten%qx,qdiag%adv,pc_dynamic,qen0)
       end if
@@ -1333,9 +1310,7 @@ module mod_tendency
           call ten2diag(aten%chi,cadvhdiag,pc_dynamic)
           chiten0 = chidyn
         end if
-        if ( all(icup /= 1) ) then
-          call vadv(chidyn,atm1%chi,1,ntr,itrvadv)
-        end if
+        call vadv(chidyn,atm1%chi,1,ntr,itrvadv)
         if ( ichdiag > 0 ) then
           call ten2diag(aten%chi,cadvvdiag,pc_dynamic,chiten0)
         end if

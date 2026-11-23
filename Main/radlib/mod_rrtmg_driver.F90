@@ -280,10 +280,8 @@ module mod_rrtmg_driver
     call getmem(play,1,npr,1,kth,'rrtmg:play')
     call getmem(tlay,1,npr,1,kth,'rrtmg:tlay')
     call getmem(alpha,1,npr,1,kth,'rrtmg:alpha')
-    if ( ipptls > 1 ) then
-      call getmem(ql1,1,npr,1,kth,'rrtmg:ql1')
-      call getmem(qi1,1,npr,1,kth,'rrtmg:qi1')
-    end if
+    call getmem(ql1,1,npr,1,kth,'rrtmg:ql1')
+    call getmem(qi1,1,npr,1,kth,'rrtmg:qi1')
     call getmem(h2ovmr,1,npr,1,kth,'rrtmg:h2ovmr')
     call getmem(o3vmr,1,npr,1,kth,'rrtmg:o3vmr')
     call getmem(co2mmr,1,npr,1,kth,'rrtmg:co2mmr')
@@ -834,24 +832,22 @@ module mod_rrtmg_driver
       end do
     end do
 
-    if ( ipptls > 1 ) then
-      do k = 1, kz
-        kj = kzp1 - k
-        do i = ici1, ici2
-          do j = jci1, jci2
-            n = (j-jci1+1)+(i-ici1)*npj
-            ql1(n,k) = m2r%qxatms(j,i,kj,iqc)
-            qi1(n,k) = m2r%qxatms(j,i,kj,iqi)
-          end do
+    do k = 1, kz
+      kj = kzp1 - k
+      do i = ici1, ici2
+        do j = jci1, jci2
+          n = (j-jci1+1)+(i-ici1)*npj
+          ql1(n,k) = m2r%qxatms(j,i,kj,iqc)
+          qi1(n,k) = m2r%qxatms(j,i,kj,iqi)
         end do
       end do
-      do k = kzp1, kth
-        do n = 1, npr
-          ql1(n,k) = 0.0_rk8
-          qi1(n,k) = 0.0_rk8
-        end do
+    end do
+    do k = kzp1, kth
+      do n = 1, npr
+        ql1(n,k) = 0.0_rk8
+        qi1(n,k) = 0.0_rk8
       end do
-    end if
+    end do
     !
     ! h2o volume mixing ratio
     !
@@ -1224,11 +1220,7 @@ module mod_rrtmg_driver
     real(rk8) :: iwc
     do k = 1, kth
       do n = 1, npr
-        if ( ipptls > 1 ) then
-          fice(n,k) = cloud_fice(.true.,ql1(n,k),qi1(n,k),t(n,k))
-        else
-          fice(n,k) = cloud_fice(.false.,0.0_rk8,0.0_rk8,t(n,k))
-        end if
+        fice(n,k) = cloud_fice(.true.,ql1(n,k),qi1(n,k),t(n,k))
         if ( cldf(n,k) > 0.0_rk8 ) then
           ! in cloud ice water content (g/m3)
           iwc = clwp(n,k)*fice(n,k)/deltaz(n,k)

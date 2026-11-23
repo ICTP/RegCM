@@ -30,7 +30,8 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.F90 mod_space.F90 mod_hgt.F90 \
                       mod_intldtr.F90 mod_kdtree2_priority.F90 \
                       mod_kdtree2.F90 mod_earth.F90 mod_kdinterp.F90 \
                       mod_spbarcoord.F90 mod_posix.F90 mod_zita.F90 \
-                      mod_heatindex.F90 mod_wavelet.F90 mod_hashrng.F90
+                      mod_heatindex.F90 mod_wavelet.F90 mod_hashrng.F90 \
+                      mod_scheme_names.F90
 
 if DO_ASYNC_NETCDF
 librcmlib_a_SOURCES += regcm_async_netcdf_thread.c
@@ -99,3 +100,4 @@ mod_zita.o : mod_zita.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dyn
 mod_heatindex.o : mod_heatindex.F90 mod_realkinds.o mod_stdio.o mod_message.o
 mod_wavelet.o : mod_wavelet.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_hashrng.o : mod_hashrng.F90 mod_intkinds.o mod_realkinds.o
+mod_scheme_names.o : mod_scheme_names.F90 mod_intkinds.o

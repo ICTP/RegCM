@@ -446,42 +446,24 @@ module mod_rad_colmod3
     do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
       rt%rho(k,n) = (rt%pmid(k,n))/(rt%t(k,n)*rgas)
     end do
-    if ( ipptls > 1 ) then
-      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
-        n = (j-jci1)+(i-ici1)*nj+1
-        rt%qi(k,n) = m2r%qxatms(j,i,k,iqi)
-      end do
-      ! Ice fraction of the cloud water seen by radiation: microphysics
-      ! ratio, temperature ramp in convective only cloud
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
+      n = (j-jci1)+(i-ici1)*nj+1
+      rt%qi(k,n) = m2r%qxatms(j,i,k,iqi)
+    end do
+    ! Ice fraction of the cloud water seen by radiation: microphysics
+    ! ratio, temperature ramp in convective only cloud
 #if defined(OPENACC) && !defined(STDPAR_FIXED)
-      !$acc parallel loop collapse(2) gang vector
-      do n = rt%n1, rt%n2
-      do k = 1, kz
+    !$acc parallel loop collapse(2) gang vector
+    do n = rt%n1, rt%n2
+    do k = 1, kz
 #else
-      do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
+    do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
 #endif
-        rt%fice(k,n) = cloud_fice(.true.,rt%ql(k,n),rt%qi(k,n),rt%t(k,n))
+      rt%fice(k,n) = cloud_fice(.true.,rt%ql(k,n),rt%qi(k,n),rt%t(k,n))
 #if defined(OPENACC) && !defined(STDPAR_FIXED)
-      end do
+    end do
 #endif
-      end do
-    else
-#if defined(OPENACC) && !defined(STDPAR_FIXED)
-      !$acc parallel loop collapse(2) gang vector
-      do n = rt%n1, rt%n2
-      do k = 1, kz
-#else
-      do concurrent ( k = 1:kz,  n = rt%n1:rt%n2 )
-#endif
-        ! Ice fraction from the mixed phase temperature ramp
-        rt%fice(k,n) = cloud_fice(.false.,rt%ql(k,n),0.0_rk8,rt%t(k,n))
-        rt%qi(k,n) = rt%ql(k,n) * rt%fice(k,n)
-        rt%ql(k,n) = rt%ql(k,n) - rt%qi(k,n)
-#if defined(OPENACC) && !defined(STDPAR_FIXED)
-      end do
-#endif
-      end do
-    end if
+    end do
     !
     ! Cloud fraction and in cloud water path of each layer, where the
     ! water path is at least cldwpmin

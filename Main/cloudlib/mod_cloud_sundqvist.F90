@@ -13,24 +13,27 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_cloud_subex
+module mod_cloud_sundqvist
 
   use mod_intkinds, only : ik4, ik8
   use mod_realkinds, only : rkx
   use mod_constants, only : d_one, d_zero
   use mod_dynparam, only : ici1, ici2, jci1, jci2, kz
-  use mod_runparams, only : larcticcorr, rcmtimer, rhmax, rhmin, tc0
+  use mod_runparams, only : larcticcorr, rcmtimer, rhmax, rhmin
   use mod_hashrng, only : hash_key, hash_uniform
 
   implicit none
 
   private
 
-  public :: subex_cldfrac
+  public :: sundqvist_cldfrac
 
   logical, parameter :: use_dynamic_rhcrit = .true.
   ! Stream of the random perturbation of the critical relative humidity
   integer(ik4), parameter :: rhcrit_seed = 19590209
+  ! Static critical relative humidity (use_dynamic_rhcrit false):
+  ! temperature below which it approaches one (Pal et al. 2000)
+  real(rkx), parameter :: tc0 = 238.0_rkx
 
   contains
   !
@@ -45,14 +48,13 @@ module mod_cloud_subex
   !
   ! See Pal et al (2000) for more info.
   !
-  subroutine subex_cldfrac(t,p,qv,rh,tc0,rh0,rhcrit,fcc)
+  subroutine sundqvist_cldfrac(t,p,qv,rh,rh0,rhcrit,fcc)
     implicit none
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: t, p
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(in) :: qv, rh
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: rhcrit
     real(rkx), pointer, contiguous, dimension(:,:), intent(in) :: rh0
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: fcc
-    real(rkx), intent(in) :: tc0
     integer(ik4) :: i, j, k
     integer(ik8) :: key
     real(rkx) :: tku, rcc, rhrng, rnd
@@ -137,7 +139,7 @@ module mod_cloud_subex
         end if
       end do
     end if
-  end subroutine subex_cldfrac
+  end subroutine sundqvist_cldfrac
 
-end module mod_cloud_subex
+end module mod_cloud_sundqvist
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

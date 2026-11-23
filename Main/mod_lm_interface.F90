@@ -306,7 +306,7 @@ module mod_lm_interface
     call assignpnt(sfs%dtrnof,lm%dtrnof)
     call assignpnt(zpbl,lm%hpbl)
     call assignpnt(pptc,lm%cprate)
-    if ( ipptls > 1 .and. any(icup == 5) ) then
+    if ( any(icup == 5) ) then
       call assignpnt(sptc,lm%csrate)
     end if
     call assignpnt(sfs%snownc,lm%snwrat)
@@ -971,7 +971,7 @@ module mod_lm_interface
           end do
         end if
         if ( associated(srf_snow_out) ) then
-          if ( ipptls > 1 .and. any(icup == 5) ) then
+          if ( any(icup == 5) ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2 )
               srf_snow_out(j,i) = srf_snow_out(j,i) + &
                 (lm_snwrat(j,i)+lm_csrate(j,i))*syncro_srf%rw

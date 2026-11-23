@@ -219,7 +219,6 @@ module mod_savefile
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
       hstor_io => null( )
 
-  real(rkx), public, pointer, contiguous, dimension(:,:) :: cldefi_io => null( )
 
   real(rkx), public, pointer, contiguous, dimension(:,:,:) :: &
       cu_avg_ww_io => null( )
@@ -397,9 +396,6 @@ module mod_savefile
       end if
 
       call getmem(zpbl_io,jci1,jci2,ici1,ici2,'zpbl_io')
-      if ( any(icup == 3) ) then
-        call getmem(cldefi_io,jci1,jci2,ici1,ici2,'cldefi_io')
-      end if
       if ( any(icup == 6) .or. any(icup == 5) ) then
         call getmem(cu_avg_ww_io,jci1,jci2,ici1,ici2,1,kz,'cu_avg_ww_io')
       end if
@@ -571,9 +567,6 @@ module mod_savefile
         end if
 
         call getmem(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
-        if ( any(icup == 3) ) then
-          call getmem(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
-        end if
         if ( any(icup == 6) .or. any(icup == 5) ) then
           call getmem(cu_avg_ww_io,jcross1,jcross2, &
                                      icross1,icross2,1,kz,'cu_avg_ww_io')
@@ -675,9 +668,6 @@ module mod_savefile
     call mygetvar(ncid,'zo',zo_io)
     if ( iocncpl == 1 .or. iwavcpl == 1 ) then
       call mygetvar(ncid,'dtrnof',dtrnof_io)
-    end if
-    if ( any(icup == 3) ) then
-      call mygetvar(ncid,'cldefi',cldefi_io)
     end if
     if ( any(icup == 4) ) then
       call mygetvar(ncid,'cbmf2d',cbmf2d_io)
@@ -934,9 +924,6 @@ module mod_savefile
       call savedefvar(ncid,'dtrnof',regcm_vartype,wrkdim,1,2,varids,ivcc)
     end if
     wrkdim(3) = dimids(idkh)
-    if ( any(icup == 3) ) then
-      call savedefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    end if
     if ( any(icup == 6) .or. any(icup == 5) ) then
       call savedefvar(ncid,'cu_avg_ww',regcm_vartype,wrkdim,1,3,varids,ivcc)
     end if
@@ -1166,9 +1153,6 @@ module mod_savefile
     call myputvar(ncid,'zo',zo_io,varids,ivcc)
     if ( iocncpl == 1 .or. iwavcpl == 1 ) then
       call myputvar(ncid,'dtrnof',dtrnof_io,varids,ivcc)
-    end if
-    if ( any(icup == 3) ) then
-      call myputvar(ncid,'cldefi',cldefi_io,varids,ivcc)
     end if
     if ( any(icup == 6) .or. any(icup == 5) ) then
       call myputvar(ncid,'cu_avg_ww',cu_avg_ww_io,varids,ivcc)

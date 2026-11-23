@@ -71,10 +71,10 @@
  /
  &physicsparam
  iboudy  =          5,
- ibltyp  =          1,
- icup_lnd =         2,
- icup_ocn =         2,
- ipptls  =          1,
+ pbl_scheme = 'holtslag',
+ cumulus_land = 'grell',
+ cumulus_ocean = 'grell',
+ microphysics = 'noto',
  iocnflux =        1,
  iocncpl =          1,
  ipgf    =          0,

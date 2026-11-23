@@ -311,24 +311,14 @@ module mod_cu_tiedtke
         ptte(ii,k)  = m2c%tten(j,i,k)
         pqte(ii,k)  = m2c%qxten(j,i,k,iqv)
         pxlte(ii,k) = m2c%qxten(j,i,k,iqc)
-        if ( ipptls > 1 ) then
-          pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
-          pxite(ii,k) = m2c%qxten(j,i,k,iqi)
-        else
-          pxim1(ii,k) = d_zero
-          pxite(ii,k) = d_zero
-        end if
+        pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
+        pxite(ii,k) = m2c%qxten(j,i,k,iqi)
       else
         ptte(ii,k)  = m2c%tten(j,i,k)/m2c%psb(j,i)
         pqte(ii,k)  = m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
         pxlte(ii,k) = m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-        if ( ipptls > 1 ) then
-          pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
-          pxite(ii,k) = m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
-        else
-          pxim1(ii,k) = d_zero
-          pxite(ii,k) = d_zero
-        end if
+        pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
+        pxite(ii,k) = m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
       end if
     end do
 
@@ -373,36 +363,20 @@ module mod_cu_tiedtke
     !   KTYPE = 2 => SHALLOW CONVECTION
     !   KTYPE = 3 => MIDLEVEL CONVECTION
     !
-    if ( ipptls > 1 ) then
 #ifdef STDPAR
-      do concurrent ( ii = 1:nipoi ) reduce(+:total_precip_points)
+    do concurrent ( ii = 1:nipoi ) reduce(+:total_precip_points)
 #else
-      do concurrent ( ii = 1:nipoi )
+    do concurrent ( ii = 1:nipoi )
 #endif
-        if (ktype(ii) > 0) then
-          i = imap(ii)
-          j = jmap(ii)
-          total_precip_points = total_precip_points + 1
-          ! rainfall for surface
-          cu_prate(j,i) = cu_prate(j,i) + prsfc(ii) + pssfc(ii)
-          cu_srate(j,i) = cu_srate(j,i) + pssfc(ii)
-        end if
-      end do
-    else
-#ifdef STDPAR
-      do concurrent ( ii = 1:nipoi ) reduce(+:total_precip_points)
-#else
-      do concurrent ( ii = 1:nipoi )
-#endif
-        if (ktype(ii) > 0) then
-          i = imap(ii)
-          j = jmap(ii)
-          total_precip_points = total_precip_points + 1
-          ! rainfall for surface
-          cu_prate(j,i)= cu_prate(j,i) + prsfc(ii) + pssfc(ii)
-        end if
-      end do
-    end if
+      if (ktype(ii) > 0) then
+        i = imap(ii)
+        j = jmap(ii)
+        total_precip_points = total_precip_points + 1
+        ! rainfall for surface
+        cu_prate(j,i) = cu_prate(j,i) + prsfc(ii) + pssfc(ii)
+        cu_srate(j,i) = cu_srate(j,i) + pssfc(ii)
+      end if
+    end do
     !
     ! update tendencies - note that rate were ADDED in cudtdq
     !                     thus here we must reset the rates.
@@ -439,50 +413,26 @@ module mod_cu_tiedtke
         cu_raincc(j,i,k) = pmflxr(ii,k)
       end if
     end do
-    if ( ipptls > 1 ) then
-      if ( idynamic == 3 ) then
-        do concurrent ( ii = 1:nipoi, k = 1:kz )
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
-            cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
-          end if
-        end do
-      else
-        do concurrent ( ii = 1:nipoi, k = 1:kz )
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_qten(j,i,k,iqc) = pxlte(ii,k) - &
-                m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-            cu_qten(j,i,k,iqi) = pxite(ii,k) - &
-                m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
-          end if
-        end do
-      end if
+    if ( idynamic == 3 ) then
+      do concurrent ( ii = 1:nipoi, k = 1:kz )
+        if ( ktype(ii) > 0 ) then
+          i = imap(ii)
+          j = jmap(ii)
+          cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
+          cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
+        end if
+      end do
     else
-      if ( idynamic == 3 ) then
-        do concurrent ( ii = 1:nipoi, k = 1:kz )
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_qten(j,i,k,iqc) = (pxlte(ii,k)+pxite(ii,k)) - &
-                m2c%qxten(j,i,k,iqc)
-            cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
-          end if
-        end do
-      else
-        do concurrent ( ii = 1:nipoi, k = 1:kz )
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_qten(j,i,k,iqc) = (pxlte(ii,k) + pxite(ii,k)) - &
-                m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-            cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
-          end if
-        end do
-      end if
+      do concurrent ( ii = 1:nipoi, k = 1:kz )
+        if ( ktype(ii) > 0 ) then
+          i = imap(ii)
+          j = jmap(ii)
+          cu_qten(j,i,k,iqc) = pxlte(ii,k) - &
+              m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
+          cu_qten(j,i,k,iqi) = pxite(ii,k) - &
+              m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
+        end if
+      end do
     end if
 
     if ( ichem == 1 .and. ichcumtra == 1 .and. &

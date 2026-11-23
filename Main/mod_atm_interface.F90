@@ -960,9 +960,7 @@ module mod_atm_interface
       call getmem(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
       call getmem(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')
       call getmem(sfs%rainnc,jci1,jci2,ici1,ici2,'surf:rainnc')
-      if ( ipptls > 1 ) then
-        call getmem(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
-      end if
+      call getmem(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
       if ( ipptls > 3 ) then
         call getmem(sfs%grplnc,jci1,jci2,ici1,ici2,'surf:grplnc')
         call getmem(sfs%hailnc,jci1,jci2,ici1,ici2,'surf:hailnc')
@@ -1127,7 +1125,7 @@ module mod_atm_interface
       call getmem(coszrs,jci1,jci2,ici1,ici2,'storage:coszrs')
       call getmem(prca,jci1,jci2,ici1,ici2,'storage:prca')
       call getmem(pptc,jci1,jci2,ici1,ici2,'storage:pptc')
-      if ( ipptls > 1 .and. any(icup == 5) ) then
+      if ( any(icup == 5) ) then
         call getmem(sptc,jci1,jci2,ici1,ici2,'storage:sptc')
       end if
       call getmem(icumbot,jci1,jci2,ici1,ici2,'storage:icumbot')

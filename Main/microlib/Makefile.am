@@ -19,7 +19,7 @@ vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 vpath %.inc $(REGCM_ROOT)/Share:.
 
 noinst_LIBRARIES = libmicro.a
-libmicro_a_SOURCES = mod_micro_nogtom.F90 mod_micro_subex.F90 \
+libmicro_a_SOURCES = mod_micro_nogtom.F90 \
                      mod_micro_wsm5.F90 mod_micro_wsm7.F90 \
                      mod_micro_wdm7.F90
 
@@ -40,7 +40,6 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_micro_nogtom.o : mod_micro_nogtom.F90 mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_memutil.o mod_regcm_types.o mod_constants.o mod_service.o mod_runparams.o mod_stdio.o saturation.inc
-mod_micro_subex.o : mod_micro_subex.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o mod_memutil.o mod_mpmessage.o mod_regcm_types.o clwfromt.inc wlh.inc saturation.inc
 mod_micro_wsm5.o : mod_micro_wsm5.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o mod_memutil.o mod_regcm_types.o saturation.inc
 mod_micro_wsm7.o : mod_micro_wsm7.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o mod_memutil.o mod_regcm_types.o saturation.inc
 mod_micro_wdm7.o : mod_micro_wdm7.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o mod_memutil.o mod_regcm_types.o saturation.inc

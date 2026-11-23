@@ -937,9 +937,10 @@ $Z_p$ and $Z_m$ are:
 
 \subsection{Radiation Schemes}
 
-RegCM offers two radiation schemes that can be selected at run time: the
-original \ac{NCAR} CCM3 scheme and the more recent Rapid Radiative Transfer
-Model for GCMs (RRTMG).  Both schemes compute shortwave (solar) and longwave
+RegCM offers two radiation schemes that can be selected at run time with the
+\texttt{radiation\_scheme} namelist parameter: the original \ac{NCAR} CCM3
+scheme (\texttt{ccm}) and the more recent Rapid Radiative Transfer Model for
+GCMs (RRTMG, \texttt{rrtmg}).  Both schemes compute shortwave (solar) and longwave
 (thermal infrared) radiative transfer through the atmosphere and return
 column heating rate profiles and surface flux components to the dynamical
 core and surface parameterisations.  Common inputs prepared before each
@@ -1443,7 +1444,7 @@ specific contents, and the saturated coefficients are \citep{Cuijpers_93}
 \end{eqnarray}
 
 with $\epsilon = R_v/R_d - 1$.  The cloud fraction $c$ is the large-scale cloud
-fraction of the model (\texttt{icldfrac}) averaged over the two levels bounding
+fraction of the model (\texttt{cloud\_fraction}) averaged over the two levels bounding
 the interface, and the dry value is used without condensate.  A cloud layer following the moist adiabat
 is then neutral, whereas the dry formula treats it as stable and suppresses
 the mixing inside clouds.  With \verb=maxprandtl= $> 1$ the momentum
@@ -1594,16 +1595,13 @@ cloudy parcels of air; care has to be taken otherwise (when using $\theta$ and
 $q$) to ensure conservation in this situation.  The liquid-ice water potential
 temperature uses a constant latent heat of vaporisation $L_v$ for the cloud
 liquid and the latent heat of sublimation $L_s$ for the cloud ice, the same
-constants used to recover $\theta$ after mixing.  When mixed-phase
-microphysics is active, cloud ice is diffused with the scalar diffusivity $K_h$
-alongside the liquid-water potential temperature, and only liquid water and
-vapour are partitioned after diffusion.
+constants used to recover $\theta$ after mixing.  Cloud ice is diffused
+with the scalar diffusivity $K_h$ alongside the liquid-water potential
+temperature, and only liquid water and vapour are partitioned after diffusion.
 
-With the SUBEX microphysics (\texttt{ipptls}=1) the partitioning is a
-grid-scale saturation adjustment, solved by a Newton iteration, and the moist
-buoyancy frequency $N^2$ treats each layer as either saturated or clear.  With
-the other microphysics schemes (\texttt{ipptls}>1) the clouds exist below grid
-saturation, and UW uses a subgrid condensation consistent with them.  Total
+The UW scheme needs a microphysics scheme (it cannot be used with
+\texttt{microphysics = 'none'}): the clouds of the microphysics exist below
+grid saturation, and UW uses a subgrid condensation consistent with them.  Total
 water has a triangular subgrid distribution \citep{Smith_90} with half width
 $(1-RH_c)\,q_s(T_l)$, which gives the grid-mean liquid water $q_l^{sg}$ and the
 cloud fraction $C$ as functions of $\theta_l$, $Q_w$ and the pressure.  The
@@ -1840,54 +1838,20 @@ diffusivity of \cite{Hong_10}.
 
 \subsection{Convective Precipitation Schemes}
 
-Convective precipitation is computed using one of several schemes: (1) the
-Modified-Kuo scheme \cite{Anthes_77}; (2) the Grell scheme \cite{Grell_93};
-(3) the MIT-Emanuel scheme \citep{Emanuel_91,Emanuel_99}; (4) the
-Betts-Miller-Janjic scheme \citep{Betts_86a,BettsMiller_86b,Betts_93,Janjic_94};
-(5) the Tiedtke scheme \citep{Tiedtke_89}; and (6) the Kain-Fritsch scheme
-\citep{Kain_93,Kain_04}. In addition, the Grell parameterization is
+Convective precipitation is computed using one of several schemes, selected
+by name with the \texttt{cumulus\_land} and \texttt{cumulus\_ocean} namelist
+parameters: (1) the Grell scheme \cite{Grell_93} (\texttt{grell}); (2) the
+MIT-Emanuel scheme \citep{Emanuel_91,Emanuel_99} (\texttt{emanuel}); (3) the
+Tiedtke scheme \citep{Tiedtke_89} (\texttt{tiedtke}); and (4) the
+Kain-Fritsch scheme \citep{Kain_93,Kain_04} (\texttt{kain-fritsch}). The
+Kuo and Betts-Miller schemes of earlier versions are no longer available.
+In addition, the Grell parameterization is
 implemented using one of two closure assumptions: (1) the Arakawa and Schubert
 closure \cite{Grell_94} and (2) the Fritsch and Chappell closure
 \cite{Fritsch_80}, hereafter referred to as AS74 and FC80, respectively.\\
 
 \noindent{
 \begin{enumerate}
-\item {\bf Kuo Scheme:}  Convective activity in the Kuo scheme is
-initiated when the moisture convergence $M$ in a column exceeds a given
-threshold and the vertical sounding is convectively unstable. A fraction of the
-moisture convergence $\beta$ moistens the column and the rest is converted into
-rainfall $P^{CU}$ according to the following relation:
-
-\begin{eqnarray}
-P^{CU}&=&M(1-\beta).
-\label{eqn_model:KUOppt}
-\end{eqnarray}
-
-$\beta$ is a function of the average relative humidity $\overline{RH}$ of the
-sounding as follows:
-
-\begin{eqnarray}
-\beta&=&\left\{
-  \begin{array}
-  {r@{\quad\quad}l} 2(1-\overline{RH}) & \overline{RH}\ge 0.5 \\
-  1.0 & \mbox{otherwise}
-  \end{array}
-  \right\}
-\label{eqn_model:Bfact}
-\end{eqnarray}
-
-Note that the moisture convergence term includes only the advective tendencies
-for water vapor. However, evapotranspiration from the previous time step is
-indirectly included in $M$ since it tends to moisten the lower atmosphere.
-Hence, as the evapotranspiration increases, more and more of it is converted
-into rainfall assuming the column is unstable. The latent heating resulting from
-condensation is distributed between the cloud top and bottom by a function that
-allocates the maximum heating to the upper portion of the cloud layer. To
-eliminate numerical point storms, a horizontal diffusion term and a time release
-constant are included so that the redistributions of moisture and the latent
-heat release are not performed instantaneously
-\citep{Giorgi_89b, Giorgi_91c}.\\
-
 \item {\bf Grell Scheme:} The Grell scheme \cite{Grell_93}, similar to the
 AS74 parameterization, considers clouds as two steady-state circulations: an
 updraft and a downdraft. No direct mixing occurs between the cloudy air and the
@@ -1962,54 +1926,6 @@ experiments. The parameter to which the scheme is most sensitive is the
 fraction of precipitation evaporated in the downdraft ($\beta$, or Peff in
 the namelist, with values from 0 to 1), which essentially measures the
 precipitation efficiency. Larger values of Peff lead to reduced precipitation.\\
-
-\item {\bf Betts-Miller-Janjic Scheme:} The Betts-Miller scheme
-\citep{Betts_86a,BettsMiller_86b} is a convective adjustment scheme that
-relaxes the temperature and moisture profiles toward empirically determined
-reference profiles on a fixed timescale. The scheme is triggered when a lifted
-parcel reaches its level of free convection (LFC). The reference temperature
-profile is constructed as a moist adiabat anchored at the level of convective
-initiation, while the reference moisture profile is defined so that the
-column-integrated relative humidity equals an empirically determined value that
-depends on the convective type (deep or shallow). The temperature and moisture
-tendencies are given by:
-
-\begin{eqnarray}
-\frac{\partial T}{\partial t}\bigg|_{cu} &=& \frac{T_{ref} - T}{\tau}
-\label{eqn_model:BMtend_T}\\
-\frac{\partial q}{\partial t}\bigg|_{cu} &=& \frac{q_{ref} - q}{\tau}
-\label{eqn_model:BMtend_q}
-\end{eqnarray}
-
-where $T_{ref}$ and $q_{ref}$ are the reference temperature and specific
-humidity profiles, and $\tau$ is the relaxation timescale (typically
-$O(1\,\mathrm{h})$ for deep convection). Precipitation is diagnosed from the
-column-integrated enthalpy budget:
-
-\begin{eqnarray}
-P^{CU} &=& -\frac{c_p}{L_v}\int_{p_{top}}^{p_{bot}}
-           \frac{T_{ref}-T}{\tau}\,\frac{dp}{g}
-\label{eqn_model:BMppt}
-\end{eqnarray}
-
-The scheme distinguishes deep and shallow convection through separate sets of
-reference-profile moisture deficits. For deep convection the reference
-profiles follow \citet{Betts_86a,Betts_93}, with moisture deficit values
-$\Delta p_b = -4843.75$\,Pa, $\Delta p_0 = -7050$\,Pa, and
-$\Delta p_t = -2250$\,Pa at cloud base, melting level, and cloud top
-respectively. For shallow convection the deficits are smaller in magnitude,
-reflecting a moister reference state. The scheme does not produce precipitation
-when the column-integrated entropy change of the reference state relative to
-the environment is negative (the Janjic entropy-based activation criterion),
-providing a physically consistent trigger condition in addition to the
-lifted-parcel LFC check.
-
-The implementation in RegCM follows the modified Betts-Miller-Janjic (BMJ)
-formulation described in \citet{Janjic_94}, which introduces a cloud
-efficiency $\eta$ derived from the entropy deficit of the column. When
-$\eta < 1$ convection is disorganised and the adjustment is partial, scaling
-both the temperature and moisture tendencies by $\eta$. A more complete
-description of the original scheme is given in \citet{Betts_93}.\\
 
 \item {\bf MIT-Emanuel Scheme:} More detailed descriptions can be found in
 \citet{Emanuel_91} and \citet{Emanuel_99}. The scheme assumes that mixing in
@@ -2327,19 +2243,17 @@ added to the model.
 The cloud fraction $FC$ passed to the radiation schemes is computed by merging
 the large-scale (grid-resolved) and convective contributions. The large-scale
 fraction is provided by one of eight diagnostic or prognostic schemes selected
-by the user through the \texttt{icldfrac} namelist parameter; the convective
-fraction is computed from the updraft mass flux of the active cumulus
-parameterization with the single formula selected by \texttt{iconvcf} (the
-mass flux schemes Tiedtke, Kain-Fritsch, Emanuel and Grell; Kuo and
-Betts-Miller use an empirical profile), at most the grid spacing dependent
+by the user through the \texttt{cloud\_fraction} namelist parameter; the
+convective fraction is computed from the updraft mass flux of the active
+cumulus parameterization with the single formula selected by
+\texttt{iconvcf} (the mass flux schemes Tiedtke, Kain-Fritsch, Emanuel and
+Grell), at most the grid spacing dependent
 maximum given in the Tiedtke section. These two fractions are the only
 providers: the microphysics, the chemistry, the radiation and the moist
 Brunt-V\"ais\"al\"a frequency of the Holtslag scheme (\verb=lmoistn2=) use
-them. Two schemes diagnose their own cloud as part of their formulation: the
-UW boundary layer, from the subgrid distribution of total water in its moist
-turbulence closure, and the SUBEX condensation, which obtains its relative
-humidity threshold by inverting the Sundqvist relation for the large-scale
-fraction (exact for \texttt{icldfrac}=0). The merged
+them. The UW boundary layer diagnoses its own cloud as part of its
+formulation, from the subgrid distribution of total water in its moist
+turbulence closure. The merged
 fraction follows a maximum-overlap assumption,
 \begin{equation}
   FC = \max\!\left(FC_\mathrm{LS},\; FC_\mathrm{CU}\right),
@@ -2347,24 +2261,23 @@ fraction follows a maximum-overlap assumption,
 and the corresponding in-cloud liquid water content (LWC) is a weighted blend
 of the large-scale condensate and the convective in-cloud condensate. This is
 provided by the cumulus scheme where it computes it (Tiedtke), otherwise it is
-a temperature-based estimate. With \texttt{iconvlwp}=1 the temperature-based estimate is
-used for all clouds instead, and the radiation does not see the condensate of
-the microphysics; the default is \texttt{iconvlwp}=0. Both radiation schemes (CCM and RRTMG) see
+a temperature-based estimate. Both radiation schemes (CCM and RRTMG) see
 the merged cloud of each model layer, at full levels, where its in-cloud water
 path is at least 0.01~g\,m$^{-2}$, with the same ice fraction and effective
 radii. The scheme-weighted LWC is optionally scaled following the
 observational constraint of \citet{Liang_05} to account for the systematic
 relationship between cloud fraction and optical depth at the grid scale.
-The eight large-scale schemes, indexed by \texttt{icldfrac} from 0 to 7,
-are described below.\\
+The eight large-scale schemes, selected by the name given in brackets
+(internally the integer \texttt{icldfrac} from 0 to 7), are described
+below.\\
 
 \noindent{
 \begin{enumerate}
 \setcounter{enumi}{-1}
 
-\item {\bf SUBEX (Sundqvist--Pal, \texttt{icldfrac}=0):}
-The Subgrid Explicit Moisture Scheme follows the statistical framework of
-\citet{Sundqvist_89} and is fully described in \citet{Pal_00}. The cloud
+\item {\bf Sundqvist (\texttt{sundqvist}, \texttt{icldfrac}=0):}
+The default scheme. It follows the statistical framework of
+\citet{Sundqvist_89}, as in \citet{Pal_00}. The cloud
 fraction is a function of grid-mean relative humidity $RH$ and a critical
 threshold $RH_\mathrm{crit}$:
 \begin{equation}
@@ -2372,11 +2285,23 @@ threshold $RH_\mathrm{crit}$:
        RH_\mathrm{crit}}},
 \end{equation}
 with $FC = 0$ for $RH \leq RH_\mathrm{crit}$ and $FC = 1$ for $RH \geq
-RH_\mathrm{max}$. The critical relative humidity $RH_\mathrm{crit}$ is a
-function of temperature and pressure following \citet{Pal_00}, with an optional
-correction for Arctic low cloud based on \citet{Vavrus_08}.\\
+RH_\mathrm{max}$. The grid-mean relative humidity is bounded to the interval
+$[RH_{min}, RH_{max}]$ before the cloud fraction is evaluated. The critical
+relative humidity is the dynamic, temperature based formulation of
+\citet{Wang_25}:
+\begin{equation}
+  RH_\mathrm{crit} = \max\left[0.6,\,\min\left(1,\,
+     RH_0 + 0.1\,(r - 0.5) + 0.01\,P(T)\right)\right]
+\end{equation}
+where $RH_0$ is the user-specified threshold (different over land and
+ocean), $P(T)$ is a fourth-degree polynomial of the temperature (limited to
+216--301~K) and $r$ is a random number uniform in $[0,1)$. The random number
+is a hash of the time step and of the global indices of the grid point, so
+it does not depend on the domain decomposition and a restarted run draws the
+same values. An optional correction for Arctic low cloud is based on
+\citet{Vavrus_08}.\\
 
-\item {\bf Xu--Randall (\texttt{icldfrac}=1):} The default scheme.
+\item {\bf Xu--Randall (\texttt{xu-randall}, \texttt{icldfrac}=1):}
 The semiempirical scheme of
 \citet{xu:96a} expresses cloud fraction as a joint function of both the
 grid-mean relative humidity $RH$ and the grid-mean cloud liquid water mixing
@@ -2392,7 +2317,7 @@ thermodynamic state and the amount of condensate produced by the
 microphysics: there is no cloud without condensate, and $FC = 1$ at
 saturation.\\
 
-\item {\bf Thompson (\texttt{icldfrac}=2):} The scheme adapts the treatment
+\item {\bf Thompson (\texttt{thompson}, \texttt{icldfrac}=2):} The scheme adapts the treatment
 used in the WRF Thompson microphysics \citep{Thompson_08} to diagnose cloud
 fraction from the relative humidity state and the in-cloud condensate.
 Separate formulations are applied for warm liquid clouds, mixed-phase clouds
@@ -2401,7 +2326,7 @@ in the temperature range $-20\,^\circ\mathrm{C} \leq T \leq
 saturation), and cold cirrus clouds ($T < -12\,^\circ\mathrm{C}$), where a
 Sundqvist-type formula is applied with respect to ice supersaturation.\\
 
-\item {\bf Gultepe--Isaac (\texttt{icldfrac}=3):} The cloud fraction is
+\item {\bf Gultepe--Isaac (\texttt{gultepe-isaac}, \texttt{icldfrac}=3):} The cloud fraction is
 diagnosed from the grid-mean in-cloud liquid water content $q_c$ using the
 empirical cubic polynomial fit of \citet{GultepeIsaac_07} to aircraft
 observations:
@@ -2413,7 +2338,7 @@ dataset of \citet{Gultepe_97}, clamped to the range $[0,1]$. A local
 standard-deviation term accounting for the vertical structure of the boundary
 layer further modulates the fraction near the surface.\\
 
-\item {\bf Teixeira (\texttt{icldfrac}=4):} The scheme of \citet{Teixeira_01}
+\item {\bf Teixeira (\texttt{teixeira}, \texttt{icldfrac}=4):} The scheme of \citet{Teixeira_01}
 is derived from the equilibrium solution of a prognostic cloud fraction
 equation that balances a condensation source term (proportional to the
 clear-sky fraction and the rate constant $d$) against an evaporation sink term
@@ -2432,7 +2357,7 @@ rate. Unlike purely thermodynamic schemes, this formulation requires a
 non-zero condensate and a relative humidity above the local threshold to
 produce cloud.\\
 
-\item {\bf Tompkins (\texttt{icldfrac}=5):} The scheme of \citet{tompkins:02}
+\item {\bf Tompkins (\texttt{tompkins}, \texttt{icldfrac}=5):} The scheme of \citet{tompkins:02}
 is a prognostic parameterization that carries the subgrid-scale probability
 density function (PDF) of total water as a prognostic variable, represented
 as a beta distribution. Cloud fraction and condensate are derived from the
@@ -2441,7 +2366,7 @@ evolves according to sources from convection, turbulent mixing, and
 microphysical processes, making the scheme sensitive to the dynamic history
 of the column rather than only to the instantaneous thermodynamic state.\\
 
-\item {\bf ECHAM5 (Quaas, \texttt{icldfrac}=6):} Following \citet{Quaas_04},
+\item {\bf ECHAM5 (Quaas, \texttt{echam5}, \texttt{icldfrac}=6):} Following \citet{Quaas_04},
 the critical relative humidity is parameterized as a function of the
 normalized pressure coordinate $\tilde{\sigma} = p_s / p$:
 \begin{equation}
@@ -2453,7 +2378,7 @@ the free troposphere and near the surface respectively, and $n_x = 4$. The
 cloud fraction is then diagnosed with the \citet{Sundqvist_88} formula applied
 to this vertically varying threshold.\\
 
-\item {\bf Condensate threshold (\texttt{icldfrac}=7):} A simple binary
+\item {\bf Condensate threshold (\texttt{digital}, \texttt{icldfrac}=7):} A simple binary
 scheme that sets $FC = 1$ wherever the vertically integrated in-cloud liquid
 water path $\rho\,q_c\,\Delta z$ exceeds a threshold of
 $10^{-2}$\,kg\,m$^{-2}$ (10\,g\,m$^{-2}$), and $FC = 0$ otherwise. This
@@ -2473,92 +2398,11 @@ relationship between cloud fraction and optical depth at the grid scale.
 
 \subsection{Microphysics Schemes}
 
-\subsubsection{Subgrid Explicit Moisture Scheme (SUBEX)}
-
-The Subgrid Explicit Moisture Scheme (SUBEX) handles non-convective clouds and
-precipitation resolved by the model.  It accounts for sub-grid variability in
-moisture by linking the grid-mean relative humidity to the cloud fraction and
-cloud water content following the statistical approach of \cite{Sundqvist_89}.
-A full description of the scheme and its parameter values is given in
-\cite{Pal_00}.
-
-\paragraph{Cloud fraction.}
-The fraction of the grid cell covered by clouds, $FC$, is computed from the
-grid-mean relative humidity $RH$ and a critical relative humidity threshold
-$RH_{crit}$:
-
-\begin{equation}
-  FC = RH_{max} - \sqrt{\frac{RH_{max} - RH}{RH_{max} - RH_{crit}}}
-\end{equation}
-
-$FC$ is zero when $RH \leq RH_{crit}$ and unity when $RH \geq RH_{max}$.
-By default $RH_{crit}$ is a function of temperature following \cite{Pal_00}:
-it equals the user-specified minimum threshold $RH_0$ above the freezing level
-and increases toward $RH_{max}$ at low temperatures to reflect the reduced
-sub-grid variance in cirrus cloud layers.  When the dynamic critical relative
-humidity option is active, $RH_{crit}$ follows \cite{Wang_25} instead:
-\begin{equation}
-  RH_{crit} = \max\left[0.6,\,\min\left(1,\,
-     RH_0 + 0.1\,(r - 0.5) + 0.01\,P(T)\right)\right]
-\end{equation}
-where $P(T)$ is a fourth-degree polynomial of the temperature (limited to
-216--301~K) and $r$ is a random number uniform in $[0,1)$. The random number
-is a hash of the time step and of the global indices of the grid point, so
-it does not depend on the domain decomposition and a restarted run draws the
-same values.  The grid-mean relative humidity is bounded to the interval
-$[RH_{min}, RH_{max}]$ before the cloud fraction is evaluated.
-
-\paragraph{Autoconversion.}
-Precipitation $P$ forms when the in-cloud liquid water content exceeds the
-autoconversion threshold $Q_c^{th}$:
-
-\begin{equation}
-  P = \min\!\left(\frac{Q_c}{dt},\; C_{ppt}\,\max\!\left(\frac{Q_c}{FC} -
-      Q_c^{th},\,0\right) FC\right)
-\end{equation}
-
-where $1/C_{ppt}$ is the characteristic timescale for conversion of cloud
-droplets to raindrops.  The threshold is based on the in-cloud liquid water
-measurements of \cite{Gultepe_97}:
-
-\begin{equation}
-  Q_c^{th} = C_{acs}\,10^{-0.48911 + 0.01344\,T_C}
-\end{equation}
-
-where $T_C$ is temperature in degrees Celsius and $C_{acs}$ is a tunable
-autoconversion scale factor.  When the aerosol indirect effect is active the
-threshold is replaced by a CCN-dependent critical radius criterion following
-\cite{Beheng_94}.  Precipitation is assumed to fall instantaneously.
-
-\paragraph{Accretion.}
-The accretion of cloud droplets by falling raindrops follows \cite{Beheng_94}:
-
-\begin{equation}
-  P_{acc} = C_{acc}\,Q_c\,P_{sum}
-\end{equation}
-
-where $C_{acc}$ is the accretion rate coefficient and $P_{sum}$ is the
-accumulated precipitation flux from above.  In the layer where precipitation
-first forms, only half of the new precipitation is assumed available to accrete.
-
-\paragraph{Evaporation.}
-Raindrop evaporation in the clear-sky fraction of the grid cell follows
-\cite{Sundqvist_88}:
-
-\begin{equation}
-  P_{evap} = C_{evap}\,(RH_{max} - RH_{cs})\,\sqrt{P_{sum}}\,(1-FC)
-\end{equation}
-
-where $RH_{cs}$ is the clear-sky relative humidity reconstructed from the
-grid-mean $RH$ and the cloud fraction, and $C_{evap}$ is the evaporation rate
-coefficient.  When the latitude-dependent evaporation option is active,
-$C_{evap}$ is modulated by a seasonal and latitudinal factor that reduces
-evaporation at high latitudes in winter.
-
-\paragraph{Parameter sensitivity.}
-RegCM has historically shown a tendency to produce excessive precipitation at
-high resolutions.  Increasing $Q_c^{th}$ (via $C_{acs}$) and $C_{evap}$
-are the primary tuning levers: larger values of either reduce net precipitation.
+The microphysics scheme is selected by name with the \texttt{microphysics}
+namelist parameter: \texttt{noto} (the default), \texttt{wsm5},
+\texttt{wsm7} or \texttt{wdm7}. The SUBEX microphysics of earlier versions
+is no longer available; its relative humidity cloud fraction is the
+Sundqvist cloud fraction scheme.
 
 \subsubsection{The Nogherotto-Tompkins Cloud Microphysics Scheme}
 \label{sec:nogtom}
@@ -3108,8 +2952,7 @@ in use:
     collects aerosol particles and dissolves gases. The microphysics provides
     the precipitation flux at the bottom of each layer, in mm~h$^{-1}$: the
     liquid precipitation flux for NoTo, the rain sedimentation flux for the
-    WSM and WDM schemes, and for SUBEX the precipitation accumulated from the
-    layers above, net of evaporation. For aerosols the
+    WSM and WDM schemes. For aerosols the
     scavenging coefficient is $\Lambda = b\,P\,E/R_d$, with $P$ the
     precipitation rate, $E$ the collision efficiency of the particle size bin
     and $R_d = 0.35\,P^{1/4}$~mm the drop radius (for snow and graupel a

@@ -52,7 +52,7 @@ module mod_moloch
   use mod_rad_interface, only : radiation, updateaeropp, updateaeropp_cmip6, &
     updateaerosol, updateo3
   use mod_pbl_interface, only : pblscheme, tkemin
-  use mod_micro_interface, only : cldfrac, condtq, microscheme
+  use mod_micro_interface, only : cldfrac, microscheme
   use mod_bdycod, only : bdyval, is_present_qc, is_present_qi, morelax, &
     mospectral_nudge, motopnudge, setup_bdywt
   use mod_slice, only : mkslice
@@ -276,11 +276,9 @@ module mod_moloch
     call assignpnt(mo_atm%qxten,qvten,iqv)
     if ( ipptls > 0 ) then
       call assignpnt(mo_atm%qx,qc,iqc)
-      if ( ipptls > 1 ) then
-        call assignpnt(mo_atm%qx,qi,iqi)
-        call assignpnt(mo_atm%qx,qr,iqr)
-        call assignpnt(mo_atm%qx,qs,iqs)
-      end if
+      call assignpnt(mo_atm%qx,qi,iqi)
+      call assignpnt(mo_atm%qx,qr,iqr)
+      call assignpnt(mo_atm%qx,qs,iqs)
     end if
     if ( ibltyp == 2 ) then
       call assignpnt(mo_atm%tke,tke)
@@ -565,10 +563,8 @@ module mod_moloch
       if ( is_present_qc( ) ) then
         call morelax(jci1,jci2,ici1,ici2,ba_cr,qc,xlb)
       end if
-      if ( ipptls > 1 ) then
-        if ( is_present_qi( ) ) then
-          call morelax(jci1,jci2,ici1,ici2,ba_cr,qi,xib)
-        end if
+      if ( is_present_qi( ) ) then
+        call morelax(jci1,jci2,ici1,ici2,ba_cr,qi,xib)
       end if
     end if
 
@@ -1396,21 +1392,6 @@ module mod_moloch
     end if
 
     if ( do_microphysics ) then
-      if ( ipptls == 1 ) then
-        if ( idiag > 0 ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            ten0(j,i,k) = tten(j,i,k)
-            qen0(j,i,k) = qvten(j,i,k)
-          end do
-        end if
-        call condtq
-        if ( idiag > 0 ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            tdiag%lsc(j,i,k) = tdiag%lsc(j,i,k)+tten(j,i,k)-ten0(j,i,k)
-            qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k)+qvten(j,i,k)-qen0(j,i,k)
-          end do
-        end if
-      end if
     end if
     !-------------------------------------------------------------
     !call chemistry/aerosol schemes
@@ -1620,16 +1601,10 @@ module mod_moloch
     implicit none
     integer(ik4) :: i, j, k
     if ( ipptls > 0 ) then
-      if ( ipptls > 1 ) then
-        do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - &
-             qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
-        end do
-      else
-        do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - qc(j,i,k))
-        end do
-      end if
+      do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - &
+           qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
+      end do
     else
       do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
@@ -1641,16 +1616,10 @@ module mod_moloch
     implicit none
     integer(ik4) :: i, j, k
     if ( ipptls > 0 ) then
-      if ( ipptls > 1 ) then
-        do concurrent( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - &
-             qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
-        end do
-      else
-        do concurrent( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - qc(j,i,k))
-        end do
-      end if
+      do concurrent( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - &
+           qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
+      end do
     else
       do concurrent( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))

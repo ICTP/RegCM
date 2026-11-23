@@ -13,20 +13,21 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-! Single column test of the boundary layer (ipbl: 1 Holtslag, default, 2
-! UW, 4 MYJ, 5 Shin-Hong, the ibltyp of the model), the cumulus
-! (icumulus: 5 Tiedtke, default, 6 Kain-Fritsch, 4 Emanuel, 2 Grell, the
-! icup of the model), the microphysics (imicro: 2 NoTo, default, 3 WSM5,
-! 4 WSM7, 5 WDM7, the ipptls of the model) and the radiation (irrtm: 0
-! CCM, default, 1 RRTMG) schemes
+! Single column test of the boundary layer (pbl_scheme: holtslag, default,
+! uw, myj, shin-hong), the cumulus (cumulus: tiedtke, default,
+! kain-fritsch, emanuel, grell), the microphysics (microphysics: noto,
+! default, wsm5, wsm7, wdm7) and the radiation (radiation_scheme: ccm,
+! default, rrtmg) schemes, named as in the physicsparam namelist of the
+! model (Share/mod_scheme_names.F90),
 ! integrated together in time.
 !
 ! Usage: scm_coupled [namelist file]       (default: scm_coupled.in)
 !
 ! The columns of the profile file are laid out as a 1 x ncol grid. Every
 ! time step the schemes are called through their model entry points,
-! tiedtkedrv or kfdrv, subex_cldfrac (icldfrac = 0, or xuran_cldfrac with
-! icldfrac = 1, on the cloud water and ice) and nogtom, colmod3
+! tiedtkedrv or kfdrv, sundqvist_cldfrac (cloud_fraction = 'sundqvist', or
+! xuran_cldfrac with cloud_fraction = 'xu-randall', on the cloud water and
+! ice) and nogtom, colmod3
 ! (every dtrad), the boundary layer scheme, on the same state, as the
 ! MOLOCH core does (idynamic
 ! = 3, no chemistry), and the state is advanced with the sum of their
@@ -76,19 +77,20 @@
 ! model on the SST of the profile file, every step, with a net
 ! shortwave radiation at the surface of daily mean ocnsw in a half sine
 ! and a net longwave ocnlw (used by the COARE cool skin).
-! Emanuel (icumulus = 4, &emanparam) and Grell (icumulus = 2,
+! Emanuel (cumulus = 'emanuel', &emanparam) and Grell (cumulus = 'grell',
 ! &grellparam, Fritsch-Chappell closure by default) get the state and,
 ! as in the model, no input tendencies; their output columns of the
 ! Tiedtke mass flux and cloud type are zero (ktype: 1 when it rains).
-! Kain-Fritsch (icumulus = 6, with &kfparam): the vertical velocity of
+! Kain-Fritsch (cumulus = 'kain-fritsch', with &kfparam): the vertical
+! velocity of
 ! its trigger is the one of the large scale omega (-omega/(rho g)), and
 ! its tendencies of cloud water, ice, rain and snow go to the
 ! microphysics with the other cumulus tendencies, as in the model (no
 ! qdetr); the grid spacing is dxkm. The output columns of the Tiedtke
 ! mass flux and cloud type are zero (ktype: 1 when it rains).
-! Microphysics (lnoto = .true., default): imicro selects the scheme, the
-! ipptls of the model: 2 NoTo (default), 3 WSM5, 4 WSM7 (with graupel and
-! hail), 5 WDM7 (double moment); the description below is for NoTo, the
+! Microphysics (lnoto = .true., default): microphysics selects the scheme:
+! noto (default), wsm5, wsm7 (with graupel and hail), wdm7 (double
+! moment); the description below is for NoTo, the
 ! WSM/WDM schemes get the state and the cumulus tendencies, including
 ! the detrained condensate of Tiedtke (no qdetr), as in the model.
 ! NoTo gets the cumulus
@@ -130,7 +132,7 @@
 ! The namelist has a &scmparam group and the model groups &tiedtkeparam,
 ! &kfparam,
 ! &cldparam (kfac_deep, kfac_shal, k2_const, iconvcf, rh0oce, rh0land,
-! tc0, rhmin, rhmax, larcticcorr), &holtslagparam, &uwparam and
+! rhmin, rhmax, larcticcorr), &holtslagparam, &uwparam and
 ! &microparam, with
 ! the RegCM defaults. The output file is plain text, read by
 ! scm_coupled.py: a header with the settings used, then every nout
@@ -159,7 +161,7 @@ program scm_coupled
     edtmaxo_ocn, edtmaxx, edtmaxx_ocn, edtmin, edtmin_ocn, edtmino, &
     edtmino_ocn, edtminx, edtminx_ocn, htmax, htmin, igcc, mincld, pbcmax, &
     shrmax, shrmax_ocn, shrmin, shrmin_ocn, skbmax, &
-    icumcloud, icup, &
+    icup, &
     icup_lnd, icup_ocn, idirect, ifaholt, ifaholtth10, iindirect, iocnflux, &
     ipptls, iqc, iqi, iqr, iqs, iqv, irrtm, istochastic, itweak, iwavcpl, &
     iceflglw, iceflgsw, icld, imcica, inflglw, inflgsw, irng, liqflglw, &
@@ -174,7 +176,7 @@ program scm_coupled
     rcmtimer, rcovpmin, rcpec_lnd, rcpec_ocn, rcuc_lnd, rcuc_ocn, rdt, &
     rh0land, rh0oce, rhebc_lnd, rhebc_ocn, rhmax, rhmin, ricr_lnd, ricr_ocn, &
     rkconv, rpecons, rprc_lnd, rprc_ocn, rtaucape, rtaufac, scenario, scon, &
-    skconv, solcon, tc0, vfqs, zhnew_fac
+    skconv, solcon, vfqs, zhnew_fac
   use mod_memutil, only : getmem, memory_init
   use mod_regcm_types, only : ik4, ik8, micro_2_mod, mod_2_cum, mod_2_micro, &
     mod_2_pbl, mod_2_rad, pbl_2_mod, rad_2_mod, rk8, rkx
@@ -205,7 +207,7 @@ program scm_coupled
   use mod_micro_wsm5, only : allocate_mod_wsm5, init_wsm5, wsm5
   use mod_micro_wsm7, only : allocate_mod_wsm7, init_wsm7, wsm7
   use mod_micro_wdm7, only : allocate_mod_wdm7, init_wdm7, wdm7
-  use mod_cloud_subex, only : subex_cldfrac
+  use mod_cloud_sundqvist, only : sundqvist_cldfrac
   use mod_cloud_xuran, only : xuran_cldfrac
   use mod_rad_common, only : o3prof, gasabsnxt, gasabstot, gasemstot, &
     absemin, kth, ktf
@@ -219,6 +221,7 @@ program scm_coupled
   use mod_timer, only : rcm_syncro
   use mod_ipcc_scenario, only : set_scenario
   use mod_sunorbit, only : orb_params, orb_decl, orb_cosz
+  use mod_scheme_names, only : scheme_code, scheme_name, unknown_scheme
   implicit none
 
   character(len=256) :: nmlfile, infile, outfile, tgtfile, rrtmdir
@@ -252,6 +255,11 @@ program scm_coupled
     cfrad, lwcrad
   integer(ik4) :: irad, iyear, imonth, nrad, nabs, icumulus, kty, ipbl, &
     imicro, iday0
+  ! Scheme names of the namelist (codes icumulus, ipbl, imicro, icldfrac,
+  ! irrtm of the model)
+  character(len=16) :: cumulus, cloud_fraction, pbl_scheme, microphysics, &
+    radiation_scheme
+  character(len=256) :: msg
   real(rkx), allocatable, dimension(:) :: ocnsw_now, ocnlw_now
   ! TOA reflected short wave, outgoing long wave, all sky and clear sky
   ! (W/m2) of the last radiation call
@@ -279,7 +287,8 @@ program scm_coupled
     taurelax, zrelax, tgtfile, tauwtg, zwtg, tauwind, windfac,    &
     omfac, lgeos, ustarfix, ladvt, isplit, csplit, &
     iocnflux, izengrough, ocnsw, ocnlw, lnoto, irad, dtrad, dtabem, &
-    albland, scenario, icumulus, icldfrac, ipbl, imicro, irrtm, rrtmdir
+    albland, scenario, cumulus, cloud_fraction, pbl_scheme, microphysics, &
+    radiation_scheme, rrtmdir
   namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw, iceflglw, &
     liqflglw, icld, irng, imcica
   namelist /emanparam/ minorig, elcrit_ocn, elcrit_lnd, tlcrit, &
@@ -298,7 +307,7 @@ program scm_coupled
   namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
     kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate, kf_wthreshold
   namelist /cldparam/ kfac_deep, kfac_shal, k2_const, iconvcf, &
-    rh0oce, rh0land, tc0, rhmin, rhmax, larcticcorr
+    rh0oce, rh0land, rhmin, rhmax, larcticcorr
   namelist /microparam/ nssopt, iautoconv, vfqs, auto_rate_khair, &
     auto_rate_kessl, auto_rate_klepi, rkconv, skconv, rcovpmin,   &
     rpecons, rcldiff
@@ -364,8 +373,8 @@ program scm_coupled
   kfac_deep = 0.14_rkx
   iconvcf = 0
   lnoto = .true.
-  imicro = 2
-  irrtm = 0
+  microphysics = 'noto'
+  radiation_scheme = 'ccm'
   rrtmdir = 'RRTM'
   inflgsw = 2
   iceflgsw = 3
@@ -385,7 +394,6 @@ program scm_coupled
   rhmin = 0.01_rkx
   rh0land = 0.85_rkx
   rh0oce = 0.85_rkx
-  tc0 = 238.0_rkx
   larcticcorr = .true.
   nssopt = 1
   iautoconv = 4
@@ -409,8 +417,8 @@ program scm_coupled
   maxprandtl = 1.0_rkx
   lsctop = .true.
   lqtmix = .false.
-  icumulus = 5
-  icldfrac = 0
+  cumulus = 'tiedtke'
+  cloud_fraction = 'sundqvist'
   minorig = 1
   elcrit_ocn = 0.0011_rkx
   elcrit_lnd = 0.0011_rkx
@@ -452,7 +460,7 @@ program scm_coupled
   htmax = 500.0_rkx
   skbmax = 0.4_rkx
   dtauc = 60.0_rkx
-  ipbl = 1
+  pbl_scheme = 'holtslag'
   atwo = 10.0_rkx
   rstbl = 1.5_rkx
   czero = 5.869_rkx
@@ -506,10 +514,20 @@ program scm_coupled
     call scm_error('cannot open '//trim(nmlfile))
   end if
   nout = max(nout,1)
+  icumulus = scheme_code('cumulus',cumulus,msg)
+  if ( icumulus == unknown_scheme ) call scm_error(trim(msg))
+  ipbl = scheme_code('pbl',pbl_scheme,msg)
+  if ( ipbl == unknown_scheme ) call scm_error(trim(msg))
+  imicro = scheme_code('microphysics',microphysics,msg)
+  if ( imicro == unknown_scheme ) call scm_error(trim(msg))
+  icldfrac = scheme_code('cloud_fraction',cloud_fraction,msg)
+  if ( icldfrac == unknown_scheme ) call scm_error(trim(msg))
+  irrtm = scheme_code('radiation',radiation_scheme,msg)
+  if ( irrtm == unknown_scheme ) call scm_error(trim(msg))
   if ( icumulus /= 2 .and. icumulus /= 4 .and. icumulus /= 5 .and. &
        icumulus /= 6 ) &
-    call scm_error('icumulus must be 2 (Grell), 4 (Emanuel), 5 '// &
-                   '(Tiedtke) or 6 (Kain-Fritsch)')
+    call scm_error('cumulus must be grell, emanuel, tiedtke or '// &
+                   'kain-fritsch')
 
   ! Model configuration seen by the schemes
   idynamic = 3
@@ -517,12 +535,10 @@ program scm_coupled
   icup_ocn = icumulus
   icup(:) = icumulus
   if ( ipbl /= 1 .and. ipbl /= 2 .and. ipbl /= 4 .and. ipbl /= 5 ) &
-    call scm_error('ipbl must be 1 (Holtslag), 2 (UW), 4 (MYJ) or '// &
-                   '5 (Shin-Hong)')
+    call scm_error('pbl_scheme must be holtslag, uw, myj or shin-hong')
   ibltyp = ipbl
   if ( imicro < 2 .or. imicro > 5 ) &
-    call scm_error('imicro must be 2 (NoTo), 3 (WSM5), 4 (WSM7) or '// &
-                   '5 (WDM7)')
+    call scm_error('microphysics must be noto, wsm5, wsm7 or wdm7')
   ipptls = imicro
   select case ( imicro )
     case ( 4 )
@@ -535,7 +551,6 @@ program scm_coupled
   ichem = 0
   iaerosol = 0
   iindirect = 0
-  icumcloud = 1
   ntr = 0
   dx = dxkm * 1000.0_rkx
   dxsq = dx * dx
@@ -742,8 +757,8 @@ program scm_coupled
   rainl_acc = d_zero
 
   open(newunit=io,file=outfile,status='replace',action='write')
-  write(io,'(a)') '# RegCM '//trim(pbl_name(ipbl))//' + '// &
-    trim(cu_name(icumulus))//' coupled single column test'
+  write(io,'(a)') '# RegCM '//trim(scheme_name('pbl',ipbl))//' + '// &
+    trim(scheme_name('cumulus',icumulus))//' coupled single column test'
   write(io,'(a,a)') '# profiles: ', trim(infile)
   write(io,'(a,a)') '# targets: ', trim(tgtfile)
   write(io,'(a,f8.2,a,f8.3,a,f10.1,a,f8.1,a,f8.3)') '# dt (s) ', dt, &
@@ -775,7 +790,7 @@ program scm_coupled
   if ( ipbl == 1 ) write(io,nml=holtslagparam)
   if ( ipbl == 2 ) write(io,nml=uwparam)
   write(io,'(a,l2,a,a)') '# lnoto ', lnoto, '  microphysics ', &
-    trim(micro_name(imicro))
+    trim(scheme_name('microphysics',imicro))
   if ( irad == 1 .and. irrtm == 1 ) write(io,nml=rrtmparam)
   write(io,'(a,i2,a,2f10.1,a,f6.3,a,a)') '# irad ', irad, &
     '  dtrad dtabem (s) ', dtrad, dtabem, '  albland ', albland, &
@@ -1034,51 +1049,6 @@ program scm_coupled
       dtauc2d(j,1) = dtauc*60.0_rkx
     end do
   end subroutine grell_setup
-
-  character(len=12) function micro_name(im)
-    implicit none
-    integer(ik4), intent(in) :: im
-    select case ( im )
-      case ( 3 )
-        micro_name = 'WSM5'
-      case ( 4 )
-        micro_name = 'WSM7'
-      case ( 5 )
-        micro_name = 'WDM7'
-      case default
-        micro_name = 'NoTo'
-    end select
-  end function micro_name
-
-  character(len=12) function cu_name(ic)
-    implicit none
-    integer(ik4), intent(in) :: ic
-    select case ( ic )
-      case ( 2 )
-        cu_name = 'Grell'
-      case ( 4 )
-        cu_name = 'Emanuel'
-      case ( 6 )
-        cu_name = 'Kain-Fritsch'
-      case default
-        cu_name = 'Tiedtke'
-    end select
-  end function cu_name
-
-  character(len=12) function pbl_name(ib)
-    implicit none
-    integer(ik4), intent(in) :: ib
-    select case ( ib )
-      case ( 2 )
-        pbl_name = 'UW'
-      case ( 4 )
-        pbl_name = 'MYJ'
-      case ( 5 )
-        pbl_name = 'Shin-Hong'
-      case default
-        pbl_name = 'Holtslag'
-    end select
-  end function pbl_name
 
   ! Surface fluxes: land half sine, ocean scheme; boundary layer input
   subroutine surface_fluxes
@@ -1595,7 +1565,7 @@ program scm_coupled
     sfice(:) = d_zero
   end subroutine init_ocean
 
-  ! NoTo (ipptls = 2) with the SUBEX cloud fraction (icldfrac = 0), as
+  ! NoTo (ipptls = 2) with the Sundqvist cloud fraction (icldfrac = 0), as
   ! the MOLOCH core calls them after the cumulus scheme
   subroutine init_micro
     implicit none
@@ -1715,12 +1685,12 @@ program scm_coupled
     end do
     select case ( icldfrac )
       case (0)
-        call subex_cldfrac(mo2mc%t,mo2mc%phs,qvp,mo2mc%rh,tc0,rh0p,rhcp, &
+        call sundqvist_cldfrac(mo2mc%t,mo2mc%phs,qvp,mo2mc%rh,rh0p,rhcp, &
           mo2mc%cldf)
       case (1)
         call xuran_cldfrac(totcp,mo2mc%qs,mo2mc%rh,mo2mc%cldf)
       case default
-        call scm_error('icldfrac must be 0 (SUBEX) or 1 (Xu-Randall)')
+        call scm_error('cloud_fraction must be sundqvist or xu-randall')
     end select
     select case ( imicro )
       case ( 2 )
@@ -1872,8 +1842,8 @@ program scm_coupled
     end if
   end subroutine allocate_fields
 
-  ! Radiation of the model (irrtm = 0, the CCM scheme of colmod3, or
-  ! irrtm = 1, RRTMG with the tables rrtmg_sw.nc and rrtmg_lw.nc of
+  ! Radiation of the model (radiation_scheme = 'ccm', colmod3, or
+  ! 'rrtmg', RRTMG with the tables rrtmg_sw.nc and rrtmg_lw.nc of
   ! rrtmdir, without the standard atmosphere above the top of the column)
   ! on the columns: allocations as allocate_radiation of mod_rad_interface, no
   ! aerosol, the built in ozone profile (iclimao3 = 0), the GHG of the
@@ -1883,8 +1853,6 @@ program scm_coupled
     integer(ik4) :: iday, ihour
     integer(ik4), dimension(12), parameter :: mlen = &
       [31,28,31,30,31,30,31,31,30,31,30,31]
-    if ( irrtm /= 0 .and. irrtm /= 1 ) &
-      call scm_error('irrtm must be 0 (CCM) or 1 (RRTMG)')
     ! RRTMG on the levels of the column, without the standard atmosphere
     ! above its top
     rrtm_extend = .false.
@@ -1989,7 +1957,7 @@ program scm_coupled
   end subroutine init_rad
 
   ! Cloud fraction and in cloud water for the radiation, as cucloud and
-  ! cldfrac of the model (icup > 1, iconvlwp = 0): the convective cloud
+  ! cldfrac of the model (icup > 1): the convective cloud
   ! of the cumulus scheme (at most clfrcv) overlapped with the large
   ! scale cloud of the microphysics, with the Liang (2005) scaling.
   subroutine rad_clouds

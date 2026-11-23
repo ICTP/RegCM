@@ -70,12 +70,15 @@ program chem_icbc
         isnowdark, ichecold
   logical :: carb_aging_control
   integer(ik4) :: ichem, iclimaaer
-  integer(ik4) :: ibltyp, iboudy, isladvec, iqmsl, icup_lnd, icup_ocn,  &
-    ipgf, iemiss, lakemod, ipptls, iocnflux, iocncpl, iwavcpl,      &
-    izengrough, idcsst, iseaice, iconvlwp, ioasiscpl,        &
-    icldmstrat, icldfrac, irrtm, iclimao3, isolconst, icumcloud,     &
+  integer(ik4) :: iboudy, isladvec, iqmsl, &
+    ipgf, iemiss, lakemod, iocnflux, iocncpl, iwavcpl,      &
+    izengrough, idcsst, iseaice, ioasiscpl,        &
+    icldmstrat, iclimao3, isolconst,     &
     islab_ocean, itweak, ghg_year_const, idiffu, icopcpl, iwhitecap, &
     ifixsolar, year_offset, ichdustparam, irceideal
+  character(len=16) :: pbl_scheme, cumulus_land, cumulus_ocean, &
+    microphysics, cloud_fraction, radiation_scheme
+  logical :: lconst2050
   real(rkx) :: temp_tend_maxval, wind_tend_maxval, fixedsolarval
   character(len=8) :: scenario
   character(len=256) :: radclimpath
@@ -93,14 +96,16 @@ program chem_icbc
     ismoke, ichlinox, isnowdark, carb_aging_control, ichecold,      &
     ichdustparam
 
-  namelist /physicsparam/ ibltyp, iboudy, isladvec, iqmsl,         &
-    icup_lnd, icup_ocn, ipgf, iemiss, lakemod, ipptls, idiffu,  &
-    iocnflux, iocncpl, iwavcpl, icopcpl, izengrough,             &
-    ichem,  scenario,  idcsst, iwhitecap, iseaice, iconvlwp,     &
-    icldmstrat, icldfrac, irrtm, iclimao3, iclimaaer, isolconst, &
-    icumcloud, islab_ocean, itweak, temp_tend_maxval, ioasiscpl,  &
-    wind_tend_maxval, ghg_year_const, ifixsolar, fixedsolarval,    &
-    irceideal, year_offset, radclimpath
+  ! As in Main/mod_params.F90: only ichem and iclimaaer are used here
+  namelist /physicsparam/ pbl_scheme, iboudy, isladvec, iqmsl,    &
+    cumulus_land, cumulus_ocean, ipgf, iemiss, lakemod,           &
+    microphysics, idiffu,                                         &
+    iocnflux, iocncpl, iwavcpl, icopcpl, izengrough,              &
+    ichem, scenario, idcsst, iwhitecap, iseaice,                  &
+    icldmstrat, cloud_fraction, radiation_scheme, iclimao3,       &
+    iclimaaer, isolconst, islab_ocean, itweak, temp_tend_maxval,  &
+    wind_tend_maxval, ghg_year_const, ifixsolar, fixedsolarval,   &
+    irceideal, year_offset, radclimpath, ioasiscpl, lconst2050
 
 #ifdef PNETCDF
   call mpi_init(ierr)

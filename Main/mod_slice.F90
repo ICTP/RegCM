@@ -221,24 +221,12 @@ module mod_slice
         end do
       end if
 
-      if ( ipptls == 1 ) then
-        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
-          atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
-                  (d_one + ep1*atms%qxb3d(j,i,k,iqv) - atms%qxb3d(j,i,k,iqc))
-        end do
-      else if ( ipptls > 1 ) then
-        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
-          atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
-                  (d_one + ep1*atms%qxb3d(j,i,k,iqv) - &
-                  atms%qxb3d(j,i,k,iqc) - atms%qxb3d(j,i,k,iqi) - &
-                  atms%qxb3d(j,i,k,iqr) - atms%qxb3d(j,i,k,iqs))
-        end do
-      else
-        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
-          atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
-                  (d_one + ep1*atms%qxb3d(j,i,k,iqv))
-        end do
-      end if
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
+        atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
+                (d_one + ep1*atms%qxb3d(j,i,k,iqv) - &
+                atms%qxb3d(j,i,k,iqc) - atms%qxb3d(j,i,k,iqi) - &
+                atms%qxb3d(j,i,k,iqr) - atms%qxb3d(j,i,k,iqs))
+      end do
 
       if ( idynamic == 2 ) then
         do concurrent ( j = jx1:jx2, i = ix1:ix2, k = 1:kz )

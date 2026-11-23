@@ -34,21 +34,21 @@ module mod_ncout
     ssttyp
   use mod_runparams, only : abulk, adyndif, alphae, atwo, auto_rate_kessl, &
     auto_rate_khair, auto_rate_klepi, base_state_ts0, betae, budget_compute, &
-    caccrlnd, caccroce, carb_aging_control, cevaplnd, cevapoce, chechgact, &
-    chemsimtype, chtrname, ckh, clfrcv, cllwcv, coef_ccn, coeffr, coeffs, &
-    conf, cpldt, cu, czero, damp, detrpen_lnd, detrpen_ocn, diffu_hgtf, &
+    carb_aging_control, chechgact, &
+    chemsimtype, chtrname, ckh, clfrcv, coef_ccn, coeffr, coeffs, &
+    cpldt, cu, czero, damp, detrpen_lnd, detrpen_ocn, diffu_hgtf, &
     do_qflux_adj, do_restore_sst, dtabem, dtauc, dtche, dtcum, dtmax, dtrad, &
     dtsec, dtsrf, edtmax, edtmax_ocn, edtmaxo, edtmaxo_ocn, edtmaxx, &
     edtmaxx_ocn, edtmin, edtmin_ocn, edtmino, edtmino_ocn, edtminx, &
     edtminx_ocn, elcrit_lnd, elcrit_lnd_max, elcrit_lnd_min, elcrit_ocn, &
     entp, entrdd, entrpen_lnd, entrpen_ocn, entshalp, epmax_lnd, &
     epmax_lnd_max, epmax_lnd_min, epmax_ocn, fixedsolarval, &
-    gas_tweak_factors, ghg_year_const, gnu1, gnu2, gulland, guloce, &
+    gas_tweak_factors, ghg_year_const, gnu1, gnu2, &
     holtth10iter, hsigma, htmax, htmin, iaerosol, iautoconv, ibltyp, iboudy, &
     iceflglw, iceflgsw, ichbion, ichcumtra, ichdiag, ichdrdepo, ichdustemd, &
     ichdustparam, ichebdy, ichecold, ichem, ichjphcld, ichlinox, ichremcvc, &
     ichremlsc, ichsolver, ichsursrc, icld, icldfrac, icldmstrat, iclimaaer, &
-    iclimao3, iconvcf, iconvlwp, icopcpl, icosp, icumcloud, icup, icup_lnd, &
+    iclimao3, iconvcf, icopcpl, icosp, icup, icup_lnd, &
     icup_ocn, idate0, idate1, idate2, idcsst, idiag, idiffu, idirect, iemiss, &
     ifaholt, ifaholtth10, ifixsolar, ifrayd, ifrest, ifslaboc, ifupr, igcc, &
     iindirect, imcica, inflglw, inflgsw, iocncpl, iocnflux, ipgf, ipptls, &
@@ -62,7 +62,7 @@ module mod_ncout
     lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, lmoistn2, &
     lqtmix, lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, minorig, &
     mixed_layer_depth, nhbet, nhxkd, nradfo, nsplit, nssopt, nuk, omtrain, &
-    omtsnow, pbcmax, q_rel_extrema, qck1land, qck1oce, rad_max, rad_min, &
+    omtsnow, pbcmax, q_rel_extrema, rad_max, rad_min, &
     rad_sigma, rayalpha0, rayhd, rayndamp, rayzd, rcldiff, rcovpmin, &
     rcpec_lnd, rcpec_ocn, rcrit, rcuc_lnd, rcuc_ocn, rdstemfac, rh0land, &
     rh0oce, rhebc_lnd, rhebc_ocn, rhmax, rhmin, ricr_lnd, ricr_ocn, rkconv, &
@@ -70,7 +70,7 @@ module mod_ncout
     scenario, shrmax, shrmax_ocn, shrmin, shrmin_ocn, sigd, sigd_max, &
     sigd_min, sigs, sigs_max, sigs_min, skbmax, skconv, solar_tweak, &
     sst_restore_timescale, sst_tweak, stability_enhance, stats, t_extrema, &
-    tc0, temp_tend_maxval, temperature_tweak, tlcrit, uoffc, upstream_mode, &
+    temp_tend_maxval, temperature_tweak, tlcrit, uoffc, upstream_mode, &
     ustarmax, uvrotate, vfqs, wind_tend_maxval, year_offset, zhnew_fac, zomax
   use mod_mppparam, only : grid_collect, iocpu, italk, ma, ncout_mpi_info
   use mod_ncstream_types, only : d_zero, dmissval, nc_output_stream, &
@@ -811,7 +811,7 @@ module mod_ncout
       enable_atm_vars(natm2dvars+atm_t) = .true.
       enable_atm_vars(natm2dvars+atm_qv) = .true.
       enable_atm_vars(natm2dvars+atm_qc) = .true.
-      if ( ipptls > 1 ) enable_atm_vars(natm2dvars+atm_qi) = .true.
+      enable_atm_vars(natm2dvars+atm_qi) = .true.
       if ( idynamic == 2 ) then
         enable_atm_vars(atm_p0) = .true.
         enable_atm_vars(natm2dvars+atm_p0) = .true.
@@ -1139,76 +1139,66 @@ module mod_ncout
           enable_atm3d_vars(atm_qincl) = .false.
           enable_atm3d_vars(atm_autoconvr) = .false.
         end if
-        if ( ipptls > 1 ) then
-          if ( enable_atm3d_vars(atm_qi) ) then
-            call setup_var(v3dvar_atm,atm_qi,vsize,'cli','kg kg-1', &
-              'Mass Fraction of Ice', &
-              'mass_fraction_of_cloud_ice_in_air',.true.)
-            atm_qi_out => v3dvar_atm(atm_qi)%rval
+        if ( enable_atm3d_vars(atm_qi) ) then
+          call setup_var(v3dvar_atm,atm_qi,vsize,'cli','kg kg-1', &
+            'Mass Fraction of Ice', &
+            'mass_fraction_of_cloud_ice_in_air',.true.)
+          atm_qi_out => v3dvar_atm(atm_qi)%rval
+        end if
+        if ( idiag > 0 .or. irceideal == 1 ) then
+          if ( enable_atm3d_vars(atm_qr) ) then
+            call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
+              'Mass Fraction of Rain', &
+              'mass_fraction_of_rain',.true.)
+            atm_qr_out => v3dvar_atm(atm_qr)%rval
           end if
-          if ( idiag > 0 .or. irceideal == 1 ) then
-            if ( enable_atm3d_vars(atm_qr) ) then
-              call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
-                'Mass Fraction of Rain', &
-                'mass_fraction_of_rain',.true.)
-              atm_qr_out => v3dvar_atm(atm_qr)%rval
+          if ( enable_atm3d_vars(atm_qs) ) then
+            call setup_var(v3dvar_atm,atm_qs,vsize,'cls','kg kg-1', &
+              'Mass Fraction of Snow', &
+              'mass_fraction_of_snow_in_air',.true.)
+            atm_qs_out => v3dvar_atm(atm_qs)%rval
+          end if
+          if ( ipptls > 3 ) then
+            if ( enable_atm3d_vars(atm_qg) ) then
+              call setup_var(v3dvar_atm,atm_qg,vsize,'gra','kg kg-1', &
+                'Mass Fraction of Graupel', &
+                'mass_fraction_of_graupel',.true.)
+              atm_qg_out => v3dvar_atm(atm_qg)%rval
             end if
-            if ( enable_atm3d_vars(atm_qs) ) then
-              call setup_var(v3dvar_atm,atm_qs,vsize,'cls','kg kg-1', &
-                'Mass Fraction of Snow', &
-                'mass_fraction_of_snow_in_air',.true.)
-              atm_qs_out => v3dvar_atm(atm_qs)%rval
+            if ( enable_atm3d_vars(atm_qh) ) then
+              call setup_var(v3dvar_atm,atm_qh,vsize,'hail','kg kg-1', &
+                'Mass Fraction of Hail', &
+                'mass_fraction_of_hail_in_air',.true.)
+              atm_qh_out => v3dvar_atm(atm_qh)%rval
             end if
-            if ( ipptls > 3 ) then
-              if ( enable_atm3d_vars(atm_qg) ) then
-                call setup_var(v3dvar_atm,atm_qg,vsize,'gra','kg kg-1', &
-                  'Mass Fraction of Graupel', &
-                  'mass_fraction_of_graupel',.true.)
-                atm_qg_out => v3dvar_atm(atm_qg)%rval
+            if ( ipptls == 5 ) then
+              if ( enable_atm3d_vars(atm_nn) ) then
+                call setup_var(v3dvar_atm,atm_nn,vsize,'ncn','m-3', &
+                'Number concentration of ambient aerosol particles in air', &
+                'number_concentration_of_ambient_aerosol_particles_in_air', &
+                .true.)
+                atm_nn_out => v3dvar_atm(atm_nn)%rval
               end if
-              if ( enable_atm3d_vars(atm_qh) ) then
-                call setup_var(v3dvar_atm,atm_qh,vsize,'hail','kg kg-1', &
-                  'Mass Fraction of Hail', &
-                  'mass_fraction_of_hail_in_air',.true.)
-                atm_qh_out => v3dvar_atm(atm_qh)%rval
+              if ( enable_atm3d_vars(atm_nc) ) then
+                call setup_var(v3dvar_atm,atm_nc,vsize,'ncc','m-3', &
+                'Number concentration of cloud condensation nuclei in air', &
+                'number_concentration_of_cloud_condensation_nuclei_in_air', &
+                .true.)
+                atm_nc_out => v3dvar_atm(atm_nc)%rval
               end if
-              if ( ipptls == 5 ) then
-                if ( enable_atm3d_vars(atm_nn) ) then
-                  call setup_var(v3dvar_atm,atm_nn,vsize,'ncn','m-3', &
-                  'Number concentration of ambient aerosol particles in air', &
-                  'number_concentration_of_ambient_aerosol_particles_in_air', &
-                  .true.)
-                  atm_nn_out => v3dvar_atm(atm_nn)%rval
-                end if
-                if ( enable_atm3d_vars(atm_nc) ) then
-                  call setup_var(v3dvar_atm,atm_nc,vsize,'ncc','m-3', &
-                  'Number concentration of cloud condensation nuclei in air', &
-                  'number_concentration_of_cloud_condensation_nuclei_in_air', &
-                  .true.)
-                  atm_nc_out => v3dvar_atm(atm_nc)%rval
-                end if
-                if ( enable_atm3d_vars(atm_nr) ) then
-                  call setup_var(v3dvar_atm,atm_nr,vsize,'ncr','m-3', &
-                  'Number concentration of rain condensation nuclei in air', &
-                  'number_concentration_of_rain_condensation_nuclei_in_air', &
-                  .true.)
-                  atm_nr_out => v3dvar_atm(atm_nr)%rval
-                end if
-              else
-                enable_atm3d_vars(atm_nn) = .false.
-                enable_atm3d_vars(atm_nc) = .false.
-                enable_atm3d_vars(atm_nr) = .false.
+              if ( enable_atm3d_vars(atm_nr) ) then
+                call setup_var(v3dvar_atm,atm_nr,vsize,'ncr','m-3', &
+                'Number concentration of rain condensation nuclei in air', &
+                'number_concentration_of_rain_condensation_nuclei_in_air', &
+                .true.)
+                atm_nr_out => v3dvar_atm(atm_nr)%rval
               end if
             else
-              enable_atm3d_vars(atm_qg) = .false.
-              enable_atm3d_vars(atm_qh) = .false.
               enable_atm3d_vars(atm_nn) = .false.
               enable_atm3d_vars(atm_nc) = .false.
               enable_atm3d_vars(atm_nr) = .false.
             end if
           else
-            enable_atm3d_vars(atm_qr) = .false.
-            enable_atm3d_vars(atm_qs) = .false.
             enable_atm3d_vars(atm_qg) = .false.
             enable_atm3d_vars(atm_qh) = .false.
             enable_atm3d_vars(atm_nn) = .false.
@@ -1216,7 +1206,6 @@ module mod_ncout
             enable_atm3d_vars(atm_nr) = .false.
           end if
         else
-          enable_atm3d_vars(atm_qi) = .false.
           enable_atm3d_vars(atm_qr) = .false.
           enable_atm3d_vars(atm_qs) = .false.
           enable_atm3d_vars(atm_qg) = .false.
@@ -1829,39 +1818,33 @@ module mod_ncout
         else
           enable_srf2d_vars(srf_prcv) = .false.
         end if
-        if ( ipptls > 1 ) then
-          if ( enable_srf2d_vars(srf_snow) ) then
-            if ( all(icup == 5) .or. all(icup == 0) ) then
-              call setup_var(v2dvar_srf,srf_snow,vsize,'prsn','kg m-2 s-1', &
-                'Snowfall flux', 'snowfall_flux', .true.,'time: mean')
-            else
-              call setup_var(v2dvar_srf,srf_snow,vsize,'prsn','kg m-2 s-1', &
-                'Large Scale Snowfall flux', &
-                'lwe_large_scale_snowfall_flux', .true.,'time: mean')
-            end if
-            srf_snow_out => v2dvar_srf(srf_snow)%rval
-          end if
-          if ( ipptls > 3 ) then
-            if ( enable_srf2d_vars(srf_hail) ) then
-              call setup_var(v2dvar_srf,srf_hail,vsize,'hail','kg m-2 s-1', &
-                'Hail precipitation rate', &
-                'hail_fall_flux', &
-                .true.,'time: mean')
-              srf_hail_out => v2dvar_srf(srf_hail)%rval
-            end if
-            if ( enable_srf2d_vars(srf_grau) ) then
-              call setup_var(v2dvar_srf,srf_grau,vsize,'graupel','kg m-2 s-1', &
-                'Graupel precipitation rate', &
-                'graupel_fall_flux', &
-                .true.,'time: mean')
-              srf_grau_out => v2dvar_srf(srf_grau)%rval
-            end if
+        if ( enable_srf2d_vars(srf_snow) ) then
+          if ( all(icup == 5) .or. all(icup == 0) ) then
+            call setup_var(v2dvar_srf,srf_snow,vsize,'prsn','kg m-2 s-1', &
+              'Snowfall flux', 'snowfall_flux', .true.,'time: mean')
           else
-            enable_srf2d_vars(srf_hail) = .false.
-            enable_srf2d_vars(srf_grau) = .false.
+            call setup_var(v2dvar_srf,srf_snow,vsize,'prsn','kg m-2 s-1', &
+              'Large Scale Snowfall flux', &
+              'lwe_large_scale_snowfall_flux', .true.,'time: mean')
+          end if
+          srf_snow_out => v2dvar_srf(srf_snow)%rval
+        end if
+        if ( ipptls > 3 ) then
+          if ( enable_srf2d_vars(srf_hail) ) then
+            call setup_var(v2dvar_srf,srf_hail,vsize,'hail','kg m-2 s-1', &
+              'Hail precipitation rate', &
+              'hail_fall_flux', &
+              .true.,'time: mean')
+            srf_hail_out => v2dvar_srf(srf_hail)%rval
+          end if
+          if ( enable_srf2d_vars(srf_grau) ) then
+            call setup_var(v2dvar_srf,srf_grau,vsize,'graupel','kg m-2 s-1', &
+              'Graupel precipitation rate', &
+              'graupel_fall_flux', &
+              .true.,'time: mean')
+            srf_grau_out => v2dvar_srf(srf_grau)%rval
           end if
         else
-          enable_srf2d_vars(srf_snow) = .false.
           enable_srf2d_vars(srf_hail) = .false.
           enable_srf2d_vars(srf_grau) = .false.
         end if
@@ -3837,8 +3820,6 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('simple_sea_ice_scheme',iseaice))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('convective_lwp_as_large_scale',iconvlwp))
-        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('large_scale_cloud_fraction_scheme',icldfrac))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('ocean_stratiform_clouds_scheme',icldmstrat))
@@ -3850,8 +3831,6 @@ module mod_ncout
           ncattribute_integer('climatic_aerosol_input_dataset',iclimaaer))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('static_solar_constant_used',isolconst))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('cumulus_cloud_model',icumcloud))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('sun_year_offset',year_offset))
         call outstream_addatt(outstream(i)%ncout(j), &
@@ -3869,13 +3848,7 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_rh_threshold_for_ocean',rh0oce))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('cloud_rh1_limit_temperature',tc0))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('cloud_condensation_threshold',conf))
-        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_cloud_fraction_max_for_convection',clfrcv))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('cloud_cloud_liqwat_max_for_convection',cllwcv))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_shallow_convective_cf_param',kfac_shal))
         call outstream_addatt(outstream(i)%ncout(j), &
@@ -3896,24 +3869,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('bulk_activation_ratio',abulk))
         end if
-        if ( ipptls == 1 ) then
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_auto_conversion_rate_for_land',qck1land))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_auto_conversion_rate_for_ocean',qck1oce))
-          call outstream_addatt(outstream(i)%ncout(j), &
-           ncattribute_real8('subex_gultepe_factor_when_rain_for_land',gulland))
-          call outstream_addatt(outstream(i)%ncout(j), &
-           ncattribute_real8('subex_gultepe_factor_when_rain_for_ocean',guloce))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_land_raindrop_evaporation_rate',cevaplnd))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_ocean_raindrop_evaporation_rate',cevapoce))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_land_raindrop_accretion_rate',caccrlnd))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_ocean_raindrop_accretion_rate',caccroce))
-        else if ( ipptls == 2 ) then
+        if ( ipptls == 2 ) then
 #ifdef DEBUG
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('micro_statistics',stats))

@@ -20,9 +20,9 @@ module mod_params
     alarm_out_opt, alarm_out_rad, alarm_out_sav, alarm_out_shf, &
     alarm_out_srf, alarm_out_sts, alarm_out_sub, allocate_mod_runparams, &
     alphae, atwo, auto_rate_kessl, auto_rate_khair, auto_rate_klepi, &
-    base_state_ts0, bdydate1, betae, bk, budget_compute, caccrlnd, caccroce, &
-    carb_aging_control, cevaplnd, cevapoce, chechgact, chemsimtype, chtrname, &
-    ckh, clfrcv, cllwcv, coef_ccn, coeffr, coeffs, conf, cpldt, cu, cu_cfmax, &
+    base_state_ts0, bdydate1, betae, bk, budget_compute, &
+    carb_aging_control, chechgact, chemsimtype, chtrname, &
+    ckh, clfrcv, coef_ccn, coeffr, coeffs, cpldt, cu, cu_cfmax, &
     czero, damp, detrpen_lnd, detrpen_ocn, diaghf, diaghfs, diffu_hgtf, &
     do_parallel_netcdf_in, do_parallel_netcdf_out, do_parallel_save, &
     do_qflux_adj, do_restore_sst, doing_restart, dsigma, dt, dt2, dtabem, &
@@ -32,13 +32,13 @@ module mod_params
     edtmino_ocn, edtminx, edtminx_ocn, elcrit_lnd, elcrit_lnd_max, &
     elcrit_lnd_min, elcrit_ocn, entp, entrdd, entrpen_lnd, entrpen_ocn, &
     entshalp, epmax_lnd, epmax_lnd_max, epmax_lnd_min, epmax_ocn, &
-    fixedsolarval, gas_tweak_factors, ghg_year_const, gnu1, gnu2, gulland, &
-    guloce, holtth10iter, hsigma, htmax, htmin, iaerosol, iautoconv, ibltyp, &
+    fixedsolarval, gas_tweak_factors, ghg_year_const, gnu1, gnu2, &
+    holtth10iter, hsigma, htmax, htmin, iaerosol, iautoconv, ibltyp, &
     iboudy, iceflglw, iceflgsw, icetriggert, ichbion, ichcumtra, ichdiag, &
     ichdrdepo, ichdustemd, ichdustparam, ichebdy, ichecold, ichem, ichjphcld, &
     ichlinox, ichremcvc, ichremlsc, ichsolver, ichsursrc, icld, icldfrac, &
-    icldmstrat, iclimaaer, iclimao3, iconvcf, iconvlwp, icopcpl, icosp, &
-    icumcloud, icup, icup_lnd, icup_ocn, idate0, idate1, idate2, idcsst, &
+    icldmstrat, iclimaaer, iclimao3, iconvcf, icopcpl, icosp, &
+    icup, icup_lnd, icup_ocn, idate0, idate1, idate2, idcsst, &
     idiag, idif, idiffu, idirect, iemiss, ifaholt, ifaholtth10, ifixsolar, &
     ifrayd, ifrest, ifslaboc, ifupr, igaschem, igcc, iindirect, iisoropia, &
     imcica, inflglw, inflgsw, intbdy, intsom, ioasiscpl, iocncpl, iocnflux, &
@@ -55,7 +55,7 @@ module mod_params
     minorig, &
     mixed_layer_depth, mo_dzita, moloch_do_test_1, moloch_do_test_2, &
     namelistfile, nbin, nhbet, nhxkd, nqx, nradfo, nsplit, nssopt, nuk, &
-    omtrain, omtsnow, pbcmax, q_rel_extrema, qck1land, qck1oce, qcon, &
+    omtrain, omtsnow, pbcmax, q_rel_extrema, qcon, &
     rad_max, rad_min, rad_sigma, radclimpath, rayalpha0, rayhd, rayndamp, &
     rayzd, rcldiff, rcmtimer, rcovpmin, rcpec_lnd, rcpec_ocn, rcrit, &
     rcuc_lnd, rcuc_ocn, rdstemfac, rdt, rdx, rdxsq, rh0land, rh0oce, &
@@ -65,9 +65,9 @@ module mod_params
     sigd_min, sigma, sigs, sigs_max, sigs_min, skbmax, skconv, solar_tweak, &
     sst_restore_timescale, sst_tweak, stability_enhance, stats, syncro_che, &
     syncro_cpl, syncro_cum, syncro_dbg, syncro_emi, syncro_rad, &
-    syncro_radfor, syncro_rep, syncro_srf, t_extrema, tc0, temp_tend_maxval, &
+    syncro_radfor, syncro_rep, syncro_srf, t_extrema, temp_tend_maxval, &
     temperature_tweak, tlcrit, twt, uoffc, upstream_mode, ustarmax, uvrotate, &
-    vfqi, vfqs, vqrang, wind_tend_maxval, year_offset, zhnew_fac, zita, &
+    vfqi, vfqs, wind_tend_maxval, year_offset, zhnew_fac, zita, &
     zitah, zomax
 #if defined(CLM45) || defined(ECLM)
   use mod_runparams, only : rcm_megan_enabled
@@ -87,8 +87,7 @@ module mod_params
 #endif
   use mod_cu_interface, only : allocate_cumulus, dtauc2d, edtmax2d, &
     edtmaxo2d, edtmaxx2d, edtmin2d, edtmino2d, edtminx2d, htmax2d, htmin2d, &
-    init_cumulus, k700, kbmax2d, mincld2d, pbcmax2d, shrmax2d, shrmin2d, &
-    twght, vqflx
+    init_cumulus, kbmax2d, mincld2d, pbcmax2d, shrmax2d, shrmin2d
   use mod_lm_interface, only : allocate_surface_model, dtbat, &
     init_surface_model
   use mod_atm_interface, only : allocate_mod_atm_interface, &
@@ -103,8 +102,7 @@ module mod_params
   use mod_pbl_interface, only : allocate_pblscheme, init_pblscheme, ricr
 #ifdef CLM45
 #endif
-  use mod_micro_interface, only : allocate_micro, caccr, cevap, cgul, &
-    init_micro, qck1, rh0
+  use mod_micro_interface, only : allocate_micro, init_micro, rh0
   use mod_split, only : allocate_mod_split
   use mod_slice, only : init_slice
   use mod_bdycod, only : allocate_mod_bdycon, setup_bdycon
@@ -139,6 +137,7 @@ module mod_params
   use mod_zita, only : md_ak, md_bk, md_fmz, md_zeta, model_zitaf, &
     model_zitah, sigmazita
   use mod_moloch, only : allocate_moloch
+  use mod_scheme_names, only : scheme_code, scheme_name, unknown_scheme
 #ifdef OASIS
   use mod_oasis_interface
 #endif
@@ -157,13 +156,15 @@ module mod_params
   !
   subroutine param
     implicit none
-    real(rkx) :: bb, cc, &
-               qk, qkp1, sig700, ssum, vqmax, wk, wkp1, xbot,   &
-               xtop, xx, yy, mo_c1, mo_c2, dl, minfrq
+    real(rkx) :: mo_c1, mo_c2, dl, minfrq
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
-    integer(ik4) :: i, j, k, kbase, ktop, ns
+    integer(ik4) :: i, j, k, ns
     integer(ik8) :: mdate0, mdate1, mdate2
+    ! Names of the physics schemes (mod_scheme_names), the integer codes
+    ! ibltyp, icup_lnd, icup_ocn, ipptls, icldfrac, irrtm of the model
+    character(len=16) :: pbl_scheme, cumulus_land, cumulus_ocean, &
+      microphysics, cloud_fraction, radiation_scheme
     integer(ik4) :: hspan, ipunit
     integer(ik4) :: n, len_path
     character(len=32) :: appdat
@@ -193,12 +194,14 @@ module mod_params
       lsync, idiag, icosp, ifcordex, chechgact, diaghfs, diaghf,    &
       do_parallel_netcdf_in, do_parallel_netcdf_out
 
-    namelist /physicsparam/ ibltyp, iboudy, isladvec, iqmsl,       &
-      icup_lnd, icup_ocn, ipgf, iemiss, lakemod, ipptls, idiffu,   &
-      iocnflux, iocncpl, iwavcpl, icopcpl, izengrough,             &
-      ichem, scenario, idcsst, iwhitecap, iseaice, iconvlwp,       &
-      icldmstrat, icldfrac, irrtm, iclimao3, iclimaaer, isolconst, &
-      icumcloud, islab_ocean, itweak, temp_tend_maxval,            &
+    namelist /physicsparam/ pbl_scheme, iboudy, isladvec, iqmsl,    &
+      cumulus_land, cumulus_ocean, ipgf, iemiss, lakemod,           &
+      microphysics, idiffu,                                         &
+      iocnflux, iocncpl, iwavcpl, icopcpl, izengrough,              &
+      ichem, scenario, idcsst, iwhitecap, iseaice,                  &
+      icldmstrat, cloud_fraction, radiation_scheme, iclimao3,       &
+      iclimaaer, isolconst, &
+      islab_ocean, itweak, temp_tend_maxval,            &
       wind_tend_maxval, ghg_year_const, ifixsolar, fixedsolarval,  &
       irceideal, year_offset, radclimpath, ioasiscpl, lconst2050
 
@@ -214,12 +217,9 @@ module mod_params
     namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw,    &
       iceflglw, liqflglw, icld, irng, imcica, nradfo, rrtm_extend
 
-    namelist /cldparam/ rhmax, rhmin, rh0oce, rh0land, tc0,  &
-      cllwcv, kfac_shal, kfac_deep, k2_const, &
+    namelist /cldparam/ rhmax, rhmin, rh0oce, rh0land,  &
+      kfac_shal, kfac_deep, k2_const, &
       iconvcf, lsrfhack, larcticcorr, rcrit, coef_ccn, abulk
-
-    namelist /subexparam/ qck1land, qck1oce, gulland, guloce,  &
-      cevaplnd, cevapoce, caccrlnd, caccroce, conf
 
     namelist /microparam/ stats, budget_compute, nssopt, &
       iautoconv, vfqs, vfqi, auto_rate_khair,            &
@@ -378,12 +378,12 @@ module mod_params
     ! physicsparam ;
     !
     iboudy = 5
-    ibltyp = 1
+    pbl_scheme = 'holtslag'
     isladvec = 0
     iqmsl = 1
-    icup_lnd = 4
-    icup_ocn = 4
-    ipptls = 1
+    cumulus_land = 'emanuel'
+    cumulus_ocean = 'emanuel'
+    microphysics = 'noto'
     idiffu = 1
     ipgf = 0
     iemiss = 0
@@ -401,14 +401,13 @@ module mod_params
     idcsst = 0
     iwhitecap = 0
     iseaice = 0
-    iconvlwp = 0
 #ifdef RCEMIP
-    icldfrac = 7
+    cloud_fraction = 'digital'
 #else
-    icldfrac = 0
+    cloud_fraction = 'sundqvist'
 #endif
     icldmstrat = 0
-    irrtm = 0
+    radiation_scheme = 'ccm'
     islab_ocean = 0
     iclimao3 = 0
     iclimaaer = 0
@@ -418,7 +417,6 @@ module mod_params
     ifixsolar = 0
     fixedsolarval = 343.0_rkx
     irceideal = 0
-    icumcloud = 1
     temp_tend_maxval = 5.0_rkx*(dt/secpm)
     wind_tend_maxval = 5.0_rkx*(dt/secpm)
     !
@@ -454,15 +452,6 @@ module mod_params
     ! Subexparam ;
     ! From Pal et al, 2000
     !
-    qck1land  = 0.0005_rkx ! Autoconversion Rate for Land
-    qck1oce   = 0.0005_rkx ! Autoconversion Rate for Ocean
-    gulland   = 0.65_rkx   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
-    guloce    = 0.30_rkx   ! Fract of Gultepe eqn (qcth) for ocean
-    cevaplnd  = 1.0e-5_rkx ! Raindrop ev rate coef land [[(kg m-2 s-1)-1/2]/s]
-    cevapoce  = 1.0e-5_rkx ! Raindrop ev rate coef ocean [[(kg m-2 s-1)-1/2]/s]
-    caccrlnd  = 6.0_rkx    ! Raindrop accretion rate land  [m3/kg/s]
-    caccroce  = 4.0_rkx    ! Raindrop accretion rate ocean [m3/kg/s]
-    conf      = 1.00_rkx   ! Condensation efficiency
     !
     ! Cloud fraction control algorithm
     !
@@ -470,8 +459,6 @@ module mod_params
     rhmin     = 0.01_rkx   ! RH min value
     rh0land   = 0.85_rkx   ! Relative humidity threshold for land at surface
     rh0oce    = 0.85_rkx   ! Relative humidity threshold for ocean at surface
-    tc0       = 238.0_rkx  ! Below this temp, rh0 begins to approach unity
-    cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
@@ -857,14 +844,28 @@ module mod_params
       read (ipunit, nml=physicsparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error reading physicsparam namelist'
-        write(stderr,*) 'Note: iocnflx, iocnrough and iocnzoq are '// &
-          'replaced by iocnflux (1 Zeng, 2 COARE 3.5) and izengrough'
+        write(stderr,*) 'Note: the schemes are selected by name: '// &
+          'pbl_scheme, cumulus_land, cumulus_ocean, microphysics, '// &
+          'cloud_fraction, radiation_scheme replace ibltyp, icup_lnd, '// &
+          'icup_ocn, ipptls, icldfrac, irrtm; icumcloud is removed.'
         call fatal(__FILE__,__LINE__, &
                    'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
       else
         write(stdout,*) 'Read physicsparam OK'
 #endif
+      end if
+      ibltyp = physics_code('pbl',pbl_scheme)
+      icup_lnd = physics_code('cumulus',cumulus_land)
+      icup_ocn = physics_code('cumulus',cumulus_ocean)
+      ipptls = physics_code('microphysics',microphysics)
+      icldfrac = physics_code('cloud_fraction',cloud_fraction)
+      irrtm = physics_code('radiation',radiation_scheme)
+      if ( ibltyp == 2 .and. ipptls == 0 ) then
+        write(stderr,*) 'ERROR in physicsparam: the UW boundary layer '// &
+          'needs a microphysics scheme (its subgrid condensation is '// &
+          'the one of the cloud water of the microphysics)'
+        call fatal(__FILE__,__LINE__,'INPUT NAMELIST SCHEME NAME')
       end if
 
       if ( idynamic < 3 ) then
@@ -929,27 +930,6 @@ module mod_params
 
       icup(1) = icup_lnd
       icup(2) = icup_ocn
-      if ( any(icup == 1) ) then
-        if ( idynamic == 3 ) then
-          write(stderr,*) &
-            'ERROR: Kuo scheme cannot be used with MOLOCH dynamical scheme'
-          call fatal(__FILE__,__LINE__, &
-                     'INPUT NAMELIST ICUP INCONSISTENT')
-        end if
-        if ( icup_lnd /= icup_ocn ) then
-          write(stderr,*) &
-            'ERROR: Kuo scheme MUST be used on both Land and Ocean'
-          call fatal(__FILE__,__LINE__, &
-                     'INPUT NAMELIST ICUP INCONSISTENT')
-        end if
-      end if
-      if ( any(icup == 3) ) then
-        if ( icup_lnd /= icup_ocn ) then
-          write(stderr,*) 'ERROR: BM scheme MUST be used on both Land and Ocean'
-          call fatal(__FILE__,__LINE__, &
-                     'INPUT NAMELIST ICUP INCONSISTENT')
-        end if
-      end if
 
       rewind(ipunit)
       read (ipunit, nml=cldparam, iostat=iretval, err=107)
@@ -960,17 +940,7 @@ module mod_params
         write(stdout,*) 'Read cldparam OK'
 #endif
       end if
-      if ( ipptls == 1 ) then
-        rewind(ipunit)
-        read (ipunit, nml=subexparam, iostat=iretval, err=108)
-        if ( iretval /= 0 ) then
-          write(stdout,*) 'Using default subex parameter.'
-#ifdef DEBUG
-        else
-          write(stdout,*) 'Read subexparam OK'
-#endif
-        end if
-      else if ( ipptls == 2 ) then
+      if ( ipptls == 2 ) then
         rewind(ipunit)
         read (ipunit, nml=microparam, iostat=iretval, err=109)
         if ( iretval /= 0 ) then
@@ -1701,7 +1671,6 @@ module mod_params
     call bcast(iwhitecap)
     call bcast(iseaice)
     call bcast(icetriggert)
-    call bcast(iconvlwp)
     call bcast(icldfrac)
     call bcast(icldmstrat)
     call bcast(irrtm)
@@ -1721,7 +1690,6 @@ module mod_params
       end if
     end if
     call bcast(year_offset)
-    call bcast(icumcloud)
     call bcast(islab_ocean)
     call bcast(itweak)
     if ( idcsst == 1 .and. iocnflux /= 1 ) then
@@ -1748,8 +1716,6 @@ module mod_params
     call bcast(rhmin)
     call bcast(rh0oce)
     call bcast(rh0land)
-    call bcast(tc0)
-    call bcast(cllwcv)
     call bcast(rcrit)
     call bcast(coef_ccn)
     call bcast(abulk)
@@ -1760,17 +1726,7 @@ module mod_params
     call bcast(kfac_shal)
     call bcast(kfac_deep)
 
-    if ( ipptls == 1 ) then
-      call bcast(qck1land)
-      call bcast(qck1oce)
-      call bcast(gulland)
-      call bcast(guloce)
-      call bcast(cevaplnd)
-      call bcast(cevapoce)
-      call bcast(caccrlnd)
-      call bcast(caccroce)
-      call bcast(conf)
-    else if ( ipptls == 2 ) then
+    if ( ipptls == 2 ) then
       call bcast(stats)
       call bcast(budget_compute)
       call bcast(nssopt)
@@ -1787,19 +1743,19 @@ module mod_params
       call bcast(rcldiff)
     end if
 
+    ! Water vapour, cloud water, ice, rain and snow are always present,
+    ! also without microphysics; graupel and hail with WSM7 and WDM7, and
+    ! the number concentrations with WDM7.
     iqfrst = iqc
-    if ( ipptls == 2 .or. ipptls == 3 ) then
-      nqx = 5
-      iqlst = iqs
-    else if ( ipptls == 4 ) then
+    if ( ipptls == 4 ) then
       nqx = 7
       iqlst = iqh
     else if ( ipptls == 5 ) then
       nqx = 10
       iqlst = iqh
     else
-      nqx = 2
-      iqlst = iqc
+      nqx = 5
+      iqlst = iqs
     end if
 
     if ( irrtm == 1 ) then
@@ -2401,10 +2357,13 @@ module mod_params
         icup(:) = -1
         write(stdout,'(a)') '  Shallow cumulus scheme '
       else
-        write(stdout,'(a,i2)') '  Land cumulus conv. scheme   : ', icup_lnd
-        write(stdout,'(a,i2)') '  Ocean cumulus conv. scheme  : ', icup_ocn
+        write(stdout,'(a,a)') '  Land cumulus conv. scheme   : ', &
+          trim(scheme_name('cumulus',icup_lnd))
+        write(stdout,'(a,a)') '  Ocean cumulus conv. scheme  : ', &
+          trim(scheme_name('cumulus',icup_ocn))
       end if
-      write(stdout,'(a,i2)') '  Moisture schem              : ', ipptls
+      write(stdout,'(a,a)') '  Microphysics scheme         : ', &
+        trim(scheme_name('microphysics',ipptls))
       write(stdout,'(a,i2)') '  Ocean Flux scheme           : ', iocnflux
       if ( iocnflux == 1 ) then
         write(stdout,'(a,i2)') '  Zeng roughness formula      : ', izengrough
@@ -2418,8 +2377,8 @@ module mod_params
       write(stdout,'(a,i2)') '  Simulate diurnal sst cycle  : ', idcsst
       write(stdout,'(a,i2)') '  Simulate sea ice cover      : ', iseaice
       write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ', ichem
-      write(stdout,'(a,i2)') '  Large scale LWP as convect. : ', iconvlwp
-      write(stdout,'(a,i2)') '  Cloud fraction scheme       : ', icldfrac
+      write(stdout,'(a,a)') '  Cloud fraction scheme       : ', &
+        trim(scheme_name('cloud_fraction',icldfrac))
       write(stdout,'(a,i2)') '  Marine stratocumulus        : ', icldmstrat
       write(stdout,'(a,i2)') '  Climate O3 dataset          : ', iclimao3
       write(stdout,'(a,i2)') '  Climate Aerosol dataset     : ', iclimaaer
@@ -2427,7 +2386,8 @@ module mod_params
         write(stdout,'(a,a)') '  MERRA2 aerosol data path    : ', &
           trim(radclimpath)
       end if
-      write(stdout,'(a,i2)') '  PBL scheme                  : ', ibltyp
+      write(stdout,'(a,a)') '  PBL scheme                  : ', &
+        trim(scheme_name('pbl',ibltyp))
       if ( idynamic /= 3 ) then
         write(stdout,'(a,i2)') '  Diffusion scheme            : ', idiffu
       end if
@@ -2438,9 +2398,6 @@ module mod_params
       if ( ifixsolar == 1 ) then
         write(stdout,'(a,f11.4)') '  Fixed solar value (W m-2)   : ', &
           fixedsolarval
-      end if
-      if ( any(icup == 1) .or. any(icup == 3) ) then
-        write(stdout,'(a,i2)') '  Cumulus cloud formula       : ', icumcloud
       end if
       write(stdout,'(a,i2)') '  Slab ocean model            : ', islab_ocean
       write(stdout,'(a,i2)') '  Data tweaking               : ', itweak
@@ -2811,13 +2768,6 @@ module mod_params
       end if
     end if
 
-    if ( ipptls > 0 ) then
-      cevaplnd = max(cevaplnd,d_zero)
-      caccrlnd = max(caccrlnd,d_zero)
-      cevapoce = max(cevapoce,d_zero)
-      caccroce = max(caccroce,d_zero)
-    end if
-
     if ( myid == italk ) then
       if ( idynamic /= 3 ) then
         if ( idiffu == 1 ) then
@@ -2861,7 +2811,6 @@ module mod_params
       write(stdout,'(a,f11.6)') '  Maximum relative humidity         : ' ,rhmax
       write(stdout,'(a,f11.6)') '  Minimum relative humidity         : ' ,rhmin
       if ( icldfrac == 0 ) then
-        write(stdout,'(a,f11.6)') '  RH0 temperature threshold         : ' ,tc0
         write(stdout,'(a,f11.6,a,f11.6)')                      &
             '  Relative humidity thresholds: Land = ',rh0land, &
             ' Ocean = ',rh0oce
@@ -2884,49 +2833,7 @@ module mod_params
           '  Surface radiation hack            : ', lsrfhack
       write(stdout,'(a,l11)') &
           '  Vavrus-Waliser Arctic cloud fix   : ', larcticcorr
-      if ( ipptls == 1 ) then
-        !
-        ! specify the constants used in the model.
-        !     conf  : condensation efficiency
-        !     qcth  : threshold for the onset of autoconversion
-        !     qck1  : constant autoconversion rate
-        ! all the other constants are used to compute the cloud
-        ! microphysical parameterization (ref. orville & kopp, 1977 jas).
-        !
-        write(stdout,*) 'SUBEX large scale precipitation parameters'
-        write(stdout,'(a,f11.6,a,f11.6)')                      &
-            '  Auto-conversion rate:         Land = ',qck1land,&
-            ' Ocean = ',qck1oce
-        write(stdout,'(a,f11.6,a,f11.6)')                      &
-            '  Gultepe factors:              Land = ',gulland ,&
-            ' Ocean = ',guloce
-        if ( cevaplnd <= d_zero ) then
-          write (stdout,*) '  Land raindrop evaporation not included'
-        else
-          write(stdout,'(a,f11.6)') &
-            '  Land Raindrop Evaporation Rate    : ',cevaplnd
-        end if
-        if ( cevapoce <= d_zero ) then
-          write (stdout,*) '  Ocean raindrop evaporation not included'
-        else
-          write(stdout,'(a,f11.6)') &
-            '  Ocean Raindrop Evaporation Rate   : ', cevapoce
-        end if
-        if ( caccrlnd <= d_zero ) then
-          write(stdout, *) '  Land raindrop accretion not included'
-        else
-          write(stdout,'(a,f11.6)') &
-            '  Land Raindrop Accretion Rate      : ', caccrlnd
-        end if
-        if ( caccroce <= d_zero ) then
-          write(stdout, *) '  Ocean raindrop accretion not included'
-        else
-          write(stdout,'(a,f11.6)') &
-            '  Ocean Raindrop Accretion Rate     : ', caccroce
-        end if
-        write(stdout,'(a,f11.6)') &
-            '  Condensation efficiency           : ', conf
-      else if ( ipptls == 2 ) then
+      if ( ipptls == 2 ) then
         write(stdout,*) 'NoTo microphysics parameters'
         write(stdout,'(a,l11)') '  Statistics output                 : ', stats
         write(stdout,'(a,l11)') &
@@ -2966,71 +2873,6 @@ module mod_params
       qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
     end do
 
-    if ( any(icup == 1) ) then
-      !
-      ! specify heating profile (twght) and weighted function
-      ! for moisture fluxes due to convection (vqflx)
-      ! assume base of cloud varies as  < kbase = 5,kz >
-      ! top  of cloud varies as  < ktop  = 1,kbase-3 >
-      ! exceptions to this are treated explicitly in subroutine
-      ! "cupara".
-      !
-      do kbase = 5, kz
-        do ktop = 1, kbase - 3
-          do k = 1, kz
-            twght(k,kbase,ktop) = d_zero
-            vqflx(k,kbase,ktop) = d_zero
-          end do
-          !
-          ! get twght from 1/2 level sigma values
-          !
-          bb = log(hsigma(ktop)) + log(hsigma(kbase))
-          cc = log(hsigma(ktop))*log(hsigma(kbase))
-          ssum = d_zero
-          do k = ktop, kbase
-            xx = log(hsigma(k))
-            twght(k,kbase,ktop) = (xx*xx) - (bb*xx) + cc
-            ssum = ssum + twght(k,kbase,ktop)*dsigma(k)
-          end do
-          do k = ktop, kbase
-            twght(k,kbase,ktop) = twght(k,kbase,ktop)/ssum
-          end do
-          !
-          ! get vqflx from  d(w*q) / dsigma on full levels
-          ! do computations in p to avoid sigma=0. discontinuity
-          !
-          xtop = log((d_100-ptop)*sigma(ktop)+ptop)
-          xbot = log((d_100-ptop)*sigma(kbase+1)+ptop)
-          bb = xtop + xbot
-          cc = xtop*xbot
-          vqmax = d_zero
-          ssum = d_zero
-          xx = xtop
-          yy = xbot
-          wk = (xx*xx) - (bb*xx) + cc
-          qk = -((yy*yy)-(bb*yy)+cc)
-          do k = ktop, kbase
-            xx = log((d_100-ptop)*sigma(k+1)+ptop)
-            yy = log((d_100-ptop) * &
-                 (sigma(ktop)+sigma(kbase+1)-sigma(k+1))+ptop)
-            wkp1 = (xx*xx) - (bb*xx) + cc
-            qkp1 = -((yy*yy)-(bb*yy)+cc)
-            vqflx(k,kbase,ktop) = -((wkp1*qkp1)-(wk*qk))/dsigma(k)
-            ssum = ssum + vqflx(k,kbase,ktop)
-            if ( abs(vqflx(k,kbase,ktop)) > vqmax ) &
-                 vqmax = abs(vqflx(k,kbase,ktop))
-            wk = wkp1
-            qk = qkp1
-          end do
-          do k = ktop, kbase
-            vqflx(k,kbase,ktop) = vqflx(k,kbase,ktop)*vqrang/vqmax
-          end do
-        end do
-      end do
-      if ( myid == italk ) then
-        write(stdout, *) 'Anthes-Kuo Convection Scheme used.'
-      end if
-    end if
     if ( any(icup == 2) ) then
       kbmax = kz
       do k = 1, kz - 1
@@ -3107,13 +2949,6 @@ module mod_params
         htmin2d(j,i) = htmin
         dtauc2d(j,i) = dtauc*secpm
       end do
-    end if
-    if ( any(icup == 3) ) then
-      if ( myid == italk ) then
-        write(stderr,*) &
-          'WARNING : The Betts-Miller Convection scheme is not ', &
-          'properly implemented'
-      end if
     end if
     if ( any(icup == 4) ) then
       if ( myid == italk ) then
@@ -3271,7 +3106,6 @@ module mod_params
       write(stdout,*) &
         'Convective Cloud Cover parameters after resolution scaling'
       write(stdout,'(a,f11.6)') '  Maximum Convective Cloud Cover : ',clfrcv
-      write(stdout,'(a,f11.6)') '  Convective Cloud Water         : ',cllwcv
     end if
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -3282,21 +3116,6 @@ module mod_params
       end if
     end do
 
-    if ( ipptls == 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        if ( isocean(mddom%lndcat(j,i)) ) then
-          qck1(j,i)  = qck1oce  ! OCEAN
-          cgul(j,i)  = guloce
-          cevap(j,i) = cevapoce
-          caccr(j,i) = caccroce
-        else
-          qck1(j,i)  = qck1land ! LAND
-          cgul(j,i)  = gulland
-          cevap(j,i) = cevaplnd
-          caccr(j,i) = caccrlnd
-        end if
-      end do
-    end if
     !
     ! Setup Holtslag PBL Critical Richardson Number
     !
@@ -3307,13 +3126,6 @@ module mod_params
         else
           ricr(j,i) = ricr_lnd
         end if
-      end do
-    end if
-    if ( any(icup == 1) ) then
-      sig700 = (70.0_rkx-ptop)/(d_100-ptop)
-      do k = 1, kz
-        k700 = k
-        if ( sig700 <= sigma(k+1) .and. sig700 > sigma(k) ) exit
       end do
     end if
     if ( myid == italk ) then
@@ -3652,7 +3464,6 @@ module mod_params
 105 call fatal(__FILE__,__LINE__, 'Error reading NONHYDROPARAM')
 106 call fatal(__FILE__,__LINE__, 'Error reading HYDROPARAM')
 107 call fatal(__FILE__,__LINE__, 'Error reading CLDPARAM')
-108 call fatal(__FILE__,__LINE__, 'Error reading SUBEXPARAM')
 109 call fatal(__FILE__,__LINE__, 'Error reading MICROPARAM')
 110 call fatal(__FILE__,__LINE__, 'Error reading GRELLPARAM')
 111 call fatal(__FILE__,__LINE__, 'Error reading EMANPARAM')
@@ -3941,6 +3752,19 @@ module mod_params
           end do
         end if
       end function check_against_outparams
+      !
+      ! Integer code of a scheme name of the namelist, stop if unknown
+      !
+      integer(ik4) function physics_code(kind,name) result(code)
+        implicit none
+        character(len=*), intent(in) :: kind, name
+        character(len=256) :: msg
+        code = scheme_code(kind,name,msg)
+        if ( code == unknown_scheme ) then
+          write(stderr,*) 'ERROR in physicsparam: ', trim(msg)
+          call fatal(__FILE__,__LINE__,'INPUT NAMELIST SCHEME NAME')
+        end if
+      end function physics_code
 
   end subroutine param
 

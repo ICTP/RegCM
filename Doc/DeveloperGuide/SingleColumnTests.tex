@@ -5,8 +5,7 @@ schemes: a program calls one scheme through its model entry point on a set
 of atmospheric columns, without the dynamical core. They serve as
 regression tests, run by \code{make check}, and as a quick way to look at
 the response of a scheme to its parameters. Two schemes are covered: the
-Tiedtke cumulus scheme (\code{icup}~=~5) and the Holtslag boundary layer
-scheme (\code{ibltyp}~=~1), each alone and both together in a time
+Tiedtke cumulus scheme and the Holtslag boundary layer scheme, each alone and both together in a time
 integration with prescribed large scale forcing.
 
 \section{Files}
@@ -219,7 +218,7 @@ runs the soundings 1, 21, \ldots, 141 with the \code{advrad} forcing.
 Holtslag schemes together in time, with the grid layout, configuration
 and allocations of the single scheme drivers. Every time step
 \code{dtstep} (default 300~s) the schemes are called through
-\code{tiedtkedrv} (or \code{kfdrv}), \code{subex\_cldfrac} and
+\code{tiedtkedrv} (or \code{kfdrv}), \code{sundqvist\_cldfrac} and
 \code{nogtom}, \code{colmod3} (every \code{dtrad}) and \code{holtbl},
 on the same
 state and in this order, as the MOLOCH core calls them: the
@@ -290,7 +289,7 @@ with \code{iocnflux} = 0 the ocean fluxes are the constant daily means
 of the profile file. With \code{ustarfix} $> 0$ the friction velocity of
 the surface drag of these columns (land, and ocean with \code{iocnflux}
 = 0) is \code{ustarfix} instead of the neutral logarithmic law one.
-The microphysics (\code{lnoto}, default true) is NoTo with the SUBEX
+The microphysics (\code{lnoto}, default true) is NoTo with the Sundqvist
 cloud fraction (\code{icldfrac} = 0), as in the model with
 \code{ipptls} = 2. As in \verb=mod_cu_interface=, the condensate
 detrained by the cumulus scheme is passed as \code{qdetr}
@@ -304,7 +303,7 @@ MOLOCH core; the rain and snow reaching the ground are the large scale
 rain. The random critical relative humidity of the cloud fraction uses
 the step count, set in a minimal \code{rcmtimer}. The parameters are
 read from \code{microparam} and from \code{cldparam} (\code{rh0oce},
-\code{rh0land}, \code{tc0}, \code{rhmin}, \code{rhmax},
+\code{rh0land}, \code{rhmin}, \code{rhmax},
 \code{larcticcorr}). With \code{lnoto} false there is no microphysics:
 the condensate detrained by the cumulus scheme evaporates in the layer
 where it is detrained (heating
@@ -316,7 +315,7 @@ NoTo are also the condensate seen by the cumulus and boundary layer
 schemes, and the vertical diffusion of the latter is applied to them.
 
 The radiation (\code{irad} = 1) is the CCM scheme of the model
-(\code{irrtm} = 0) called through \code{colmod3} every \code{dtrad}
+(\code{radiation\_scheme} = \code{'ccm'}) called through \code{colmod3} every \code{dtrad}
 (1800~s), the absorptivities and emissivities being computed every
 \code{dtabem} (64800~s); the heating rate is held between calls. The
 allocations are the ones of \code{allocate\_radiation}. The sun position
@@ -326,8 +325,8 @@ constant of 1368.22~W~m$^{-2}$ (\code{isolconst} = 1); the greenhouse
 gases are those of the built in table of \code{scenario} (default
 RCP4.5, no data file), the ozone the built in profile of \code{o3data}
 (\code{iclimao3} = 0), there are no aerosols. The clouds are those of
-\code{cucloud} and \code{cldfrac} of the model with a cumulus scheme
-(\code{iconvlwp} = 0): the convective cloud of Tiedtke, at most the
+\code{cucloud} and \code{cldfrac} of the model with a cumulus scheme:
+the convective cloud of Tiedtke, at most the
 grid spacing dependent maximum of the model (\code{cu\_cfmax}), overlapped with the NoTo cloud, with the in cloud water
 of both and the scaling of Liang (2005). The surface albedo over the
 ocean is the one of the model with \code{iwhitecap} = 0,
@@ -346,11 +345,24 @@ The namelist has a \code{scmparam} group (\code{infile},
 \code{nout}, \code{dxkm}, \code{taurelax}, \code{zrelax},
 \code{tauwtg}, \code{zwtg}, \code{tauwind}, \code{windfac},
 \code{lgeos}, \code{ustarfix}, \code{ladvt}, \code{isplit},
-\code{csplit}, \code{icldfrac},
+\code{csplit}, \code{omfac},
 \code{iocnflux}, \code{izengrough}, \code{ocnsw}, \code{ocnlw},
 \code{lnoto}, \code{irad}, \code{dtrad}, \code{dtabem},
-\code{albland}, \code{scenario}) and the model groups \code{tiedtkeparam},
-\code{cldparam}, \code{holtslagparam} and \code{microparam}. Every \code{nout} steps (default one hour)
+\code{albland}, \code{scenario}, \code{rrtmdir} and the scheme names
+\code{pbl\_scheme}, \code{cumulus}, \code{microphysics},
+\code{cloud\_fraction}, \code{radiation\_scheme}) and the model groups
+\code{tiedtkeparam}, \code{kfparam}, \code{emanparam},
+\code{grellparam}, \code{cldparam}, \code{holtslagparam},
+\code{uwparam}, \code{microparam} and \code{rrtmparam}. The scheme
+names are the ones of \code{physicsparam} in the model, converted to the
+model codes with \code{scheme\_code} of \verb=mod_scheme_names=
+(Section~\ref{sec:schemenames}); the column accepts \code{holtslag}
+(default), \code{uw}, \code{myj}, \code{shin-hong} for the boundary
+layer, \code{tiedtke} (default), \code{kain-fritsch}, \code{emanuel},
+\code{grell} for the cumulus, \code{noto} (default), \code{wsm5},
+\code{wsm7}, \code{wdm7} for the microphysics, \code{sundqvist}
+(default), \code{xu-randall} for the cloud fraction and \code{ccm}
+(default), \code{rrtmg} for the radiation. Every \code{nout} steps (default one hour)
 the output has per column a \verb=STEP= line (time, local hour, surface
 fluxes, PBL height and top level, the moisture factor of the eddy
 diffusivity \code{hqfac} computed as in \code{holtbl}, cloud type, top
@@ -362,8 +374,9 @@ schemes, the large scale $\omega$, the temperature and humidity
 tendencies of NoTo, cloud water plus ice, the cloud fraction seen by the
 radiation, the radiative heating rate, the in-cloud water seen by the
 radiation and the large scale cloud fraction of the cloud scheme
-(\code{icldfrac} = 0 SUBEX, the default, or 1 Xu-Randall on the cloud
-water and ice, as \code{cldfrac} of the model), which is also the cloud
+(\code{cloud\_fraction} = \code{'sundqvist'}, the default, or
+\code{'xu-randall'} on the cloud water and ice, as \code{cldfrac} of the
+model), which is also the cloud
 cover of NoTo.
 
 \section{Amazon and ITCZ cases}
@@ -415,8 +428,9 @@ and \verb=reference/scm_coupled_kf_itcz.dig=.
 
 \subsection{Emanuel and Grell cumulus}
 
-With \code{icumulus} = 4 the cumulus scheme is Emanuel (\code{cupemandrv},
-parameters of \code{\&emanparam}), with \code{icumulus} = 2 Grell
+With \code{cumulus} = \code{'emanuel'} the cumulus scheme is Emanuel
+(\code{cupemandrv}, parameters of \code{\&emanparam}), with
+\code{cumulus} = \code{'grell'} Grell
 (\code{cuparan}, parameters of \code{\&grellparam}, the land or ocean
 values set per column as in \verb=mod_params.F90=, and the highest cloud
 base from \code{skbmax} with $\sigma = p/p_s$). As in the model they get
@@ -428,7 +442,8 @@ runs the Amazon and ITCZ cases with both
 
 \subsection{RRTMG radiation}
 
-With \code{irrtm} = 1 in \code{\&scmparam} the radiation is RRTMG
+With \code{radiation\_scheme} = \code{'rrtmg'} in \code{\&scmparam} the
+radiation is RRTMG
 (\code{rrtmg\_driver}) instead of the CCM scheme, with the options of
 \code{\&rrtmparam} and the model defaults, and the absorption tables
 \verb=rrtmg_sw.nc= and \verb=rrtmg_lw.nc= of the directory
@@ -441,24 +456,26 @@ the directory of the tables (\verb=reference/scm_coupled_fire_rrtmg.dig=).
 
 \subsection{Microphysics schemes}
 
-With \code{imicro} in \code{\&scmparam} (the \code{ipptls} of the
-model) the microphysics is NoTo (2, the default), WSM5 (3), WSM7 (4, with
-graupel and hail) or WDM7 (5, double moment, with the number
+With \code{microphysics} in \code{\&scmparam} (\code{ipptls} in the
+model) the microphysics is NoTo (\code{noto}, the default), WSM5
+(\code{wsm5}), WSM7 (\code{wsm7}, with graupel and hail) or WDM7
+(\code{wdm7}, double moment, with the number
 concentrations of cloud condensation nuclei, cloud water and rain), and
 the column carries the 5, 7 or 10 water species of the scheme. The WSM
 and WDM schemes get the state and the cumulus tendencies, the condensate
 detrained by Tiedtke included, as in the model (only NoTo gets it as
 \code{qdetr}); the cloud fraction seen by the radiation is the one of
-\code{icldfrac}. \code{make check} runs FIRE with WSM5 and WDM7 and the
+\code{cloud\_fraction}. \code{make check} runs FIRE with WSM5 and WDM7 and the
 Amazon case with WSM7 (\verb=reference/scm_coupled_fire_wsm5.dig=,
 \verb=reference/scm_coupled_fire_wdm7.dig=,
 \verb=reference/scm_coupled_wsm7_amazon.dig=).
 
 \subsection{Boundary layer schemes}
 
-With \code{ipbl} in \code{\&scmparam} (the \code{ibltyp} of the model)
-the boundary layer scheme is Holtslag (1, the default), UW (2, with the
-parameters of \code{\&uwparam}), MYJ (4) or Shin-Hong (5), called
+With \code{pbl\_scheme} in \code{\&scmparam} (\code{ibltyp} in the
+model) the boundary layer scheme is Holtslag (\code{holtslag}, the
+default), UW (\code{uw}, with the parameters of \code{\&uwparam}), MYJ
+(\code{myj}) or Shin-Hong (\code{shin-hong}), called
 through their model entry points (\code{holtbl}, \code{uwtcm},
 \code{myjpbl}, \code{shinhong\_pbl}) as in the MOLOCH core. The
 turbulent kinetic energy of UW is prognostic on the half levels, advanced
@@ -474,8 +491,8 @@ of the four schemes equal the surface fluxes within a few percent.
 
 \subsection{Kain-Fritsch cumulus}
 
-With \code{icumulus} = 6 in \code{\&scmparam} the cumulus scheme is
-Kain-Fritsch (\code{icup} = 6) instead of Tiedtke, with the parameters
+With \code{cumulus} = \code{'kain-fritsch'} in \code{\&scmparam} the
+cumulus scheme is Kain-Fritsch (\code{icup} = 6) instead of Tiedtke, with the parameters
 of \code{\&kfparam} and the model defaults. Its trigger gets as
 vertical velocity the one of the large scale omega, $-\omega/(\rho g)$,
 a smooth few mm/s, where the 3D model gives it the resolved, noisier,

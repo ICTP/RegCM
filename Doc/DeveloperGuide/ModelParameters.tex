@@ -38,13 +38,27 @@ the model through the \code{err=} labels at the end of \code{param}.
 Therefore removing a variable from a group makes old namelist files that
 still set it fail at the read.
 
+The physics schemes are selected in \code{physicsparam} by name, with the
+string variables \code{pbl\_scheme}, \code{cumulus\_land},
+\code{cumulus\_ocean}, \code{microphysics}, \code{cloud\_fraction} and
+\code{radiation\_scheme}, local to \code{param}. Right after the read,
+the internal function \code{physics\_code} converts each name into the
+integer code used everywhere else in the model (\code{ibltyp},
+\code{icup\_lnd}, \code{icup\_ocn}, \code{ipptls}, \code{icldfrac},
+\code{irrtm} in \verb=mod_runparams=) with \code{scheme\_code} of
+\verb=Share/mod_scheme_names.F90=, and stops the model with the message of
+\code{scheme\_code} when the name is unknown. The settings printout writes
+the scheme names back with \code{scheme\_name}. A new scheme gets its name
+and code in the tables of \verb=mod_scheme_names=, and its name in the
+lists of \verb=Doc/README.namelist= and of the User Guide.
+
 Groups belonging to a scheme are read only when that scheme is selected,
-for example \code{subexparam} only with \code{ipptls}~=~1,
-\code{microparam} only with \code{ipptls}~=~2, the convection groups
-according to \code{icup}, \code{dynparam}, \code{hydroparam} and
-\code{nonhydroparam} according to \code{idynamic}, \code{rrtmparam} only
-with \code{irrtm}~=~1, \code{chemparam} only with \code{ichem}~=~1 and
-\code{oasisparam} only with \code{ioasiscpl}~=~1.
+for example \code{microparam} only with \code{ipptls}~=~2 (NoTo), the
+convection groups according to \code{icup}, \code{dynparam},
+\code{hydroparam} and \code{nonhydroparam} according to \code{idynamic},
+\code{rrtmparam} only with \code{irrtm}~=~1 (RRTMG), \code{chemparam}
+only with \code{ichem}~=~1 and \code{oasisparam} only with
+\code{ioasiscpl}~=~1.
 
 After the read, every parameter is broadcast with \code{call bcast(var)}
 from \verb=mod_mppparam=. A parameter that is read but not broadcast has

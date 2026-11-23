@@ -232,12 +232,8 @@ module mod_rad_cosp
             cf = min(max(real(m2r%cldfrc(j,i,k),rk8),0.0_rk8),1.0_rk8)
           end if
           ql = real(m2r%qxatms(j,i,k,iqc),rk8)
-          if ( ipptls > 1 ) then
-            qi = real(m2r%qxatms(j,i,k,iqi),rk8)
-            fi = cloud_fice(.true.,ql,qi,tk)
-          else
-            fi = cloud_fice(.false.,ql,0.0_rk8,tk)
-          end if
+          qi = real(m2r%qxatms(j,i,k,iqi),rk8)
+          fi = cloud_fice(.true.,ql,qi,tk)
           iwc = wp_in*fi/dzk
           re_l = cloud_rel_cam(tk,m2r%ldmsk(j,i) == 1)
           re_i = cloud_rei(iwc,tk,real(m2r%xlat(j,i),rk8))

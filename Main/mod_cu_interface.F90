@@ -24,7 +24,7 @@ module mod_cu_interface
     idi2ga, idynamic, iout1, iout2, jci1, jci2, jdi1, jdi1ga, jdi2, jdi2ga, &
     jout1, jout2, kz, myid, ntr
   use mod_runparams, only : clfrcv, dt, dtcum, dtsec, ichem, icup, icup_lnd, &
-    icup_ocn, ipptls, iqc, iqi, iqv, isocean, nqx, pc_dynamic, pc_physic, &
+    icup_ocn, ipptls, iqc, iqi, iqv, isocean, nqx, pc_physic, &
     pc_total, rcmtimer, syncro_cum
   use mod_memutil, only : assignpnt, getmem
   use mod_regcm_types, only : cum_2_mod, mod_2_cum
@@ -33,15 +33,13 @@ module mod_cu_interface
   use mod_mppparam, only : reproducible_sumall, minall, maxall
 
   use mod_cu_common, only : cuscheme, total_precip_points, &
-      model_cumulus_cloud, init_mod_cumulus
+      init_mod_cumulus
   use mod_cu_common, only : cu_uten, cu_vten, cu_tten, cu_qten, &
       cu_prate, cu_ktop, cu_kbot, cu_cldfrc, cu_qdetr, cu_raincc, &
       cu_convpr, cu_chiten, avg_ww, cu_srate, cu_cldlwc
   use mod_cu_tiedtke, only : allocate_mod_cu_tiedtke, tiedtkedrv, &
       pmean, nmctop
-  use mod_cu_bm, only : allocate_mod_cu_bm, bmpara, cldefi
   use mod_cu_em, only : allocate_mod_cu_em, cupemandrv, cbmf2d
-  use mod_cu_kuo, only : allocate_mod_cu_kuo, cupara, twght, vqflx, k700
   use mod_cu_grell, only : allocate_mod_cu_grell, cuparan, mincld2d,   &
       shrmax2d, shrmin2d, edtmax2d, edtmin2d,  edtmaxo2d, edtmaxx2d, &
       edtmino2d, edtminx2d, htmax2d, htmin2d, pbcmax2d, dtauc2d,     &
@@ -61,9 +59,6 @@ module mod_cu_interface
   public :: cuscheme
   public :: cbmf2d
   public :: avg_ww
-  public :: cldefi
-  public :: twght
-  public :: vqflx
   public :: shrmax2d
   public :: shrmin2d
   public :: edtmax2d
@@ -78,7 +73,6 @@ module mod_cu_interface
   public :: htmax2d
   public :: htmin2d
   public :: dtauc2d
-  public :: k700
   public :: total_precip_points
   public :: cu_cldfrc
 
@@ -104,14 +98,8 @@ module mod_cu_interface
         cuscheme(j,i) = icup_lnd
       end if
     end do
-    if ( any(icup == 1) ) then
-      call allocate_mod_cu_kuo
-    end if
     if ( any(icup == 2) ) then
       call allocate_mod_cu_grell
-    end if
-    if ( any(icup == 3) ) then
-      call allocate_mod_cu_bm
     end if
     if ( any(icup == 4) .or. any(icup == 5) ) then
       if ( idynamic /= 3 ) then
@@ -191,7 +179,6 @@ module mod_cu_interface
       call assignpnt(vtenx,m2c%vten)
       call assignpnt(aten%t,m2c%tten,pc_physic)
       call assignpnt(aten%qx,m2c%qxten,pc_physic)
-      call assignpnt(aten%qx,m2c%dynqx,pc_dynamic)
       if ( ichem == 1 ) call assignpnt(aten%chi,m2c%chiten,pc_physic)
       ! OUTPUT
       call assignpnt(aten%t,c2m%tten,pc_physic)
@@ -218,9 +205,6 @@ module mod_cu_interface
     implicit none
     integer(ik4) :: i, j, k
     if ( all(icup == 0) ) return
-    if ( any(icup == 1) .or. any(icup == 3) ) then
-      call model_cumulus_cloud(m2c)
-    end if
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       c2m%cldfrc(j,i,k) = min(cu_cldfrc(j,i,k),clfrcv)
       c2m%cldlwc(j,i,k) = cu_cldlwc(j,i,k)
@@ -266,7 +250,7 @@ module mod_cu_interface
         !$acc kernels
         cu_prate(:,:) = d_zero
         !$acc end kernels
-        if ( ipptls > 1 .and. any(icup == 5) ) then
+        if ( any(icup == 5) ) then
           !$acc kernels
           cu_srate(:,:) = d_zero
           !$acc end kernels
@@ -319,12 +303,8 @@ module mod_cu_interface
         total_precip_points = 0
         if ( icup_lnd == icup_ocn ) then
           select case ( icup_lnd )
-            case (1)
-              call cupara(m2c)
             case (2)
               call cuparan(m2c)
-            case (3)
-              call bmpara(m2c)
             case (4)
               call cupemandrv(m2c)
             case (5)
@@ -384,7 +364,7 @@ module mod_cu_interface
         c2m%kcumbot(j,i) = cu_kbot(j,i)
       end do
 
-      if ( ipptls > 1 .and. any(icup == 5) ) then
+      if ( any(icup == 5) ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           c2m%sratec(j,i) = c2m%sratec(j,i) + cu_srate(j,i)
         end do

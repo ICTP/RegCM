@@ -1,0 +1,28 @@
+Historical schemes of RegCM
+===========================
+
+The files of this directory are not compiled. They are kept for reference:
+schemes that were part of the model and have been removed, as they were at
+their removal, with the pieces of code of the model that served only them.
+
+  mod_cu_kuo.F90           Anthes-Kuo cumulus (icup = 1), hydrostatic and
+                           non hydrostatic cores only
+  kuo_setup.F90            its setup in mod_params: heating profile twght,
+                           moisture flux weights vqflx (vqrang = 5e-4),
+                           level k700; with Kuo the hydrostatic core
+                           skipped the vertical advection of water vapour
+                           and tracers, the scheme used the vertical
+                           moisture convergence as closure
+  mod_cu_bm.F90            Betts-Miller cumulus (icup = 3), with cldefi in
+                           the restart file
+  model_cumulus_cloud.F90  convective cloud of Kuo and Betts-Miller
+                           (mod_cu_common, option icumcloud)
+  mod_micro_subex.F90      SUBEX large scale microphysics (ipptls = 1, Pal
+                           et al. 2000), namelist group subexparam
+  condtq.F90               its condensation step (mod_micro_interface),
+                           called after the sum of the tendencies
+
+The integer codes of the removed schemes are not reused: the namelist
+selects the schemes by name (Share/mod_scheme_names.F90). The SUBEX cloud
+fraction is still in the model, named Sundqvist
+(Main/cloudlib/mod_cloud_sundqvist.F90).

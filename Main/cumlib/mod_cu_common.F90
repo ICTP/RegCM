@@ -22,7 +22,7 @@ module mod_cu_common
     idi2, idynamic, jce1ga, jce1gb, jce2ga, jce2gb, jci1, jci2, jdi1, jdi2, &
     kz, ntr
   use mod_runparams, only : clfrcv, nqx
-  use mod_runparams, only : icup, ipptls, icumcloud, ichem
+  use mod_runparams, only : icup, ipptls, ichem
   use mod_memutil, only : getmem
   use mod_regcm_types, only : mod_2_cum
 
@@ -53,14 +53,7 @@ module mod_cu_common
 
   integer(ik4), public :: total_precip_points
 
-  real(rkx), dimension(10) :: cld_profile
-  real(rkx), dimension(10) :: fixed_cld_profile
-  real(rkx), dimension(10) :: rnum
-
-  real(rkx), parameter :: maxcloud_dp =  60000.0_rkx ! In Pa
-  logical, parameter :: addnoise = .false.
-
-  public :: init_mod_cumulus, model_cumulus_cloud
+  public :: init_mod_cumulus
   public :: cu_cloud_fraction, cu_cloud_water
 
   contains
@@ -82,7 +75,7 @@ module mod_cu_common
     call getmem(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')
     call getmem(cu_cldlwc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldlwc')
     call getmem(cu_prate,jci1,jci2,ici1,ici2,'cumulus:prate')
-    if ( ipptls > 1 .and. any(icup == 5) ) then
+    if ( any(icup == 5) ) then
       call getmem(cu_srate,jci1,jci2,ici1,ici2,'cumulus:srate')
     end if
     call getmem(cu_ktop,jci1,jci2,ici1,ici2,'cumulus:ktop')
@@ -99,68 +92,8 @@ module mod_cu_common
       call getmem(avg_ww,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_ww')
     end if
 
-    if ( icumcloud == 2 ) then
-      !
-      ! Free hand draw of a generic ten layer cumulus cloud shape.
-      !
-      fixed_cld_profile(1)  = 0.130_rkx
-      fixed_cld_profile(2)  = 0.125_rkx
-      fixed_cld_profile(3)  = 0.120_rkx
-      fixed_cld_profile(4)  = 0.080_rkx
-      fixed_cld_profile(5)  = 0.080_rkx
-      fixed_cld_profile(6)  = 0.080_rkx
-      fixed_cld_profile(7)  = 0.085_rkx
-      fixed_cld_profile(8)  = 0.085_rkx
-      fixed_cld_profile(9)  = 0.105_rkx
-      fixed_cld_profile(10) = 0.110_rkx
-      if ( .not. addnoise ) then
-        cld_profile = fixed_cld_profile
-      end if
-    end if
   end subroutine init_mod_cumulus
 
-  subroutine model_cumulus_cloud(m2c)
-    implicit none
-    type(mod_2_cum), intent(in) :: m2c
-    real(rkx) :: akclth, scalep, scalef
-    integer(ik4):: i, j, k, ktop, kbot, kclth, ikh
-    scalef = (d_one-clfrcv)
-    if ( icumcloud <= 1 ) then
-      do i = ici1, ici2
-        do j = jci1, jci2
-          ! The regcm model is top to bottom
-          ktop = cu_ktop(j,i)
-          kbot = cu_kbot(j,i)
-          kclth = kbot - ktop + 1
-          if ( kclth < 2 ) cycle
-          akclth = d_one/real(kclth,rkx)
-          do k = ktop, kbot
-            cu_cldfrc(j,i,k) = d_one - scalef**akclth
-          end do
-        end do
-      end do
-    else if ( icumcloud == 2 ) then
-      if ( addnoise ) then
-        ! Put 25% noise level. Update cld_profile each time.
-        call random_number(rnum)
-        cld_profile = (0.75_rkx+(rnum/2.0_rkx))*fixed_cld_profile
-      end if
-      do i = ici1, ici2
-        do j = jci1, jci2
-          ktop = cu_ktop(j,i)
-          kbot = cu_kbot(j,i)
-          kclth = kbot - ktop + 1
-          if ( kclth < 2 ) cycle
-          scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
-                  maxcloud_dp,d_one)
-          do k = ktop, kbot
-            ikh = max(1,min(10,int((real(k-ktop+1,rkx)/real(kclth,rkx))*d_10)))
-            cu_cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
-          end do
-        end do
-      end do
-    end if
-  end subroutine model_cumulus_cloud
   !
   ! Convective cloud fraction seen by radiation, the same for all the mass
   ! flux cumulus schemes, selected by iconvcf (all arguments, no module

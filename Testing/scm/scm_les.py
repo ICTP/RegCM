@@ -29,7 +29,7 @@
 # Examples:
 #   scm_les.py bomex
 #   scm_les.py rico --set lmfscv=.false.
-#   scm_les.py bomex --set icumulus=6           Kain-Fritsch
+#   scm_les.py bomex --set cumulus=kain-fritsch Kain-Fritsch
 #   scm_les.py rico --sweep entshalp=1.0,2.0,3.0
 #   scm_les.py bomex --save bomex.out           keep the output
 #

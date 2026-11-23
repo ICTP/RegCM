@@ -131,8 +131,6 @@ module mod_runparams
   integer(ik4), dimension(2), public :: icup
   ! Closure index for Grell
   integer(ik4), public :: igcc
-  ! Cumulus cloud model
-  integer(ik4), public :: icumcloud
   ! Boundary layer index
   integer(ik4), public :: ibltyp
   ! Diffusion scheme
@@ -163,14 +161,10 @@ module mod_runparams
   ! Semi-Langrangian advection for tracers
   integer(ik4), public :: isladvec
   integer(ik4), public :: iqmsl
-  ! Use for large scale lwp the same algo used for convective lwp
-  integer(ik4), public :: iconvlwp
   ! Cloud fraction scheme
   integer(ik4), public :: icldfrac
   ! Marine stratocumulus considered
   integer(ik4), public :: icldmstrat
-  ! vqrang is the range limit on vqflx.
-  real(rkx), public :: vqrang = 5.0e-4_rkx
   ! Aerosol effects
   real(rkx), public :: rcrit
   real(rkx), public :: coef_ccn
@@ -489,8 +483,6 @@ module mod_runparams
   real(rkx), public :: rhmax     ! Maximum value for relative humidity
   real(rkx), public :: rh0land   ! Trigger value for RH for land (SUBEX)
   real(rkx), public :: rh0oce    ! Trigger value for RH for ocean (SUBEX)
-  real(rkx), public :: tc0       ! Temperature at which cloud are high (SUBEX)
-  real(rkx), public :: cllwcv    ! Cloud liquid water content (Kuo, Grell)
   real(rkx), public :: kfac_shal ! Convective cloud fraction factor for
                                   ! empirical relationship with mass flux
   real(rkx), public :: kfac_deep ! Convective cloud fraction factor for
@@ -502,18 +494,6 @@ module mod_runparams
                                   ! 1 Xu and Krueger (1991) thin layer fit
                                   ! 2 as 1, area fraction for radiation
                                   !   (Neggers et al. 2011)
-
-  ! Large scale SUBEX parameters
-
-  real(rkx), public :: qck1land
-  real(rkx), public :: qck1oce
-  real(rkx), public :: gulland
-  real(rkx), public :: guloce
-  real(rkx), public :: caccrlnd
-  real(rkx), public :: cevaplnd
-  real(rkx), public :: caccroce
-  real(rkx), public :: cevapoce
-  real(rkx), public :: conf     ! Condensation efficiency.
 
   !
   ! SLAB ocean parameters

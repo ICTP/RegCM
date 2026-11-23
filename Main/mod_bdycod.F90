@@ -1682,7 +1682,7 @@ module mod_bdycod
             mo_atm%qx(jce1,i,k,iqc) = x0*xlb%b0(jce1,i,k)+x1*xlb%b1(jce1,i,k)
           end do
         end if
-        if ( present_qi .and. ipptls > 1 ) then
+        if ( present_qi ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%qx(jce1,i,k,iqi) = x0*xib%b0(jce1,i,k)+x1*xib%b1(jce1,i,k)
           end do
@@ -1741,7 +1741,7 @@ module mod_bdycod
             mo_atm%qx(jce2,i,k,iqc) = x0*xlb%b0(jce2,i,k)+x1*xlb%b1(jce2,i,k)
           end do
         end if
-        if ( present_qi .and. ipptls > 1 ) then
+        if ( present_qi ) then
           do concurrent ( i = ici1:ici2, k = 1:kz )
             mo_atm%qx(jce2,i,k,iqi) = x0*xib%b0(jce2,i,k)+x1*xib%b1(jce2,i,k)
           end do
@@ -1800,7 +1800,7 @@ module mod_bdycod
             mo_atm%qx(j,ice1,k,iqc) = x0*xlb%b0(j,ice1,k)+x1*xlb%b1(j,ice1,k)
           end do
         end if
-        if ( present_qi .and. ipptls > 1 ) then
+        if ( present_qi ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%qx(j,ice1,k,iqi) = x0*xib%b0(j,ice1,k)+x1*xib%b1(j,ice1,k)
           end do
@@ -1859,7 +1859,7 @@ module mod_bdycod
             mo_atm%qx(j,ice2,k,iqc) = x0*xlb%b0(j,ice2,k)+x1*xlb%b1(j,ice2,k)
           end do
         end if
-        if ( present_qi .and. ipptls > 1 ) then
+        if ( present_qi ) then
           do concurrent ( j = jce1:jce2, k = 1:kz )
             mo_atm%qx(j,ice2,k,iqi) = x0*xib%b0(j,ice2,k)+x1*xib%b1(j,ice2,k)
           end do
@@ -2057,7 +2057,7 @@ module mod_bdycod
               atm1%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k)
             end do
           end if
-          if ( present_qi .and. ipptls > 1 ) then
+          if ( present_qi ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
               atm1%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k)
             end do
@@ -2090,7 +2090,7 @@ module mod_bdycod
               atm1%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k)
             end do
           end if
-          if ( present_qi .and. ipptls > 1 ) then
+          if ( present_qi ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
               atm1%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k)
             end do
@@ -2123,7 +2123,7 @@ module mod_bdycod
               atm1%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k)
             end do
           end if
-          if ( present_qi .and. ipptls > 1 ) then
+          if ( present_qi ) then
             do concurrent ( j = jce1:jce2, k = 1:kz )
               atm1%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k)
             end do
@@ -2156,7 +2156,7 @@ module mod_bdycod
               atm1%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k)
             end do
           end if
-          if ( present_qi .and. ipptls > 1 ) then
+          if ( present_qi ) then
             do concurrent ( j = jce1:jce2, k = 1:kz )
               atm1%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k)
             end do
@@ -2195,7 +2195,7 @@ module mod_bdycod
               atm1%qx(jce1,i,k,iqc) = x0*xlb%b0(jce1,i,k)+x1*xlb%b1(jce1,i,k)
             end do
           end if
-          if ( present_qi .and. ipptls > 1 ) then
+          if ( present_qi ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
               atm1%qx(jce1,i,k,iqi) = x0*xib%b0(jce1,i,k)+x1*xib%b1(jce1,i,k)
             end do
@@ -2231,7 +2231,7 @@ module mod_bdycod
               atm1%qx(jce2,i,k,iqc) = x0*xlb%b0(jce2,i,k)+x1*xlb%b1(jce2,i,k)
             end do
           end if
-          if ( present_qi .and. ipptls > 1 ) then
+          if ( present_qi ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
               atm1%qx(jce2,i,k,iqi) = x0*xib%b0(jce2,i,k)+x1*xib%b1(jce2,i,k)
             end do
@@ -2267,7 +2267,7 @@ module mod_bdycod
               atm1%qx(j,ice1,k,iqc) = x0*xlb%b0(j,ice1,k)+x1*xlb%b1(j,ice1,k)
             end do
           end if
-          if ( present_qi .and. ipptls > 1 ) then
+          if ( present_qi ) then
             do concurrent ( j = jce1:jce2, k = 1:kz )
               atm1%qx(j,ice1,k,iqi) = x0*xib%b0(j,ice1,k)+x1*xib%b1(j,ice1,k)
             end do
@@ -2303,7 +2303,7 @@ module mod_bdycod
               atm1%qx(j,ice2,k,iqc) = x0*xlb%b0(j,ice2,k)+x1*xlb%b1(j,ice2,k)
             end do
           end if
-          if ( present_qi .and. ipptls > 1 ) then
+          if ( present_qi ) then
             do concurrent ( j = jce1:jce2, k = 1:kz )
               atm1%qx(j,ice2,k,iqi) = x0*xib%b0(j,ice2,k)+x1*xib%b1(j,ice2,k)
             end do

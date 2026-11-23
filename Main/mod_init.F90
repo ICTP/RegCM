@@ -53,7 +53,7 @@ module mod_init
     rainout, rainout_io, remdrd, remdrd_io, sfracb2d_io, sfracs2d_io, &
     ssw2da_io, start_chem, svegfrac2d_io, sxlai2d_io, trac_io, voflux_io, &
     washout, washout_io, wetdepflx_io
-  use mod_cu_interface, only : avg_ww, cbmf2d, cldefi, cuscheme
+  use mod_cu_interface, only : avg_ww, cbmf2d, cuscheme
   use mod_pbl_interface, only : tkemin
   use mod_rad_interface, only : absemin, inito3, o3prof, &
     rebuild_radiation_tables, updateo3
@@ -69,7 +69,7 @@ module mod_init
     atm1_tke_io, atm1_u_io, atm1_v_io, atm1_w_io, atm2_pp_io, atm2_qx_io, &
     atm2_t_io, atm2_tke_io, atm2_u_io, atm2_v_io, atm2_w_io, atm_pai_io, &
     atm_qx_io, atm_t_io, atm_tke_io, atm_u_io, atm_v_io, atm_w_io, br_io, &
-    cbmf2d_io, cldefi_io, cu_avg_ww_io, deltas_io, dstor_io, dtrnof_io, &
+    cbmf2d_io, cu_avg_ww_io, deltas_io, dstor_io, dtrnof_io, &
     emisv_io, eta_io, flw_io, flwd_io, fsw_io, gwet_io, heatrt_io, hfx_io, &
     hi_io, hstor_io, kpbl_io, ldew_io, ldmsk1_io, ldmsk_io, lwdifalb_io, &
     lwdiralb_io, o3prof_io, ps_io, psa_io, psb_io, q2m_io, &
@@ -161,13 +161,11 @@ module mod_init
               atm2%qx(j,i,k,iqc) = xlb%b0(j,i,k)
             end do
           end if
-          if ( ipptls > 1 ) then
-            if ( is_present_qi( ) ) then
-              do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-                atm1%qx(j,i,k,iqi) = xib%b0(j,i,k)
-                atm2%qx(j,i,k,iqi) = xib%b0(j,i,k)
-              end do
-            end if
+          if ( is_present_qi( ) ) then
+            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+              atm1%qx(j,i,k,iqi) = xib%b0(j,i,k)
+              atm2%qx(j,i,k,iqi) = xib%b0(j,i,k)
+            end do
           end if
         end if
         if ( idynamic == 1 ) then
@@ -209,23 +207,15 @@ module mod_init
           mo_atm%pai(j,i,k) = xpaib%b0(j,i,k)
           mo_atm%qx(j,i,k,iqv) = xqb%b0(j,i,k)
         end do
-        if ( ipptls > 1 ) then
-          if ( is_present_qc( ) ) then
-            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-              mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
-            end do
-          end if
-          if ( is_present_qi( ) ) then
-            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-              mo_atm%qx(j,i,k,iqi) = xib%b0(j,i,k)
-            end do
-          end if
-        else if ( ipptls == 1 ) then
-          if ( is_present_qc( ) ) then
-            do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-              mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
-            end do
-          end if
+        if ( is_present_qc( ) ) then
+          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+            mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+          end do
+        end if
+        if ( is_present_qi( ) ) then
+          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+            mo_atm%qx(j,i,k,iqi) = xib%b0(j,i,k)
+          end do
         end if
         call moloch_tvirt
         ! Compute pressure and density
@@ -563,9 +553,6 @@ module mod_init
           o3prof = o3prof_io
         end if
         zpbl = zpbl_io
-        if ( any(icup == 3) ) then
-          cldefi = cldefi_io
-        end if
         if ( any(icup == 4) ) then
           cbmf2d = cbmf2d_io
         end if
@@ -749,9 +736,6 @@ module mod_init
           call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
         end if
         call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
-        if ( any(icup == 3) ) then
-          call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
-        end if
         if ( any(icup == 4) ) then
           call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)
         end if
@@ -1087,24 +1071,12 @@ module mod_init
   subroutine moloch_tvirt
     implicit none
     integer(ik4) :: i, j, k
-    if ( ipptls > 1 ) then
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
-               (d_one + ep1*mo_atm%qx(j,i,k,iqv) - &
-                mo_atm%qx(j,i,k,iqc) - mo_atm%qx(j,i,k,iqi) - &
-                mo_atm%qx(j,i,k,iqr) - mo_atm%qx(j,i,k,iqs))
-      end do
-    else if ( ipptls == 1 ) then
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
-               (d_one + ep1*mo_atm%qx(j,i,k,iqv) - mo_atm%qx(j,i,k,iqc))
-      end do
-    else
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
-               (d_one + ep1*mo_atm%qx(j,i,k,iqv))
-      end do
-    end if
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+      mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+             (d_one + ep1*mo_atm%qx(j,i,k,iqv) - &
+              mo_atm%qx(j,i,k,iqc) - mo_atm%qx(j,i,k,iqi) - &
+              mo_atm%qx(j,i,k,iqr) - mo_atm%qx(j,i,k,iqs))
+    end do
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       mo_atm%tetav(j,i,k) = mo_atm%tvirt(j,i,k)/mo_atm%pai(j,i,k)
     end do

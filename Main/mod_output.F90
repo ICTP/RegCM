@@ -107,7 +107,7 @@ module mod_output
   use mod_lm_interface, only : lms
   use mod_rad_interface, only : absemin, o3prof
   use mod_rad_cosp, only : cosp_output
-  use mod_cu_interface, only : avg_ww, cbmf2d, cldefi
+  use mod_cu_interface, only : avg_ww, cbmf2d
   use mod_pbl_interface, only : uwstate
   use mod_micro_interface, only : ngs
   use mod_ncout, only : atm_stream, begin_output_streams_async_batch, &
@@ -121,7 +121,7 @@ module mod_output
     atm1_tke_io, atm1_u_io, atm1_v_io, atm1_w_io, atm2_pp_io, atm2_qx_io, &
     atm2_t_io, atm2_tke_io, atm2_u_io, atm2_v_io, atm2_w_io, atm_pai_io, &
     atm_qx_io, atm_t_io, atm_tke_io, atm_u_io, atm_v_io, atm_w_io, br_io, &
-    cbmf2d_io, cldefi_io, cu_avg_ww_io, deltas_io, dstor_io, dtrnof_io, &
+    cbmf2d_io, cu_avg_ww_io, deltas_io, dstor_io, dtrnof_io, &
     emisv_io, eta_io, flw_io, flwd_io, fsw_io, gwet_io, heatrt_io, hfx_io, &
     hi_io, hstor_io, kpbl_io, ldew_io, ldmsk1_io, ldmsk_io, lwdifalb_io, &
     lwdiralb_io, o3prof_io, ps_io, psa_io, psb_io, q2m_io, &
@@ -1697,12 +1697,12 @@ module mod_output
                 wmass = mo_atm%rho(j,i,k)*mo_atm%dz(j,i,k)/(d_one+rtot)
                 wv = wv + wmass*mo_atm%qx(j,i,k,iqv)
                 wl = wl + wmass*mo_atm%qx(j,i,k,iqc)
-                if ( ipptls > 1 ) wi = wi + wmass*mo_atm%qx(j,i,k,iqi)
+                wi = wi + wmass*mo_atm%qx(j,i,k,iqi)
               else
                 wmass = d_1000*dsigma(k)*regrav/(d_one+rtot)
                 wv = wv + wmass*atm1%qx(j,i,k,iqv)
                 wl = wl + wmass*atm1%qx(j,i,k,iqc)
-                if ( ipptls > 1 ) wi = wi + wmass*atm1%qx(j,i,k,iqi)
+                wi = wi + wmass*atm1%qx(j,i,k,iqi)
               end if
             end do
             if ( associated(rad_totwv_out) ) rad_totwv_out(j,i) = wv
@@ -1902,9 +1902,6 @@ module mod_output
             o3prof_io = o3prof
           end if
           zpbl_io = zpbl
-          if ( any(icup == 3) ) then
-            cldefi_io = cldefi
-          end if
           if ( any(icup == 4) ) then
             cbmf2d_io = cbmf2d
           end if
@@ -2082,9 +2079,6 @@ module mod_output
             call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
           end if
           call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
-          if ( any(icup == 3) ) then
-            call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
-          end if
           if ( any(icup == 4) ) then
             call grid_collect(cbmf2d,cbmf2d_io,jci1,jci2,ici1,ici2)
           end if

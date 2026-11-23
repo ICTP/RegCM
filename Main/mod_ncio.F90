@@ -1502,9 +1502,7 @@ module mod_ncio
     end if
     istatus = nf90_inq_varid(ibcin, 'qi', icbc_ivar(11))
     if ( istatus == nf90_noerr ) then
-      if ( ipptls > 1 ) then
-        has_qi = .true.
-      end if
+      has_qi = .true.
     end if
     call outstream_netcdf_unlock()
     if ( do_parallel_netcdf_in ) then

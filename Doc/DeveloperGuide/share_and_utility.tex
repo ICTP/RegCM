@@ -43,6 +43,8 @@ check failed.
   \code{test\_heatindex} & \code{mod\_heatindex}
     (Section~\ref{sec:heatindex}) \\
   \code{test\_hashrng} & \code{mod\_hashrng} (Section~\ref{sec:hashrng}) \\
+  \code{test\_scheme\_names} & \code{mod\_scheme\_names}
+    (Section~\ref{sec:schemenames}) \\
 \end{longtable}
 
 
@@ -973,7 +975,7 @@ Three variants cover the uses of the model:
     the relative humidity diagnostics (CMIP convention);
   \item suffix \code{l}: over liquid water at every temperature (sea water,
     FAO evapotranspiration, wet bulb temperature, heat index, the schemes
-    designed with liquid saturation such as Kain-Fritsch and Betts-Miller).
+    designed with liquid saturation such as Kain-Fritsch).
 \end{itemize}
 
 \paragraph{Functions.}
@@ -7368,7 +7370,7 @@ drawn with it is the same for any domain decomposition, for any order of
 the loop on the points and on CPU or GPU. A restarted run draws the same
 numbers as a continuous one, because there is no generator state to save.
 The model uses it for the random perturbation of the critical relative
-humidity in \code{subex\_cldfrac} (\code{Main/cloudlib}), with the time
+humidity in \code{sundqvist\_cldfrac} (\code{Main/cloudlib}), with the time
 step \code{rcmtimer\%lcount} as the counter.
 
 \subsection{Dependencies}
@@ -7450,4 +7452,103 @@ $10^5$--$10^6$ points, well below 1\% of the cost of a step.
   \item no correlation between neighbouring points or successive counter
     values;
   \item that different seeds give different streams.
+\end{itemize}
+
+
+%==============================================================================
+\section{Physics Scheme Names --- \texttt{mod\_scheme\_names.F90}}
+\label{sec:schemenames}
+%==============================================================================
+
+\subsection{Overview}
+
+\code{mod\_scheme\_names} holds the names of the physics schemes that are
+selected by name in the \code{physicsparam} namelist group, and the
+integer codes that the model uses internally for them. \code{param}
+(\code{Main/mod\_params.F90}) converts the names read from the namelist
+into the codes, and writes the names back in the settings printout.
+
+\begin{longtable}{L{3.2cm} L{2.2cm} L{8.6cm}}
+  \toprule
+  \textbf{Namelist key} & \textbf{Code} & \textbf{Names (code)} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{pbl\_scheme} & \code{ibltyp} &
+    none (0), holtslag (1), uw (2), gfs (3), myj (4), shin-hong (5) \\
+  \code{cumulus\_land}, \code{cumulus\_ocean} &
+    \code{icup\_lnd}, \code{icup\_ocn} &
+    none (0), shallow ($-1$), grell (2), emanuel (4), tiedtke (5),
+    kain-fritsch (6) \\
+  \code{microphysics} & \code{ipptls} &
+    none (0), noto (2), wsm5 (3), wsm7 (4), wdm7 (5) \\
+  \code{cloud\_fraction} & \code{icldfrac} &
+    sundqvist (0), xu-randall (1), thompson (2), gultepe-isaac (3),
+    teixeira (4), tompkins (5), echam5 (6), digital (7) \\
+  \code{radiation\_scheme} & \code{irrtm} & ccm (0), rrtmg (1) \\
+\end{longtable}
+
+\noindent The codes 1 and 3 of \code{icup} and 1 of \code{ipptls} have
+no scheme and are not used.
+
+\subsection{Dependencies}
+
+\begin{lstlisting}
+mod_scheme_names
+    `-- mod_intkinds
+\end{lstlisting}
+
+\subsection{Interfaces}
+
+The \code{kind} argument is one of \code{'pbl'}, \code{'cumulus'},
+\code{'microphysics'}, \code{'cloud\_fraction'} and \code{'radiation'}.
+
+\begin{longtable}{L{4.5cm} L{9.5cm}}
+  \toprule
+  \textbf{Routine} & \textbf{Description} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \code{scheme\_code(kind, name, msg)} &
+    Integer code of the scheme \code{name} of the kind. For a name that is
+    not a scheme of the kind it returns the public parameter
+    \code{unknown\_scheme} ($-9999$), and \code{msg} explains why: the
+    list of the valid names, or a specific message for the names
+    \code{kuo}, \code{betts-miller}, \code{bm} (cumulus) and \code{subex}
+    (microphysics and cloud fraction). \code{msg} is blank otherwise. \\
+  \code{scheme\_name(kind, code)} &
+    Name of the scheme of the kind with the code, \code{'unknown'} if
+    there is none. \\
+  \code{scheme\_list(kind)} &
+    The names of the schemes of the kind, comma separated, in the order
+    of the table. \\
+\end{longtable}
+
+\subsection{Design Notes}
+
+\textbf{Normalisation.} Before the look-up the name is left adjusted,
+converted to lower case and every \code{'\_'} becomes \code{'-'}, so
+\code{Kain\_Fritsch}, \code{kain-fritsch} and \code{KAIN-FRITSCH} are the
+same name. The names are at most 16 characters.
+
+\textbf{Aliases.} \code{kf} and \code{kainfritsch} are accepted for
+\code{kain-fritsch}, \code{shinhong} for \code{shin-hong}, \code{xuran} and
+\code{xurandall} for \code{xu-randall}, \code{frictionless} for
+\code{none}.
+
+\textbf{Adding a scheme.} A new scheme is an entry (name and code) in the
+table of its kind; the dimension of the table parameter grows by one.
+
+\textbf{Testing.} \code{Testing/share/test\_scheme\_names.F90} checks:
+\begin{itemize}
+  \item the code of every name of every kind;
+  \item that the look-up ignores case, separators and leading blanks, and
+    the aliases;
+  \item the messages for the names \code{kuo}, \code{betts-miller} and
+    \code{subex}, for an unknown name (the message lists the valid names)
+    and for an unknown kind;
+  \item the name back from a code, \code{'unknown'} for a code without a
+    scheme, and the list of the radiation schemes.
 \end{itemize}

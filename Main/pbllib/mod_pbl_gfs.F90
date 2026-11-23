@@ -401,7 +401,7 @@ module mod_pbl_gfs
       do k = 1, km
         do i = 1, im
           theta(i,k) = to(i,k) * psk(i) / prslk(i,k)
-          if ( ipptls > 1 .and. nqx >= 3 ) then
+          if ( nqx >= 3 ) then
             qlx(i,k) = max(qo(i,k,2) + qo(i,k,3), qlmin)
           else
             qlx(i,k) = max(qo(i,k,2), qlmin)

@@ -103,7 +103,6 @@ module mod_pbl_uwtcm
   !integer(ik4), parameter :: itbound = 100
 
   ! Flag for implicit diffusion of ice
-  logical, parameter :: implicit_ice = .true.
 
   public :: allocate_tcm_state
   public :: init_mod_pbl_uwtcm
@@ -130,10 +129,10 @@ module mod_pbl_uwtcm
     type(mod_2_pbl), intent(in) :: m2p
     type(pbl_2_mod), intent(inout) :: p2m
     integer(ik4) ::  i, j
-    real(rkx) :: temps, templ, deltat, rvls, rpfac, tbbls
+    real(rkx) :: templ, rpfac, tbbls
     real(rkx) :: uflxp, vflxp, rhoxsf, tskx, tvcon, fracz, dudz, &
                  dvdz, thgb, pblx, uu, qfxx, hfxx, uvdragx, &
-                 q0s, tvfac, svs, cpoxlv, pfcor, ustx, leff, qt_liq
+                 q0s, tvfac, svs, pfcor, ustx, qt_liq
     real(rkx) :: rhc0, zsig, dqc
     ! real(rkx) :: kh0, thvflx
     real(rkx) :: thv0, thx_t, thvx_t, dthv, dthv_t
@@ -153,8 +152,8 @@ module mod_pbl_uwtcm
     real(rkx), dimension(maxvert) :: qix, qixs
     ! Critical relative humidity for the subgrid condensation
     real(rkx), dimension(maxvert) :: rhcx
-    ! Ice-decoupled arrays for n2(): qwx without qi, thlx corrected for qi.
-    ! n2() solves a liquid+vapour saturation problem; feeding it qwx+qi causes
+    ! Ice-decoupled arrays for n2sg(): qwx without qi, thlx corrected for qi.
+    ! n2sg() solves a liquid+vapour saturation problem; feeding it qwx+qi causes
     ! rcldb = max(qwx+qi-rvls,0) to overcount condensate, which can flip the
     ! sign of nsquar and drive a spurious TKE explosion.
     real(rkx), dimension(maxvert) :: qwxliq, thlxliq
@@ -244,23 +243,19 @@ module mod_pbl_uwtcm
         ocp(k) = d_one/cp(k)
       end do
 
-      if ( ipptls > 1 ) then
-        ! As in NoTo: rhcrit, increased to 1 towards the surface
-        do k = 1, kz
-          zsig = preshl(k)/presfl(kzp1)
-          rhcx(k) = rhc0
-          if ( zsig > rhcrit_siglow ) then
-            rhcx(k) = rhc0 + (d_one-rhc0) * &
-              ((zsig-rhcrit_siglow)/(d_one-rhcrit_siglow))**2
-          end if
-        end do
-      end if
+      ! As in NoTo: rhcrit, increased to 1 towards the surface
+      do k = 1, kz
+        zsig = preshl(k)/presfl(kzp1)
+        rhcx(k) = rhc0
+        if ( zsig > rhcrit_siglow ) then
+          rhcx(k) = rhc0 + (d_one-rhc0) * &
+            ((zsig-rhcrit_siglow)/(d_one-rhcrit_siglow))**2
+        end if
+      end do
 
-      if ( implicit_ice .and. ipptls > 1 ) then
-        do k = 1, kz
-          qix(k) = m2p%qxatm(j,i,k,iqi)
-        end do
-      end if
+      do k = 1, kz
+        qix(k) = m2p%qxatm(j,i,k,iqi)
+      end do
 
       if ( ichem == 1 ) then
         do itr = 1, ntr
@@ -282,30 +277,17 @@ module mod_pbl_uwtcm
         thx(k) = tx(k)*rexnerhl(k)
       end do
 
-      if ( ipptls > 1 ) then
-        do k = 1, kz
-          ! Total water mixing ratio
-          qwx(k) = qx(k) + qcx(k) + qix(k)
-          ! Virtual temperature and potential temperature
-          tvcon = d_one + ep1*qx(k) - qcx(k) - qix(k)
-          tvx(k) = tx(k)*tvcon ! virtual temperature
-          uthvx(k) = thx(k)*tvcon ! vitual potential temperature
-          ! Water potential temperature (accounting for ice)
-          thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k) - &
-                   wlhs*qix(k)*ocp(k)*rexnerhl(k)
-        end do
-      else
-        do k = 1, kz
-          ! Total water mixing ratio
-          qwx(k) = qx(k) + qcx(k)
-          ! Virtual temperature and potential temperature
-          tvcon = d_one + ep1*qx(k)-qcx(k)
-          tvx(k) = tx(k)*tvcon ! virtual temperature
-          uthvx(k) = thx(k)*tvcon ! vitual potential temperature
-          ! Liquid water potential temperature
-          thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k)
-        end do
-      end if
+      do k = 1, kz
+        ! Total water mixing ratio
+        qwx(k) = qx(k) + qcx(k) + qix(k)
+        ! Virtual temperature and potential temperature
+        tvcon = d_one + ep1*qx(k) - qcx(k) - qix(k)
+        tvx(k) = tx(k)*tvcon ! virtual temperature
+        uthvx(k) = thx(k)*tvcon ! vitual potential temperature
+        ! Water potential temperature (accounting for ice)
+        thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k) - &
+                 wlhs*qix(k)*ocp(k)*rexnerhl(k)
+      end do
 
       ! save initial values
       do k = 1, kz
@@ -327,40 +309,30 @@ module mod_pbl_uwtcm
         rrhoxhl(k) = d_one/rhoxhl(k)
       end do
 
-      if ( implicit_ice .and. ipptls > 1 ) then
-        do k = 1, kz
-          qixs(k) = qix(k)
-        end do
-      end if
+      do k = 1, kz
+        qixs(k) = qix(k)
+      end do
 
-      ! Build ice-decoupled arrays used by n2() and pblhgt/radib.
+      ! Build ice-decoupled arrays used by n2sg() and pblhgt/radib.
       !
-      ! n2() diagnoses moist buoyancy by finding condensate as
+      ! n2sg() diagnoses moist buoyancy by finding condensate as
       !   rcldb = max(qwxin - rvls, 0).
       ! If qwxin includes qi, rcldb overcounts condensate (qi is already
       ! condensed and should not be compared against rvls again), which can
       ! flip the sign of nsquar in mixed-phase layers and cause a TKE
       ! explosion.
       !
-      ! The correct inputs for n2() are:
+      ! The correct inputs for n2sg() are:
       !   thlxliq = thlx + Ls*qi/(cp*Pi)  [ice latent heat added back]
       !           = theta - Lv*ql/(cp*Pi)  [liquid-only liquid-water pot. temp]
       !   qwxliq  = qwx - qi              [liquid + vapour only]
       !
       ! qtotcx = ql + qi for cloud-top detection in radib and pblhgt.
-      if ( implicit_ice .and. ipptls > 1 ) then
-        do k = 1, kz
-          qwxliq(k)  = qwx(k) - qix(k)
-          thlxliq(k) = thlx(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
-          qtotcx(k)  = qcx(k) + qix(k)
-        end do
-      else
-        do k = 1, kz
-          qwxliq(k)  = qwx(k)
-          thlxliq(k) = thlx(k)
-          qtotcx(k)  = qcx(k)
-        end do
-      end if
+      do k = 1, kz
+        qwxliq(k)  = qwx(k) - qix(k)
+        thlxliq(k) = thlx(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
+        qtotcx(k)  = qcx(k) + qix(k)
+      end do
 
       if ( ichem == 1 ) then
         do itr = 1, ntr
@@ -444,13 +416,8 @@ module mod_pbl_uwtcm
       ! Pass ice-decoupled thlxliq/qwxliq so n2 solves only the liquid+vapour
       ! saturation problem. Feeding qwx+qi would make rcldb overcount condensate
       ! and can spuriously flip the sign of nsquar, triggering TKE explosion.
-      if ( ipptls > 1 ) then
-        call n2sg(kz,thlxliq,qwxliq,exnerfl,exnerhl,presfl,preshl,cp, &
-                  rhcx,rdza,rcldb,nsquar)
-      else
-        call n2(kz,thlxliq,qwxliq,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
-                orlv,rdza,rcldb,nsquar)
-      end if
+      call n2sg(kz,thlxliq,qwxliq,exnerfl,exnerhl,presfl,preshl,cp, &
+                rhcx,rdza,rcldb,nsquar)
       ! Estimate the surface N^2 from the surface virtual heat flux
       ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
       nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
@@ -519,7 +486,7 @@ module mod_pbl_uwtcm
         ! temperature profile (this is for the semi-implicit integration).
         ! uimp2 = diffused qwx (includes qi);
         ! uimp1 = diffused thlx (includes Ls*qi).
-        ! Decouple ice before calling n2() as the outer call:
+        ! Decouple ice before calling n2sg() as the outer call:
         ! n2 must receive the liquid+vapour-only qwxliq and the ice-corrected
         ! thlxliq so that rcldb = max(qwxliq-rvls,0) counts only liquid
         ! condensate.
@@ -527,28 +494,18 @@ module mod_pbl_uwtcm
         ! diffusion happens after the melloryamada iteration), which is the
         ! best estimate available here.
         uimp2 = max(uimp2, minqq)
-        if ( implicit_ice .and. ipptls > 1 ) then
-          do k = 1, kz
-            qwxliq(k)  = uimp2(k) - qix(k)
-            thlxliq(k) = uimp1(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
-          end do
-          call n2sg(kz,thlxliq,qwxliq,exnerfl,exnerhl,presfl,preshl,cp, &
-                    rhcx,rdza,rcldb,nsquar)
-        else
-          call n2(kz,uimp1,uimp2,exnerfl,rexnerfl,presfl,cp,rlv,ocp, &
-                  orlv,rdza,rcldb,nsquar)
-        end if
+        do k = 1, kz
+          qwxliq(k)  = uimp2(k) - qix(k)
+          thlxliq(k) = uimp1(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
+        end do
+        call n2sg(kz,thlxliq,qwxliq,exnerfl,exnerhl,presfl,preshl,cp, &
+                  rhcx,rdza,rcldb,nsquar)
         ! Invert thlx -> thx at lowest level for the surface N^2 estimate.
         ! thlx = theta - Lv*ql/(cp*Pi) - Ls*qi/(cp*Pi), so add both back.
         ! qcx/qix are pre-diffusion values -- best estimate available here.
-        if ( implicit_ice .and. ipptls > 1 ) then
-          thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz) + &
-                  ocp(kz)*wlhs*qix(kz)*rexnerhl(kz)
-          tvcon = d_one + ep1*qx(kz) - qcx(kz) - qix(kz)
-        else
-          thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz)
-          tvcon = d_one + ep1*qx(kz) - qcx(kz)
-        end if
+        thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz) + &
+                ocp(kz)*wlhs*qix(kz)*rexnerhl(kz)
+        tvcon = d_one + ep1*qx(kz) - qcx(kz) - qix(kz)
         thvx_t = thx_t*tvcon
         dthv_t = (thvx_t-thv0)
         nsquar(kzp1) = egrav/thvx_t * dthv_t/zax(kz)
@@ -578,46 +535,22 @@ module mod_pbl_uwtcm
           thlx(k) = uimp1(k)
           qwx(k)  = uimp2(k)
 
-          if ( implicit_ice .and. ipptls > 1 ) then
-            ! Decouple the already-known qi before the Newton iteration.
-            ! qt_liq = qv + ql; templ satisfies T = templ + Lv*ql/cp exactly.
-            qt_liq = qwx(k) - qix(k)
-            templ  = (thlx(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)) * exnerhl(k)
-          else
-            qt_liq = qwx(k)
-            templ  = thlx(k) * exnerhl(k)
-          end if
+          ! Decouple the already-known qi before the Newton iteration.
+          ! qt_liq = qv + ql; templ satisfies T = templ + Lv*ql/cp exactly.
+          qt_liq = qwx(k) - qix(k)
+          templ  = (thlx(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)) * exnerhl(k)
 
-          if ( ipptls > 1 ) then
-            ! Subgrid condensation, consistent with the microphysics:
-            ! condensate exists from RH = rhc (NoTo cloud generation
-            ! threshold), so the grid-scale adjustment would evaporate
-            ! the subgrid clouds on every call. Only the change of the
-            ! subgrid diagnosed condensate between the states before
-            ! and after mixing is applied to the existing cloud water:
-            ! no mixing, no phase change.
-            dqc = sgcond(templ,qt_liq,preshl(k),rhcx(k),cp(k)) - &
-                  sgcond(tx(k)-wlhv*qcxs(k)*ocp(k),qxs(k)+qcxs(k), &
-                         preshl(k),rhcx(k),cp(k))
-            qcx(k) = min(max(qcxs(k)+dqc,d_zero),qt_liq)
-          else
-            ! Newton iteration for liquid+vapour only.
-            ! Uses wlhv (constant Lv, as rlv) because the ice enthalpy is
-            ! in templ.
-            temps  = templ
-            rvls   = pfwsat(temps, preshl(k))
-            cpoxlv = cp(k) / wlhv
-            do iteration = 1, 3
-              deltat = ((templ - temps)*cpoxlv + qt_liq - rvls) / &
-                       (cpoxlv + ep2*wlhv*rvls/rgas/temps/temps)
-              if ( abs(deltat) < 0.01_rkx ) exit
-              temps = temps + deltat
-              rvls  = pfwsat(temps, preshl(k))
-            end do
-
-            ! Phase split: grid-scale saturation adjustment
-            qcx(k) = max(qt_liq - rvls, d_zero)
-          end if
+          ! Subgrid condensation, consistent with the microphysics:
+          ! condensate exists from RH = rhc (NoTo cloud generation
+          ! threshold), so the grid-scale adjustment would evaporate
+          ! the subgrid clouds on every call. Only the change of the
+          ! subgrid diagnosed condensate between the states before
+          ! and after mixing is applied to the existing cloud water:
+          ! no mixing, no phase change.
+          dqc = sgcond(templ,qt_liq,preshl(k),rhcx(k),cp(k)) - &
+                sgcond(tx(k)-wlhv*qcxs(k)*ocp(k),qxs(k)+qcxs(k), &
+                       preshl(k),rhcx(k),cp(k))
+          qcx(k) = min(max(qcxs(k)+dqc,d_zero),qt_liq)
           ! Liquid, vapour, ice (already known)
           qx(k)  = qt_liq - qcx(k)
           ! qix(k) unchanged -- from its own implicit diffusion
@@ -626,28 +559,16 @@ module mod_pbl_uwtcm
           thx(k) = (templ + wlhv*qcx(k)*ocp(k)) * rexnerhl(k)
 
           ! Virtual potential temperature: all condensate loading
-          if ( implicit_ice .and. ipptls > 1 ) then
-            uthvx(k) = thx(k) * (d_one + ep1*qx(k) - qcx(k) - qix(k))
-          else
-            uthvx(k) = thx(k) * (d_one + ep1*qx(k) - qcx(k))
-          end if
+          uthvx(k) = thx(k) * (d_one + ep1*qx(k) - qcx(k) - qix(k))
         end do
 
         ! Update ice-decoupled arrays to reflect post-diffusion thlx/qwx
         ! (qix is still pre-ice-diffusion here; updated below at line ~530)
-        if ( implicit_ice .and. ipptls > 1 ) then
-          do k = 1, kz
-            qwxliq(k)  = qwx(k) - qix(k)
-            thlxliq(k) = thlx(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
-            qtotcx(k)  = qcx(k) + qix(k)
-          end do
-        else
-          do k = 1, kz
-            qwxliq(k)  = qwx(k)
-            thlxliq(k) = thlx(k)
-            qtotcx(k)  = qcx(k)
-          end do
-        end if
+        do k = 1, kz
+          qwxliq(k)  = qwx(k) - qix(k)
+          thlxliq(k) = thlx(k) + wlhs*qix(k)*ocp(k)*rexnerhl(k)
+          qtotcx(k)  = qcx(k) + qix(k)
+        end do
       !end if
 
       !*************************************************************
@@ -681,33 +602,31 @@ module mod_pbl_uwtcm
         vx(k) = uimp2(k)
       end do updatewind
 
-      if ( implicit_ice .and. ipptls > 1 ) then
-        !
-        ! Implicit diffusion of cloud ice
-        !
-        aimp(1) = d_zero
-        do  k = 2, kz
-          aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
-        end do
-        do  k = 1, kzm1
-          cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*kth(k+1)*dt*rdzq(k)*rdza(k+1)
-        end do
-        cimp(kz) = d_zero
-        do  k = 1, kz
-          bimp(k) = d_one - aimp(k) - cimp(k)
-        end do
-        do  k = 1, kz
-          rimp1(k) = qix(k)
-        end do
-        call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
-        do  k = 1, kz
-          qix(k) = max(uimp1(k),d_zero)
-        end do
-        ! Refresh qtotcx now that qix is its final post-diffusion value
-        do k = 1, kz
-          qtotcx(k) = qcx(k) + qix(k)
-        end do
-      end if
+      !
+      ! Implicit diffusion of cloud ice
+      !
+      aimp(1) = d_zero
+      do  k = 2, kz
+        aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
+      end do
+      do  k = 1, kzm1
+        cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*kth(k+1)*dt*rdzq(k)*rdza(k+1)
+      end do
+      cimp(kz) = d_zero
+      do  k = 1, kz
+        bimp(k) = d_one - aimp(k) - cimp(k)
+      end do
+      do  k = 1, kz
+        rimp1(k) = qix(k)
+      end do
+      call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
+      do  k = 1, kz
+        qix(k) = max(uimp1(k),d_zero)
+      end do
+      ! Refresh qtotcx now that qix is its final post-diffusion value
+      do k = 1, kz
+        qtotcx(k) = qcx(k) + qix(k)
+      end do
 
       !*************************************************************
       !****** Implicit Diffusion of tracers ************************
@@ -881,11 +800,9 @@ module mod_pbl_uwtcm
         p2m%tketen(j,i,k) = p2m%tketen(j,i,k) + (tke(k)-tkes(k))*rdt
       end do
 
-      if ( implicit_ice .and. ipptls > 1 ) then
-        do k = 1, kz
-          p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi)+rpfac*(qix(k)-qixs(k))
-        end do
-      end if
+      do k = 1, kz
+        p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi)+rpfac*(qix(k)-qixs(k))
+      end do
 
       if ( ichem == 1 ) then
         do itr = 1, ntr
@@ -1045,54 +962,6 @@ module mod_pbl_uwtcm
       x(i) = (vp(i) - c(i)*x(i+1))/bp(i)
     end do backsub
   end subroutine solve_tridiag
-
-  pure subroutine n2(kz,thlxin,qwxin,exnerfl,rexnerfl,presfl,cp,rlv, &
-                     ocp,orlv,rdza,rcldb,nsquar)
-!$acc routine seq
-    implicit none
-    integer(ik4), intent(in) :: kz
-    real(rkx), intent(in), dimension(kz) :: thlxin, qwxin, rdza
-    real(rkx), intent(in), dimension(kz+1) :: exnerfl, rexnerfl, presfl
-    real(rkx), intent(in), dimension(kz) :: cp, rlv
-    real(rkx), intent(in), dimension(kz) :: ocp, orlv
-    real(rkx), intent(out), dimension(kz+1) :: rcldb
-    real(rkx), intent(out), dimension(kz+1) :: nsquar
-    ! local variables
-    real(rkx) :: tvbl, rcld, tvab, thvxfl, dtvdz
-    real(rkx) :: temps, templ, tempv, rvls, cpoxlv, leff
-    integer(ik4) :: k
-
-    do k = 2, kz
-      ! buoyancy is jump in thetav across flux level/dza
-      ! first, layer below, go up and see if anything condenses.
-      templ = thlxin(k)*exnerfl(k)
-      call pfmxsat(templ, presfl(k), rvls, leff)
-      cpoxlv = cp(k)/leff
-      temps = templ + (qwxin(k)-rvls)/(cpoxlv + &
-                    ep2*leff*rvls/(rgas*templ*templ))
-      call pfmxsat(temps, presfl(k), rvls, leff)
-      rcldb(k) = max(qwxin(k)-rvls,d_zero)
-      tempv = (templ + leff/cp(k)*rcldb(k)) * &
-              (d_one + ep1*(qwxin(k)-rcldb(k)) - rcldb(k))
-      tvbl = tempv*rexnerfl(k)
-      ! now do layer above; go down to see how much evaporates
-      templ = thlxin(k-1)*exnerfl(k)
-      call pfmxsat(templ, presfl(k), rvls, leff)
-      cpoxlv = cp(k)/leff
-      temps = templ + (qwxin(k-1)-rvls)/(cpoxlv + &
-                    ep2*leff*rvls/(rgas*templ*templ))
-      call pfmxsat(temps, presfl(k), rvls, leff)
-      rcld = max(qwxin(k-1)-rvls,d_zero)
-      tempv = (templ + leff/cp(k)*rcld) * &
-              (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
-      tvab = tempv*rexnerfl(k)
-
-      thvxfl = d_half * (tvab+tvbl)
-      dtvdz = (tvab - tvbl) * rdza(k)
-      nsquar(k) = egrav/thvxfl * dtvdz
-    end do
-    nsquar(1) = nsquar(2)
-  end subroutine n2
 
   pure subroutine melloryamada(kz,thlxin,qwxin,ocp,rlv,tke,rcldb,nsquar,bbls, &
                                thx,rexnerhl,ktop,kpbconv,kethl,kzm,kth,nuk, &

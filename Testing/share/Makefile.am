@@ -27,7 +27,8 @@ check_PROGRAMS = test_date test_spbarcoord test_projections test_hgt \
                  test_ncstream test_async_netcdf test_domain test_stdatm \
                  test_wavelet test_ensemble test_sunorbit test_intldtr \
                  test_rdldtr test_posix test_capecin test_nhinterp \
-                 test_heatindex test_hashrng test_saturation
+                 test_heatindex test_hashrng test_saturation \
+                 test_scheme_names
 test_date_SOURCES = share_test_utils.F90 test_date.F90
 test_spbarcoord_SOURCES = share_test_utils.F90 test_spbarcoord.F90
 test_projections_SOURCES = share_test_utils.F90 test_projections.F90
@@ -55,6 +56,7 @@ test_nhinterp_SOURCES = share_test_utils.F90 test_nhinterp.F90
 test_heatindex_SOURCES = share_test_utils.F90 test_heatindex.F90
 test_hashrng_SOURCES = share_test_utils.F90 test_hashrng.F90
 test_saturation_SOURCES = share_test_utils.F90 test_saturation.F90
+test_scheme_names_SOURCES = share_test_utils.F90 test_scheme_names.F90
 LDADD = $(OMPFLAGS)
 
 FCLD = $(MPIFC)
@@ -109,3 +111,4 @@ test_capecin.o : test_capecin.F90 share_test_utils.o mod_intkinds.o mod_realkind
 test_nhinterp.o : test_nhinterp.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_constants.o mod_memutil.o mod_nhinterp.o
 test_heatindex.o : test_heatindex.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_heatindex.o
 test_hashrng.o : test_hashrng.F90 share_test_utils.o mod_intkinds.o mod_realkinds.o mod_hashrng.o
+test_scheme_names.o : test_scheme_names.F90 share_test_utils.o mod_intkinds.o mod_scheme_names.o

@@ -12,7 +12,7 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # Python wrapper of the coupled Holtslag + Tiedtke (or Kain-Fritsch,
-# --set icumulus=6) single column test (scm_coupled).
+# --set cumulus=kain-fritsch) single column test (scm_coupled).
 #
 # Runs the Fortran program on the Amazon case with namelist settings given
 # on the command line and prints per column the mean daily rain (from the
@@ -54,9 +54,9 @@ GROUPS = {
                  'tgtfile', 'tauwtg', 'zwtg', 'tauwind', 'windfac', 'omfac',
                  'iocnflux', 'izengrough', 'ocnsw', 'ocnlw', 'lnoto',
                  'irad', 'dtrad', 'dtabem', 'albland', 'scenario',
-                 'icumulus', 'lgeos', 'ustarfix', 'icldfrac', 'ladvt',
-                 'isplit', 'csplit', 'ipbl', 'imicro', 'irrtm',
-                 'rrtmdir'],
+                 'cumulus', 'lgeos', 'ustarfix', 'cloud_fraction', 'ladvt',
+                 'isplit', 'csplit', 'pbl_scheme', 'microphysics',
+                 'radiation_scheme', 'rrtmdir'],
     'rrtmparam': ['inflgsw', 'iceflgsw', 'liqflgsw', 'inflglw', 'iceflglw',
                   'liqflglw', 'icld', 'irng', 'imcica'],
     'kfparam': ['kf_min_pef', 'kf_max_pef', 'kf_entrate', 'kf_dpp',
@@ -71,7 +71,7 @@ GROUPS = {
         'lmfcapebl', 'lmfcapeforc', 'rtaucape',
         'rtaufac'],
     'cldparam': ['kfac_deep', 'kfac_shal', 'k2_const', 'iconvcf',
-                 'rh0oce', 'rh0land', 'tc0', 'rhmin', 'rhmax',
+                 'rh0oce', 'rh0land', 'rhmin', 'rhmax',
                  'larcticcorr'],
     'microparam': ['nssopt', 'iautoconv', 'vfqs', 'auto_rate_khair',
                    'auto_rate_kessl', 'auto_rate_klepi', 'rkconv',

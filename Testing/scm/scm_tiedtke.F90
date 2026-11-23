@@ -35,7 +35,7 @@ program scm_tiedtke
     ici2, idi1, idi2, idynamic, jce1, jce1ga, jce1gb, jce2, jce2ga, jce2gb, &
     jci1, jci2, jdi1, jdi2, kz, kzm1, kzp1, ntr
   use mod_runparams, only : detrpen_lnd, detrpen_ocn, dtcum, dx, entrdd, &
-    entrpen_lnd, entrpen_ocn, entshalp, iaerosol, ichem, iconvcf, icumcloud, &
+    entrpen_lnd, entrpen_ocn, entshalp, iaerosol, ichem, iconvcf, &
     icup, icup_lnd, icup_ocn, iindirect, ipptls, iqc, iqi, iqv, k2_const, &
     kfac_deep, kfac_shal, lepcld, lmfcapebl, lmfcapeforc, lmfdd, lmfdudv, &
     lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, nqx, &
@@ -137,7 +137,6 @@ program scm_tiedtke
   ichem = 0
   iaerosol = 0
   iindirect = 0
-  icumcloud = 1
   ntr = 0
   dx = dxkm * 1000.0_rkx
 

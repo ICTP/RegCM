@@ -4,9 +4,9 @@ Single column tests of the RegCM physics schemes
 The programs here call one physics scheme through its model entry point
 on a set of atmospheric columns, without the dynamical core. They are
 regression tests ("make check") and a quick way to look at the response
-of a scheme to its parameters. For now: the Tiedtke cumulus scheme
-(icup = 5) and the Holtslag boundary layer scheme (ibltyp = 1), alone
-and together in a time integration (scm_coupled).
+of a scheme to its parameters. For now: the Tiedtke cumulus scheme and
+the Holtslag boundary layer scheme, alone and together in a time
+integration (scm_coupled).
 
 Files
 -----
@@ -117,8 +117,8 @@ T, q, u, v after nsteps. The comparison is exact for the PBL top level.
 
 Coupled test
 ------------
-scm_coupled calls tiedtkedrv (or kfdrv with icumulus = 6), the SUBEX
-cloud fraction and nogtom (NoTo),
+scm_coupled calls tiedtkedrv (or kfdrv with cumulus = 'kain-fritsch'),
+the Sundqvist cloud fraction and nogtom (NoTo),
 and holtbl every dtstep (300 s) on the same state, as the MOLOCH core
 does, and advances the state with their
 tendencies plus the large scale forcing: the input tendencies of the
@@ -153,6 +153,10 @@ cloud fraction seen by the radiation, the radiative heating, the in-cloud
 water seen by the radiation and the large scale cloud fraction of the
 cloud scheme (cfls, also the cloud cover of NoTo).
 
+The schemes are selected by name in &scmparam, as in &physicsparam of
+the model (case insensitive, '-' or '_'): pbl_scheme, cumulus,
+microphysics, cloud_fraction and radiation_scheme (see below).
+
 Options of &scmparam beyond the forcing above:
   tauwind, windfac   winds relax to windfac times the target winds in
                      tauwind (0, default: Coriolis around the initial
@@ -168,9 +172,9 @@ Options of &scmparam beyond the forcing above:
                      each on the state left by the ones before;
                      Tiedtke gets the state after the forcing and the
                      tendencies of the physics before it (IFS)
-  icldfrac           large scale cloud fraction of NoTo and the
-                     radiation: 0 SUBEX (default), 1 Xu-Randall on the
-                     cloud water and ice
+  cloud_fraction     large scale cloud fraction of NoTo and the
+                     radiation: 'sundqvist' (default), 'xu-randall' on
+                     the cloud water and ice
   lgeos              with tauwind = 0, Coriolis around the target winds
                      (the geostrophic wind) instead of the initial ones
   ustarfix           friction velocity (m/s) of the surface drag of land
@@ -199,7 +203,7 @@ days (its default) the mean daily rain is stable to about 0.1 mm/day:
   ./scm_coupled.py                            30 days, rain and diurnal
                                               cycle against ERA5
   ./scm_coupled.py --set lmfcapebl=.false.
-  ./scm_coupled.py --set icumulus=6           Kain-Fritsch
+  ./scm_coupled.py --set cumulus=kain-fritsch Kain-Fritsch
   ./scm_coupled.py --sweep zhnew_fac=0.0,0.25,0.5
   ./scm_coupled.py --profiles scm_itcz.txt --set tauwind=10800 \
                    --sweep tauwtg=0,10800
@@ -216,7 +220,7 @@ with WTG and wind relaxation), and the same two cases with the
 Kain-Fritsch cumulus against reference/scm_coupled_kf_amazon.dig and
 scm_coupled_kf_itcz.dig.
 
-Kain-Fritsch (icumulus = 6, parameters in &kfparam) gets as vertical
+Kain-Fritsch (cumulus = 'kain-fritsch', parameters in &kfparam) gets as vertical
 velocity of its trigger the one of the large scale omega, -omega/(rho
 g): a smooth few mm/s, while in the 3D model it is the resolved,
 noisier, vertical velocity, so in the column KF triggers less often
@@ -228,14 +232,16 @@ compiler or other flags grow into different rain events: the reference
 holds only for the build it was made with. The reference digests are
 rewritten with SCM_UPDATE=1 make check (see Running).
 
-Emanuel (icumulus = 4, &emanparam) and Grell (icumulus = 2, &grellparam,
+Emanuel (cumulus = 'emanuel', &emanparam) and Grell (cumulus = 'grell',
+&grellparam,
 the land or ocean parameters by column, highest cloud base from skbmax)
 get the state and, as in the model, no input tendencies; their tendencies
 of temperature and humidity go to NoTo with the others, and the mfu and
 cloud type columns are as for Kain-Fritsch. "make check" runs the Amazon
 and ITCZ cases with them (scm_coupled_em_*, scm_coupled_grell_*).
 
-Radiation (irrtm in &scmparam): 0 CCM (default), 1 RRTMG, with the tables
+Radiation (radiation_scheme in &scmparam): 'ccm' (default), 'rrtmg', with
+the tables
 rrtmg_sw.nc and rrtmg_lw.nc of rrtmdir (RegCM_Data/RRTM, not in the
 repository) and the options of &rrtmparam, on the levels of the column
 (no standard atmosphere above its top, rrtm_extend = .false.). "make
@@ -243,24 +249,26 @@ check" runs FIRE with RRTMG only if SCM_RRTMDIR gives the directory of the
 tables:
 
   SCM_RRTMDIR=/path/to/RegCM_Data/RRTM make check
-  ./scm_les.py fire --set irrtm=1 --set rrtmdir=/path/to/RegCM_Data/RRTM
+  ./scm_les.py fire --set radiation_scheme=rrtmg \
+                    --set rrtmdir=/path/to/RegCM_Data/RRTM
 
-Microphysics (imicro in &scmparam, the ipptls of the model): 2 NoTo
-(default), 3 WSM5, 4 WSM7 (graupel and hail), 5 WDM7 (double moment).
+Microphysics (microphysics in &scmparam, as in the model): 'noto'
+(default), 'wsm5', 'wsm7' (graupel and hail), 'wdm7' (double moment).
 WSM/WDM get the state and the cumulus tendencies, the detrained
 condensate of Tiedtke included (no qdetr), as in the model; the cloud
-fraction for radiation is still the one of icldfrac. "make check" runs
+fraction for radiation is still the one of cloud_fraction. "make check" runs
 FIRE with WSM5 and WDM7 and the Amazon with WSM7.
 
-Boundary layer schemes (ipbl in &scmparam, the ibltyp of the model): 1
-Holtslag (default), 2 UW (&uwparam), 4 MYJ, 5 Shin-Hong. The turbulent
+Boundary layer schemes (pbl_scheme in &scmparam, as in the model):
+'holtslag' (default), 'uw' (&uwparam), 'myj', 'shin-hong'. The turbulent
 kinetic energy of UW (prognostic, half levels) and of MYJ and Shin-Hong
 (kept by the schemes) starts at the minimum of the scheme; the 10 m wind
 and 2 m humidity are the ones of the ocean scheme on the ocean columns,
 elsewhere the neutral log law wind at 10 m and the humidity of the lowest
 level. "make check" runs BOMEX with each of them.
 
-  ./scm_les.py fire --sweep ipbl=1,2,4,5      the four schemes on FIRE
+  ./scm_les.py fire --sweep pbl_scheme=holtslag,uw,myj,shin-hong
+                                              the four schemes on FIRE
 
 Shallow cumulus and stratocumulus cases (BOMEX, RICO, FIRE)
 -----------------------------------------------------------
@@ -298,7 +306,7 @@ cloud fraction against the LES range, and the profiles over the
 evaluation window (BOMEX hours 3-6, RICO 20-24, FIRE the whole day):
 
   ./scm_les.py bomex
-  ./scm_les.py rico --set icumulus=6
+  ./scm_les.py rico --set cumulus=kain-fritsch
   ./scm_les.py rico --sweep entshalp=1.0,2.0,3.0
   ./scm_les.py fire --set rh0oce=0.93
   ./scm_les.py fire --set lqtmix=.true.       Holtslag total water mixing

@@ -253,9 +253,9 @@ the value of every namelist parameter used by the run, grouped by topic
 (dynamical core, radiation, clouds, microphysics, convection, PBL,
 chemistry, coupling). Only the parameters of the schemes actually selected
 are printed, so the parameters of, for example, the Tiedtke convection
-scheme appear only when \verb=icup= selects it. Parameters not set in the
-namelist file are printed with their default value. When a whole optional
-namelist group is missing, the model says so and uses the defaults, as in
+scheme appear only when \verb=cumulus_land= or \verb=cumulus_ocean=
+selects it. Parameters not set in the namelist file are printed with
+their default value. When a whole optional namelist group is missing, the model says so and uses the defaults, as in
 \verb='Using default cloud parameter.'=. This summary is the record of the
 configuration of the run, and it is a good practice to keep it by
 redirecting the standard output to a log file:

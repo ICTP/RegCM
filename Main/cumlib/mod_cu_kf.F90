@@ -224,31 +224,17 @@ module mod_cu_kf
     end do
 
     ! WRF does not push input hydrometeors
-    if ( ipptls > 1 ) then
-      do k = 1, kz
-        kk = kzp1 - k
-        do np = 1, nipoi
-          i = imap(np)
-          j = jmap(np)
-          ql0(k,np) = m2c%qxas(j,i,kk,iqc)
-          qi0(k,np) = m2c%qxas(j,i,kk,iqi)
-          qr0(k,np) = m2c%qxas(j,i,kk,iqr)
-          qs0(k,np) = m2c%qxas(j,i,kk,iqs)
-        end do
+    do k = 1, kz
+      kk = kzp1 - k
+      do np = 1, nipoi
+        i = imap(np)
+        j = jmap(np)
+        ql0(k,np) = m2c%qxas(j,i,kk,iqc)
+        qi0(k,np) = m2c%qxas(j,i,kk,iqi)
+        qr0(k,np) = m2c%qxas(j,i,kk,iqr)
+        qs0(k,np) = m2c%qxas(j,i,kk,iqs)
       end do
-    else
-      do k = 1, kz
-        kk = kzp1 - k
-        do np = 1, nipoi
-          i = imap(np)
-          j = jmap(np)
-          ql0(k,np) = m2c%qxas(j,i,kk,iqc)
-          qi0(k,np) = d_zero
-          qr0(k,np) = d_zero
-          qs0(k,np) = d_zero
-        end do
-      end do
-    end if
+    end do
 
     if ( ibltyp == 2 ) then
       do k = 1, kz
@@ -283,11 +269,7 @@ module mod_cu_kf
       call fatal(__FILE__,__LINE__,'Not implemented kf_trigger == 2')
     end if
 
-    if ( ipptls > 1 ) then
-      call kfpara(1,kz,1,nipoi,.true.,.true.,.false.)
-    else
-      call kfpara(1,kz,1,nipoi,.false.,.false.,.true.)
-    end if
+    call kfpara(1,kz,1,nipoi,.true.,.true.,.false.)
 
     do k = 1, kz
       kk = kz - k + 1
@@ -301,28 +283,17 @@ module mod_cu_kf
       end do
     end do
 
-    if ( ipptls > 1 ) then
-      do k = 1, kz
-        kk = kz - k + 1
-        do np = 1, nipoi
-          i = imap(np)
-          j = jmap(np)
-          cu_qten(j,i,kk,iqc) = dqcdt(k,np)
-          cu_qten(j,i,kk,iqr) = dqrdt(k,np)
-          cu_qten(j,i,kk,iqi) = dqidt(k,np)
-          cu_qten(j,i,kk,iqs) = dqsdt(k,np)
-        end do
+    do k = 1, kz
+      kk = kz - k + 1
+      do np = 1, nipoi
+        i = imap(np)
+        j = jmap(np)
+        cu_qten(j,i,kk,iqc) = dqcdt(k,np)
+        cu_qten(j,i,kk,iqr) = dqrdt(k,np)
+        cu_qten(j,i,kk,iqi) = dqidt(k,np)
+        cu_qten(j,i,kk,iqs) = dqsdt(k,np)
       end do
-    else
-      do k = 1, kz
-        kk = kz - k + 1
-        do np = 1, nipoi
-          i = imap(np)
-          j = jmap(np)
-          cu_qten(j,i,kk,iqc) = dqcdt(k,np)+dqrdt(k,np)
-        end do
-      end do
-    end if
+    end do
 
     ! Build for chemistry 3d table of constant precipitation rate
     ! from the surface to the top of the convection

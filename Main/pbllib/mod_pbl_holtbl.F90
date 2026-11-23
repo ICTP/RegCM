@@ -104,9 +104,7 @@ module mod_pbl_holtbl
     call getmem(kvfm,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:kvfm')
     call getmem(qtenv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenv')
     call getmem(qtenc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenc')
-    if ( ipptls > 1 ) then
-      call getmem(qteni,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qteni')
-    end if
+    call getmem(qteni,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qteni')
     call getmem(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
     call getmem(hydf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:hydf')
     call getmem(cgh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgh')
@@ -235,10 +233,8 @@ module mod_pbl_holtbl
           ! (Lenderink and Holtslag, 2004, QJRMS)
           qlu = max(m2p%qxatm(j,i,k-1,iqc),d_zero)
           qll = max(m2p%qxatm(j,i,k,iqc),d_zero)
-          if ( ipptls > 1 ) then
-            qlu = qlu + max(m2p%qxatm(j,i,k-1,iqi),d_zero)
-            qll = qll + max(m2p%qxatm(j,i,k,iqi),d_zero)
-          end if
+          qlu = qlu + max(m2p%qxatm(j,i,k-1,iqi),d_zero)
+          qll = qll + max(m2p%qxatm(j,i,k,iqi),d_zero)
           n2 = moist_n2(n2,m2p%tatm(j,i,k-1),m2p%tatm(j,i,k), &
                  m2p%patm(j,i,k-1),m2p%patm(j,i,k),           &
                  m2p%qxatm(j,i,k-1,iqv),m2p%qxatm(j,i,k,iqv), &
@@ -938,64 +934,62 @@ module mod_pbl_holtbl
       end do
     end if
 
-    if ( ipptls > 1 ) then
 #ifdef STDPAR_FIXED
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
 #else
-      !$acc parallel loop collapse(2) gang vector
-      do i = ici1, ici2
-      do j = jci1, jci2
+    !$acc parallel loop collapse(2) gang vector
+    do i = ici1, ici2
+    do j = jci1, jci2
 #endif
-        coef1 = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3 = d_zero
-        coefe(j,i,1) = coef1/coef2
-        coeff1(j,i,1) = max(m2p%qxatm(j,i,1,iqi),d_zero)/coef2
-        !$acc loop seq
-        do k = 2, kzm1
-          coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3 = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
-          coeff1(j,i,k) = (max(m2p%qxatm(j,i,k,iqi),d_zero) + &
-               coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
-        end do
-        coef1 = d_zero
-        coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
-        coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (max(m2p%qxatm(j,i,kz,iqi),d_zero) + &
-               coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
-        !
-        ! All coefficients have been computed, predict field and put it in
-        ! temporary work space tpred
-        !
-        tpred1(j,i,kz) = coeff1(j,i,kz)
-        !$acc loop seq
-        do k = kzm1, 1, -1
-          tpred1(j,i,k) = max(coefe(j,i,k)*tpred1(j,i,k+1) + &
-                               coeff1(j,i,k),d_zero)
-        end do
+      coef1 = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2 = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+      coef3 = d_zero
+      coefe(j,i,1) = coef1/coef2
+      coeff1(j,i,1) = max(m2p%qxatm(j,i,1,iqi),d_zero)/coef2
+      !$acc loop seq
+      do k = 2, kzm1
+        coef1 = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2 = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3 = dt*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1/(coef2-coef3*coefe(j,i,k-1))
+        coeff1(j,i,k) = (max(m2p%qxatm(j,i,k,iqi),d_zero) + &
+             coef3*coeff1(j,i,k-1))/(coef2-coef3*coefe(j,i,k-1))
+      end do
+      coef1 = d_zero
+      coef2 = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3 = dt*alphak(j,i,kz)*betak(j,i,kz)
+      coefe(j,i,kz) = d_zero
+      coeff1(j,i,kz) = (max(m2p%qxatm(j,i,kz,iqi),d_zero) + &
+             coef3*coeff1(j,i,kz-1))/(coef2-coef3*coefe(j,i,kz-1))
+      !
+      ! All coefficients have been computed, predict field and put it in
+      ! temporary work space tpred
+      !
+      tpred1(j,i,kz) = coeff1(j,i,kz)
+      !$acc loop seq
+      do k = kzm1, 1, -1
+        tpred1(j,i,k) = max(coefe(j,i,k)*tpred1(j,i,k+1) + &
+                             coeff1(j,i,k),d_zero)
+      end do
 #ifndef STDPAR_FIXED
-      end do
+    end do
 #endif
-      end do
-      !
-      !   calculate tendency due to vertical diffusion using temporary
-      !   predicted field
-      !
+    end do
+    !
+    !   calculate tendency due to vertical diffusion using temporary
+    !   predicted field
+    !
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      qteni(j,i,k) = d_zero
+    end do
+    if ( idynamic == 3 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        qteni(j,i,k) = d_zero
+        qteni(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt
       end do
-      if ( idynamic == 3 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          qteni(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt
-        end do
-      else
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          qteni(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt*m2p%psb(j,i)
-        end do
-      end if
+    else
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        qteni(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt*m2p%psb(j,i)
+      end do
     end if
     !
     !  now add countergradient term to temperature and water vapor equation
@@ -1061,23 +1055,19 @@ module mod_pbl_holtbl
         p2m%tten(j,i,k) = p2m%tten(j,i,k) - wlhv*rcpd*qtenc(j,i,k)
         qtenc(j,i,k) = d_zero
       end do
-      if ( ipptls > 1 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          qtenv(j,i,k) = qtenv(j,i,k) + qteni(j,i,k)
-          p2m%tten(j,i,k) = p2m%tten(j,i,k) - wlhs*rcpd*qteni(j,i,k)
-          qteni(j,i,k) = d_zero
-        end do
-      end if
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        qtenv(j,i,k) = qtenv(j,i,k) + qteni(j,i,k)
+        p2m%tten(j,i,k) = p2m%tten(j,i,k) - wlhs*rcpd*qteni(j,i,k)
+        qteni(j,i,k) = d_zero
+      end do
     end if
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + qtenv(j,i,k)
       p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + qtenc(j,i,k)
     end do
-    if ( ipptls > 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + qteni(j,i,k)
-      end do
-    end if
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + qteni(j,i,k)
+    end do
 
     if ( ichem == 1 ) then
       !
@@ -1214,7 +1204,7 @@ module mod_pbl_holtbl
     do j = jci1, jci2
 #endif
       ql = max(m2p%qxatm(j,i,k,iqc),d_zero)
-      if ( ipptls > 1 ) ql = ql + max(m2p%qxatm(j,i,k,iqi),d_zero)
+      ql = ql + max(m2p%qxatm(j,i,k,iqi),d_zero)
       sccw(j,i,k) = ql
       scthl(j,i,k) = (m2p%thatm(j,i,k) - m2p%thatm(j,i,k) / &
                       m2p%tatm(j,i,k)*wlhvocp*ql) * &
@@ -1439,33 +1429,31 @@ module mod_pbl_holtbl
     end do
 #endif
     end do
-    if ( ipptls > 1 ) then
 #ifdef STDPAR_FIXED
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(qi,qf)
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(qi,qf)
 #else
-      !$acc parallel loop collapse(2) gang vector private(qi,qf)
-      do i = ici1, ici2
-      do j = jci1, jci2
+    !$acc parallel loop collapse(2) gang vector private(qi,qf)
+    do i = ici1, ici2
+    do j = jci1, jci2
 #endif
-        qi(1:kz) = start(j,i,1:kz,iqi)
-        qf(1:kz) = qi(1:kz) + tendi(j,i,1:kz) * dt
-        if ( idynamic /= 3 ) then
-          do k = 1, kz
-            qi(k) = qi(k) / ps(j,i)
-            qf(k) = qf(k) / ps(j,i)
-          end do
-        end if
-        sqtoti = sum(qi)
-        sqtotf = sum(qf)
-        if ( abs(sqtotf-sqtoti) > minqq ) then
-          k = maxloc(qi,1)
-          tendi(j,i,k) = tendi(j,i,k) + (sqtoti-sqtotf) * rdt
-        end if
+      qi(1:kz) = start(j,i,1:kz,iqi)
+      qf(1:kz) = qi(1:kz) + tendi(j,i,1:kz) * dt
+      if ( idynamic /= 3 ) then
+        do k = 1, kz
+          qi(k) = qi(k) / ps(j,i)
+          qf(k) = qf(k) / ps(j,i)
+        end do
+      end if
+      sqtoti = sum(qi)
+      sqtotf = sum(qf)
+      if ( abs(sqtotf-sqtoti) > minqq ) then
+        k = maxloc(qi,1)
+        tendi(j,i,k) = tendi(j,i,k) + (sqtoti-sqtotf) * rdt
+      end if
 #ifndef STDPAR_FIXED
-      end do
+    end do
 #endif
-      end do
-    end if
+    end do
   end subroutine force_water_conserve
 
 end module mod_pbl_holtbl

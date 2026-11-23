@@ -34,16 +34,14 @@ status=0
 # Test cases, scheme:profile file:name. The output reference/<name>.out
 # is the reference of the case. The coupled cases run one day, with the
 # relaxation targets of their profiles; the _kf_, _em_ and _grell_ ones
-# with the Kain-Fritsch (icumulus = 6), Emanuel (4) and Grell (2) cumulus
-# instead of Tiedtke. The BOMEX (6
+# with the Kain-Fritsch, Emanuel and Grell cumulus instead of Tiedtke. The BOMEX (6
 # hours) and RICO (one day) shallow cumulus cases and the FIRE (one day)
 # stratocumulus case run with the settings of scm_les.py: DEPHY forcing,
 # geostrophic wind of the target file, no relaxation; interactive
 # radiation only in FIRE. FIRE also runs with the sequential split
 # (isplit = 1, IFS order). BOMEX also runs with the UW, MYJ and Shin-Hong
-# boundary layer schemes (ipbl = 2, 4, 5), FIRE with the WSM5 and WDM7
-# microphysics (imicro = 3, 5) and the Amazon with WSM7 (imicro = 4);
-# FIRE with RRTMG (irrtm = 1) if SCM_RRTMDIR gives its tables.
+# boundary layer schemes, FIRE with the WSM5 and WDM7 microphysics and the
+# Amazon with WSM7; FIRE with RRTMG if SCM_RRTMDIR gives its tables.
 cases="tiedtke:scm_profiles.txt:scm_tiedtke
        holtslag:scm_profiles.txt:scm_holtslag
        tiedtke:scm_gate_check.txt:scm_tiedtke_gate
@@ -103,16 +101,16 @@ for case in $cases; do
       *) extra="$extra ndays = 1.0," ;;
     esac
     case $name in
-      *_kf_*) extra="$extra icumulus = 6," ;;
-      *_em_*) extra="$extra icumulus = 4," ;;
-      *_grell_*) extra="$extra icumulus = 2," ;;
-      *_uw) extra="$extra ipbl = 2," ;;
-      *_myj) extra="$extra ipbl = 4," ;;
-      *_shinhong) extra="$extra ipbl = 5," ;;
-      *_wsm5) extra="$extra imicro = 3," ;;
-      *_wsm7_*) extra="$extra imicro = 4," ;;
-      *_wdm7) extra="$extra imicro = 5," ;;
-      *_rrtmg) extra="$extra irrtm = 1, rrtmdir = '$SCM_RRTMDIR'," ;;
+      *_kf_*) extra="$extra cumulus = 'kain-fritsch'," ;;
+      *_em_*) extra="$extra cumulus = 'emanuel'," ;;
+      *_grell_*) extra="$extra cumulus = 'grell'," ;;
+      *_uw) extra="$extra pbl_scheme = 'uw'," ;;
+      *_myj) extra="$extra pbl_scheme = 'myj'," ;;
+      *_shinhong) extra="$extra pbl_scheme = 'shin-hong'," ;;
+      *_wsm5) extra="$extra microphysics = 'wsm5'," ;;
+      *_wsm7_*) extra="$extra microphysics = 'wsm7'," ;;
+      *_wdm7) extra="$extra microphysics = 'wdm7'," ;;
+      *_rrtmg) extra="$extra radiation_scheme = 'rrtmg', rrtmdir = '$SCM_RRTMDIR'," ;;
     esac
   fi
   cat > $d/$name.in << EOF

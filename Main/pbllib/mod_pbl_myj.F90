@@ -134,11 +134,7 @@ module mod_pbl_myj
 
   subroutine init_myjpbl
     implicit none
-    if ( ipptls > 1 ) then
-      nspec = 4
-    else
-      nspec = 3
-    end if
+    nspec = 4
     if ( ichem == 1 ) then
       ispb  = nspec
       nspec = nspec + ntr
@@ -188,7 +184,7 @@ module mod_pbl_myj
       tx = m2p%tatm(j,i,k)
       th(j,i,k) = tx * ape(j,i,k)
       cwm(j,i,k) = m2p%qxatm(j,i,k,iqc)
-      if ( ipptls > 1 ) cwm(j,i,k) = cwm(j,i,k)+m2p%qxatm(j,i,k,iqi)
+      cwm(j,i,k) = cwm(j,i,k)+m2p%qxatm(j,i,k,iqi)
       the(j,i,k) = (cwm(j,i,k)*(-elocp/tx)+d_one)*th(j,i,k)
     end do
 
@@ -274,10 +270,8 @@ module mod_pbl_myj
           species(1,k) = thek(k)
           species(2,k) = qk(k)
           species(3,k) = qcwk(k)
-          if ( ipptls > 1 ) then
-            qcik(k) = m2p%qxatm(j,i,k,iqi)
-            species(4,k) = qcik(k)
-          end if
+          qcik(k) = m2p%qxatm(j,i,k,iqi)
+          species(4,k) = qcik(k)
           rhok(k) = m2p%patm(j,i,k)/(rgas*m2p%tatm(j,i,k)*  &
                     (d_one+ep1*qk(k)-cwmk(k)))
         end do
@@ -337,10 +331,8 @@ module mod_pbl_myj
           qk  (k) = species(2,k)
           qcwk(k) = species(3,k)
           cwmk(k) = qcwk(k)
-          if ( ipptls > 1 ) then
-            qcik(k) = species(4,k)
-            cwmk(k) = cwmk(k) + qcik(k)
-          end if
+          qcik(k) = species(4,k)
+          cwmk(k) = cwmk(k) + qcik(k)
         end do
 
         if ( idynamic == 3 ) then
@@ -360,10 +352,8 @@ module mod_pbl_myj
                      (dqdt/(d_one-qk(k))**2) * pfac
           p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
                      (qcwk(k)-m2p%qxatm(j,i,k,iqc))*rdtturbl*pfac
-          if ( ipptls > 1 ) then
-            p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
-                     (qcik(k)-m2p%qxatm(j,i,k,iqi))*rdtturbl*pfac
-          end if
+          p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
+                   (qcik(k)-m2p%qxatm(j,i,k,iqi))*rdtturbl*pfac
         end do
         if ( ichem == 1 ) then
           do n = 1, ntr

@@ -790,8 +790,6 @@ module mod_regcm_types
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
         qxten => null( )  ! aten%qx
     real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
-        dynqx => null( )  ! aten%qx
-    real(rkx), pointer, contiguous, dimension(:,:,:,:) :: &
         chiten => null( ) ! aten%chi
     real(rkx), pointer, contiguous, dimension(:,:,:) :: &
         heatrt => null( )   ! radiation

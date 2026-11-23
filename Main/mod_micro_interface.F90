@@ -24,16 +24,14 @@ module mod_micro_interface
   use mod_memutil, only : assignpnt, getmem
   use mod_mppparam, only : italk
   use mod_regcm_types, only : ik4, micro_2_mod, mod_2_micro, nogtom_stats
-  use mod_runparams, only : conf, dt, hsigma, iaerosol, ichem, icldfrac, &
-    icldmstrat, iconvlwp, icup, idiag, iindirect, ipptls, iqc, iqi, iqr, iqs, &
-    iqv, pc_physic, pc_total, rcmtimer, rhmax, rhmin, stats, tc0
+  use mod_runparams, only : dt, hsigma, iaerosol, ichem, icldfrac, &
+    icldmstrat, icup, idiag, iindirect, ipptls, iqc, iqi, iqr, iqs, &
+    iqv, pc_physic, pc_total, rcmtimer, rhmax, rhmin, stats
   use mod_micro_nogtom, only : allocate_mod_nogtom, init_nogtom, nogtom
-  use mod_micro_subex, only : allocate_subex, caccr, cevap, cgul, init_subex, &
-    qck1, subex, xcevap
   use mod_micro_wsm5, only : allocate_mod_wsm5, init_wsm5, wsm5
   use mod_micro_wsm7, only : allocate_mod_wsm7, init_wsm7, wsm7
   use mod_micro_wdm7, only : allocate_mod_wdm7, init_wdm7, wdm7
-  use mod_cloud_subex, only : subex_cldfrac
+  use mod_cloud_sundqvist, only : sundqvist_cldfrac
   use mod_cloud_xuran, only : xuran_cldfrac
   use mod_cloud_thomp, only : thomp_cldfrac
   use mod_cloud_guli2007, only : gulisa_cldfrac
@@ -45,18 +43,17 @@ module mod_micro_interface
 
   private
 
-  public :: allocate_micro, init_micro, microscheme, cldfrac, condtq
+  public :: allocate_micro, init_micro, microscheme, cldfrac
 
   type(nogtom_stats), public :: ngs
 
   type(mod_2_micro) :: mo2mc
   type(micro_2_mod) :: mc2mo
 
-  ! rh0adj - Adjusted relative humidity threshold
+  ! Threshold relative humidity of the Sundqvist cloud fraction
   real(rkx), pointer, contiguous, dimension(:,:) :: rh0 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: rhcrit => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: totc => null( )
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: rh0adj => null( )
 
   integer(ik4), parameter :: nchi = 256
   ! Allocate through getmem so GPU stdpar can access the table in managed mode.
@@ -66,7 +63,7 @@ module mod_micro_interface
 
   logical, parameter :: do_cfscaling = .true.
 
-  public :: qck1, cgul, rh0, cevap, xcevap, caccr
+  public :: rh0
 
   contains
 
@@ -74,10 +71,7 @@ module mod_micro_interface
     implicit none
     integer(ik4) :: i
     real(rkx) :: cf
-    if ( ipptls == 1 ) then
-      call allocate_subex
-      call getmem(rh0adj,jci1,jci2,ici1,ici2,1,kz,'micro:rh0adj')
-    else if ( ipptls == 2 ) then
+    if ( ipptls == 2 ) then
       call allocate_mod_nogtom
 #ifdef DEBUG
       if ( stats ) then
@@ -163,11 +157,9 @@ module mod_micro_interface
 
     call assignpnt(atms%qxb3d,mo2mc%qvn,iqv)
     call assignpnt(atms%qxb3d,mo2mc%qcn,iqc)
-    if ( ipptls > 1 ) then
-      call assignpnt(atms%qxb3d,mo2mc%qin,iqi)
-      call assignpnt(atms%qxb3d,mo2mc%qsn,iqs)
-      call assignpnt(atms%qxb3d,mo2mc%qrn,iqr)
-    end if
+    call assignpnt(atms%qxb3d,mo2mc%qin,iqi)
+    call assignpnt(atms%qxb3d,mo2mc%qsn,iqs)
+    call assignpnt(atms%qxb3d,mo2mc%qrn,iqr)
 
     if ( ichem == 1 ) then
       if ( iaerosol == 1 .and. iindirect == 2 ) then
@@ -199,8 +191,6 @@ module mod_micro_interface
     call assignpnt(ncrrate,mc2mo%trrate)
 
     select case ( ipptls )
-      case (1)
-        call init_subex(mddom%xlat)
       case (2)
         call init_nogtom(mddom%ldmsk)
       case(3)
@@ -217,8 +207,6 @@ module mod_micro_interface
   subroutine microscheme
     implicit none
     select case ( ipptls )
-      case (1)
-        call subex(mo2mc,mc2mo)
       case (2)
 #ifdef DEBUG
         call nogtom(mo2mc,mc2mo,ngs)
@@ -249,35 +237,28 @@ module mod_micro_interface
     integer(ik4) :: i, j, k
     integer(ik4) :: ichi
 
-    if ( ipptls > 1 ) then
-      if ( icldfrac == 3 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          liq = mo2mc%qcn(j,i,k)
-          ice = mo2mc%qin(j,i,k)
-          if ( liq < 2.0e-7_rkx ) liq = 0.0_rkx
-          if ( ice < 2.0e-7_rkx ) ice = 0.0_rkx
-          totc(j,i,k) = liq + ice + mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
-        end do
-      else
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          liq = mo2mc%qcn(j,i,k)
-          ice = mo2mc%qin(j,i,k)
-          if ( liq < 2.0e-7_rkx ) liq = 0.0_rkx
-          if ( ice < 2.0e-7_rkx ) ice = 0.0_rkx
-          totc(j,i,k) = liq + ice
-        end do
-      end if
+    if ( icldfrac == 3 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        liq = mo2mc%qcn(j,i,k)
+        ice = mo2mc%qin(j,i,k)
+        if ( liq < 2.0e-7_rkx ) liq = 0.0_rkx
+        if ( ice < 2.0e-7_rkx ) ice = 0.0_rkx
+        totc(j,i,k) = liq + ice + mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
+      end do
     else
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        totc(j,i,k) = mo2mc%qcn(j,i,k)
-        if ( totc(j,i,k) < 2.0e-5_rkx ) totc(j,i,k) = 0.0_rkx
+        liq = mo2mc%qcn(j,i,k)
+        ice = mo2mc%qin(j,i,k)
+        if ( liq < 2.0e-7_rkx ) liq = 0.0_rkx
+        if ( ice < 2.0e-7_rkx ) ice = 0.0_rkx
+        totc(j,i,k) = liq + ice
       end do
     end if
 
     select case ( icldfrac )
       case (0)
-        call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           mo2mc%rh,tc0,rh0,rhcrit,mc2mo%fcc)
+        call sundqvist_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
+                           mo2mc%rh,rh0,rhcrit,mc2mo%fcc)
       case (1)
         call xuran_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (2)
@@ -307,13 +288,6 @@ module mod_micro_interface
           write(stdout,*) ' No cloud fraction algorithm used.'
         end if
     end select
-
-    if ( ipptls == 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        rh0adj(j,i,k) = d_one - (d_one-mo2mc%rh(j,i,k)) / &
-                        max((d_one-mc2mo%fcc(j,i,k)),1.0e-5_rkx)**2
-      end do
-    end if
 
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       ! Transform in g/m^3
@@ -349,7 +323,7 @@ module mod_micro_interface
     !     to be passed into radiation.
     !-----------------------------------------------------------------
 
-    if ( iconvlwp == 1 ) then
+    if ( any(icup > 1) ) then
 #ifdef STDPAR_FIXED
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
 #else
@@ -358,16 +332,38 @@ module mod_micro_interface
       do i = ici1, ici2
       do j = jci1, jci2
 #endif
+        ! Cloud Water Volume
+        ! In cloud convective condensate: from the cumulus scheme if it
+        ! provides it (cucloud stores it in cldlwc), else a function of
+        ! the temperature.
+        cwc = cldlwc(j,i,k)
+        if ( cwc <= d_zero ) cwc = clwfromt(mo2mc%t(j,i,k))
         ! get overlap of clouds
-        cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
         if ( cldfra(j,i,k) > lowcld ) then
-          ! Cloud Water Volume
-          ! Apply the parameterisation based on temperature to the
-          ! the large scale clouds. This is an in-cloud here.
-          cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
+          if ( mc2mo%fcc(j,i,k) > lowcld ) then
+            fcc_ls = mc2mo%fcc(j,i,k)
+            cldfra(j,i,k) = max(fcc_ls, cldfra(j,i,k))
+            w2 = fcc_ls / cldfra(j,i,k)
+            w1 = 1.0_rkx - w2
+            cldlwc(j,i,k) = w2 * totc(j,i,k)/fcc_ls + w1 * cwc
+          else
+            cldlwc(j,i,k) = cwc
+          end if
         else
-          cldfra(j,i,k) = d_zero
-          cldlwc(j,i,k) = d_zero
+          if ( mc2mo%fcc(j,i,k) > lowcld ) then
+            cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+            cldlwc(j,i,k) = totc(j,i,k)/mc2mo%fcc(j,i,k)
+          else
+            cldfra(j,i,k) = 0.0_rkx
+            cldlwc(j,i,k) = 0.0_rkx
+          end if
+        end if
+        ! Scaling for CF
+        ! Implements CF scaling as in Liang GRL 32, 2005
+        ! doi: 10.1029/2004GL022301
+        if ( cldlwc(j,i,k) > 0.0_rkx .and. do_cfscaling ) then
+          ichi = int(cldfra(j,i,k)*xchi)
+          cldlwc(j,i,k) = cldlwc(j,i,k) * chis(ichi)
         end if
 #ifndef STDPAR_FIXED
       end do
@@ -375,74 +371,25 @@ module mod_micro_interface
 #endif
       end do
     else
-      if ( any(icup > 1) ) then
-#ifdef STDPAR_FIXED
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-#else
-        !$acc parallel loop collapse(3)
-        do k = 1, kz
-        do i = ici1, ici2
-        do j = jci1, jci2
-#endif
-          ! Cloud Water Volume
-          ! In cloud convective condensate: from the cumulus scheme if it
-          ! provides it (cucloud stores it in cldlwc), else a function of
-          ! the temperature.
-          cwc = cldlwc(j,i,k)
-          if ( cwc <= d_zero ) cwc = clwfromt(mo2mc%t(j,i,k))
-          ! get overlap of clouds
-          if ( cldfra(j,i,k) > lowcld ) then
-            if ( mc2mo%fcc(j,i,k) > lowcld ) then
-              fcc_ls = mc2mo%fcc(j,i,k)
-              cldfra(j,i,k) = max(fcc_ls, cldfra(j,i,k))
-              w2 = fcc_ls / cldfra(j,i,k)
-              w1 = 1.0_rkx - w2
-              cldlwc(j,i,k) = w2 * totc(j,i,k)/fcc_ls + w1 * cwc
-            else
-              cldlwc(j,i,k) = cwc
-            end if
-          else
-            if ( mc2mo%fcc(j,i,k) > lowcld ) then
-              cldfra(j,i,k) = mc2mo%fcc(j,i,k)
-              cldlwc(j,i,k) = totc(j,i,k)/mc2mo%fcc(j,i,k)
-            else
-              cldfra(j,i,k) = 0.0_rkx
-              cldlwc(j,i,k) = 0.0_rkx
-            end if
-          end if
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        ! Cloud Water Volume
+        cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+        ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+        if ( cldfra(j,i,k) > lowcld ) then
+          ! NOTE : IN CLOUD HERE IS NEEDED !!!
+          cldlwc(j,i,k) = totc(j,i,k)/cldfra(j,i,k)
           ! Scaling for CF
           ! Implements CF scaling as in Liang GRL 32, 2005
           ! doi: 10.1029/2004GL022301
-          if ( cldlwc(j,i,k) > 0.0_rkx .and. do_cfscaling ) then
+          if ( do_cfscaling ) then
             ichi = int(cldfra(j,i,k)*xchi)
             cldlwc(j,i,k) = cldlwc(j,i,k) * chis(ichi)
           end if
-#ifndef STDPAR_FIXED
-        end do
-        end do
-#endif
-        end do
-      else
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          ! Cloud Water Volume
-          cldfra(j,i,k) = mc2mo%fcc(j,i,k)
-          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          if ( cldfra(j,i,k) > lowcld ) then
-            ! NOTE : IN CLOUD HERE IS NEEDED !!!
-            cldlwc(j,i,k) = totc(j,i,k)/cldfra(j,i,k)
-            ! Scaling for CF
-            ! Implements CF scaling as in Liang GRL 32, 2005
-            ! doi: 10.1029/2004GL022301
-            if ( do_cfscaling ) then
-              ichi = int(cldfra(j,i,k)*xchi)
-              cldlwc(j,i,k) = cldlwc(j,i,k) * chis(ichi)
-            end if
-          else
-            cldfra(j,i,k) = d_zero
-            cldlwc(j,i,k) = d_zero
-          end if
-        end do
-      end if
+        else
+          cldfra(j,i,k) = d_zero
+          cldlwc(j,i,k) = d_zero
+        end if
+      end do
     end if
 
     contains
@@ -450,132 +397,6 @@ module mod_micro_interface
 #include <clwfromt.inc>
 
   end subroutine cldfrac
-  !
-  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !                                                                 c
-  ! This subroutine computes the condensational or evaporational    c
-  ! heating term from the explicit moisture scheme.                 c
-  !                                                                 c
-  ! ---the condensational or evaporational term are one step        c
-  !    adjustment based on asai (1965, j. meteo. soc. japan).       c
-  !                                                                 c
-  ! ---modified to include the effects of partial cloud cover       c
-  !    (see Pal et al 2000).  When partial clouds exist, the qxten  c
-  !    in/out of the clear and cloudy portions of the grid cell is  c
-  !    assumed to be at the same rate (i.e., if there is 80% cloud  c
-  !    cover, .2 of qxten goes to raising qv in the clear region    c
-  !    and .8 goes to condensation or evaporation of qc in the      c
-  !    cloudy portion).                                             c
-  !                                                                 c
-  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !
-  subroutine condtq
-    use mod_atm_interface, only : mo_atm, atm0, atm2, sfs, aten
-    implicit none
-    integer(ik4) :: i, j, k
-    real(rkx) :: qccs, qvcs, tmp1, tmp2, tmp3
-    real(rkx) :: dqv, exces, pres, qvc_cld, qvs, fccc, &
-                 r1, rhc, rlv, cpm
-
-    !---------------------------------------------------------------------
-    !     1.  Compute t, qv, and qc at tau+1 without condensational term
-    !---------------------------------------------------------------------
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      if ( idynamic == 3 ) then
-        tmp3 = mo_atm%t(j,i,k) + dt*mo_atm%tten(j,i,k)
-        qvcs = max(mo_atm%qx(j,i,k,iqv) + dt*mo_atm%qxten(j,i,k,iqv),minqq)
-        qccs = max(mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc),d_zero)
-        pres = mo_atm%p(j,i,k)
-        qvc_cld = max((mo2mc%qs(j,i,k) + &
-                  dt * mc2mo%qxten(j,i,k,iqv)),minqq)
-      else
-        tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
-        qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
-        qccs = atm2%qx(j,i,k,iqc) + dt*aten%qx(j,i,k,iqc,pc_total)
-        qvc_cld = max((mo2mc%qs(j,i,k) + &
-                   dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),minqq)
-        if ( idynamic == 1 ) then
-          pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
-        else
-          pres = atm0%pr(j,i,k) + &
-             (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,pc_total))/sfs%psc(j,i)
-        end if
-        if ( qvcs < minqq * sfs%psc(j,i) ) then
-          qvcs = minqq * sfs%psc(j,i)
-        end if
-        if ( qccs < dlowval * sfs%psc(j,i) ) then
-          qccs = d_zero
-        end if
-        qvcs = qvcs /sfs%psc(j,i)
-        qccs = qccs /sfs%psc(j,i)
-      end if
-#ifndef OPENACC
-#ifdef DEBUG
-      if ( tmp3 < d_zero ) then
-        write(stderr,*) 'Time step = ', rcmtimer%lcount
-        write(stderr,*) 'Consistency TEMPERATURE ERROR in condtq (T < 0K)'
-        write(stderr,*) 'At global J : ',j
-        write(stderr,*) 'At global I : ',i
-        write(stderr,*) 'At global K : ',k
-      end if
-#endif
-#endif
-      !
-      ! 2.  Compute the cloud condensation/evaporation term.
-      !
-      ! 2a. Calculate the saturation mixing ratio and relative humidity
-      qvs = pfwsat(tmp3,pres)
-      rlv = wlh(tmp3)
-      cpm = cpd*(d_one-qvcs) + cpv*qvcs
-      r1 = d_one/(d_one+rlv*rlv*qvs/(rwat*cpm*tmp3*tmp3))
-      rhc = min(max(qvcs/qvs,rhmin),rhmax)
-      ! 2b. Compute the relative humidity threshold at ktau+1
-      if ( rhc < rh0adj(j,i,k) ) then  ! Low cloud cover
-        dqv = conf * (qvcs - qvs)
-      else if ( rhc > 0.99999_rkx ) then
-        dqv = conf * (qvcs - qvs)      ! High cloud cover
-      else
-        fccc = d_one-sqrt((rhmax-rhc)/(rhmax-rh0adj(j,i,k)))
-        fccc = min(max(fccc,d_zero),d_one)
-        ! qv diff between predicted qv_c
-        dqv = conf * fccc * (qvc_cld - qvs)
-      end if
-
-      ! 2c. Compute the water vapor in excess of saturation
-      tmp1 = r1*dqv               ! grid cell average
-
-      ! 2d. Compute the new cloud water + old cloud water
-      exces = qccs + tmp1
-      if ( exces >= d_zero ) then ! Some cloud is left
-        tmp2 = tmp1/dt
-      else                        ! The cloud evaporates
-        tmp2 = -qccs/dt
-      end if
-      !
-      ! 3. Compute the tendencies.
-      !
-      if ( abs(tmp2) > dlowval ) then
-        if ( idynamic == 3 ) then
-          mo_atm%qxten(j,i,k,iqv) = mo_atm%qxten(j,i,k,iqv) - tmp2
-          mo_atm%qxten(j,i,k,iqc) = mo_atm%qxten(j,i,k,iqc) + tmp2
-          mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + tmp2*rlv/cpm
-        else
-          aten%qx(j,i,k,iqv,pc_physic) = &
-              aten%qx(j,i,k,iqv,pc_physic) - sfs%psc(j,i)*tmp2
-          aten%qx(j,i,k,iqc,pc_physic) = &
-              aten%qx(j,i,k,iqc,pc_physic) + sfs%psc(j,i)*tmp2
-          aten%t(j,i,k,pc_physic) = &
-              aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*rlv/cpm
-        end if
-      end if
-    end do
-
-    contains
-
-#include <saturation.inc>
-#include <wlh.inc>
-
-  end subroutine condtq
 
 end module mod_micro_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

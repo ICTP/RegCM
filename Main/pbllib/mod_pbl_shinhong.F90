@@ -61,9 +61,7 @@ module mod_pbl_shinhong
     ni = ici2-ici1+1
     numbl = nj * ni
     ndiff = 2
-    if ( ipptls > 1 ) then
-      ndiff = ndiff + 1
-    end if
+    ndiff = ndiff + 1
     if ( ichem == 1 ) then
       ichs = ndiff
       ndiff = ndiff + ntr
@@ -231,17 +229,15 @@ module mod_pbl_shinhong
         end do
       end do
     end do
-    if ( ipptls > 1 ) then
-      do k = 1, kz
-        kk = 2*kz + kzp1 - k
-        do i = ici1, ici2
-          do j = jci1, jci2
-            ibin = (i-ici1)*nj+(j-jci1+1)
-            qtrac(ibin,kk) = m2p%qxatm(j,i,k,iqi)
-          end do
+    do k = 1, kz
+      kk = 2*kz + kzp1 - k
+      do i = ici1, ici2
+        do j = jci1, jci2
+          ibin = (i-ici1)*nj+(j-jci1+1)
+          qtrac(ibin,kk) = m2p%qxatm(j,i,k,iqi)
         end do
       end do
-    end if
+    end do
     if ( ichem == 1 ) then
       do it = 1, ntr
         do k = 1, kz
@@ -292,18 +288,16 @@ module mod_pbl_shinhong
         end do
       end do
     end do
-    if ( ipptls > 1 ) then
-      do k = 1, kz
-        kk = 2*kz + kzp1 - k
-        do i = ici1, ici2
-          do j = jci1, jci2
-            ibin = (i-ici1)*nj+(j-jci1+1)
-            p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
-              (rpfac(ibin)*qtnp(ibin,kk))
-          end do
+    do k = 1, kz
+      kk = 2*kz + kzp1 - k
+      do i = ici1, ici2
+        do j = jci1, jci2
+          ibin = (i-ici1)*nj+(j-jci1+1)
+          p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
+            (rpfac(ibin)*qtnp(ibin,kk))
         end do
       end do
-    end if
+    end do
     if ( ichem == 1 ) then
       do it = 1, ntr
         do k = 1, kz
