@@ -44,7 +44,7 @@ Files
   scm_profiles.txt    the twelve test columns (from ERA5, see below)
   make_profiles.py    builds scm_profiles.txt from ERA5
   run_scm_tests.sh    the "make check" test
-  reference/          reference outputs of the check
+  reference/          reference digests of the check (scm_digest.py)
 
 Test columns
 ------------
@@ -90,7 +90,7 @@ E + cp/L int Q2 dp/g:
   ./scm_tiedtke.py --profiles scm_gate.txt --gate scm_gate_obs.txt
 
 "make check" runs the 8 soundings of scm_gate_check.txt (numbers 1, 21,
-..., 141, advrad forcing) against reference/scm_tiedtke_gate.out.
+..., 141, advrad forcing) against reference/scm_tiedtke_gate.dig.
 
 Holtslag test
 -------------
@@ -211,10 +211,10 @@ surface fluxes and lowest level wind against ERA5, and the mean omega
 at 850, 700, 500, 300 hPa against the input one.
 
 "make check" runs one day of each case against
-reference/scm_coupled_amazon.out and scm_coupled_itcz.out (the ITCZ one
+reference/scm_coupled_amazon.dig and scm_coupled_itcz.dig (the ITCZ one
 with WTG and wind relaxation), and the same two cases with the
-Kain-Fritsch cumulus against reference/scm_coupled_kf_amazon.out and
-scm_coupled_kf_itcz.out.
+Kain-Fritsch cumulus against reference/scm_coupled_kf_amazon.dig and
+scm_coupled_kf_itcz.dig.
 
 Kain-Fritsch (icumulus = 6, parameters in &kfparam) gets as vertical
 velocity of its trigger the one of the large scale omega, -omega/(rho
@@ -225,10 +225,42 @@ tendencies (cloud water, ice, rain, snow) go to NoTo as tendencies, as
 in the model; the mfu and cloud type columns of the output are zero
 (ktype 1 when it rains). The small differences of another
 compiler or other flags grow into different rain events: the reference
-holds only for the build it was made with. To update one, copy
-scm_output/scm_coupled_<case>/scm_coupled_<case>.out of a "make check"
-run and set its "# profiles:" and "# targets:" lines to the file names
-without the directory.
+holds only for the build it was made with. The reference digests are
+rewritten with SCM_UPDATE=1 make check (see Running).
+
+Emanuel (icumulus = 4, &emanparam) and Grell (icumulus = 2, &grellparam,
+the land or ocean parameters by column, highest cloud base from skbmax)
+get the state and, as in the model, no input tendencies; their tendencies
+of temperature and humidity go to NoTo with the others, and the mfu and
+cloud type columns are as for Kain-Fritsch. "make check" runs the Amazon
+and ITCZ cases with them (scm_coupled_em_*, scm_coupled_grell_*).
+
+Radiation (irrtm in &scmparam): 0 CCM (default), 1 RRTMG, with the tables
+rrtmg_sw.nc and rrtmg_lw.nc of rrtmdir (RegCM_Data/RRTM, not in the
+repository) and the options of &rrtmparam, on the levels of the column
+(no standard atmosphere above its top, rrtm_extend = .false.). "make
+check" runs FIRE with RRTMG only if SCM_RRTMDIR gives the directory of the
+tables:
+
+  SCM_RRTMDIR=/path/to/RegCM_Data/RRTM make check
+  ./scm_les.py fire --set irrtm=1 --set rrtmdir=/path/to/RegCM_Data/RRTM
+
+Microphysics (imicro in &scmparam, the ipptls of the model): 2 NoTo
+(default), 3 WSM5, 4 WSM7 (graupel and hail), 5 WDM7 (double moment).
+WSM/WDM get the state and the cumulus tendencies, the detrained
+condensate of Tiedtke included (no qdetr), as in the model; the cloud
+fraction for radiation is still the one of icldfrac. "make check" runs
+FIRE with WSM5 and WDM7 and the Amazon with WSM7.
+
+Boundary layer schemes (ipbl in &scmparam, the ibltyp of the model): 1
+Holtslag (default), 2 UW (&uwparam), 4 MYJ, 5 Shin-Hong. The turbulent
+kinetic energy of UW (prognostic, half levels) and of MYJ and Shin-Hong
+(kept by the schemes) starts at the minimum of the scheme; the 10 m wind
+and 2 m humidity are the ones of the ocean scheme on the ocean columns,
+elsewhere the neutral log law wind at 10 m and the humidity of the lowest
+level. "make check" runs BOMEX with each of them.
+
+  ./scm_les.py fire --sweep ipbl=1,2,4,5      the four schemes on FIRE
 
 Shallow cumulus and stratocumulus cases (BOMEX, RICO, FIRE)
 -----------------------------------------------------------
@@ -271,9 +303,9 @@ evaluation window (BOMEX hours 3-6, RICO 20-24, FIRE the whole day):
   ./scm_les.py fire --set rh0oce=0.93
   ./scm_les.py fire --set lqtmix=.true.       Holtslag total water mixing
 
-"make check" runs the three against reference/scm_coupled_bomex.out,
-reference/scm_coupled_rico.out and reference/scm_coupled_fire.out, and
-FIRE with the sequential split against reference/scm_coupled_fire_seq.out.
+"make check" runs the three against reference/scm_coupled_bomex.dig,
+reference/scm_coupled_rico.dig and reference/scm_coupled_fire.dig, and
+FIRE with the sequential split against reference/scm_coupled_fire_seq.dig.
 
 Ocean flux test
 ---------------
@@ -297,14 +329,22 @@ configuration without it:
 
 Running
 -------
-"make check" in this directory builds scm_tiedtke and runs it with the
-default settings, then compares the output with reference/ if python3 is
-available. After a change of the scheme that is meant to change the
-results, update the reference:
+"make check" in this directory builds the programs and runs every case
+with the default settings (run_scm_tests.sh), then compares the digest of
+each output (scm_digest.py) with the reference digest reference/<case>.dig
+if python3 is available. The digest has one line per quantity and column:
+the column quantities and, for each level field, its pressure weighted
+column mean and largest absolute value (coupled cases: at up to eight
+output times, plus the final T and q profiles). After a change meant to
+change the results, rewrite the reference digests:
 
-  ./scm_tiedtke.py --save reference/scm_tiedtke.out
+  SCM_UPDATE=1 make check
 
-then edit its "# profiles:" line to read "scm_profiles.txt".
+The full outputs are not kept in the repository. To compare them too,
+save them once outside it and use them as full reference:
+
+  SCM_UPDATE=1 SCM_FULLREF=$HOME/scmref make check   digests + full outputs
+  SCM_FULLREF=$HOME/scmref make check                compare both
 
 The wrapper takes the same parameter names as the RegCM namelist
 (&tiedtkeparam, and kfac_deep, kfac_shal, k2_const, iconvcf of
@@ -316,7 +356,7 @@ dtcum and dxkm:
   ./scm_tiedtke.py --set entrpen_ocn=1.0e-3 --set lmfwstar=.true.
   ./scm_tiedtke.py --sweep rprc_ocn=1.0e-3,1.4e-3,2.0e-3
   ./scm_tiedtke.py --plot tiedtke.png         profiles, needs matplotlib
-  ./scm_tiedtke.py --compare reference/scm_tiedtke.out
+  ./scm_tiedtke.py --compare full.out         compare with a full output
   ./scm_tiedtke.py --check a.out b.out        compare two outputs
 
 The comparison is exact for the cloud type, base and top, and within a
@@ -339,4 +379,5 @@ Adding a scheme
 ---------------
 Write scm_<scheme>.F90 reading the same scm_profiles.txt, add it to
 check_PROGRAMS in Makefile.am and to the scheme list of run_scm_tests.sh,
-and store its reference output in reference/scm_<scheme>.out.
+and write its reference digest with SCM_UPDATE=1 make check (and a kind
+in scm_digest.py if its output is not like one of the existing ones).

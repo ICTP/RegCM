@@ -13,10 +13,13 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-! Single column test of the Holtslag boundary layer (ibltyp = 1), the
-! Tiedtke (icup = 5, default) or Kain-Fritsch (icup = 6, icumulus = 6)
-! cumulus, the NoTo microphysics (ipptls = 2) and the CCM radiation
-! (irrtm = 0) schemes integrated together in time.
+! Single column test of the boundary layer (ipbl: 1 Holtslag, default, 2
+! UW, 4 MYJ, 5 Shin-Hong, the ibltyp of the model), the cumulus
+! (icumulus: 5 Tiedtke, default, 6 Kain-Fritsch, 4 Emanuel, 2 Grell, the
+! icup of the model), the microphysics (imicro: 2 NoTo, default, 3 WSM5,
+! 4 WSM7, 5 WDM7, the ipptls of the model) and the radiation (irrtm: 0
+! CCM, default, 1 RRTMG) schemes
+! integrated together in time.
 !
 ! Usage: scm_coupled [namelist file]       (default: scm_coupled.in)
 !
@@ -24,7 +27,8 @@
 ! time step the schemes are called through their model entry points,
 ! tiedtkedrv or kfdrv, subex_cldfrac (icldfrac = 0, or xuran_cldfrac with
 ! icldfrac = 1, on the cloud water and ice) and nogtom, colmod3
-! (every dtrad), holtbl, on the same state, as the MOLOCH core does (idynamic
+! (every dtrad), the boundary layer scheme, on the same state, as the
+! MOLOCH core does (idynamic
 ! = 3, no chemistry), and the state is advanced with the sum of their
 ! tendencies and of the large scale forcing:
 !   - the input tendencies of the profile file (tten, qten: radiative
@@ -72,13 +76,22 @@
 ! model on the SST of the profile file, every step, with a net
 ! shortwave radiation at the surface of daily mean ocnsw in a half sine
 ! and a net longwave ocnlw (used by the COARE cool skin).
+! Emanuel (icumulus = 4, &emanparam) and Grell (icumulus = 2,
+! &grellparam, Fritsch-Chappell closure by default) get the state and,
+! as in the model, no input tendencies; their output columns of the
+! Tiedtke mass flux and cloud type are zero (ktype: 1 when it rains).
 ! Kain-Fritsch (icumulus = 6, with &kfparam): the vertical velocity of
 ! its trigger is the one of the large scale omega (-omega/(rho g)), and
 ! its tendencies of cloud water, ice, rain and snow go to the
 ! microphysics with the other cumulus tendencies, as in the model (no
 ! qdetr); the grid spacing is dxkm. The output columns of the Tiedtke
 ! mass flux and cloud type are zero (ktype: 1 when it rains).
-! Microphysics (lnoto = .true., default): NoTo gets the cumulus
+! Microphysics (lnoto = .true., default): imicro selects the scheme, the
+! ipptls of the model: 2 NoTo (default), 3 WSM5, 4 WSM7 (with graupel and
+! hail), 5 WDM7 (double moment); the description below is for NoTo, the
+! WSM/WDM schemes get the state and the cumulus tendencies, including
+! the detrained condensate of Tiedtke (no qdetr), as in the model.
+! NoTo gets the cumulus
 ! tendencies, the condensate detrained by the cumulus scheme (qdetr),
 ! the large scale omega and the input temperature tendency as radiative
 ! heating; it carries cloud water, ice, rain and snow (not advected by
@@ -99,6 +112,12 @@
 ! surface radiation replaces ocnsw and ocnlw for the ocean scheme, and
 ! its heating is the radiative heating of NoTo.
 ! The pressure of the levels is held fixed.
+! Boundary layer schemes other than Holtslag: the turbulent kinetic energy
+! of UW (prognostic, on the half levels, &uwparam) and of MYJ and
+! Shin-Hong (kept by the schemes) starts at the minimum of the scheme;
+! the 10 m wind and the 2 m humidity of the surface are the ones of the
+! ocean scheme on the ocean columns, elsewhere the neutral log law wind
+! at 10 m and the humidity of the lowest level.
 ! Splitting (isplit): 0 (default) parallel, as the model: every scheme
 ! starts from the state at the beginning of the step and the tendencies
 ! are summed (the cumulus tendencies are input to NoTo). 1 sequential:
@@ -111,7 +130,8 @@
 ! The namelist has a &scmparam group and the model groups &tiedtkeparam,
 ! &kfparam,
 ! &cldparam (kfac_deep, kfac_shal, k2_const, iconvcf, rh0oce, rh0land,
-! tc0, rhmin, rhmax, larcticcorr), &holtslagparam and &microparam, with
+! tc0, rhmin, rhmax, larcticcorr), &holtslagparam, &uwparam and
+! &microparam, with
 ! the RegCM defaults. The output file is plain text, read by
 ! scm_coupled.py: a header with the settings used, then every nout
 ! steps per column a STEP line with the scalars and one line per level,
@@ -132,10 +152,18 @@ program scm_coupled
     auto_rate_klepi, budget_compute, clfrcv, cu_cfmax, declin, detrpen_lnd, &
     detrpen_ocn, dt, dtabem, dtcum, dtrad, dtsec, dx, dxsq, eccen, eccf, &
     entrdd, entrpen_lnd, entrpen_ocn, entshalp, holtth10iter, iaerosol, &
-    iautoconv, ibltyp, ichem, iclimaaer, iclimao3, icldfrac, iconvcf, &
+    atwo, czero, iautoconv, ibltyp, ichem, iclimaaer, iclimao3, icldfrac, &
+    iconvcf, nuk, rstbl, alphae, betae, coeffr, coeffs, cu, damp, dtmax, &
+    elcrit_lnd, elcrit_ocn, entp, epmax_lnd, epmax_ocn, minorig, omtrain, &
+    omtsnow, sigd, sigs, tlcrit, dtauc, edtmax, edtmax_ocn, edtmaxo, &
+    edtmaxo_ocn, edtmaxx, edtmaxx_ocn, edtmin, edtmin_ocn, edtmino, &
+    edtmino_ocn, edtminx, edtminx_ocn, htmax, htmin, igcc, mincld, pbcmax, &
+    shrmax, shrmax_ocn, shrmin, shrmin_ocn, skbmax, &
     icumcloud, icup, &
     icup_lnd, icup_ocn, idirect, ifaholt, ifaholtth10, iindirect, iocnflux, &
     ipptls, iqc, iqi, iqr, iqs, iqv, irrtm, istochastic, itweak, iwavcpl, &
+    iceflglw, iceflgsw, icld, imcica, inflglw, inflgsw, irng, liqflglw, &
+    liqflgsw, rrtm_extend, syncro_radfor, &
     izengrough, k2_const, kf_convrate, kf_dpp, kf_entrate, kf_max_dtcape, &
     kf_max_pef, kf_min_dtcape, kf_min_pef, kf_tkemax, kf_wthreshold, &
     kfac_deep, kfac_shal, lambm0, larcticcorr, lepcld, lmfcapebl, &
@@ -156,8 +184,16 @@ program scm_coupled
   use mod_cu_tiedtke, only : allocate_mod_cu_tiedtke, tiedtkedrv, &
                              pmean, ktype, pmfu
   use mod_cu_kf, only : allocate_mod_cu_kf, kfdrv, kf_lutab
-  use mod_pbl_common, only : ricr, kmxpbl
+  use mod_cu_em, only : allocate_mod_cu_em, cupemandrv
+  use mod_cu_grell, only : allocate_mod_cu_grell, cuparan, dtauc2d, &
+    edtmax2d, edtmaxo2d, edtmaxx2d, edtmin2d, edtmino2d, edtminx2d, &
+    htmax2d, htmin2d, kbmax2d, mincld2d, pbcmax2d, shrmax2d, shrmin2d
+  use mod_pbl_common, only : ricr, kmxpbl, uwstate
   use mod_pbl_holtbl, only : allocate_mod_pbl_holtbl, holtbl
+  use mod_pbl_uwtcm, only : allocate_tcm_state, init_mod_pbl_uwtcm, uwtcm, &
+    uwtkemin
+  use mod_pbl_myj, only : init_myjpbl, myjpbl, myjtkemin
+  use mod_pbl_shinhong, only : init_shinhong_pbl, shinhong_pbl
   use mod_ocn_internal, only : nocnp, iocnbeg, iocnend, dtocn, llake, &
     ldcsst, lseaice, mask, icpl, ht, usw, vsw, tatm, qv, patm, sfps,  &
     sfta, tgb, tgrd, tgbrd, hpbl, rswf, rlwf, rhox, um10, sent, evpr, &
@@ -166,6 +202,9 @@ program scm_coupled
   use mod_ocn_zeng, only : zengocndrv
   use mod_ocn_coare, only : coare3_drv
   use mod_micro_nogtom, only : allocate_mod_nogtom, init_nogtom, nogtom
+  use mod_micro_wsm5, only : allocate_mod_wsm5, init_wsm5, wsm5
+  use mod_micro_wsm7, only : allocate_mod_wsm7, init_wsm7, wsm7
+  use mod_micro_wdm7, only : allocate_mod_wdm7, init_wdm7, wdm7
   use mod_cloud_subex, only : subex_cldfrac
   use mod_cloud_xuran, only : xuran_cldfrac
   use mod_rad_common, only : o3prof, gasabsnxt, gasabstot, gasemstot, &
@@ -174,11 +213,15 @@ program scm_coupled
   use mod_rad_o3blk, only : allocate_mod_rad_o3blk, o3data
   use mod_rad_outrad, only : allocate_mod_rad_outrad, curflx
   use mod_rad_colmod3, only : allocate_mod_rad_colmod3, colmod3
+  use mod_rrtmg_driver, only : allocate_mod_rad_rrtmg, rrtmg_driver
+  use rrtmg_sw_init, only : rrtmg_sw_ini
+  use rrtmg_lw_init, only : rrtmg_lw_ini
+  use mod_timer, only : rcm_syncro
   use mod_ipcc_scenario, only : set_scenario
   use mod_sunorbit, only : orb_params, orb_decl, orb_cosz
   implicit none
 
-  character(len=256) :: nmlfile, infile, outfile, tgtfile
+  character(len=256) :: nmlfile, infile, outfile, tgtfile, rrtmdir
   real(rkx) :: dxkm, dtstep, ndays, taurelax, zrelax, tauwtg, zwtg, &
     tauwind, windfac, ocnsw, ocnlw, omfac, ustarfix
   logical :: lgeos, ladvt
@@ -207,7 +250,8 @@ program scm_coupled
   real(rkx), allocatable, dimension(:,:) :: tadv
   real(rkx), allocatable, dimension(:,:) :: mtt, mqt, cfr, hrad, &
     cfrad, lwcrad
-  integer(ik4) :: irad, iyear, imonth, nrad, nabs, icumulus, kty
+  integer(ik4) :: irad, iyear, imonth, nrad, nabs, icumulus, kty, ipbl, &
+    imicro, iday0
   real(rkx), allocatable, dimension(:) :: ocnsw_now, ocnlw_now
   ! TOA reflected short wave, outgoing long wave, all sky and clear sky
   ! (W/m2) of the last radiation call
@@ -235,7 +279,16 @@ program scm_coupled
     taurelax, zrelax, tgtfile, tauwtg, zwtg, tauwind, windfac,    &
     omfac, lgeos, ustarfix, ladvt, isplit, csplit, &
     iocnflux, izengrough, ocnsw, ocnlw, lnoto, irad, dtrad, dtabem, &
-    albland, scenario, icumulus, icldfrac
+    albland, scenario, icumulus, icldfrac, ipbl, imicro, irrtm, rrtmdir
+  namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw, iceflglw, &
+    liqflglw, icld, irng, imcica
+  namelist /emanparam/ minorig, elcrit_ocn, elcrit_lnd, tlcrit, &
+    entp, sigd, sigs, omtrain, omtsnow, coeffr, coeffs, cu,     &
+    betae, dtmax, alphae, damp, epmax_ocn, epmax_lnd
+  namelist /grellparam/ igcc, shrmin, shrmax, edtmin, edtmax, edtmino, &
+    edtmaxo, edtminx, edtmaxx, pbcmax, mincld, htmin, htmax, skbmax,   &
+    dtauc, shrmin_ocn, shrmax_ocn, edtmin_ocn, edtmax_ocn, edtmino_ocn, &
+    edtmaxo_ocn, edtminx_ocn, edtmaxx_ocn
   namelist /tiedtkeparam/ entrdd, entrpen_lnd, entrpen_ocn, &
     detrpen_lnd, detrpen_ocn, entshalp, rcuc_lnd, rcuc_ocn, &
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
@@ -252,6 +305,7 @@ program scm_coupled
   namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
     ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop, &
     lqtmix
+  namelist /uwparam/ atwo, rstbl, czero, nuk
 
   ! Defaults: as in Main/mod_params.F90
   infile = 'scm_amazon.txt'
@@ -310,6 +364,18 @@ program scm_coupled
   kfac_deep = 0.14_rkx
   iconvcf = 0
   lnoto = .true.
+  imicro = 2
+  irrtm = 0
+  rrtmdir = 'RRTM'
+  inflgsw = 2
+  iceflgsw = 3
+  liqflgsw = 1
+  inflglw = 2
+  iceflglw = 3
+  liqflglw = 1
+  icld = 1
+  imcica = 1
+  irng = 0
   irad = 1
   dtrad = 1800.0_rkx
   dtabem = 64800.0_rkx
@@ -345,6 +411,52 @@ program scm_coupled
   lqtmix = .false.
   icumulus = 5
   icldfrac = 0
+  minorig = 1
+  elcrit_ocn = 0.0011_rkx
+  elcrit_lnd = 0.0011_rkx
+  tlcrit = -55.0_rkx
+  entp = 0.50_rkx
+  sigd = 0.05_rkx
+  sigs = 0.12_rkx
+  omtrain = 50.0_rkx
+  omtsnow = 5.5_rkx
+  coeffr = 1.0_rkx
+  coeffs = 0.8_rkx
+  cu = 0.7_rkx
+  betae = 10.0_rkx
+  dtmax = 0.90_rkx
+  alphae = 0.01_rkx
+  damp = 0.1_rkx
+  epmax_ocn = 0.999_rkx
+  epmax_lnd = 0.999_rkx
+  igcc = 2
+  edtmin = 0.20_rkx
+  edtmin_ocn = 0.20_rkx
+  edtmax = 0.80_rkx
+  edtmax_ocn = 0.80_rkx
+  edtmino = 0.20_rkx
+  edtmino_ocn = 0.20_rkx
+  edtmaxo = 0.80_rkx
+  edtmaxo_ocn = 0.80_rkx
+  edtminx = 0.20_rkx
+  edtminx_ocn = 0.20_rkx
+  edtmaxx = 0.80_rkx
+  edtmaxx_ocn = 0.80_rkx
+  shrmin = 0.30_rkx
+  shrmin_ocn = 0.30_rkx
+  shrmax = 0.90_rkx
+  shrmax_ocn = 0.90_rkx
+  pbcmax = 50.0_rkx
+  mincld = 50.0_rkx
+  htmin = -250.0_rkx
+  htmax = 500.0_rkx
+  skbmax = 0.4_rkx
+  dtauc = 60.0_rkx
+  ipbl = 1
+  atwo = 10.0_rkx
+  rstbl = 1.5_rkx
+  czero = 5.869_rkx
+  nuk = 5.0_rkx
   kf_wthreshold = 0.02_rkx
   kf_entrate = 0.03_rkx
   kf_convrate = 0.03_rkx
@@ -377,22 +489,49 @@ program scm_coupled
     rewind(iu)
     read(iu,nml=kfparam,iostat=ios)
     if ( ios > 0 ) call scm_error('reading kfparam in '//trim(nmlfile))
+    rewind(iu)
+    read(iu,nml=uwparam,iostat=ios)
+    if ( ios > 0 ) call scm_error('reading uwparam in '//trim(nmlfile))
+    rewind(iu)
+    read(iu,nml=emanparam,iostat=ios)
+    if ( ios > 0 ) call scm_error('reading emanparam in '//trim(nmlfile))
+    rewind(iu)
+    read(iu,nml=grellparam,iostat=ios)
+    if ( ios > 0 ) call scm_error('reading grellparam in '//trim(nmlfile))
+    rewind(iu)
+    read(iu,nml=rrtmparam,iostat=ios)
+    if ( ios > 0 ) call scm_error('reading rrtmparam in '//trim(nmlfile))
     close(iu)
   else if ( command_argument_count( ) > 0 ) then
     call scm_error('cannot open '//trim(nmlfile))
   end if
   nout = max(nout,1)
-  if ( icumulus /= 5 .and. icumulus /= 6 ) &
-    call scm_error('icumulus must be 5 (Tiedtke) or 6 (Kain-Fritsch)')
+  if ( icumulus /= 2 .and. icumulus /= 4 .and. icumulus /= 5 .and. &
+       icumulus /= 6 ) &
+    call scm_error('icumulus must be 2 (Grell), 4 (Emanuel), 5 '// &
+                   '(Tiedtke) or 6 (Kain-Fritsch)')
 
   ! Model configuration seen by the schemes
   idynamic = 3
   icup_lnd = icumulus
   icup_ocn = icumulus
   icup(:) = icumulus
-  ibltyp = 1
-  ipptls = 2
-  nqx = 5
+  if ( ipbl /= 1 .and. ipbl /= 2 .and. ipbl /= 4 .and. ipbl /= 5 ) &
+    call scm_error('ipbl must be 1 (Holtslag), 2 (UW), 4 (MYJ) or '// &
+                   '5 (Shin-Hong)')
+  ibltyp = ipbl
+  if ( imicro < 2 .or. imicro > 5 ) &
+    call scm_error('imicro must be 2 (NoTo), 3 (WSM5), 4 (WSM7) or '// &
+                   '5 (WDM7)')
+  ipptls = imicro
+  select case ( imicro )
+    case ( 4 )
+      nqx = 7
+    case ( 5 )
+      nqx = 10
+    case default
+      nqx = 5
+  end select
   ichem = 0
   iaerosol = 0
   iindirect = 0
@@ -438,21 +577,41 @@ program scm_coupled
   call getmem(cuscheme,jci1,jci2,ici1,ici2,'scm:cuscheme')
   cuscheme(:,:) = icumulus
   call init_mod_cumulus
-  if ( icumulus == 5 ) then
-    call allocate_mod_cu_tiedtke
-  else
-    call allocate_mod_cu_kf
-    call kf_lutab
-    ! arrays of Tiedtke the column code uses: they stay zero
+  select case ( icumulus )
+    case ( 2 )
+      call allocate_mod_cu_grell
+    case ( 4 )
+      call allocate_mod_cu_em
+    case ( 5 )
+      call allocate_mod_cu_tiedtke
+    case ( 6 )
+      call allocate_mod_cu_kf
+      call kf_lutab
+  end select
+  ! arrays of Tiedtke the column code uses: they stay zero for the others
+  if ( .not. associated(cu_srate) ) &
     call getmem(cu_srate,jci1,jci2,ici1,ici2,'scm:srate')
+  if ( .not. associated(cu_uten) ) then
     call getmem(cu_uten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'scm:uten')
     call getmem(cu_vten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'scm:vten')
+  end if
+  if ( .not. associated(cu_qdetr) ) then
     call getmem(cu_qdetr,jdi1,jdi2,idi1,idi2,1,kz,'scm:qdetr')
     call getmem(cu_raincc,jdi1,jdi2,idi1,idi2,1,kz,'scm:raincc')
   end if
   call getmem(ricr,jci1,jci2,ici1,ici2,'scm:ricr')
   call getmem(kmxpbl,jci1,jci2,ici1,ici2,'scm:kmxpbl')
-  call allocate_mod_pbl_holtbl
+  select case ( ipbl )
+    case ( 1 )
+      call allocate_mod_pbl_holtbl
+    case ( 2 )
+      call allocate_tcm_state(uwstate)
+      call init_mod_pbl_uwtcm
+    case ( 4 )
+      call init_myjpbl
+    case ( 5 )
+      call init_shinhong_pbl
+  end select
   call allocate_fields
   do j = 1, ncol
     read(iu,*) col_name(j), col_lat(j), col_lon(j), col_land(j), &
@@ -513,7 +672,7 @@ program scm_coupled
   end do
   if ( len_trim(tgtfile) > 0 ) call read_targets
   if ( any(col_ocn) ) call init_ocean
-  allocate(mtt(ncol,nk), mqt(ncol,nk), cfr(ncol,nk), qcnd(ncol,nk,iqc:iqs))
+  allocate(mtt(ncol,nk), mqt(ncol,nk), cfr(ncol,nk), qcnd(ncol,nk,iqc:nqx))
   allocate(hrad(ncol,nk), cfrad(ncol,nk), lwcrad(ncol,nk))
   allocate(ocnsw_now(ncol), ocnlw_now(ncol))
   allocate(rsut(ncol), rlut(ncol), rsutcs(ncol), rlutcs(ncol))
@@ -534,6 +693,10 @@ program scm_coupled
   if ( isplit == 1 ) call parse_split
   allocate(rcmtimer)
   rcmtimer%lcount = 0
+  ! the internal time is not advanced: 1 s keeps the start test and the
+  ! alarms of RRTMG (radiative forcing of the aerosol) off
+  rcmtimer%model_internal_time = 1
+  rcmtimer%model_timestep = int(dtstep,ik8)
   if ( irad == 1 ) call init_rad
   mtt = d_zero
   mqt = d_zero
@@ -555,18 +718,32 @@ program scm_coupled
     m2p%za(j,1,:) = za(j,:)
     m2p%patm(j,1,:) = pa(j,:)
     m2p%patmf(j,1,:) = pf(j,:)
+    m2p%zq(j,1,:) = zf(j,:)
+    m2p%dzq(j,1,:) = m2c%dzq(j,1,:)
+    m2p%ht(j,1) = col_topo(j)
+    m2p%zo(j,1) = col_z0(j)
+    ! surface pressure (Pa) and geopotential (m2/s2) of the cumulus
+    m2c%psf(j,1) = pf(j,nk+1)
+    m2c%ht(j,1) = col_topo(j)*egrav
   end do
+  if ( icumulus == 2 ) call grell_setup
   p2m%zpbl(:,:) = 500.0_rkx
+  p2m%kpbl(:,:) = kz
+  ! turbulent kinetic energy at the minimum of the scheme
+  select case ( ipbl )
+    case ( 2 )
+      m2p%tkests(:,:,:) = uwtkemin
+    case ( 4 )
+      p2m%tkepbl(:,:,:) = myjtkemin
+    case ( 5 )
+      p2m%tkepbl(:,:,:) = 0.005_rkx
+  end select
   rainc_acc = d_zero
   rainl_acc = d_zero
 
   open(newunit=io,file=outfile,status='replace',action='write')
-  if ( icumulus == 5 ) then
-    write(io,'(a)') '# RegCM Holtslag + Tiedtke coupled single column test'
-  else
-    write(io,'(a)') '# RegCM Holtslag + Kain-Fritsch coupled single '// &
-      'column test'
-  end if
+  write(io,'(a)') '# RegCM '//trim(pbl_name(ipbl))//' + '// &
+    trim(cu_name(icumulus))//' coupled single column test'
   write(io,'(a,a)') '# profiles: ', trim(infile)
   write(io,'(a,a)') '# targets: ', trim(tgtfile)
   write(io,'(a,f8.2,a,f8.3,a,f10.1,a,f8.1,a,f8.3)') '# dt (s) ', dt, &
@@ -584,18 +761,26 @@ program scm_coupled
   if ( lgeos .or. ustarfix > d_zero .or. ladvt ) &
     write(io,'(a,l2,a,f8.3,a,l2)') '# lgeos ', lgeos, &
       '  ustarfix (m/s) ', ustarfix, '  ladvt ', ladvt
-  if ( icumulus == 5 ) then
-    write(io,nml=tiedtkeparam)
-  else
-    write(io,nml=kfparam)
-  end if
+  select case ( icumulus )
+    case ( 2 )
+      write(io,nml=grellparam)
+    case ( 4 )
+      write(io,nml=emanparam)
+    case ( 5 )
+      write(io,nml=tiedtkeparam)
+    case ( 6 )
+      write(io,nml=kfparam)
+  end select
   write(io,nml=cldparam)
-  write(io,nml=holtslagparam)
-  write(io,'(a,l2)') '# lnoto ', lnoto
+  if ( ipbl == 1 ) write(io,nml=holtslagparam)
+  if ( ipbl == 2 ) write(io,nml=uwparam)
+  write(io,'(a,l2,a,a)') '# lnoto ', lnoto, '  microphysics ', &
+    trim(micro_name(imicro))
+  if ( irad == 1 .and. irrtm == 1 ) write(io,nml=rrtmparam)
   write(io,'(a,i2,a,2f10.1,a,f6.3,a,a)') '# irad ', irad, &
     '  dtrad dtabem (s) ', dtrad, dtabem, '  albland ', albland, &
     '  scenario ', scenario
-  if ( lnoto ) write(io,nml=microparam)
+  if ( lnoto .and. imicro == 2 ) write(io,nml=microparam)
   write(io,'(a)') '# STEP name time(h) local_hour shf lhf(W/m2) '// &
     'zpbl(m) kpbl hqfac ktype kctop kcbot rainc rainl(mm/day) '// &
     'rainc_acc rainl_acc(mm) wspd(m/s, lowest level) '// &
@@ -627,11 +812,7 @@ program scm_coupled
       if ( irad == 1 .and. mod(istep-1,nrad) == 0 ) call rad_step
 
       ! Boundary layer, on the same state
-      p2m%tten(:,:,:) = d_zero
-      p2m%uten(:,:,:) = d_zero
-      p2m%vten(:,:,:) = d_zero
-      p2m%qxten(:,:,:,:) = d_zero
-      call holtbl(m2p,p2m)
+      call pbl_call
 
       ! Advance the state
       do j = 1, ncol
@@ -718,7 +899,7 @@ program scm_coupled
         end do
         if ( lnoto ) then
           ! condensate of the microphysics, no large scale advection
-          do n = iqc, iqs
+          do n = iqc, nqx
             do k = 1, nk
               ! as status_update of the MOLOCH core, with the vertical
               ! diffusion of cloud water and ice of the boundary layer
@@ -791,6 +972,113 @@ program scm_coupled
     nsteps, ' steps, columns written to ', trim(outfile)
 
   contains
+
+  ! Boundary layer scheme on the current state (m2p), tendencies in p2m.
+  ! The turbulent kinetic energy of UW is advanced here with its tendency;
+  ! MYJ and Shin-Hong update theirs in place.
+  subroutine pbl_call
+    implicit none
+    p2m%tten(:,:,:) = d_zero
+    p2m%uten(:,:,:) = d_zero
+    p2m%vten(:,:,:) = d_zero
+    p2m%qxten(:,:,:,:) = d_zero
+    select case ( ipbl )
+      case ( 1 )
+        call holtbl(m2p,p2m)
+      case ( 2 )
+        p2m%tketen(:,:,:) = d_zero
+        call uwtcm(m2p,p2m)
+        m2p%tkests(:,:,:) = max(m2p%tkests(:,:,:) + &
+          dt*p2m%tketen(:,:,:),uwtkemin)
+      case ( 4 )
+        call myjpbl(m2p,p2m)
+      case ( 5 )
+        call shinhong_pbl(m2p,p2m)
+    end select
+  end subroutine pbl_call
+
+  ! Parameters of Grell per column, as in mod_params: ocean or land
+  ! values, highest cloud base kbmax from skbmax (sigma = p/ps)
+  subroutine grell_setup
+    implicit none
+    integer(ik4) :: kbmax
+    do j = 1, ncol
+      if ( col_land(j) /= 1 ) then
+        shrmax2d(j,1) = shrmax_ocn
+        shrmin2d(j,1) = shrmin_ocn
+        edtmax2d(j,1) = edtmax_ocn
+        edtmin2d(j,1) = edtmin_ocn
+        edtmaxo2d(j,1) = edtmaxo_ocn
+        edtmino2d(j,1) = edtmino_ocn
+        edtmaxx2d(j,1) = edtmaxx_ocn
+        edtminx2d(j,1) = edtminx_ocn
+      else
+        shrmax2d(j,1) = shrmax
+        shrmin2d(j,1) = shrmin
+        edtmax2d(j,1) = edtmax
+        edtmin2d(j,1) = edtmin
+        edtmaxo2d(j,1) = edtmaxo
+        edtmino2d(j,1) = edtmino
+        edtmaxx2d(j,1) = edtmaxx
+        edtminx2d(j,1) = edtminx
+      end if
+      kbmax = kz
+      do k = 1, kz - 1
+        if ( pa(j,k)/pf(j,nk+1) <= skbmax ) kbmax = kz - k
+      end do
+      pbcmax2d(j,1) = pbcmax
+      mincld2d(j,1) = mincld
+      kbmax2d(j,1) = kbmax
+      htmax2d(j,1) = htmax
+      htmin2d(j,1) = htmin
+      dtauc2d(j,1) = dtauc*60.0_rkx
+    end do
+  end subroutine grell_setup
+
+  character(len=12) function micro_name(im)
+    implicit none
+    integer(ik4), intent(in) :: im
+    select case ( im )
+      case ( 3 )
+        micro_name = 'WSM5'
+      case ( 4 )
+        micro_name = 'WSM7'
+      case ( 5 )
+        micro_name = 'WDM7'
+      case default
+        micro_name = 'NoTo'
+    end select
+  end function micro_name
+
+  character(len=12) function cu_name(ic)
+    implicit none
+    integer(ik4), intent(in) :: ic
+    select case ( ic )
+      case ( 2 )
+        cu_name = 'Grell'
+      case ( 4 )
+        cu_name = 'Emanuel'
+      case ( 6 )
+        cu_name = 'Kain-Fritsch'
+      case default
+        cu_name = 'Tiedtke'
+    end select
+  end function cu_name
+
+  character(len=12) function pbl_name(ib)
+    implicit none
+    integer(ik4), intent(in) :: ib
+    select case ( ib )
+      case ( 2 )
+        pbl_name = 'UW'
+      case ( 4 )
+        pbl_name = 'MYJ'
+      case ( 5 )
+        pbl_name = 'Shin-Hong'
+      case default
+        pbl_name = 'Holtslag'
+    end select
+  end function pbl_name
 
   ! Surface fluxes: land half sine, ocean scheme; boundary layer input
   subroutine surface_fluxes
@@ -881,7 +1169,7 @@ program scm_coupled
     if ( icumulus == 5 ) then
       ! Tiedtke: the large scale omega (Pa/s)
       avg_ww(:,1,:) = omls
-    else
+    else if ( icumulus == 6 ) then
       ! Kain-Fritsch: the large scale vertical velocity (m/s)
       avg_ww(:,1,:) = -omls/(m2c%rhoas(:,1,:)*egrav)
     end if
@@ -898,11 +1186,16 @@ program scm_coupled
     cu_qdetr(:,:,:) = d_zero
     cu_raincc(:,:,:) = d_zero
     total_precip_points = 0
-    if ( icumulus == 5 ) then
-      call tiedtkedrv(m2c)
-    else
-      call kfdrv(m2c)
-    end if
+    select case ( icumulus )
+      case ( 2 )
+        call cuparan(m2c)
+      case ( 4 )
+        call cupemandrv(m2c)
+      case ( 5 )
+        call tiedtkedrv(m2c)
+      case ( 6 )
+        call kfdrv(m2c)
+    end select
 
   end subroutine cu_call
 
@@ -1036,12 +1329,11 @@ program scm_coupled
             m2p%uvdrag(j,1) = drag(j)
             m2p%tg(j,1) = tgb(j)
             ustar(j) = ustr(j)
+            m2p%u10m(j,1) = u10m(j)
+            m2p%v10m(j,1) = v10m(j)
+            m2p%q2m(j,1) = q2m(j)
           end do
-          p2m%tten(:,:,:) = d_zero
-          p2m%uten(:,:,:) = d_zero
-          p2m%vten(:,:,:) = d_zero
-          p2m%qxten(:,:,:,:) = d_zero
-          call holtbl(m2p,p2m)
+          call pbl_call
           do j = 1, ncol
             do k = 1, nk
               ptt(j,k) = p2m%tten(j,1,k)
@@ -1091,7 +1383,7 @@ program scm_coupled
               do k = 1, nk
                 t(j,k) = t(j,k) + dt*mtt(j,k)
                 q(j,k) = max(q(j,k) + dt*mqt(j,k),1.0e-8_rkx)
-                do n = iqc, iqs
+                do n = iqc, nqx
                   qcnd(j,k,n) = qcnd(j,k,n) + dt*mc2mo%qxten(j,1,k,n)
                 end do
                 acct(j,k) = acct(j,k) + mtt(j,k)
@@ -1118,7 +1410,7 @@ program scm_coupled
       end select
     end do
     do j = 1, ncol
-      do n = iqc, iqs
+      do n = iqc, nqx
         do k = 1, nk
           if ( qcnd(j,k,n) < qxcheckval(n) ) qcnd(j,k,n) = qxzeroval(n)
         end do
@@ -1248,6 +1540,9 @@ program scm_coupled
       m2p%uvdrag(j,1) = drag(j)
       m2p%tg(j,1) = tgb(j)
       ustar(j) = ustr(j)
+      m2p%u10m(j,1) = u10m(j)
+      m2p%v10m(j,1) = v10m(j)
+      m2p%q2m(j,1) = q2m(j)
     end do
   end subroutine ocean_fluxes
 
@@ -1305,7 +1600,16 @@ program scm_coupled
   subroutine init_micro
     implicit none
     dtsec = dt
-    call allocate_mod_nogtom
+    select case ( imicro )
+      case ( 2 )
+        call allocate_mod_nogtom
+      case ( 3 )
+        call allocate_mod_wsm5
+      case ( 4 )
+        call allocate_mod_wsm7
+      case ( 5 )
+        call allocate_mod_wdm7
+    end select
     call getmem(mo2mc%xlat,1,ncol,1,1,'scm:mxlat')
     call getmem(mo2mc%psb,1,ncol,1,1,'scm:mpsb')
     call getmem(mo2mc%ldmsk,1,ncol,1,1,'scm:mldmsk')
@@ -1330,6 +1634,8 @@ program scm_coupled
     call getmem(mc2mo%rainnc,1,ncol,1,1,'scm:crainnc')
     call getmem(mc2mo%lsmrnc,1,ncol,1,1,'scm:clsmrnc')
     call getmem(mc2mo%snownc,1,ncol,1,1,'scm:csnownc')
+    call getmem(mc2mo%grplnc,1,ncol,1,1,'scm:cgrplnc')
+    call getmem(mc2mo%hailnc,1,ncol,1,1,'scm:chailnc')
     call getmem(mc2mo%trrate,1,ncol,1,1,'scm:ctrrate')
     call getmem(mc2mo%rainls,1,ncol,1,1,1,nk,'scm:crainls')
     call getmem(mc2mo%remrat,1,ncol,1,1,1,nk,'scm:cremrat')
@@ -1347,7 +1653,16 @@ program scm_coupled
         mo2mc%pfs(j,1,k) = pf(j,k)
       end do
     end do
-    call init_nogtom(mo2mc%ldmsk)
+    select case ( imicro )
+      case ( 2 )
+        call init_nogtom(mo2mc%ldmsk)
+      case ( 3 )
+        call init_wsm5
+      case ( 4 )
+        call init_wsm7
+      case ( 5 )
+        call init_wdm7
+    end select
   end subroutine init_micro
 
   ! Cloud fraction and NoTo on the current state. Parallel split: the
@@ -1366,7 +1681,7 @@ program scm_coupled
         mo2mc%heatrt(j,1,k) = hrad(j,k)
         mo2mc%qdetr(j,1,k) = cu_qdetr(j,1,k)*dt
         mo2mc%qxx(j,1,k,iqv) = q(j,k)
-        do n = iqc, iqs
+        do n = iqc, nqx
           mo2mc%qxx(j,1,k,n) = qcnd(j,k,n)
         end do
         mo2mc%qs(j,1,k) = pfwsat(t(j,k),pa(j,k))
@@ -1376,9 +1691,9 @@ program scm_coupled
         totcp(j,1,k) = &
           merge(qcnd(j,k,iqc),d_zero,qcnd(j,k,iqc) >= 2.0e-7_rkx) + &
           merge(qcnd(j,k,iqi),d_zero,qcnd(j,k,iqi) >= 2.0e-7_rkx)
-        ! Tiedtke: the detrained condensate goes to the microphysics
-        ! through qdetr; Kain-Fritsch: as tendencies
-        if ( icumulus == 5 ) then
+        ! Tiedtke with NoTo: the detrained condensate goes to the
+        ! microphysics through qdetr; otherwise as tendencies
+        if ( icumulus == 5 .and. imicro == 2 ) then
           cu_qten(j,1,k,iqc) = d_zero
           cu_qten(j,1,k,iqi) = d_zero
         end if
@@ -1394,6 +1709,8 @@ program scm_coupled
       mc2mo%rainnc(j,1) = d_zero
       mc2mo%lsmrnc(j,1) = d_zero
       mc2mo%snownc(j,1) = d_zero
+      mc2mo%grplnc(j,1) = d_zero
+      mc2mo%hailnc(j,1) = d_zero
       mc2mo%trrate(j,1) = d_zero
     end do
     select case ( icldfrac )
@@ -1405,7 +1722,16 @@ program scm_coupled
       case default
         call scm_error('icldfrac must be 0 (SUBEX) or 1 (Xu-Randall)')
     end select
-    call nogtom(mo2mc,mc2mo)
+    select case ( imicro )
+      case ( 2 )
+        call nogtom(mo2mc,mc2mo)
+      case ( 3 )
+        call wsm5(mo2mc,mc2mo)
+      case ( 4 )
+        call wsm7(mo2mc,mc2mo)
+      case ( 5 )
+        call wdm7(mo2mc,mc2mo)
+    end select
     do j = 1, ncol
       do k = 1, nk
         cfr(j,k) = mo2mc%cldf(j,1,k)
@@ -1463,6 +1789,13 @@ program scm_coupled
       if ( ustarfix > d_zero ) ws = ustarfix
       ustar(j) = ws
       m2p%uvdrag(j,1) = m2p%rhox2d(j,1)*ws*ws/wspd
+      ! neutral log law 10 m wind and lowest level humidity (the ocean
+      ! scheme replaces them on the ocean columns)
+      zl = log(10.0_rkx/col_z0(j))/log(max(za(j,nk),d_two*col_z0(j)) / &
+               col_z0(j))
+      m2p%u10m(j,1) = u(j,nk)*zl
+      m2p%v10m(j,1) = v(j,nk)*zl
+      m2p%q2m(j,1) = q(j,nk)
     end do
   end subroutine update_derived
 
@@ -1488,6 +1821,8 @@ program scm_coupled
     call getmem(m2c%ustar,1,ncol,1,1,'scm:ustar')
     call getmem(m2c%psb,1,ncol,1,1,'scm:psb')
     call getmem(m2c%ldmsk,1,ncol,1,1,'scm:cldmsk')
+    call getmem(m2c%psf,1,ncol,1,1,'scm:psf')
+    call getmem(m2c%ht,1,ncol,1,1,'scm:cht')
     m2c%qxas(:,:,:,:) = d_zero
     m2c%uten(:,:,:) = d_zero
     m2c%vten(:,:,:) = d_zero
@@ -1518,10 +1853,29 @@ program scm_coupled
     call getmem(p2m%zpbl,1,ncol,1,1,'scm:zpbl')
     call getmem(p2m%kpbl,1,ncol,1,1,'scm:kpbl')
     m2p%qxatm(:,:,:,:) = d_zero
+    call getmem(m2p%zq,1,ncol,1,1,1,nk+1,'scm:zq')
+    call getmem(m2p%dzq,1,ncol,1,1,1,nk,'scm:pdzq')
+    call getmem(m2p%ht,1,ncol,1,1,'scm:ht')
+    call getmem(m2p%zo,1,ncol,1,1,'scm:zo')
+    call getmem(m2p%u10m,1,ncol,1,1,'scm:u10m')
+    call getmem(m2p%v10m,1,ncol,1,1,'scm:v10m')
+    call getmem(m2p%q2m,1,ncol,1,1,'scm:q2m')
+    call getmem(m2p%psb,1,ncol,1,1,'scm:ppsb')
+    m2p%psb(:,:) = d_one
+    if ( ipbl == 2 ) then
+      call getmem(m2p%tkests,1,ncol,1,1,1,nk+1,'scm:tkests')
+      call getmem(p2m%tketen,1,ncol,1,1,1,nk+1,'scm:tketen')
+    else if ( ipbl == 4 .or. ipbl == 5 ) then
+      ! the scheme keeps its turbulent kinetic energy (atms%tkepbl)
+      call getmem(p2m%tkepbl,1,ncol,1,1,1,nk,'scm:tkepbl')
+      m2p%tkests => p2m%tkepbl
+    end if
   end subroutine allocate_fields
 
-  ! Radiation of the model (irrtm = 0, the CCM scheme of colmod3) on the
-  ! columns: allocations as allocate_radiation of mod_rad_interface, no
+  ! Radiation of the model (irrtm = 0, the CCM scheme of colmod3, or
+  ! irrtm = 1, RRTMG with the tables rrtmg_sw.nc and rrtmg_lw.nc of
+  ! rrtmdir, without the standard atmosphere above the top of the column)
+  ! on the columns: allocations as allocate_radiation of mod_rad_interface, no
   ! aerosol, the built in ozone profile (iclimao3 = 0), the GHG of the
   ! scenario table for the year of the case, the orbit of that year.
   subroutine init_rad
@@ -1529,7 +1883,11 @@ program scm_coupled
     integer(ik4) :: iday, ihour
     integer(ik4), dimension(12), parameter :: mlen = &
       [31,28,31,30,31,30,31,31,30,31,30,31]
-    irrtm = 0
+    if ( irrtm /= 0 .and. irrtm /= 1 ) &
+      call scm_error('irrtm must be 0 (CCM) or 1 (RRTMG)')
+    ! RRTMG on the levels of the column, without the standard atmosphere
+    ! above its top
+    rrtm_extend = .false.
     kth = kz
     ktf = kzp1
     iclimao3 = 0
@@ -1551,6 +1909,7 @@ program scm_coupled
     nrad = max(nint(dtrad/dt),1)
     nabs = max(nint(dtabem/dt),1)
     read(col_date(1),'(i4,3i2)') iyear, imonth, iday, ihour
+    iday0 = iday
     cday0 = real(sum(mlen(1:imonth-1)) + iday,rk8)
     if ( imonth > 2 .and. mod(iyear,4) == 0 .and. &
          (mod(iyear,100) /= 0 .or. mod(iyear,400) == 0) ) then
@@ -1563,11 +1922,19 @@ program scm_coupled
     call allocate_mod_rad_aerosol
     call allocate_mod_rad_o3blk
     call allocate_mod_rad_outrad
-    call allocate_mod_rad_colmod3
-    call getmem(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'scm:gasabsnxt')
-    call getmem(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'scm:gasabstot')
-    call getmem(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'scm:gasemstot')
-    call getmem(absemin,jci1,jci2,ici1,ici2,1,5*kz+8,'scm:absemin')
+    if ( irrtm == 1 ) then
+      call allocate_mod_rad_rrtmg
+      call rrtmg_sw_ini(real(cpd,rk8),trim(rrtmdir)//'/rrtmg_sw.nc')
+      call rrtmg_lw_ini(real(cpd,rk8),trim(rrtmdir)//'/rrtmg_lw.nc')
+      syncro_radfor => rcm_syncro(rcmtimer,1.0e9_rkx)
+    else
+      call allocate_mod_rad_colmod3
+      call getmem(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'scm:gasabsnxt')
+      call getmem(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1, &
+                  'scm:gasabstot')
+      call getmem(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'scm:gasemstot')
+      call getmem(absemin,jci1,jci2,ici1,ici2,1,5*kz+8,'scm:absemin')
+    end if
     call getmem(m2r%tatms,1,ncol,1,1,1,nk,'scm:rt')
     call getmem(m2r%qxatms,1,ncol,1,1,1,nk,1,nqx,'scm:rqx')
     call getmem(m2r%rhatms,1,ncol,1,1,1,nk,'scm:rrh')
@@ -1711,7 +2078,11 @@ program scm_coupled
       end do
     end do
     labsem = mod(istep-1,nabs) == 0
-    call colmod3(iyear,imonth,.false.,labsem,m2r,r2m)
+    if ( irrtm == 1 ) then
+      call rrtmg_driver(iyear,imonth,iday0,.false.,m2r,r2m)
+    else
+      call colmod3(iyear,imonth,.false.,labsem,m2r,r2m)
+    end if
     do j = 1, ncol
       do k = 1, nk
         hrad(j,k) = r2m%heatrt(j,1,k)

@@ -50,23 +50,35 @@ FCLD = $(MPIFC)
 TESTS = run_scm_tests.sh
 
 EXTRA_DIST = README make_profiles.py scm_tiedtke.py scm_holtslag.py \
-             run_scm_tests.sh scm_profiles.txt reference/scm_tiedtke.out \
-             reference/scm_holtslag.out testgate make_gate_profiles.py \
+             scm_digest.py \
+             run_scm_tests.sh scm_profiles.txt reference/scm_tiedtke.dig \
+             reference/scm_holtslag.dig testgate make_gate_profiles.py \
              scm_gate_check.txt scm_gate_check_obs.txt \
-             reference/scm_tiedtke_gate.out scm_coupled.py \
+             reference/scm_tiedtke_gate.dig scm_coupled.py \
              make_amazon_case.py scm_amazon.txt scm_amazon_target.txt \
-             scm_amazon_era5.txt reference/scm_coupled_amazon.out \
+             scm_amazon_era5.txt reference/scm_coupled_amazon.dig \
              scm_itcz.txt scm_itcz_target.txt scm_itcz_era5.txt \
-             reference/scm_coupled_itcz.out \
-             reference/scm_coupled_kf_amazon.out \
-             reference/scm_coupled_kf_itcz.out scm_ocean.py \
+             reference/scm_coupled_itcz.dig \
+             reference/scm_coupled_kf_amazon.dig \
+             reference/scm_coupled_kf_itcz.dig scm_ocean.py \
+             reference/scm_coupled_em_amazon.dig \
+             reference/scm_coupled_em_itcz.dig \
+             reference/scm_coupled_grell_amazon.dig \
+             reference/scm_coupled_grell_itcz.dig \
              make_dephy_case.py scm_les.py scm_bomex.txt \
              scm_bomex_target.txt scm_bomex_les.txt scm_rico.txt \
              scm_rico_target.txt scm_rico_les.txt \
-             reference/scm_coupled_bomex.out reference/scm_coupled_rico.out \
+             reference/scm_coupled_bomex.dig reference/scm_coupled_rico.dig \
              scm_fire.txt scm_fire_target.txt scm_fire_les.txt \
-             reference/scm_coupled_fire.out \
-             reference/scm_coupled_fire_seq.out
+             reference/scm_coupled_fire.dig \
+             reference/scm_coupled_fire_seq.dig \
+             reference/scm_coupled_bomex_uw.dig \
+             reference/scm_coupled_bomex_myj.dig \
+             reference/scm_coupled_bomex_shinhong.dig \
+             reference/scm_coupled_fire_wsm5.dig \
+             reference/scm_coupled_fire_wdm7.dig \
+             reference/scm_coupled_wsm7_amazon.dig \
+             reference/scm_coupled_fire_rrtmg.dig
 
 %.o: %.F90
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<

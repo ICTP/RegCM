@@ -44,7 +44,8 @@ integration with prescribed large scale forcing.
         schemes on samples of the lowest level and the surface, and their
         evaluation;
   \item \verb=run_scm_tests.sh=: the test run by \code{make check};
-  \item \verb=reference/=: the reference outputs;
+  \item \verb=scm_digest.py=: digest of an output, and its comparison;
+  \item \verb=reference/=: the reference digests of the outputs;
   \item \verb=README=: usage notes.
 \end{itemize}
 
@@ -406,11 +407,70 @@ $\omega$ at 850, 700, 500 and 300~hPa against the input one:
 The box mean wind is the mean of the wind vector, weaker than the mean
 wind speed of ERA5 where the wind direction varies (the ITCZ).
 \code{make check} runs one day of each case and compares them with
-\verb=reference/scm_coupled_amazon.out= and
-\verb=reference/scm_coupled_itcz.out= (the ITCZ case with
+\verb=reference/scm_coupled_amazon.dig= and
+\verb=reference/scm_coupled_itcz.dig= (the ITCZ case with
 \code{tauwtg} = \code{tauwind} = 10800~s), and the same two cases with
-the Kain-Fritsch cumulus with \verb=reference/scm_coupled_kf_amazon.out=
-and \verb=reference/scm_coupled_kf_itcz.out=.
+the Kain-Fritsch cumulus with \verb=reference/scm_coupled_kf_amazon.dig=
+and \verb=reference/scm_coupled_kf_itcz.dig=.
+
+\subsection{Emanuel and Grell cumulus}
+
+With \code{icumulus} = 4 the cumulus scheme is Emanuel (\code{cupemandrv},
+parameters of \code{\&emanparam}), with \code{icumulus} = 2 Grell
+(\code{cuparan}, parameters of \code{\&grellparam}, the land or ocean
+values set per column as in \verb=mod_params.F90=, and the highest cloud
+base from \code{skbmax} with $\sigma = p/p_s$). As in the model they get
+the state and no input tendencies. Their output is handled as for
+Kain-Fritsch: no mass flux, cloud type 1 when they rain. \code{make check}
+runs the Amazon and ITCZ cases with both
+(\verb=reference/scm_coupled_em_<case>.dig=,
+\verb=reference/scm_coupled_grell_<case>.dig=).
+
+\subsection{RRTMG radiation}
+
+With \code{irrtm} = 1 in \code{\&scmparam} the radiation is RRTMG
+(\code{rrtmg\_driver}) instead of the CCM scheme, with the options of
+\code{\&rrtmparam} and the model defaults, and the absorption tables
+\verb=rrtmg_sw.nc= and \verb=rrtmg_lw.nc= of the directory
+\code{rrtmdir} (\verb=RegCM_Data/RRTM=, not in the repository). It works
+on the levels of the column, without the standard atmosphere above its
+top (\code{rrtm\_extend} = .false.), as the CCM scheme in the column.
+The test timer keeps the alarm of the aerosol radiative forcing off.
+\code{make check} runs FIRE with RRTMG only if \code{SCM\_RRTMDIR} gives
+the directory of the tables (\verb=reference/scm_coupled_fire_rrtmg.dig=).
+
+\subsection{Microphysics schemes}
+
+With \code{imicro} in \code{\&scmparam} (the \code{ipptls} of the
+model) the microphysics is NoTo (2, the default), WSM5 (3), WSM7 (4, with
+graupel and hail) or WDM7 (5, double moment, with the number
+concentrations of cloud condensation nuclei, cloud water and rain), and
+the column carries the 5, 7 or 10 water species of the scheme. The WSM
+and WDM schemes get the state and the cumulus tendencies, the condensate
+detrained by Tiedtke included, as in the model (only NoTo gets it as
+\code{qdetr}); the cloud fraction seen by the radiation is the one of
+\code{icldfrac}. \code{make check} runs FIRE with WSM5 and WDM7 and the
+Amazon case with WSM7 (\verb=reference/scm_coupled_fire_wsm5.dig=,
+\verb=reference/scm_coupled_fire_wdm7.dig=,
+\verb=reference/scm_coupled_wsm7_amazon.dig=).
+
+\subsection{Boundary layer schemes}
+
+With \code{ipbl} in \code{\&scmparam} (the \code{ibltyp} of the model)
+the boundary layer scheme is Holtslag (1, the default), UW (2, with the
+parameters of \code{\&uwparam}), MYJ (4) or Shin-Hong (5), called
+through their model entry points (\code{holtbl}, \code{uwtcm},
+\code{myjpbl}, \code{shinhong\_pbl}) as in the MOLOCH core. The
+turbulent kinetic energy of UW is prognostic on the half levels, advanced
+with its tendency after each call; MYJ and Shin-Hong keep theirs in place.
+It starts at the minimum of the scheme. The schemes see the heights of
+the half levels of the profile file, the roughness length of the column,
+and the 10~m wind and 2~m humidity of the ocean scheme on the ocean
+columns, elsewhere the neutral log law wind at 10~m and the humidity of
+the lowest level. \code{make check} runs BOMEX with UW, MYJ and
+Shin-Hong too (\verb=reference/scm_coupled_bomex_<scheme>.dig=). Without
+radiation (BOMEX) the column integrals of the boundary layer tendencies
+of the four schemes equal the surface fluxes within a few percent.
 
 \subsection{Kain-Fritsch cumulus}
 
@@ -493,10 +553,10 @@ to 1.2~km) is overcast, with a liquid water path from about 130~g~m$^{-2}$
 at night to 45~g~m$^{-2}$ in the afternoon.
 
 \code{make check} runs the three cases against
-\verb=reference/scm_coupled_bomex.out=,
-\verb=reference/scm_coupled_rico.out= and
-\verb=reference/scm_coupled_fire.out=, and FIRE with the sequential
-split (below) against \verb=reference/scm_coupled_fire_seq.out=.
+\verb=reference/scm_coupled_bomex.dig=,
+\verb=reference/scm_coupled_rico.dig= and
+\verb=reference/scm_coupled_fire.dig=, and FIRE with the sequential
+split (below) against \verb=reference/scm_coupled_fire_seq.dig=.
 
 \subsection{Splitting of the physics}
 
@@ -569,7 +629,7 @@ current directory and the directory of the script.
   scm_tiedtke.py --set entrpen_ocn=1.0e-3 --set lmfwstar=.true.
   scm_tiedtke.py --sweep rprc_ocn=1.0e-3,1.4e-3,2.0e-3
   scm_tiedtke.py --plot tiedtke.png         profiles of every column
-  scm_tiedtke.py --save run.out --compare reference/scm_tiedtke.out
+  scm_tiedtke.py --save run.out --compare full.out
   scm_tiedtke.py --check a.out b.out        compare two outputs
 \end{verbatim}
 The parameter names are the ones of the RegCM namelist; the wrapper knows
@@ -603,19 +663,28 @@ and \verb=Main/mpplib/libmpp.a= with the
 \verb=Share= library, and runs \verb=run_scm_tests.sh=. For each scheme the
 script writes a namelist with the default settings, runs the program in
 \verb=scm_output/<scheme>= (or \code{SCM\_OUTDIR}) and, if \code{python3}
-is available, compares the output with \verb=reference/scm_<scheme>.out=.
-The model libraries must have been built first.
+is available, compares the digest of the output with the reference
+digest \verb=reference/<case>.dig=. The model libraries must have been
+built first.
 
-After a change of a scheme meant to change its results, the reference is
-updated with
+The digest (\verb=scm_digest.py=) keeps the reference small: one line per
+quantity and column, with the column quantities and, for each level
+field, its pressure weighted column mean and its largest absolute value;
+for the coupled cases the values at up to eight output times evenly
+spaced to the end of the run and the final temperature and humidity
+profiles. The comparison is exact for the integers (cloud type, levels)
+and within \code{SCM\_RTOL} relative plus \code{SCM\_ATOL} times the
+largest value of the line for the reals.
+
+After a change of a scheme meant to change its results, the reference
+digests are rewritten from a run with
 \begin{verbatim}
-  scm_tiedtke.py --save reference/scm_tiedtke.out
+  SCM_UPDATE=1 make check
 \end{verbatim}
-and its \verb=# profiles:= header line set to \verb=scm_profiles.txt=, so
-that the reference does not hold a local path. A coupled reference is
-the output of the one day run of \verb=run_scm_tests.sh= (in
-\verb=scm_output/scm_coupled_<case>=), with the \verb=# profiles:= and
-\verb=# targets:= lines set to the file names without the directory.
+To compare also the full outputs, keep them in a directory outside the
+repository: \code{SCM\_FULLREF=dir} with \code{SCM\_UPDATE=1} copies
+the outputs there, and \code{SCM\_FULLREF=dir make check} compares the
+outputs with them as well as with the digests.
 
 \section{Adding a scheme}
 

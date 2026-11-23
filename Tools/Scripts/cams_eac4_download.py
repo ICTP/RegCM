@@ -17,7 +17,9 @@
 #
 #     <inpglob>/CAMS/<year>/<NAME>_<year>_<month>.nc
 #
-# one file per variable and month, 6 hourly (00, 06, 12, 18 UTC).
+# one file per variable and month, 6 hourly (00, 06, 12, 18 UTC). All the
+# variables of a month are retrieved with one request (one wait in the
+# queue of the data store) and split per variable (needs netCDF4).
 # Needs the cdsapi package and an Atmosphere Data Store key: the
 # ~/.cdsapirc key of the Copernicus services works, the url is set here.
 # The CAMS licence must be accepted once on the ADS web page of the dataset.
@@ -34,6 +36,7 @@ import argparse
 import calendar
 import os
 import sys
+import zipfile
 
 ADS_URL = 'https://ads.atmosphere.copernicus.eu/api'
 DATASET = 'cams-global-reanalysis-eac4'
@@ -71,6 +74,15 @@ GASES = {
     'PAN': 'peroxyacetyl_nitrate',
 }
 
+# file name -> variable name in the netCDF files of the data store
+SHORT = {'SSLT1': 'aermr01', 'SSLT2': 'aermr02', 'SSLT3': 'aermr03',
+         'DUST1': 'aermr04', 'DUST2': 'aermr05', 'DUST3': 'aermr06',
+         'OCHL': 'aermr07', 'OCHB': 'aermr08', 'BCHL': 'aermr09',
+         'BCHB': 'aermr10', 'SO4': 'aermr11', 'SO2': 'so2', 'O3': 'go3',
+         'CO': 'co', 'ETH': 'c2h6', 'CH2O': 'hcho', 'C3H8': 'c3h8',
+         'NO': 'no', 'NO2': 'no2', 'H2O2': 'h2o2', 'ISOP': 'c5h8',
+         'HNO3': 'hno3', 'CH4': 'ch4', 'PAN': 'pan'}
+
 LEVELS = ['1', '2', '3', '5', '7', '10', '20', '30', '50', '70', '100',
           '150', '200', '250', '300', '400', '500', '600', '700', '800',
           '850', '900', '925', '950', '1000']
@@ -84,6 +96,53 @@ def months(start, end):
         m += 1
         if m > 12:
             y, m = y + 1, 1
+
+
+def unpack(path, odir):
+    """the retrieved file: one netCDF, or a zip of netCDF files"""
+    if zipfile.is_zipfile(path):
+        with zipfile.ZipFile(path) as z:
+            names = [os.path.join(odir, n) for n in z.namelist()]
+            z.extractall(odir)
+        os.remove(path)
+        return names
+    return [path]
+
+
+def split(files, targets):
+    """write each wanted variable to its own file (name -> target)"""
+    import netCDF4 as nc
+    for path in files:
+        with nc.Dataset(path) as src:
+            for name, target in targets.items():
+                v = SHORT[name]
+                if v not in src.variables and name == 'CH4':
+                    v = 'ch4_c' if 'ch4_c' in src.variables else v
+                if v not in src.variables:
+                    continue
+                with nc.Dataset(target + '.part', 'w') as dst:
+                    dst.setncatts(src.__dict__)
+                    for d, dim in src.dimensions.items():
+                        dst.createDimension(
+                            d, None if dim.isunlimited() else len(dim))
+                    for c in src.variables.values():
+                        if c.name != v and c.name not in src.dimensions:
+                            continue
+                        fill = c.__dict__.get('_FillValue')
+                        o = dst.createVariable(c.name, c.dtype, c.dimensions,
+                                               fill_value=fill, zlib=True)
+                        o.setncatts({k: x for k, x in c.__dict__.items()
+                                     if k != '_FillValue'})
+                        o.set_auto_maskandscale(False)
+                        c.set_auto_maskandscale(False)
+                        o[...] = c[...]
+                os.replace(target + '.part', target)
+    missing = [t for t in targets.values() if not os.path.isfile(t)]
+    if missing:
+        sys.exit('variables not found in the retrieved data: ' +
+                 ' '.join(missing))
+    for path in files:
+        os.remove(path)
 
 
 def main():
@@ -116,23 +175,28 @@ def main():
             d0, d1 = (int(x) for x in a.days.split('-'))
         odir = os.path.join(a.dest, '%04d' % y)
         os.makedirs(odir, exist_ok=True)
-        for name, var in want.items():
+        targets = {}
+        for name in want:
             target = os.path.join(odir, '%s_%04d_%02d.nc' % (name, y, m))
-            if os.path.isfile(target):
-                continue
-            req = {
-                'variable': [var],
-                'pressure_level': LEVELS,
-                'date': ['%04d-%02d-%02d/%04d-%02d-%02d' %
-                         (y, m, d0, y, m, d1)],
-                'time': ['00:00', '06:00', '12:00', '18:00'],
-                'data_format': 'netcdf',
-            }
-            if a.area:
-                req['area'] = a.area
-            print('Retrieving', target, flush=True)
-            client.retrieve(DATASET, req, target + '.part')
-            os.replace(target + '.part', target)
+            if not os.path.isfile(target):
+                targets[name] = target
+        if not targets:
+            continue
+        req = {
+            'variable': sorted(set(want[n] for n in targets)),
+            'pressure_level': LEVELS,
+            'date': ['%04d-%02d-%02d/%04d-%02d-%02d' %
+                     (y, m, d0, y, m, d1)],
+            'time': ['00:00', '06:00', '12:00', '18:00'],
+            'data_format': 'netcdf',
+        }
+        if a.area:
+            req['area'] = a.area
+        tmp = os.path.join(odir, 'cams_%04d_%02d.download' % (y, m))
+        print('Retrieving %d variables for %04d-%02d' % (len(targets), y, m),
+              flush=True)
+        client.retrieve(DATASET, req, tmp)
+        split(unpack(tmp, odir), targets)
 
 
 if __name__ == '__main__':
