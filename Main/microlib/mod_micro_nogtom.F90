@@ -76,7 +76,7 @@ module mod_micro_nogtom
   use mod_runparams, only : rhcrit_lnd, rhcrit_sea, &
                             siglow => rhcrit_siglow
   use mod_runparams, only : ichem, iaerosol, iindirect, rcrit
-  use mod_runparams, only : budget_compute, nssopt, iautoconv
+  use mod_runparams, only : budget_compute, iautoconv
   use mod_runparams, only : auto_rate_khair, auto_rate_kessl, &
                              auto_rate_klepi, rcldiff
   use mod_runparams, only : rkconv, skconv, rcovpmin, rpecons
@@ -896,15 +896,11 @@ module mod_micro_nogtom
           !-----------------------------------
           ! Supersaturation limit (from Koop)
           !-----------------------------------
-          if ( nssopt == 0 )  then
+          if ( ltkgt0 ) then
             facl = d_one
           else
-            if ( ltkgt0 ) then
-              facl = d_one
-            else
-              facl = ccover + min(koop(k,j,i),qsliq(k,j,i)/qsmixv) * &
-                     (d_one-ccover)
-            end if
+            facl = ccover + min(koop(k,j,i),qsliq(k,j,i)/qsmixv) * &
+                   (d_one-ccover)
           end if
 
           !-----------------------------------------------------------------
@@ -1155,24 +1151,17 @@ module mod_micro_nogtom
               end if
             else
               ! (2) generation of new clouds (dc/dt>0)
-              qexc = 0.0_rkx ! Make compiler happy
-              select case (nssopt)
-                case (0,1)
-                  qexc = max((qxfg(iqqv)-ccover*qsmixv) / &
-                      (d_one-ccover),d_zero)
-                case (2) ! Lohmann and Karcher
-                  qexc = qxfg(iqqv)
-                case (3) ! Gierens: total water
-                  qexc = qxfg(iqqv)+totcond
-              end select
+              ! vapour excess in the clear sky part of the cell
+              qexc = max((qxfg(iqqv)-ccover*qsmixv) / &
+                  (d_one-ccover),d_zero)
               rhc = rhcrit(j,i)
               zsig = ph(k,j,i)/pbot
               if ( zsig > siglow ) then
                 ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
                 rhc = rhc + (d_one-rhc)*((zsig-siglow)/(d_one-siglow))**2
               end if
-              ! supersaturation options
-              if ( ltkgt0 .or. nssopt == 0 ) then
+              ! ice supersaturation
+              if ( ltkgt0 ) then
                 ! no ice supersaturation allowed
                 facl = d_one
               else

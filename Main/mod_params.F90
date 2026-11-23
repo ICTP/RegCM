@@ -49,18 +49,18 @@ module mod_params
     iwavcpl, iwhitecap, izengrough, k2_const, kf_convrate, kf_dpp, &
     kf_entrate, kf_max_dtcape, kf_max_pef, kf_min_dtcape, kf_min_pef, &
     kf_tkemax, kf_wthreshold, kfac_deep, kfac_shal, lakemod, larcticcorr, &
-    lconst2050, lepcld, liqflglw, liqflgsw, lmfcapebl, lmfcapeforc, lmfdd, &
+    lconst2050, lepcld, liqflglw, liqflgsw, lmfcapebl, lmfdd, &
     lmfdudv, lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, &
     lmoistn2, lqtmix, lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, &
     minorig, &
     mixed_layer_depth, mo_dzita, moloch_do_test_1, moloch_do_test_2, &
-    namelistfile, nbin, nhbet, nhxkd, nqx, nradfo, nsplit, nssopt, nuk, &
+    namelistfile, nbin, nhbet, nhxkd, nqx, nradfo, nsplit, nuk, &
     omtrain, omtsnow, pbcmax, q_rel_extrema, qcon, &
     rad_max, rad_min, rad_sigma, radclimpath, rayalpha0, rayhd, rayndamp, &
     rayzd, rcldiff, rcmtimer, rcovpmin, rcpec_lnd, rcpec_ocn, rcrit, &
     rcuc_lnd, rcuc_ocn, rdstemfac, rdt, rdx, rdxsq, rh0land, rh0oce, &
     rhebc_lnd, rhebc_ocn, rhmax, rhmin, ricr_lnd, ricr_ocn, rkconv, rocemfac, &
-    rpecons, rprc_lnd, rprc_ocn, rrtm_extend, rstbl, rtaucape, rtaufac, &
+    rpecons, rprc_lnd, rprc_ocn, rrtm_extend, rstbl, rtaufac, &
     scenario, shrmax, shrmax_ocn, shrmin, shrmin_ocn, sigd, sigd_max, &
     sigd_min, sigma, sigs, sigs_max, sigs_min, skbmax, skconv, solar_tweak, &
     sst_restore_timescale, sst_tweak, stability_enhance, stats, syncro_che, &
@@ -221,7 +221,7 @@ module mod_params
       kfac_shal, kfac_deep, k2_const, &
       iconvcf, lsrfhack, larcticcorr, rcrit, coef_ccn, abulk
 
-    namelist /microparam/ stats, budget_compute, nssopt, &
+    namelist /microparam/ stats, budget_compute, &
       iautoconv, vfqs, vfqi, auto_rate_khair,            &
       auto_rate_kessl, auto_rate_klepi, rkconv, skconv,  &
       rcovpmin, rpecons, rcldiff
@@ -246,7 +246,7 @@ module mod_params
       rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
       lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
       lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
-      lmfcapeforc, rtaucape, rtaufac
+      rtaufac
 
     namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
       kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate,        &
@@ -474,7 +474,6 @@ module mod_params
     !
     stats = .false.
     budget_compute = .false. ! Verify enthalpy and moisture conservation
-    nssopt = 1 ! Supersaturation Computation
                ! 0 => No scheme
                ! 1 => Tompkins
                ! 2 => Lohmann and Karcher
@@ -574,8 +573,6 @@ module mod_params
     lmfsmooth = .false. ! smoot of mass fluxes for tracers
     lmfwstar  = .false. ! Grant w* closure for shallow conv
     lmfcapebl = .true.  ! Boundary layer CAPE in deep closure
-    lmfcapeforc = .false. ! Deep closure from large scale CAPE production
-    rtaucape = 43200.0_rkx ! CAPE relaxation time scale with lmfcapeforc (s)
     rtaufac = 4.0_rkx      ! Factor on the deep CAPE closure time scale
     !
     ! kfparam ;
@@ -1729,7 +1726,6 @@ module mod_params
     if ( ipptls == 2 ) then
       call bcast(stats)
       call bcast(budget_compute)
-      call bcast(nssopt)
       call bcast(iautoconv)
       call bcast(vfqs)
       call bcast(vfqi)
@@ -1865,8 +1861,6 @@ module mod_params
       call bcast(lmfsmooth)
       call bcast(lmfwstar)
       call bcast(lmfcapebl)
-      call bcast(lmfcapeforc)
-      call bcast(rtaucape)
       call bcast(rtaufac)
     end if
 
@@ -2838,7 +2832,6 @@ module mod_params
         write(stdout,'(a,l11)') '  Statistics output                 : ', stats
         write(stdout,'(a,l11)') &
           '  Budget check                      : ', budget_compute
-        write(stdout,'(a,i11)') '  Saturation option (nssopt)        : ', nssopt
         write(stdout,'(a,i11)') &
           '  Autoconversion scheme             : ', iautoconv
         write(stdout,'(a,f11.6)') '  Snow fall speed                   : ', vfqs
@@ -3052,15 +3045,8 @@ module mod_params
           '  Grant w* shallow closure          : ', lmfwstar
         write(stdout,'(a,l11)') &
           '  PBL CAPE in deep closure          : ', lmfcapebl
-        write(stdout,'(a,l11)') &
-          '  Large scale CAPE deep closure     : ', lmfcapeforc
-        if ( lmfcapeforc ) then
-          write(stdout,'(a,f11.1)') &
-            '  CAPE relaxation time scale (s)    : ', rtaucape
-        else
-          write(stdout,'(a,f11.2)') &
-            '  CAPE closure time scale factor    : ', rtaufac
-        end if
+        write(stdout,'(a,f11.2)') &
+          '  CAPE closure time scale factor    : ', rtaufac
       end if
     end if
     if ( any(icup == 6)  ) then

@@ -169,13 +169,13 @@ program scm_coupled
     izengrough, k2_const, kf_convrate, kf_dpp, kf_entrate, kf_max_dtcape, &
     kf_max_pef, kf_min_dtcape, kf_min_pef, kf_tkemax, kf_wthreshold, &
     kfac_deep, kfac_shal, lambm0, larcticcorr, lepcld, lmfcapebl, &
-    lmfcapeforc, lmfdd, lmfdudv, lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, &
+    lmfdd, lmfdudv, lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, &
     lmfuvdis, lmfwstar, lmoistn2, lqtmix, lsctop, lsrfhack, maxprandtl, &
     mvelp, &
-    mvelpp, nqx, nssopt, obliq, obliqr, qxcheckval, qxzeroval, rcldiff, &
+    mvelpp, nqx, obliq, obliqr, qxcheckval, qxzeroval, rcldiff, &
     rcmtimer, rcovpmin, rcpec_lnd, rcpec_ocn, rcuc_lnd, rcuc_ocn, rdt, &
     rh0land, rh0oce, rhebc_lnd, rhebc_ocn, rhmax, rhmin, ricr_lnd, ricr_ocn, &
-    rkconv, rpecons, rprc_lnd, rprc_ocn, rtaucape, rtaufac, scenario, scon, &
+    rkconv, rpecons, rprc_lnd, rprc_ocn, rtaufac, scenario, scon, &
     skconv, solcon, vfqs, zhnew_fac
   use mod_memutil, only : getmem, memory_init
   use mod_regcm_types, only : ik4, ik8, micro_2_mod, mod_2_cum, mod_2_micro, &
@@ -303,12 +303,12 @@ program scm_coupled
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
     lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
     lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
-    lmfcapeforc, rtaucape, rtaufac
+    rtaufac
   namelist /kfparam/ kf_min_pef, kf_max_pef, kf_entrate, kf_dpp, &
     kf_min_dtcape, kf_max_dtcape, kf_tkemax, kf_convrate, kf_wthreshold
   namelist /cldparam/ kfac_deep, kfac_shal, k2_const, iconvcf, &
     rh0oce, rh0land, rhmin, rhmax, larcticcorr
-  namelist /microparam/ nssopt, iautoconv, vfqs, auto_rate_khair, &
+  namelist /microparam/ iautoconv, vfqs, auto_rate_khair, &
     auto_rate_kessl, auto_rate_klepi, rkconv, skconv, rcovpmin,   &
     rpecons, rcldiff
   namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
@@ -365,8 +365,6 @@ program scm_coupled
   lmfsmooth = .false.
   lmfwstar = .false.
   lmfcapebl = .true.
-  lmfcapeforc = .false.
-  rtaucape = 43200.0_rkx
   rtaufac = 4.0_rkx
   k2_const = 500.0_rkx
   kfac_shal = 0.07_rkx
@@ -395,7 +393,6 @@ program scm_coupled
   rh0land = 0.85_rkx
   rh0oce = 0.85_rkx
   larcticcorr = .true.
-  nssopt = 1
   iautoconv = 4
   vfqs = 1.0_rkx
   auto_rate_khair = 0.355_rkx

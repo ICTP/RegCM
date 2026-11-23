@@ -345,10 +345,6 @@ module mod_runparams
   logical, public :: lmfwstar  = .false. ! Grant w* closure for shallow conv
   ! Subtract the boundary layer CAPE production in the deep closure
   logical, public :: lmfcapebl = .true.
-  ! Deep closure from the CAPE production by the large scale vertical
-  ! advection plus a slow relaxation of CAPE (time scale rtaucape, s)
-  logical, public :: lmfcapeforc = .false.
-  real(rkx), public :: rtaucape = 43200.0_rkx
   ! Factor multiplying the convective time scale of the deep CAPE closure
   real(rkx), public :: rtaufac = 4.0_rkx
 
@@ -515,7 +511,6 @@ module mod_runparams
   logical, public :: stats
   logical, public :: budget_compute
   ! Super saturation option
-  integer(ik4), public :: nssopt
   ! Choose the autoconversion paramaterization
   integer(ik4), public :: iautoconv
   ! Fall speed values

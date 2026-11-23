@@ -61,7 +61,7 @@ module mod_ncout
     lconst2050, lepcld, liqflglw, liqflgsw, lmfcapebl, lmfdd, lmfdudv, &
     lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, lmoistn2, &
     lqtmix, lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, minorig, &
-    mixed_layer_depth, nhbet, nhxkd, nradfo, nsplit, nssopt, nuk, omtrain, &
+    mixed_layer_depth, nhbet, nhxkd, nradfo, nsplit, nuk, omtrain, &
     omtsnow, pbcmax, q_rel_extrema, rad_max, rad_min, &
     rad_sigma, rayalpha0, rayhd, rayndamp, rayzd, rcldiff, rcovpmin, &
     rcpec_lnd, rcpec_ocn, rcrit, rcuc_lnd, rcuc_ocn, rdstemfac, rh0land, &
@@ -3876,8 +3876,6 @@ module mod_ncout
 #endif
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('micro_budget_verification',budget_compute))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('micro_super_saturation_option',nssopt))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('micro_autoconversion_option',iautoconv))
           call outstream_addatt(outstream(i)%ncout(j), &

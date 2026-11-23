@@ -51,8 +51,7 @@ GROUPS = {
                      'rprc_ocn', 'rprc_lnd',
                      'lmfpen', 'lmfmid', 'lmfdd', 'lepcld', 'lmfdudv',
                      'lmfscv', 'lmfuvdis', 'lmftrac', 'lmfsmooth',
-                     'lmfwstar', 'lmfcapebl', 'lmfcapeforc', 'rtaucape',
-                     'rtaufac'],
+                     'lmfwstar', 'lmfcapebl', 'rtaufac'],
     'cldparam': ['kfac_deep', 'kfac_shal', 'k2_const', 'iconvcf'],
 }
 GROUP_OF = {v: g for g, vs in GROUPS.items() for v in vs}

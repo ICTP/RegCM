@@ -37,10 +37,10 @@ program scm_tiedtke
   use mod_runparams, only : detrpen_lnd, detrpen_ocn, dtcum, dx, entrdd, &
     entrpen_lnd, entrpen_ocn, entshalp, iaerosol, ichem, iconvcf, &
     icup, icup_lnd, icup_ocn, iindirect, ipptls, iqc, iqi, iqv, k2_const, &
-    kfac_deep, kfac_shal, lepcld, lmfcapebl, lmfcapeforc, lmfdd, lmfdudv, &
+    kfac_deep, kfac_shal, lepcld, lmfcapebl, lmfdd, lmfdudv, &
     lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, nqx, &
     rcpec_lnd, rcpec_ocn, rcuc_lnd, rcuc_ocn, rhebc_lnd, rhebc_ocn, rprc_lnd, &
-    rprc_ocn, rtaucape, rtaufac
+    rprc_ocn, rtaufac
   use mod_memutil, only : getmem, memory_init
   use mod_regcm_types, only : ik4, mod_2_cum, rkx
   use mod_cu_common, only : avg_ww, cu_cldfrc, cu_cldlwc, cu_kbot, cu_ktop, &
@@ -69,7 +69,7 @@ program scm_tiedtke
     rcpec_lnd, rcpec_ocn, rhebc_lnd, rhebc_ocn, rprc_ocn, rprc_lnd, &
     lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
     lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
-    lmfcapeforc, rtaucape, rtaufac
+    rtaufac
   namelist /cldparam/ kfac_deep, kfac_shal, k2_const, iconvcf
 
   ! Defaults: as in Main/mod_params.F90
@@ -102,8 +102,6 @@ program scm_tiedtke
   lmfsmooth = .false.
   lmfwstar = .false.
   lmfcapebl = .true.
-  lmfcapeforc = .false.
-  rtaucape = 43200.0_rkx
   rtaufac = 4.0_rkx
   k2_const = 500.0_rkx
   kfac_shal = 0.07_rkx

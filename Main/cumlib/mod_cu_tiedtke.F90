@@ -42,7 +42,7 @@ module mod_cu_tiedtke
   use mod_runparams, only : rcpec_ocn, rcpec_lnd
   use mod_runparams, only : lmfpen, lmfmid, lmfdd, lepcld, lmfdudv, &
           lmfscv, lmfuvdis, lmftrac, lmfsmooth, lmfwstar, lmfcapebl, &
-          lmfcapeforc, rtaucape, rtaufac
+          rtaufac
   use mod_regcm_types, only : mod_2_cum
 
   implicit none
@@ -918,9 +918,6 @@ module mod_cu_tiedtke
     real(rkx), dimension(np) :: sfl
     real(rkx), dimension(np) :: tau ! adjustment time
     real(rkx) :: taubl, ubl, capebl, dtvdt, dpk
-    real(rkx) :: dhsrc, dcape, gam
-    ! Large scale vertical advection of temperature and humidity
-    real(rkx), dimension(np,nk) :: wadt, wadq
     ! scaling factor for momentum and tracer massflux
     real(rkx), dimension(np) :: mfs, mfuub, mfuvb, xsum12, xsum22
     real(rkx), dimension(np) :: mf_shal
@@ -2346,18 +2343,6 @@ module mod_cu_tiedtke
       xcape(n) = d_zero
       mfub1(n) = mfub(n)
     end do
-    if ( lmfcapeforc ) then
-      ! Tendencies of the large scale vertical advection by omega
-      do concurrent ( n = n1:n2, k = 1:nk )
-        wadt(n,k) = -omega(n,k) * &
-          ((t(n,min(k+1,nk))-t(n,max(k-1,1))) /   &
-           (ph(n,min(k+1,nk))-ph(n,max(k-1,1))) - &
-           rgas*t(n,k)/(cpd*ph(n,k)))
-        wadq(n,k) = -omega(n,k) * &
-          (q(n,min(k+1,nk))-q(n,max(k-1,1))) /    &
-          (ph(n,min(k+1,nk))-ph(n,max(k-1,1)))
-      end do
-    end if
     do concurrent ( n = n1:n2 )
       !$acc loop seq
       do k = 1, nk
@@ -2398,7 +2383,7 @@ module mod_cu_tiedtke
         ! the advective time scale of the sub-cloud layer. At least the
         ! fraction rmincape of CAPE is always consumed.
         !
-        if ( lmfcapebl .and. .not. lmfcapeforc ) then
+        if ( lmfcapebl ) then
           if ( pf(n,nk+1)-pf(n,idpl(n)) < 50.0e2_rkx ) then
             if ( ldland(n) ) then
               taubl = tau(n)/rtau
@@ -2419,43 +2404,11 @@ module mod_cu_tiedtke
             xcape(n) = max(rmincape*xcape(n),xcape(n)-taubl*capebl)
           end if
         end if
-        if ( lmfcapeforc ) then
-          !
-          ! CAPE budget: convection consumes the CAPE produced by the
-          ! large scale vertical advection plus the CAPE relaxed over the
-          ! time scale rtaucape. The production is the cooling and
-          ! moistening of the cloud layer and the parcel warming from the
-          ! moist static energy change of the source layer (vertical
-          ! advection and surface fluxes), as in the shallow closure.
-          !
-          dhsrc = d_zero
-          !$acc loop seq
-          do k = ikb, ksrc(n)
-            dhsrc = dhsrc + (wlhv*wadq(n,k)+cpd*wadt(n,k)) * &
-                            (pf(n,k+1)-pf(n,k))
-          end do
-          dhsrc = dhsrc + egrav * &
-            (wlhv*(qhfl(n,ikb)-qhfl(n,ksrc(n)+1)) + &
-                  (ahfs(n,ikb)-ahfs(n,ksrc(n)+1)))
-          dhsrc = dhsrc/max(pf(n,ksrc(n)+1)-pf(n,ikb),d_one)
-          dcape = d_zero
-          !$acc loop seq
-          do k = ik+1, ikb
-            dz = geof(n,k-1) - geof(n,k)
-            gam = wlhv*wlhv*max(qu(n,k),1.0e-8_rkx) / &
-                  (cpd*rwat*tu(n,k)*tu(n,k))
-            dcape = dcape + dz*(dhsrc/(cpd*(d_one+gam)*tf(n,k)) - &
-                                (wadt(n,k)/tf(n,k)+ep1*wadq(n,k)))
-          end do
-          mfub1(n) = mfub(n)*(max(dcape,d_zero)+xcape(n)/rtaucape) / &
-                     rheat(n)
-        else
-          !
-          ! CAPE is removed over the convective time scale times the
-          ! factor rtaufac
-          !
-          mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n)*rtaufac)
-        end if
+        !
+        ! CAPE is removed over the convective time scale times the
+        ! factor rtaufac
+        !
+        mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n)*rtaufac)
         mfub1(n) = max(mfub1(n),0.001_rkx)
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
         mfub1(n) = min(mfub1(n),mfmax)
