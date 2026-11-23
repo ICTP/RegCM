@@ -355,6 +355,9 @@ tell them how to build initial and bondary conditions.
  chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
+                             !        : CAMSR, CAMS global reanalysis
+                             !          (EAC4) 6 hourly, from inpglob/CAMS,
+                             !          see Tools/Scripts/cams_eac4_download.py
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
  calendar = 'gregorian',     ! Calendar type : gregorian, noleap, 360_day
@@ -1600,6 +1603,16 @@ The steps to prepare the chemistry boundary conditions data are the following:
         \end{Verbatim}
     That will result in 6 hourly chemical boundary conditions in your input
     directory (\verb=*_CHBC*.nc= and/or \verb=*_AEBC*.nc=).
+    With \verb=chemtyp='CAMSR'= the boundary conditions are taken from the
+    CAMS global reanalysis (EAC4), 6 hourly on pressure levels, read from
+    \verb=inpglob/CAMS/<year>/<NAME>_<year>_<month>.nc=. The files are
+    downloaded from the Copernicus Atmosphere Data Store with
+    \verb=Tools/Scripts/cams_eac4_download.py=, over an area exceeding the
+    domain by a few degrees. The CAMS aerosols are converted to the RegCM
+    species: sea salt from the mass at 80\% relative humidity to the dry
+    mass, organic matter to organic carbon, and the dust and sea salt bins
+    redistributed on the RegCM bins (comments in
+    \verb=PreProc/ICBC/mod_ch_cams.F90=).
 \end{enumerate}
 
 \subsubsection{Run time parameters}

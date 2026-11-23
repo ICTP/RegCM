@@ -287,7 +287,7 @@ module mod_ae_icbc
 
     do i = 1, aejlat
       do j = 1, aeilon
-        xps(j,i) = xps2(j,i,m1)*wt1+xps2(j,i,m2)*wt2
+        xps(j,i) = xps2(j,i,m1)*wt2+xps2(j,i,m2)*wt1
       end do
     end do
     call h_interpolate_cont(hint,xps,xps3)
@@ -318,7 +318,7 @@ module mod_ae_icbc
             pmpi = aet42hyam(aeilev  )*p0+xps3(j,i)*aet42hybm(aeilev  )
             do is = 1, naesp
               aev4(j,i,l,is) = max(aev3(j,i,aeilev,is) + &
-                 (aev3(j,i,aeilev-1,is) - aev3(j,i,aeilev,is)) * &
+                 (aev3(j,i,aeilev,is) - aev3(j,i,aeilev-1,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj),d_zero)
             end do
           else if (k0 >= 1) then

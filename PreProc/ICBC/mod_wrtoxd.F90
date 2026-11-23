@@ -204,7 +204,9 @@ module mod_wrtoxd
         write(stderr,*) 'Added more species without increasing maxaeout'
         call die('init_outoxd','INCRESE maxaeout AND RECOMPILE')
       end if
-      call getmem(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
+      ! The CAMS and nesting boundaries write all the naero species
+      call getmem(aev4,1,jx,1,iy,1,kz,1,max(naesp,naero), &
+                  'mod_wrtoxd:aev4')
     end if
     if ( dochem ) call getmem(chv4,1,jx,1,iy,1,kz,1,ncbmz,'mod_wrtoxd:chv4')
     if ( dooxcl ) call getmem(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')

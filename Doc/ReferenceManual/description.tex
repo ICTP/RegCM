@@ -2155,11 +2155,11 @@ above the surface (a first guess deep cloud that ends shallow) the
 sub-cloud layer is its source layer, between the departure level and cloud
 base, which receives no surface flux. Where the numerator is not positive
 the column does not convect as shallow. The same holds where the updraft
-excess does not exceed $10^5$~J~kg$^{-1}$ times $\max(0.01\,q_e, 10^{-10})$
-($q_e$ the environment specific humidity at cloud base, about 14~J~kg$^{-1}$
-in the tropics), the lower bound of the denominator in the IFS: with the
-surface fluxes in the numerator the bound would give a mass flux at the
-limit of numerical stability, draining the lowest model layers.
+reaches cloud base with a moist static energy excess not larger than the
+least excess it has at the source, $c_p\,0.2$~K $+\,L_v\,10^{-4}$
+($\approx 450$~J~kg$^{-1}$): with the surface fluxes in the numerator a
+vanishing excess would give a mass flux at the limit of numerical
+stability, draining the lowest model layers.
 
 Inside the planetary boundary layer of height $h$, given by the PBL scheme,
 the turbulent fluxes have a linear profile in height $z$: the moisture flux

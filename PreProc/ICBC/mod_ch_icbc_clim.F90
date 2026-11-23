@@ -369,7 +369,9 @@ module mod_ch_icbc_clim
             if (prcm > pmpi) exit
           end do
           if ( prcm < pmpi ) then
-            chv4_1(j,i,l,is) = chv31(j,i,1,is)
+            do is = 1, nchsp
+              chv4_1(j,i,l,is) = chv31(j,i,1,is)
+            end do
           else if (k0 == chilev) then
             do is = 1, nchsp
               chv4_1(j,i,l,is) = 0.5_rkx * &
@@ -434,7 +436,9 @@ module mod_ch_icbc_clim
             if (prcm > pmpi) exit
           end do
           if ( prcm < pmpi ) then
-            chv4_2(j,i,l,is) = chv32(j,i,1,is)
+            do is = 1, nchsp
+              chv4_2(j,i,l,is) = chv32(j,i,1,is)
+            end do
           else if (k0 == chilev) then
             pmpj = cht42hyam(chilev-1)*p0+xps32(j,i)*cht42hybm(chilev-1)
             pmpi = cht42hyam(chilev  )*p0+xps32(j,i)*cht42hybm(chilev  )

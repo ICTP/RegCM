@@ -311,7 +311,7 @@ module mod_clm_pftdyn
 !       --- recoded for roundoff performance, tcraig 3/07 from k.lindsay
 !       pptr%wtgcell(p)   = wtpft1(g,m)*wt1 + wtpft2(g,m)*wt2
         wtpfttot1(c) = wtpfttot1(c)+pptr%wtgcell(p)
-        pptr%wtgcell(p)   = wtpft1(g,m) * wt2 + wtpft2(g,m) * wt1
+        pptr%wtgcell(p)   = wtpft1(g,m) * wt1 + wtpft2(g,m) * wt2
         pptr%wtlunit(p)   = pptr%wtgcell(p) / lptr%wtgcell(l)
         pptr%wtcol(p)     = pptr%wtgcell(p) / lptr%wtgcell(l)
         wtpfttot2(c) = wtpfttot2(c)+pptr%wtgcell(p)

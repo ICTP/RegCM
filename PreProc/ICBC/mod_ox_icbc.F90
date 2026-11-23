@@ -241,7 +241,7 @@ module mod_ox_icbc
 
     do i = 1, oxjlat
       do j = 1, oxilon
-        xps(j,i) = xps2(j,i,m1)*wt1+xps2(j,i,m2)*wt2
+        xps(j,i) = xps2(j,i,m1)*wt2+xps2(j,i,m2)*wt1
       end do
     end do
 
@@ -262,7 +262,7 @@ module mod_ox_icbc
             pmpi = oxt42hyam(oxilev  )*p0+xps3(j,i)*oxt42hybm(oxilev  )
             do is = 1, noxsp
               oxv4(j,i,l,is) = max(oxv3(j,i,oxilev,is) + &
-                 (oxv3(j,i,oxilev-1,is) - oxv3(j,i,oxilev,is)) * &
+                 (oxv3(j,i,oxilev,is) - oxv3(j,i,oxilev-1,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj),d_zero)
             end do
           else if (k0 >= 1) then

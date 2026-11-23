@@ -21,7 +21,7 @@ module mod_cu_tiedtke
   use mod_mpmessage, only : fatal
   use mod_memutil, only : getmem
   use mod_constants, only : cpd, d_1000, d_half, d_one, d_r1000, d_three, &
-    d_two, d_zero, dlowval, egrav, ep1, ep2, mathpi, p00, rcpd, regrav, rgas, &
+    d_two, d_zero, dlowval, egrav, ep1, ep2, mathpi, rcpd, regrav, rgas, &
     rtber, rtice, rtwat, rtwat_rtice_r, rwat, stdp, tzero, wlhf, wlhfocp, &
     wlhs, wlhsocp, wlhv, wlhvocp
   use mod_cu_common, only : avg_ww, cu_chiten, cu_cldfrc, cu_cldlwc, &
@@ -55,6 +55,9 @@ module mod_cu_tiedtke
   public :: ktype, pmfu
 
   real(rkx), parameter :: rhow = 1000.0_rkx
+  ! Least moist static energy excess (J/kg) of the updraught at cloud
+  ! base for the shallow closure, the least excess at the source
+  real(rkx), parameter :: dhshmin = cpd*0.2_rkx + wlhv*1.0e-4_rkx
   real(rkx), parameter :: rkap = 0.4_rkx
   real(rkx), parameter :: qsmax = 0.5_rkx
   real(rkx), parameter :: cwdrag = (3.0_rkx/8.0_rkx)*0.506_rkx/0.200_rkx
@@ -2518,24 +2521,24 @@ module mod_cu_tiedtke
           eps = 0.0_rkx
         end if
         qumqe = qu(n,ikb) + lu(n,ikb) - eps*qd(n,ikb) - (d_one-eps)*qf(n,ikb)
-        dqmin = max(0.01_rkx*qf(n,ikb),1.0e-10_rkx)
         ! Maximum permisable value of ud base mass flux
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
         ! Shallow convection
         if ( ktype(n) == 2 ) then
           dh = cpd*(tu(n,ikb)-eps*td(n,ikb) - &
                    (d_one-eps)*tf(n,ikb)) + wlhv*qumqe
-          if ( dhpbl(n) > d_zero .and. dh > p00*dqmin ) then
+          if ( dhpbl(n) > d_zero .and. dh > dhshmin ) then
             mfub1(n) = dhpbl(n)/(egrav*dh)
           else
             ! No sub-cloud moist static energy convergence: as for the
             ! first guess shallow columns, no shallow convection. This
             ! catches the first guess deep columns that ended shallow,
             ! which kept the deep first guess mass flux 0.1*mfmax.
-            ! The same without moist static energy excess of the
-            ! updraught at cloud base: the closure would divide the
-            ! surface fluxes by the floor of the excess, a mass flux at
-            ! the CFL limit draining the lowest model layers.
+            ! The same if the updraught reaches cloud base with less
+            ! moist static energy excess than the least it has at the
+            ! source (0.2 K, 0.1 g/kg): the closure would divide the
+            ! surface fluxes by a vanishing excess, giving a mass flux
+            ! at the CFL limit that drains the lowest model layers.
             mfub1(n) = mfub(n)
             if ( .not. lmfwstar ) lshoff(n) = .true.
           end if

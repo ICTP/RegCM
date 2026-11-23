@@ -13,23 +13,46 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+!
+! Chemistry (CH) and aerosol (AE) boundary conditions from the CAMS global
+! reanalysis (EAC4) on pressure levels, chemtyp = 'CAMSR'. One file per
+! variable and month: <inpglob>/CAMS/<year>/<NAME>_<year>_<month>.nc, with
+! the variable names of the ADS (aermr01..aermr11, so2, go3, co, ...),
+! mass mixing ratios in kg/kg, packed or not.
+!
+! The fields are interpolated horizontally on the model grid and in the
+! vertical, linearly in log(p), to the pressure of the model sigma levels
+! p = (ps - ptop) * sigma + ptop, with the surface pressure of the ICBC
+! file at the same time. This is the vertical coordinate of all the
+! chemistry boundary files: the model interpolates them to its levels at
+! run time (non hydrostatic and MOLOCH cores).
+!
+! The IFS-AER aerosols are converted to the RegCM species (Remy et al.,
+! 2019, GMD 12, 4627):
+!  - sea salt is given at 80 % relative humidity: the mass is divided by
+!    4.3 to obtain the dry mass, and the bin radii by 1.99, giving dry
+!    diameter bins 0.03-0.5, 0.5-5 and 5-20 micron;
+!  - organic matter is divided by the OM:OC ratio of 1.8 used in IFS-AER
+!    to obtain the organic carbon of RegCM;
+!  - the bins are redistributed on the RegCM bins (dry diameter: dust
+!    0.01-1, 1-2.5, 2.5-5, 5-20 micron; sea salt 0.05-1, 1-10 micron)
+!    with the IFS-AER size distributions (dust lognormal, mass median
+!    diameter 2.45 micron, sigma 2; sea salt coarse mode, mass median dry
+!    diameter 8.5 micron, sigma 2). Mass outside the RegCM bins is lost.
+!
 module mod_cams
 
-  use mod_intkinds, only : ik2, ik4
-  use mod_realkinds, only : rk4, rkx
-  use mod_dynparam, only : chemtyp, globidate1, i_band, idynamic, inpglob, &
-    iy, jx, kz, pthsep
-  use mod_stdio, only : stderr, stdout
+  use mod_intkinds, only : ik4
+  use mod_realkinds, only : rk8, rkx
+  use mod_dynparam, only : chemtyp, dirglob, domname, globidate1, i_band, &
+    inpglob, iy, jx, kz, pthsep, ptop
+  use mod_stdio, only : stdout
   use mod_memutil, only : getmem
-  use mod_grid, only : topogm, xlat, xlon, z0
-  use mod_date, only : rcm_time_and_date, rcm_time_interval, split_idate, &
-    timeval2date, tochar, tohours, assignment(=), operator(+), operator(-), &
-    operator(/=), operator(<), operator(<=), operator(==), operator(>), &
-    operator(>=)
+  use mod_grid, only : sigmah, xlat, xlon
+  use mod_date, only : rcm_time_and_date, split_idate, timeval2date, &
+    tochar, tochar10, monfirst, lsamemonth, assignment(=), operator(==)
   use mod_wrtoxd, only : aev4, chv4, write_ae_icbc, write_ch_icbc
-  use mod_vertint, only : intz1
   use mod_earth, only : get_window, global_domain
-  use mod_vectutil, only : top2btm
   use mod_message, only : die
   use mod_nchelper, only : checkncerr
   use mod_kdinterp, only : h_interpolate_cont, h_interpolator, &
@@ -43,32 +66,62 @@ module mod_cams
 
   private
 
-  integer(ik4) :: jlat, ilon, klev, timlen
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: b3, b3a
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: b2, b2a
+  ! Sea salt: wet (80 % RH) to dry mass
+  real(rkx), parameter :: sslt_wet2dry = 1.0_rkx/4.3_rkx
+  ! Organic matter to organic carbon
+  real(rkx), parameter :: om2oc = 1.0_rkx/1.8_rkx
+  ! Fractions of the CAMS coarse dust bin (diameter 1.8-40 micron) in the
+  ! RegCM bins 2 (1-2.5), 3 (2.5-5) and 4 (5-20 micron)
+  real(rkx), parameter :: fdu3_2 = 0.27_rkx
+  real(rkx), parameter :: fdu3_3 = 0.50_rkx
+  real(rkx), parameter :: fdu3_4 = 0.23_rkx
+  ! Fractions of the CAMS sea salt bin 2 (dry diameter 0.5-5 micron) in
+  ! the RegCM bins 1 (0.05-1) and 2 (1-10 micron), and of the bin 3 (5-20
+  ! micron) in the RegCM bin 2
+  real(rkx), parameter :: fss2_1 = 0.10_rkx
+  real(rkx), parameter :: fss2_2 = 0.90_rkx
+  real(rkx), parameter :: fss3_2 = 0.55_rkx
 
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: hz, hza, o3, co, &
-    dust1, dust2, dust3, eth, xch2o, h2o2, bchl, ochl, bchb, ochb
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: oh, isop, hno3, no, &
-    pan, c3h8, sslt1, sslt2, sslt3, so4, so2, no2, ch4, aso2
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: hzvar, hzavar, o3var, &
-    covar, dust1var, dust2var, dust3var, ethvar, xch2ovar, &
-    h2o2var, bchlvar, bchbvar, ochbvar, ochlvar
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: ohvar, isopvar, hno3var, &
-    novar, panvar, c3h8var, sslt1var, sslt2var, sslt3var, so4var, &
-    so2var, no2var, ch4var, aso2var
-  real(rkx), pointer, contiguous, dimension(:) :: glat
-  real(rkx), pointer, contiguous, dimension(:) :: grev
-  real(rkx), pointer, contiguous, dimension(:) :: glon
-  real(rkx), pointer, contiguous, dimension(:) :: plevs
-  real(rkx), pointer, contiguous, dimension(:) :: sigmar
-  integer(ik2), pointer, contiguous, dimension(:,:,:) :: work
+  integer(ik4), parameter :: ngas = 13
+  integer(ik4), parameter :: naer = 12
 
+  ! ADS variable names and file names. The order is the one of the
+  ! assignments in cams_to_regcm.
+  character(len=8), dimension(ngas), parameter :: gasname = &
+    [ character(len=8) :: 'go3', 'co', 'c2h6', 'hcho', 'c3h8', 'no', &
+      'no2', 'h2o2', 'c5h8', 'so2', 'hno3', 'ch4', 'pan' ]
+  character(len=8), dimension(ngas), parameter :: gasfile = &
+    [ character(len=8) :: 'O3', 'CO', 'ETH', 'CH2O', 'C3H8', 'NO', &
+      'NO2', 'H2O2', 'ISOP', 'SO2', 'HNO3', 'CH4', 'PAN' ]
+  character(len=8), dimension(naer), parameter :: aername = &
+    [ character(len=8) :: 'aermr01', 'aermr02', 'aermr03', 'aermr04', &
+      'aermr05', 'aermr06', 'aermr07', 'aermr08', 'aermr09', 'aermr10', &
+      'aermr11', 'so2' ]
+  character(len=8), dimension(naer), parameter :: aerfile = &
+    [ character(len=8) :: 'SSLT1', 'SSLT2', 'SSLT3', 'DUST1', 'DUST2', &
+      'DUST3', 'OCHL', 'OCHB', 'BCHL', 'BCHB', 'SO4', 'SO2' ]
+
+  integer(ik4) :: nsp, jlat, ilon, klev, timlen, ncicbc, ivarps
+  character(len=8), dimension(max(ngas,naer)) :: vname, fname
+  integer(ik4), dimension(max(ngas,naer)) :: ncid, ivar
+  real(rkx), dimension(max(ngas,naer)) :: xscl, xoff
+  logical :: lopen = .false.
+  logical :: lpsopen = .false.
+  type(rcm_time_and_date) :: filedate, psdate
   type(rcm_time_and_date), pointer, contiguous, dimension(:) :: itimes
-  integer(ik4), pointer, contiguous, dimension(:) :: xtimes
+
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: b2, b3
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: work
+  real(rkx), pointer, contiguous, dimension(:,:) :: ps3
+  real(rkx), pointer, contiguous, dimension(:,:,:,:) :: xv
+  real(rkx), pointer, contiguous, dimension(:) :: glat, glon, grev
+  real(rk8), dimension(:), allocatable :: plog
+  ! Pressure levels of the input, top to bottom (Pa)
+  real(rkx), pointer, contiguous, dimension(:) :: plevs
+  logical :: lflip
 
   type(global_domain) :: gdomain
-  type(h_interpolator) :: cross_hint, udot_hint, vdot_hint
+  type(h_interpolator) :: cross_hint
 
   public :: init_cams, get_cams, conclude_cams
 
@@ -77,84 +130,57 @@ module mod_cams
   subroutine init_cams(typ)
     implicit none
     character(len=2), intent(in) :: typ
-    integer(ik4) :: k
-    integer(ik4) :: year, month, day, hour
+    integer(ik4) :: istatus, inc, ivarid, idimid
     character(len=256) :: pathaddname
-    integer(ik4) :: istatus, ncid, ivarid, idimid
-    character(len=64) :: inname
+    character(len=64) :: cunit
 
-    if ( idynamic < 3 ) &
-      call die('mod_ch_cams','CAMSR only works for idynamic=3')
+    select case ( typ )
+      case ( 'CH' )
+        nsp = ngas
+        vname(1:nsp) = gasname
+        fname(1:nsp) = gasfile
+      case ( 'AE' )
+        nsp = naer
+        vname(1:nsp) = aername
+        fname(1:nsp) = aerfile
+      case default
+        call die('mod_ch_cams','Unknown type: support only CH and AE')
+    end select
+    lopen = .false.
 
-    call split_idate(globidate1,year,month,day,hour)
-    write(inname,'(i4,a,a,i0.4,a,i0.2,a)') &
-      year, pthsep, 'geop_', year, '_', month,'.nc'
-    pathaddname = trim(inpglob)//pthsep//chemtyp(1:4)//pthsep//inname
-    istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
+    pathaddname = cams_file(globidate1,fname(1))
+    istatus = nf90_open(pathaddname,nf90_nowrite,inc)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open file '//trim(pathaddname))
-    istatus = nf90_inq_dimid(ncid,'latitude',idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Missing latitude dimension in file '//trim(pathaddname))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=jlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading latitude dimelen in file '//trim(pathaddname))
-    istatus = nf90_inq_dimid(ncid,'longitude',idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Missing longitude dimension in file '//trim(pathaddname))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=ilon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading longitude dimelen in file '//trim(pathaddname))
-    istatus = nf90_inq_dimid(ncid,'levelist',idimid)
-    if ( istatus /= nf90_noerr ) then
-      istatus = nf90_inq_dimid(ncid,'level',idimid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-            'Missing level/levelist dimension in file '//trim(pathaddname))
-    end if
-    istatus = nf90_inquire_dimension(ncid,idimid,len=klev)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading levelist dimelen in file '//trim(pathaddname))
-    !
-    ! Allocate working space
-    !
-    call getmem(plevs,1,klev,'mod_cams:plevs')
+    call get_dim(inc,'latitude','',jlat)
+    call get_dim(inc,'longitude','',ilon)
+    call get_dim(inc,'pressure_level','level',klev)
     call getmem(glat,1,jlat,'mod_cams:glat')
     call getmem(glon,1,ilon,'mod_cams:glon')
     call getmem(grev,1,max(jlat,ilon),'mod_cams:grev')
-    call getmem(sigmar,1,klev,'mod_cams:sigmar')
-
-    istatus = nf90_inq_varid(ncid,'latitude',ivarid)
+    call getmem(plevs,1,klev,'mod_cams:plevs')
+    call get_coord(inc,'latitude','',glat)
+    call get_coord(inc,'longitude','',glon)
+    call get_coord(inc,'pressure_level','level',plevs)
+    ! Pressure levels in hPa (ADS) or Pa
+    istatus = nf90_inq_varid(inc,'pressure_level',ivarid)
+    if ( istatus /= nf90_noerr ) istatus = nf90_inq_varid(inc,'level',ivarid)
+    cunit = 'hPa'
+    istatus = nf90_get_att(inc,ivarid,'units',cunit)
+    if ( cunit(1:2) /= 'Pa' ) plevs = plevs * 100.0_rkx
+    istatus = nf90_close(inc)
     call checkncerr(istatus,__FILE__,__LINE__, &
-          'Missing latitude variable in file '//trim(pathaddname))
-    istatus = nf90_get_var(ncid,ivarid,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading latitude variable in file '//trim(pathaddname))
-    istatus = nf90_inq_varid(ncid,'longitude',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Missing longitude variable in file '//trim(pathaddname))
-    istatus = nf90_get_var(ncid,ivarid,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading longitude variable in file '//trim(pathaddname))
-    istatus = nf90_inq_varid(ncid,'levelist',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      istatus = nf90_inq_varid(ncid,'level',ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-            'Missing level/levelist variable in file '//trim(pathaddname))
-    end if
-    istatus = nf90_get_var(ncid,ivarid,plevs)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading levelist variable in file '//trim(pathaddname))
-    istatus = nf90_close(ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error close file '//trim(pathaddname))
-    do k = 1, klev
-      sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
-    end do
+                    'Error close file '//trim(pathaddname))
+    ! Vertical interpolation from top to bottom
+    lflip = ( plevs(1) > plevs(klev) )
+    if ( lflip ) plevs = plevs(klev:1:-1)
+    if ( allocated(plog) ) deallocate(plog)
+    allocate(plog(klev))
+    plog = log(real(plevs,rk8))
     !
     ! Find window to read
     !
     call get_window(glat,glon,xlat,xlon,i_band,gdomain)
-
     grev(1:jlat) = glat
     jlat = gdomain%nj
     call getmem(glat,1,jlat,'mod_cams:glat')
@@ -166,514 +192,332 @@ module mod_cams
     if ( gdomain%ntiles == 2 ) then
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
     end if
-
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
 
-    if ( typ == 'CH' ) then
-      call getmem(b3,1,jx,1,iy,1,klev*15,'mod_cams:b3')
-      call getmem(b2,1,ilon,1,jlat,1,klev*15,'mod_cams:b2')
-      call getmem(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
-      !
-      ! Set up pointers
-      !
-      hz    => b3(:,:,1:klev)
-      o3    => b3(:,:,klev+1:2*klev)
-      co    => b3(:,:,2*klev+1:3*klev)
-      eth   => b3(:,:,3*klev+1:4*klev)
-      xch2o => b3(:,:,4*klev+1:5*klev)
-      h2o2  => b3(:,:,5*klev+1:6*klev)
-      oh    => b3(:,:,6*klev+1:7*klev)
-      isop  => b3(:,:,7*klev+1:8*klev)
-      hno3  => b3(:,:,8*klev+1:9*klev)
-      no    => b3(:,:,9*klev+1:10*klev)
-      pan   => b3(:,:,10*klev+1:11*klev)
-      c3h8  => b3(:,:,11*klev+1:12*klev)
-      so2   => b3(:,:,12*klev+1:13*klev)
-      no2   => b3(:,:,13*klev+1:14*klev)
-      ch4   => b3(:,:,14*klev+1:15*klev)
+    call getmem(b2,1,ilon,1,jlat,1,klev*nsp,'mod_cams:b2')
+    call getmem(b3,1,jx,1,iy,1,klev*nsp,'mod_cams:b3')
+    call getmem(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
+    call getmem(ps3,1,jx,1,iy,'mod_cams:ps3')
+    call getmem(xv,1,jx,1,iy,1,kz,1,nsp,'mod_cams:xv')
 
-      hzvar    => b2(:,:,1:klev)
-      o3var    => b2(:,:,klev+1:2*klev)
-      covar    => b2(:,:,2*klev+1:3*klev)
-      ethvar   => b2(:,:,3*klev+1:4*klev)
-      xch2ovar => b2(:,:,4*klev+1:5*klev)
-      h2o2var  => b2(:,:,5*klev+1:6*klev)
-      ohvar    => b2(:,:,6*klev+1:7*klev)
-      isopvar  => b2(:,:,7*klev+1:8*klev)
-      hno3var  => b2(:,:,8*klev+1:9*klev)
-      novar    => b2(:,:,9*klev+1:10*klev)
-      panvar   => b2(:,:,10*klev+1:11*klev)
-      c3h8var  => b2(:,:,11*klev+1:12*klev)
-      so2var   => b2(:,:,12*klev+1:13*klev)
-      no2var   => b2(:,:,13*klev+1:14*klev)
-      ch4var   => b2(:,:,14*klev+1:15*klev)
+  contains
 
-    else if ( typ =='AE' ) then
-      call getmem(b3a,1,jx,1,iy,1,klev*15,'mod_cams:b3a')
-      call getmem(b2a,1,ilon,1,jlat,1,klev*15,'mod_cams:b2a')
-      call getmem(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
-      !
-      ! Set up pointers
-      !
-      hza   => b3a(:,:,1:klev)
-      dust1 => b3a(:,:,klev+1:2*klev)
-      dust2 => b3a(:,:,2*klev+1:3*klev)
-      dust3 => b3a(:,:,3*klev+1:4*klev)
-      bchl  => b3a(:,:,4*klev+1:5*klev)
-      ochl  => b3a(:,:,5*klev+1:6*klev)
-      bchb  => b3a(:,:,6*klev+1:7*klev)
-      ochb  => b3a(:,:,7*klev+1:8*klev)
-      sslt1 => b3a(:,:,8*klev+1:9*klev)
-      sslt2 => b3a(:,:,9*klev+1:10*klev)
-      sslt3 => b3a(:,:,10*klev+1:11*klev)
-      so4   => b3a(:,:,11*klev+1:12*klev)
-      aso2  => b3a(:,:,12*klev+1:13*klev)
+    subroutine get_dim(nc,dname,altname,dlen)
+      implicit none
+      integer(ik4), intent(in) :: nc
+      character(len=*), intent(in) :: dname, altname
+      integer(ik4), intent(out) :: dlen
+      istatus = nf90_inq_dimid(nc,dname,idimid)
+      if ( istatus /= nf90_noerr .and. len(altname) > 0 ) then
+        istatus = nf90_inq_dimid(nc,altname,idimid)
+      end if
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Missing dimension '//dname//' in CAMS file')
+      istatus = nf90_inquire_dimension(nc,idimid,len=dlen)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read dimension '//dname//' in CAMS file')
+    end subroutine get_dim
 
-      hzavar   => b2a(:,:,1:klev)
-      dust1var => b2a(:,:,1*klev+1:2*klev)
-      dust2var => b2a(:,:,2*klev+1:3*klev)
-      dust3var => b2a(:,:,3*klev+1:4*klev)
-      bchlvar  => b2a(:,:,4*klev+1:5*klev)
-      ochlvar  => b2a(:,:,5*klev+1:6*klev)
-      bchbvar  => b2a(:,:,6*klev+1:7*klev)
-      ochbvar  => b2a(:,:,7*klev+1:8*klev)
-      sslt1var => b2a(:,:,8*klev+1:9*klev)
-      sslt2var => b2a(:,:,9*klev+1:10*klev)
-      sslt3var => b2a(:,:,10*klev+1:11*klev)
-      so4var   => b2a(:,:,11*klev+1:12*klev)
-      aso2var  => b2a(:,:,12*klev+1:13*klev)
-    end if
+    subroutine get_coord(nc,cname,altname,val)
+      implicit none
+      integer(ik4), intent(in) :: nc
+      character(len=*), intent(in) :: cname, altname
+      real(rkx), dimension(:), intent(out) :: val
+      istatus = nf90_inq_varid(nc,cname,ivarid)
+      if ( istatus /= nf90_noerr .and. len(altname) > 0 ) then
+        istatus = nf90_inq_varid(nc,altname,ivarid)
+      end if
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Missing variable '//cname//' in CAMS file')
+      istatus = nf90_get_var(nc,ivarid,val)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read variable '//cname//' in CAMS file')
+    end subroutine get_coord
+
   end subroutine init_cams
 
   subroutine get_cams(idate,typ)
     implicit none
-    character(len=2), intent(in) :: typ
     type(rcm_time_and_date), intent(in) :: idate
-    !
-    ! Read data at idate
-    !
-    if ( typ == 'CH' ) then
+    character(len=2), intent(in) :: typ
+    integer(ik4) :: n
 
-      call cams6hour(idate,globidate1,'CH')
-      write (stdout,*) 'READ IN CAMS fields at DATE:', tochar(idate)
-      !
-      ! Horizontal interpolation of both the scalar and vector fields
-      !
-      call h_interpolate_cont(cross_hint,b2,b3)
-      !
-      ! Invert vertical order, set BOTTOM -> TOP
-!$OMP SECTIONS
-!$OMP SECTION
-      call top2btm(hz)
-!$OMP SECTION
-      call top2btm(o3)
-!$OMP SECTION
-      call top2btm(co)
-!$OMP SECTION
-      call top2btm(eth )
-!$OMP SECTION
-      call top2btm(xch2o)
-!$OMP SECTION
-      call top2btm(h2o2 )
-!$OMP SECTION
-      call top2btm(oh)
-!$OMP SECTION
-      call top2btm(isop)
-!$OMP SECTION
-      call top2btm (hno3)
-!$OMP SECTION
-      call top2btm(no)
-!$OMP SECTION
-      call top2btm(pan)
-!$OMP SECTION
-      call top2btm(c3h8 )
-!$OMP SECTION
-      call top2btm(so2)
-!$OMP SECTION
-      call top2btm(no2)
-!$OMP SECTION
-      call top2btm(ch4)
-!$OMP END SECTIONS
-    else if ( typ == 'AE' ) then
-      call cams6hour(idate,globidate1,'AE')
-      write (stdout,*) 'READ IN CAMS AER fields at DATE:', tochar(idate)
-      !
-      ! Horizontal interpolation of both the scalar and vector fields
-      !
-      call h_interpolate_cont(cross_hint,b2a,b3a)
-      !
-!$OMP SECTIONS
-!$OMP SECTION
-      call top2btm(hza)
-!$OMP SECTION
-      call top2btm(dust1)
-!$OMP SECTION
-      call top2btm(dust2)
-!$OMP SECTION
-      call top2btm(dust3)
-!$OMP SECTION
-      call top2btm(bchl)
-!$OMP SECTION
-      call top2btm(ochl)
-!$OMP SECTION
-      call top2btm(bchb)
-!$OMP SECTION
-      call top2btm(ochb)
-!$OMP SECTION
-      call top2btm(sslt1)
-!$OMP SECTION
-      call top2btm(sslt2)
-!$OMP SECTION
-      call top2btm(sslt3)
-!$OMP SECTION
-      call top2btm(so4)
-!$OMP SECTION
-      call top2btm(aso2)
-!$OMP END SECTIONS
-    end if
-    ! New calculation of p* on rcm topography.
-    !
-    ! Interpolate chemicals.
-    !
-    if ( typ == 'CH' ) then
-!$OMP SECTIONS
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_O3),o3,z0,hz,topogm, &
-         jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_CO),co,z0,hz,topogm, &
-         jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_C2H6),eth,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_HCHO),xch2o,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_H2O2),h2o2,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_ISOP),isop,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_HNO3),hno3,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_NO),no,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_PAN),pan,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_PAR),c3h8,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_SO2),so2,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_NO2),no2,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(chv4(:,:,:,cb_CH4),ch4,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP END SECTIONS
-      ! treat special case of functional groups
-      chv4(:,:,:,cb_PAR) = 3._rkx* chv4(:,:,:,cb_PAR)
-      ! consider putting OH
-
-    else if ( typ == 'AE' ) then
-!$OMP SECTIONS
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_dust1),dust1,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_dust2),dust2,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_dust3),dust3,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_bchl),bchl,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_ochl),ochl,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_bchb),bchb,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_ochb),ochb,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_sslt1),sslt1,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_sslt2),sslt2,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_so4),so4,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP SECTION
-      call intz1(aev4(:,:,:,ae_so2),aso2,z0,hza,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
-!$OMP END SECTIONS
-
-      ! Perform mass redistribution from cams bins to regcm bins for dust and
-      ! seasalt. The weights are roughly estimated from bin size and dust
-      ! volume distribution between 0 and 20um
-
-      aev4(:,:,:,ae_dust1) = aev4(:,:,:,ae_dust1) + aev4(:,:,:,ae_dust2)
-      aev4(:,:,:,ae_dust2) = 0.4_rkx * aev4(:,:,:,ae_dust3)
-      aev4(:,:,:,ae_dust4) = 0.2_rkx * aev4(:,:,:,ae_dust3) ! 4 before 3 !!
-      aev4(:,:,:,ae_dust3) = 0.4_rkx * aev4(:,:,:,ae_dust3)
-
-      aev4(:,:,:,ae_sslt1) = aev4(:,:,:,ae_sslt1) + &
-                             0.2_rkx * aev4(:,:,:,ae_sslt2)
-      aev4(:,:,:,ae_sslt2) = 0.8_rkx * aev4(:,:,:,ae_sslt2)
-      ! did not use sslt3 consider using a third ssbin ...
-
-    end if
-
-    !write out chv4
-    if ( typ=='CH' ) call  write_ch_icbc(idate)
-    if ( typ=='AE' ) call  write_ae_icbc(idate)
-
+    call read_cams(idate)
+    write (stdout,*) 'READ IN CAMS '//typ//' fields at DATE:', tochar(idate)
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call read_icbc_ps(idate)
+    do n = 1, nsp
+      call vertint(b3(:,:,(n-1)*klev+1:n*klev),xv(:,:,:,n))
+    end do
+    call cams_to_regcm(typ)
+    if ( typ == 'CH' ) call write_ch_icbc(idate)
+    if ( typ == 'AE' ) call write_ae_icbc(idate)
   end subroutine get_cams
 
-  subroutine cams6hour(idate,idate0,typ)
+  subroutine cams_to_regcm(typ)
     implicit none
-    character(len=2), intent(in) ::typ
-    type(rcm_time_and_date), intent(in) :: idate, idate0
-    integer(ik4) :: inet, it, kkrec, istatus, ivar
-    integer(ik4) :: timid
-    character(len=64) :: inname
-    character(len=256) :: pathaddname
-    character(len=7), dimension(14) :: gasname, gfname
-    character(len=7), dimension(13) :: aername, afname
-    ! make sure that dim is large enough
-    character(len=7), dimension(15) ::varname
-    character(len=7), dimension(15) ::fname
-
-    character(len=64) :: cunit, ccal
-    real(rkx) :: xadd, xscale
-    integer(ik4), dimension(4) :: icount, istart
-    integer(ik4) :: year, month, day, hour, nsp
-    integer(ik4), save :: lastmonth
-    type(rcm_time_interval) :: tdif
-    integer(ik4), dimension(20) :: ivar5
-    real(rkx), dimension(20) :: xoff, xscl
-    integer(ik4), dimension(20) :: inet5 !care the first dimension must be
-                                         !bigger than the number of species
-                                         !for gas or aer
-
-    data gasname /'z','go3','co','c2h6','hcho','c3h8','no', &
-                  'no2','h2o2','c5h8' ,'so2','hno3','ch4','pan' /
-    data gfname  /'geop','O3','CO','ETH','CH2O','C3H8','NO', &
-                  'NO2','H2O2','ISOP','SO2','HNO3','CH4','PAN'/
-    data aername /'z','aermr04','aermr05','aermr06','aermr09',&
-                  'aermr07','aermr10','aermr08','aermr01', &
-                  'aermr02' ,'aermr03','aermr11','so2' /
-    data afname  /'geop','DUST1','DUST2','DUST3','BCHL','OCHL', &
-                  'BCHB','OCHB','SSLT1','SSLT2','SSLT3','SO4','SO2'/
-
-    !
-    ! This is the latitude, longitude dimension of the grid to be read.
-    ! This corresponds to the lat and lon dimension variables in the
-    ! netCDF file.
-    ! The data are packed into short integers (INTEGER*2).  The array
-    ! work will be used to hold the packed integers.  The array 'x'
-    ! will contain the unpacked data.
-    !
-    if (typ == 'CH') then
-      nsp = 14
-      varname(1:nsp) = gasname(1:nsp)
-      fname(1:nsp) = gfname(1:nsp)
-    else if (typ == 'AE') then
-      nsp = 13
-      varname(1:nsp) = aername(1:nsp)
-      fname(1:nsp) = afname(1:nsp)
+    character(len=2), intent(in) :: typ
+    if ( typ == 'CH' ) then
+      chv4 = 0.0_rkx
+      chv4(:,:,:,cb_o3) = xv(:,:,:,1)
+      chv4(:,:,:,cb_co) = xv(:,:,:,2)
+      chv4(:,:,:,cb_c2h6) = xv(:,:,:,3)
+      chv4(:,:,:,cb_hcho) = xv(:,:,:,4)
+      ! functional groups: three PAR for each propane
+      chv4(:,:,:,cb_par) = 3.0_rkx * xv(:,:,:,5)
+      chv4(:,:,:,cb_no) = xv(:,:,:,6)
+      chv4(:,:,:,cb_no2) = xv(:,:,:,7)
+      chv4(:,:,:,cb_h2o2) = xv(:,:,:,8)
+      chv4(:,:,:,cb_isop) = xv(:,:,:,9)
+      chv4(:,:,:,cb_so2) = xv(:,:,:,10)
+      chv4(:,:,:,cb_hno3) = xv(:,:,:,11)
+      chv4(:,:,:,cb_ch4) = xv(:,:,:,12)
+      chv4(:,:,:,cb_pan) = xv(:,:,:,13)
     else
-      nsp = 0
-      write(stderr, *) 'Unknown type! Support only CH and AE'
-      call die('mod_ch_cams','Unknown simulattion type.')
+      ! Sea salt (1-3), dry mass
+      aev4(:,:,:,ae_sslt1) = sslt_wet2dry * &
+        (xv(:,:,:,1) + fss2_1*xv(:,:,:,2))
+      aev4(:,:,:,ae_sslt2) = sslt_wet2dry * &
+        (fss2_2*xv(:,:,:,2) + fss3_2*xv(:,:,:,3))
+      ! Dust (4-6)
+      aev4(:,:,:,ae_dust1) = xv(:,:,:,4)
+      aev4(:,:,:,ae_dust2) = xv(:,:,:,5) + fdu3_2*xv(:,:,:,6)
+      aev4(:,:,:,ae_dust3) = fdu3_3*xv(:,:,:,6)
+      aev4(:,:,:,ae_dust4) = fdu3_4*xv(:,:,:,6)
+      ! Organic matter (7 hydrophilic, 8 hydrophobic) to organic carbon
+      aev4(:,:,:,ae_ochl) = om2oc * xv(:,:,:,7)
+      aev4(:,:,:,ae_ochb) = om2oc * xv(:,:,:,8)
+      ! Black carbon (9 hydrophilic, 10 hydrophobic)
+      aev4(:,:,:,ae_bchl) = xv(:,:,:,9)
+      aev4(:,:,:,ae_bchb) = xv(:,:,:,10)
+      ! Sulfate and sulfur dioxide
+      aev4(:,:,:,ae_so4) = xv(:,:,:,11)
+      aev4(:,:,:,ae_so2) = xv(:,:,:,12)
     end if
+  end subroutine cams_to_regcm
+  !
+  ! Linear interpolation in log(p) from the input pressure levels to the
+  ! model sigma levels, constant above the top and below the lowest level.
+  !
+  subroutine vertint(f3,fz)
+    implicit none
+    real(rkx), dimension(:,:,:), intent(in) :: f3
+    real(rkx), dimension(:,:,:), intent(out) :: fz
+    real(rkx), dimension(klev) :: f
+    integer(ik4) :: i, j, k, kk
+    real(rk8) :: lp, w
+    do i = 1, iy
+      do j = 1, jx
+        if ( lflip ) then
+          f = f3(j,i,klev:1:-1)
+        else
+          f = f3(j,i,:)
+        end if
+        kk = 2
+        do k = 1, kz
+          lp = log((real(ps3(j,i),rk8)-ptop*1000.0_rk8)*sigmah(k) + &
+                   ptop*1000.0_rk8)
+          if ( lp <= plog(1) ) then
+            fz(j,i,k) = f(1)
+          else if ( lp >= plog(klev) ) then
+            fz(j,i,k) = f(klev)
+          else
+            do while ( plog(kk) < lp )
+              kk = kk + 1
+            end do
+            ! weight of the lower level kk, 1 at p = plevs(kk)
+            w = (lp-plog(kk-1))/(plog(kk)-plog(kk-1))
+            fz(j,i,k) = max(real(w*f(kk)+(1.0_rk8-w)*f(kk-1),rkx),0.0_rkx)
+          end if
+        end do
+      end do
+    end do
+  end subroutine vertint
 
-    call split_idate(idate,year,month,day,hour)
+  subroutine read_cams(idate)
+    implicit none
+    type(rcm_time_and_date), intent(in) :: idate
+    integer(ik4) :: n, it, istatus, itile, iti, itf, timid
+    integer(ik4), dimension(4) :: istart, icount
+    character(len=256) :: pathaddname
+    character(len=64) :: cunit, ccal
+    real(rk8), dimension(:), allocatable :: xtimes
 
-    if ( idate == idate0 .or. month /= lastmonth ) then
-      lastmonth = month
-      if ( idate /= idate0 ) then
-        do kkrec = 1, nsp ! boulce sur nbre variables gaz
-          istatus = nf90_close(inet5(kkrec))
-          call checkncerr(istatus,__FILE__,__LINE__, &
-             'Error close file')
+    if ( .not. lopen .or. .not. lsamemonth(idate,filedate) ) then
+      if ( lopen ) then
+        do n = 1, nsp
+          istatus = nf90_close(ncid(n))
+          call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
         end do
       end if
-      do kkrec = 1, nsp ! boulce sur nbre variables gaz
-        !verifie le path pour fichier CAMS !!
-        write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
-        year, pthsep, trim(fname(kkrec)), '_', year, '_', month,'.nc'
-        pathaddname = trim(inpglob)//pthsep//chemtyp(1:4)//pthsep//inname
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
-
+      filedate = idate
+      do n = 1, nsp
+        pathaddname = cams_file(idate,fname(n))
+        istatus = nf90_open(pathaddname,nf90_nowrite,ncid(n))
         call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error open file '//trim(pathaddname))
-        istatus = nf90_inq_varid(inet5(kkrec),varname(kkrec), &
-                                 ivar5(kkrec))
+                        'Error open file '//trim(pathaddname))
+        istatus = nf90_inq_varid(ncid(n),vname(n),ivar(n))
         call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error find var '//varname(kkrec))
-        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
-                 'scale_factor',xscl(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error find att scale_factor')
-        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
-                   'add_offset',xoff(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error find att add_offset')
-        write (stdout,*) inet5(kkrec), trim(pathaddname),   &
-                         xscl(kkrec), xoff(kkrec)
-        if ( kkrec == 1 ) then
-          istatus = nf90_inq_dimid(inet5(1),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error find dim time')
-          istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error inquire time')
-          istatus = nf90_inq_varid(inet5(1),'time',timid)
-          if ( istatus /= nf90_noerr ) then
-            istatus = nf90_inq_varid(inet5(1),'date',timid)
-            call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find var time/date')
-          end if
-          istatus = nf90_get_att(inet5(1),timid,'units',cunit)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                              'Error read time units')
-          istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                              'Error read time units')
-          call getmem(itimes,1,timlen,'mod_cams:itimes')
-          call getmem(xtimes,1,timlen,'mod_cams:xtimes')
-          istatus = nf90_get_var(inet5(1),timid,xtimes)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read time')
-          do it = 1, timlen
-            itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
-          end do
-        end if
+                        'Error find var '//trim(vname(n))// &
+                        ' in '//trim(pathaddname))
+        ! Unpacked data have no scale factor and offset
+        istatus = nf90_get_att(ncid(n),ivar(n),'scale_factor',xscl(n))
+        if ( istatus /= nf90_noerr ) xscl(n) = 1.0_rkx
+        istatus = nf90_get_att(ncid(n),ivar(n),'add_offset',xoff(n))
+        if ( istatus /= nf90_noerr ) xoff(n) = 0.0_rkx
+        write (stdout,*) 'Opened ', trim(pathaddname)
       end do
+      istatus = nf90_inq_dimid(ncid(1),'valid_time',timid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(ncid(1),'time',timid)
+      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+      istatus = nf90_inquire_dimension(ncid(1),timid,len=timlen)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
+      istatus = nf90_inq_varid(ncid(1),'valid_time',timid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(ncid(1),'time',timid)
+      end if
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+      istatus = nf90_get_att(ncid(1),timid,'units',cunit)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+      istatus = nf90_get_att(ncid(1),timid,'calendar',ccal)
+      if ( istatus /= nf90_noerr ) ccal = 'gregorian'
+      allocate(xtimes(timlen))
+      istatus = nf90_get_var(ncid(1),timid,xtimes)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+      call getmem(itimes,1,timlen,'mod_cams:itimes')
+      do it = 1, timlen
+        itimes(it) = timeval2date(xtimes(it),cunit,ccal)
+      end do
+      deallocate(xtimes)
+      lopen = .true.
     end if
-    tdif = idate - itimes(1)
-    it = nint(tohours(tdif))/6 + 1
-
+    it = 0
+    do n = 1, timlen
+      if ( itimes(n) == idate ) then
+        it = n
+        exit
+      end if
+    end do
+    if ( it == 0 ) then
+      call die('mod_ch_cams','Date '//tochar(idate)//' not in CAMS file '// &
+               trim(cams_file(idate,fname(1))))
+    end if
     istart(3) = 1
     icount(3) = klev
     istart(4) = it
     icount(4) = 1
+    do n = 1, nsp
+      iti = 1
+      do itile = 1, gdomain%ntiles
+        istart(1) = gdomain%igstart(itile)
+        icount(1) = gdomain%ni(itile)
+        istart(2) = gdomain%jgstart
+        icount(2) = gdomain%nj
+        itf = iti + gdomain%ni(itile) - 1
+        istatus = nf90_get_var(ncid(n),ivar(n),work(iti:itf,:,:), &
+                               istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//trim(vname(n)))
+        iti = iti + gdomain%ni(itile)
+      end do
+      b2(:,:,(n-1)*klev+1:n*klev) = work*xscl(n) + xoff(n)
+    end do
+  end subroutine read_cams
+  !
+  ! Surface pressure (Pa) of the ICBC file of the domain at idate
+  !
+  subroutine read_icbc_ps(idate)
+    implicit none
+    type(rcm_time_and_date), intent(in) :: idate
+    type(rcm_time_and_date) :: fdate, tdate
+    integer(ik4) :: istatus, timid, n, it, nt
+    integer(ik4), dimension(3) :: istart, icount
+    character(len=256) :: icbcname
+    character(len=64) :: cunit, ccal
+    real(rk8), dimension(:), allocatable :: xtimes
 
-    if ( typ == 'CH' ) then
-      ohvar = 0.0
-      do kkrec = 1, nsp ! loop on number variables
-        inet = inet5(kkrec)
-        ivar = ivar5(kkrec)
-        xscale = xscl(kkrec)
-        xadd = xoff(kkrec)
-        call getwork(kkrec)
-        !care the order must match varname data - could be more elegant,
-        if ( kkrec == 1 ) hzvar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)/9.80616_rk4
-        if ( kkrec == 2 ) o3var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 3 ) covar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 4 ) ethvar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 5 ) xch2ovar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 6 ) c3h8var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 7 ) novar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 8 ) no2var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 9 ) h2o2var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 10 ) isopvar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 11 ) so2var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 12 ) hno3var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 13 ) ch4var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 14 ) panvar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      end do
-    else if ( typ == 'AE' ) then
-      do kkrec = 1, nsp ! loop on number variables
-        inet = inet5(kkrec)
-        ivar = ivar5(kkrec)
-        xscale = xscl(kkrec)
-        xadd = xoff(kkrec)
-        call getwork(kkrec)
-        !care the order must match varname data - could be more elegant,
-        if ( kkrec == 1 ) hzavar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx) / 9.80616_rk4
-        if ( kkrec == 2 ) dust1var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 3 ) dust2var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 4 ) dust3var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 5 ) bchlvar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 6 ) ochlvar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 7 ) bchbvar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 8 ) ochbvar(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 9 ) sslt1var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 10 )sslt2var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 11 )sslt3var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 12 )so4var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        if ( kkrec == 13 )aso2var(1:ilon,1:jlat,:) = &
-          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      end do
+    if ( lsamemonth(idate,globidate1) ) then
+      fdate = globidate1
+    else
+      fdate = monfirst(idate)
     end if
+    if ( .not. lpsopen .or. .not. (fdate == psdate) ) then
+      if ( lpsopen ) then
+        istatus = nf90_close(ncicbc)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error close ICBC file')
+      end if
+      write (icbcname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+              trim(domname), '_ICBC.', trim(tochar10(fdate)), '.nc'
+      istatus = nf90_open(icbcname,nf90_nowrite,ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open ICBC file '//trim(icbcname))
+      istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var ps in ICBC file '//trim(icbcname))
+      psdate = fdate
+      lpsopen = .true.
+    end if
+    istatus = nf90_inq_dimid(ncicbc,'time',timid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find ICBC time dim')
+    istatus = nf90_inquire_dimension(ncicbc,timid,len=nt)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire ICBC time')
+    istatus = nf90_inq_varid(ncicbc,'time',timid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find ICBC time var')
+    istatus = nf90_get_att(ncicbc,timid,'units',cunit)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read ICBC time units')
+    istatus = nf90_get_att(ncicbc,timid,'calendar',ccal)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read ICBC calendar')
+    allocate(xtimes(nt))
+    istatus = nf90_get_var(ncicbc,timid,xtimes)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read ICBC time')
+    it = 0
+    do n = 1, nt
+      tdate = timeval2date(xtimes(n),cunit,ccal)
+      if ( tdate == idate ) then
+        it = n
+        exit
+      end if
+    end do
+    deallocate(xtimes)
+    if ( it == 0 ) then
+      call die('mod_ch_cams','Date '//tochar(idate)//' not in ICBC file')
+    end if
+    istart = [ 1, 1, it ]
+    icount = [ jx, iy, 1 ]
+    istatus = nf90_get_var(ncicbc,ivarps,ps3,istart,icount)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read ICBC ps')
+    ! hPa to Pa
+    ps3 = ps3 * 100.0_rkx
+  end subroutine read_icbc_ps
 
-    contains
-
-      subroutine getwork(irec)
-        implicit none
-        integer(ik4), intent(in) :: irec
-        integer(ik4) :: itile, iti, itf
-        iti = 1
-        do itile = 1, gdomain%ntiles
-          istart(1) = gdomain%igstart(itile)
-          icount(1) = gdomain%ni(itile)
-          ! Latitudes are reversed in original file
-          istart(2) = gdomain%jgstart
-          icount(2) = gdomain%nj
-          itf = iti + gdomain%ni(itile) - 1
-          istatus = nf90_get_var(inet,ivar,work(iti:itf,:,:),istart,icount)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var '//varname(irec))
-          iti = iti + gdomain%ni(itile)
-        end do
-      end subroutine getwork
-  end subroutine cams6hour
+  character(len=256) function cams_file(idate,name)
+    implicit none
+    type(rcm_time_and_date), intent(in) :: idate
+    character(len=*), intent(in) :: name
+    integer(ik4) :: year, month, day, hour
+    character(len=64) :: inname
+    call split_idate(idate,year,month,day,hour)
+    write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
+      year, pthsep, trim(name), '_', year, '_', month, '.nc'
+    cams_file = trim(inpglob)//pthsep//chemtyp(1:4)//pthsep//inname
+  end function cams_file
 
   subroutine conclude_cams
     implicit none
-    call h_interpolator_destroy(cross_hint)
-    call h_interpolator_destroy(udot_hint)
-    if ( idynamic == 3 ) then
-      call h_interpolator_destroy(vdot_hint)
+    integer(ik4) :: n, istatus
+    if ( lopen ) then
+      do n = 1, nsp
+        istatus = nf90_close(ncid(n))
+      end do
+      lopen = .false.
     end if
+    if ( lpsopen ) then
+      istatus = nf90_close(ncicbc)
+      lpsopen = .false.
+    end if
+    call h_interpolator_destroy(cross_hint)
   end subroutine conclude_cams
 
 end module mod_cams

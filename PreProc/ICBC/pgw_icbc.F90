@@ -39,10 +39,8 @@ program pgw_icbc
   use mod_memutil, only : getmem, memory_destroy, memory_init
   use mod_date, only : rcm_time_and_date, split_idate, timeval2date, tochar, &
     assignment(=), operator(+), operator(-), operator(/=), operator(<), &
-    operator(<=), operator(==), operator(>), operator(>=)
-  use mod_date, only : rcm_time_and_date, split_idate, timeval2date, tochar, &
-    assignment(=), operator(+), operator(-), operator(/=), operator(<), &
-    operator(<=), operator(==), operator(>), operator(>=)
+    operator(<=), operator(==), operator(>), operator(>=), monfirst, &
+    nextmon, tohours, rcm_time_interval
   use netcdf
   use mod_vertint, only : intlinreg, intv1
   use mod_vectutil, only : crs2dot
@@ -84,7 +82,10 @@ program pgw_icbc
   character(len=64) :: timeunit, timecal
   real(rkx) :: ds, pss, pst, ptop
   real(rkx), dimension(1) :: nctime
-  real(rkx) :: w1, w2, w3, fm, hm
+  real(rkx), dimension(:), allocatable :: nctimes
+  type(rcm_time_and_date) :: idaten, imon1
+  type(rcm_time_interval) :: tmonth
+  real(rkx) :: w1, w2, w3, xm
   integer(ik4) :: year, im2, day, hour, im1, im3
   real(rkx) :: mo_ztop, mo_h, mo_a0
 
@@ -354,26 +355,33 @@ program pgw_icbc
   call read_pgw(im2,ps2,ts2,u2,v2,t2,q2)
   call read_pgw(im3,ps3,ts3,u3,v3,t3,q3)
 
-  fm = real(nsteps,rkx)
-  hm = fm/2.0_rkx
+  allocate(nctimes(nsteps))
+  ierr = nf90_get_var(icbcin,ivarid,nctimes)
+  call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
+  imon1 = monfirst(idate)
+  tmonth = nextmon(imon1) - imon1
 
   write(stdout,* ) 'Initial time is ', tochar(idate)
 
   do n = 1, nsteps
 
-    if ( n < int(hm) ) then
-      w1 = 0.5_rkx - (n-1)/fm
+    ! The monthly deltas are valid at the middle of the months im1, im2
+    ! and im3: linear interpolation in time with the fraction xm of the
+    ! month im2 elapsed at the record date (xm = 1 at the start of im3).
+    idaten = timeval2date(nctimes(n),timeunit,timecal)
+    xm = real(tohours(idaten-imon1)/tohours(tmonth),rkx)
+    if ( xm < 0.5_rkx ) then
+      w1 = 0.5_rkx - xm
       w2 = 1.0_rkx - w1
       w3 = 0.0_rkx
     else
       w1 = 0.0_rkx
-      w2 = 1.0_rkx - (n-hm)/fm
-      w3 = 1.0_rkx - w2
+      w3 = xm - 0.5_rkx
+      w2 = 1.0_rkx - w3
     end if
 
-    write(stdout,* ) 'Processing time record ', n
+    write(stdout,* ) 'Processing time record ', n, ' ', tochar(idaten)
     write(stdout,'(a,3f8.3)') 'Weights : ',w1,w2,w3
-    write(stdout,'(a,i4,2f8.3)') 'pieces : ',n,hm,fm
 
     bps = w1*ps1 + w2*ps2 + w3*ps3
     bts = w1*ts1 + w2*ts2 + w3*ts3

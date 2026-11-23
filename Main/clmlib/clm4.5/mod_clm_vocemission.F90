@@ -787,6 +787,16 @@ module mod_clm_vocemission
     real(rk8) :: IEmax   ! empirical coeff for CO2
     real(rk8) :: ECi50   ! empirical coeff for CO2
     real(rk8) :: Cislope ! empirical coeff for CO2
+    integer(ik4) :: ib
+    ! Coefficients at 400, 500, 600, 700 and 800 ppm
+    real(rk8), dimension(5), parameter :: tiemin = &
+      [ 0.7301_rk8, 0.7034_rk8, 0.6768_rk8, 0.6500_rk8, 0.6063_rk8 ]
+    real(rk8), dimension(5), parameter :: tiemax = &
+      [ 1.0542_rk8, 0.9897_rk8, 0.9253_rk8, 0.8611_rk8, 0.7976_rk8 ]
+    real(rk8), dimension(5), parameter :: teci50 = &
+      [ 457.0_rk8, 472.0_rk8, 488.0_rk8, 508.0_rk8, 575.0_rk8 ]
+    real(rk8), dimension(5), parameter :: tcislope = &
+      [ 3.1665_rk8, 3.0652_rk8, 2.9321_rk8, 2.7497_rk8, 2.3643_rk8 ]
     real(rk8) :: fint    ! interpolation fraction for CO2
     ! temporary sunlight/shade weighted cisun & cisha (umolCO2/mol)
     real(rk8) :: ci
@@ -798,31 +808,16 @@ module mod_clm_vocemission
       IEmax   = 1.0542_rk8
       ECi50   = 457._rk8
       Cislope = 3.1665_rk8
-    else if ( (co2_ppmv > 400._rk8) .and. (co2_ppmv < 500._rk8) ) then
-      fint    = (co2_ppmv - 400._rk8)/100._rk8
-      IEmin   = fint*0.7301_rk8 + (1._rk8 - fint)*0.7034_rk8
-      IEmax   = fint*1.0542_rk8 + (1._rk8 - fint)*0.9897_rk8
-      ECi50   = fint*457._rk8 + (1._rk8 - fint)*472._rk8
-      Cislope = fint*3.1665_rk8 + (1._rk8 - fint)*3.0652_rk8
-    else if ( (co2_ppmv > 500._rk8) .and. (co2_ppmv < 600._rk8) ) then
-      fint = (co2_ppmv - 500._rk8)/100._rk8
-      IEmin   = fint*0.7034_rk8 + (1._rk8 - fint)*0.6768_rk8
-      IEmax   = fint*0.9897_rk8 + (1._rk8 - fint)*0.9253_rk8
-      ECi50   = fint*472._rk8 + (1._rk8 - fint)*488._rk8
-      Cislope = fint*3.0652_rk8 + (1._rk8 - fint)*2.9321_rk8
-    else if ( (co2_ppmv > 600._rk8) .and. (co2_ppmv < 700._rk8) ) then
-      fint = (co2_ppmv - 600._rk8)/100._rk8
-      IEmin   = fint*0.6768_rk8 + (1._rk8 - fint)*0.6500_rk8
-      IEmax   = fint*0.9253_rk8 + (1._rk8 - fint)*0.8611_rk8
-      ECi50   = fint*488._rk8 + (1._rk8 - fint)*508._rk8
-      Cislope = fint*2.9321_rk8 + (1._rk8 - fint)*2.7497_rk8
-    else if ( (co2_ppmv > 700._rk8) .and. (co2_ppmv < 800._rk8) ) then
-      fint = (co2_ppmv - 700._rk8)/100._rk8
-      IEmin   = fint*0.6500_rk8 + (1._rk8 - fint)*0.6063_rk8
-      IEmax   = fint*0.8611_rk8 + (1._rk8 - fint)*0.7976_rk8
-      ECi50   = fint*508._rk8 + (1._rk8 - fint)*575._rk8
-      Cislope = fint*2.7497_rk8 + (1._rk8 - fint)*2.3643_rk8
-    else ! if ( co2_ppmv > 800._rk8 ) then
+    else if ( co2_ppmv < 800._rk8 ) then
+      ! Linear interpolation between the values at 400, 500, 600, 700
+      ! and 800 ppm, fint the weight of the upper value
+      ib = min(int((co2_ppmv - 400._rk8)/100._rk8) + 1, 4)
+      fint = (co2_ppmv - 300._rk8 - 100._rk8*ib)/100._rk8
+      IEmin   = (1._rk8 - fint)*tiemin(ib) + fint*tiemin(ib+1)
+      IEmax   = (1._rk8 - fint)*tiemax(ib) + fint*tiemax(ib+1)
+      ECi50   = (1._rk8 - fint)*teci50(ib) + fint*teci50(ib+1)
+      Cislope = (1._rk8 - fint)*tcislope(ib) + fint*tcislope(ib+1)
+    else
       IEmin   = 0.6063_rk8
       IEmax   = 0.7976_rk8
       ECi50   = 575._rk8

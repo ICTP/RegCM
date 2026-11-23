@@ -1,0 +1,139 @@
+#!/usr/bin/env python3
+#
+#    This file is part of ICTP RegCM.
+#
+#    Use of this source code is governed by an MIT-style license that can
+#    be found in the LICENSE file or at
+#
+#         https://opensource.org/licenses/MIT.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# Download the CAMS global reanalysis (EAC4) on pressure levels for the
+# chemistry and aerosol boundary conditions of chem_icbc (chemtyp = 'CAMSR'),
+# in the layout read by PreProc/ICBC/mod_ch_cams.F90:
+#
+#     <inpglob>/CAMS/<year>/<NAME>_<year>_<month>.nc
+#
+# one file per variable and month, 6 hourly (00, 06, 12, 18 UTC).
+# Needs the cdsapi package and an Atmosphere Data Store key: the
+# ~/.cdsapirc key of the Copernicus services works, the url is set here.
+# The CAMS licence must be accepted once on the ADS web page of the dataset.
+#
+# Examples:
+#   cams_eac4_download.py --dest $INPGLOB/CAMS --start 2023-09 --end 2023-10
+#   cams_eac4_download.py --dest CAMS --start 2023-09 --end 2023-09 \
+#       --area 25 -120 -65 0 --only AE
+#
+# The area (north west south east, degrees) should cover the domain with a
+# margin of a few degrees. Without --area the whole globe is downloaded.
+
+import argparse
+import calendar
+import os
+import sys
+
+ADS_URL = 'https://ads.atmosphere.copernicus.eu/api'
+DATASET = 'cams-global-reanalysis-eac4'
+
+# file name -> ADS variable (aerosols, AE)
+AEROSOLS = {
+    'SSLT1': 'sea_salt_aerosol_0.03-0.5um_mixing_ratio',
+    'SSLT2': 'sea_salt_aerosol_0.5-5um_mixing_ratio',
+    'SSLT3': 'sea_salt_aerosol_5-20um_mixing_ratio',
+    'DUST1': 'dust_aerosol_0.03-0.55um_mixing_ratio',
+    'DUST2': 'dust_aerosol_0.55-1um_mixing_ratio',
+    'DUST3': 'dust_aerosol_0.9-20um_mixing_ratio',
+    'OCHL': 'hydrophilic_organic_matter_aerosol_mixing_ratio',
+    'OCHB': 'hydrophobic_organic_matter_aerosol_mixing_ratio',
+    'BCHL': 'hydrophilic_black_carbon_aerosol_mixing_ratio',
+    'BCHB': 'hydrophobic_black_carbon_aerosol_mixing_ratio',
+    'SO4': 'sulphate_aerosol_mixing_ratio',
+    'SO2': 'sulphur_dioxide',
+}
+
+# file name -> ADS variable (gas phase chemistry, CH)
+GASES = {
+    'O3': 'ozone',
+    'CO': 'carbon_monoxide',
+    'ETH': 'ethane',
+    'CH2O': 'formaldehyde',
+    'C3H8': 'propane',
+    'NO': 'nitrogen_monoxide',
+    'NO2': 'nitrogen_dioxide',
+    'H2O2': 'hydrogen_peroxide',
+    'ISOP': 'isoprene',
+    'SO2': 'sulphur_dioxide',
+    'HNO3': 'nitric_acid',
+    'CH4': 'methane_chemistry',
+    'PAN': 'peroxyacetyl_nitrate',
+}
+
+LEVELS = ['1', '2', '3', '5', '7', '10', '20', '30', '50', '70', '100',
+          '150', '200', '250', '300', '400', '500', '600', '700', '800',
+          '850', '900', '925', '950', '1000']
+
+
+def months(start, end):
+    y, m = (int(x) for x in start.split('-'))
+    ye, me = (int(x) for x in end.split('-'))
+    while (y, m) <= (ye, me):
+        yield y, m
+        m += 1
+        if m > 12:
+            y, m = y + 1, 1
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.
+                                 RawDescriptionHelpFormatter)
+    ap.add_argument('--dest', required=True, help='CAMS directory')
+    ap.add_argument('--start', required=True, help='first month YYYY-MM')
+    ap.add_argument('--end', required=True, help='last month YYYY-MM')
+    ap.add_argument('--area', nargs=4, type=float,
+                    metavar=('N', 'W', 'S', 'E'))
+    ap.add_argument('--only', choices=['AE', 'CH'],
+                    help='only aerosols or gases')
+    ap.add_argument('--days', help='day range of each month, e.g. 1-2 '
+                    '(tests)')
+    a = ap.parse_args()
+    try:
+        import cdsapi
+    except ImportError:
+        sys.exit('The cdsapi package is needed (pip install cdsapi)')
+    client = cdsapi.Client(url=ADS_URL)
+    want = {}
+    if a.only != 'CH':
+        want.update(AEROSOLS)
+    if a.only != 'AE':
+        want.update(GASES)
+    for y, m in months(a.start, a.end):
+        d0, d1 = 1, calendar.monthrange(y, m)[1]
+        if a.days:
+            d0, d1 = (int(x) for x in a.days.split('-'))
+        odir = os.path.join(a.dest, '%04d' % y)
+        os.makedirs(odir, exist_ok=True)
+        for name, var in want.items():
+            target = os.path.join(odir, '%s_%04d_%02d.nc' % (name, y, m))
+            if os.path.isfile(target):
+                continue
+            req = {
+                'variable': [var],
+                'pressure_level': LEVELS,
+                'date': ['%04d-%02d-%02d/%04d-%02d-%02d' %
+                         (y, m, d0, y, m, d1)],
+                'time': ['00:00', '06:00', '12:00', '18:00'],
+                'data_format': 'netcdf',
+            }
+            if a.area:
+                req['area'] = a.area
+            print('Retrieving', target, flush=True)
+            client.retrieve(DATASET, req, target + '.part')
+            os.replace(target + '.part', target)
+
+
+if __name__ == '__main__':
+    main()

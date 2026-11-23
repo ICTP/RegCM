@@ -1844,10 +1844,11 @@ module mod_rad_aerosol
       call split_idate(idatex,iyear,imon,iday,ihour)
       imonmidd = monmiddle(idatex)
 
-      if (iyear < 1979 .and. iyear > 2020) then
+      ! The MERRA2 OPPMONTH monthly files cover 1980-01 to 2021-01
+      if ( iyear < 1980 .or. iyear > 2020 ) then
         write (stderr,*) &
           'NO CLIMATIC AEROPP DATA AVAILABLE FOR ', iyear*100+imon
-        return
+        call fatal(__FILE__,__LINE__,'AEROPP DATA ONLY FOR 1969-2020')
       end if
 
       if ( lfirst ) then

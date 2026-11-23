@@ -343,10 +343,13 @@ module mod_slice
       if ( icldmstrat == 1 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           atms%th700(j,i) = atms%th3d(j,i,kz)
-          do k = 1, kz-1
-            if ( atms%pb3d(j,i,k) > 70000.0 ) then
-              atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
-                                twt(k,2) * atms%th3d(j,i,k)
+          do k = 2, kz-1
+            if ( atms%pb3d(j,i,k) > 70000.0_rkx ) then
+              w1 = (atms%pb3d(j,i,k) - 70000.0_rkx) / &
+                   (atms%pb3d(j,i,k) - atms%pb3d(j,i,k-1))
+              w2 = d_one - w1
+              atms%th700(j,i) = atms%th3d(j,i,k-1) * w1 + &
+                                atms%th3d(j,i,k) * w2
               exit
             end if
           end do
