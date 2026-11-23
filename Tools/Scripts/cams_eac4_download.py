@@ -47,7 +47,7 @@ AEROSOLS = {
     'SSLT2': 'sea_salt_aerosol_0.5-5um_mixing_ratio',
     'SSLT3': 'sea_salt_aerosol_5-20um_mixing_ratio',
     'DUST1': 'dust_aerosol_0.03-0.55um_mixing_ratio',
-    'DUST2': 'dust_aerosol_0.55-1um_mixing_ratio',
+    'DUST2': 'dust_aerosol_0.55-0.9um_mixing_ratio',
     'DUST3': 'dust_aerosol_0.9-20um_mixing_ratio',
     'OCHL': 'hydrophilic_organic_matter_aerosol_mixing_ratio',
     'OCHB': 'hydrophobic_organic_matter_aerosol_mixing_ratio',
