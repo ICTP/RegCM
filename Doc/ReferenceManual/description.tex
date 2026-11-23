@@ -1422,9 +1422,8 @@ $\mathrm{Ri} > 0$ and $f = \sqrt{1-18\mathrm{Ri}}$ otherwise.  The value is
 bounded above by a CFL-type limit and below by the background diffusivity, and
 it also acts as the lower limit of the PBL diffusivities.
 
-Two options of the \verb=holtslagparam= namelist, both off by default, follow
-the length scale formulation of \cite{Lenderink_04}.  With
-\verb=lmoistn2= the Brunt-V\"ais\"al\"a frequency in layers containing
+Two options of the \verb=holtslagparam= namelist follow the length scale
+formulation of \cite{Lenderink_04}.  With \verb=lmoistn2= (on by default) the Brunt-V\"ais\"al\"a frequency in layers containing
 cloud water or ice is
 
 \begin{eqnarray}
@@ -2155,7 +2154,12 @@ therefore added to the numerator. For a parcel departing more than 60~hPa
 above the surface (a first guess deep cloud that ends shallow) the
 sub-cloud layer is its source layer, between the departure level and cloud
 base, which receives no surface flux. Where the numerator is not positive
-the column does not convect as shallow.
+the column does not convect as shallow. The same holds where the updraft
+excess does not exceed $10^5$~J~kg$^{-1}$ times $\max(0.01\,q_e, 10^{-10})$
+($q_e$ the environment specific humidity at cloud base, about 14~J~kg$^{-1}$
+in the tropics), the lower bound of the denominator in the IFS: with the
+surface fluxes in the numerator the bound would give a mass flux at the
+limit of numerical stability, draining the lowest model layers.
 
 Inside the planetary boundary layer of height $h$, given by the PBL scheme,
 the turbulent fluxes have a linear profile in height $z$: the moisture flux
@@ -2221,10 +2225,10 @@ precipitation fluxes that are passed to the microphysics.
 
 The convective cloud fraction $FC_{CU}$ passed to radiation is derived from
 the updraft mass flux $M_u$ between cloud base and top. With
-\texttt{iconvcf}=0
+\texttt{iconvcf}=0 (default)
 $FC_{CU} = k_f\ln(1+k_2 M_u)$, with $k_f$ = \texttt{kfac\_deep} or
 \texttt{kfac\_shal} by convection type and $k_2$ = \texttt{k2\_const}. With
-\texttt{iconvcf}=1 (default) it is the fit of \citet{Xu_91} to cumulus ensemble
+\texttt{iconvcf}=1 it is the fit of \citet{Xu_91} to cumulus ensemble
 simulations,
 $FC_{CU} = c_0 + c_1 x + c_2 x^2$, $x=\ln M_u$ ($M_u$ in mb\,h$^{-1}$,
 bounded below by the minimum of the quadratic), with the coefficients of

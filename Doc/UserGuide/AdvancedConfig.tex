@@ -996,7 +996,7 @@ This namelist controls the cloud fraction algorithms.
  k2_const  = 10.0,    ! K2 Factor cumulus mass flux - cloud fraction
  kfac_shal = 0.07,    ! Factor cumulus mass flux - cloud fraction - shallow
  kfac_deep = 0.14,    ! Factor cumulus mass flux - cloud fraction - deep
- iconvcf   = 1,       ! Conv. cloud fraction: 0 kfac, 1 Xu-Krueger,
+ iconvcf   = 0,       ! Conv. cloud fraction: 0 kfac, 1 Xu-Krueger,
                       ! 2 Xu-Krueger + area overlap (mass flux schemes)
  lsrfhack  = .false.  ! Surface radiation hack
  larcticcorr = .true. ! Vavrus and Waliser Arctic cloud correction
@@ -1240,7 +1240,7 @@ $1$.
                    !      1 => max(th10,tg)
                    !      2 => min(th10,tg)
  holtth10iter = 1, ! Iterations in th10 computation
- lmoistn2 = .false., ! Use the moist Brunt-Vaisala frequency in cloudy
+ lmoistn2 = .true.,  ! Use the moist Brunt-Vaisala frequency in cloudy
                    ! layers for the free atmosphere Richardson number
                    ! (Lenderink and Holtslag, 2004)
  maxprandtl = 1.0, ! Upper limit of the stable Prandtl number

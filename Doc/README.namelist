@@ -561,7 +561,7 @@
                       ! Factor in above formula for cloud fraction
  kfac_deep = 0.14,    ! Factor cumulus mass flux - cloud fraction - deep
                       ! Factor in above formula for cloud fraction
- iconvcf   = 1,       ! Convective cloud fraction formula (mass flux
+ iconvcf   = 0,       ! Convective cloud fraction formula (mass flux
                       ! schemes: Tiedtke, Kain-Fritsch, Emanuel, Grell)
                       ! 0 : the kfac formula above
                       ! 1 : Xu and Krueger (1991, MWR 119, 342) fit for
@@ -761,7 +761,7 @@
                    !      1 => max(th10,tg)
                    !      2 => min(th10,tg)
  holtth10iter = 1, ! Iterations in th10 computation
- lmoistn2 = .false., ! Use the moist Brunt-Vaisala frequency in cloudy
+ lmoistn2 = .true.,  ! Use the moist Brunt-Vaisala frequency in cloudy
                    ! layers for the free atmosphere Richardson number
                    ! (Lenderink and Holtslag, 2004)
  maxprandtl = 1.0, ! Upper limit of the stable Prandtl number

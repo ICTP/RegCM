@@ -80,7 +80,7 @@ program scm_holtslag
   ifaholt = 0
   ifaholtth10 = 2
   holtth10iter = 1
-  lmoistn2 = .false.
+  lmoistn2 = .true.
   maxprandtl = 1.0_rkx
   lsctop = .true.
   lqtmix = .false.

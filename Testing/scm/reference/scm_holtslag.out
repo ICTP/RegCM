@@ -1,5 +1,5 @@
 # RegCM Holtslag single column test
-# profiles: scm_profiles.txt
+# profiles: /scratch/ggiulian/RegCM/Testing/scm/scm_profiles.txt
 # dt (s)     240.00  nsteps        1
 &HOLTSLAGPARAM
  RICR_OCN= 0.27500000000000002     ,
@@ -8,9 +8,10 @@
  IFAHOLTTH10=2          ,
  IFAHOLT=0          ,
  HOLTTH10ITER=1          ,
- LMOISTN2=F,
+ LMOISTN2=T,
  MAXPRANDTL=  1.0000000000000000     ,
- LSCTOP=F,
+ LSCTOP=T,
+ LQTMIX=F,
  /
 # COLUMN name land kpbl zpbl(m) ustar(m/s) heating(W/m2) moistening(W/m2) shf(W/m2) lhf(W/m2) era5_zpbl(m)
 # z(m) p(hPa) dT(K/day) dq(g/kg/day) dqc(g/kg/day) du(m/s/day) dv(m/s/day) T-T0(K) q-q0(g/kg) u-u0(m/s) v-v0(m/s)

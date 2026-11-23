@@ -2525,14 +2525,17 @@ module mod_cu_tiedtke
         if ( ktype(n) == 2 ) then
           dh = cpd*(tu(n,ikb)-eps*td(n,ikb) - &
                    (d_one-eps)*tf(n,ikb)) + wlhv*qumqe
-          dh = egrav*max(dh,p00*dqmin)
-          if ( dhpbl(n) > d_zero ) then
-            mfub1(n) = dhpbl(n)/dh
+          if ( dhpbl(n) > d_zero .and. dh > p00*dqmin ) then
+            mfub1(n) = dhpbl(n)/(egrav*dh)
           else
             ! No sub-cloud moist static energy convergence: as for the
             ! first guess shallow columns, no shallow convection. This
             ! catches the first guess deep columns that ended shallow,
             ! which kept the deep first guess mass flux 0.1*mfmax.
+            ! The same without moist static energy excess of the
+            ! updraught at cloud base: the closure would divide the
+            ! surface fluxes by the floor of the excess, a mass flux at
+            ! the CFL limit draining the lowest model layers.
             mfub1(n) = mfub(n)
             if ( .not. lmfwstar ) lshoff(n) = .true.
           end if

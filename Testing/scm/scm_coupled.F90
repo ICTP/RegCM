@@ -308,7 +308,7 @@ program scm_coupled
   k2_const = 500.0_rkx
   kfac_shal = 0.07_rkx
   kfac_deep = 0.14_rkx
-  iconvcf = 1
+  iconvcf = 0
   lnoto = .true.
   irad = 1
   dtrad = 1800.0_rkx
@@ -339,7 +339,7 @@ program scm_coupled
   ifaholt = 0
   ifaholtth10 = 2
   holtth10iter = 1
-  lmoistn2 = .false.
+  lmoistn2 = .true.
   maxprandtl = 1.0_rkx
   lsctop = .true.
   lqtmix = .false.

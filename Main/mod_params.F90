@@ -475,7 +475,7 @@ module mod_params
     k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
-    iconvcf   = 1          ! Conv. cf formula: 0 log of mfu, 1 Xu-Krueger
+    iconvcf   = 0          ! Conv. cf formula: 0 log of mfu, 1 Xu-Krueger
     lsrfhack  = .false.    ! Surface radiation hack
     larcticcorr = .true.   ! Vavrus and Waliser Arctic cloud correction
     rcrit     = 13.5_rkx   ! Mean critical radius
@@ -625,7 +625,7 @@ module mod_params
     ifaholt = 0
     ifaholtth10 = 2
     holtth10iter = 1
-    lmoistn2 = .false.
+    lmoistn2 = .true.
     maxprandtl = 1.0_rkx
     lsctop = .true.
     lqtmix = .false.
