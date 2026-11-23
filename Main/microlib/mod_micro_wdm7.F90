@@ -408,7 +408,7 @@ module mod_micro_wdm7
     end do
 
     if ( ichem == 1 ) then
-      ! Cloud removal rate [1/s], as in subex: cloud water converted to
+      ! Cloud removal rate [1/s] for the chemistry: cloud water converted to
       ! precipitation over the step, divided by the cloud water.
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         kk = kzp1-k

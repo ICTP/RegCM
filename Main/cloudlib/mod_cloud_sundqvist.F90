@@ -28,12 +28,8 @@ module mod_cloud_sundqvist
 
   public :: sundqvist_cldfrac
 
-  logical, parameter :: use_dynamic_rhcrit = .true.
   ! Stream of the random perturbation of the critical relative humidity
   integer(ik4), parameter :: rhcrit_seed = 19590209
-  ! Static critical relative humidity (use_dynamic_rhcrit false):
-  ! temperature below which it approaches one (Pal et al. 2000)
-  real(rkx), parameter :: tc0 = 238.0_rkx
 
   contains
   !
@@ -67,42 +63,27 @@ module mod_cloud_sundqvist
     ! global indices of the point, so it does not depend on the domain
     ! decomposition and a restart draws the same numbers.
     !
-    if ( use_dynamic_rhcrit ) then
-      key = hash_key(rhcrit_seed,rcmtimer%lcount)
+    key = hash_key(rhcrit_seed,rcmtimer%lcount)
 #if !defined(OPENACC) || defined(STDPAR_FIXED)
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
 #else
-      !$acc parallel loop collapse(3) gang vector
-      do k = 1, kz
-      do i = ici1, ici2
-      do j = jci1, jci2
+    !$acc parallel loop collapse(3) gang vector
+    do k = 1, kz
+    do i = ici1, ici2
+    do j = jci1, jci2
 #endif
-        rnd = hash_uniform(key,k,i,j)
-        tku = min(301.0_rkx,max(216.0_rkx,t(j,i,k)))
-        rhcrit(j,i,k) = rh0(j,i) + 0.10_rkx * (rnd-0.5_rkx)
-        rhcrit(j,i,k) = 0.01_rkx * &
-          max(60.0_rkx, min(100.0_rkx, rhcrit(j,i,k)*100.0_rkx + &
-         (-21760.24_rkx-0.000004969437_rkx*tku**4+0.005182194_rkx*tku**3 - &
-          2.009108_rkx*tku**2+343.0437_rkx*tku)))
+      rnd = hash_uniform(key,k,i,j)
+      tku = min(301.0_rkx,max(216.0_rkx,t(j,i,k)))
+      rhcrit(j,i,k) = rh0(j,i) + 0.10_rkx * (rnd-0.5_rkx)
+      rhcrit(j,i,k) = 0.01_rkx * &
+        max(60.0_rkx, min(100.0_rkx, rhcrit(j,i,k)*100.0_rkx + &
+       (-21760.24_rkx-0.000004969437_rkx*tku**4+0.005182194_rkx*tku**3 - &
+        2.009108_rkx*tku**2+343.0437_rkx*tku)))
 #if defined(OPENACC) && !defined(STDPAR_FIXED)
-      end do
-      end do
+    end do
+    end do
 #endif
-      end do
-    else
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        if ( t(j,i,k) > tc0 ) then
-          rhcrit(j,i,k) = rh0(j,i)
-        else ! high cloud (less subgrid variability)
-          ! Use Pal et al. formula
-          rhcrit(j,i,k) = rhmax - &
-              (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
-          ! Adjusted for Sundqvist
-          !rhcrit(j,i,k) = d_one - &
-          !   (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
-        end if
-      end do
-    end if
+    end do
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------

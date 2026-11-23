@@ -477,8 +477,9 @@ module mod_runparams
   logical, public :: larcticcorr ! Vavrus and Valiser Arctic correction
   real(rkx), public :: rhmin     ! Minimum value for relative humidity
   real(rkx), public :: rhmax     ! Maximum value for relative humidity
-  real(rkx), public :: rh0land   ! Trigger value for RH for land (SUBEX)
-  real(rkx), public :: rh0oce    ! Trigger value for RH for ocean (SUBEX)
+  ! Base critical relative humidity of the Sundqvist cloud fraction
+  real(rkx), public :: rh0land   ! land
+  real(rkx), public :: rh0oce    ! ocean
   real(rkx), public :: kfac_shal ! Convective cloud fraction factor for
                                   ! empirical relationship with mass flux
   real(rkx), public :: kfac_deep ! Convective cloud fraction factor for
