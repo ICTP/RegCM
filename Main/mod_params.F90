@@ -296,7 +296,8 @@ module mod_params
       l_cpl_im_srfroff, l_cpl_im_tsoi,    l_cpl_im_snwmelt, &
       l_cpl_im_h2ovol,  l_cpl_im_h2oliq,  l_cpl_im_h2oice,  &
       l_cpl_im_h2o10cm, l_cpl_im_tgrd,    l_cpl_im_albei_2, &
-      l_cpl_im_albed_2, oasis_nlevsoi,    oasis_nddvel,     &
+      l_cpl_im_albed_2, l_cpl_im_ustar,   l_cpl_im_br,      &
+      l_cpl_im_hfso,    oasis_nlevsoi,    oasis_nddvel,     &
       oasis_megan_cmp
 #endif
     ! OASIS field +++
@@ -755,6 +756,9 @@ module mod_params
     l_cpl_im_h2ovol = .false.
     l_cpl_im_h2oliq = .false.
     l_cpl_im_h2oice = .false.
+    l_cpl_im_ustar = .false.
+    l_cpl_im_br = .false.
+    l_cpl_im_hfso = .false.
     ! Sizes of the eCLM bundles: CLM5 default soil (20 layers) and the
     ! MEGAN compounds of the eCLM configuration
     oasis_nlevsoi = 20
@@ -1640,6 +1644,9 @@ module mod_params
       call bcast(l_cpl_im_h2oliq)
       call bcast(l_cpl_im_h2oice)
       call bcast(l_cpl_im_tgrd)
+      call bcast(l_cpl_im_ustar)
+      call bcast(l_cpl_im_br)
+      call bcast(l_cpl_im_hfso)
       call bcast(l_cpl_ex_tatm)
       call bcast(l_cpl_ex_uatm)
       call bcast(l_cpl_ex_vatm)
@@ -3291,6 +3298,9 @@ module mod_params
        if ( l_cpl_im_h2ovol ) write(stdout,*) '  import RCM_H2OVOL'
        if ( l_cpl_im_h2oliq ) write(stdout,*) '  import RCM_H2OLIQ'
        if ( l_cpl_im_h2oice ) write(stdout,*) '  import RCM_H2OICE'
+       if ( l_cpl_im_ustar ) write(stdout,*) '  import RCM_USTAR'
+       if ( l_cpl_im_br ) write(stdout,*) '  import RCM_BR'
+       if ( l_cpl_im_hfso ) write(stdout,*) '  import RCM_HFSO'
        write(stdout,'(a,i4)') '   eCLM soil layers   : ', oasis_nlevsoi
        write(stdout,'(a,i4)') '   eCLM dry dep. spec.: ', oasis_nddvel
        write(stdout,*) '   eCLM MEGAN compounds: ', &
@@ -3372,7 +3382,10 @@ module mod_params
           .not. l_cpl_im_h2o10cm  .and. &
           .not. l_cpl_im_h2ovol  .and. &
           .not. l_cpl_im_h2oliq  .and. &
-          .not. l_cpl_im_h2oice &
+          .not. l_cpl_im_h2oice  .and. &
+          .not. l_cpl_im_ustar  .and. &
+          .not. l_cpl_im_br  .and. &
+          .not. l_cpl_im_hfso &
 #endif
           ) then
           ! OASIS field +++
@@ -3388,6 +3401,11 @@ module mod_params
               l_cpl_im_h2oliq .or. l_cpl_im_h2oice ) .and. &
             oasis_nlevsoi < 1 ) then
          call fatal(__FILE__,__LINE__,'OASIS: oasis_nlevsoi < 1')
+       end if
+       if ( ( l_cpl_im_ram1 .or. l_cpl_im_rah1 ) .and. &
+            .not. l_cpl_im_ustar ) then
+         call fatal(__FILE__,__LINE__, &
+           'OASIS: RCM_RAM1 and RCM_RAH1 need RCM_USTAR')
        end if
        if ( l_cpl_im_ddvel .and. oasis_nddvel < 1 ) then
          call fatal(__FILE__,__LINE__,'OASIS: oasis_nddvel < 1')

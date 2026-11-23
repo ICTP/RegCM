@@ -117,7 +117,8 @@ module mod_oasis_interface
       l_cpl_im_flxvoc,  l_cpl_im_flxdst, l_cpl_im_fluxch4, l_cpl_im_ddvel,   &
       l_cpl_im_tlai,    l_cpl_im_roff,   l_cpl_im_srfroff, l_cpl_im_snwmelt, &
       l_cpl_im_tsoi,    l_cpl_im_h2ovol, l_cpl_im_h2oliq,  l_cpl_im_h2oice,  &
-      l_cpl_im_h2o10cm, l_cpl_im_tgrd,   l_cpl_im_albei_2, l_cpl_im_albed_2
+      l_cpl_im_h2o10cm, l_cpl_im_tgrd,   l_cpl_im_albei_2, l_cpl_im_albed_2, &
+      l_cpl_im_ustar,   l_cpl_im_br,     l_cpl_im_hfso
 #endif
   ! OASIS field +++
 
@@ -158,7 +159,8 @@ module mod_oasis_interface
     im_q2m, im_u10m, im_sent, im_evpr, im_ram1, im_rah1, im_taux,    &
     im_tauy, im_wt, im_sncv, im_zo, im_tlef, ex_rainf, ex_snow,      &
     im_fluxch4, im_tlai, im_tgrd, im_roff, im_srfroff, im_snwmelt,   &
-    im_albei, im_albed, im_albei_2, im_albed_2, im_h2o10cm
+    im_albei, im_albed, im_albei_2, im_albed_2, im_h2o10cm, im_ustar, &
+    im_br, im_hfso
   type(info3dfld), allocatable :: im_flxdst, im_flxvoc, im_ddvel,    &
     im_h2oliq, im_h2oice, im_h2ovol, im_tsoi
 #endif
@@ -177,7 +179,7 @@ module mod_oasis_interface
     cpl_sent, cpl_evpr, cpl_ram1, cpl_rah1, cpl_taux, cpl_tauy, cpl_sncv, &
     cpl_wt, cpl_zo, cpl_albei, cpl_albed, cpl_albei_2, cpl_albed_2,       &
     cpl_tlef, cpl_tgbb, cpl_fluxch4, cpl_tlai, cpl_tgrd, cpl_roff,        &
-    cpl_srfroff, cpl_snwmelt, cpl_h2o10cm
+    cpl_srfroff, cpl_snwmelt, cpl_h2o10cm, cpl_ustar, cpl_br, cpl_hfso
   real(rkx), dimension(:,:,:), allocatable :: cpl_flxdst, cpl_flxvoc, &
     cpl_h2oliq, cpl_ddvel, cpl_h2oice, cpl_h2ovol, cpl_tsoi
 #endif
@@ -272,7 +274,8 @@ module mod_oasis_interface
                     l_cpl_im_flxdst  .or. l_cpl_im_flxvoc  .or. &
                     l_cpl_im_ddvel   .or. l_cpl_im_h2oliq  .or. &
                     l_cpl_im_h2oice  .or. l_cpl_im_tsoi    .or. &
-                    l_cpl_im_h2ovol
+                    l_cpl_im_h2ovol  .or. l_cpl_im_ustar   .or. &
+                    l_cpl_im_br      .or. l_cpl_im_hfso
 #endif
     ! OASIS field +++
     !
@@ -509,6 +512,15 @@ module mod_oasis_interface
       call oasisxregcm_setup_field(im_h2o10cm, 'RCM_H2O10CM', &
               grdlnd, cpl_h2o10cm)
     end if
+    if ( l_cpl_im_ustar ) then
+      call oasisxregcm_setup_field(im_ustar, 'RCM_USTAR', grdlnd, cpl_ustar)
+    end if
+    if ( l_cpl_im_br ) then
+      call oasisxregcm_setup_field(im_br, 'RCM_BR', grdlnd, cpl_br)
+    end if
+    if ( l_cpl_im_hfso ) then
+      call oasisxregcm_setup_field(im_hfso, 'RCM_HFSO', grdlnd, cpl_hfso)
+    end if
     ! Bundles: their sizes must match the eCLM configuration
     nmegan = count(oasis_megan_cmp /= ' ')
     kisop = findloc(oasis_megan_cmp,'ISOP',1)
@@ -645,6 +657,9 @@ module mod_oasis_interface
     if ( l_cpl_im_tgrd ) call oasisxregcm_def_field(im_tgrd, OASIS_In)
     if ( l_cpl_im_tgbb ) call oasisxregcm_def_field(im_tgbb, OASIS_In)
     if ( l_cpl_im_h2o10cm ) call oasisxregcm_def_field(im_h2o10cm, OASIS_In)
+    if ( l_cpl_im_ustar ) call oasisxregcm_def_field(im_ustar, OASIS_In)
+    if ( l_cpl_im_br ) call oasisxregcm_def_field(im_br, OASIS_In)
+    if ( l_cpl_im_hfso ) call oasisxregcm_def_field(im_hfso, OASIS_In)
     if ( l_cpl_im_flxvoc ) call oasisxregcm_def_3dfield(im_flxvoc, OASIS_In)
     if ( l_cpl_im_flxdst ) call oasisxregcm_def_3dfield(im_flxdst, OASIS_In)
     if ( l_cpl_im_ddvel ) call oasisxregcm_def_3dfield(im_ddvel, OASIS_In)
@@ -1070,19 +1085,45 @@ module mod_oasis_interface
       call oasisxregcm_rcv(cpl_evpr,im_evpr,time,l_act)
       call fill_land(lms%evpr,cpl_evpr,mddom%lndcat,im_evpr%grd)
     end if
+    if ( l_cpl_im_ustar ) then ! friction velocity [m/s]
+      call oasisxregcm_rcv(cpl_ustar,im_ustar,time,l_act)
+      call fill_land(lms%ustar,cpl_ustar,mddom%lndcat,im_ustar%grd)
+    end if
+    ! eCLM gives the resistances in s/m: as for CLM45, the model uses the
+    ! dimensionless vonkar*ustar*r (the friction velocity is imported)
     if ( l_cpl_im_ram1 ) then
       call oasisxregcm_rcv(cpl_ram1,im_ram1,time,l_act)
-      call fill_land(lms%ram1,cpl_ram1,mddom%lndcat,im_ram1%grd)
+      call fill_land(tmp_lnd,cpl_ram1,mddom%lndcat,im_ram1%grd)
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        if ( mdsub%ldmsk(n,j,i) == 1 ) then
+          lms%ram1(n,j,i) = vonkar * lms%ustar(n,j,i) * tmp_lnd(n,j,i)
+        end if
+      end do
     end if
     if ( l_cpl_im_rah1 ) then
       call oasisxregcm_rcv(cpl_rah1,im_rah1,time,l_act)
-      call fill_land(lms%rah1,cpl_rah1,mddom%lndcat,im_rah1%grd)
+      call fill_land(tmp_lnd,cpl_rah1,mddom%lndcat,im_rah1%grd)
+      do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+        if ( mdsub%ldmsk(n,j,i) == 1 ) then
+          lms%rah1(n,j,i) = vonkar * lms%ustar(n,j,i) * tmp_lnd(n,j,i)
+        end if
+      end do
+    end if
+    if ( l_cpl_im_br ) then ! bulk Richardson number
+      call oasisxregcm_rcv(cpl_br,im_br,time,l_act)
+      call fill_land(lms%br,cpl_br,mddom%lndcat,im_br%grd)
+    end if
+    if ( l_cpl_im_hfso ) then ! net heat flux into the ground [W/m2]
+      call oasisxregcm_rcv(cpl_hfso,im_hfso,time,l_act)
+      call fill_land(lms%hfso,cpl_hfso,mddom%lndcat,im_hfso%grd)
     end if
     if ( l_cpl_im_taux .and. l_cpl_im_tauy ) then ! wind stress [N/m2]
+      ! eCLM gives the stress on the land (opposite to the wind): the
+      ! sign is changed, as for CLM45
       call oasisxregcm_rcv(cpl_taux,im_taux,time,l_act)
-      call fill_land(lms%taux,cpl_taux,mddom%lndcat,im_taux%grd)
+      call fill_land(lms%taux,-cpl_taux,mddom%lndcat,im_taux%grd)
       call oasisxregcm_rcv(cpl_tauy,im_tauy,time,l_act)
-      call fill_land(lms%tauy,cpl_tauy,mddom%lndcat,im_tauy%grd)
+      call fill_land(lms%tauy,-cpl_tauy,mddom%lndcat,im_tauy%grd)
       ! drag as used by the atmosphere: tau = drag * V
       do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
         if ( mdsub%ldmsk(n,j,i) == 1 ) then
@@ -1104,7 +1145,9 @@ module mod_oasis_interface
       call oasisxregcm_rcv(cpl_zo,im_zo,time,l_act)
       call fill_land(tmp_lnd,cpl_zo,mddom%lndcat,im_zo%grd)
       do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
-        if ( mdsub%ldmsk(n,j,i) == 1 ) lms%zo(n,j,i) = tmp_lnd(n,j,i)
+        if ( mdsub%ldmsk(n,j,i) == 1 ) then
+          lms%zo(n,j,i) = max(tmp_lnd(n,j,i),1.0e-4_rkx)
+        end if
       end do
     end if
     if ( l_cpl_im_tlef ) then ! leaf temperature [K]
@@ -1136,7 +1179,7 @@ module mod_oasis_interface
       call oasisxregcm_rcv(cpl_h2o10cm,im_h2o10cm,time,l_act)
       call fill_land(lms%tsw,cpl_h2o10cm,mddom%lndcat,im_h2o10cm%grd)
     end if
-    ! Albedos. eCLM gives 1 where the sun is down: use a land value there.
+    ! Albedos. eCLM gives 1 where the sun is down: keep the last value.
     if ( l_cpl_im_albed ) then
       call oasisxregcm_rcv(cpl_albed,im_albed,time,l_act)
       call fill_albedo(lms%swdiralb,cpl_albed,im_albed%grd)
@@ -1162,9 +1205,10 @@ module mod_oasis_interface
         end if
       end do
     end if
-    if ( l_cpl_im_tgrd ) then ! ground temperature [K]
+    if ( l_cpl_im_tgrd ) then ! top soil layer temperature [K]
       call oasisxregcm_rcv(cpl_tgrd,im_tgrd,time,l_act)
       call fill_land(lms%tgrd,cpl_tgrd,mddom%lndcat,im_tgrd%grd)
+      call fill_land(lms%tgbrd,cpl_tgrd,mddom%lndcat,im_tgrd%grd)
     end if
     if ( l_cpl_im_tgbb ) then ! radiative temperature [K]
       call oasisxregcm_rcv(cpl_tgbb,im_tgbb,time,l_act)
@@ -1242,9 +1286,7 @@ module mod_oasis_interface
       call fill_land(tmp_lnd,cpl_alb,mddom%lndcat,grd)
       do concurrent ( nn = 1:nnsg, jj = jci1:jci2, ii = ici1:ici2 )
         if ( mdsub%ldmsk(nn,jj,ii) == 1 ) then
-          if ( tmp_lnd(nn,jj,ii) > 0.9999_rkx ) then
-            alb(nn,jj,ii) = 0.16_rkx
-          else
+          if ( tmp_lnd(nn,jj,ii) <= 0.9999_rkx ) then
             alb(nn,jj,ii) = tmp_lnd(nn,jj,ii)
           end if
         end if
@@ -1737,6 +1779,9 @@ module mod_oasis_interface
     call oasisxregcm_deallocate_field(im_tgrd, cpl_tgrd)
     call oasisxregcm_deallocate_field(im_tgbb, cpl_tgbb)
     call oasisxregcm_deallocate_field(im_h2o10cm, cpl_h2o10cm)
+    call oasisxregcm_deallocate_field(im_ustar, cpl_ustar)
+    call oasisxregcm_deallocate_field(im_br, cpl_br)
+    call oasisxregcm_deallocate_field(im_hfso, cpl_hfso)
     call oasisxregcm_deallocate_3dfield(im_flxvoc, cpl_flxvoc)
     call oasisxregcm_deallocate_3dfield(im_flxdst, cpl_flxdst)
     call oasisxregcm_deallocate_3dfield(im_ddvel, cpl_ddvel)
