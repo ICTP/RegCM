@@ -153,7 +153,7 @@ program scm_coupled
   use mod_runparams, only : auto_rate_kessl, auto_rate_khair, &
     auto_rate_klepi, budget_compute, clfrcv, cu_cfmax, declin, detrpen_lnd, &
     detrpen_ocn, dt, dtabem, dtcum, dtrad, dtsec, dx, dxsq, eccen, eccf, &
-    entrdd, entrpen_lnd, entrpen_ocn, entshalp, holtth10iter, iaerosol, &
+    entrdd, entrpen_lnd, entrpen_ocn, entshalp, iaerosol, &
     atwo, czero, iautoconv, ibltyp, ichem, iclimaaer, iclimao3, icldfrac, &
     iconvcf, nuk, rstbl, alphae, betae, coeffr, coeffs, cu, damp, dtmax, &
     elcrit_lnd, elcrit_ocn, entp, epmax_lnd, epmax_ocn, minorig, omtrain, &
@@ -162,7 +162,7 @@ program scm_coupled
     edtmino_ocn, edtminx, edtminx_ocn, htmax, htmin, igcc, mincld, pbcmax, &
     shrmax, shrmax_ocn, shrmin, shrmin_ocn, skbmax, &
     icup, &
-    icup_lnd, icup_ocn, idirect, ifaholt, ifaholtth10, iindirect, iocnflux, &
+    icup_lnd, icup_ocn, idirect, iindirect, iocnflux, &
     ipptls, iqc, iqi, iqr, iqs, iqv, irrtm, istochastic, itweak, iwavcpl, &
     iceflglw, iceflgsw, icld, imcica, inflglw, inflgsw, irng, liqflglw, &
     liqflgsw, rrtm_extend, syncro_radfor, &
@@ -170,7 +170,7 @@ program scm_coupled
     kf_max_pef, kf_min_dtcape, kf_min_pef, kf_tkemax, kf_wthreshold, &
     kfac_deep, kfac_shal, lambm0, larcticcorr, lepcld, lmfcapebl, &
     lmfdd, lmfdudv, lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, &
-    lmfuvdis, lmfwstar, lmoistn2, lqtmix, lsctop, lsrfhack, maxprandtl, &
+    lmfuvdis, lmfwstar, lmoistn2, lqtmix, lsctop, lsrfhack, &
     mvelp, &
     mvelpp, nqx, obliq, obliqr, qxcheckval, qxzeroval, rcldiff, &
     rcmtimer, rcovpmin, rcpec_lnd, rcpec_ocn, rcuc_lnd, rcuc_ocn, rdt, &
@@ -312,8 +312,7 @@ program scm_coupled
     auto_rate_kessl, auto_rate_klepi, rkconv, skconv, rcovpmin,   &
     rpecons, rcldiff
   namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop, &
-    lqtmix
+    lmoistn2, lsctop, lqtmix
   namelist /uwparam/ atwo, rstbl, czero, nuk
 
   ! Defaults: as in Main/mod_params.F90
@@ -391,7 +390,7 @@ program scm_coupled
   rhmax = 1.00_rkx
   rhmin = 0.01_rkx
   rh0land = 0.85_rkx
-  rh0oce = 0.85_rkx
+  rh0oce = 0.80_rkx
   larcticcorr = .true.
   iautoconv = 4
   vfqs = 1.0_rkx
@@ -407,11 +406,7 @@ program scm_coupled
   ricr_ocn = 0.275_rkx
   ricr_lnd = 0.250_rkx
   zhnew_fac = 0.25_rkx
-  ifaholt = 0
-  ifaholtth10 = 2
-  holtth10iter = 1
   lmoistn2 = .true.
-  maxprandtl = 1.0_rkx
   lsctop = .true.
   lqtmix = .false.
   cumulus = 'tiedtke'
@@ -1731,8 +1726,8 @@ program scm_coupled
 
   ! Boundary layer input derived from the state: potential temperature,
   ! surface air density, ground temperature (same potential temperature
-  ! as the lowest level, used only with ifaholtth10 /= 2) and the surface
-  ! drag from a neutral log law friction velocity (or ustarfix).
+  ! as the lowest level) and the surface drag from a neutral log law
+  ! friction velocity (or ustarfix).
   subroutine update_derived
     implicit none
     real(rkx) :: ps, tv, wspd

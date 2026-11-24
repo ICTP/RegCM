@@ -24,11 +24,10 @@ module mod_pbl_holtbl
     idynamic, jci1, jci1ga, jci2, jdi1, jdi2, jdii1, jdii2, kz, kzm1, kzp1, &
     maxvert, ntr
   use mod_constants, only : cpd, d_10, d_five, d_half, d_one, d_r10, d_rfour, &
-    d_zero, dlowval, egrav, ep1, ep2, minqq, onet, p00, rcpd, rovcp, rtice, &
+    d_zero, dlowval, egrav, ep1, ep2, minqq, onet, rcpd, rtice, &
     rtwat, rtwat_rtice_r, rwat, tzero, vonkar, wlhs, wlhv, wlhvocp
   use mod_runparams, only : iqv, dt, rdt, ichem, zhnew_fac, &
-       ifaholtth10, ifaholt, holtth10iter, ipptls, iqc, iqi, &
-       lmoistn2, maxprandtl, lsctop, lqtmix
+       ipptls, iqc, iqi, lmoistn2, lsctop, lqtmix
   use mod_mppparam, only : exchange_lb
   use mod_memutil, only : getmem
 #ifdef DEBUG
@@ -47,12 +46,12 @@ module mod_pbl_holtbl
                                           kvm, kvq
   real(rkx), pointer, contiguous, dimension(:,:) :: khfs, kqfs, pfcor
   real(rkx), pointer, contiguous, dimension(:,:) :: kbfs, obklen, thv10
-  real(rkx), pointer, contiguous, dimension(:,:) :: sh10, ustar, adricr
+  real(rkx), pointer, contiguous, dimension(:,:) :: ustar, adricr
   logical, pointer, contiguous, dimension(:,:) :: lunstb
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: alphak, betak, &
                         coefe, coeff1, coeff2, tpred1, tpred2, cfac, vv
-  real(rkx), pointer, contiguous, dimension(:,:,:) :: kvf, kvfm, ttnp
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: kvf, ttnp
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qtenv
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qtenc
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qteni
@@ -101,7 +100,6 @@ module mod_pbl_holtbl
     call getmem(vv,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:vv')
     call getmem(ri,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ri')
     call getmem(kvf,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:kvf')
-    call getmem(kvfm,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:kvfm')
     call getmem(qtenv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenv')
     call getmem(qtenc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenc')
     call getmem(qteni,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qteni')
@@ -121,9 +119,6 @@ module mod_pbl_holtbl
     call getmem(thv10,jci1,jci2,ici1,ici2,'mod_holtbl:thv10')
     call getmem(ustar,jci1,jci2,ici1,ici2,'mod_holtbl:ustar')
     call getmem(adricr,jci1,jci2,ici1,ici2,'mod_holtbl:adricr')
-    if ( ifaholtth10 /= 2 ) then
-      call getmem(sh10,jci1,jci2,ici1,ici2,'mod_holtbl:sh10')
-    end if
     call getmem(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
     call getmem(dza,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:dza')
     call getmem(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
@@ -161,14 +156,13 @@ module mod_pbl_holtbl
     integer(ik4) :: i, j, k, n
     real(rkx) :: dudz, dvdz, ss, n2, rin, fofri, kvfh
     real(rkx) :: rrho, uu, uflxsfx, vflxsfx
-    real(rkx) :: oblen, vvk, sh, hqfac, thg
+    real(rkx) :: oblen, vvk, sh, hqfac
     real(rkx) :: phiminv, wstar, wm, therm, zpbl, phihinv
     real(rkx) :: zmzp, zm, zp, zh, zl, zzh, pblk, pr, tlv
     real(rkx) :: fak1, fak2, fak3, term
     real(rkx) :: drgdot, uflxsf, vflxsf
     real(rkx) :: coef1, coef2, coef3
-    real(rkx) :: qlu, qll, prfa
-    integer(ik4) :: iter
+    real(rkx) :: qlu, qll
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
     integer(ik4), save :: idindx = 0
@@ -249,13 +243,8 @@ module mod_pbl_holtbl
         end if
         kvfh = kzfrac*dza(j,i,k-1)*dza(j,i,k-1)*rdt
         kvf(j,i,k) = max(min(szkm*sqrt(ss)*fofri,kvfh),kvfl)
-        ! Stable conditions mix momentum more than heat: the
-        ! Prandtl number Km/Kh = 1 + Ri is capped at maxprandtl
-        prfa = min(max(1.0_rkx+rin,1.0_rkx),maxprandtl)
-        kvfm(j,i,k) = max(min(szkm*sqrt(ss)*fofri*prfa,kvfh),kvfl)
       else
         kvf(j,i,k) = 0.0_rkx
-        kvfm(j,i,k) = 0.0_rkx
       end if
 #if defined(OPENACC) && !defined(STDPAR_FIXED)
     end do
@@ -300,66 +289,28 @@ module mod_pbl_holtbl
     !
     ! estimate potential temperature at 10m via log temperature
     ! profile in the surface layer (brutsaert, p. 63).
-    ! calculate mixing ratio at 10m by assuming a constant
-    ! value from the surface to the lowest model level.
     !
-    if ( ifaholtth10 == 2 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        thv10(j,i) = thvx(j,i,kz) + kbfs(j,i)/(vonkar*ustar(j,i)* &
-                     log(m2p%za(j,i,kz)*d_r10))
-      end do
-    else
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        ! Compute specific humidity
-        if ( m2p%ldmsk(j,i) == 1 ) then
-          sh10(j,i) = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
-        else
-          sh10(j,i) = pfqsats(m2p%tg(j,i),m2p%patmf(j,i,kzp1))
-        end if
-      end do
-      if ( ifaholtth10 == 1 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          thg = m2p%tg(j,i) * (p00/m2p%patmf(j,i,kzp1))**rovcp
-          thv10(j,i) = (0.25_rkx*m2p%thatm(j,i,kz) + &
-                        0.75_rkx*thg)*(d_one+ep1*sh10(j,i))
-        end do
-      else
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          thg = m2p%tg(j,i) * (p00/m2p%patmf(j,i,kzp1))**rovcp
-          thv10(j,i) = (d_half*(m2p%thatm(j,i,kz)+thg)) * &
-                       (d_one + ep1*sh10(j,i))
-        end do
-      end if
-    end if
-    do iter = 1, holtth10iter
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        oblen = comp_obklen(thv10(j,i),ustar(j,i),kbfs(j,i))
-        if ( oblen >= m2p%za(j,i,kz) ) then
-          thv10(j,i) = thvx(j,i,kz) + kbfs(j,i)/(vonkar*ustar(j,i))*  &
-             (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
-        else
-          if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
-            thv10(j,i) = thvx(j,i,kz) + kbfs(j,i)/(vonkar*ustar(j,i))*  &
-                (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
-                6.0_rkx*log(m2p%za(j,i,kz)/oblen))
-          else
-            thv10(j,i) = thvx(j,i,kz) + kbfs(j,i)/(vonkar*ustar(j,i)) * &
-                        6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
-          end if
-        end if
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      thv10(j,i) = thvx(j,i,kz) + kbfs(j,i)/(vonkar*ustar(j,i)* &
+                   log(m2p%za(j,i,kz)*d_r10))
     end do
-    if ( ifaholt == 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        thg = m2p%tg(j,i) * (p00/m2p%patmf(j,i,kzp1))**rovcp
-        thv10(j,i) = max(thv10(j,i),thg)  ! gtb add to maximize
-      end do
-    else if ( ifaholt == 2 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        thg = m2p%tg(j,i) * (p00/m2p%patmf(j,i,kzp1))**rovcp
-        thv10(j,i) = min(thv10(j,i),thg)  ! gtb add to minimize
-      end do
-    end if
+    ! one iteration with the first-guess Obukhov length
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      oblen = comp_obklen(thv10(j,i),ustar(j,i),kbfs(j,i))
+      if ( oblen >= m2p%za(j,i,kz) ) then
+        thv10(j,i) = thvx(j,i,kz) + kbfs(j,i)/(vonkar*ustar(j,i))*  &
+           (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
+      else
+        if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
+          thv10(j,i) = thvx(j,i,kz) + kbfs(j,i)/(vonkar*ustar(j,i))*  &
+              (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
+              6.0_rkx*log(m2p%za(j,i,kz)/oblen))
+        else
+          thv10(j,i) = thvx(j,i,kz) + kbfs(j,i)/(vonkar*ustar(j,i)) * &
+                      6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
+        end if
+      end if
+    end do
 
     ! final value for obukhov length
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -524,12 +475,12 @@ module mod_pbl_holtbl
           hqfac = 0.8_rkx
         end if
         ! compute eddy diffusivities
-        kvm(j,i,k) = max(pblk,kvfm(j,i,k))
+        kvm(j,i,k) = max(pblk,kvf(j,i,k))
         kvh(j,i,k) = max(pblk/pr,kvf(j,i,k))
         kvq(j,i,k) = kvh(j,i,k)*hqfac
       else
         ! above the boundary layer the free atmosphere diffusivities
-        kvm(j,i,k) = kvfm(j,i,k)
+        kvm(j,i,k) = kvf(j,i,k)
         kvh(j,i,k) = kvf(j,i,k)
         kvq(j,i,k) = kvf(j,i,k)
       end if

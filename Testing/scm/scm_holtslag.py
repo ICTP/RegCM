@@ -22,7 +22,7 @@
 #   scm_holtslag.py                             one call, RegCM defaults
 #   scm_holtslag.py --set nsteps=90             6 hours with dtpbl = 240 s
 #   scm_holtslag.py --list                      show the parameters
-#   scm_holtslag.py --set lmoistn2=.true. --set maxprandtl=4.0
+#   scm_holtslag.py --set lmoistn2=.false. --set lsctop=.false.
 #   scm_holtslag.py --sweep ricr_ocn=0.25,0.275,0.3
 #   scm_holtslag.py --plot holtslag.png         profiles (needs matplotlib)
 #   scm_holtslag.py --save run.out --compare reference/scm_holtslag.out
@@ -44,8 +44,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # namelist group of every parameter the program reads
 GROUPS = {
     'scmparam': ['dtpbl', 'nsteps'],
-    'holtslagparam': ['ricr_ocn', 'ricr_lnd', 'zhnew_fac', 'ifaholtth10',
-                      'ifaholt', 'holtth10iter', 'lmoistn2', 'maxprandtl',
+    'holtslagparam': ['ricr_ocn', 'ricr_lnd', 'zhnew_fac', 'lmoistn2',
                       'lsctop', 'lqtmix'],
 }
 GROUP_OF = {v: g for g, vs in GROUPS.items() for v in vs}

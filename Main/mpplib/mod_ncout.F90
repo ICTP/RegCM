@@ -44,13 +44,13 @@ module mod_ncout
     entp, entrdd, entrpen_lnd, entrpen_ocn, entshalp, epmax_lnd, &
     epmax_lnd_max, epmax_lnd_min, epmax_ocn, fixedsolarval, &
     gas_tweak_factors, ghg_year_const, gnu1, gnu2, &
-    holtth10iter, hsigma, htmax, htmin, iaerosol, iautoconv, ibltyp, iboudy, &
+    hsigma, htmax, htmin, iaerosol, iautoconv, ibltyp, iboudy, &
     iceflglw, iceflgsw, ichbion, ichcumtra, ichdiag, ichdrdepo, ichdustemd, &
     ichdustparam, ichebdy, ichecold, ichem, ichjphcld, ichlinox, ichremcvc, &
     ichremlsc, ichsolver, ichsursrc, icld, icldfrac, icldmstrat, iclimaaer, &
     iclimao3, iconvcf, icopcpl, icosp, icup, icup_lnd, &
     icup_ocn, idate0, idate1, idate2, idcsst, idiag, idiffu, idirect, iemiss, &
-    ifaholt, ifaholtth10, ifixsolar, ifrayd, ifrest, ifslaboc, ifupr, igcc, &
+    ifixsolar, ifrayd, ifrest, ifslaboc, ifupr, igcc, &
     iindirect, imcica, inflglw, inflgsw, iocncpl, iocnflux, ipgf, ipptls, &
     iqmsl, irceideal, irng, irrtm, iseaice, islab_ocean, isladvec, ismoke, &
     isnowdark, isolconst, istochastic, itweak, itweak_greenhouse_gases, &
@@ -60,7 +60,7 @@ module mod_ncout
     kf_tkemax, kf_wthreshold, kfac_deep, kfac_shal, lakemod, larcticcorr, &
     lconst2050, lepcld, liqflglw, liqflgsw, lmfcapebl, lmfdd, lmfdudv, &
     lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, lmoistn2, &
-    lqtmix, lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, minorig, &
+    lqtmix, lsctop, lsrfhack, lstand, lsync, mincld, minorig, &
     mixed_layer_depth, nhbet, nhxkd, nradfo, nsplit, nuk, omtrain, &
     omtsnow, pbcmax, q_rel_extrema, rad_max, rad_min, &
     rad_sigma, rayalpha0, rayhd, rayndamp, rayzd, rcldiff, rcovpmin, &
@@ -4099,15 +4099,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('holtslag_zhnew_factor',zhnew_fac))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('holtslag_th10_estimate',ifaholtth10))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('holtslag_th10_maximize',ifaholt))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('holtslag_th10_niteration',holtth10iter))
-          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('holtslag_moist_n2',lmoistn2))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('holtslag_max_prandtl',maxprandtl))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('holtslag_cloud_top_mixing',lsctop))
           call outstream_addatt(outstream(i)%ncout(j), &

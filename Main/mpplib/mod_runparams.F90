@@ -427,11 +427,7 @@ module mod_runparams
   real(rkx), public :: ricr_ocn
   real(rkx), public :: ricr_lnd
   real(rkx), public :: zhnew_fac
-  integer(ik4), public :: ifaholtth10
-  integer(ik4), public :: ifaholt
-  integer(ik4), public :: holtth10iter
   logical, public :: lmoistn2
-  real(rkx), public :: maxprandtl
   logical, public :: lsctop
   logical, public :: lqtmix
 

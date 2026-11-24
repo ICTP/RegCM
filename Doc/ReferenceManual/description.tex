@@ -1447,10 +1447,8 @@ with $\epsilon = R_v/R_d - 1$.  The cloud fraction $c$ is the large-scale cloud
 fraction of the model (\texttt{cloud\_fraction}) averaged over the two levels bounding
 the interface, and the dry value is used without condensate.  A cloud layer following the moist adiabat
 is then neutral, whereas the dry formula treats it as stable and suppresses
-the mixing inside clouds.  With \verb=maxprandtl= $> 1$ the momentum
-diffusivity in stable layers is the heat diffusivity multiplied by the Prandtl
-number $\mathrm{Pr} = \min(1+\mathrm{Ri},\mathrm{Pr}_{max})$, so that momentum
-is mixed more than heat; \cite{Lenderink_04} use $\mathrm{Pr}_{max}=2$.
+the mixing inside clouds.  Momentum and heat have the same free atmosphere
+diffusivity (Prandtl number 1).
 
 With \verb=lsctop= (on by default) the turbulence driven by the longwave
 cooling at the top of boundary layer clouds \citep{Lock_00} is added, with

@@ -97,9 +97,8 @@ Holtslag test
 Same columns. The driver computes from the profiles what the model
 derives from its state: potential temperature, surface air density, the
 Coriolis parameter, the surface drag rho u*^2/V1 (u* as above) and a
-ground temperature with the potential temperature of the lowest level
-(used only with ifaholtth10 /= 2). ricr and kmxpbl are set as in the
-model. The namelist has &scmparam (infile, outfile, dtpbl, nsteps) and
+ground temperature with the potential temperature of the lowest level.
+ricr and kmxpbl are set as in the model. The namelist has &scmparam (infile, outfile, dtpbl, nsteps) and
 &holtslagparam. "make check" uses one call (nsteps = 1); with nsteps > 1
 the columns evolve with the PBL tendencies only, no radiation, advection
 or subsidence, so the boundary layer deepens under the surface fluxes:

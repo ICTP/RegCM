@@ -33,13 +33,13 @@ module mod_params
     elcrit_lnd_min, elcrit_ocn, entp, entrdd, entrpen_lnd, entrpen_ocn, &
     entshalp, epmax_lnd, epmax_lnd_max, epmax_lnd_min, epmax_ocn, &
     fixedsolarval, gas_tweak_factors, ghg_year_const, gnu1, gnu2, &
-    holtth10iter, hsigma, htmax, htmin, iaerosol, iautoconv, ibltyp, &
+    hsigma, htmax, htmin, iaerosol, iautoconv, ibltyp, &
     iboudy, iceflglw, iceflgsw, icetriggert, ichbion, ichcumtra, ichdiag, &
     ichdrdepo, ichdustemd, ichdustparam, ichebdy, ichecold, ichem, ichjphcld, &
     ichlinox, ichremcvc, ichremlsc, ichsolver, ichsursrc, icld, icldfrac, &
     icldmstrat, iclimaaer, iclimao3, iconvcf, icopcpl, icosp, &
     icup, icup_lnd, icup_ocn, idate0, idate1, idate2, idcsst, &
-    idiag, idif, idiffu, idirect, iemiss, ifaholt, ifaholtth10, ifixsolar, &
+    idiag, idif, idiffu, idirect, iemiss, ifixsolar, &
     ifrayd, ifrest, ifslaboc, ifupr, igaschem, igcc, iindirect, iisoropia, &
     imcica, inflglw, inflgsw, intbdy, intsom, ioasiscpl, iocncpl, iocnflux, &
     ioxclim, ipgf, ipptls, iqc, iqfrst, iqh, iqlst, iqmsl, iqs, irceideal, &
@@ -51,7 +51,7 @@ module mod_params
     kf_tkemax, kf_wthreshold, kfac_deep, kfac_shal, lakemod, larcticcorr, &
     lconst2050, lepcld, liqflglw, liqflgsw, lmfcapebl, lmfdd, &
     lmfdudv, lmfmid, lmfpen, lmfscv, lmfsmooth, lmftrac, lmfuvdis, lmfwstar, &
-    lmoistn2, lqtmix, lsctop, lsrfhack, lstand, lsync, maxprandtl, mincld, &
+    lmoistn2, lqtmix, lsctop, lsrfhack, lstand, lsync, mincld, &
     minorig, &
     mixed_layer_depth, mo_dzita, moloch_do_test_1, moloch_do_test_2, &
     namelistfile, nbin, nhbet, nhxkd, nqx, nradfo, nsplit, nuk, &
@@ -263,8 +263,7 @@ module mod_params
     namelist /uwparam/ iuwvadv, atwo, rstbl, czero, nuk
 
     namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-      ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop, &
-      lqtmix
+      lmoistn2, lsctop, lqtmix
 
     namelist /cplparam/ cpldt, zomax, ustarmax
 
@@ -459,7 +458,7 @@ module mod_params
     rhmax     = 1.00_rkx   ! RH at whicn FCC = 1.0
     rhmin     = 0.01_rkx   ! RH min value
     rh0land   = 0.85_rkx   ! Relative humidity threshold for land at surface
-    rh0oce    = 0.85_rkx   ! Relative humidity threshold for ocean at surface
+    rh0oce    = 0.80_rkx   ! Relative humidity threshold for ocean at surface
     k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
@@ -607,11 +606,7 @@ module mod_params
     ricr_ocn = 0.275_rkx
     ricr_lnd = 0.250_rkx
     zhnew_fac = 0.25_rkx
-    ifaholt = 0
-    ifaholtth10 = 2
-    holtth10iter = 1
     lmoistn2 = .true.
-    maxprandtl = 1.0_rkx
     lsctop = .true.
     lqtmix = .false.
     !
@@ -1893,11 +1888,7 @@ module mod_params
       call bcast(ricr_ocn)
       call bcast(ricr_lnd)
       call bcast(zhnew_fac)
-      call bcast(ifaholtth10)
-      call bcast(ifaholt)
-      call bcast(holtth10iter)
       call bcast(lmoistn2)
-      call bcast(maxprandtl)
       call bcast(lsctop)
       call bcast(lqtmix)
     end if
@@ -2784,11 +2775,7 @@ module mod_params
         write(stdout,'(a,f11.6)') '  ricr_ocn     = ', ricr_ocn
         write(stdout,'(a,f11.6)') '  ricr_lnd     = ', ricr_lnd
         write(stdout,'(a,f11.6)') '  zhnew_fac    = ', zhnew_fac
-        write(stdout,'(a,i2)') '  ifaholt      = ', ifaholt
-        write(stdout,'(a,i2)') '  ifaholtth10  = ', ifaholtth10
-        write(stdout,'(a,i4)') '  holtth10iter = ', holtth10iter
         write(stdout,'(a,l11)') '  lmoistn2     = ', lmoistn2
-        write(stdout,'(a,f11.6)') '  maxprandtl   = ', maxprandtl
         write(stdout,'(a,l11)') '  lsctop       = ', lsctop
         write(stdout,'(a,l11)') '  lqtmix       = ', lqtmix
       else if ( ibltyp == 2 ) then

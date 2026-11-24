@@ -38,9 +38,8 @@ program scm_holtslag
     ici1ga, ici2, ici2ga, idi1, idi2, idynamic, jce1, jce1ga, jce1gb, jce2, &
     jce2ga, jce2gb, jci1, jci1ga, jci2, jci2ga, jdi1, jdi2, kz, kzm1, kzp1, &
     ntr
-  use mod_runparams, only : dt, holtth10iter, ibltyp, ichem, ifaholt, &
-    ifaholtth10, ipptls, iqc, iqv, lmoistn2, lqtmix, lsctop, maxprandtl, &
-    nqx, rdt, &
+  use mod_runparams, only : dt, ibltyp, ichem, ipptls, iqc, iqv, &
+    lmoistn2, lqtmix, lsctop, nqx, rdt, &
     ricr_lnd, ricr_ocn, zhnew_fac
   use mod_memutil, only : getmem, memory_init
   use mod_regcm_types, only : ik4, mod_2_pbl, pbl_2_mod, rkx
@@ -66,8 +65,7 @@ program scm_holtslag
 
   namelist /scmparam/ infile, outfile, dtpbl, nsteps
   namelist /holtslagparam/ ricr_ocn, ricr_lnd, zhnew_fac, &
-    ifaholtth10, ifaholt, holtth10iter, lmoistn2, maxprandtl, lsctop, &
-    lqtmix
+    lmoistn2, lsctop, lqtmix
 
   ! Defaults: as in Main/mod_params.F90
   infile = 'scm_profiles.txt'
@@ -77,11 +75,7 @@ program scm_holtslag
   ricr_ocn = 0.275_rkx
   ricr_lnd = 0.250_rkx
   zhnew_fac = 0.25_rkx
-  ifaholt = 0
-  ifaholtth10 = 2
-  holtth10iter = 1
   lmoistn2 = .true.
-  maxprandtl = 1.0_rkx
   lsctop = .true.
   lqtmix = .false.
 
@@ -266,8 +260,8 @@ program scm_holtslag
 
   ! Fields the model computes from the prognostic state: potential
   ! temperature, surface air density, ground temperature (same potential
-  ! temperature as the lowest level, used only with ifaholtth10 /= 2) and
-  ! the surface drag coefficient from a neutral log law friction velocity.
+  ! temperature as the lowest level) and the surface drag coefficient
+  ! from a neutral log law friction velocity.
   subroutine update_derived
     implicit none
     real(rkx) :: ps, tv, zl

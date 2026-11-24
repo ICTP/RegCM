@@ -999,8 +999,8 @@ This namelist controls the cloud fraction algorithms.
  &cldparam
  rhmax     = 1.01,    ! RH at whicn FCC = 1.0
  rhmin     = 0.01,    ! RH min value
- rh0land   = 0.80,    ! Relative humidity threshold for land (sundqvist)
- rh0oce    = 0.90,    ! Relative humidity threshold for ocean (sundqvist)
+ rh0land   = 0.85,    ! Relative humidity threshold for land (sundqvist)
+ rh0oce    = 0.80,    ! Relative humidity threshold for ocean (sundqvist)
  k2_const  = 10.0,    ! K2 Factor cumulus mass flux - cloud fraction
  kfac_shal = 0.07,    ! Factor cumulus mass flux - cloud fraction - shallow
  kfac_deep = 0.14,    ! Factor cumulus mass flux - cloud fraction - deep
@@ -1190,25 +1190,9 @@ You are allowed here to tune the Holtslag PBL scheme selected above in
  ricr_ocn = 0.275, ! Critical Richardson Number over Ocean
  ricr_lnd = 0.25,  ! Critical Richardson Number over Land
  zhnew_fac = 0.25, ! Multiplicative factor for zzhnew in holtpbl
- ifaholtth10 = 1,  ! First approximation for obhukov length, th10 formula:
-                   !      0 => 0.5 * (t+tg) * (1+0.61*q)
-                   !      1 => (0.25*t + 0.75*tg) * (1+0.61*q)
-                   !      2 => theta + hf/(k*us)*log(z/10)
-                   ! t = air temp., tg = ground temp., q = wv mix. ratio
-                   ! hf = total heat flux, z = elevation
-                   ! theta = virt. pot. t
- ifaholt = 1,      ! th10 final adjustment:
-                   !      0 => no adjustment
-                   !      1 => max(th10,tg)
-                   !      2 => min(th10,tg)
- holtth10iter = 1, ! Iterations in th10 computation
  lmoistn2 = .true.,  ! Use the moist Brunt-Vaisala frequency in cloudy
                    ! layers for the free atmosphere Richardson number
                    ! (Lenderink and Holtslag, 2004)
- maxprandtl = 1.0, ! Upper limit of the stable Prandtl number
-                   ! Km/Kh = 1 + Ri used for the free atmosphere
-                   ! momentum diffusivity. 1.0 => Km = Kh,
-                   ! 2.0 => Lenderink and Holtslag (2004)
  lsctop = .true.,  ! Add the mixing driven by the radiative cooling
                    ! at the top of boundary layer clouds (Lock et al.,
                    ! 2000, as in the GFS PBL)
