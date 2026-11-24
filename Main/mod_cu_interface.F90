@@ -295,8 +295,12 @@ module mod_cu_interface
             pmean(k) = real(psum(k),rkx)/ijs
           end do
           !$acc kernels
-          cu_qdetr(:,:,:) = d_zero
           cu_raincc(:,:,:) = d_zero
+          !$acc end kernels
+        end if
+        if ( any(icup == 5) .or. any(icup == 4) ) then
+          !$acc kernels
+          cu_qdetr(:,:,:) = d_zero
           !$acc end kernels
         end if
 
@@ -425,12 +429,14 @@ module mod_cu_interface
         end do
       end if
 
+      ! Convective condensate detrained by Tiedtke and Emanuel: a source
+      ! term of the NoTo microphysics
+      if ( ipptls == 2 .and. (any(icup == 5) .or. any(icup == 4)) ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          c2m%q_detr(j,i,k) = cu_qdetr(j,i,k) * dt
+        end do
+      end if
       if ( any(icup == 5) ) then
-        if ( ipptls == 2 ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            c2m%q_detr(j,i,k) = cu_qdetr(j,i,k) * dt
-          end do
-        end if
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           c2m%rain_cc(j,i,k) = cu_raincc(j,i,k)
         end do

@@ -21,12 +21,13 @@ module mod_cu_em
   use mod_realkinds, only : rk8, rkx
   use mod_constants, only : cpd, cpv, cpw, d_10, d_100, d_1000, d_four, &
     d_half, d_one, d_r100, d_two, d_zero, dlowval, egrav, ep2, rcpd, regrav, &
-    rgas, rgowi, rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhs, wlhv
+    rgas, rgowi, rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhf, wlhs, wlhv
   use mod_dynparam, only : ici1, ici2, jci1, jci2, kz, kzp1, myid, ntr
   use mod_memutil, only : getmem
   use mod_mppparam, only : bcast
   use mod_runparams, only : alphae, betae, coeffr, coeffs, cu,   &
-    damp, dtmax, entp, minorig, omtrain, omtsnow, tlcrit, iqv, &
+    damp, dtmax, entp, minorig, omtrain, omtsnow, tlcrit, iqc, iqi, iqv, &
+    ipptls, &
     ichem, ichcumtra, icup, dt
   use mod_runparams, only : elcrit_ocn, elcrit_lnd, epmax_ocn, epmax_lnd
   use mod_runparams, only : sigs, sigd
@@ -37,7 +38,8 @@ module mod_cu_em
   use mod_runparams, only : epmax_lnd_min, epmax_lnd_max
   use mod_runparams, only : elcrit_lnd_min, elcrit_lnd_max
   use mod_cu_common, only : cu_chiten, cu_cldfrc, cu_cldlwc, &
-    cu_cloud_fraction, cu_convpr, cu_kbot, cu_ktop, cu_prate, cu_qten, &
+    cu_cloud_fraction, cu_convpr, cu_kbot, cu_ktop, cu_prate, cu_qdetr, &
+    cu_qten, &
     cu_tten, cu_uten, cu_vten, cuscheme, total_precip_points
 #ifdef DEBUG
   use mod_service, only : dbgslen, time_begin, time_end
@@ -62,7 +64,8 @@ module mod_cu_em
 
   real(rkx), pointer, contiguous, dimension(:) :: cbmf, pret, qprime, &
     tprime, wd, elcrit, epmax
-  real(rkx), pointer, contiguous, dimension(:,:) :: fq, ft, fu, fv, pcup, &
+  real(rkx), pointer, contiguous, dimension(:,:) :: fq, fqc, ft, fu, fv, &
+    pcup, &
     qcup, qscup, tcup, ucup, vcup, zcup, cldfra, cldwat, phcup, ppcp
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ftra, tra
   integer(ik4), pointer, contiguous, dimension(:) :: iflag, kbase, ktop, &
@@ -91,6 +94,7 @@ module mod_cu_em
     call getmem(kbase,1,ncp,'emanuel:kbase')
     call getmem(ktop,1,ncp,'emanuel:ktop')
     call getmem(fq,1,ncp,1,kz,'emanuel:fq')
+    call getmem(fqc,1,ncp,1,kz,'emanuel:fqc')
     call getmem(ft,1,ncp,1,kz,'emanuel:ft')
     call getmem(fu,1,ncp,1,kz,'emanuel:fu')
     call getmem(fv,1,ncp,1,kz,'emanuel:fv')
@@ -120,6 +124,7 @@ module mod_cu_em
     type(mod_2_cum), intent(in) :: m2c
     integer(ik4) :: i, j, k, n, kk
     real(rkx), dimension(4) :: rfacs
+    real(rkx) :: alfaw, rmix
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cupemandrv'
     integer(ik4), save :: idindx = 0
@@ -173,6 +178,7 @@ module mod_cu_em
         fv(n,k) = d_zero
         ft(n,k) = d_zero
         fq(n,k) = d_zero
+        fqc(n,k) = d_zero
         cldfra(n,k) = d_zero
         cldwat(n,k) = d_zero
         ppcp(n,k) = d_zero
@@ -227,8 +233,8 @@ module mod_cu_em
     end if
 
     call cupeman(nap,kz,ntr,tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup, &
-                 iflag,ft,fq,fu,fv,ftra,pret,ppcp,wd,tprime,qprime,   &
-                 cbmf,cldfra,cldwat,kbase,ktop,elcrit,epmax)
+                 iflag,ft,fq,fqc,fu,fv,ftra,pret,ppcp,wd,tprime,      &
+                 qprime,cbmf,cldfra,cldwat,kbase,ktop,elcrit,epmax)
 
     do n = 1, nap
       i = imap(n)
@@ -250,9 +256,23 @@ module mod_cu_em
         ! Tendencies
         do k = 1, kz
           kk = kzp1 - k
-          cu_tten(j,i,kk) = ft(n,k)
+          ! Detrained condensate, liquid and ice with the liquid
+          ! fraction of the saturation (as in Tiedtke), with the latent
+          ! heat of freezing of the ice part. With NoTo it is the
+          ! detrainment source of the microphysics (as for Tiedtke),
+          ! else a tendency of cloud liquid and ice.
+          alfaw = satliqfrac(tcup(n,k))
+          rmix = d_one/(d_one-qcup(n,k))
+          cu_tten(j,i,kk) = ft(n,k) + &
+            wlhf*rcpd*(d_one-alfaw)*fqc(n,k)
           ! Move specific humidity tendency to mixing ratio tendency
-          cu_qten(j,i,kk,iqv) = fq(n,k)/(d_one-qcup(n,k))**2
+          cu_qten(j,i,kk,iqv) = fq(n,k)*rmix*rmix
+          if ( ipptls == 2 ) then
+            cu_qdetr(j,i,kk) = fqc(n,k)*rmix
+          else
+            cu_qten(j,i,kk,iqc) = alfaw*fqc(n,k)*rmix
+            cu_qten(j,i,kk,iqi) = (d_one-alfaw)*fqc(n,k)*rmix
+          end if
           ! There is a bit of an inconsistency here...  The wind
           ! tendencies from convection are on cross points, but the
           ! model wants them on dot points.
@@ -441,9 +461,9 @@ module mod_cu_em
 !   8. Cloud fraction computation from massflux has been added.
 !   9. Remove dry adiabatic adjustment: regcm has a pbl scheme.
 !
-  subroutine cupeman(np,nd,ntra,t,q,qs,u,v,tra,p,ph,iflag,ft,fq,fu,fv,  &
-                     ftra,precip,ppcp,wd,tprime,qprime,cbmf,cldfra,     &
-                     cldwat,kcb,kct,elcrit,epmax)
+  subroutine cupeman(np,nd,ntra,t,q,qs,u,v,tra,p,ph,iflag,ft,fq,fqc,   &
+                     fu,fv,ftra,precip,ppcp,wd,tprime,qprime,cbmf,      &
+                     cldfra,cldwat,kcb,kct,elcrit,epmax)
     implicit none
     integer(ik4), intent(in) :: np, nd, ntra
     real(rkx), pointer, contiguous, dimension(:), intent(inout) :: cbmf
@@ -455,6 +475,7 @@ module mod_cu_em
     real(rkx), pointer, contiguous, dimension(:), intent(inout) :: qprime, tprime, wd
     integer(ik4), pointer, contiguous, dimension(:), intent(inout) :: iflag, kcb, kct
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: fq, ft, fu, fv
+    real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: fqc
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: cldfra, ppcp
     real(rkx), pointer, contiguous, dimension(:,:), intent(inout) :: cldwat
     real(rkx), pointer, contiguous, dimension(:,:,:), intent(inout) :: ftra
@@ -468,7 +489,7 @@ module mod_cu_em
                  fvold, plcl, qp1, qsm, qstm, qti, rat, revap,   &
                  rh, scrit, sigt, sjmax, sjmin, smid, smin,       &
                  stemp, tca, traav, tvaplcl, tvpplcl, tvx,  tvy,  &
-                 uav, vav, wdtrain, amp1
+                 uav, vav, wdtrain, amp1, cond, dcond
     real(rkx), dimension(nd+1) :: clw, cpn, ep, evap, gz, h, hm, &
                                    hp, lv, lvcp, m, mp, qp, sigp, &
                                    tp, tv, tvp, up, vp, water, wt
@@ -1089,7 +1110,15 @@ module mod_cu_em
         do k = 1, i - 1
           awat = elij(k,i) - (d_one-ep(i))*clw(i)
           awat = max(awat,d_zero)
-          fq(n,i) = fq(n,i) + egrav*dpinv*ment(k,i)*(qent(k,i)-awat-q(n,i))
+          ! The condensate left in the mixture after the precipitation
+          ! detrains as cloud water: vapour only the rest, and the latent
+          ! heat of the condensate stays (no evaporation on detrainment).
+          cond = min(max(elij(k,i)-awat,d_zero),max(qent(k,i)-awat,d_zero))
+          dcond = egrav*dpinv*ment(k,i)*cond
+          fqc(n,i) = fqc(n,i) + dcond
+          ft(n,i) = ft(n,i) + lvcp(i)*dcond
+          fq(n,i) = fq(n,i) + egrav*dpinv*ment(k,i) * &
+                    (qent(k,i)-awat-cond-q(n,i))
           fu(n,i) = fu(n,i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(n,i))
           fv(n,i) = fv(n,i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(n,i))
           if ( chemcutran ) then
@@ -1100,7 +1129,18 @@ module mod_cu_em
           end if
         end do
         do k = i, ict
-          fq(n,i) = fq(n,i) + egrav*dpinv*ment(k,i)*(qent(k,i)-q(n,i))
+          ! Condensate of the mixtures from above, and of the undiluted
+          ! updraft detraining at its own level (after the precipitation)
+          if ( k == i ) then
+            cond = max((d_one-ep(i))*clw(i),d_zero)
+          else
+            cond = max(elij(k,i),d_zero)
+          end if
+          cond = min(cond,max(qent(k,i),d_zero))
+          dcond = egrav*dpinv*ment(k,i)*cond
+          fqc(n,i) = fqc(n,i) + dcond
+          ft(n,i) = ft(n,i) + lvcp(i)*dcond
+          fq(n,i) = fq(n,i) + egrav*dpinv*ment(k,i)*(qent(k,i)-cond-q(n,i))
           fu(n,i) = fu(n,i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(n,i))
           fv(n,i) = fv(n,i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(n,i))
           if ( chemcutran ) then
@@ -1132,6 +1172,10 @@ module mod_cu_em
       fq(n,ict-1) = fq(n,ict-1) + frac*fqold * &
                   ((ph(n,ict)-ph(n,ict+1))/(ph(n,ict-1)-ph(n,ict))) * &
                   lv(ict)/lv(ict-1)
+      fqold = fqc(n,ict)
+      fqc(n,ict) = fqc(n,ict)*(d_one-frac)
+      fqc(n,ict-1) = fqc(n,ict-1) + frac*fqold * &
+                  ((ph(n,ict)-ph(n,ict+1))/(ph(n,ict-1)-ph(n,ict)))
       ftold = ft(n,ict)
       ft(n,ict) = ft(n,ict)*(d_one-frac)
       ft(n,ict-1) = ft(n,ict-1) + frac*ftold * &

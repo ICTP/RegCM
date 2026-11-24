@@ -84,8 +84,10 @@ module mod_cu_common
       call getmem(cu_chiten,jci1,jci2,ici1,ici2,1,kz,1,ntr,'cumulus:chiten')
       call getmem(cu_convpr,jci1,jci2,ici1,ici2,1,kz,'cumulus:convpr')
     end if
-    if ( any(icup == 5) ) then
+    if ( any(icup == 5) .or. any(icup == 4) ) then
       call getmem(cu_qdetr,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:qdetr')
+    end if
+    if ( any(icup == 5) ) then
       call getmem(cu_raincc,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:raincc')
     end if
     if ( any(icup == 5) .or. any(icup == 6) ) then

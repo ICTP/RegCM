@@ -604,6 +604,8 @@ program scm_coupled
   end if
   if ( .not. associated(cu_qdetr) ) then
     call getmem(cu_qdetr,jdi1,jdi2,idi1,idi2,1,kz,'scm:qdetr')
+  end if
+  if ( .not. associated(cu_raincc) ) then
     call getmem(cu_raincc,jdi1,jdi2,idi1,idi2,1,kz,'scm:raincc')
   end if
   call getmem(ricr,jci1,jci2,ici1,ici2,'scm:ricr')
