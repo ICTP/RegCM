@@ -502,7 +502,10 @@ else
       if test "x$USE_PROF" = x1; then
         FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       else
-        FCFLAGS="-ftz -O3 -flto -finline-functions -fp-model source $FCFLAGS"
+        FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
+        if test "x$USECPL" = x0; then
+          FCFLAGS="-flto $FCFLAGS"
+        fi
       fi
       ;;
     intel)
