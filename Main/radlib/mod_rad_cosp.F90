@@ -42,8 +42,7 @@ module mod_rad_cosp
   use mod_dynparam, only : kz, kzp1, jci1, jci2, ici1, ici2
   use mod_runparams, only : ipptls, iqv, iqc, iqi, icosp
   use mod_regcm_types, only : mod_2_rad
-  use mod_rad_common, only : cldwpmin, cloud_fice, cloud_rel_cam, &
-    cloud_rei
+  use mod_rad_common, only : cloud_layer
   use mod_constants, only : egrav, rgas
   use mod_message, only : fatal
   use mod_memutil, only : getmem
@@ -152,15 +151,14 @@ module mod_rad_cosp
   end subroutine allocate_mod_rad_cosp
   !
   ! Run the simulators on the cloud seen by the radiation, the same for
-  ! both radiation schemes: cloud fraction and in cloud water of the
-  ! layers with a water path of at least cldwpmin, ice fraction and
-  ! effective radii of mod_rad_common (without the sulfate indirect
-  ! effect on the liquid radius); add the results to the sums.
+  ! both radiation schemes (cloud_layer of mod_rad_common, without the
+  ! sulfate indirect effect on the liquid radius); add the results to the
+  ! sums.
   !
   subroutine cosp_driver(m2r)
     implicit none
     type(mod_2_rad), intent(inout) :: m2r
-    real(rk8) :: tk, ql, qi, cf, wp_in, fi, re_l, re_i, dzk, iwc
+    real(rk8) :: tk, ql, qi, cf, wp_in, fi, re_l, re_i, dzk
     type(cosp_optical_inputs) :: cin
     type(cosp_column_inputs) :: cst
     type(rng_state), dimension(:), allocatable :: rngs
@@ -225,18 +223,15 @@ module mod_rad_cosp
           cst%qv(p,k) = m2r%qxatms(j,i,k,iqv) / &
                         (1.0_rk8+m2r%qxatms(j,i,k,iqv))
           rho(p,k) = m2r%phatms(j,i,k)/(rgas*tk)
-          ! Cloud of the radiation (colmod3, rrtmg_driver)
-          wp_in = real(m2r%cldlwc(j,i,k),rk8)*dzk
-          cf = 0.0_rk8
-          if ( wp_in > cldwpmin ) then
-            cf = min(max(real(m2r%cldfrc(j,i,k),rk8),0.0_rk8),1.0_rk8)
-          end if
+          ! Cloud of the radiation (cloud_layer, as colmod3 and
+          ! rrtmg_driver)
           ql = real(m2r%qxatms(j,i,k,iqc),rk8)
           qi = real(m2r%qxatms(j,i,k,iqi),rk8)
-          fi = cloud_fice(.true.,ql,qi,tk)
-          iwc = wp_in*fi/dzk
-          re_l = cloud_rel_cam(tk,m2r%ldmsk(j,i) == 1)
-          re_i = cloud_rei(iwc,tk,real(m2r%xlat(j,i),rk8))
+          call cloud_layer(real(m2r%cldfrc(j,i,k),rk8),        &
+                           real(m2r%cldlwc(j,i,k),rk8),dzk,tk,ql,qi, &
+                           m2r%ldmsk(j,i) == 1,                       &
+                           real(m2r%xlat(j,i),rk8),0.0_rk8,           &
+                           cf,wp_in,fi,re_l,re_i)
           if ( cf > 0.0_rk8 ) then
             tca(p,k) = cf
             ! In cloud 0.67 micron optical depth, CCM visible band

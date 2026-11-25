@@ -20,13 +20,13 @@ module mod_rrtmg_driver
   use mod_intkinds, only : ik4
   use mod_realkinds, only : rk8, rkx
   use mod_constants, only : amcfc11, amcfc12, amch4, amco2, amd, amn2o, amo3, &
-    amw, c287, dlowval, rep2, secpd
+    amw, c287, dlowval, rep2, rgas, secpd
   use mod_dynparam, only : dayspy, ici1, ici2, idynamic, jci1, jci2, kz, &
     kzp1, kzp2, nicross, njcross, ntr
   use mod_ipcc_scenario, only : ghgval, igh_cfc11, igh_cfc12, igh_ch4, &
     igh_co2, igh_n2o
   use mod_memutil, only : getmem
-  use mod_rad_common, only : cldwpmin, cloud_fice, cloud_rei, cloud_rel_cam, &
+  use mod_rad_common, only : cloud_cdnc_so4, cloud_fice, cloud_layer, &
     dge2rei, kclimf, kclimh, ktf, kth, o3prof
   use mod_rad_tracer, only : trcmix
   use mod_rad_aerosol, only : aermmr, aeroppt, gtota3d, tauasc3d, tauxar3d, &
@@ -45,7 +45,8 @@ module mod_rrtmg_driver
   use rrtmg_sw_rad_nomcica, only : rrtmg_sw_nomcica
   use mod_rad_outrad, only : radout
   use mod_runparams, only : calday, eccf, hsigma, iaerosol, iceflglw, &
-    iceflgsw, ichem, icld, iclimaaer, idirect, imcica, inflglw, inflgsw, &
+    iceflgsw, ichem, icld, iclimaaer, idirect, iindirect, imcica, inflglw, &
+    inflgsw, chtrname, &
     ipptls, iqc, iqi, iqv, irng, liqflglw, liqflgsw, rcmtimer, sigma, solcon, &
     syncro_radfor
   use mod_regcm_types, only : mod_2_rad, rad_2_mod
@@ -515,19 +516,21 @@ module mod_rrtmg_driver
     ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
     ! fsds     - Flux Shortwave Downwelling Surface
 
+    ! Fluxes at the top of the atmosphere, the interface kth+1 above the
+    ! highest layer (no downward long wave), and at the surface (1)
     do n = 1, npr
-      sabtp(n)  = swdflx(n,kth) - swuflx(n,kth)
-      solin(n)  = swdflx(n,kth)
-      solout(n) = swuflx(n,kth)
+      sabtp(n)  = swdflx(n,kth+1) - swuflx(n,kth+1)
+      solin(n)  = swdflx(n,kth+1)
+      solout(n) = swuflx(n,kth+1)
       frsa(n)   = swdflx(n,1) - swuflx(n,1)
-      clrst(n)  = swdflxc(n,kth) - swuflxc(n,kth)
+      clrst(n)  = swdflxc(n,kth+1) - swuflxc(n,kth+1)
       clrss(n)  = swdflxc(n,1) - swuflxc(n,1)
 
-      firtp(n)  = -1.0_rk8 * (lwdflx(n,kth) - lwuflx(n,kth))
-      lwout(n)  = lwuflx(n,kth)
-      lwin(n)   = -lwdflx(n,kth)
+      firtp(n)  = -1.0_rk8 * (lwdflx(n,kth+1) - lwuflx(n,kth+1))
+      lwout(n)  = lwuflx(n,kth+1)
+      lwin(n)   = -lwdflx(n,kth+1)
       frla(n)   = -1.0_rk8 * (lwdflx(n,1) - lwuflx(n,1))
-      clrlt(n)  = -1.0_rk8 * (lwdflxc(n,kth) - lwuflxc(n,kth))
+      clrlt(n)  = -1.0_rk8 * (lwdflxc(n,kth+1) - lwuflxc(n,kth+1))
       clrls(n)  = -1.0_rk8 * (lwdflxc(n,1) - lwuflxc(n,1))
     end do
 
@@ -611,8 +614,9 @@ module mod_rrtmg_driver
     implicit none
     type(mod_2_rad), intent(in) :: m2r
     integer(ik4), intent(in) :: iyear, imonth
-    integer(ik4) :: i, j, k, kj, ns, n, itr
+    integer(ik4) :: i, j, k, kj, ns, n, itr, iso4
     real(rk8), parameter :: verynearone = 0.999999_rk8
+    real(rk8) :: cdnc, cwp, rho
     real(rk8) :: tmp1l, tmp2l, tmp3l, tmp1i, tmp2i, tmp3i
     real(rk8) :: w1, w2, p1, p2
 !
@@ -1015,51 +1019,54 @@ module mod_rrtmg_driver
       tauaer_lw(:,:,:) = 0.0_rk8
     end if
     !
-    ! cloud fraction and cloud liquid waterpath calculation:
-    ! as in STANDARD SCHEME for now (getdat) : We need to improve this
-    ! according to new cloud microphysics!
-    ! fractional cloud cover (dependent on relative humidity)
+    ! Sulfate tracer of the simple indirect effect (Qian et al., 1999)
     !
-    ! qc   = gary's mods for clouds/radiation tie-in to exmois
+    iso4 = 0
+    if ( (ichem == 1 .and. iindirect == 1) .or. iclimaaer == 1 ) then
+      do itr = 1, ntr
+        if ( chtrname(itr) == 'SO4' ) iso4 = itr
+      end do
+    end if
     !
-    cldf = 0.0_rk8
-    clwp = 0.0_rk8
+    ! The cloud seen by the radiation (cloud_layer, as the CCM scheme):
+    ! cloud fraction, in cloud liquid and ice water paths (g/m2), ice
+    ! fraction and effective radii of each layer. None above the model top.
+    !
     do k = 1, kz
       kj = kzp1 - k
       do i = ici1, ici2
         do j = jci1, jci2
-          !
-          ! convert liquid water content into liquid water path, i.e.
-          ! multiply b deltaz
-          ! deltaz,clwp are on the right grid since plev and tlay are
-          ! care pressure is on bottom/toa grid
-          !
           n = (j-jci1+1)+(i-ici1)*npj
-          clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
-          if ( clwp(n,k) > cldwpmin ) then
-            cldf(n,k) = m2r%cldfrc(j,i,kj)
-          else
-            clwp(n,k) = 0.0_rk8
-            cldf(n,k) = 0.0_rk8
+          cdnc = 0.0_rk8
+          if ( iso4 > 0 ) then
+            rho = play(n,k)*100.0_rk8/(rgas*tlay(n,k))
+            cdnc = cloud_cdnc_so4(rho,aermmr(n,kj,iso4))
           end if
+          call cloud_layer(m2r%cldfrc(j,i,kj),m2r%cldlwc(j,i,kj), &
+                           deltaz(n,k),tlay(n,k),ql1(n,k),qi1(n,k),   &
+                           ioro(n) == 1,dlat(n),cdnc,cldf(n,k),cwp,  &
+                           fice(n,k),rel(n,k),rei(n,k))
+          ciwp(n,k) = cwp * fice(n,k)
+          clwp(n,k) = cwp * (1.0_rk8 - fice(n,k))
         end do
       end do
     end do
-    !
-    ! fabtest:  set cloud fractional cover at top model level = 0
-    ! as in std scheme
     do k = kzp1, kth
       do n = 1, npr
         cldf(n,k) = 0.0_rk8
         clwp(n,k) = 0.0_rk8
+        ciwp(n,k) = 0.0_rk8
+        fice(n,k) = cloud_fice(.true.,ql1(n,k),qi1(n,k),tlay(n,k))
+        rel(n,k) = 8.5_rk8
+        rei(n,k) = 20.0_rk8
       end do
     end do
-    !
-    ! CLOUD Properties:
-    !
-    ! cloud effective radius
-    !
-    call cldefr_rrtm(tlay,rel,rei,dge,fice)
+    ! generalized effective size for Fu (1996), valid 5-140 micron
+    do k = 1, kth
+      do n = 1, npr
+        dge(n,k) = max(5.0_rk8,min(140.0_rk8,rei(n,k)/dge2rei))
+      end do
+    end do
     ! Ice optics of Fu (1996) (iceflag 3) take the generalized size
     if ( iceflgsw == 3 ) then
       reisw => dge
@@ -1071,16 +1078,6 @@ module mod_rrtmg_driver
     else
       reilw => rei
     end if
-    !
-    ! partition of total water path betwwen liquide and ice.
-    ! now clwp is liquide only !
-    !
-    do k = 1, kth
-      do n = 1, npr
-        ciwp(n,k) =  clwp(n,k) * fice(n,k)
-        clwp(n,k) =  clwp(n,k) * (1.0_rk8 - fice(n,k))
-      end do
-    end do
     !
     ! Cloud optical properties(tau,ssa,g,f) :
     ! 2 options :
@@ -1201,40 +1198,6 @@ module mod_rrtmg_driver
       end if
     end if  ! inflagsw
   end subroutine prep_dat_rrtm
-  !
-  ! For now we use for RRTM the same param as in standard rad
-  !
-  !
-  ! Cloud ice fraction and effective sizes, the same as the CCM scheme
-  ! (cloud_fice, cloud_rel_cam, cloud_rei in mod_rad_common), from the
-  ! in cloud water seen by radiation (clwp, cloud fraction > 0).
-  !
-  subroutine cldefr_rrtm(t,rel,rei,dge,fice)
-    implicit none
-    real(rk8), pointer, contiguous, dimension(:,:), intent(in) :: t
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: fice
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: rei
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: rel
-    real(rk8), pointer, contiguous, dimension(:,:), intent(inout) :: dge
-    integer(ik4) :: k, n
-    real(rk8) :: iwc
-    do k = 1, kth
-      do n = 1, npr
-        fice(n,k) = cloud_fice(.true.,ql1(n,k),qi1(n,k),t(n,k))
-        if ( cldf(n,k) > 0.0_rk8 ) then
-          ! in cloud ice water content (g/m3)
-          iwc = clwp(n,k)*fice(n,k)/deltaz(n,k)
-          rel(n,k) = cloud_rel_cam(t(n,k),ioro(n) == 1)
-          rei(n,k) = cloud_rei(iwc,t(n,k),dlat(n))
-        else
-          rel(n,k) = 8.5_rk8
-          rei(n,k) = 20.0_rk8
-        end if
-        ! generalized effective size for Fu (1996), valid 5-140 micron
-        dge(n,k) = max(5.0_rk8,min(140.0_rk8,rei(n,k)/dge2rei))
-      end do
-    end do
-  end subroutine cldefr_rrtm
 
 end module mod_rrtmg_driver
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

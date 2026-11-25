@@ -251,6 +251,14 @@ tables:
   ./scm_les.py fire --set radiation_scheme=rrtmg \
                     --set rrtmdir=/path/to/RegCM_Data/RRTM
 
+Radiation comparison (lradcmp = .true. in &scmparam, needs rrtmdir): at
+the first radiation step both schemes, CCM and RRTMG, run on single cloud
+layers in the atmosphere of each column (cos(zenith) 0.5): liquid near
+900 hPa and ice near 250 hPa, cloud fraction 1 and 0.3, in cloud water
+paths 0 to 200 g/m2, through the common cloud input of the schemes. The
+top of atmosphere long and short wave cloud radiative effects of the two
+schemes go to radcmpfile (default scm_radcmp.txt), then the run stops.
+
 Microphysics (microphysics in &scmparam, as in the model): 'noto'
 (default), 'wsm5', 'wsm7' (graupel and hail), 'wdm7' (double moment).
 WSM/WDM get the state and the cumulus tendencies, the detrained

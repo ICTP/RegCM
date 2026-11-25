@@ -19,9 +19,10 @@ module mod_cu_em
   !
   use mod_intkinds, only : ik4
   use mod_realkinds, only : rk8, rkx
-  use mod_constants, only : cpd, cpv, cpw, d_10, d_100, d_1000, d_four, &
+  use mod_constants, only : cpd, cpv, cpw, d_10, d_100, d_four, &
     d_half, d_one, d_r100, d_two, d_zero, dlowval, egrav, ep2, rcpd, regrav, &
-    rgas, rgowi, rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhf, wlhs, wlhv
+    onet, rgas, rgowi, rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhf, wlhs, &
+    wlhv
   use mod_dynparam, only : ici1, ici2, jci1, jci2, kz, kzp1, myid, ntr
   use mod_memutil, only : getmem
   use mod_mppparam, only : bcast
@@ -38,7 +39,8 @@ module mod_cu_em
   use mod_runparams, only : epmax_lnd_min, epmax_lnd_max
   use mod_runparams, only : elcrit_lnd_min, elcrit_lnd_max
   use mod_cu_common, only : cu_chiten, cu_cldfrc, cu_cldlwc, &
-    cu_cloud_fraction, cu_convpr, cu_kbot, cu_ktop, cu_prate, cu_qdetr, &
+    cu_cloud_fraction, cu_cloud_water, cu_convpr, cu_kbot, cu_ktop, &
+    cu_prate, cu_qdetr, &
     cu_qten, &
     cu_tten, cu_uten, cu_vten, cuscheme, total_precip_points
 #ifdef DEBUG
@@ -489,7 +491,7 @@ module mod_cu_em
                  fvold, plcl, qp1, qsm, qstm, qti, rat, revap,   &
                  rh, scrit, sigt, sjmax, sjmin, smid, smin,       &
                  stemp, tca, traav, tvaplcl, tvpplcl, tvx,  tvy,  &
-                 uav, vav, wdtrain, amp1, cond, dcond
+                 uav, vav, wdtrain, amp1, cond, dcond, mfu, wsq
     real(rkx), dimension(nd+1) :: clw, cpn, ep, evap, gz, h, hm, &
                                    hp, lv, lvcp, m, mp, qp, sigp, &
                                    tp, tv, tvp, up, vp, water, wt
@@ -1241,16 +1243,21 @@ module mod_cu_em
       else
         ctype = 2
       end if
+      wsq = d_zero
       do i = icb, ict
-        cldfra(n,i) = cu_cloud_fraction(iconvcf,ctype,d_half*(m(i)+m(i+1)), &
+        mfu = d_half*(m(i)+m(i+1))
+        cldfra(n,i) = cu_cloud_fraction(iconvcf,ctype,mfu, &
           zcup(n,i),abs(zcup(n,i+1)-zcup(n,i)),kfac_deep,kfac_shal,k2_const)
-        ! In cloud condensate for radiation [g/m3]: the scheme has no
-        ! updraft velocity, the cloud is the parcel with the condensate
-        ! left by the precipitation, (1-ep)*clw.
-        if ( cldfra(n,i) > d_zero ) then
-          cldwat(n,i) = d_1000 * p(n,i) * d_100 / (rgas*t(n,i)) * &
-            max((d_one-ep(i))*clw(i),d_zero)
-        end if
+        ! Updraft velocity from the work of the parcel buoyancy above the
+        ! cloud base, a third of the undiluted value for entrainment and
+        ! drag (the scheme has no updraft velocity).
+        wsq = max(wsq + d_two*onet*rgas*(tvp(i)-tv(i)) * &
+                  (ph(n,i)-ph(n,i+1))/p(n,i),d_zero)
+        ! In cloud condensate for radiation [g/m3]: the updraft
+        ! condensate left by the precipitation, (1-ep)*clw, over the
+        ! updraft area, as for the other mass flux schemes.
+        cldwat(n,i) = cu_cloud_water(mfu,(d_one-ep(i))*clw(i), &
+                                     sqrt(wsq),cldfra(n,i))
       end do
       kcb(n) = icb
       kct(n) = ict

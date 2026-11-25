@@ -951,6 +951,38 @@ particle effective radii, a climatological or chemistry-module ozone profile,
 and aerosol optical properties when the chemistry or climatological aerosol
 module is active.
 
+\subsubsection{Cloud Input}
+
+The two radiation schemes, and the COSP simulators, see the same cloud,
+prepared for each layer by one routine (\texttt{cloud\_layer} in
+\texttt{mod\_rad\_common}); they differ only in the optics.  The input is
+the cloud fraction and the in-cloud condensate of the large-scale and
+convective clouds merged in the cloud fraction step (Section
+\ref{sec:cloudfraction}).  A layer is cloudy when its in-cloud water path
+(liquid and ice) is above 0.01~g\,m$^{-2}$.  The ice fraction $f_{ice}$ of
+the water path is the ratio of the grid-mean cloud ice to the cloud liquid
+and ice of the microphysics; without condensate (convective cloud only) it
+follows a temperature ramp, $f_{ice} = 1-((T-T_i)/(T_0-T_i))^2$ between
+$T_0 = 273.15$~K and $T_i = T_0-23$~K.
+
+The liquid effective radius has the form of the NCAR CAM3
+\citep{Collins_04}: 14~$\mu$m over sea and sea ice; over land 11~$\mu$m
+(8~$\mu$m in CAM3, too small against the MODIS retrievals over land),
+increasing to the sea value between 0 and $-20$°C.  The ice effective radius follows
+\cite{Sun_01} as in the ECMWF IFS, from the in-cloud ice water content and the
+temperature, with a minimum size of $20+40\cos\phi$~$\mu$m at latitude
+$\phi$.
+
+\paragraph{Aerosol first indirect effect.}
+With the chemistry module and \texttt{iindirect}~=~1, or with the
+climatological aerosol \texttt{iclimaaer}~=~1, the sulfate aerosol changes
+the liquid radius of both schemes (first indirect, or Twomey, effect,
+\citealt{Qian_01}).  For SO$_4$ concentrations $c$ above
+0.1~$\mu$g\,m$^{-3}$ the droplet number is $N_c = 90.7\,c^{0.45} + 23$
+(cm$^{-3}$, $c$ in $\mu$g\,m$^{-3}$) and the radius is that of
+\cite{Martin_94}, $r_e = (3\,LWC / (4\pi\,\rho_w\,k\,N_c))^{1/3}$, with
+$k = 0.67$ over land and $0.80$ over sea, bounded to $[4, 20]$~$\mu$m.
+
 \subsubsection{NCAR CCM3 Radiation Scheme}
 
 \ac{RegCM} can use the radiation scheme of the \ac{NCAR} Community Climate
@@ -984,36 +1016,6 @@ ice water paths and their respective broadband absorption coefficients
 following Savij{\"a}rvi and R{\"a}is{\"a}nen, with separate coefficients for
 liquid ($k_l = 0.31\,\exp(-0.08\,r_e)$~m$^2$\,g$^{-1}$) and ice
 ($k_i = 0.04 + 0.08\,\exp(-0.018\,r_i)$~m$^2$\,g$^{-1}$).
-
-\paragraph{Effective particle radii.}
-The liquid effective radius $r_e$ is diagnosed from the in-cloud liquid
-water content and an assumed cloud droplet number concentration following
-\cite{Martin_94}: $r_e = (3\,LWC / (4\pi\,\rho_w\,k\,N_c))^{1/3}$, where
-$k = 0.67$ over land and $k = 0.80$ over ocean, and $N_c = 300$~cm$^{-3}$
-over land and $100$~cm$^{-3}$ over ocean.  The result is bounded to
-$[4, 20]$~$\mu$m.  The ice effective radius follows the IWC- and
-temperature-dependent formula of \cite{Sun_99}, bounded to
-$[10, 100]$~$\mu$m.  When the microphysics scheme provides separate liquid
-and ice condensate fields (i.e.\ the Nogherotto-Tompkins or WRF schemes
-are active), $f_{ice}$ is computed directly from the prognostic condensate
-ratio; otherwise a temperature-based ramp from pure liquid at 0°C to
-pure ice at $-20$°C is used.
-
-\paragraph{Aerosol first indirect effect.}
-When the chemistry module is active, the sulfate aerosol mass mixing ratio
-can modify the cloud droplet effective radius through the first indirect
-(Twomey) effect \citep{Qian_01}.  For SO$_4$ concentrations above
-0.1~$\mu$g\,m$^{-3}$, the CCN number concentration is estimated as
-$N_c = 90.7\,c^{0.45} + 23$ (cm$^{-3}$), where $c$ is the SO$_4$
-concentration in $\mu$g\,m$^{-3}$, and the effective radius is recomputed
-accordingly using the Martin et al. formula above.
-
-\paragraph{Cumulus cloud treatment.}
-When convective clouds are formed, the fractional cloud cover is computed
-such that the total-column cover (assuming random overlap from cloud base to
-cloud top) is a function of horizontal grid spacing.  The cloud layer
-thickness is set equal to the model layer depth, and separate in-cloud
-liquid water contents are specified for middle and low clouds.
 
 \subsubsection{RRTMG Radiation Scheme}
 
@@ -1090,15 +1092,10 @@ parameterisation (four spectral intervals mapped to the 14 RRTMG SW bands
 via a look-up table) for liquid, and the \cite{Ebert_92} parameterisation
 for ice, before being passed to the RRTMG solver.  When \texttt{inflgsw=2}
 the optical properties are computed internally within RRTMG from the cloud
-water paths and effective radii.  The liquid effective radius over land is
-fixed at $r_e = 8.5$~$\mu$m and over ocean at $r_e = 11.0$~$\mu$m; these
-are also used as defaults in the CCM3 scheme when prognostic condensate
-fields are not available.  The ice effective radius follows a pressure-based
-ramp from $r_i = 10$~$\mu$m near the tropopause to $r_i = 30$~$\mu$m in
-the lower troposphere.  The ice fraction partitioning uses the prognostic
-liquid/ice split when a mixed-phase microphysics scheme is active, and
-otherwise a temperature ramp from pure liquid at $-10$°C to pure ice at
-$-30$°C.
+water paths and effective radii of the common cloud input (default, with
+the liquid optics of Hu and Stamnes, \texttt{liqflgsw}~=~1, and the ice
+optics of Fu, \texttt{iceflgsw}~=~3, which takes the generalized effective
+size, $8/(3\sqrt{3})$ times the ice radius, bounded to 5--140~$\mu$m).
 
 \paragraph{Aerosol optical properties.}
 When the chemistry module or the climatological aerosol module is active,
@@ -1940,6 +1937,21 @@ gradients of buoyancy in clouds. The fraction of the total cloud-base mass flux
 that mixes with its environment at each level is proportional to the undiluted
 buoyancy rate of change with altitude. The cloud-base upward mass flux is
 relaxed towards the sub-cloud-layer quasi-equilibrium.
+
+The condensate left in the detraining mixtures after the precipitation
+(the undiluted updraft at its own level and the mixtures that reach their
+level of neutral buoyancy) detrains as cloud water and ice, split with the
+liquid fraction of the saturation as for the Tiedtke scheme, instead of
+evaporating; its latent heat (of condensation, and of freezing for the ice
+part) heats the layer where it detrains.  With the Nogherotto-Tompkins
+microphysics it is the convective detrainment source of the microphysics,
+otherwise a tendency of cloud liquid and ice.  The in-cloud condensate given
+to radiation is that of the other mass flux schemes, the updraft condensate
+over the updraft area spread over the convective cloud fraction,
+$LWC_{CU} = M_u\,l_u/(w_u\,FC_{CU})$, with $l_u$ the parcel condensate
+left by the precipitation and, as the scheme has no updraft velocity,
+$w_u^2 = \frac{2}{3}\int_{p}^{p_b} R_d\,(T_{vp}-T_v)\,d\ln p$, a third of
+the kinetic energy of the undiluted parcel above the cloud base $p_b$.
 
 In addition to a more physical representation of convection, the MIT-Emanuel
 scheme offers several advantages compared to the other RegCM convection options.

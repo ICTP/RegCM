@@ -272,6 +272,10 @@ program scm_coupled
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qvp, totcp
   real(rkx), pointer, contiguous, dimension(:,:) :: rh0p
   logical :: lnoto
+  ! Radiation comparison (lradcmp): CCM and RRTMG on idealised cloud
+  ! layers in the atmosphere of the case, written to radcmpfile
+  logical :: lradcmp
+  character(len=256) :: radcmpfile
   type(mod_2_micro) :: mo2mc
   type(micro_2_mod) :: mc2mo
   type(mod_2_cum) :: m2c
@@ -288,7 +292,7 @@ program scm_coupled
     omfac, lgeos, ustarfix, ladvt, isplit, csplit, &
     iocnflux, izengrough, ocnsw, ocnlw, lnoto, irad, dtrad, dtabem, &
     albland, scenario, cumulus, cloud_fraction, pbl_scheme, microphysics, &
-    radiation_scheme, rrtmdir
+    radiation_scheme, rrtmdir, lradcmp, radcmpfile
   namelist /rrtmparam/ inflgsw, iceflgsw, liqflgsw, inflglw, iceflglw, &
     liqflglw, icld, irng, imcica
   namelist /emanparam/ minorig, elcrit_ocn, elcrit_lnd, tlcrit, &
@@ -383,6 +387,8 @@ program scm_coupled
   imcica = 1
   irng = 0
   irad = 1
+  lradcmp = .false.
+  radcmpfile = 'scm_radcmp.txt'
   dtrad = 1800.0_rkx
   dtabem = 64800.0_rkx
   albland = 0.13_rkx
@@ -1890,12 +1896,13 @@ program scm_coupled
     call allocate_mod_rad_aerosol
     call allocate_mod_rad_o3blk
     call allocate_mod_rad_outrad
-    if ( irrtm == 1 ) then
+    if ( irrtm == 1 .or. lradcmp ) then
       call allocate_mod_rad_rrtmg
       call rrtmg_sw_ini(real(cpd,rk8),trim(rrtmdir)//'/rrtmg_sw.nc')
       call rrtmg_lw_ini(real(cpd,rk8),trim(rrtmdir)//'/rrtmg_lw.nc')
       syncro_radfor => rcm_syncro(rcmtimer,1.0e9_rkx)
-    else
+    end if
+    if ( irrtm /= 1 .or. lradcmp ) then
       call allocate_mod_rad_colmod3
       call getmem(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'scm:gasabsnxt')
       call getmem(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1, &
@@ -2065,7 +2072,82 @@ program scm_coupled
       rsutcs(j) = real(curflx(j,7)-curflx(j,3),rkx)
       rlutcs(j) = real(curflx(j,5),rkx)
     end do
+    if ( lradcmp ) then
+      call rad_compare
+      stop
+    end if
   end subroutine rad_step
+
+  ! Top of atmosphere cloud radiative effects of CCM and RRTMG for single
+  ! cloud layers in the atmosphere of the columns at the first radiation
+  ! step (sun at cos(zenith) 0.5): a liquid layer near 900 hPa and an ice
+  ! layer near 250 hPa, cloud fraction 1 and 0.3, in cloud water paths
+  ! from 0 (no cloud) to 200 g/m2, through the common cloud input of the
+  ! schemes.
+  subroutine rad_compare
+    implicit none
+    real(rkx), dimension(8), parameter :: wps = [0.0_rkx, 2.0_rkx, &
+      5.0_rkx, 10.0_rkx, 20.0_rkx, 50.0_rkx, 100.0_rkx, 200.0_rkx]
+    real(rkx), dimension(2), parameter :: pcl = [90000.0_rkx, 25000.0_rkx]
+    real(rkx), dimension(2), parameter :: fcl = [1.0_rkx, 0.3_rkx]
+    character(len=6), dimension(2), parameter :: phase = &
+      ['liquid', 'ice   ']
+    real(rkx), dimension(2,2,ncol) :: cre
+    integer(ik4) :: iu2, iph, ifr, iw, kl, isch
+    logical :: first
+    first = .true.
+    open(newunit=iu2,file=radcmpfile,status='replace',action='write')
+    write(iu2,'(a)') '# TOA cloud radiative effects (W/m2) of one cloud '// &
+      'layer, CCM and RRTMG, cos(zenith) 0.5'
+    write(iu2,'(a)') '# column phase p(hPa) T(K) cf wp(g/m2) '// &
+      'LW_ccm LW_rrtmg SW_ccm SW_rrtmg'
+    do iph = 1, 2
+      do ifr = 1, 2
+        do iw = 1, size(wps)
+          do j = 1, ncol
+            m2r%coszrs(j,1) = 0.5_rkx
+            do k = 1, nk
+              m2r%cldfrc(j,1,k) = d_zero
+              m2r%cldlwc(j,1,k) = d_zero
+              m2r%qxatms(j,1,k,iqc) = d_zero
+              m2r%qxatms(j,1,k,iqi) = d_zero
+            end do
+            kl = minloc(abs(pa(j,:)-pcl(iph)),1)
+            m2r%cldfrc(j,1,kl) = fcl(ifr)
+            m2r%cldlwc(j,1,kl) = wps(iw)/m2r%deltaz(j,1,kl)
+            ! the phase of the cloud from the grid mean condensate ratio
+            if ( iph == 1 ) then
+              m2r%qxatms(j,1,kl,iqc) = 1.0e-4_rkx
+            else
+              m2r%qxatms(j,1,kl,iqi) = 1.0e-4_rkx
+            end if
+          end do
+          do isch = 1, 2
+            if ( isch == 1 ) then
+              call colmod3(iyear,imonth,.false.,first,m2r,r2m)
+              first = .false.
+            else
+              call rrtmg_driver(iyear,imonth,iday0,.false.,m2r,r2m)
+            end if
+            do j = 1, ncol
+              ! clear minus all sky outgoing long wave and short wave
+              cre(isch,1,j) = real(curflx(j,5)-curflx(j,9),rkx)
+              cre(isch,2,j) = real(curflx(j,7)-curflx(j,3)-curflx(j,8),rkx)
+            end do
+          end do
+          do j = 1, ncol
+            kl = minloc(abs(pa(j,:)-pcl(iph)),1)
+            write(iu2,'(a12,1x,a6,f8.1,f7.1,f5.2,f7.1,4f9.2)') &
+              trim(col_name(j)), phase(iph), pa(j,kl)*0.01_rkx, &
+              t(j,kl), fcl(ifr), wps(iw), cre(1,1,j), cre(2,1,j), &
+              cre(1,2,j), cre(2,2,j)
+          end do
+        end do
+      end do
+    end do
+    close(iu2)
+    print *, 'radiation comparison written to ', trim(radcmpfile)
+  end subroutine rad_compare
 
 #include <clwfromt.inc>
 

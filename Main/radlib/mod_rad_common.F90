@@ -127,16 +127,17 @@ module mod_rad_common
     rel = max(4.0_rk8,min(20.0_rk8,rel*1.0e6_rk8))
   end function cloud_rel
   !
-  ! Liquid effective radius (micron) of the NCAR CAM3 (Collins et al.,
-  ! 2004): 14 micron over sea and sea ice, over land 8 micron ramping to
-  ! the sea value between 0 and -20 C.
+  ! Liquid effective radius (micron) in the form of the NCAR CAM3
+  ! (Collins et al., 2004): 14 micron over sea and sea ice, over land
+  ! ramping to the sea value between 0 and -20 C. The land value is
+  ! 11 micron (CAM3 8 micron), closer to the MODIS land radius.
   !
   pure real(rk8) function cloud_rel_cam(t,island) result(rel)
 !$acc routine seq
     implicit none
     real(rk8), intent(in) :: t
     logical, intent(in) :: island
-    real(rk8), parameter :: rliqland = 8.0_rk8
+    real(rk8), parameter :: rliqland = 11.0_rk8
     real(rk8), parameter :: rliqocean = 14.0_rk8
     if ( island ) then
       rel = rliqland + (rliqocean-rliqland) * &
@@ -164,6 +165,73 @@ module mod_rad_common
     de = max(20.0_rk8+40.0_rk8*cos(lat*real(degrad,rk8)),min(155.0_rk8,de))
     rei = dge2rei*de
   end function cloud_rei
+  !
+  ! The cloud seen by the radiation schemes, CCM and RRTMG, so that they
+  ! differ only in the optics. For one layer, from the cloud fraction cfr
+  ! and the in cloud condensate cwc (g/m3) of the large scale and
+  ! convective clouds (cldfrac), the layer depth dz (m), temperature t
+  ! (K), grid mean cloud liquid ql and ice qi (kg/kg), land flag island,
+  ! latitude lat (degrees) and droplet number cdnc (cm-3, 0 for the
+  ! climatological radius):
+  !   cf   : cloud fraction, zero if the in cloud water path is below
+  !          cldwpmin
+  !   cwp  : in cloud water path, liquid and ice (g/m2)
+  !   fice : ice fraction of cwp
+  !   rel  : liquid effective radius (micron), CAM3, or Martin et al.
+  !          (1994) with the droplet number cdnc
+  !   rei  : ice effective radius (micron), Sun (2001)
+  ! The radii have filler values where the cloud fraction is at most
+  ! lowcld.
+  !
+  pure subroutine cloud_layer(cfr,cwc,dz,t,ql,qi,island,lat,cdnc, &
+                              cf,cwp,fice,rel,rei)
+!$acc routine seq
+    use mod_constants, only : lowcld
+    implicit none
+    real(rk8), intent(in) :: cfr, cwc, dz, t, ql, qi, lat, cdnc
+    logical, intent(in) :: island
+    real(rk8), intent(out) :: cf, cwp, fice, rel, rei
+    real(rk8) :: lwc
+    fice = cloud_fice(.true.,ql,qi,t)
+    cwp = cwc*dz
+    if ( cwp > cldwpmin ) then
+      cf = cfr
+    else
+      cwp = 0.0_rk8
+      cf = 0.0_rk8
+    end if
+    if ( cf > real(lowcld,rk8) ) then
+      rel = cloud_rel_cam(t,island)
+      rei = cloud_rei(cwp*fice/dz,t,lat)
+      if ( cdnc > 0.0_rk8 ) then
+        ! in cloud liquid water content (kg/m3)
+        lwc = cwp*(1.0_rk8-fice)/dz*0.001_rk8
+        if ( lwc >= 1.0e-6_rk8 ) rel = cloud_rel(lwc,island,cdnc)
+      end if
+    else
+      ! filler for no clouds
+      rel = 8.5_rk8
+      rei = 20.0_rk8
+    end if
+  end subroutine cloud_layer
+  !
+  ! Cloud droplet number (cm-3) from the sulfate mass mixing ratio so4
+  ! (kg/kg) and the air density rho (kg/m3), Qian et al. (1999), the
+  ! simple sulfate indirect effect; zero (climatological radius) below
+  ! 0.1 microgram/m3.
+  !
+  pure real(rk8) function cloud_cdnc_so4(rho,so4) result(cdnc)
+!$acc routine seq
+    implicit none
+    real(rk8), intent(in) :: rho, so4
+    real(rk8) :: aerc
+    aerc = rho*so4*1.0e9_rk8
+    if ( aerc > 0.1_rk8 ) then
+      cdnc = 90.7_rk8*aerc**0.45_rk8 + 23.0_rk8
+    else
+      cdnc = 0.0_rk8
+    end if
+  end function cloud_cdnc_so4
 
 end module mod_rad_common
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

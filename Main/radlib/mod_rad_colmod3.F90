@@ -17,7 +17,7 @@ module mod_rad_colmod3
   use mod_intkinds, only : ik4
   use mod_realkinds, only : rk8, rkx
   use mod_constants, only : amd, amo3
-  use mod_constants, only : rgas, lowcld
+  use mod_constants, only : rgas
   use mod_dynparam, only : jci1, jci2, ici1, ici2, kz, kzp1
   use mod_dynparam, only : ntr, nspi
   use mod_memutil, only : getmem, getmem, getmem
@@ -27,8 +27,7 @@ module mod_rad_colmod3
   use mod_rad_radiation, only : radctl, radtype, radtables
   use mod_rad_common, only : gasabsnxt, gasabstot, gasemstot, absemin
   use mod_rad_common, only : o3prof, taucldsp, dosw, dolw, doabsems
-  use mod_rad_common, only : cloud_fice, cloud_rel, cloud_rel_cam, cloud_rei
-  use mod_rad_common, only : cldwpmin
+  use mod_rad_common, only : cloud_cdnc_so4, cloud_layer
   use mod_rad_outrad, only : radout
   use mod_rad_aerosol, only : aermmr, tauxar3d, tauasc3d, gtota3d
   use mod_regcm_types, only : mod_2_rad, rad_2_mod
@@ -214,10 +213,9 @@ module mod_rad_colmod3
 
     integer(ik4) :: n, m, i, j, k, k2, itr
     integer(ik4) :: nj, npr
-    real(rk8) :: nc, aerc, lwc
+    integer(ik4) :: iso4
+    real(rk8) :: cdnc
     real(rk8) :: kabs, kabsi, kabsl, cldemis, arg
-    real(rk8) :: iwc
-    !real(rk8) :: tpara
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'colmod3'
     integer(ik4) :: indx = 0
@@ -450,54 +448,11 @@ module mod_rad_colmod3
       n = (j-jci1)+(i-ici1)*nj+1
       rt%qi(k,n) = m2r%qxatms(j,i,k,iqi)
     end do
-    ! Ice fraction of the cloud water seen by radiation: microphysics
-    ! ratio, temperature ramp in convective only cloud
-#if defined(OPENACC) && !defined(STDPAR_FIXED)
-    !$acc parallel loop collapse(2) gang vector
-    do n = rt%n1, rt%n2
-    do k = 1, kz
-#else
-    do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
-#endif
-      rt%fice(k,n) = cloud_fice(.true.,rt%ql(k,n),rt%qi(k,n),rt%t(k,n))
-#if defined(OPENACC) && !defined(STDPAR_FIXED)
-    end do
-#endif
-    end do
-    !
-    ! Cloud fraction and in cloud water path of each layer, where the
-    ! water path is at least cldwpmin
-    !
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       n = (j-jci1)+(i-ici1)*nj+1
       ! O3 mass and volume mixing ratios
       rt%o3vmr(k,n) = 0.5_rk8*(o3prof(j,i,k+1)+o3prof(j,i,k))*(amd/amo3)
-      ! Convert liquid water content into liquid water path
-      rt%clwp(k,n) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
-      if ( rt%clwp(k,n) > cldwpmin ) then
-        temp(k,n) = m2r%cldfrc(j,i,k)
-      else
-        rt%clwp(k,n) = 0.0_rk8
-        temp(k,n) = 0.0_rk8
-      end if
     end do
-    do concurrent ( n = rt%n1:rt%n2 )
-      rt%cld(kzp1,n) = 0.0_rk8
-    end do
-    ! Cloud fraction of each layer (as the cloud water of the layer)
-    do concurrent( k = 1:kz, n = rt%n1:rt%n2 )
-      rt%cld(k,n) = temp(k,n)
-    end do
-    !
-    ! only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
-    !
-    !   do n = rt%n1, rt%n2
-    !     do k = 1, kz
-    !       if ( rt%pint(k+1,n) < 40000.0_rk8 ) then
-    !         rt%cld(k,n) = min(rt%cld(k,n),0.25_rk8)
-    !       end if
-    !     end do
-    !   end do
     !
     ! Tracers mixing ratios
     !
@@ -508,96 +463,52 @@ module mod_rad_colmod3
       end do
     end if
     !
-    ! Compute cloud drop size and emissivity
+    ! Sulfate tracer of the simple indirect effect (Qian et al., 1999)
+    !
+    iso4 = 0
+    if ( (ichem == 1 .and. iindirect == 1) .or. iclimaaer == 1 ) then
+      do itr = 1, ntr
+        if ( chtrname(itr) == 'SO4' ) iso4 = itr
+      end do
+    end if
+    !
+    ! The cloud seen by the radiation (cloud_layer, as RRTMG): cloud
+    ! fraction, in cloud water path (g/m2), ice fraction and effective
+    ! radii of each layer.
     !
 #if defined(STDPAR_FIXED)
-    do concurrent( k = 1:kz, n = rt%n1:rt%n2 ) local(iwc)
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 ) local(n,cdnc)
 #else
-    !$acc parallel loop collapse(2) gang vector private(iwc)
-    do n = rt%n1, rt%n2
+    !$acc parallel loop collapse(3) gang vector private(n,cdnc)
+    do i = ici1, ici2
+    do j = jci1, jci2
     do k = 1, kz
 #endif
-      ! Define liquid drop size
-      ! rel : liquid effective drop size (microns)
-      !
-      ! Global distribution of Cloud Droplet Effective Radius from
-      ! POLDER polarization measurements
-      ! On average, droplets are 2 to 3 micron smaller overland than over
-      ! the ocean, but the smaller droplets are found over highly
-      ! polluted regions and in areas affected by smoke from biomass
-      ! burning activity. Largest droplets are found in remote tropical
-      ! oceans, away from polarized reflectance of liquid clouds.
-      ! Toward the poles, for colder temperature, large droplets freeze
-      ! and only the smaller ones are kept liquid.
-      !
-      ! tpara = min(1.0_rk8,max(0.0_rk8,(minus10-rt%t(k,n))*0.05_rk8))
-      ! if ( rt%ioro(n) == 1 ) then
-      !   rt%rel(k,n) = 6.0_rk8 + 3.0_rk8 * tpara
-      ! else
-      !   rt%rel(k,n) = 11.0_rk8
-      ! end if
-      !
-      ! if ( rt%ioro(n) == 1 ) then
-      !   rt%rel(k,n) = 8.5_rk8
-      ! else
-      !   rt%rel(k,n) = 11.0_rk8
-      ! end if
-      !
-      ! In cloud ice water content (g/m3) seen by radiation, large scale
-      ! and convective, the same used for the optical depths: ice radius
-      ! Sun (2001) as in the ECMWF IFS. Liquid radius of the CAM3: the
-      ! Martin et al. (1994) radius (cloud_rel) from the in cloud liquid
-      ! of the diagnosed cloud fraction is too small for thin extended
-      ! cloud; it is used with the sulfate droplet number below.
-      !
-      if ( temp(k,n) > lowcld ) then
-        iwc = rt%clwp(k,n)*rt%fice(k,n)/rt%dz(k,n)
-        rt%rel(k,n) = cloud_rel_cam(rt%t(k,n),rt%ioro(n) == 1)
-        rt%rei(k,n) = cloud_rei(iwc,rt%t(k,n),rt%dlat(n))
-      else
-        ! filler for no clouds
-        rt%rel(k,n) = 8.5_rk8
-        rt%rei(k,n) = 20.0_rk8
+      n = (j-jci1)+(i-ici1)*nj+1
+      cdnc = 0.0_rk8
+      if ( iso4 > 0 ) then
+        cdnc = cloud_cdnc_so4(rt%rho(k,n),aermmr(n,k,iso4))
       end if
+      call cloud_layer(m2r%cldfrc(j,i,k),m2r%cldlwc(j,i,k),rt%dz(k,n), &
+                       rt%t(k,n),rt%ql(k,n),rt%qi(k,n),rt%ioro(n) == 1, &
+                       rt%dlat(n),cdnc,temp(k,n),rt%clwp(k,n),          &
+                       rt%fice(k,n),rt%rel(k,n),rt%rei(k,n))
 #if !defined(STDPAR_FIXED)
     end do
+    end do
 #endif
+    end do
+    do concurrent ( n = rt%n1:rt%n2 )
+      rt%cld(kzp1,n) = 0.0_rk8
+    end do
+    ! Cloud fraction of each layer (as the cloud water of the layer)
+    do concurrent( k = 1:kz, n = rt%n1:rt%n2 )
+      rt%cld(k,n) = temp(k,n)
     end do
     ! Reset now or add all water
     do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
       rt%ql(k,n) = rt%ql(k,n) + rt%qi(k,n)
     end do
-
-    !FAB : reintroduce simple sulfate indirect effect
-    ! from Qian  1999
-    ! rt%clwp is passed in g/m2
-    if ( (ichem == 1 .and. iindirect == 1) .or. iclimaaer == 1 ) then
-      do itr = 1, ntr
-        if ( chtrname(itr) /= 'SO4' ) cycle
-#if defined(STDPAR_FIXED)
-        do concurrent ( k = 1:kz, n = rt%n1:rt%n2 ) local(aerc,nc,lwc)
-#else
-        !$acc parallel loop collapse(2) gang vector private(aerc,nc,lwc)
-        do n = rt%n1, rt%n2
-        do k = 1, kz
-#endif
-          aerc = rt%rho(k,n) * aermmr(n,k,itr) * 1.e9_rk8 !microg/m3
-          ! thershold of 0.1 microg/m3 for activation of indirect effect
-          if ( aerc > 0.1_rk8 ) then
-            ! ccn number concentration in cm-3
-            nc = 90.7_rk8 * aerc**0.45_rk8 + 23.0_rk8
-            ! in cloud liquid water content, kg/m3
-            lwc = rt%clwp(k,n)*(1.0_rk8-rt%fice(k,n))/rt%dz(k,n)*0.001_rk8
-            if ( lwc < 1.e-6_rk8 ) cycle
-            ! Martin et al. (1994) with the droplet number nc
-            rt%rel(k,n) = cloud_rel(lwc,rt%ioro(n) == 1,nc)
-          end if
-#if !defined(STDPAR_FIXED)
-        end do
-#endif
-        end do
-      end do
-    end if
     do concurrent ( k = 1:kz, n = rt%n1:rt%n2 )
       ! (Hannu Savijärvi & Petri Räisänen)
       ! ice absorption coefficient

@@ -454,6 +454,16 @@ The test timer keeps the alarm of the aerosol radiative forcing off.
 \code{make check} runs FIRE with RRTMG only if \code{SCM\_RRTMDIR} gives
 the directory of the tables (\verb=reference/scm_coupled_fire_rrtmg.dig=).
 
+With \code{lradcmp} = .true. in \code{\&scmparam} (and \code{rrtmdir})
+the column compares the two radiation schemes: at the first radiation
+step CCM and RRTMG run on single cloud layers in the atmosphere of each
+column, with the sun at $\cos\theta_0 = 0.5$: a liquid layer near
+900~hPa and an ice layer near 250~hPa, cloud fraction 1 and 0.3, in-cloud
+water paths from 0 (no cloud) to 200~g\,m$^{-2}$, through the common cloud
+input of the schemes (\code{cloud\_layer}).  The top of atmosphere long
+and short wave cloud radiative effects of both schemes are written to
+\code{radcmpfile} (default \verb=scm_radcmp.txt=) and the run stops.
+
 \subsection{Microphysics schemes}
 
 With \code{microphysics} in \code{\&scmparam} (\code{ipptls} in the
