@@ -1449,9 +1449,11 @@ diffusivity (Prandtl number 1).
 
 With \verb=lsctop= (on by default) the turbulence driven by the longwave
 cooling at the top of boundary layer clouds \citep{Lock_00} is added, with
-the formulation of the GFS scheme below.  In the lowest cloud layer below
-2500~m (condensate at least $3.5\times10^{-5}$~kg~kg$^{-1}$) the level of
-strongest radiative cooling is the cloud top, at height $z_i$, with
+the formulation of the GFS scheme below.  It acts on a cloud layer (condensate
+at least $3.5\times10^{-5}$~kg~kg$^{-1}$) whose top is below 2500~m, with
+clear air above it: a deeper cloud has no boundary layer cloud top.  In that
+layer the level of strongest radiative cooling is the cloud top, at height
+$z_i$, with
 $R = \Delta z\,\partial\theta/\partial t|_{rad} < 0$.  A parcel cooled
 there for 500~s sinks through the depth $z_d$ where its liquid water virtual
 potential temperature is lower than the environment one, at least down to the
