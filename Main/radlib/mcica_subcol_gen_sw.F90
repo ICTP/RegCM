@@ -512,10 +512,10 @@
             if (pmid(i,1)<pmid(i,2)) then
                stop 'MCICA_SUBCOL: KISSVEC SEED GENERATOR REQUIRES PMID FROM BOTTOM FOUR LAYERS.'
             endif
-            seed1(i) = int(pmid(i,1) - int(pmid(i,1)),im)  * 1000000000_im
-            seed2(i) = int(pmid(i,2) - int(pmid(i,2)),im)  * 1000000000_im
-            seed3(i) = int(pmid(i,3) - int(pmid(i,3)),im)  * 1000000000_im
-            seed4(i) = int(pmid(i,4) - int(pmid(i,4)),im)  * 1000000000_im
+            seed1(i) = int((pmid(i,1) - int(pmid(i,1))) * 1.0e9_rb,im)
+            seed2(i) = int((pmid(i,2) - int(pmid(i,2))) * 1.0e9_rb,im)
+            seed3(i) = int((pmid(i,3) - int(pmid(i,3))) * 1.0e9_rb,im)
+            seed4(i) = int((pmid(i,4) - int(pmid(i,4))) * 1.0e9_rb,im)
           enddo
          !do i=1,changeSeed
             call kissvec(seed1, seed2, seed3, seed4, rand_num)
