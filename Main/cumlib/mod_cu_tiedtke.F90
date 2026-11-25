@@ -2559,7 +2559,16 @@ module mod_cu_tiedtke
       logical :: llddraf
       real(rkx) :: alfaw, cons1, cons1a, cons2, denom, drfl, &
                    drfl1, fac, pdr, pds, xrfl, xrfln, rmin,  &
-                   rnew, snmlt, zp, rcpecons, rcucov
+                   rnew, snmlt, zp, rcpecons, rcucov, tw
+      ! Wet bulb temperature approximation of Wilson and Ballard (1999)
+      real(rkx), parameter :: tw1 = 1329.31_rkx
+      real(rkx), parameter :: tw2 = 0.0074615_rkx
+      real(rkx), parameter :: tw3 = 0.85e5_rkx
+      real(rkx), parameter :: tw4 = 40.637_rkx
+      real(rkx), parameter :: tw5 = 275.0_rkx
+      ! Fraction of the liquid precipitation of the updraught frozen
+      ! above the melting level (glaciation of precipitation, as the IFS)
+      real(rkx), parameter :: rglac = 0.5_rkx
       !-------------------
       ! 0. Setup constants
       ! ------------------
@@ -2678,17 +2687,22 @@ module mod_cu_tiedtke
         do concurrent ( n = n1:n2 )
           if ( ldcum(n) .and. k >= kctop(n)-1 ) then
             rain(n) = rain(n) + dmfup(n,k)
-            if ( mflxs(n,k) > d_zero .and. t(n,k) > tzero ) then
-              cons1 = cons1a*(d_one+d_half*(t(n,k)-tzero))
+            ! Snow melts where the wet bulb temperature is above zero:
+            ! in unsaturated air the evaporation cools the falling snow
+            tw = t(n,k) - max(d_zero,qs(n,k)-q(n,k)) * &
+                 (tw1+tw2*(ph(n,k)-tw3)-tw4*(t(n,k)-tw5))
+            if ( mflxs(n,k) > d_zero .and. tw > tzero ) then
+              cons1 = cons1a*(d_one+d_half*(tw-tzero))
               fac = cons1*(pf(n,k+1)-pf(n,k))
-              snmlt = min(mflxs(n,k),fac*(t(n,k)-tzero))
+              snmlt = min(mflxs(n,k),fac*(tw-tzero))
               dpmel(n,k) = snmlt
-              qs(n,k) = fesat(t(n,k)-snmlt/fac)/ph(n,k)
+              qs(n,k) = fesat(tw-snmlt/fac)/ph(n,k)
             end if
-            alfaw = xalpha(t(n,k))
+            alfaw = xalpha(tw)
             ! no liquid precipitation above melting level
             if ( t(n,k) < tzero .and. alfaw > d_zero ) then
-              lglac(n,k) = lglac(n,k)+alfaw*(dmfup(n,k)+dmfdp(n,k))
+              lglac(n,k) = lglac(n,k) + &
+                rglac*alfaw*dmfup(n,k) + alfaw*dmfdp(n,k)
               alfaw = d_zero
             end if
             mflxr(n,k+1) = mflxr(n,k) + alfaw*(dmfup(n,k)+dmfdp(n,k))+dpmel(n,k)

@@ -2007,6 +2007,14 @@ the evaporation of precipitation. Precipitation is formed by a bulk
 auto-conversion of condensed water above a critical threshold, with the
 residual falling as rain or snow.
 
+The convective precipitation is liquid or frozen with the liquid fraction of
+the saturation; above the melting level all of it falls as snow, with the
+latent heat of freezing of half of the liquid part formed in the updraft and
+of all the part formed in the downdraft (glaciation of precipitation, as in the
+ECMWF IFS).  Snow melts where the wet-bulb temperature, approximated as in
+\citet{Wilson_99}, is above 0°C, at the rate that relaxes the layer to 0°C in
+7.5~h, limited by the snow flux.
+
 The implementation in RegCM uses the ECMWF revision of the Tiedtke scheme
 described in \citet{Tiedtke_89}, with the CAPE-based convective trigger and
 the mixed-layer parcel perturbation formulation that couples the scheme to the
