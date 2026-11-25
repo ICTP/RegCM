@@ -566,6 +566,12 @@ module mod_pbl_gfs
       do i = 1, im
         if ( scuflg(i) .and. kcld(i) == km1 ) scuflg(i) = .false.
       end do
+      ! A cloud top only, not a level inside a deeper cloud
+      do i = 1, im
+        if ( scuflg(i) ) then
+          if ( qlx(i,kcld(i)+1) >= qlcr ) scuflg(i) = .false.
+        end if
+      end do
       do i = 1, im
         flg(i) = scuflg(i)
       end do
