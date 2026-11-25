@@ -1114,8 +1114,9 @@ module mod_pbl_holtbl
   !
   ! Turbulence driven by the longwave cooling at the top of a boundary
   ! layer cloud (Lock et al., 2000, MWR), as in the GFS boundary layer
-  ! (mod_pbl_gfs): in the lowest cloud layer below zstblmax (condensate
-  ! at least qlcr) the level of strongest radiative cooling of
+  ! (mod_pbl_gfs): in a cloud layer (condensate at least qlcr) with its
+  ! top below zstblmax and clear air above, the level of strongest
+  ! radiative cooling of
   ! potential temperature, radmin (K m/s, the heating times the layer
   ! depth), is the cloud top. A parcel cooled for cldtime there sinks
   ! through the depth zd where it is colder (liquid water virtual
@@ -1204,6 +1205,8 @@ module mod_pbl_holtbl
         end if
       end do
       if ( kcld < 2 .or. kcld >= kz ) cycle
+      ! A cloud top only, not a level inside a deeper cloud
+      if ( sccw(j,i,kcld-1) >= qlcr ) cycle
       radmin = d_zero
       krad = 0
       kbot = kcld

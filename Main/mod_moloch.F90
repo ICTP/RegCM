@@ -92,6 +92,8 @@ module mod_moloch
 
   real(rkx), pointer, contiguous, dimension(:,:,:) :: ten0 => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:) :: qen0 => null( )
+  ! Spectral nudging temperature increment per second, held between calls
+  real(rkx), pointer, contiguous, dimension(:,:,:) :: tnudge => null( )
   real(rkx), pointer, contiguous, dimension(:,:,:,:) :: chiten0 => null( )
 
   real(rkx), dimension(:), pointer, contiguous :: gzitak => null( )
@@ -194,6 +196,7 @@ module mod_moloch
 
   subroutine allocate_moloch
     implicit none
+    integer(ik4) :: i, j, k
     lrotllr = (iproj == 'ROTLLR')
     call getmem(gzitak,1,kzp1,'moloch:gzitak')
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
@@ -226,6 +229,12 @@ module mod_moloch
     if ( idiag > 0 ) then
       call getmem(ten0,jci1,jci2,ici1,ici2,1,kz,'moloch:ten0')
       call getmem(qen0,jci1,jci2,ici1,ici2,1,kz,'moloch:qen0')
+      if ( mo_spectral_nudge ) then
+        call getmem(tnudge,jci1,jci2,ici1,ici2,1,kz,'moloch:tnudge')
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          tnudge(j,i,k) = d_zero
+        end do
+      end if
     end if
     if ( ichem == 1 ) then
       if ( ichdiag > 0 ) then
@@ -572,6 +581,14 @@ module mod_moloch
       call morelax_chiten(trac)
     end if
 
+    if ( idiag > 0 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        tdiag%bdy(j,i,k) = (t(j,i,k) - ten0(j,i,k)) * rdt
+        qdiag%bdy(j,i,k) = (qv(j,i,k) - qen0(j,i,k)) * rdt
+        ten0(j,i,k) = t(j,i,k)
+      end do
+    end if
+
     if ( mo_spectral_nudge ) then
       ispnudge = ispnudge + 1
       if ( ispnudge >= int(dtrad/dtsec,ik4) ) then
@@ -579,14 +596,22 @@ module mod_moloch
         call mospectral_nudge(jce1,jce2,ice1,ice2,jci1,jci2,ici1,ici2,t,xtb)
         call mospectral_nudge(jde1,jde2,ice1,ice2,jdi1,jdi2,ici1,ici2,u,dub)
         call mospectral_nudge(jce1,jce2,ide1,ide2,jci1,jci2,idi1,idi2,v,dvb)
+        !
+        ! The nudging acts once every dtrad: the diagnostic spreads the
+        ! increment over the interval, so that any output step sees the
+        ! mean nudging tendency.
+        !
+        if ( idiag > 0 ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+            tnudge(j,i,k) = (t(j,i,k) - ten0(j,i,k)) / dtrad
+          end do
+        end if
       end if
-    end if
-
-    if ( idiag > 0 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        tdiag%bdy(j,i,k) = (t(j,i,k) - ten0(j,i,k)) * rdt
-        qdiag%bdy(j,i,k) = (qv(j,i,k) - qen0(j,i,k)) * rdt
-      end do
+      if ( idiag > 0 ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          tdiag%bdy(j,i,k) = tdiag%bdy(j,i,k) + tnudge(j,i,k)
+        end do
+      end if
     end if
     if ( ichem == 1 .and. ichdiag > 0 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
