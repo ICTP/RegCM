@@ -78,7 +78,7 @@ module mod_bdycod
   public :: sponge, nudge, morelax, setup_bdycon, raydamp
   public :: mospectral_nudge, motopnudge
   public :: is_present_qc, is_present_qi
-  public :: setup_bdymask, setup_bdywt
+  public :: setup_bdymask
 
   !
   ! West U External  = WUE
@@ -4183,22 +4183,6 @@ module mod_bdycod
       end if
     end do
   end subroutine setup_bdymask
-
-  subroutine setup_bdywt(j1,j2,i1,i2,wt,ba)
-    implicit none
-    integer(ik4), intent(in) :: j1, j2, i1, i2
-    real(rkx), pointer, contiguous, intent(inout), dimension(:,:,:) :: wt
-    type(bound_area), intent(in) :: ba
-    integer(ik4) :: i, j, k, ib
-    do concurrent ( j = j1:j2, i = i1:i2, k = 1:kz )
-      ib = ba%ibnd(j,i)
-      if ( ib > 0 ) then
-        wt(j,i,k) = 1.0_rkx - hefc(ib,k)
-      else
-        wt(j,i,k) = 1.0_rkx
-      end if
-    end do
-  end subroutine setup_bdywt
 
   subroutine motopnudge(t,u,v,w,wfac,dta)
     implicit none

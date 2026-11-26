@@ -54,7 +54,7 @@ module mod_moloch
   use mod_pbl_interface, only : pblscheme, tkemin
   use mod_micro_interface, only : cldfrac, microscheme
   use mod_bdycod, only : bdyval, is_present_qc, is_present_qi, morelax, &
-    mospectral_nudge, motopnudge, setup_bdywt
+    mospectral_nudge, motopnudge
   use mod_slice, only : mkslice
   use mod_sun, only : zenitm
   use mod_massck, only : massck
@@ -101,9 +101,6 @@ module mod_moloch
   real(rkx), dimension(:), pointer, contiguous :: xkdamp => null( )
   real(rkx), dimension(:), pointer, contiguous :: xknu => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: laplacian => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtu => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtv => null( )
-  real(rkx), dimension(:,:,:), pointer, contiguous :: bdywtw => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlat => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: xlon => null( )
   real(rkx), dimension(:,:), pointer, contiguous :: coru => null( )
@@ -202,9 +199,6 @@ module mod_moloch
     call getmem(gzitakh,1,kz,'moloch:gzitakh')
     call getmem(fmzd,jce1,jce2,ice1,ice2,1,kzp1,'moloch:fmzd')
     call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
-    call getmem(bdywtu,jdi1,jdi2,ici1,ici2,1,kz,'moloch:bdywtu')
-    call getmem(bdywtv,jci1,jci2,idi1,idi2,1,kz,'moloch:bdywtv')
-    call getmem(bdywtw,jci1,jci2,ici1,ici2,1,kz,'moloch:bdywtw')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
     call getmem(tetavf,jce1,jce2,ice1,ice2,2,kz,'moloch:tetavf')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
@@ -373,9 +367,6 @@ module mod_moloch
       xknu(k) = min(4.0_rkx/ds,numax)  * (0.55_rkx + 0.45_rkx * &
         (real(kz-k+1,rkx)-1.0_rkx)/(real(kz,rkx)-1.0_rkx))
     end do
-    call setup_bdywt(jdi1,jdi2,ici1,ici2,bdywtu,ba_ud)
-    call setup_bdywt(jci1,jci2,idi1,idi2,bdywtv,ba_vd)
-    call setup_bdywt(jci1,jci2,ici1,ici2,bdywtw,ba_cr)
     do_divdamp = mo_divdamp
     do_divfilter = mo_divfilter
     do_apply_bdy = ( do_bdy .and. moloch_realcase .and. irceideal == 0 )
@@ -705,7 +696,7 @@ module mod_moloch
       end if
 
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        zdiv2(j,i,k) = zdiv2(j,i,k) + bdywtw(j,i,k) * dtrdz * fmz(j,i,k) * &
+        zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
                   (s(j,i,k) - s(j,i,k+1))
       end do
 
@@ -762,9 +753,9 @@ module mod_moloch
         zcor1u = coru(j,i) * dts * 0.25_rkx * &
                  (vd(j-1,i,k) + vd(j,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
         ! Equation 17
-        u(j,i,k) = u(j,i,k) + bdywtu(j,i,k) * ( zcor1u - &
+        u(j,i,k) = u(j,i,k) + zcor1u - &
                    zfz * hx(j,i) * gzitakh(k) - &
-                   zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k)))
+                   zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         zcy = dtrdy * myv(j,i)
@@ -774,9 +765,9 @@ module mod_moloch
         zcor1v = corv(j,i) * dts * 0.25_rkx * &
                  (ud(j,i-1,k) + ud(j+1,i-1,k) + ud(j,i,k) + ud(j+1,i,k))
         ! Equation 18
-        v(j,i,k) = v(j,i,k) + bdywtv(j,i,k) * (-zcor1v - &
+        v(j,i,k) = v(j,i,k) - zcor1v - &
                    zfz * hy(j,i) * gzitakh(k) - &
-                   zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k)))
+                   zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
       end do
 
     end do ! sound loop
