@@ -87,10 +87,26 @@ module mod_cu_interface
   contains
 
   subroutine allocate_cumulus
-    use mod_atm_interface, only : mddom
+    implicit none
+    call getmem(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
+    if ( any(icup == 4) .or. any(icup == 5) ) then
+      if ( idynamic /= 3 ) then
+        call getmem(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'cu_interface:utend')
+        call getmem(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'cu_interface:vtend')
+        call getmem(utenx,jci1,jci2,ici1,ici2,1,kz,'cu_interface:utenx')
+        call getmem(vtenx,jci1,jci2,ici1,ici2,1,kz,'cu_interface:vtenx')
+      end if
+    end if
+  end subroutine allocate_cumulus
+
+  subroutine init_cumulus
+    use mod_atm_interface, only : aten, atm1, atm2, atms, ccn, cldfra, &
+      cldlwc, convpr, crrate, heatrt, icumbot, icumtop, ktrop, mddom, mo_atm, &
+      pptc, q_detr, qdot, rain_cc, sfs, sptc, zpbl
     implicit none
     integer(ik4) :: i, j
-    call getmem(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
+    ! Scheme of each point, from the land categories of the domain: the
+    ! schemes allocate the space for their own points only
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       if ( isocean(mddom%lndcat(j,i)) ) then
         cuscheme(j,i) = icup_ocn
@@ -100,14 +116,6 @@ module mod_cu_interface
     end do
     if ( any(icup == 2) ) then
       call allocate_mod_cu_grell
-    end if
-    if ( any(icup == 4) .or. any(icup == 5) ) then
-      if ( idynamic /= 3 ) then
-        call getmem(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'cu_interface:utend')
-        call getmem(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'cu_interface:vtend')
-        call getmem(utenx,jci1,jci2,ici1,ici2,1,kz,'cu_interface:utenx')
-        call getmem(vtenx,jci1,jci2,ici1,ici2,1,kz,'cu_interface:vtenx')
-      end if
     end if
     if ( any(icup == 4) ) then
       call allocate_mod_cu_em
@@ -119,13 +127,6 @@ module mod_cu_interface
       call allocate_mod_cu_kf
       call kf_lutab
     end if
-  end subroutine allocate_cumulus
-
-  subroutine init_cumulus
-    use mod_atm_interface, only : aten, atm1, atm2, atms, ccn, cldfra, &
-      cldlwc, convpr, crrate, heatrt, icumbot, icumtop, ktrop, mddom, mo_atm, &
-      pptc, q_detr, qdot, rain_cc, sfs, sptc, zpbl
-    implicit none
     ! INPUT
     call assignpnt(mddom%ht,m2c%ht)
     call assignpnt(mddom%ldmsk,m2c%ldmsk)
