@@ -26,8 +26,9 @@ module mod_moloch
     mo_spectral_nudge, mo_top_nudge, mo_ztop, myid, ntr
   use mod_constants, only : cpd, cpovr, d_half, d_one, d_r100, d_two, d_zero, &
     degrad, egrav, eomeg2, ep1, ep2, govcp, govr, lrate, p00, rdrcv, rgas, &
-    rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhs, wlhv
-  use mod_runparams, only : alarm_out_rad, declin, dtrad, dtsec, dx, ffilt, &
+    rovcp, rtice, rtwat, rtwat_rtice_r, rwat, tzero, wlhs, wlhv
+  use mod_runparams, only : alarm_day, alarm_out_rad, declin, dtrad, dtsec, &
+    dx, ffilt, &
     ibltyp, ichcumtra, ichdiag, ichem, icldfrac, iclimaaer, iclimao3, icup, &
     idiag, ipptls, iqc, iqfrst, iqi, iqr, iqs, iqv, irceideal, islab_ocean, &
     mo_dzita, moloch_do_test_1, moloch_do_test_2, nqx, qxcheckval, qxzeroval, &
@@ -57,7 +58,6 @@ module mod_moloch
     mospectral_nudge, motopnudge
   use mod_slice, only : mkslice
   use mod_sun, only : zenitm
-  use mod_massck, only : massck
   use mod_zita, only : gzita
 
   implicit none
@@ -122,6 +122,24 @@ module mod_moloch
   real(rkx), dimension(:,:,:), pointer, contiguous :: pai => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tetav => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: tvirt => null( )
+  ! Total density p/(R Tv): continuity in flux form in the sound waves,
+  ! the Exner function follows from the equation of state
+  real(rkx), dimension(:,:,:), pointer, contiguous :: dens => null( )
+  real(rkx), dimension(:,:,:), pointer, contiguous :: densf => null( )
+  logical :: dens_ready = .false.
+  !
+  ! Mass budget of the internal points (debug_level > 0), kg summed over
+  ! the day: changes by the sound waves, the advection, the lateral
+  ! boundary relaxation and nudging, the physics, and the mass entering
+  ! through the outer faces in the sound waves
+  !
+  real(rk8) :: mb_snd = 0.0_rk8
+  real(rk8) :: mb_adv = 0.0_rk8
+  real(rk8) :: mb_bdy = 0.0_rk8
+  real(rk8) :: mb_phy = 0.0_rk8
+  real(rk8) :: mb_flx = 0.0_rk8
+  real(rk8) :: mb_area = 0.0_rk8
+  real(rk8) :: mb_mass = 0.0_rk8
   real(rkx), dimension(:,:,:), pointer, contiguous :: z => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: u => null( )
   real(rkx), dimension(:,:,:), pointer, contiguous :: v => null( )
@@ -200,6 +218,8 @@ module mod_moloch
     call getmem(fmzd,jce1,jce2,ice1,ice2,1,kzp1,'moloch:fmzd')
     call getmem(laplacian,jci1,jci2,ici1,ici2,1,kz,'moloch:laplacian')
     call getmem(wwkw,jce1,jce2,ice1,ice2,2,kzp1,'moloch:wwkw')
+    call getmem(dens,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:dens')
+    call getmem(densf,jci1,jci2,ici1,ici2,1,kzp1,'moloch:densf')
     call getmem(tetavf,jce1,jce2,ice1,ice2,2,kz,'moloch:tetavf')
     call getmem(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
     call getmem(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
@@ -380,6 +400,7 @@ module mod_moloch
     !@acc use nvtx
     implicit none
     real(rkx) :: maxps, minps, pmax, pmin
+    real(rk8) :: mbm
     integer(ik4) :: i, j, k, n
     integer(ik4) :: iconvec
 #ifdef DEBUG
@@ -390,6 +411,15 @@ module mod_moloch
     !@acc call nvtxStartRange("moloch")
 
     iconvec = 0
+
+    if ( .not. dens_ready ) then
+      ! Density of the initial (or restart) state
+      call temp_to_tvirt( )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        dens(j,i,k) = p00*pai(j,i,k)**cpovr/(rgas*tvirt(j,i,k))
+      end do
+      dens_ready = .true.
+    end if
 
     call reset_tendencies
 
@@ -406,7 +436,9 @@ module mod_moloch
     ! Update variables : t, pai, tvirt, tetav, ux, vx, qx
     !
     if ( do_apply_bdy ) then
+      if ( debug_level > 0 ) mbm = moloch_mass( )
       call boundary
+      if ( debug_level > 0 ) mb_bdy = mb_bdy + (moloch_mass( ) - mbm)
     end if
 
     !
@@ -451,7 +483,9 @@ module mod_moloch
     ! Status variables : t, p, ux, vx, qx
     ! Recomputes       : pai, tetav, ud, vd, qx, qs
     !
+    if ( debug_level > 0 ) mbm = moloch_mass( )
     call status_update(dtsec)
+    if ( debug_level > 0 ) mb_phy = mb_phy + (moloch_mass( ) - mbm)
 
     !
     ! ===========================
@@ -460,7 +494,7 @@ module mod_moloch
     !
     ! Mass check
     !
-    if ( debug_level > 0 ) call massck
+    if ( debug_level > 0 ) call moloch_massck
     !
 #ifdef DEBUG
     do k = 1, kz
@@ -614,12 +648,30 @@ module mod_moloch
 
     call temp_to_tvirt( )
 
+    ! Relaxation zone and boundary ring: density of the relaxed state.
+    ! Elsewhere the nudging acts at constant density (volume).
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+      if ( is_relaxed(j,i) ) then
+        dens(j,i,k) = p00*pai(j,i,k)**cpovr/(rgas*tvirt(j,i,k))
+      else
+        pai(j,i,k) = (rgas*dens(j,i,k)*tvirt(j,i,k)/p00)**rovcp
+      end if
       tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
     end do
 
     !@acc call nvtxEndRange
   end subroutine boundary
+
+  pure logical function is_relaxed(j,i)
+!$acc routine seq
+    implicit none
+    integer(ik4), intent(in) :: j, i
+    is_relaxed = ( ba_cr%ibnd(j,i) > 0 ) .or. &
+      ( ma%has_bdyleft .and. j == jce1 ) .or. &
+      ( ma%has_bdyright .and. j == jce2 ) .or. &
+      ( ma%has_bdybottom .and. i == ice1 ) .or. &
+      ( ma%has_bdytop .and. i == ice2 )
+  end function is_relaxed
 
   subroutine sound(dts)
     !@acc use nvtx
@@ -628,7 +680,7 @@ module mod_moloch
     integer(ik4) :: i, j, k, nsound
     real(rkx) :: dtrdx, dtrdy, dtrdz, zcs2
     real(rkx) :: zum, zup, zvm, zvp, zuh, zvh
-    real(rkx) :: zrom1w, zwexpl, zu, zd, zrapp
+    real(rkx) :: zrom1w, zwexpl, zu, zd, zrapp, zca, zcb, zb
     real(rkx) :: zcx, zcy, zfz
     real(rkx) :: zrom1u, zcor1u, zrom1v, zcor1v
 
@@ -639,6 +691,7 @@ module mod_moloch
     zcs2 = dtrdz**2*rdrcv
 
     call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange_lrbt(dens,1,jce1,jce2,ice1,ice2,1,kz)
 
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
       tetavf(j,i,k) = 0.5_rkx * (tetav(j,i,k-1)+tetav(j,i,k))
@@ -677,16 +730,25 @@ module mod_moloch
         s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
       end do
 
-      ! Part of divergence (except w contribution) put in zdiv2
-      ! Equation 16
+      ! Part of the mass divergence (except w contribution), divided by
+      ! the density, put in zdiv2 (Equation 16 in flux form)
 
       do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        zum = dtrdx * u(j,i,k)   * rfmzu(j,i,k)   * rmyu(j,i)
-        zup = dtrdx * u(j+1,i,k) * rfmzu(j+1,i,k) * rmyu(j+1,i)
-        zvm = dtrdy * v(j,i,k)   * rfmzv(j,i,k)   * rmxv(j,i)
-        zvp = dtrdy * v(j,i+1,k) * rfmzv(j,i+1,k) * rmxv(j,i+1)
-        zdiv2(j,i,k) = fmz(j,i,k) * mxt2(j,i) * ((zup-zum) + (zvp-zvm))
+        ! face densities; the outer faces of the boundary ring take
+        ! the density of the ring
+        zum = dtrdx * u(j,i,k)   * rfmzu(j,i,k)   * rmyu(j,i) * &
+              d_half * (dens(max(j-1,jce1ga),i,k) + dens(j,i,k))
+        zup = dtrdx * u(j+1,i,k) * rfmzu(j+1,i,k) * rmyu(j+1,i) * &
+              d_half * (dens(j,i,k) + dens(min(j+1,jce2ga),i,k))
+        zvm = dtrdy * v(j,i,k)   * rfmzv(j,i,k)   * rmxv(j,i) * &
+              d_half * (dens(j,max(i-1,ice1ga),k) + dens(j,i,k))
+        zvp = dtrdy * v(j,i+1,k) * rfmzv(j,i+1,k) * rmxv(j,i+1) * &
+              d_half * (dens(j,i,k) + dens(j,min(i+1,ice2ga),k))
+        zdiv2(j,i,k) = fmz(j,i,k) * mxt2(j,i) * &
+              ((zup-zum) + (zvp-zvm)) / dens(j,i,k)
       end do
+
+      if ( debug_level > 0 ) call moloch_bdyflux(dts)
 
       if ( do_divdamp ) then
         call divergence_damping(dts)
@@ -695,9 +757,20 @@ module mod_moloch
         call divergence_diffusion
       end if
 
+      ! density at the interfaces (zero mass flux at top and bottom)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+        if ( k == 1 ) then
+          densf(j,i,k) = dens(j,i,1)
+        else if ( k == kzp1 ) then
+          densf(j,i,k) = dens(j,i,kz)
+        else
+          densf(j,i,k) = d_half * (dens(j,i,k-1) + dens(j,i,k))
+        end if
+      end do
+
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
-                  (s(j,i,k) - s(j,i,k+1))
+          (densf(j,i,k)*s(j,i,k) - densf(j,i,k+1)*s(j,i,k+1)) / dens(j,i,k)
       end do
 
       ! new w (implicit scheme) from Equation 19
@@ -714,13 +787,16 @@ module mod_moloch
           zwexpl = zwexpl + rdrcv * zrom1w * dtrdz * &
                    (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
                     pai(j,i,k)   * zdiv2(j,i,k))
-          ! computation of the tridiagonal matrix coefficients
-          ! -zu*w(k+1) + (1+zu+zd)*w(k) - zd*w(k-1) = zwexpl
-          zu = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
-          zd = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
+          ! computation of the tridiagonal matrix coefficients for the
+          ! mass flux densf*w at the interfaces:
+          ! -zu*w(k-1) + zb*w(k) - zd*w(k+1) = zwexpl
+          zca = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1)/dens(j,i,k-1)
+          zcb = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)/dens(j,i,k)
+          zu = zca * densf(j,i,k-1) + ffilt(k)
+          zd = zcb * densf(j,i,k+1) + ffilt(k)
+          zb = d_one + (zca + zcb) * densf(j,i,k) + d_two * ffilt(k)
           ! 1st loop for the tridiagonal inversion
-          ! a = -zd ; b = (1+zu+zd) ; c = -zu
-          zrapp = d_one / (d_one + zd + zu - zd*wwkw(j,i,k+1))
+          zrapp = d_one / (zb - zd*wwkw(j,i,k+1))
           w(j,i,k) = zrapp * (zwexpl + zd * w(j,i,k+1))
           wwkw(j,i,k) = zrapp * zu
         end do
@@ -734,13 +810,17 @@ module mod_moloch
         end do
       end do
 
-      ! new Exner function (Equation 19)
+      ! new density (continuity in flux form) and Exner function from the
+      ! equation of state at constant virtual potential temperature
 
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv * &
-            (zdiv2(j,i,k) + (dtrdz * fmz(j,i,k) * (w(j,i,k) - w(j,i,k+1)))))
+        dens(j,i,k) = dens(j,i,k) * (d_one - zdiv2(j,i,k)) - &
+          dtrdz * fmz(j,i,k) * &
+          (densf(j,i,k)*w(j,i,k) - densf(j,i,k+1)*w(j,i,k+1))
+        pai(j,i,k) = (rgas*dens(j,i,k)*tetav(j,i,k)/p00)**rdrcv
       end do
 
+      call exchange_lrbt(dens,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
 
       ! horizontal momentum equations
@@ -789,13 +869,39 @@ module mod_moloch
     implicit none
     integer(ik4) :: j, i, k
 
-    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+    ! The diffusion acts on the mass change of the internal cells, with
+    ! zero gradient at the boundary ring: the mass is conserved
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      laplacian(j,i,k) = (zdiv2(j-1,i,k)+zdiv2(j+1,i,k) + &
-           zdiv2(j,i-1,k)+zdiv2(j,i+1,k) - 4.0_rkx*zdiv2(j,i,k))
+      p0(j,i,k) = zdiv2(j,i,k) * dens(j,i,k) / (fmz(j,i,k) * mxt2(j,i))
+    end do
+    call exchange_lrbt(p0,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( ma%has_bdyleft ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        p0(jci1-1,i,k) = p0(jci1,i,k)
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        p0(jci2+1,i,k) = p0(jci2,i,k)
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        p0(j,ici1-1,k) = p0(j,ici1,k)
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        p0(j,ici2+1,k) = p0(j,ici2,k)
+      end do
+    end if
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      laplacian(j,i,k) = (p0(j-1,i,k)+p0(j+1,i,k) + &
+           p0(j,i-1,k)+p0(j,i+1,k) - 4.0_rkx*p0(j,i,k))
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * laplacian(j,i,k)
+      zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * laplacian(j,i,k) * &
+        fmz(j,i,k) * mxt2(j,i) / dens(j,i,k)
     end do
   end subroutine divergence_diffusion
 
@@ -837,7 +943,11 @@ module mod_moloch
     end if
 
     call wafone(tetav,dta)
-    call wafone(pai,dta)
+    ! Exner function of the density and the advected virtual potential
+    ! temperature (equation of state)
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      pai(j,i,k) = (rgas*dens(j,i,k)*tetav(j,i,k)/p00)**rdrcv
+    end do
     call wafone(ux,dta)
     call wafone(vx,dta)
     call wafone(wx,dta)
@@ -1063,8 +1173,8 @@ module mod_moloch
              ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
     end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      zrfmw = dtrdx * fmz(j,i,k) * rfmzu(j,i,k) * rmyu(j+1,i)
-      zrfme = dtrdx * fmz(j,i,k) * rfmzu(j+1,i,k) * rmyu(j,i)
+      zrfmw = dtrdx * fmz(j,i,k) * rfmzu(j,i,k) * rmyu(j,i)
+      zrfme = dtrdx * fmz(j,i,k) * rfmzu(j+1,i,k) * rmyu(j+1,i)
       zdv = (u(j+1,i,k)*zrfme - u(j,i,k)*zrfmw) * pp(j,i,k)
       pp(j,i,k) = p0(j,i,k) + &
           mxt2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
@@ -1118,6 +1228,7 @@ module mod_moloch
     implicit none
     real(rkx), intent(in) :: dta, dts
     integer(ik4) :: i, j, k, n, nadv
+    real(rk8) :: mbm, mbm1
     !@acc call nvtxStartRange("dynamical_core")
 
     if ( idiag > 0 ) then
@@ -1138,9 +1249,15 @@ module mod_moloch
     !
     do nadv = 1, mo_nadv
 
+      if ( debug_level > 0 ) mbm = moloch_mass( )
       call sound(dts)
+      if ( debug_level > 0 ) then
+        mbm1 = moloch_mass( )
+        mb_snd = mb_snd + (mbm1 - mbm)
+      end if
 
       call advection(dta)
+      if ( debug_level > 0 ) mb_adv = mb_adv + (moloch_mass( ) - mbm1)
 
     end do ! Advection loop
 
@@ -1449,6 +1566,13 @@ module mod_moloch
 
     call temp_to_tvirt( )
 
+    ! The physics acts at constant density (volume): Exner function from
+    ! the equation of state
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      pai(j,i,k) = (rgas*dens(j,i,k)*tvirt(j,i,k)/p00)**rovcp
+      p(j,i,k) = (pai(j,i,k)**cpovr) * p00
+    end do
+
 #ifdef STDPAR_FIXED
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
 #else
@@ -1596,6 +1720,125 @@ module mod_moloch
     end if
     !@acc call nvtxEndRange
   end subroutine uvstagtouvx
+
+  !
+  ! Mass (kg) of the internal points: the density in the cell volume of
+  ! the mass divergence of the sound waves (Equation 16)
+  !
+  real(rk8) function moloch_mass( ) result(gm)
+    implicit none
+    integer(ik4) :: i, j, k
+    real(rk8) :: lm, la
+    lm = 0.0_rk8
+#ifdef STDPAR
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) reduce(+:lm)
+#else
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+#endif
+      lm = lm + real(dens(j,i,k) * dx*dx/mxt2(j,i) * &
+        mo_dzita/fmz(j,i,k),rk8)
+    end do
+    call sumall(lm,gm)
+    if ( mb_area < 1.0_rk8 ) then
+      la = 0.0_rk8
+#ifdef STDPAR
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) reduce(+:la)
+#else
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+#endif
+        la = la + real(dx*dx/mxt2(j,i),rk8)
+      end do
+      call sumall(la,mb_area)
+    end if
+  end function moloch_mass
+  !
+  ! Mass (kg) entering the internal points through their outer faces in
+  ! one sound step, with the face fluxes of the divergence (Equation 16)
+  !
+  subroutine moloch_bdyflux(dts)
+    implicit none
+    real(rkx), intent(in) :: dts
+    integer(ik4) :: i, j, k
+    real(rk8) :: lf, gf
+    lf = 0.0_rk8
+    if ( ma%has_bdyleft ) then
+#ifdef STDPAR
+      do concurrent ( i = ici1:ici2, k = 1:kz ) reduce(+:lf)
+#else
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+#endif
+        lf = lf + real(d_half * &
+          (dens(jci1-1,i,k) + dens(jci1,i,k)) * &
+          u(jci1,i,k)*dx*rmyu(jci1,i)*mo_dzita*rfmzu(jci1,i,k)*dts,rk8)
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+#ifdef STDPAR
+      do concurrent ( i = ici1:ici2, k = 1:kz ) reduce(+:lf)
+#else
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+#endif
+        lf = lf - real(d_half * &
+          (dens(jci2,i,k) + dens(jci2+1,i,k)) * &
+          u(jci2+1,i,k)*dx*rmyu(jci2+1,i)*mo_dzita*rfmzu(jci2+1,i,k)*dts,rk8)
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+#ifdef STDPAR
+      do concurrent ( j = jci1:jci2, k = 1:kz ) reduce(+:lf)
+#else
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+#endif
+        lf = lf + real(d_half * &
+          (dens(j,ici1-1,k) + dens(j,ici1,k)) * &
+          v(j,ici1,k)*dx*rmxv(j,ici1)*mo_dzita*rfmzv(j,ici1,k)*dts,rk8)
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+#ifdef STDPAR
+      do concurrent ( j = jci1:jci2, k = 1:kz ) reduce(+:lf)
+#else
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+#endif
+        lf = lf - real(d_half * &
+          (dens(j,ici2,k) + dens(j,ici2+1,k)) * &
+          v(j,ici2+1,k)*dx*rmxv(j,ici2+1)*mo_dzita*rfmzv(j,ici2+1,k)*dts,rk8)
+      end do
+    end if
+    call sumall(lf,gf)
+    mb_flx = mb_flx + gf
+  end subroutine moloch_bdyflux
+  !
+  ! Daily report of the mass budget as mean surface pressure (hPa/day)
+  !
+  subroutine moloch_massck
+    implicit none
+    real(rk8) :: gm, c
+    if ( alarm_day%act( ) .or. rcmtimer%next_is_endtime ) then
+      gm = moloch_mass( )
+      if ( myid == italk .and. .not. rcmtimer%start( ) ) then
+        c = real(egrav,rk8)/mb_area/100.0_rk8
+        write(stdout,'(a,a)') &
+          ' MOLOCH MASS BUDGET (hPa/day) to ', trim(rcmtimer%str( ))
+        write(stdout,'(a,f10.4)') '   mass (hPa)          = ', gm*c
+        write(stdout,'(a,f10.4)') '   change              = ', &
+          (gm-mb_mass)*c
+        write(stdout,'(a,f10.4)') '   sound waves         = ', mb_snd*c
+        write(stdout,'(a,f10.4)') '   advection           = ', mb_adv*c
+        write(stdout,'(a,f10.4)') '   boundary inflow     = ', mb_flx*c
+        write(stdout,'(a,f10.4)') '   dynamics - inflow   = ', &
+          (mb_snd+mb_adv-mb_flx)*c
+        write(stdout,'(a,f10.4)') '   boundary relaxation = ', mb_bdy*c
+        write(stdout,'(a,f10.4)') '   physics             = ', mb_phy*c
+      end if
+      mb_mass = gm
+      mb_snd = 0.0_rk8
+      mb_adv = 0.0_rk8
+      mb_bdy = 0.0_rk8
+      mb_phy = 0.0_rk8
+      mb_flx = 0.0_rk8
+    end if
+  end subroutine moloch_massck
 
   subroutine extrapolate_surface_pressure( )
     implicit none

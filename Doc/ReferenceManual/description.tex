@@ -804,134 +804,205 @@ which allows for the generalized vertical velocity to be expressed as:
                      v \frac{\partial h}{\partial y} \right) G \right]
 \end{equation}
 
-The model uses as prognostic variables the Exner function
-$\Pi$ and the virtual potential temperature $\Theta_v$ defined as:
+The model uses as prognostic variables the total air density $\rho$
+(dry air and water vapour), the virtual potential temperature $\Theta_v$,
+the three wind components and the water species. The Exner function $\Pi$
+is diagnosed from the equation of state $P = \rho R_d T_v$:
 
 \begin{eqnarray}
   \Pi &=& \left(\frac{P}{P_0}\right)^{\frac{R_d}{c_{p_d}}} \\
   \Theta_v &=& \frac{T_v}{\Pi} \\
-  T_v &\approx& T \left( 1 + e q_v \right)
+  T_v &=& T \left( 1 + e q_v - q_c - q_i - q_r - q_s \right) \\
+  \label{molochbase_eos}
+  \Pi &=& \left(\frac{R_d \rho \Theta_v}{P_0}\right)^{\frac{R_d}{c_{v_d}}}
 \end{eqnarray}
 
-where $P_0$ is a reference pressure, $C_{p_d}$ is the specific heat of dry
-air at constant pressure and $T_v$ is the virtual temperature with $M_v$ and
-$e$ is $M_d/M_v - 1$ with $M_d,M_v$ the effective molecular weights of dry air
-and water.
+where $P_0$ is a reference pressure, $c_{p_d}$ and $c_{v_d}$ are the specific
+heats of dry air at constant pressure and volume, $e$ is $M_d/M_v - 1$ with
+$M_d,M_v$ the effective molecular weights of dry air and water, and $q_x$ are
+the mixing ratios of water vapour and of the condensates (the condensate
+loading is present only with a microphysics scheme).
 
-The model basic equations are thus:
+The model basic equations are:
 
 \begin{eqnarray}
   \label{molochbase_1}
-  \frac{du}{dt} &=& m c_{p_d}\Theta_v \frac{\partial \Pi}{\partial x}
-                 -  m G(\zeta) \frac{\partial h}{\partial x}
-                 \left(g + \frac{dw}{dt}\right) + fv + K_u \\
+  \frac{du}{dt} &=& - m c_{p_d}\Theta_v \frac{\partial \Pi}{\partial x}
+                 -  m G(\zeta) \frac{\partial h}{\partial x} g + fv + K_u \\
   \label{molochbase_2}
-  \frac{dv}{dt} &=& m c_{p_d}\Theta_v \frac{\partial \Pi}{\partial y}
-                 - m G(\zeta) \frac{\partial h}{\partial y}
-                 \left(g + \frac{dw}{dt}\right) - fu + K_v \\
+  \frac{dv}{dt} &=& - m c_{p_d}\Theta_v \frac{\partial \Pi}{\partial y}
+                 - m G(\zeta) \frac{\partial h}{\partial y} g - fu + K_v \\
   \label{molochbase_3}
-  \frac{dw}{dt} &=& - F_z c_{p_d}\Theta_v \frac{\partial \Pi}{\partial z}
+  \frac{dw}{dt} &=& - F_z c_{p_d}\Theta_v \frac{\partial \Pi}{\partial \zeta}
                  - g + K_w \\
   \label{molochbase_4}
-  \frac{d\Theta_{v}}{dt} &\approx& K_{\Theta_v} \\
+  \frac{d\Theta_{v}}{dt} &=& K_{\Theta_v} \\
   \label{molochbase_5}
-  \frac{d\Pi}{dt} &\approx& -\Pi \frac{R_d}{c_{v_d}} \bm{\nabla} \vv{\bm{V}}
+  \frac{\partial \rho}{\partial t} &=& - \bm{\nabla} \cdot (\rho \vv{\bm{V}})
 \end{eqnarray}
 
-Equations \ref{molochbase_1}-\ref{molochbase_5} are a very good approximation
-of the exact solution [\cite{Emanuel_94}]. The terms $K_x$ denote the physical
-parametrization contributions and $fv,-fu$ are the Coriolis terms. The
-velocity divergence is expressed in flux form as:
+with $\Pi$ given by equation \ref{molochbase_eos}. The terms $K_x$ denote the
+physical parametrization contributions and $fv,-fu$ are the Coriolis terms.
+The continuity equation \ref{molochbase_5} is in flux form, so that the mass
+of the domain changes only through its lateral boundaries. The mass divergence
+is:
 
 \begin{equation}
   \label{total_divergence}
-  \bm{\nabla} \vv{\bm{V}} = F_z \left\{ m^2 \left[
-    \frac{\partial{ \left(\frac{u}{m F_z} \right)}}{\partial x} +
-    \frac{\partial{ \left(\frac{v}{m F_z} \right)}}{\partial y} \right] +
-  \frac{\partial{ \left(\frac{s}{F_z} \right)}}{\partial \zeta} \right\}
+  \bm{\nabla} \cdot (\rho \vv{\bm{V}}) = F_z \left\{ m^2 \left[
+    \frac{\partial{ \left(\frac{\rho u}{m F_z} \right)}}{\partial x} +
+    \frac{\partial{ \left(\frac{\rho v}{m F_z} \right)}}{\partial y} \right] +
+  \frac{\partial{ \left(\frac{\rho s}{F_z} \right)}}{\partial \zeta} \right\}
 \end{equation}
 
 Horizontal and vertical derivatives are computed with second order, centred
-finite differences on the grid points. The time scheme is split into three
+finite differences on the grid points; the density at the faces of a cell is
+the mean of the two cells sharing the face (the outer faces of the boundary
+ring take the density of the ring). The time scheme is split into three
 steps:
 
 \begin{itemize}
-  \item Integrate the vertical propagation of sound waves from
-    equations \ref{molochbase_3}-\ref{molochbase_5} with an implicit
-    Euler-backward scheme with timestep $dt_s$ with vertical
-    velocity and pressure taken at the new timelevel $n+1$ but using
-    horizontal wind component at timelevel $n$ to compute the new vertical
-    velocity inverting a tri-diagonal linear system (see
-    \ref{implicitscheme}).
-  \item Compute advection terms using a second order total variation 
-    diminishing implementation of the \cite{Godunov_59} method
-    described in \cite{hubbard2003three} with timestep $dt_a$
+  \item Integrate the propagation of sound waves, equations
+    \ref{molochbase_1}-\ref{molochbase_3} and \ref{molochbase_5}, with
+    timestep $\Delta t_s$: the vertical velocity, the density and the Exner
+    function are implicit (Euler-backward) in the vertical (see
+    \ref{implicitscheme}), the horizontal mass divergence is explicit and
+    the horizontal winds are updated forward with the new Exner function.
+    $\Theta_v$ is kept constant during the sound waves, except for the
+    vertical advection of its value at the interfaces used in the buoyancy
+    term, $\overline{\Theta_v} \leftarrow \overline{\Theta_v} -
+    w F_{z_f} \Delta t_s (\Theta_{v(k-1)} - \Theta_{v(k)}) / \Delta \zeta$.
+  \item Compute advection of $\Theta_v$, of the wind components, of the
+    water species and of the tracers with a second order total variation
+    diminishing implementation of the \cite{Godunov_59} method described in
+    \cite{hubbard2003three}, in advective form, with timestep $\Delta t_a$.
+    The scheme is split in the three directions (vertical, meridional,
+    zonal), and the vertical step is done twice with half the timestep.
+    The transport of the density is part of the flux form continuity in
+    the sound waves, so after the advection $\Pi$ is computed from the
+    density and the advected $\Theta_v$ with equation \ref{molochbase_eos}.
+    The curvature terms of the wind are added here.
   \item Compute physical parametrization contribution to the new state
-    using the user defined large timestep $dt_p$
+    using the user defined large timestep $\Delta t$. The physics changes
+    $T$, the water species and the winds at constant density (volume): the
+    new $\Pi$ follows from the equation of state with the new $T_v$,
+    $\Pi = (R_d \rho T_v / P_0)^{R_d/c_{p_d}}$, and $\Theta_v = T_v/\Pi$.
 \end{itemize}
 
-The user defines the ratios $dt_p/dt_a$ and $dt_a/dt_s$ to
-control the relative frequencies of the solution steps. The vertical
-acceleration is set to zero at the surface.
+The user defines the ratios $\Delta t/\Delta t_a$ (\texttt{mo\_nadv}) and
+$\Delta t_a/\Delta t_s$ (\texttt{mo\_nsound}) to control the relative
+frequencies of the solution steps. The vertical velocity is zero at the top,
+and at the surface it follows the terrain,
+$w = u\,\partial h/\partial x + v\,\partial h/\partial y$, so that the
+generalized vertical velocity $s$ and the mass flux are zero at both ends.
 
-No diffusion is required, and numerical stability is accomplished by
-applying a second order spatial filter of the divergence of the
-horizontal wind (first two RHS terms in equation \ref{total_divergence}).
+No explicit diffusion of the prognostic variables is applied. Numerical
+stability is obtained with two filters of the horizontal divergence in the
+sound waves:
+
+\begin{itemize}
+  \item a divergence damping of the horizontal winds (\texttt{mo\_divdamp}),
+    $u \leftarrow u + \frac{\Delta x}{\Delta t_s} \kappa_d(k)\, m\,
+    (D_{(j)} - D_{(j-1)})$ and similarly for $v$, where $D$ is the
+    horizontal mass divergence over the density in one sound step and
+    $\kappa_d(k) = \nu_{max}\,\delta\,(1/(k+1) - 1/(kz+2))$, with
+    $\nu_{max} = 0.125$ and $\delta = 0.85$;
+  \item a diffusion of the mass change of each cell, $\rho D / (F_z m^2)$,
+    with a five point Laplacian and coefficient
+    $\kappa_f(k) = \min(4/\Delta x, \nu_{max})\,(0.55 + 0.45\,(kz-k)/(kz-1))$
+    ($\Delta x$ in km, \texttt{mo\_divfilter}). The diffusion has zero
+    gradient at the boundary ring, so it does not change the mass of the
+    domain.
+\end{itemize}
 
 \subsubsection{Implicit scheme for the vertical velocity}
 \label{implicitscheme}
 
-The time and space discretization of equations
-\ref{molochbase_3}-\ref{molochbase_5} is at $w$ levels $k$:
+The time and space discretization of equations \ref{molochbase_3} and
+\ref{molochbase_5} is, for the vertical velocity at the interface $k$ between
+the levels $k-1$ and $k$ (level 1 at the top):
 
 \begin{eqnarray}
   \label{impli1}
-  w^{(n+1)}_{(k)} &=& w^{(n)}_{(k)} - F_{z_f(k)}c_{p_d}\overline{\Theta_v}^{(n)}
-      \frac{\Pi^{(n+1)}_{(k)} - \Pi^{(n+1)}_{(k+1)}}{\Delta z} \Delta t_{s} -
-      g \Delta t_{s} \\
+  w^{(n+1)}_{(k)} &=& w^{(n)}_{(k)} - F_{z_d(k)}c_{p_d}\overline{\Theta_v}
+      \frac{\Pi^{(n+1)}_{(k-1)} - \Pi^{(n+1)}_{(k)}}{\Delta \zeta}
+      \Delta t_{s} - g \Delta t_{s} \\
   \label{impli2}
-  \Pi^{(n+1)}_{(k)} &=& \Pi^{(n)}_{(k)} - \Delta t_{s}  \Pi^{(n)}_{(k)}
-      \frac{R_d}{c_{v_d}} \left[ \frac{F_{z (k)}}{\Delta \zeta} \left(
-      w^{(n+1)}_{(k)} - w^{(n+1)}_{(k+1)} \right) + DIV^{(n)}_{(k)} \right]
+  \rho^{(n+1)}_{(k)} &=& \rho^{(n)}_{(k)} \left( 1 - D^{(n)}_{(k)} \right) -
+      \frac{F_{z (k)} \Delta t_{s}}{\Delta \zeta} \left(
+      \rho_{f(k)} w^{(n+1)}_{(k)} - \rho_{f(k+1)} w^{(n+1)}_{(k+1)} \right)
 \end{eqnarray}
 
-where the average is performed from the above and below half levels for
-$\overline{\Theta_v}$ and $DIV^{(n)}_{(k)}$ is the part of wind divergence
-computed at timelevel $n$, $F_{z_f(k)}$ and $F_{z (k)}$ are computed at full
-($w$) and half $\zeta$ levels.
+where $\overline{\Theta_v}$ is the mean of the two levels (advected as
+described above), $\rho_{f(k)}$ is the mean density of the two levels at the
+interface, $D^{(n)}_{(k)}$ is the horizontal and terrain-following part of
+the mass divergence of equation \ref{total_divergence}, divided by the density
+and multiplied by $\Delta t_s$, $F_{z(k)}$ is computed at the levels and
+$F_{z_d(k)} = \Delta\zeta/(z_{(k-1)} - z_{(k)})$ uses the distance between
+the levels. With $\Theta_v$ constant, the linearization of equation
+\ref{molochbase_eos} gives
 
-By substituting \ref{impli2} into \ref{impli1} we obtain a tri-diagonal linear
-system we must solve to compute the vertical velocity at the new time level:
+\begin{equation}
+  \label{impli3}
+  \Pi^{(n+1)}_{(k)} = \Pi^{(n)}_{(k)} \left[ 1 - \frac{R_d}{c_{v_d}} \left(
+      D^{(n)}_{(k)} + \frac{F_{z (k)} \Delta t_{s}}{\Delta \zeta}
+      \frac{\rho_{f(k)} w^{(n+1)}_{(k)} - \rho_{f(k+1)} w^{(n+1)}_{(k+1)}}
+      {\rho^{(n)}_{(k)}} \right) \right]
+\end{equation}
+
+By substituting \ref{impli3} into \ref{impli1} we obtain a tri-diagonal linear
+system for the vertical velocity at the new time level:
 
 \begin{eqnarray}
-  -Z_p w^{(n+1)}_{(k+1)} + (1 + Z_p + Z_m) w^{(n+1)}_{(k)} -
-   Z_m w^{(n+1)}_{(k-1)} = RHS \\
-   RHS = w^{(n+1)}_{(Ek)} + F_{z_f(k)}c_{p_d}
-     \frac{R_d}{c_{v_d}} \overline{\Theta_v}^{(n)}
-     \frac{\Delta t_{s}^2}{\Delta \zeta} \left(
-     \Pi^{(n)}_{(k-1)}DIV^{(n)}_{(k-1)} - \Pi^{(n)}_{(k)}DIV^{(n)}_{(k)}
+  -Z_m w^{(n+1)}_{(k-1)} + Z_b w^{(n+1)}_{(k)} -
+   Z_p w^{(n+1)}_{(k+1)} = RHS \\
+   RHS = w^{(n+1)}_{(Ek)} + \frac{R_d}{c_{v_d}} F_{z_d(k)}c_{p_d}
+     \overline{\Theta_v} \frac{\Delta t_{s}}{\Delta \zeta} \left(
+     \Pi^{(n)}_{(k-1)}D^{(n)}_{(k-1)} - \Pi^{(n)}_{(k)}D^{(n)}_{(k)}
      \right)
 \end{eqnarray}
 
 where
 
 \begin{equation}
-  w^{(n+1)}_{(Ek)} = w^{(n)}_{(k)} - F_{z_f(k)}c_{p_d} \overline{\Theta_v}^{(n)}
+  w^{(n+1)}_{(Ek)} = w^{(n)}_{(k)} - F_{z_d(k)}c_{p_d} \overline{\Theta_v}
       \frac{\Pi^{(n)}_{(k-1)} - \Pi^{(n)}_{(k)}}{\Delta \zeta} \Delta t_{s} -
       g \Delta t_{s}
 \end{equation}
 
-denotes the explicit velocity at the new timelevel. The off-diagonal terms
-$Z_p$ and $Z_m$ are:
+denotes the explicit velocity at the new time level. With
+$A_{(k)} = \frac{R_d}{c_{v_d}} c_{p_d} \overline{\Theta_v} F_{z_d(k)}
+(\Delta t_s/\Delta \zeta)^2$, the coefficients are:
 
 \begin{eqnarray}
-  Z_p &=& \Pi^{(n)}_{(k)} F_{z (k)} F_{z_f(k)} \frac{R_d}{c_{v_d}} c_{p_d}
-    \overline{\Theta_v}^{(n)} \left(\frac{\Delta t_{s}}
-     {\Delta \zeta}\right)^2 \\
-  Z_m &=& \Pi^{(n)}_{(k-1)} F_{z (k-1)} F_{z_f(k)} \frac{R_d}{c_{v_d}} c_{p_d}
-    \overline{\Theta_v}^{(n)} \left(\frac{\Delta t_{s}}
-     {\Delta \zeta}\right)^2
+  Z_m &=& A_{(k)} \frac{F_{z(k-1)} \Pi^{(n)}_{(k-1)}}{\rho^{(n)}_{(k-1)}}
+    \rho_{f(k-1)} + \phi_{(k)} \\
+  Z_p &=& A_{(k)} \frac{F_{z(k)} \Pi^{(n)}_{(k)}}{\rho^{(n)}_{(k)}}
+    \rho_{f(k+1)} + \phi_{(k)} \\
+  Z_b &=& 1 + A_{(k)} \rho_{f(k)} \left(
+    \frac{F_{z(k-1)} \Pi^{(n)}_{(k-1)}}{\rho^{(n)}_{(k-1)}} +
+    \frac{F_{z(k)} \Pi^{(n)}_{(k)}}{\rho^{(n)}_{(k)}} \right) + 2\phi_{(k)}
 \end{eqnarray}
+
+$\phi_{(k)}$ is a vertical diffusion of $w$ in the upper layers, a sponge
+that is zero below 18~km and grows as
+$\phi = 0.8\,\sin^2\left[\frac{\pi}{2}\,(\bar{z}_{(k)} - 18\,km)/
+(z_{top} - 18\,km)\right]$ above it, with $\bar{z}_{(k)}$ the domain mean
+height of the level. After the system is solved, the density is updated with
+equation \ref{impli2}, and the Exner function is computed from the new density
+with equation \ref{molochbase_eos}, so that mass and pressure stay consistent
+at every sound step.
+
+\subsubsection{Mass budget}
+
+With \texttt{debug\_level} $> 0$ the model reports every day (and at the end
+of the run) the mass of the internal points and its changes, as mean surface
+pressure (hPa/day): by the sound waves, by the advection, by the lateral
+boundary relaxation and nudging and by the physics, together with the mass
+entering through the outer faces of the internal points in the sound waves.
+The difference between the change by the dynamics (sound waves and
+advection) and the inflow measures the conservation of mass of the
+dynamical core, zero up to round off errors.
 
 \section{Physics parametrizations} \label{sec:physics}
 
@@ -2816,17 +2887,22 @@ edge of the sponge zone is smooth in both value and gradient:
 \subsubsection{MOLOCH height-coordinate core (\texttt{idynamic}=3)}
 
 In the MOLOCH core the lateral boundary treatment is applied directly
-to the status variables. Precomputed weight arrays are constructed at
-initialisation, and at each timestep the boundary-relaxation increment
-is added to the status variable tendencies:
+to the status variables after the dynamics of each timestep. The outer ring
+of grid points takes the driving values, interpolated in time between two
+boundary times. In the relaxation zone of \texttt{nspgx} points the status
+variables are relaxed toward the driving values:
 \begin{equation}
-  \frac{\partial C}{\partial t}\bigg|_\mathrm{bdy} =
-    w_\mathrm{bdy}(k) \left[C_\mathrm{driving} - C\right],
+  C \leftarrow \left[1 - \alpha(n,k)\right] C + \alpha(n,k)\,C_\mathrm{driving},
 \end{equation}
-Wind, Temperature, Exner function, water vapour and condensates if available
-are set on the boundary rows using exponential temporal interpolation nudging,
-analogous to \texttt{iboudy=5} for the other cores but without the diffusive
-term.
+where $n$ is the distance from the boundary and the weights $\alpha(n,k)$ are
+precomputed at initialisation, decaying exponentially from 1 on the ring to 0
+at the inner edge of the zone. Wind, temperature, Exner function, water
+vapour and condensates if available are relaxed, and the vertical velocity is
+relaxed toward zero. The density of the ring and of the relaxation zone is then
+computed from the relaxed state, $\rho = P/(R_d T_v)$: the boundary relaxation
+changes the mass of the domain, as the driving model does. In the rest of the
+domain the nudging described below changes the temperature at constant
+density, and the Exner function follows from the equation of state.
 
 An optional Lehmann optimal-coefficient variant \citep{Vannitsem_05} can be
 activated via \texttt{bdy\_use\_lehmann}, which computes the coefficients
